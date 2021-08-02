@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from linea.dataflow.data_types import Node, DirectedEdge, SessionContext
+from linea.data.types import Node, DirectedEdge, SessionContext
 from linea.db.asset_manager.base import DataAssetManager
 
 
@@ -32,3 +32,5 @@ class LineaDBWriter(ABC):
         ...
 
 
+class LineaDB(LineaDBReader, LineaDBWriter, ABC):
+    pass

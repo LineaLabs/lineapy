@@ -1,5 +1,4 @@
-from linea import Node
-from linea.dataflow.data_types import NodeValue
+from linea.data.types import NodeValue, Node
 from linea.db.asset_manager.base import DataAssetManager
 
 

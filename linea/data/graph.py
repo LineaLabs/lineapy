@@ -1,6 +1,6 @@
 from typing import List
 
-from linea.dataflow.data_types import Node, DirectedEdge
+from linea.data.types import Node, DirectedEdge
 
 
 class Graph(object):

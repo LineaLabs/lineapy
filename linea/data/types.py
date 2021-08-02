@@ -16,6 +16,12 @@ class HardwareSpec(BaseModel):
     pass
 
 
+class Library(BaseModel):
+    name: str
+    version: str
+    path: str
+
+
 class SessionContext(BaseModel):
     uuid: uuid.UUID  # populated on creation by uuid.uuid4()
     session_name: str  # obtained from name in with tracking(session_name=...):
@@ -24,6 +30,7 @@ class SessionContext(BaseModel):
     file_name: Optional[str] = None
     user_name: Optional[str] = None
     hardware_spec: Optional[HardwareSpec] = None
+    libraries: List[Library] = None
 
 
 class NodeContext(BaseModel):
@@ -59,9 +66,8 @@ class Node(BaseModel):
 
 class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
-    library_name: str
+    library: Library
     alias: Optional[str] = None
-    version: Optional[str] = None
 
 
 class ArgumentNode(Node):
