@@ -1,4 +1,6 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+
+from linea.data.graph import Graph
 
 
 class GraphReader(ABC):
@@ -8,4 +10,7 @@ class GraphReader(ABC):
 
     TODO
     """
-    pass
+
+    @abstractmethod
+    def walk(self, graph: Graph):
+        pass

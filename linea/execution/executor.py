@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
+from linea.data.graph import Graph
 from linea.data.types import SessionContext
 from linea.db.asset_manager.base import DataAssetManager
-from linea.db.base import LineaDB
 from linea.graph_reader.base import GraphReader
 
 
@@ -11,11 +11,6 @@ class Executor(ABC, GraphReader):
     @property
     @abstractmethod
     def context(self) -> SessionContext:
-        pass
-
-    @property
-    @abstractmethod
-    def lineadb(self) -> LineaDB:
         pass
 
     @property
@@ -35,7 +30,7 @@ class Executor(ABC, GraphReader):
         pass
 
     @abstractmethod
-    def run(self, program: str) -> None:
+    def walk(self, program: Graph) -> None:
         # TODO: new type for `program`?
         pass
 

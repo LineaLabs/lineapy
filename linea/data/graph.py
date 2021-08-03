@@ -4,6 +4,9 @@ from linea.data.types import Node, DirectedEdge
 
 
 class Graph(object):
+    """
+    TODO: example program
+    """
 
     def __init__(self, nodes: List[Node], edges: List[DirectedEdge]):
         self._nodes: List[Node] = nodes
