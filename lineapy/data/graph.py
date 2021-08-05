@@ -1,11 +1,12 @@
 from typing import List
 
-from linea.data.types import Node, DirectedEdge
+from lineapy.data.types import Node, DirectedEdge
 
 
 class Graph(object):
     """
-    TODO: example program
+    TODO:
+    - implement the getters by wrapping around networkx (see https://github.com/LineaLabs/backend-take-home/blob/main/dag.py for simple reference)
     """
 
     def __init__(self, nodes: List[Node], edges: List[DirectedEdge]):
@@ -27,3 +28,17 @@ class Graph(object):
     def get_descendants(self, node: Node) -> List[Node]:
         # TODO
         ...
+
+    def print(self):
+        # TODO: improve printing (cc @dhruv)
+        for n in self._nodes:
+            print(n)
+        for e in self._edges:
+            print(e)
+            
+
+    def __str__(self):
+        self.print()
+
+    def __repr__(self):
+        self.print()

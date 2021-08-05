@@ -1,7 +1,7 @@
-import uuid
+from uuid import UUID
 from datetime import datetime
 from enum import Enum
-from typing import Any, Tuple, Optional, List, NewType
+from typing import Any, Tuple, Optional, List, NewType, TypeVar
 
 from pydantic import BaseModel
 
@@ -23,14 +23,14 @@ class Library(BaseModel):
 
 
 class SessionContext(BaseModel):
-    uuid: uuid.UUID  # populated on creation by uuid.uuid4()
+    uuid: UUID  # populated on creation by uuid.uuid4()
     session_name: str  # obtained from name in with tracking(session_name=...):
     environment_type: SessionType
     creation_time: datetime
     file_name: Optional[str] = None
     user_name: Optional[str] = None
     hardware_spec: Optional[HardwareSpec] = None
-    libraries: List[Library] = None
+    libraries: Optional[List[Library]] = None
 
 
 class NodeContext(BaseModel):
@@ -40,8 +40,10 @@ class NodeContext(BaseModel):
     cell_id: Optional[str] = None  # only applicable to Jupyter sessions
 
 
-NodeValue = NewType('NodeValue', Optional[Any])
-
+# NodeValue = TypeVar("NodeValue")
+# NodeValue = NewType('NodeValue', Optional[Any])
+NodeValue = Any
+# Yifan note: something weird here about optional and NewType... https://github.com/python/mypy/issues/4580; tried to use TypeVar but also kinda weird. Seems hairy https://stackoverflow.com/questions/59360567/define-a-custom-type-that-behaves-like-typing-any
 
 class NodeType(Enum):
     Node = 1
@@ -56,11 +58,11 @@ class NodeType(Enum):
 
 class Node(BaseModel):
     name: str
-    uuid: uuid.UUID  # populated on creation by uuid.uuid4()
+    uuid: UUID  # populated on creation by uuid.uuid4()
+    session_id: UUID  # refers to SessionContext.uuid
     code: str
-    session_id: uuid.UUID  # refers to SessionContext.uuid
     node_type: NodeType = NodeType.Node
-    value: NodeValue = None  # raw value of the node
+    value: Optional[NodeValue] = None  # raw value of the node
     context: Optional[NodeContext] = None
 
 
@@ -102,5 +104,5 @@ class WithNode(Node):
 
 
 class DirectedEdge(BaseModel):
-    source_node_id: uuid.UUID  # refers to Node.uuid
-    sink_node_id: uuid.UUID  # refers to Node.uuid
+    source_node_id: UUID  # refers to Node.uuid
+    sink_node_id: UUID  # refers to Node.uuid

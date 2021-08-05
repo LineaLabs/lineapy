@@ -1,4 +1,4 @@
-from linea.graph_reader.base import GraphReader
+from lineapy.graph_reader.base import GraphReader
 
 
 class ProgramSliceGraphReader(GraphReader):

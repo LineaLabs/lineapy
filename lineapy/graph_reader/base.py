@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from linea.data.graph import Graph
+from lineapy.data.graph import Graph
 
 
 class GraphReader(ABC):

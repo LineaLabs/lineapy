@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
 
-from linea.data.graph import Graph
-from linea.data.types import SessionContext
-from linea.db.asset_manager.base import DataAssetManager
-from linea.graph_reader.base import GraphReader
+from lineapy.data.graph import Graph
+from lineapy.data.types import SessionContext
+from lineapy.db.asset_manager.base import DataAssetManager
+from lineapy.graph_reader.base import GraphReader
 
 
-class Executor(ABC, GraphReader):
-
+class Executor(GraphReader):
     @property
     @abstractmethod
     def context(self) -> SessionContext:
+        """ """
         pass
 
     @property
@@ -21,9 +21,10 @@ class Executor(ABC, GraphReader):
     @abstractmethod
     def setup(self) -> None:
         """
-        TODO set up the environment based on some config (e.g., `SessionContext`)
+        TODO
+        - install libraries based on `SessionContext`
         Examples of setup tasks:
-            - install libraries
+            -
             - start Airflow executor
             - set up Spark cluster.
         """
@@ -33,5 +34,6 @@ class Executor(ABC, GraphReader):
     def walk(self, program: Graph) -> None:
         # TODO: new type for `program`?
         pass
+
 
 # TODO: implement Executor based on Airflow
