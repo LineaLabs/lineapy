@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionContext
@@ -34,6 +34,5 @@ class Executor(GraphReader):
     def walk(self, program: Graph) -> None:
         # TODO: new type for `program`?
         pass
-
 
 # TODO: implement Executor based on Airflow
