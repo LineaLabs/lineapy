@@ -9,7 +9,11 @@ class Graph(object):
     - implement the getters by wrapping around networkx (see https://github.com/LineaLabs/backend-take-home/blob/main/dag.py for simple reference)
     """
 
-    def __init__(self, nodes: List[Node], edges: List[DirectedEdge]):
+    def __init__(self, nodes: List[Node], edges: List[DirectedEdge] = None):
+        """
+        Note:
+        - edges could be none for very simple programs
+        """
         self._nodes: List[Node] = nodes
         self._edges: List[DirectedEdge] = edges
 
@@ -35,7 +39,6 @@ class Graph(object):
             print(n)
         for e in self._edges:
             print(e)
-            
 
     def __str__(self):
         self.print()
