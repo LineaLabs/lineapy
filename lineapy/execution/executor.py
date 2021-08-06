@@ -17,12 +17,7 @@ class Executor(GraphReader):
     @abstractmethod
     def setup(self, context: SessionContext) -> None:
         """
-        Sets up the execution environment
-        TODO
-        - install libraries based on `SessionContext`
-        Examples of future setup tasks (out of scope for the current iteration)
-            - start Airflow executor
-            - set up Spark cluster.
+        TODO set up the execution environment based on `context`
         """
         pass
 
