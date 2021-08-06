@@ -1,8 +1,8 @@
 from lineapy.data.graph import Graph
-from ..util import get_new_id
+from tests.util import get_new_id
 from lineapy.data.types import ArgumentNode, CallNode, DirectedEdge
 
-from .simple_graph import line_1, line_1_id, session, arg_literal
+from simple_graph import line_1, line_1_id, session, arg_literal
 
 """
 ```
@@ -14,14 +14,15 @@ print(b)
 
 arg_a_id = get_new_id()
 
-arg_a = ArgumentNode(id=arg_a_id, positional_order=1, value_call_id=line_1_id)
+arg_a = ArgumentNode(id=arg_a_id, session_id=session.uuid, code="a", positional_order=1, value_call_id=line_1_id)
 
-arg_10 = ArgumentNode(id=arg_a_id, positional_order=2, value_literal=10)
+arg_10 = ArgumentNode(id=arg_a_id, session_id=session.uuid, code="10", positional_order=2, value_literal=10)
 
 line_2_id = get_new_id()
 line_2 = CallNode(
     id=line_2_id,
-    session_id=session,
+    session_id=session.uuid,
+    code="min(%s, %s)" % (arg_a.code, arg_10.code),
     function_name="min",
     assigned_variable_name="b",
     arguments=[],

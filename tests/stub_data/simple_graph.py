@@ -7,7 +7,7 @@ from lineapy.data.types import (
     SessionContext,
     SessionType,
 )
-from ..util import get_new_id
+from tests.util import get_new_id
 
 """
 The simple graph represents the execution of the following:
@@ -30,13 +30,14 @@ session = SessionContext(
 
 arg_literal_id = get_new_id()
 
-arg_literal = ArgumentNode(id=arg_literal_id, positional_order=1, value_literal=-1)
+arg_literal = ArgumentNode(id=arg_literal_id, session_id=session.uuid, code="-1", positional_order=1, value_literal=-1)
 
 line_1_id = get_new_id()
 
 line_1 = CallNode(
     id=line_1_id,
-    session_id=session,
+    session_id=session.uuid,
+    code="abs(-1)",
     function_name="abs",
     assigned_variable_name="a",
     arguments=[arg_literal],
