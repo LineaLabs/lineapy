@@ -2,7 +2,9 @@ from lineapy.execution.executor import Executor
 import unittest
 
 from tests.stub_data.simple_graph import simple_graph
-from tests.stub_data.print_graph import print_graph
+from tests.stub_data.simple_with_variable_argument_and_print import (
+    simple_with_variable_argument_and_print,
+)
 
 
 class TestBasicExecutor(unittest.TestCase):
@@ -18,7 +20,7 @@ class TestBasicExecutor(unittest.TestCase):
 
     def graph_with_print(self):
         e = Executor()
-        e.walk(print_graph)
+        e.walk(simple_with_variable_argument_and_print)
         stdout = e.get_stdout()
         assert stdout == "1"
         pass

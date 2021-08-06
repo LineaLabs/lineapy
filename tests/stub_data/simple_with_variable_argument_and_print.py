@@ -29,4 +29,6 @@ line_2 = CallNode(
 
 e2 = DirectedEdge(source_node_id=line_1_id, sink_node_id=line_2_id)
 
-simple_with_argument_graph = Graph([line_1, arg_literal, arg_a, arg_10, line_2], [e2])
+simple_with_variable_argument_and_print = Graph(
+    [line_1, arg_literal, arg_a, arg_10, line_2], [e2]
+)
