@@ -1,0 +1,4 @@
+altair
+pandas
+seaborn
+sklearn

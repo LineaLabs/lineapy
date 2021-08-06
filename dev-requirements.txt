@@ -1,0 +1,5 @@
+pip
+mypy
+black
+pep8
+pylint

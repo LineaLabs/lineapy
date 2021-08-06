@@ -1,5 +1,5 @@
-from linea.dataflow import records_pool
-from linea.dataflow.data_types import Node, DirectedEdge
+from lineapy.data import records_pool
+from lineapy.data.types import Node, DirectedEdge
 
 
 def assign() -> None:
