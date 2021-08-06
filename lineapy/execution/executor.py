@@ -7,11 +7,6 @@ from lineapy.graph_reader.base import GraphReader
 
 
 class Executor(GraphReader):
-    @property
-    @abstractmethod
-    def context(self) -> SessionContext:
-        """ """
-        pass
 
     @property
     @abstractmethod
@@ -19,20 +14,12 @@ class Executor(GraphReader):
         pass
 
     @abstractmethod
-    def setup(self) -> None:
+    def setup(self, context: SessionContext) -> None:
         """
-        TODO
-        - install libraries based on `SessionContext`
-        Examples of setup tasks:
-            -
-            - start Airflow executor
-            - set up Spark cluster.
+        TODO set up the execution environment based on `context`
         """
         pass
 
     @abstractmethod
     def walk(self, program: Graph) -> None:
-        # TODO: new type for `program`?
         pass
-
-# TODO: implement Executor based on Airflow
