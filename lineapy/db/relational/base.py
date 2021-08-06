@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import List, Any
 
-from linea import DirectedEdge, Node
-from linea.dataflow.data_types import SessionContext
-from linea.db.asset_manager.base import DataAssetManager
-from linea.db.base import LineaDBReader, LineaDBWriter
+from lineapy.data import DirectedEdge, Node
+from lineapy.data.types import SessionContext
+from lineapy.db.asset_manager.base import DataAssetManager
+from lineapy.db.base import LineaDBReader, LineaDBWriter
 
 
 class RelationalLineaDB(LineaDBReader, LineaDBWriter, ABC):

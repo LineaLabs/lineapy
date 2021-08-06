@@ -1,5 +1,5 @@
-from linea.data.types import NodeValue, Node
-from linea.db.asset_manager.base import DataAssetManager
+from lineapy.data.types import NodeValue, Node
+from lineapy.db.asset_manager.base import DataAssetManager
 
 
 class LocalDataAssetManager(DataAssetManager):

@@ -1,3 +1,4 @@
+from lineapy import Graph
 from lineapy.graph_reader.base import GraphReader
 
 
@@ -5,4 +6,6 @@ class ProgramSliceGraphReader(GraphReader):
     """
     TODO
     """
-    pass
+
+    def walk(self, graph: Graph):
+        pass

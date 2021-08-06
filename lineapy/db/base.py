@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from linea.data.types import Node, DirectedEdge, SessionContext
-from linea.db.asset_manager.base import DataAssetManager
+from lineapy.data.types import Node, DirectedEdge, SessionContext
+from lineapy.db.asset_manager.base import DataAssetManager
 
 
 class LineaDBReader(ABC):
@@ -32,5 +32,5 @@ class LineaDBWriter(ABC):
         ...
 
 
-class LineaDB(LineaDBReader, LineaDBWriter, ABC):
+class LineaDB(LineaDBReader, LineaDBWriter):
     pass

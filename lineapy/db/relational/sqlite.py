@@ -1,6 +1,6 @@
 from typing import Any
 
-from linea.db.relational.base import RelationalLineaDB
+from lineapy.db.relational.base import RelationalLineaDB
 
 
 class SQLiteLineaDB(RelationalLineaDB):

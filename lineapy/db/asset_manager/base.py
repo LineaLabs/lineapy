@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from linea.data.types import Node, NodeValue
+from lineapy.data.types import Node, NodeValue
 
 
 class DataAssetManager(ABC):
