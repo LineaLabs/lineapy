@@ -16,14 +16,12 @@ class TestBasicExecutor(unittest.TestCase):
         a = e.get_value_by_varable_name("a")
         assert a == 1
         # this should
-        pass
 
     def graph_with_print(self):
         e = Executor()
         e.walk(simple_with_variable_argument_and_print)
         stdout = e.get_stdout()
         assert stdout == "1"
-        pass
 
     def basic_import(self):
         """

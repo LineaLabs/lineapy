@@ -1,14 +1,13 @@
 from datetime import datetime
-from typing import List
 
-from util import get_new_id
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
     SessionContext,
     SessionType,
 )
-from lineapy.data.graph import Graph
+from ..util import get_new_id
 
 """
 The simple graph represents the execution of the following:
@@ -22,14 +21,12 @@ Notes:
 - the UUIDs are kept constant so we can more easily reference the same values in a different file
 """
 
-
 session = SessionContext(
     uuid=get_new_id(),
     file_name="testing.py",
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.now(),
 )
-
 
 arg_literal_id = get_new_id()
 
@@ -44,6 +41,5 @@ line_1 = CallNode(
     assigned_variable_name="a",
     arguments=[arg_literal],
 )
-
 
 simple_graph = Graph([line_1, arg_literal])

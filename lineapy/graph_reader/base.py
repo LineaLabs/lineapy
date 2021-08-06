@@ -12,5 +12,5 @@ class GraphReader(ABC):
     """
 
     @abstractmethod
-    def walk(self, graph: Graph):
+    def walk(self, graph: Graph) -> None:
         pass
