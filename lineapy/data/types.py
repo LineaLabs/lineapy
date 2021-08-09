@@ -73,6 +73,7 @@ class Node(BaseModel):
 class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
     library: Library
+    attributes: Optional[List[Tuple[str, str]]] = None # first entry is attribute, second is alias
     alias: Optional[str] = None
 
 
