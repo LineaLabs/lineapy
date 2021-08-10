@@ -33,7 +33,6 @@ class Graph(object):
     def ids(self) -> Dict[LineaID, Node]:
         return self._ids
 
-    @property
     def visit_order(self) -> List[LineaID]:
         return list(nx.topological_sort(self.graph))
 
