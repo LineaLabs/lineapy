@@ -134,3 +134,6 @@ dmypy.json
 
 # Scratch space
 scratch/
+
+# Temp files
+*.tmp
