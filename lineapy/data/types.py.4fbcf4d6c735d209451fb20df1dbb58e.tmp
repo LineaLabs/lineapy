@@ -1,8 +1,7 @@
 from uuid import UUID
 from datetime import datetime
 from enum import Enum
-from typing import Any, Tuple, Optional, List, Dict
-from typing_extensions import TypedDict
+from typing import Any, Tuple, Optional, List, TypedDict
 
 from pydantic import BaseModel
 
@@ -74,9 +73,8 @@ class Node(BaseModel):
 class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
     library: Library
-    attributes: Optional[Dict] = None # key is alias, value is full name
+    attributes: Optional[List[TypedDict('Attribute', {'attribute': str, 'alias': str})]] = None # first entry is attribute, second is alias
     alias: Optional[str] = None
-    module: Any = None
 
 
 class ArgumentNode(Node):
@@ -92,7 +90,7 @@ class CallNode(Node):
     node_type: NodeType = NodeType.CallNode
     arguments: List[ArgumentNode]
     function_name: str
-    function_module: Optional[LineaID]
+    function_module: Optional[str]
     assigned_variable_name: Optional[str]
     value: Optional[NodeValue] = None  # value of the result
 

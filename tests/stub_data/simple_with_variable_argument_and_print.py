@@ -2,7 +2,7 @@ from lineapy.data.graph import Graph
 from tests.util import get_new_id
 from lineapy.data.types import ArgumentNode, CallNode, DirectedEdge
 
-from .simple_graph import line_1, line_1_id, session, arg_literal
+from tests.stub_data.simple_graph import line_1, line_1_id, session, arg_literal
 
 """
 ```

@@ -6,6 +6,7 @@ from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
 )
 from tests.stub_data.graph_with_import import graph_with_import
+from tests.stub_data.graph_with_pandas import graph_with_pandas
 from tests.stub_data.nested_call_graph import nested_call_graph
 
 
@@ -40,11 +41,13 @@ class TestBasicExecutor(unittest.TestCase):
         assert b == 5
 
     def pip_install_import(self):
-        # later
         """
         other libs, like pandas, or sckitlearn, need to be pip installed.
         """
-        pass
+        e = Executor()
+        e.walk(graph_with_pandas)
+        df = e.get_value_by_varable_name("df")
+        assert df is not None
 
     def program_with_mutations(self):
         """
@@ -58,8 +61,10 @@ class TestBasicExecutor(unittest.TestCase):
     def program_with_conditionals(self):
         pass
 
-tester = TestBasicExecutor()
-tester.simple_graph()
-tester.nested_call_graph()
-tester.graph_with_print()
-tester.basic_import()
+if __name__ == "__main__":
+    tester = TestBasicExecutor()
+    tester.simple_graph()
+    tester.nested_call_graph()
+    tester.graph_with_print()
+    tester.basic_import()
+    tester.pip_install_import()

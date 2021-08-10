@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 
 from lineapy.data.types import Node, NodeType, DirectedEdge, LineaID
 
@@ -10,14 +10,6 @@ class Graph(object):
     - implement the getters by wrapping around networkx (see https://github.com/LineaLabs/backend-take-home/blob/main/dag.py for simple reference)
     """
 
-    @property
-    def graph(self) -> nx.DiGraph:
-        return self._graph
-
-    @property
-    def ids(self) -> Dict:
-        return self._ids
-
     def __init__(self, nodes: List[Node], edges: List[DirectedEdge] = []):
         """
         Note:
@@ -26,27 +18,27 @@ class Graph(object):
         self._nodes: List[Node] = nodes
         self._ids = dict((n.id, n) for n in nodes)
         self._edges: List[DirectedEdge] = edges
-        self._graph = nx.DiGraph()
-        self._graph.add_nodes_from([node.id for node in nodes if node.node_type != NodeType.ArgumentNode])
-        self._graph.add_edges_from([(edge.source_node_id, edge.sink_node_id) for edge in edges])
+        self._call_tree = nx.DiGraph()
+        self._call_tree.add_nodes_from([node.id for node in nodes if node.node_type != NodeType.ArgumentNode])
+        self._call_tree.add_edges_from([(edge.source_node_id, edge.sink_node_id) for edge in edges])
         
     def get_parents(self, node: Node) -> List[Node]:
-        return list(self.graph.predecessors(node))
+        return list(self._call_tree.predecessors(node))
 
     def get_ancestors(self, node: Node) -> List[Node]:
-        return list(nx.ancestors(self.graph, node))
+        return list(nx.ancestors(self._call_tree, node))
 
     def get_children(self, node: Node) -> List[Node]:
-        return list(self.graph.successors(node))
+        return list(self._call_tree.successors(node))
 
     def get_descendants(self, node: Node) -> List[Node]:
-        return list(nx.descendants(self.graph, node))
+        return list(nx.descendants(self._call_tree, node))
 
     def get_node(self, id: LineaID) -> Node:
-        return self.ids[id]
+        return self._ids[id]
 
     def top_sort(self) -> List[Node]:
-        return list(nx.topological_sort(self.graph))
+        return list(nx.topological_sort(self._call_tree))
 
     def print(self):
         # TODO: improve printing (cc @dhruv)
@@ -60,3 +52,4 @@ class Graph(object):
 
     def __repr__(self):
         self.print()
+        

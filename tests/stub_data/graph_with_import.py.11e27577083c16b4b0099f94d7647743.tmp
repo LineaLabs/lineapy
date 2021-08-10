@@ -16,7 +16,7 @@ from tests.util import get_new_id
 """
 
 ```
-from math import pow, sqrt
+from math import pow as power, sqrt as root
 a = power(5, 2)
 b = root(a)
 ```
@@ -40,7 +40,7 @@ line_1 = ImportNode(
         version="1", 
         path=""
     ),
-    attributes={"power": "pow", "root": "sqrt"},
+    attributes=[{"attribute": "pow", "alias": "power"}, {"attribute": "sqrt", "alias": "root"}]
 )
 
 arg_literal_id_1 = get_new_id()
@@ -56,7 +56,6 @@ line_2 = CallNode(
     session_id=session.uuid,
     code="power(5, 2)",
     function_name="power",
-    function_module=line_1_id,
     assigned_variable_name="a",
     arguments=[arg_literal1, arg_literal2],
 )
@@ -73,7 +72,6 @@ line_3 = CallNode(
     session_id=session.uuid,
     code="root(a)",
     function_name="root",
-    function_module=line_1_id,
     assigned_variable_name="b",
     arguments=[arg_a],
 )
