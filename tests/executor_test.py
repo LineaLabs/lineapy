@@ -1,13 +1,13 @@
-from lineapy.execution.executor import Executor
 import unittest
 
+from lineapy.execution.executor import Executor
+from tests.stub_data.graph_with_import import graph_with_import
+from tests.stub_data.graph_with_pandas import graph_with_pandas
+from tests.stub_data.nested_call_graph import nested_call_graph
 from tests.stub_data.simple_graph import simple_graph
 from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
 )
-from tests.stub_data.graph_with_import import graph_with_import
-from tests.stub_data.graph_with_pandas import graph_with_pandas
-from tests.stub_data.nested_call_graph import nested_call_graph
 
 
 class TestBasicExecutor(unittest.TestCase):
@@ -16,13 +16,13 @@ class TestBasicExecutor(unittest.TestCase):
         # initialize the executor
         e = Executor()
         e.walk(simple_graph)
-        a = e.get_value_by_varable_name("a")
+        a = e.get_value_by_variable_name("a")
         assert a == 11
 
     def nested_call_graph(self):
         e = Executor()
         e.walk(nested_call_graph)
-        a = e.get_value_by_varable_name("a")
+        a = e.get_value_by_variable_name("a")
         assert a == 10
 
     def graph_with_print(self):
@@ -37,7 +37,7 @@ class TestBasicExecutor(unittest.TestCase):
         """
         e = Executor()
         e.walk(graph_with_import)
-        b = e.get_value_by_varable_name("b")
+        b = e.get_value_by_variable_name("b")
         assert b == 5
 
     def pip_install_import(self):
@@ -46,7 +46,7 @@ class TestBasicExecutor(unittest.TestCase):
         """
         e = Executor()
         e.walk(graph_with_pandas)
-        df = e.get_value_by_varable_name("df")
+        df = e.get_value_by_variable_name("df")
         assert df is not None
 
     def program_with_mutations(self):
@@ -60,6 +60,7 @@ class TestBasicExecutor(unittest.TestCase):
 
     def program_with_conditionals(self):
         pass
+
 
 if __name__ == "__main__":
     tester = TestBasicExecutor()

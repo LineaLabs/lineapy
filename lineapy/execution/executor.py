@@ -17,7 +17,7 @@ class Executor(GraphReader):
         self._variable_values = {}
 
         # Note: no output will be shown in Terminal because it is being redirected here
-        self._oldstdout = sys.stdout
+        self._old_stdout = sys.stdout
         self._stdout = io.StringIO()
 
     @property
@@ -43,7 +43,7 @@ class Executor(GraphReader):
         val = self._stdout.getvalue()
         return val
 
-    def get_value_by_varable_name(self, name: str) -> Any:
+    def get_value_by_variable_name(self, name: str) -> Any:
         return self._variable_values[name]
 
     def walk(self, program: Graph) -> None:
@@ -89,4 +89,4 @@ class Executor(GraphReader):
                     install(node.library.name)
                 node.module = importlib.import_module(node.library.name)
 
-        sys.stdout = self._oldstdout
+        sys.stdout = self._old_stdout

@@ -45,10 +45,10 @@ class Graph(object):
     def get_descendants(self, node: Node) -> List[Node]:
         return list(nx.descendants(self.graph, node))
 
-    def get_node(self, id: LineaID) -> Node:
-        return self.ids[id]
+    def get_node(self, node_id: LineaID) -> Node:
+        return self.ids[node_id]
 
-    def top_sort(self) -> List[Node]:
+    def top_sort(self) -> List[LineaID]:
         return list(nx.topological_sort(self.graph))
 
     def print(self):
