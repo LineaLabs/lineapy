@@ -1,5 +1,5 @@
 import builtins
-import importlib
+import importlib.util
 import io
 import subprocess
 import sys
@@ -85,7 +85,7 @@ class Executor(GraphReader):
                     self._variable_values[node.assigned_variable_name] = node.value
 
             elif node.node_type == NodeType.ImportNode:
-                if importlib.find_loader(node.library.name) is None:
+                if importlib.util.find_spec(node.library.name) is None:
                     install(node.library.name)
                 node.module = importlib.import_module(node.library.name)
 
