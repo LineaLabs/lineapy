@@ -47,7 +47,7 @@ line_1 = ImportNode(
 
 arg_literal_id = get_new_id()
 
-arg_file = "ames_train_cleaned.csv"
+arg_file = "./tests/ames_train_cleaned.csv"
 arg_literal = ArgumentNode(id=arg_literal_id, session_id=session.uuid, code="\'%s\'" % arg_file, positional_order=1, value_literal=arg_file)
 
 line_2_id = get_new_id()
