@@ -63,7 +63,7 @@ class Executor(GraphReader):
 
             return import_node.module
 
-        for node_id in program.top_sort():
+        for node_id in program.visit_order():
             node = program.get_node(node_id)
 
             if node.node_type == NodeType.CallNode:

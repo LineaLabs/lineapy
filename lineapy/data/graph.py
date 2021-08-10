@@ -11,14 +11,6 @@ class Graph(object):
     - implement the getters by wrapping around networkx (see https://github.com/LineaLabs/backend-take-home/blob/main/dag.py for simple reference)
     """
 
-    @property
-    def graph(self) -> nx.DiGraph:
-        return self._graph
-
-    @property
-    def ids(self) -> Dict[LineaID, Node]:
-        return self._ids
-
     def __init__(self, nodes: List[Node], edges=None):
         """
         Note:
@@ -32,6 +24,18 @@ class Graph(object):
         self._graph = nx.DiGraph()
         self._graph.add_nodes_from([node.id for node in nodes if node.node_type != NodeType.ArgumentNode])
         self._graph.add_edges_from([(edge.source_node_id, edge.sink_node_id) for edge in edges])
+
+    @property
+    def graph(self) -> nx.DiGraph:
+        return self._graph
+
+    @property
+    def ids(self) -> Dict[LineaID, Node]:
+        return self._ids
+
+    @property
+    def visit_order(self) -> List[LineaID]:
+        return list(nx.topological_sort(self.graph))
 
     def get_parents(self, node: Node) -> List[Node]:
         return list(self.graph.predecessors(node))
@@ -47,9 +51,6 @@ class Graph(object):
 
     def get_node(self, node_id: LineaID) -> Node:
         return self.ids[node_id]
-
-    def top_sort(self) -> List[LineaID]:
-        return list(nx.topological_sort(self.graph))
 
     def print(self):
         # TODO: improve printing (cc @dhruv)
