@@ -59,7 +59,7 @@ class Executor(GraphReader):
 
             import_node = program.get_node(call_node.function_module)
             if import_node.module is None:
-                import_node.module = importlib.import_module(path)
+                import_node.module = importlib.import_module(import_node.library.name)
 
             return import_node.module
 
