@@ -64,8 +64,8 @@ class TestBasicExecutor(unittest.TestCase):
 
 if __name__ == "__main__":
     tester = TestBasicExecutor()
-    tester.simple_graph()
-    tester.nested_call_graph()
-    tester.graph_with_print()
-    tester.basic_import()
-    tester.pip_install_import()
+    tester.test_simple_graph()
+    tester.test_nested_call_graph()
+    tester.test_graph_with_print()
+    tester.test_basic_import()
+    tester.test_pip_install_import()
