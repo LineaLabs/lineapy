@@ -1,5 +1,3 @@
-import unittest
-
 from lineapy.execution.executor import Executor
 from tests.stub_data.graph_with_import import graph_with_import
 from tests.stub_data.graph_with_pandas import graph_with_pandas
@@ -10,7 +8,7 @@ from tests.stub_data.simple_with_variable_argument_and_print import (
 )
 
 
-class TestBasicExecutor(unittest.TestCase):
+class TestBasicExecutor:
     # we should probably do a shared setup in the future
     def test_simple_graph(self):
         # initialize the executor
