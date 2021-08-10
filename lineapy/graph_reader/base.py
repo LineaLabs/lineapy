@@ -14,3 +14,12 @@ class GraphReader(ABC):
     @abstractmethod
     def walk(self, graph: Graph) -> None:
         pass
+
+    @abstractmethod
+    def validate(self, graph: Graph) -> None:
+        """
+        TODO
+        Things to check for:
+        - Loops are first entered and then exit.
+        """
+        pass

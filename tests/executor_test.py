@@ -2,6 +2,7 @@ from lineapy.execution.executor import Executor
 import unittest
 
 from tests.stub_data.simple_graph import simple_graph
+from tests.stub_data.graph_with_loops import graph_with_loops
 from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
 )
@@ -43,6 +44,10 @@ class TestBasicExecutor(unittest.TestCase):
         pass
 
     def program_with_loops(self):
+        e = Executor()
+        e.walk(graph_with_loops)
+        y = e.get_value_by_varable_name("y")
+        assert y == 72
         pass
 
     def program_with_conditionals(self):

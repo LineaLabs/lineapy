@@ -8,6 +8,15 @@ from pydantic import BaseModel
 # aliasing the ID type in case we chnage it later
 LineaID = UUID
 
+# TODO: not sure if this is the most intuitive name.
+class StateScope:
+    """
+    TODO
+    This captures the scope
+    """
+
+    pass
+
 
 class SessionType(Enum):
     JUPYTER = 1
@@ -55,11 +64,12 @@ class NodeType(Enum):
     Node = 1
     ArgumentNode = 2
     CallNode = 3
-    FunctionNode = 4
-    ConditionNode = 5
-    LoopNode = 6
-    WithNode = 7
-    ImportNode = 8
+    LiteralAssignNode = 4
+    FunctionNode = 5
+    ConditionNode = 6
+    LoopNode = 7
+    WithNode = 8
+    ImportNode = 9
 
 
 class Node(BaseModel):
@@ -80,7 +90,7 @@ class ArgumentNode(Node):
     node_type: NodeType = NodeType.ArgumentNode
     keyword: Optional[str]
     positional_order: Optional[int]
-    value_call_id: Optional[LineaID]
+    value_node_id: Optional[LineaID]
     value_literal: Optional[Any]
     value_pickled: Optional[str]
 
@@ -94,6 +104,12 @@ class CallNode(Node):
     value: Optional[NodeValue] = None  # value of the result
 
 
+class LiteralAssignNode(Node):
+    node_type: NodeType = NodeType.LiteralAssignNode
+    assigned_variable_name: str
+    value: Optional[NodeValue]  # gets filled at run time
+
+
 class FunctionDefinitionNode(Node):
     node_type: NodeType = NodeType.FunctionNode
     function_name: str
@@ -105,9 +121,32 @@ class ConditionNode(Node):
     # TODO
 
 
-class LoopNode(Node):
+class StateChangeNode(Node):
+    """
+    This type of node is to capture the state changes caused by "black boxes" such as loops.
+    Later code need to reference the NEW id now modified.
+    """
+
+    variable_name: str
+    pass
+
+
+class LoopEnterNode(Node):
+    """
+    We do not care about the intermeidate states, but rather just what state has changed. It's conceptually similar to representing loops in a more functional way (such as map and reduce).  We do this by treating the LoopNode as a node similar to "CallNode".
+    """
+
     node_type: NodeType = NodeType.LoopNode
+    code: str
+    # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
+    state_change_nodes: List[StateChangeNode]
     # TODO
+
+
+# Not sure if we need the exit node, commenting out for now
+# class LoopExitNode(Node):
+#     node_type: NodeType = NodeType.LoopNode
+#     pass
 
 
 class WithNode(Node):
