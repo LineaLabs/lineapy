@@ -1,8 +1,9 @@
 from typing import List, Dict
 
+import networkx as nx
+
 from lineapy.data.types import Node, NodeType, DirectedEdge, LineaID
 
-import networkx as nx
 
 class Graph(object):
     """
@@ -15,21 +16,23 @@ class Graph(object):
         return self._graph
 
     @property
-    def ids(self) -> Dict:
+    def ids(self) -> Dict[LineaID, Node]:
         return self._ids
 
-    def __init__(self, nodes: List[Node], edges: List[DirectedEdge] = []):
+    def __init__(self, nodes: List[Node], edges=None):
         """
         Note:
         - edges could be none for very simple programs
         """
+        if edges is None:
+            edges = []
         self._nodes: List[Node] = nodes
-        self._ids = dict((n.id, n) for n in nodes)
+        self._ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
         self._edges: List[DirectedEdge] = edges
         self._graph = nx.DiGraph()
         self._graph.add_nodes_from([node.id for node in nodes if node.node_type != NodeType.ArgumentNode])
         self._graph.add_edges_from([(edge.source_node_id, edge.sink_node_id) for edge in edges])
-        
+
     def get_parents(self, node: Node) -> List[Node]:
         return list(self.graph.predecessors(node))
 

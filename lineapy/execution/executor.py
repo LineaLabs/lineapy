@@ -1,10 +1,9 @@
-from abc import abstractmethod
-from typing import Any
-import io
-import sys
-import importlib
 import builtins
+import importlib
+import io
 import subprocess
+import sys
+from typing import Any
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionContext, NodeType
@@ -13,6 +12,13 @@ from lineapy.graph_reader.base import GraphReader
 
 
 class Executor(GraphReader):
+
+    def __init__(self):
+        self._variable_values = {}
+
+        # Note: no output will be shown in Terminal because it is being redirected here
+        self._oldstdout = sys.stdout
+        self._stdout = io.StringIO()
 
     @property
     def data_asset_manager(self) -> DataAssetManager:
@@ -41,32 +47,28 @@ class Executor(GraphReader):
         return self._variable_values[name]
 
     def walk(self, program: Graph) -> None:
-        self._variable_values = {}
 
-        # Note: no output will be shown in Terminal because it is being redirected here
-        self._oldstdout = sys.stdout
-        self._stdout = io.StringIO()
         sys.stdout = self._stdout
 
         def install(package):
             subprocess.check_call([sys.executable, "-m", 'pip', 'install', package])
 
         def lookup_module(call_node):
-            if call_node.function_module == None:
+            if call_node.function_module is None:
                 return builtins
-            
+
             import_node = program.get_node(call_node.function_module)
-            if import_node.module == None:
+            if import_node.module is None:
                 import_node.module = importlib.import_module(path)
-            
+
             return import_node.module
 
         for node_id in program.top_sort():
             node = program.get_node(node_id)
-            
+
             if node.node_type == NodeType.CallNode:
                 fn_name = node.function_name
-                
+
                 if node.function_module and program.get_node(node.function_module).attributes:
                     fn_name = program.get_node(node.function_module).attributes[node.function_name]
                 fn = getattr(lookup_module(node), fn_name)
@@ -77,7 +79,7 @@ class Executor(GraphReader):
                     elif arg.value_call_id:
                         args.append(program.get_node(arg.value_call_id).value)
                 val = fn(*args)
-                
+
                 node.value = val
                 if node.assigned_variable_name:
                     self._variable_values[node.assigned_variable_name] = node.value
@@ -88,4 +90,3 @@ class Executor(GraphReader):
                 node.module = importlib.import_module(node.library.name)
 
         sys.stdout = self._oldstdout
-        
