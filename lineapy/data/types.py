@@ -111,8 +111,15 @@ class LiteralAssignNode(Node):
 
 
 class FunctionDefinitionNode(Node):
+    """
+    Note that like loops, FunctionDefinitionNode will also treat the function as a black box.
+    See tests/stub_data for examples.
+    """
+
     node_type: NodeType = NodeType.FunctionNode
     function_name: str
+    code: str  # the code definition for the function
+    value: Optional[Any]  # loaded at run time
     # TODO: should we track if its an recursive function?
 
 

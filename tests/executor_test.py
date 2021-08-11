@@ -37,6 +37,12 @@ class TestBasicExecutor(unittest.TestCase):
         """
         pass
 
+    def graph_with_function_definition(self):
+        """
+        Note that
+        """
+        pass
+
     def program_with_mutations(self):
         """
         WAIT: need types to be more stable for representing mutation
