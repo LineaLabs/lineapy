@@ -1,7 +1,7 @@
-from uuid import UUID
 from datetime import datetime
 from enum import Enum
-from typing import Any, Tuple, Optional, List
+from typing import Any, Tuple, Optional, List, Dict
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -57,6 +57,8 @@ class NodeContext(BaseModel):
 # NodeValue = TypeVar("NodeValue")
 # NodeValue = NewType('NodeValue', Optional[Any])
 NodeValue = Any
+
+
 # Yifan note: something weird here about optional and NewType... https://github.com/python/mypy/issues/4580; tried to use TypeVar but also kinda weird. Seems hairy https://stackoverflow.com/questions/59360567/define-a-custom-type-that-behaves-like-typing-any
 
 
@@ -85,7 +87,9 @@ class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
     code: str
     library: Library
+    attributes: Optional[Dict[str, str]] = None  # key is alias, value is full name
     alias: Optional[str] = None
+    module: Any = None
 
 
 class ArgumentNode(Node):
@@ -106,7 +110,7 @@ class CallNode(Node):
     code: str
     arguments: List[ArgumentNode]
     function_name: str
-    function_module: Optional[str]
+    function_module: Optional[LineaID] # references an Import Node
     locally_defined_function_id: Optional[LineaID]
     assigned_variable_name: Optional[str]
     # value of the result, filled at runtime
