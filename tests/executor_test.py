@@ -3,6 +3,9 @@ import unittest
 
 from tests.stub_data.simple_graph import simple_graph
 from tests.stub_data.graph_with_loops import graph_with_loops
+from tests.stub_data.graph_with_function_definition import (
+    graph_with_function_definition,
+)
 from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
 )
@@ -38,9 +41,11 @@ class TestBasicExecutor(unittest.TestCase):
         pass
 
     def graph_with_function_definition(self):
-        """
-        Note that
-        """
+        """ """
+        e = Executor()
+        e.walk(graph_with_function_definition)
+        a = e.get_value_by_varable_name("a")
+        assert a == 120
         pass
 
     def program_with_mutations(self):

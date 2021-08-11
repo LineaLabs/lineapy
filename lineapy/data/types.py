@@ -65,23 +65,25 @@ class NodeType(Enum):
     ArgumentNode = 2
     CallNode = 3
     LiteralAssignNode = 4
-    FunctionNode = 5
+    FunctionDefinitionNode = 5
     ConditionNode = 6
     LoopNode = 7
     WithNode = 8
     ImportNode = 9
+    StateChangeNode = 10
+    ClassDefinitionNode = 11
 
 
 class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.uuid
     node_type: NodeType = NodeType.Node
-    code: str
     context: Optional[NodeContext] = None
 
 
 class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
+    code: str
     library: Library
     alias: Optional[str] = None
 
@@ -96,18 +98,28 @@ class ArgumentNode(Node):
 
 
 class CallNode(Node):
+    """
+    The locally_defined_function_id helps with slicing and the lineapy transformer and corresponding APIs would need to capture these info.
+    """
+
     node_type: NodeType = NodeType.CallNode
+    code: str
     arguments: List[ArgumentNode]
     function_name: str
     function_module: Optional[str]
+    locally_defined_function_id: Optional[LineaID]
     assigned_variable_name: Optional[str]
-    value: Optional[NodeValue] = None  # value of the result
+    # value of the result, filled at runtime
+    # TODO: maybe we should create a new class to differentiate?
+    #       this run time value also applies to StateChange.
+    value: Optional[NodeValue] = None
 
 
 class LiteralAssignNode(Node):
     node_type: NodeType = NodeType.LiteralAssignNode
+    code: str
     assigned_variable_name: str
-    value: Optional[NodeValue]  # gets filled at run time
+    value: Optional[NodeValue]
 
 
 class FunctionDefinitionNode(Node):
@@ -116,7 +128,7 @@ class FunctionDefinitionNode(Node):
     See tests/stub_data for examples.
     """
 
-    node_type: NodeType = NodeType.FunctionNode
+    node_type: NodeType = NodeType.FunctionDefinitionNode
     function_name: str
     code: str  # the code definition for the function
     value: Optional[Any]  # loaded at run time
@@ -125,6 +137,7 @@ class FunctionDefinitionNode(Node):
 
 class ConditionNode(Node):
     node_type: NodeType = NodeType.ConditionNode
+    code: str
     # TODO
 
 
@@ -134,8 +147,10 @@ class StateChangeNode(Node):
     Later code need to reference the NEW id now modified.
     """
 
+    node_type: NodeType = NodeType.StateChangeNode
     variable_name: str
-    pass
+    # this could be call id or loop id, or any code blocks
+    associated_node_id: LineaID
 
 
 class LoopEnterNode(Node):
@@ -146,8 +161,9 @@ class LoopEnterNode(Node):
     node_type: NodeType = NodeType.LoopNode
     code: str
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
-    state_change_nodes: List[StateChangeNode]
-    # TODO
+    # Yifan's note: deprecating these state_change_nodes to instead have the StateChangeNode point to the LoopEnterNodes instead
+    # this is cleaner for other StateChangeNodes use cases such as FunctionDefinition nodes.
+    # state_change_nodes: List[StateChangeNode]
 
 
 # Not sure if we need the exit node, commenting out for now
@@ -158,6 +174,7 @@ class LoopEnterNode(Node):
 
 class WithNode(Node):
     node_type: NodeType = NodeType.WithNode
+    code: str
     # TODO
 
 
