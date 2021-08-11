@@ -48,10 +48,6 @@ line_2 = LiteralAssignNode(
 
 x_id = get_new_id()
 
-a_state_change_id = get_new_id()
-a_state_change = StateChangeNode(id=a_state_change_id, variable_name="a")
-
-a_argument_node = ArgumentNode(positional_order=0, value_call_id=a_state_change_id)
 
 line_6 = CallNode(
     id=x_id,
@@ -62,12 +58,25 @@ line_6 = CallNode(
     arguments=[a_argument_node],
 )
 
-b_state_change_id = get_new_id()
-b_state_change = StateChangeNode(id=b_state_change_id, variable_name="b")
-
 x_argument_node = ArgumentNode(positional_order=0, value_node_id=x_id)
 
+a_state_change_id = get_new_id()
+a_argument_node = ArgumentNode(positional_order=0, value_call_id=a_state_change_id)
+a_state_change = StateChangeNode(id=a_state_change_id, variable_name="a")
+
+le_id = get_new_id()
+
+b_state_change_id = get_new_id()
 b_argument_node = ArgumentNode(positional_order=1, value_call_id=b_state_change_id)
+b_state_change = StateChangeNode(id=b_state_change_id, variable_name="b", associated_node_id=le_id)
+
+le = LoopEnterNode(
+    id=le_id,
+    session_id=session.uuid,
+    # @Dhruv, please watch out for indentation oddities when you run into errors
+    code="for x in range(9):\na.append(x)",
+    state_change
+)
 
 line_7 = CallNode(
     id=a_id,
@@ -79,12 +88,6 @@ line_7 = CallNode(
     arguments=[x_argument_node, b_argument_node],
 )
 
-
-# @Dhruv, please watch out for indentation oddities
-le = LoopEnterNode(
-    code="for x in range(9):\na.append(x)",
-    state_change_nodes=[a_state_change, b_state_change],
-)
 
 
 graph_with_loops = Graph(
