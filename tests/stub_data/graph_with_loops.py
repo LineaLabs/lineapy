@@ -68,7 +68,6 @@ le = LoopEnterNode(
     session_id=session.uuid,
     # @Dhruv, please watch out for indentation oddities when you run into errors
     code="for x in range(9):\n\ta.append(x)\n\tb+=x",
-    state_change_nodes=[a_state_change, b_state_change]
 )
 
 x_id = get_new_id()
