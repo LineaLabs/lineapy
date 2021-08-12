@@ -7,6 +7,8 @@ from lineapy.data.types import (
     LoopEnterNode,
     StateChangeNode,
     ArgumentNode,
+    ImportNode,
+    Library,
 )
 
 """
@@ -80,6 +82,19 @@ line_6 = CallNode(
     arguments=[a_argument_node],
 )
 
+operator_module_id = get_new_id()
+
+operator_module = ImportNode(
+    id=operator_module_id, 
+    session_id = session.uuid, 
+    code="import operator", 
+    library=Library(
+        name="operator", 
+        version="1", 
+        path=""
+    ),
+)
+
 x_argument_id = get_new_id()
 x_argument_node = ArgumentNode(id=x_argument_id, session_id=session.uuid, positional_order=0, value_node_id=x_id)
 
@@ -88,7 +103,7 @@ line_7 = CallNode(
     session_id=session.uuid,
     code="y = x + b",
     function_name="add",
-    # function_module="operator",  # built in
+    function_module=operator_module_id,  # built in
     assigned_variable_name="y",
     arguments=[x_argument_node, b_argument_node],
 )
@@ -106,6 +121,7 @@ graph_with_loops = Graph(
         a_state_change,
         b_state_change,
         line_6,
+        operator_module,
         line_7,
     ]
 )
