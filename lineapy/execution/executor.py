@@ -76,8 +76,8 @@ class Executor(GraphReader):
                 for arg in node.arguments:
                     if arg.value_literal:
                         args.append(arg.value_literal)
-                    elif arg.value_call_id:
-                        args.append(program.get_node(arg.value_call_id).value)
+                    elif arg.value_node_id:
+                        args.append(program.get_node(arg.value_node_id).value)
                 val = fn(*args)
 
                 node.value = val
@@ -90,3 +90,6 @@ class Executor(GraphReader):
                 node.module = importlib.import_module(node.library.name)
 
         sys.stdout = self._old_stdout
+
+    def validate(self, program: Graph) -> None:
+        pass

@@ -8,6 +8,15 @@ from pydantic import BaseModel
 # aliasing the ID type in case we chnage it later
 LineaID = UUID
 
+# TODO: not sure if this is the most intuitive name.
+class StateScope:
+    """
+    TODO
+    This captures the scope
+    """
+
+    pass
+
 
 class SessionType(Enum):
     JUPYTER = 1
@@ -57,23 +66,26 @@ class NodeType(Enum):
     Node = 1
     ArgumentNode = 2
     CallNode = 3
-    FunctionNode = 4
-    ConditionNode = 5
-    LoopNode = 6
-    WithNode = 7
-    ImportNode = 8
+    LiteralAssignNode = 4
+    FunctionDefinitionNode = 5
+    ConditionNode = 6
+    LoopNode = 7
+    WithNode = 8
+    ImportNode = 9
+    StateChangeNode = 10
+    ClassDefinitionNode = 11
 
 
 class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.uuid
     node_type: NodeType = NodeType.Node
-    code: str
     context: Optional[NodeContext] = None
 
 
 class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
+    code: str
     library: Library
     attributes: Optional[Dict[str, str]] = None  # key is alias, value is full name
     alias: Optional[str] = None
@@ -84,38 +96,89 @@ class ArgumentNode(Node):
     node_type: NodeType = NodeType.ArgumentNode
     keyword: Optional[str]
     positional_order: Optional[int]
-    value_call_id: Optional[LineaID]
+    value_node_id: Optional[LineaID]
     value_literal: Optional[Any]
     value_pickled: Optional[str]
 
 
 class CallNode(Node):
+    """
+    The locally_defined_function_id helps with slicing and the lineapy transformer and corresponding APIs would need to capture these info.
+    """
+
     node_type: NodeType = NodeType.CallNode
+    code: str
     arguments: List[ArgumentNode]
     function_name: str
-    function_module: Optional[LineaID]
+    function_module: Optional[LineaID] # references an Import Node
+    locally_defined_function_id: Optional[LineaID]
     assigned_variable_name: Optional[str]
-    value: Optional[NodeValue] = None  # value of the result
+    # value of the result, filled at runtime
+    # TODO: maybe we should create a new class to differentiate?
+    #       this run time value also applies to StateChange.
+    value: Optional[NodeValue] = None
+
+
+class LiteralAssignNode(Node):
+    node_type: NodeType = NodeType.LiteralAssignNode
+    code: str
+    assigned_variable_name: str
+    value: Optional[NodeValue]
 
 
 class FunctionDefinitionNode(Node):
-    node_type: NodeType = NodeType.FunctionNode
+    """
+    Note that like loops, FunctionDefinitionNode will also treat the function as a black box.
+    See tests/stub_data for examples.
+    """
+
+    node_type: NodeType = NodeType.FunctionDefinitionNode
     function_name: str
+    code: str  # the code definition for the function
+    value: Optional[Any]  # loaded at run time
     # TODO: should we track if its an recursive function?
 
 
 class ConditionNode(Node):
     node_type: NodeType = NodeType.ConditionNode
+    code: str
     # TODO
 
 
-class LoopNode(Node):
+class StateChangeNode(Node):
+    """
+    This type of node is to capture the state changes caused by "black boxes" such as loops.
+    Later code need to reference the NEW id now modified.
+    """
+
+    node_type: NodeType = NodeType.StateChangeNode
+    variable_name: str
+    # this could be call id or loop id, or any code blocks
+    associated_node_id: LineaID
+
+
+class LoopEnterNode(Node):
+    """
+    We do not care about the intermeidate states, but rather just what state has changed. It's conceptually similar to representing loops in a more functional way (such as map and reduce).  We do this by treating the LoopNode as a node similar to "CallNode".
+    """
+
     node_type: NodeType = NodeType.LoopNode
-    # TODO
+    code: str
+    # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
+    # Yifan's note: deprecating these state_change_nodes to instead have the StateChangeNode point to the LoopEnterNodes instead
+    # this is cleaner for other StateChangeNodes use cases such as FunctionDefinition nodes.
+    state_change_nodes: List[StateChangeNode]
+
+
+# Not sure if we need the exit node, commenting out for now
+# class LoopExitNode(Node):
+#     node_type: NodeType = NodeType.LoopNode
+#     pass
 
 
 class WithNode(Node):
     node_type: NodeType = NodeType.WithNode
+    code: str
     # TODO
 
 
