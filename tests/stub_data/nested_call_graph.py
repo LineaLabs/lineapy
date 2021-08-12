@@ -19,7 +19,7 @@ session = SessionContext(
 
 arg_literal_id = get_new_id()
 
-arg_literal = ArgumentNode(id=arg_literal_id, session_id=session.uuid, code="-11", positional_order=1, value_literal=-11)
+arg_literal = ArgumentNode(id=arg_literal_id, session_id=session.uuid, positional_order=1, value_literal=-11)
 
 line_1a_id = get_new_id()
 
@@ -35,15 +35,15 @@ arg_1_id = get_new_id()
 
 arg_10_id = get_new_id()
 
-arg_1 = ArgumentNode(id=arg_1_id, session_id=session.uuid, code="abs(-11)", positional_order=1, value_call_id=line_1a_id)
+arg_1 = ArgumentNode(id=arg_1_id, session_id=session.uuid, positional_order=1, value_node_id=line_1a_id)
 
-arg_10 = ArgumentNode(id=arg_10_id, session_id=session.uuid, code="10", positional_order=2, value_literal=10)
+arg_10 = ArgumentNode(id=arg_10_id, session_id=session.uuid, positional_order=2, value_literal=10)
 
 line_1b_id = get_new_id()
 line_1b = CallNode(
     id=line_1b_id,
     session_id=session.uuid,
-    code="min(%s, %s)" % (arg_1.code, arg_10.code),
+    code="min(abs(-11), 10)",
     function_name="min",
     assigned_variable_name="a",
     arguments=[arg_1, arg_10],

@@ -167,7 +167,7 @@ class LoopEnterNode(Node):
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     # Yifan's note: deprecating these state_change_nodes to instead have the StateChangeNode point to the LoopEnterNodes instead
     # this is cleaner for other StateChangeNodes use cases such as FunctionDefinition nodes.
-    # state_change_nodes: List[StateChangeNode]
+    state_change_nodes: List[StateChangeNode]
 
 
 # Not sure if we need the exit node, commenting out for now
