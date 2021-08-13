@@ -82,6 +82,9 @@ class Node(BaseModel):
     node_type: NodeType = NodeType.Node
     context: Optional[NodeContext] = None
 
+# class SideEffectsNode(Node):
+
+
 
 class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
@@ -136,6 +139,8 @@ class FunctionDefinitionNode(Node):
     function_name: str
     code: str  # the code definition for the function
     value: Optional[Any]  # loaded at run time
+    state_change_nodes: Optional[List[LineaID]]
+    import_nodes: Optional[List[LineaID]]
     # TODO: should we track if its an recursive function?
 
 
@@ -155,7 +160,7 @@ class StateChangeNode(Node):
     variable_name: str
     # this could be call id or loop id, or any code blocks
     associated_node_id: LineaID
-    initial_value_node_id: LineaID
+    initial_value_node_id: LineaID # can be another state change node
     value: Optional[NodeValue]
 
 
@@ -169,7 +174,7 @@ class LoopEnterNode(Node):
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     # Yifan's note: deprecating these state_change_nodes to instead have the StateChangeNode point to the LoopEnterNodes instead
     # this is cleaner for other StateChangeNodes use cases such as FunctionDefinition nodes.
-    state_change_nodes: List[LineaID]
+    state_change_nodes: Optional[List[LineaID]]
     import_nodes: Optional[List[LineaID]]
 
 
