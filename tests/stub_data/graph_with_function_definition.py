@@ -64,6 +64,7 @@ a_state_change = StateChangeNode(
     session_id=session.uuid,
     variable_name="a",
     associated_node_id=func_call_id,
+    initial_value_node_id=a_id,
 )
 
 

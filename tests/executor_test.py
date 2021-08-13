@@ -66,10 +66,10 @@ class TestBasicExecutor:
         pass
 
     def test_program_with_loops(self):
-        # e = Executor()
-        # e.walk(graph_with_loops)
-        # y = e.get_value_by_varable_name("y")
-        # assert y == 72
+        e = Executor()
+        e.walk(graph_with_loops)
+        y = e.get_value_by_variable_name("y")
+        assert y == 72
         pass
 
     def test_program_with_conditionals(self):

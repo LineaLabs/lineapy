@@ -68,10 +68,11 @@ class Executor(GraphReader):
 
             if node.node_type == NodeType.CallNode:
                 fn_name = node.function_name
-
                 if node.function_module and program.get_node(node.function_module).attributes:
                     fn_name = program.get_node(node.function_module).attributes[node.function_name]
+
                 fn = getattr(lookup_module(node), fn_name)
+
                 args = []
                 for arg in node.arguments:
                     if arg.value_literal:
@@ -88,6 +89,32 @@ class Executor(GraphReader):
                 if importlib.util.find_spec(node.library.name) is None:
                     install(node.library.name)
                 node.module = importlib.import_module(node.library.name)
+
+            elif node.node_type == NodeType.LoopNode:
+                # setup vars
+                for state_var in node.state_change_nodes:
+                    state_var = program.get_node(state_var)
+                    initial_state = program.get_node(state_var.initial_value_node_id)
+                    if initial_state.node_type in [NodeType.CallNode, NodeType.LiteralAssignNode]:
+                        initial_state = initial_state.value
+                        exec("%s = %s" % (state_var.variable_name, initial_state))
+
+                # handling use of modules within loops
+                if node.import_nodes:
+                    for import_node in import_nodes:
+                        import_node = program.get_node(import_node)
+                        if importlib.util.find_spec(import_node.library.name) is None:
+                            install(import_node.library.name)
+                        import_node.module = importlib.import_module(import_node.library.name)
+                        exec("%s = %s", (import_node.library.name, import_node.module))
+                    
+                exec(node.code)
+
+                local_vars = locals()
+
+                for state_var in node.state_change_nodes:
+                    state_var = program.get_node(state_var)
+                    state_var.value = local_vars[state_var.variable_name]
 
         sys.stdout = self._old_stdout
 
