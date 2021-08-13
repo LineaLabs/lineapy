@@ -155,7 +155,7 @@ class StateChangeNode(Node):
     variable_name: str
     # this could be call id or loop id, or any code blocks
     associated_node_id: LineaID
-    initial_value_node_id: LineaID
+    initial_value_node_id: LineaID # points to a node that represents the value of the node before the change
     value: Optional[NodeValue]
 
 
@@ -169,8 +169,8 @@ class LoopEnterNode(Node):
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     # Yifan's note: deprecating these state_change_nodes to instead have the StateChangeNode point to the LoopEnterNodes instead
     # this is cleaner for other StateChangeNodes use cases such as FunctionDefinition nodes.
-    state_change_nodes: List[LineaID]
-    import_nodes: Optional[List[LineaID]]
+    state_change_nodes: List[LineaID] # a list of variables that are used in loop
+    import_nodes: Optional[List[LineaID]] # a list of modules that are used in loop
 
 
 # Not sure if we need the exit node, commenting out for now
