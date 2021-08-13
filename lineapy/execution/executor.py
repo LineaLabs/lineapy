@@ -99,14 +99,14 @@ class Executor(GraphReader):
                         initial_state = initial_state.value
                         exec("%s = %s" % (state_var.variable_name, initial_state))
 
-                # handling use of modules within loops
-                if node.import_nodes:
-                    for import_node in import_nodes:
-                        import_node = program.get_node(import_node)
-                        if importlib.util.find_spec(import_node.library.name) is None:
-                            install(import_node.library.name)
-                        import_node.module = importlib.import_module(import_node.library.name)
-                        exec("%s = %s", (import_node.library.name, import_node.module))
+                # TODO: handling use of modules within loops
+                # if node.import_nodes:
+                #     for import_node in node.import_nodes:
+                #         import_node = program.get_node(import_node)
+                #         if importlib.util.find_spec(import_node.library.name) is None:
+                #             install(import_node.library.name)
+                #         import_node.module = importlib.import_module(import_node.library.name)
+                #         exec("%s = %s", (import_node.library.name, import_node.module))
                     
                 exec(node.code)
 
