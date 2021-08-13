@@ -95,6 +95,9 @@ class Executor(GraphReader):
             node = program.get_node(node_id)
             scoped_locals = locals()
 
+            # all of these have to be in the same scope in order to read 
+            # and write to scoped_locals properly (this is just the way exec works)
+
             if node.node_type == NodeType.CallNode:
                 fn_name = node.function_name
                 fn = None
@@ -133,11 +136,9 @@ class Executor(GraphReader):
             elif node.node_type == NodeType.LoopNode:
                 # set up vars and imports
                 setup_context_for_node(node, scoped_locals)
-                
                 exec(node.code)
-
                 update_node_side_effects(node, scoped_locals)
-            
+                
             elif node.node_type == NodeType.FunctionDefinitionNode:
                 setup_context_for_node(node, scoped_locals)
                 exec(node.code, scoped_locals)
