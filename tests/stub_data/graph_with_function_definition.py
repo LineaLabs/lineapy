@@ -32,7 +32,7 @@ line_1_import = ImportNode(
     id=line_1_id,
     session_id=session.uuid,
     code="import math",
-    library=Library(name="math"),
+    library=Library(name="math", version="1", path="home"),
 )
 
 a_id = get_new_id()
@@ -56,6 +56,7 @@ my_function_call = CallNode(
     code="my_function()",
     function_name="my_function",
     locally_defined_function_id=fun_id,
+    arguments=[],
 )
 
 a_state_change = StateChangeNode(
