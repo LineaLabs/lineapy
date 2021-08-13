@@ -4,6 +4,7 @@ from tests.stub_data.graph_with_pandas import graph_with_pandas
 from tests.stub_data.nested_call_graph import nested_call_graph
 from tests.stub_data.simple_graph import simple_graph
 from tests.stub_data.graph_with_loops import graph_with_loops
+from tests.stub_data.graph_with_conditionals import graph_with_conditionals
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
 )
@@ -65,7 +66,7 @@ class TestBasicExecutor:
         """
         pass
 
-    def test_program_with_loops(self):
+    def test_program_with_loop(self):
         e = Executor()
         e.walk(graph_with_loops)
         y = e.get_value_by_varable_name("y")
@@ -73,7 +74,10 @@ class TestBasicExecutor:
         pass
 
     def test_program_with_conditionals(self):
-        pass
+        e = Executor
+        e.walk(graph_with_conditionals)
+        bs = e.get_value_by_varable_name("bs")
+        # @dhruv TODO assert that bs is the same as [1,2,3]
 
 
 if __name__ == "__main__":
