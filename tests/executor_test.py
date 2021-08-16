@@ -32,6 +32,7 @@ class TestBasicExecutor:
         e.walk(simple_with_variable_argument_and_print)
         stdout = e.get_stdout()
         assert stdout == "10\n"
+        pass
 
     def test_basic_import(self):
         """
@@ -53,10 +54,10 @@ class TestBasicExecutor:
 
     def test_graph_with_function_definition(self):
         """ """
-        # e = Executor()
-        # e.walk(graph_with_function_definition)
-        # a = e.get_value_by_varable_name("a")
-        # assert a == 120
+        e = Executor()
+        e.walk(graph_with_function_definition)
+        a = e.get_value_by_variable_name("a")
+        assert a == 120
         pass
 
     def test_program_with_mutations(self):
@@ -70,7 +71,7 @@ class TestBasicExecutor:
         e.walk(graph_with_loops)
         y = e.get_value_by_variable_name("y")
         assert y == 72
-        pass
+        # pass
 
     def test_program_with_conditionals(self):
         pass
@@ -85,5 +86,5 @@ if __name__ == "__main__":
     tester.test_pip_install_import()
     tester.test_graph_with_function_definition()
     tester.test_program_with_mutations()
-    tester.test_program_with_loop()
+    tester.test_program_with_loops()
     tester.test_program_with_conditionals()

@@ -63,15 +63,52 @@ class Executor(GraphReader):
 
             return import_node.module
 
+        def setup_context_for_node(node, scoped_locals):
+            for state_var in node.state_change_nodes:
+                state_var = program.get_node(state_var)
+                initial_state = program.get_node(state_var.initial_value_node_id)
+                if initial_state.node_type in [NodeType.CallNode, NodeType.LiteralAssignNode, NodeType.StateChangeNode]:
+                    initial_state = initial_state.value
+                    scoped_locals[state_var.variable_name] = initial_state
+            
+            # TODO: handling use of modules within loops
+            if node.import_nodes:
+                for import_node in node.import_nodes:
+                    import_node = program.get_node(import_node)
+                    if importlib.util.find_spec(import_node.library.name) is None:
+                        install(import_node.library.name)
+                    import_node.module = importlib.import_module(import_node.library.name)
+                    scoped_locals[import_node.library.name] = import_node.module
+
+
+        def update_node_side_effects(node, scoped_locals):
+            local_vars = scoped_locals
+            for state_var in node.state_change_nodes:
+                state_var = program.get_node(state_var)
+
+                state_var.value = local_vars[state_var.variable_name]
+
+                if state_var.variable_name:
+                    self._variable_values[state_var.variable_name] = state_var.value
+
         for node_id in program.visit_order():
             node = program.get_node(node_id)
+            scoped_locals = locals()
+
+            # all of these have to be in the same scope in order to read 
+            # and write to scoped_locals properly (this is just the way exec works)
 
             if node.node_type == NodeType.CallNode:
                 fn_name = node.function_name
-                if node.function_module and program.get_node(node.function_module).attributes:
-                    fn_name = program.get_node(node.function_module).attributes[node.function_name]
+                fn = None
 
-                fn = getattr(lookup_module(node), fn_name)
+                if node.locally_defined_function_id:
+                    fn = scoped_locals[fn_name]
+                else:
+                    if node.function_module and program.get_node(node.function_module).attributes:
+                        fn_name = program.get_node(node.function_module).attributes[node.function_name]
+                    
+                    fn = getattr(lookup_module(node), fn_name)
 
                 args = []
                 for arg in node.arguments:
@@ -79,11 +116,17 @@ class Executor(GraphReader):
                         args.append(arg.value_literal)
                     elif arg.value_node_id:
                         args.append(program.get_node(arg.value_node_id).value)
+
                 val = fn(*args)
 
-                node.value = val
+                if val is not None:
+                    node.value = val
+
                 if node.assigned_variable_name:
                     self._variable_values[node.assigned_variable_name] = node.value
+                
+                if node.locally_defined_function_id:
+                    update_node_side_effects(program.get_node(node.locally_defined_function_id), scoped_locals)
 
             elif node.node_type == NodeType.ImportNode:
                 if importlib.util.find_spec(node.library.name) is None:
@@ -91,30 +134,14 @@ class Executor(GraphReader):
                 node.module = importlib.import_module(node.library.name)
 
             elif node.node_type == NodeType.LoopNode:
-                # setup vars
-                for state_var in node.state_change_nodes:
-                    state_var = program.get_node(state_var)
-                    initial_state = program.get_node(state_var.initial_value_node_id)
-                    if initial_state.node_type in [NodeType.CallNode, NodeType.LiteralAssignNode]:
-                        initial_state = initial_state.value
-                        exec("%s = %s" % (state_var.variable_name, initial_state))
-
-                # TODO: handling use of modules within loops
-                # if node.import_nodes:
-                #     for import_node in node.import_nodes:
-                #         import_node = program.get_node(import_node)
-                #         if importlib.util.find_spec(import_node.library.name) is None:
-                #             install(import_node.library.name)
-                #         import_node.module = importlib.import_module(import_node.library.name)
-                #         exec("%s = %s", (import_node.library.name, import_node.module))
-                    
+                # set up vars and imports
+                setup_context_for_node(node, scoped_locals)
                 exec(node.code)
-
-                local_vars = locals()
-
-                for state_var in node.state_change_nodes:
-                    state_var = program.get_node(state_var)
-                    state_var.value = local_vars[state_var.variable_name]
+                update_node_side_effects(node, scoped_locals)
+                
+            elif node.node_type == NodeType.FunctionDefinitionNode:
+                setup_context_for_node(node, scoped_locals)
+                exec(node.code, scoped_locals)
 
         sys.stdout = self._old_stdout
 
