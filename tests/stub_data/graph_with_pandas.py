@@ -24,42 +24,46 @@ Notes:
 - the UUIDs are kept constant so we can more easily reference the same values in a different file
 """
 
+pandas_lib = Library(name="pandas", version="1", path="")
+
 session = SessionContext(
     uuid=get_new_id(),
     file_name="testing.py",
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.now(),
+    libraries=[pandas_lib],
 )
 
 line_1_id = get_new_id()
 
 line_1 = ImportNode(
-    id=line_1_id, 
-    session_id = session.uuid, 
-    code="import pandas as pd", 
-    library=Library(
-        name="pandas", 
-        version="1", 
-        path=""
-    ),
-    alias="pd"
+    id=line_1_id,
+    session_id=session.uuid,
+    code="import pandas as pd",
+    library=pandas_lib,
+    alias="pd",
 )
 
 arg_literal_id = get_new_id()
 
 arg_file = "./tests/ames_train_cleaned.csv"
-arg_literal = ArgumentNode(id=arg_literal_id, session_id=session.uuid, positional_order=1, value_literal=arg_file)
+arg_literal = ArgumentNode(
+    id=arg_literal_id,
+    session_id=session.uuid,
+    positional_order=1,
+    value_literal=arg_file,
+)
 
 line_2_id = get_new_id()
 
 line_2 = CallNode(
     id=line_2_id,
     session_id=session.uuid,
-    code="pd.read_csv(\'%s\')" % arg_file,
+    code="pd.read_csv('%s')" % arg_file,
     function_name="read_csv",
     function_module=line_1_id,
     assigned_variable_name="df",
     arguments=[arg_literal],
 )
 
-graph_with_pandas = Graph([line_1, line_2, arg_literal])
+graph_with_pandas = Graph([line_1, line_2])

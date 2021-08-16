@@ -47,11 +47,7 @@ line_1 = CallNode(
 b_id = get_new_id()
 
 line_2 = LiteralAssignNode(
-    id=b_id, 
-    session_id=session.uuid, 
-    code="b = 0", 
-    assigned_variable_name="b", 
-    value=0
+    id=b_id, session_id=session.uuid, code="b = 0", assigned_variable_name="b", value=0
 )
 
 le_id = get_new_id()
@@ -60,34 +56,34 @@ a_state_change_id = get_new_id()
 a_argument_id = get_new_id()
 
 a_state_change = StateChangeNode(
-    id=a_state_change_id, 
-    session_id=session.uuid, 
-    variable_name="a", 
+    id=a_state_change_id,
+    session_id=session.uuid,
+    variable_name="a",
     associated_node_id=le_id,
-    initial_value_node_id=a_id
+    initial_value_node_id=a_id,
 )
 a_argument_node = ArgumentNode(
-    id=a_argument_id, 
-    session_id=session.uuid, 
-    positional_order=0, 
-    value_node_id=a_state_change_id
+    id=a_argument_id,
+    session_id=session.uuid,
+    positional_order=0,
+    value_node_id=a_state_change_id,
 )
 
 b_state_change_id = get_new_id()
 b_argument_id = get_new_id()
 
 b_state_change = StateChangeNode(
-    id=b_state_change_id, 
-    session_id=session.uuid, 
-    variable_name="b", 
+    id=b_state_change_id,
+    session_id=session.uuid,
+    variable_name="b",
     associated_node_id=le_id,
-    initial_value_node_id=b_id
+    initial_value_node_id=b_id,
 )
 b_argument_node = ArgumentNode(
-    id=b_argument_id, 
-    session_id=session.uuid, 
-    positional_order=1, 
-    value_node_id=b_state_change_id
+    id=b_argument_id,
+    session_id=session.uuid,
+    positional_order=1,
+    value_node_id=b_state_change_id,
 )
 
 le = LoopEnterNode(
@@ -117,18 +113,16 @@ e_loop_to_x = DirectedEdge(source_node_id=le_id, sink_node_id=x_id)
 operator_module_id = get_new_id()
 
 operator_module = ImportNode(
-    id=operator_module_id, 
-    session_id = session.uuid, 
-    code="import operator", 
-    library=Library(
-        name="operator", 
-        version="1", 
-        path=""
-    ),
+    id=operator_module_id,
+    session_id=session.uuid,
+    code="import operator",
+    library=Library(name="operator", version="1", path=""),
 )
 
 x_argument_id = get_new_id()
-x_argument_node = ArgumentNode(id=x_argument_id, session_id=session.uuid, positional_order=0, value_node_id=x_id)
+x_argument_node = ArgumentNode(
+    id=x_argument_id, session_id=session.uuid, positional_order=0, value_node_id=x_id
+)
 
 y_id = get_new_id()
 line_7 = CallNode(
@@ -149,9 +143,6 @@ graph_with_loops = Graph(
     [
         line_1,
         line_2,
-        a_argument_node,
-        x_argument_node,
-        b_argument_node,
         le,
         a_state_change,
         b_state_change,
@@ -166,5 +157,5 @@ graph_with_loops = Graph(
         e_loop_to_x,
         e_loop_to_y,
         e_x_to_y,
-    ]
+    ],
 )

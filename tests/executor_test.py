@@ -1,6 +1,9 @@
 from lineapy.execution.executor import Executor
 from tests.stub_data.graph_with_import import graph_with_import
-from tests.stub_data.graph_with_pandas import graph_with_pandas
+from tests.stub_data.graph_with_pandas import (
+    graph_with_pandas,
+    session as graph_with_pandas_session,
+)
 from tests.stub_data.nested_call_graph import nested_call_graph
 from tests.stub_data.simple_graph import simple_graph
 from tests.stub_data.graph_with_loops import graph_with_loops
@@ -48,6 +51,7 @@ class TestBasicExecutor:
         other libs, like pandas, or sckitlearn, need to be pip installed.
         """
         e = Executor()
+        e.setup(graph_with_pandas_session)
         e.walk(graph_with_pandas)
         df = e.get_value_by_variable_name("df")
         assert df is not None
@@ -70,8 +74,11 @@ class TestBasicExecutor:
         e = Executor()
         e.walk(graph_with_loops)
         y = e.get_value_by_variable_name("y")
+        x = e.get_value_by_variable_name("x")
+        a = e.get_value_by_variable_name("a")
         assert y == 72
-        # pass
+        assert x == 36
+        assert len(a) == 9
 
     def test_program_with_conditionals(self):
         pass
