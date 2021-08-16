@@ -9,6 +9,7 @@ from lineapy.data.types import (
     ArgumentNode,
     ImportNode,
     Library,
+    DirectedEdge,
 )
 
 """
@@ -54,21 +55,47 @@ le_id = get_new_id()
 a_state_change_id = get_new_id()
 a_argument_id = get_new_id()
 
-a_state_change = StateChangeNode(id=a_state_change_id, session_id=session.uuid, variable_name="a", associated_node_id=le_id)
-a_argument_node = ArgumentNode(id=a_argument_id, session_id=session.uuid, positional_order=0, value_node_id=a_state_change_id)
+a_state_change = StateChangeNode(
+    id=a_state_change_id,
+    session_id=session.uuid,
+    variable_name="a",
+    associated_node_id=le_id,
+    initial_value_node_id=a_id,
+)
+a_argument_node = ArgumentNode(
+    id=a_argument_id,
+    session_id=session.uuid,
+    positional_order=0,
+    value_node_id=a_state_change_id,
+)
 
 b_state_change_id = get_new_id()
 b_argument_id = get_new_id()
 
-b_state_change = StateChangeNode(id=b_state_change_id, session_id=session.uuid, variable_name="b", associated_node_id=le_id)
-b_argument_node = ArgumentNode(id=b_argument_id, session_id=session.uuid, positional_order=1, value_node_id=b_state_change_id)
+b_state_change = StateChangeNode(
+    id=b_state_change_id,
+    session_id=session.uuid,
+    variable_name="b",
+    associated_node_id=le_id,
+    initial_value_node_id=b_id,
+)
+b_argument_node = ArgumentNode(
+    id=b_argument_id,
+    session_id=session.uuid,
+    positional_order=1,
+    value_node_id=b_state_change_id,
+)
 
 le = LoopEnterNode(
     id=le_id,
     session_id=session.uuid,
     # @Dhruv, please watch out for indentation oddities when you run into errors
     code="for x in range(9):\n\ta.append(x)\n\tb+=x",
+    state_change_nodes=[a_state_change_id, b_state_change_id],
 )
+
+e_a_to_loop = DirectedEdge(source_node_id=a_id, sink_node_id=le_id)
+e_b_to_loop = DirectedEdge(source_node_id=b_id, sink_node_id=le_id)
 
 x_id = get_new_id()
 
@@ -81,24 +108,25 @@ line_6 = CallNode(
     arguments=[a_argument_node],
 )
 
+e_loop_to_x = DirectedEdge(source_node_id=le_id, sink_node_id=x_id)
+
 operator_module_id = get_new_id()
 
 operator_module = ImportNode(
-    id=operator_module_id, 
-    session_id = session.uuid, 
-    code="import operator", 
-    library=Library(
-        name="operator", 
-        version="1", 
-        path=""
-    ),
+    id=operator_module_id,
+    session_id=session.uuid,
+    code="import operator",
+    library=Library(name="operator", version="1", path=""),
 )
 
 x_argument_id = get_new_id()
-x_argument_node = ArgumentNode(id=x_argument_id, session_id=session.uuid, positional_order=0, value_node_id=x_id)
+x_argument_node = ArgumentNode(
+    id=x_argument_id, session_id=session.uuid, positional_order=0, value_node_id=x_id
+)
 
+y_id = get_new_id()
 line_7 = CallNode(
-    id=a_id,
+    id=y_id,
     session_id=session.uuid,
     code="y = x + b",
     function_name="add",
@@ -107,20 +135,27 @@ line_7 = CallNode(
     arguments=[x_argument_node, b_argument_node],
 )
 
-
+e_loop_to_y = DirectedEdge(source_node_id=le_id, sink_node_id=y_id)
+e_x_to_y = DirectedEdge(source_node_id=x_id, sink_node_id=y_id)
+e_import_to_y = DirectedEdge(source_node_id=operator_module_id, sink_node_id=y_id)
 
 graph_with_loops = Graph(
     [
         line_1,
         line_2,
-        a_argument_node,
-        x_argument_node,
-        b_argument_node,
         le,
         a_state_change,
         b_state_change,
         line_6,
         operator_module,
         line_7,
-    ]
+    ],
+    [
+        e_a_to_loop,
+        e_b_to_loop,
+        e_import_to_y,
+        e_loop_to_x,
+        e_loop_to_y,
+        e_x_to_y,
+    ],
 )
