@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import networkx as nx
 
@@ -11,7 +11,7 @@ class Graph(object):
     - implement the getters by wrapping around networkx (see https://github.com/LineaLabs/backend-take-home/blob/main/dag.py for simple reference)
     """
 
-    def __init__(self, nodes: List[Node], edges=None):
+    def __init__(self, nodes: List[Node], edges: Optional[List[DirectedEdge]] = None):
         """
         Note:
         - edges could be none for very simple programs
@@ -22,8 +22,10 @@ class Graph(object):
         self._ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
         self._edges: List[DirectedEdge] = edges
         self._graph = nx.DiGraph()
-        self._graph.add_nodes_from([node.id for node in nodes if node.node_type != NodeType.ArgumentNode])
-        self._graph.add_edges_from([(edge.source_node_id, edge.sink_node_id) for edge in edges])
+        self._graph.add_nodes_from([node.id for node in nodes])
+        self._graph.add_edges_from(
+            [(edge.source_node_id, edge.sink_node_id) for edge in edges]
+        )
 
     @property
     def graph(self) -> nx.DiGraph:
@@ -49,7 +51,9 @@ class Graph(object):
         return list(nx.descendants(self.graph, node))
 
     def get_node(self, node_id: LineaID) -> Node:
-        return self.ids[node_id]
+        if node_id in self.ids:
+            return self.ids[node_id]
+        return None
 
     def print(self):
         # TODO: improve printing (cc @dhruv)
