@@ -148,7 +148,9 @@ class FunctionDefinitionNode(SideEffectsNode):
 class ConditionNode(Node):
     node_type: NodeType = NodeType.ConditionNode
     code: str
-    # TODO
+    dependent_variables_in_predicate: Optional[List[LineaID]]
+    state_change_nodes: Optional[List[LineaID]] # a list of variables that are used in loop
+    import_nodes: Optional[List[LineaID]]
 
 
 class StateChangeNode(Node):
@@ -173,7 +175,7 @@ class LoopEnterNode(SideEffectsNode):
     node_type: NodeType = NodeType.LoopNode
     code: str
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
-    state_change_nodes: List[LineaID] # a list of variables that are used in loop
+    state_change_nodes: Optional[List[LineaID]] # a list of variables that are used in loop
     import_nodes: Optional[List[LineaID]] # a list of modules that are used in loop
 
 

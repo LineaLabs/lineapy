@@ -6,7 +6,7 @@ import sys
 from typing import Any, cast
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import SessionContext, NodeType, CallNode
+from lineapy.data.types import SessionContext, NodeType, CallNode, ImportNode, ConditionNode
 from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.graph_reader.base import GraphReader
 
@@ -97,10 +97,13 @@ class Executor(GraphReader):
 
         for node_id in program.visit_order():
             node = program.get_node(node_id)
+            if node is None:
+                continue
+
             scoped_locals = locals()
 
             # all of these have to be in the same scope in order to read
-            # and write to scoped_locals properly (this is just the way exec works)
+            # and write to scoped_locals with persistence (this is just the way exec works)
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
@@ -147,9 +150,10 @@ class Executor(GraphReader):
             elif node.node_type == NodeType.ImportNode:
                 # if importlib.util.find_spec(node.library.name) is None:
                 #     Executor.install(node.library.name)
+                node = cast(ImportNode, node)
                 node.module = importlib.import_module(node.library.name)
 
-            elif node.node_type == NodeType.LoopNode:
+            elif node.node_type in [NodeType.LoopNode, NodeType.ConditionNode]:
                 # set up vars and imports
                 setup_context_for_node(node, scoped_locals)
                 exec(node.code)

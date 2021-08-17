@@ -36,7 +36,6 @@ class TestBasicExecutor:
         e.walk(simple_with_variable_argument_and_print)
         stdout = e.get_stdout()
         assert stdout == "10\n"
-        pass
 
     def test_basic_import(self):
         """
@@ -63,7 +62,6 @@ class TestBasicExecutor:
         e.walk(graph_with_function_definition)
         a = e.get_value_by_variable_name("a")
         assert a == 120
-        pass
 
     def test_program_with_mutations(self):
         """
@@ -82,10 +80,12 @@ class TestBasicExecutor:
         assert len(a) == 9
 
     def test_program_with_conditionals(self):
-        e = Executor
+        e = Executor()
         e.walk(graph_with_conditionals)
-        bs = e.get_value_by_varable_name("bs")
-        # @dhruv TODO assert that bs is the same as [1,2,3]
+        bs = e.get_value_by_variable_name("bs")
+        stdout = e.get_stdout()
+        assert bs == [1,2,3]
+        assert stdout == "False\n"
 
 
 if __name__ == "__main__":
