@@ -36,13 +36,6 @@ import_pandas = ImportNode(
     attributes={"power": "pow", "root": "sqrt"},
 )
 
-simple_data_node = DataSourceNode(
-    id=get_new_id(),
-    session_id=session.uuid,
-    storage_type=StorageType.LOCAL_FILE_SYSTEM,
-    access_path=import_pandas.library.path,
-)
-
 literal_node = ArgumentNode(
     id=get_new_id(),
     session_id=session.uuid,
@@ -57,6 +50,13 @@ read_csv_call = CallNode(
     function_name="read_csv",
     function_module=import_pandas.id,
     arguments=[literal_node],
+)
+
+simple_data_node = DataSourceNode(
+    id=get_new_id(),
+    session_id=session.uuid,
+    storage_type=StorageType.LOCAL_FILE_SYSTEM,
+    access_path=read_csv_call.arguments[0].value_literal,
 )
 
 col_name_literal = ArgumentNode(
