@@ -1,9 +1,5 @@
 from lineapy.execution.executor import Executor
 from tests.stub_data.graph_with_import import graph_with_import
-from tests.stub_data.graph_with_pandas import (
-    graph_with_pandas,
-    session as graph_with_pandas_session,
-)
 from tests.stub_data.nested_call_graph import nested_call_graph
 from tests.stub_data.simple_graph import simple_graph
 from tests.stub_data.graph_with_loops import graph_with_loops
@@ -15,7 +11,10 @@ from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
 )
 
-from tests.stub_data.graph_with_csv_import import graph_with_csv_import
+from tests.stub_data.graph_with_csv_import import (
+    graph_with_csv_import,
+    session as graph_with_file_access_session,
+)
 
 
 class TestBasicExecutor:
@@ -47,16 +46,6 @@ class TestBasicExecutor:
         e.execute_program(graph_with_import)
         b = e.get_value_by_variable_name("b")
         assert b == 5
-
-    def test_pip_install_import(self):
-        """
-        other libs, like pandas, or sckitlearn, need to be pip installed.
-        """
-        e = Executor()
-        e.setup(graph_with_pandas_session)
-        e.execute_program(graph_with_pandas)
-        df = e.get_value_by_variable_name("df")
-        assert df is not None
 
     def test_graph_with_function_definition(self):
         """ """
@@ -91,6 +80,7 @@ class TestBasicExecutor:
 
     def test_program_with_file_access(self):
         e = Executor()
+        e.setup(graph_with_file_access_session)
         e.execute_program(graph_with_csv_import)
         s = e.get_value_by_variable_name("s")
         assert s == 20132263
