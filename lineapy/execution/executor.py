@@ -59,6 +59,9 @@ class Executor(GraphReader):
     def get_value_by_variable_name(self, name: str) -> Any:
         return self._variable_values[name]
 
+    def execute_program(self, program: Graph) -> Any:
+        self.walk(program)
+
     def walk(self, program: Graph) -> None:
 
         sys.stdout = self._stdout

@@ -81,7 +81,7 @@ class TestBasicExecutor:
 
     def test_program_with_conditionals(self):
         e = Executor()
-        e.walk(graph_with_conditionals)
+        e.execute_program(graph_with_conditionals)
         bs = e.get_value_by_variable_name("bs")
         stdout = e.get_stdout()
         assert bs == [1,2,3]
