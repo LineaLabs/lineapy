@@ -78,10 +78,10 @@ class TestBasicExecutor:
         pass
 
     def test_program_with_file_access(self):
-        # e = Executor()
-        # e.walk(graph_with_csv_import)
-        # s = e.get_value_by_varable_name("s")
-        # assert s == 25
+        e = Executor()
+        e.walk(graph_with_csv_import)
+        s = e.get_value_by_variable_name("s")
+        assert s == 20132263
         pass
 
 

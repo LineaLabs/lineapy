@@ -12,7 +12,6 @@ from lineapy.graph_reader.base import GraphReader
 
 
 class Executor(GraphReader):
-
     def __init__(self):
         self._variable_values = {}
 
@@ -51,17 +50,22 @@ class Executor(GraphReader):
         sys.stdout = self._stdout
 
         def install(package):
-            subprocess.check_call([sys.executable, "-m", 'pip', 'install', package])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
         def lookup_module(call_node):
             if call_node.function_module is None:
                 return builtins
 
-            import_node = program.get_node(call_node.function_module)
-            if import_node.module is None:
-                import_node.module = importlib.import_module(import_node.library.name)
+            module_node = program.get_node(call_node.function_module)
 
-            return import_node.module
+            if module_node.node_type == NodeType.ImportNode:
+                if module_node.module is None:
+                    module_node.module = importlib.import_module(
+                        module_node.library.name
+                    )
+
+                return module_node.module
+            return module_node.value
 
         for node_id in program.visit_order():
             node = program.get_node(node_id)
@@ -69,8 +73,15 @@ class Executor(GraphReader):
             if node.node_type == NodeType.CallNode:
                 fn_name = node.function_name
 
-                if node.function_module and program.get_node(node.function_module).attributes:
-                    fn_name = program.get_node(node.function_module).attributes[node.function_name]
+                if (
+                    node.function_module
+                    and program.get_node(node.function_module).node_type
+                    == NodeType.ImportNode
+                    and program.get_node(node.function_module).attributes
+                ):
+                    fn_name = program.get_node(node.function_module).attributes[
+                        node.function_name
+                    ]
                 fn = getattr(lookup_module(node), fn_name)
                 args = []
                 for arg in node.arguments:

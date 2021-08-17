@@ -54,14 +54,34 @@ le_id = get_new_id()
 a_state_change_id = get_new_id()
 a_argument_id = get_new_id()
 
-a_state_change = StateChangeNode(id=a_state_change_id, session_id=session.uuid, variable_name="a", associated_node_id=le_id)
-a_argument_node = ArgumentNode(id=a_argument_id, session_id=session.uuid, positional_order=0, value_node_id=a_state_change_id)
+a_state_change = StateChangeNode(
+    id=a_state_change_id,
+    session_id=session.uuid,
+    variable_name="a",
+    associated_node_id=le_id,
+)
+a_argument_node = ArgumentNode(
+    id=a_argument_id,
+    session_id=session.uuid,
+    positional_order=0,
+    value_node_id=a_state_change_id,
+)
 
 b_state_change_id = get_new_id()
 b_argument_id = get_new_id()
 
-b_state_change = StateChangeNode(id=b_state_change_id, session_id=session.uuid, variable_name="b", associated_node_id=le_id)
-b_argument_node = ArgumentNode(id=b_argument_id, session_id=session.uuid, positional_order=1, value_node_id=b_state_change_id)
+b_state_change = StateChangeNode(
+    id=b_state_change_id,
+    session_id=session.uuid,
+    variable_name="b",
+    associated_node_id=le_id,
+)
+b_argument_node = ArgumentNode(
+    id=b_argument_id,
+    session_id=session.uuid,
+    positional_order=1,
+    value_node_id=b_state_change_id,
+)
 
 le = LoopEnterNode(
     id=le_id,
@@ -84,18 +104,16 @@ line_6 = CallNode(
 operator_module_id = get_new_id()
 
 operator_module = ImportNode(
-    id=operator_module_id, 
-    session_id = session.uuid, 
-    code="import operator", 
-    library=Library(
-        name="operator", 
-        version="1", 
-        path=""
-    ),
+    id=operator_module_id,
+    session_id=session.uuid,
+    code="import operator",
+    library=Library(name="operator", version="1", path=""),
 )
 
 x_argument_id = get_new_id()
-x_argument_node = ArgumentNode(id=x_argument_id, session_id=session.uuid, positional_order=0, value_node_id=x_id)
+x_argument_node = ArgumentNode(
+    id=x_argument_id, session_id=session.uuid, positional_order=0, value_node_id=x_id
+)
 
 line_7 = CallNode(
     id=a_id,
@@ -106,7 +124,6 @@ line_7 = CallNode(
     assigned_variable_name="y",
     arguments=[x_argument_node, b_argument_node],
 )
-
 
 
 graph_with_loops = Graph(

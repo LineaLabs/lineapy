@@ -22,8 +22,12 @@ class Graph(object):
         self._ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
         self._edges: List[DirectedEdge] = edges
         self._graph = nx.DiGraph()
-        self._graph.add_nodes_from([node.id for node in nodes if node.node_type != NodeType.ArgumentNode])
-        self._graph.add_edges_from([(edge.source_node_id, edge.sink_node_id) for edge in edges])
+        self._graph.add_nodes_from(
+            [node.id for node in nodes if node.node_type != NodeType.ArgumentNode]
+        )
+        self._graph.add_edges_from(
+            [(edge.source_node_id, edge.sink_node_id) for edge in edges]
+        )
 
     @property
     def graph(self) -> nx.DiGraph:
