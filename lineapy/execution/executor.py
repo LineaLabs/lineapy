@@ -34,17 +34,15 @@ class Executor(GraphReader):
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
     @staticmethod
-    def lookup_module(import_node):
-        if call_node.function_module is None:
+    def lookup_module(module_node):
+        if module_node is None:
             return builtins
-
-        module_node = program.get_node(call_node.function_module)
 
         if module_node.node_type == NodeType.ImportNode:
             if module_node.module is None:
                 module_node.module = importlib.import_module(module_node.library.name)
-
             return module_node.module
+
         return module_node.value
 
     def setup(self, context: SessionContext) -> None:
@@ -133,6 +131,8 @@ class Executor(GraphReader):
                 else:
                     if (
                         node.function_module is not None
+                        and program.get_node(node.function_module).node_type
+                        == NodeType.ImportNode
                         and program.get_node(node.function_module).attributes
                         is not None
                     ):
@@ -143,16 +143,6 @@ class Executor(GraphReader):
                     import_node = program.get_node(node.function_module)
                     fn = getattr(Executor.lookup_module(import_node), fn_name)
 
-                if (
-                    node.function_module
-                    and program.get_node(node.function_module).node_type
-                    == NodeType.ImportNode
-                    and program.get_node(node.function_module).attributes
-                ):
-                    fn_name = program.get_node(node.function_module).attributes[
-                        node.function_name
-                    ]
-                fn = getattr(lookup_module(node), fn_name)
                 args = []
                 for arg in node.arguments:
                     if arg.value_literal is not None:

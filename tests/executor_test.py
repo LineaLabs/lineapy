@@ -23,19 +23,19 @@ class TestBasicExecutor:
     def test_simple_graph(self):
         # initialize the executor
         e = Executor()
-        e.walk(simple_graph)
+        e.execute_program(simple_graph)
         a = e.get_value_by_variable_name("a")
         assert a == 11
 
     def test_nested_call_graph(self):
         e = Executor()
-        e.walk(nested_call_graph)
+        e.execute_program(nested_call_graph)
         a = e.get_value_by_variable_name("a")
         assert a == 10
 
     def test_graph_with_print(self):
         e = Executor()
-        e.walk(simple_with_variable_argument_and_print)
+        e.execute_program(simple_with_variable_argument_and_print)
         stdout = e.get_stdout()
         assert stdout == "10\n"
 
@@ -44,7 +44,7 @@ class TestBasicExecutor:
         some imports are built in, such as "math" or "datetime"
         """
         e = Executor()
-        e.walk(graph_with_import)
+        e.execute_program(graph_with_import)
         b = e.get_value_by_variable_name("b")
         assert b == 5
 
@@ -54,14 +54,14 @@ class TestBasicExecutor:
         """
         e = Executor()
         e.setup(graph_with_pandas_session)
-        e.walk(graph_with_pandas)
+        e.execute_program(graph_with_pandas)
         df = e.get_value_by_variable_name("df")
         assert df is not None
 
     def test_graph_with_function_definition(self):
         """ """
         e = Executor()
-        e.walk(graph_with_function_definition)
+        e.execute_program(graph_with_function_definition)
         a = e.get_value_by_variable_name("a")
         assert a == 120
 
@@ -73,7 +73,7 @@ class TestBasicExecutor:
 
     def test_program_with_loops(self):
         e = Executor()
-        e.walk(graph_with_loops)
+        e.execute_program(graph_with_loops)
         y = e.get_value_by_variable_name("y")
         x = e.get_value_by_variable_name("x")
         a = e.get_value_by_variable_name("a")
@@ -86,15 +86,14 @@ class TestBasicExecutor:
         e.execute_program(graph_with_conditionals)
         bs = e.get_value_by_variable_name("bs")
         stdout = e.get_stdout()
-        assert bs == [1,2,3]
+        assert bs == [1, 2, 3]
         assert stdout == "False\n"
 
     def test_program_with_file_access(self):
         e = Executor()
-        e.walk(graph_with_csv_import)
+        e.execute_program(graph_with_csv_import)
         s = e.get_value_by_variable_name("s")
         assert s == 20132263
-        pass
 
 
 if __name__ == "__main__":
