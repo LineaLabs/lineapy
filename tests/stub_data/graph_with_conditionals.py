@@ -50,7 +50,13 @@ bs_line = LiteralAssignNode(
 condition_line_id = get_new_id()
 state_change_id = get_new_id()
 
-state_change = StateChangeNode(id=state_change_id, session_id=session.uuid, variable_name="bs", associated_node_id=condition_line_id, initial_value_node_id=bs_line_id)
+state_change = StateChangeNode(
+    id=state_change_id, 
+    session_id=session.uuid, 
+    variable_name="bs", 
+    associated_node_id=condition_line_id, 
+    initial_value_node_id=bs_line_id,
+)
 
 condition_line = ConditionNode(
     id=condition_line_id,

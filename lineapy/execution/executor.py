@@ -101,12 +101,13 @@ class Executor(GraphReader):
         for node_id in program.visit_order():
             node = program.get_node(node_id)
             if node is None:
+                print("WARNING: Could not find node with ID %s in program %s" %(node_id, program))
                 continue
 
             scoped_locals = locals()
 
             # all of these have to be in the same scope in order to read
-            # and write to scoped_locals with persistence (this is just the way exec works)
+            # and write to scoped_locals properly (this is just the way exec works)
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)

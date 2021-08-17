@@ -145,12 +145,10 @@ class FunctionDefinitionNode(SideEffectsNode):
     # TODO: should we track if its an recursive function?
 
 
-class ConditionNode(Node):
+class ConditionNode(SideEffectsNode):
     node_type: NodeType = NodeType.ConditionNode
     code: str
     dependent_variables_in_predicate: Optional[List[LineaID]]
-    state_change_nodes: Optional[List[LineaID]] # a list of variables that are used in loop
-    import_nodes: Optional[List[LineaID]]
 
 
 class StateChangeNode(Node):
