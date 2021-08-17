@@ -11,6 +11,8 @@ from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
 )
 
+from tests.stub_data.graph_with_csv_import import graph_with_csv_import
+
 
 class TestBasicExecutor:
     # we should probably do a shared setup in the future
@@ -73,6 +75,13 @@ class TestBasicExecutor:
         pass
 
     def test_program_with_conditionals(self):
+        pass
+
+    def test_program_with_file_access(self):
+        # e = Executor()
+        # e.walk(graph_with_csv_import)
+        # s = e.get_value_by_varable_name("s")
+        # assert s == 25
         pass
 
 

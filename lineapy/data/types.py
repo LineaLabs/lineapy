@@ -23,6 +23,12 @@ class SessionType(Enum):
     SCRIPT = 2
 
 
+class StorageType(Enum):
+    LOCAL_FILE_SYSTEM = 1
+    S3 = 2
+    DATABASE = 3
+
+
 class HardwareSpec(BaseModel):
     # TODO: information about the machine the code is run on.
     pass
@@ -50,7 +56,7 @@ class SessionContext(BaseModel):
 class NodeContext(BaseModel):
     lines: Tuple[int, int]
     columns: Tuple[int, int]
-    execution_time: datetime
+    execution_duration: datetime
     cell_id: Optional[str] = None  # only applicable to Jupyter sessions
 
 
@@ -73,7 +79,8 @@ class NodeType(Enum):
     WithNode = 8
     ImportNode = 9
     StateChangeNode = 10
-    ClassDefinitionNode = 11
+    DataSourceNode = 11
+    ClassDefinitionNode = 12
 
 
 class Node(BaseModel):
@@ -110,7 +117,9 @@ class CallNode(Node):
     code: str
     arguments: List[ArgumentNode]
     function_name: str
-    function_module: Optional[LineaID] # references an Import Node
+    function_module: Optional[
+        LineaID
+    ]  # could reference an Import Node, or a class (which would be the result of a CallNode)
     locally_defined_function_id: Optional[LineaID]
     assigned_variable_name: Optional[str]
     # value of the result, filled at runtime
@@ -140,9 +149,13 @@ class FunctionDefinitionNode(Node):
 
 
 class ConditionNode(Node):
+    """
+    For now, we are going to treat conditionals as black-boxes and not even parse what predicates were used. We just know what variables were used in the predicate for the sake of dependency tracking
+    """
+
     node_type: NodeType = NodeType.ConditionNode
     code: str
-    # TODO
+    dependent_variables_in_predicate: List[LineaID]
 
 
 class StateChangeNode(Node):
@@ -174,6 +187,22 @@ class LoopEnterNode(Node):
 # class LoopExitNode(Node):
 #     node_type: NodeType = NodeType.LoopNode
 #     pass
+
+
+class DataSourceNode(Node):
+    """
+    - The goal of identifying data source node is that we can start associating them even if they are accessed in slightly different ways.
+    - Possible data sources:
+        - CSV/S3
+        - DB
+    - For now we are just going to deal with local file systems and not support DB. Will add in the future.
+    - Also the access_path should be assumed to be unrolled, but it can be a LOCAL access path, which means that it alone is not re-produceable.
+    """
+
+    node_type: NodeType = NodeType.DataSourceNode
+    storage_type: StorageType
+    access_path: str  # e.g., "/Users/yifanwu/miniforge3/lib/python3.9/site-packages/pandas"
+    name: Optional[str]  # user defined
 
 
 class WithNode(Node):
