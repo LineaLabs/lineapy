@@ -52,6 +52,4 @@ line_3 = CallNode(
 
 e3 = DirectedEdge(source_node_id=line_2_id, sink_node_id=line_3_id)
 
-simple_with_variable_argument_and_print = Graph(
-    [line_1, arg_literal, arg_a, arg_10, line_2, arg_b, line_3], [e2, e3]
-)
+simple_with_variable_argument_and_print = Graph([line_1, line_2, line_3], [e2, e3])

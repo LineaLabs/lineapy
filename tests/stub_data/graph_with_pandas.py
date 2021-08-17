@@ -24,11 +24,14 @@ Notes:
 - the UUIDs are kept constant so we can more easily reference the same values in a different file
 """
 
+pandas_lib = Library(name="pandas", version="1", path="")
+
 session = SessionContext(
     uuid=get_new_id(),
     file_name="testing.py",
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.now(),
+    libraries=[pandas_lib],
 )
 
 line_1_id = get_new_id()
@@ -37,7 +40,7 @@ line_1 = ImportNode(
     id=line_1_id,
     session_id=session.uuid,
     code="import pandas as pd",
-    library=Library(name="pandas", version="1", path=""),
+    library=pandas_lib,
     alias="pd",
 )
 
@@ -63,4 +66,4 @@ line_2 = CallNode(
     arguments=[arg_literal],
 )
 
-graph_with_pandas = Graph([line_1, line_2, arg_literal])
+graph_with_pandas = Graph([line_1, line_2])

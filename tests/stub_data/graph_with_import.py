@@ -2,12 +2,12 @@ from datetime import datetime
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    ImportNode, 
+    ImportNode,
     ArgumentNode,
     CallNode,
     DirectedEdge,
-    Library, 
-    SessionContext, 
+    Library,
+    SessionContext,
     SessionType,
 )
 
@@ -32,22 +32,22 @@ session = SessionContext(
 line_1_id = get_new_id()
 
 line_1 = ImportNode(
-    id=line_1_id, 
-    session_id = session.uuid, 
-    code="from math import pow, sqrt as root", 
-    library=Library(
-        name="math", 
-        version="1", 
-        path=""
-    ),
+    id=line_1_id,
+    session_id=session.uuid,
+    code="from math import pow, sqrt as root",
+    library=Library(name="math", version="1", path=""),
     attributes={"power": "pow", "root": "sqrt"},
 )
 
 arg_literal_id_1 = get_new_id()
-arg_literal1 = ArgumentNode(id=arg_literal_id_1, session_id=session.uuid, positional_order=1, value_literal=5)
+arg_literal1 = ArgumentNode(
+    id=arg_literal_id_1, session_id=session.uuid, positional_order=1, value_literal=5
+)
 
 arg_literal_id_2 = get_new_id()
-arg_literal2 = ArgumentNode(id=arg_literal_id_2, session_id=session.uuid, positional_order=1, value_literal=2)
+arg_literal2 = ArgumentNode(
+    id=arg_literal_id_2, session_id=session.uuid, positional_order=1, value_literal=2
+)
 
 line_2_id = get_new_id()
 
@@ -65,7 +65,9 @@ e2 = DirectedEdge(source_node_id=line_1_id, sink_node_id=line_2_id)
 
 arg_a_id = get_new_id()
 
-arg_a = ArgumentNode(id=arg_a_id, session_id=session.uuid, positional_order=1, value_node_id=line_2_id)
+arg_a = ArgumentNode(
+    id=arg_a_id, session_id=session.uuid, positional_order=1, value_node_id=line_2_id
+)
 
 line_3_id = get_new_id()
 line_3 = CallNode(
@@ -80,4 +82,4 @@ line_3 = CallNode(
 
 e3 = DirectedEdge(source_node_id=line_2_id, sink_node_id=line_3_id)
 
-graph_with_import = Graph([line_1, arg_literal1, arg_literal2, line_2, arg_a, line_3], [e2, e3])
+graph_with_import = Graph([line_1, line_2, line_3], [e2, e3])
