@@ -38,11 +38,18 @@ import_pandas = ImportNode(
     alias="pd",
 )
 
+simple_data_node = DataSourceNode(
+    id=get_new_id(),
+    session_id=session.uuid,
+    storage_type=StorageType.LOCAL_FILE_SYSTEM,
+    access_path="./tests/ames_train_cleaned.csv",
+)
+
 literal_node = ArgumentNode(
     id=get_new_id(),
     session_id=session.uuid,
     positional_order=0,
-    value_literal="./tests/ames_train_cleaned.csv",
+    value_literal=simple_data_node.access_path,
 )
 
 read_csv_call = CallNode(
@@ -53,13 +60,6 @@ read_csv_call = CallNode(
     function_module=import_pandas.id,
     assigned_variable_name="df",
     arguments=[literal_node],
-)
-
-simple_data_node = DataSourceNode(
-    id=get_new_id(),
-    session_id=session.uuid,
-    storage_type=StorageType.LOCAL_FILE_SYSTEM,
-    access_path=read_csv_call.arguments[0].value_literal,
 )
 
 col_name_literal = ArgumentNode(
