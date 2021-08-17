@@ -6,7 +6,7 @@ import sys
 from typing import Any, cast
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import SessionContext, NodeType, CallNode
+from lineapy.data.types import SessionContext, NodeType, CallNode, ImportNode, ConditionNode
 from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.graph_reader.base import GraphReader
 
@@ -59,6 +59,9 @@ class Executor(GraphReader):
     def get_value_by_variable_name(self, name: str) -> Any:
         return self._variable_values[name]
 
+    def execute_program(self, program: Graph) -> Any:
+        self.walk(program)
+
     def walk(self, program: Graph) -> None:
 
         sys.stdout = self._stdout
@@ -97,6 +100,10 @@ class Executor(GraphReader):
 
         for node_id in program.visit_order():
             node = program.get_node(node_id)
+            if node is None:
+                print("WARNING: Could not find node with ID %s in program %s" %(node_id, program))
+                continue
+
             scoped_locals = locals()
 
             # all of these have to be in the same scope in order to read
@@ -147,9 +154,10 @@ class Executor(GraphReader):
             elif node.node_type == NodeType.ImportNode:
                 # if importlib.util.find_spec(node.library.name) is None:
                 #     Executor.install(node.library.name)
+                node = cast(ImportNode, node)
                 node.module = importlib.import_module(node.library.name)
 
-            elif node.node_type == NodeType.LoopNode:
+            elif node.node_type in [NodeType.LoopNode, NodeType.ConditionNode]:
                 # set up vars and imports
                 setup_context_for_node(node, scoped_locals)
                 exec(node.code)

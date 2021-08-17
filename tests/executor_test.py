@@ -7,6 +7,7 @@ from tests.stub_data.graph_with_pandas import (
 from tests.stub_data.nested_call_graph import nested_call_graph
 from tests.stub_data.simple_graph import simple_graph
 from tests.stub_data.graph_with_loops import graph_with_loops
+from tests.stub_data.graph_with_conditionals import graph_with_conditionals
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
 )
@@ -35,7 +36,6 @@ class TestBasicExecutor:
         e.walk(simple_with_variable_argument_and_print)
         stdout = e.get_stdout()
         assert stdout == "10\n"
-        pass
 
     def test_basic_import(self):
         """
@@ -62,7 +62,6 @@ class TestBasicExecutor:
         e.walk(graph_with_function_definition)
         a = e.get_value_by_variable_name("a")
         assert a == 120
-        pass
 
     def test_program_with_mutations(self):
         """
@@ -81,7 +80,12 @@ class TestBasicExecutor:
         assert len(a) == 9
 
     def test_program_with_conditionals(self):
-        pass
+        e = Executor()
+        e.execute_program(graph_with_conditionals)
+        bs = e.get_value_by_variable_name("bs")
+        stdout = e.get_stdout()
+        assert bs == [1,2,3]
+        assert stdout == "False\n"
 
 
 if __name__ == "__main__":
