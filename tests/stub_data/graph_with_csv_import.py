@@ -42,7 +42,7 @@ simple_data_node = DataSourceNode(
     id=get_new_id(),
     session_id=session.uuid,
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
-    access_path="./tests/ames_train_cleaned.csv",
+    access_path="./tests/stub_data/simple_data.csv",
 )
 
 literal_node = ArgumentNode(
@@ -66,7 +66,7 @@ col_name_literal = ArgumentNode(
     id=get_new_id(),
     session_id=session.uuid,
     positional_order=0,
-    value_literal="Lot_Area",
+    value_literal="a",
 )
 
 access_a_column = CallNode(

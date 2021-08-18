@@ -83,7 +83,7 @@ class TestBasicExecutor:
         e.setup(graph_with_file_access_session)
         e.execute_program(graph_with_csv_import)
         s = e.get_value_by_variable_name("s")
-        assert s == 20132263
+        assert s == 25
 
 
 if __name__ == "__main__":
