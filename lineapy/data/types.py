@@ -146,6 +146,10 @@ class LiteralAssignNode(Node):
 
 
 class VariableAliasNode(Node):
+    """
+    Y: We could in theory merge LiteralAssignNode and VariableAliasNode, but I'm not sure what the pro/con are and we can always refactor?
+    """
+
     node_type: NodeType = NodeType.VariableAliasNode
     code: str
     source_variable_id: LineaID
