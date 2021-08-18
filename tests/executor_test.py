@@ -16,6 +16,11 @@ from tests.stub_data.graph_with_csv_import import (
     session as graph_with_file_access_session,
 )
 
+from tests.stub_data.graph_with_variable_alias import (
+    graph_with_alias_by_reference,
+    graph_with_alias_by_value,
+)
+
 
 class TestBasicExecutor:
     # we should probably do a shared setup in the future
@@ -84,6 +89,21 @@ class TestBasicExecutor:
         e.execute_program(graph_with_csv_import)
         s = e.get_value_by_variable_name("s")
         assert s == 25
+
+    def test_variable_alias_by_value(self):
+        e = Executor()
+        e.execute_program(graph_with_literal_alias)
+        a = e.get_value_by_variable_name("a")
+        b = e.get_value_by_variable_name("b")
+        assert a == 2
+        assert b == 0
+
+    def test_variable_alias_by_reference(self):
+        e = Executor()
+        e.execute_program(graph_with_literal_alias)
+        s = e.get_value_by_variable_name("2")
+        assert s == 10
+        assert b == 0
 
 
 if __name__ == "__main__":

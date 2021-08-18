@@ -80,7 +80,8 @@ class NodeType(Enum):
     ImportNode = 9
     StateChangeNode = 10
     DataSourceNode = 11
-    ClassDefinitionNode = 12
+    VariableAliasNode = 12
+    ClassDefinitionNode = 13
 
 
 class Node(BaseModel):
@@ -141,7 +142,13 @@ class LiteralAssignNode(Node):
     node_type: NodeType = NodeType.LiteralAssignNode
     code: str
     assigned_variable_name: str
-    value: Optional[NodeValue]
+    value: NodeValue
+
+
+class VariableAliasNode(Node):
+    node_type: NodeType = NodeType.VariableAliasNode
+    code: str
+    source_variable_id: LineaID
 
 
 class FunctionDefinitionNode(SideEffectsNode):
