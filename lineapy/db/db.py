@@ -33,18 +33,17 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         if caching_decider(node):
             self.data_asset_manager.write_node_value(node)
 
-    def write_node_is_artifact(self, node_id: LineaID):
+    def add_node_id_to_artifact_table(self, node_id: LineaID):
         """
         Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
-        cc @dorx please review
         """
         # @dhruv TODO:
         # - check node type: should just be CallNode and FunctionDefinitionNode
         #
-        # - then insert into a table that's literally just the NodeID and maybe when it was registered as artifact (something like datetime.now())
+        # - then insert into a table that's literally just the NodeID and maybe a timestamp for when it was registered as artifact
         raise NotImplementedError
 
-    def write_node_is_no_longer_artifact(self, node_id: LineaID):
+    def remove_node_id_from_artifact_table(self, node_id: LineaID):
         """
         #dhruv TODO
         The opposite of write_node_is_artifact
@@ -66,8 +65,14 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     # fill out the rest based on base.py
     def get_graph_from_artifact_id(self, node: LineaID) -> Graph:
         """
-        This is basically slicing.
-        There are some complexities.
+        - This is program slicing over database data.
+        - There are lots of complexities when it comes to mutation
+          - Examples:
+            - Third party libraries have functions that mutate some global or variable state.
+          - Strategy for now
+            - definitely take care of the simple cases, like `VariableAliasNode`
+            - simple heuristics that may create false positives (include things not necessary)
+            - but definitely NOT false negatives (then the program CANNOT be executed)
         """
 
         raise NotImplementedError

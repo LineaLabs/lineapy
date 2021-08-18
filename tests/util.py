@@ -1,5 +1,4 @@
 from datetime import datetime
-from lineapy.data.graph import Graph
 from uuid import uuid4
 
 from lineapy.data.types import (
@@ -22,21 +21,9 @@ def get_new_session():
     )
 
 
-def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
+def reset_test_db():
     """
-    - If deep_check is True, check each field of the nodes, otherwise, just check the ID.
-    - deep_check is useful for testing
+    # TODO @dhruv. Please have a simple way of tearing down the test database
+    # You might have to add some configs to the LineaDBConfig, or pass in some path to the db etc. If unsure, please sync with @yifanwu
     """
-    # first check if they are the same type
-    if n1.id != n2.id:
-        return False
-    if deep_check:
-        if n1.node_type != n2.node_type:
-            return False
-        # @dhruv TODO: then based on each node type do some custom testing
-        # Maybe there is an easier way to just implement their __str__ and check that?
-    return True
-
-
-def are_graph_equal(g1: Graph, g2: Graph) -> bool:
     raise NotImplementedError

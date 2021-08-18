@@ -19,7 +19,7 @@ class FileSystemOption(Enum):
 
 
 @dataclass
-class LineaDbConfig:
+class LineaDBConfig:
     """
     @dorx please review this config, maybe this is NOT what you had in mind
     """

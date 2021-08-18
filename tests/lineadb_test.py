@@ -1,11 +1,12 @@
-from tests.util import are_nodes_equal
-from lineapy.db.base import LineaDbConfig
+from lineapy.db.db import LineaDB
+from lineapy.graph_reader.graph_util import are_nodes_equal
+from lineapy.db.base import LineaDBConfig
 from tests.stub_data.simple_graph import simple_graph_nodes
 from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
     graph_sliced_by_var_f,
 )
-from lineapy.db.db import LineaDB
+from tests.util import reset_test_db
 
 
 class TestLineaDB:
@@ -15,7 +16,7 @@ class TestLineaDB:
 
     def set_up(self):
         # just use the default config
-        self.lineadb = LineaDB(LineaDbConfig())
+        self.lineadb = LineaDB(LineaDBConfig())
 
     def test_writing_and_reading_simple_graph_nodes(self):
         # let's write the in memory graph in (with all the nodes)
@@ -41,6 +42,7 @@ class TestLineaDB:
     def tear_down(self):
         # remove the test db
         # @dorx, please share what the best way to do a tear down is---I think having a delete_db function on LineaDBWriter seems a little dangerous?
+        reset_test_db()
         pass
 
 
@@ -48,5 +50,5 @@ if __name__ == "__main__":
     tester = TestLineaDB()
     tester.set_up()
     tester.test_writing_and_reading_simple_graph_nodes()
-    tester.test_search_by_data_source()
+    tester.test_search_artifacts_by_data_source()
     tester.tear_down()
