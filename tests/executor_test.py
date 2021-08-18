@@ -85,8 +85,7 @@ class TestBasicExecutor:
 
     def test_program_with_file_access(self):
         e = Executor()
-        e.setup(graph_with_file_access_session)
-        e.execute_program(graph_with_csv_import)
+        e.execute_program(graph_with_csv_import, graph_with_file_access_session)
         s = e.get_value_by_variable_name("s")
         assert s == 25
 
@@ -111,7 +110,6 @@ if __name__ == "__main__":
     tester.test_nested_call_graph()
     tester.test_graph_with_print()
     tester.test_basic_import()
-    # tester.test_pip_install_import() # Y: not sure what happpend here...
     tester.test_graph_with_function_definition()
     tester.test_program_with_mutations()
     tester.test_program_with_loops()
