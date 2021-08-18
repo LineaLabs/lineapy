@@ -1,74 +1,69 @@
-from lineapy.data import records_pool
+from typing import Any, List, Union
 from lineapy.data.types import Node, DirectedEdge
 
 
-def assign() -> None:
+class Tracking:
     """
-    TODO: define input arguments
-
-    TODO: append records (Node and DirectedEdge) to records_pool
-    :return:
-    """
-    pass
-
-
-def call() -> None:
-    """
-    TODO: define input arguments
-
-    TODO: append records (Node and DirectedEdge) to records_pool
-    """
-    pass
-
-
-def loop() -> None:
-    """
-    Handles both for and while loops.
-
-    TODO: define input arguments
-
-    TODO: append records (Node and DirectedEdge) to records_pool
-    """
-    pass
-    pass
-
-
-def cond() -> None:
-    """
-    TODO: define input arguments
-
-    TODO: append records (Node and DirectedEdge) to records_pool
-    """
-    pass
-
-
-def func() -> None:
-    """
-    TODO: define input arguments
-
-    TODO: append records (Node and DirectedEdge) to records_pool
-    """
-    pass
-
-
-class tracking:
-    """
-    with linea.tracking('docs_training'):
-        ...
+    The way that we expect users to use linea is:
+    ```
+    import lineapy
+    ln = lineapy.start()
+    # ... their code
+    #
+    ln.save(variable_name)
+    ```
     """
 
     def __init__(self, session_name: str):
         self.session_name = session_name
         # TODO
 
-    def __enter__(self):
+    def save(self, variable: Any) -> None:
+        # we'd have to do some introspection here to know what it is.
+        #
+        pass
+
+    def assign(self) -> None:
         """
-        TODO: set up the tracking context.
+        TODO:
+        - [ ] define input arguments
+        - [ ] append records (Node and DirectedEdge) to `records_pool`
+        = [ ] make sure that all the
         """
         pass
 
-    def __exit__(self):
+    def call(self) -> None:
         """
-        TODO: shut down tracking services.
+        TODO: define input arguments
+
+        TODO: append records (Node and DirectedEdge) to records_pool
+
+        TODO:
+        """
+        pass
+
+    def loop(self) -> None:
+        """
+        Handles both for and while loops.
+
+        TODO: define input arguments
+
+        TODO: append records (Node and DirectedEdge) to records_pool
+        """
+        pass
+
+    def cond(self) -> None:
+        """
+        TODO: define input arguments
+
+        TODO: append records (Node and DirectedEdge) to records_pool
+        """
+        pass
+
+    def func(self) -> None:
+        """
+        TODO: define input arguments
+
+        TODO: append records (Node and DirectedEdge) to records_pool
         """
         pass
