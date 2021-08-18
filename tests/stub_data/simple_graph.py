@@ -30,7 +30,9 @@ session = SessionContext(
 
 arg_literal_id = get_new_id()
 
-arg_literal = ArgumentNode(id=arg_literal_id, session_id=session.uuid, positional_order=1, value_literal=-11)
+arg_literal = ArgumentNode(
+    id=arg_literal_id, session_id=session.uuid, positional_order=1, value_literal=-11
+)
 
 line_1_id = get_new_id()
 
@@ -43,4 +45,5 @@ line_1 = CallNode(
     arguments=[arg_literal],
 )
 
-simple_graph = Graph([line_1, arg_literal])
+simple_graph_nodes = [line_1, arg_literal]
+simple_graph = Graph(simple_graph_nodes)

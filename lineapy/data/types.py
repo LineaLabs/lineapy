@@ -8,15 +8,6 @@ from pydantic import BaseModel
 # aliasing the ID type in case we chnage it later
 LineaID = UUID
 
-# TODO: not sure if this is the most intuitive name.
-class StateScope:
-    """
-    TODO
-    This captures the scope
-    """
-
-    pass
-
 
 class SessionType(Enum):
     JUPYTER = 1

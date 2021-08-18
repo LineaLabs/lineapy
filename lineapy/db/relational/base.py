@@ -7,8 +7,12 @@ from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.db.base import LineaDBReader, LineaDBWriter
 
 
-class RelationalLineaDB(LineaDBReader, LineaDBWriter, ABC):
+"""
+Please make sure to leverage PyDantic to reduce piping data trhough different structures https://pydantic-docs.helpmanual.io/usage/models/#orm-mode-aka-arbitrary-class-instances
+"""
 
+
+class RelationalLineaDB(LineaDBReader, LineaDBWriter, ABC):
     @abstractmethod
     @property
     def connection(self) -> Any:
@@ -28,5 +32,3 @@ class RelationalLineaDB(LineaDBReader, LineaDBWriter, ABC):
 
     def write_context(self, context: SessionContext):
         pass
-
-
