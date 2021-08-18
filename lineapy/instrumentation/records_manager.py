@@ -13,7 +13,7 @@ class RecordsManager:
         # TODO
         # self.db = LineaDB()
 
-    def add_to_records_pool(self, RecordType):
+    def add_to_records_pool(self, record: RecordType):
         pass
 
     def flush_records_and_close(self):
