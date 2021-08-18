@@ -6,7 +6,13 @@ import sys
 from typing import Any, cast
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import SessionContext, NodeType, CallNode, ImportNode, ConditionNode
+from lineapy.data.types import (
+    SessionContext,
+    NodeType,
+    CallNode,
+    ImportNode,
+    ConditionNode,
+)
 from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.graph_reader.base import GraphReader
 
@@ -28,14 +34,16 @@ class Executor(GraphReader):
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
     @staticmethod
-    def lookup_module(import_node):
-        if import_node is None:
+    def lookup_module(module_node):
+        if module_node is None:
             return builtins
 
-        if import_node.module is None:
-            import_node.module = importlib.import_module(import_node.library.name)
+        if module_node.node_type == NodeType.ImportNode:
+            if module_node.module is None:
+                module_node.module = importlib.import_module(module_node.library.name)
+            return module_node.module
 
-        return import_node.module
+        return module_node.value
 
     def setup(self, context: SessionContext) -> None:
         if context.libraries is not None:
@@ -101,7 +109,10 @@ class Executor(GraphReader):
         for node_id in program.visit_order():
             node = program.get_node(node_id)
             if node is None:
-                print("WARNING: Could not find node with ID %s in program %s" %(node_id, program))
+                print(
+                    "WARNING: Could not find node with ID %s in program %s"
+                    % (node_id, program)
+                )
                 continue
 
             scoped_locals = locals()
@@ -120,6 +131,8 @@ class Executor(GraphReader):
                 else:
                     if (
                         node.function_module is not None
+                        and program.get_node(node.function_module).node_type
+                        == NodeType.ImportNode
                         and program.get_node(node.function_module).attributes
                         is not None
                     ):

@@ -23,6 +23,12 @@ class SessionType(Enum):
     SCRIPT = 2
 
 
+class StorageType(Enum):
+    LOCAL_FILE_SYSTEM = 1
+    S3 = 2
+    DATABASE = 3
+
+
 class HardwareSpec(BaseModel):
     # TODO: information about the machine the code is run on.
     pass
@@ -50,7 +56,7 @@ class SessionContext(BaseModel):
 class NodeContext(BaseModel):
     lines: Tuple[int, int]
     columns: Tuple[int, int]
-    execution_time: datetime
+    execution_duration: datetime
     cell_id: Optional[str] = None  # only applicable to Jupyter sessions
 
 
@@ -73,7 +79,8 @@ class NodeType(Enum):
     WithNode = 8
     ImportNode = 9
     StateChangeNode = 10
-    ClassDefinitionNode = 11
+    DataSourceNode = 11
+    ClassDefinitionNode = 12
 
 
 class Node(BaseModel):
@@ -82,11 +89,15 @@ class Node(BaseModel):
     node_type: NodeType = NodeType.Node
     context: Optional[NodeContext] = None
 
+
 class SideEffectsNode(Node):
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     # will deprecate when storing graph in a relational db
     state_change_nodes: Optional[List[LineaID]]
-    import_nodes: Optional[List[LineaID]] # modules required to run node code (ids point to ImportNode instances)
+    import_nodes: Optional[
+        List[LineaID]
+    ]  # modules required to run node code (ids point to ImportNode instances)
+
 
 class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
@@ -115,7 +126,9 @@ class CallNode(Node):
     code: str
     arguments: List[ArgumentNode]
     function_name: str
-    function_module: Optional[LineaID] # references an Import Node
+    function_module: Optional[
+        LineaID
+    ]  # could reference an Import Node, or a class (which would be the result of a CallNode)
     locally_defined_function_id: Optional[LineaID]
     assigned_variable_name: Optional[str]
     # value of the result, filled at runtime
@@ -141,7 +154,7 @@ class FunctionDefinitionNode(SideEffectsNode):
     function_name: str
     code: str  # the code definition for the function
     value: Optional[Any]  # loaded at run time
-    
+
     # TODO: should we track if its an recursive function?
 
 
@@ -161,7 +174,7 @@ class StateChangeNode(Node):
     variable_name: str
     # this could be call id or loop id, or any code blocks
     associated_node_id: LineaID
-    initial_value_node_id: LineaID # points to a node that represents the value of the node before the change (can be another state change node)
+    initial_value_node_id: LineaID  # points to a node that represents the value of the node before the change (can be another state change node)
     value: Optional[NodeValue]
 
 
@@ -173,14 +186,32 @@ class LoopEnterNode(SideEffectsNode):
     node_type: NodeType = NodeType.LoopNode
     code: str
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
-    state_change_nodes: Optional[List[LineaID]] # a list of variables that are used in loop
-    import_nodes: Optional[List[LineaID]] # a list of modules that are used in loop
+    state_change_nodes: Optional[
+        List[LineaID]
+    ]  # a list of variables that are used in loop
+    import_nodes: Optional[List[LineaID]]  # a list of modules that are used in loop
 
 
 # Not sure if we need the exit node, commenting out for now
 # class LoopExitNode(Node):
 #     node_type: NodeType = NodeType.LoopNode
 #     pass
+
+
+class DataSourceNode(Node):
+    """
+    - The goal of identifying data source node is that we can start associating them even if they are accessed in slightly different ways.
+    - Possible data sources:
+        - CSV/S3
+        - DB
+    - For now we are just going to deal with local file systems and not support DB. Will add in the future.
+    - Also the access_path should be assumed to be unrolled, but it can be a LOCAL access path, which means that it alone is not re-produceable.
+    """
+
+    node_type: NodeType = NodeType.DataSourceNode
+    storage_type: StorageType
+    access_path: str  # e.g., "/Users/yifanwu/miniforge3/lib/python3.9/site-packages/pandas"
+    name: Optional[str]  # user defined
 
 
 class WithNode(Node):
