@@ -10,7 +10,7 @@ class RecordsManager:
     def __init__(self):
         self.records_pool: List[RecordType] = []
         # instantiate a connection to LineaDB
-        # TODO
+        # TODO, need to wait until the linea-db-spec is merged and everything
         # self.db = LineaDB()
 
     def add_to_records_pool(self, record: RecordType):
