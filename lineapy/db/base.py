@@ -9,11 +9,11 @@ class LineaDBReader(ABC):
     """
     TODO: programmatic APIs for querying LineaDB
     """
+
     pass
 
 
 class LineaDBWriter(ABC):
-
     @abstractmethod
     @property
     def data_asset_manager(self) -> DataAssetManager:

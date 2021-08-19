@@ -80,7 +80,8 @@ class NodeType(Enum):
     ImportNode = 9
     StateChangeNode = 10
     DataSourceNode = 11
-    ClassDefinitionNode = 12
+    VariableAliasNode = 12
+    ClassDefinitionNode = 13
 
 
 class Node(BaseModel):
@@ -91,6 +92,7 @@ class Node(BaseModel):
 
 
 class SideEffectsNode(Node):
+    code: str
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     # will deprecate when storing graph in a relational db
     state_change_nodes: Optional[List[LineaID]]
@@ -141,7 +143,18 @@ class LiteralAssignNode(Node):
     node_type: NodeType = NodeType.LiteralAssignNode
     code: str
     assigned_variable_name: str
-    value: Optional[NodeValue]
+    value: NodeValue
+    value_node_id: Optional[LineaID]
+
+
+class VariableAliasNode(Node):
+    """
+    Y: We could in theory merge LiteralAssignNode and VariableAliasNode, but I'm not sure what the pro/con are and we can always refactor?
+    """
+
+    node_type: NodeType = NodeType.VariableAliasNode
+    code: str
+    source_variable_id: LineaID
 
 
 class FunctionDefinitionNode(SideEffectsNode):
@@ -152,7 +165,6 @@ class FunctionDefinitionNode(SideEffectsNode):
 
     node_type: NodeType = NodeType.FunctionDefinitionNode
     function_name: str
-    code: str  # the code definition for the function
     value: Optional[Any]  # loaded at run time
 
     # TODO: should we track if its an recursive function?
@@ -160,7 +172,7 @@ class FunctionDefinitionNode(SideEffectsNode):
 
 class ConditionNode(SideEffectsNode):
     node_type: NodeType = NodeType.ConditionNode
-    code: str
+
     dependent_variables_in_predicate: Optional[List[LineaID]]
 
 
@@ -184,7 +196,6 @@ class LoopEnterNode(SideEffectsNode):
     """
 
     node_type: NodeType = NodeType.LoopNode
-    code: str
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     state_change_nodes: Optional[
         List[LineaID]
