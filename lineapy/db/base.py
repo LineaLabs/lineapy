@@ -54,8 +54,8 @@ class LineaDBReader(ABC):
 
 
 class LineaDBWriter(ABC):
-    @abstractmethod
     @property
+    @abstractmethod
     def data_asset_manager(self) -> DataAssetManager:
         ...
 

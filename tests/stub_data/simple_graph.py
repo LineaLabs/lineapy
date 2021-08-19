@@ -45,5 +45,4 @@ line_1 = CallNode(
     arguments=[arg_literal],
 )
 
-simple_graph_nodes = [line_1, arg_literal]
-simple_graph = Graph(simple_graph_nodes)
+simple_graph = Graph([line_1])
