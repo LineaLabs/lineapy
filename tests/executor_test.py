@@ -16,10 +16,8 @@ from tests.stub_data.graph_with_csv_import import (
     session as graph_with_file_access_session,
 )
 
-from tests.stub_data.graph_with_variable_alias import (
-    graph_with_alias_by_reference,
-    graph_with_alias_by_value,
-)
+from tests.stub_data.graph_with_alias_by_reference import graph_with_alias_by_reference
+from tests.stub_data.graph_with_alias_by_value import graph_with_alias_by_value
 
 
 class TestBasicExecutor:
@@ -114,3 +112,6 @@ if __name__ == "__main__":
     tester.test_program_with_mutations()
     tester.test_program_with_loops()
     tester.test_program_with_conditionals()
+    tester.test_program_with_file_access()
+    tester.test_variable_alias_by_value()
+    tester.test_variable_alias_by_reference()

@@ -4,7 +4,6 @@ from lineapy.data.types import Node, NodeValue
 
 
 class DataAssetManager(ABC):
-
     @abstractmethod
     def write_node_value(self, node: Node) -> str:
         """

@@ -4,18 +4,20 @@ import importlib.util
 import io
 import subprocess
 import sys
-from typing import Any, List, cast
+from typing import Any, List, Tuple, Optional, Dict, cast
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     SessionContext,
     NodeType,
+    Node,
     CallNode,
     ImportNode,
     ConditionNode,
     LiteralAssignNode,
     VariableAliasNode,
     SideEffectsNode,
+    StateChangeNode,
     FunctionDefinitionNode,
 )
 from lineapy.db.asset_manager.base import DataAssetManager
@@ -39,7 +41,7 @@ class Executor(GraphReader):
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
     @staticmethod
-    def lookup_module(module_node, fn_name):
+    def lookup_module(module_node: Optional[Node], fn_name: str) -> Optional[Any]:
         if hasattr(lineabuiltins, fn_name):
             return lineabuiltins
 
@@ -47,6 +49,7 @@ class Executor(GraphReader):
             return builtins
 
         if module_node.node_type == NodeType.ImportNode:
+            module_node = cast(ImportNode, module_node)
             if module_node.module is None:
                 module_node.module = importlib.import_module(module_node.library.name)
             return module_node.module
@@ -80,14 +83,17 @@ class Executor(GraphReader):
             self.setup(context)
         self.walk(program)
 
-    def walk(self, program: Graph) -> None:
-        sys.stdout = self._stdout
-
-        def setup_context_for_node(node, scoped_locals):
-            for state_var in node.state_change_nodes:
-                state_var = program.get_node(state_var)
+    def setup_context_for_node(
+        self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]
+    ) -> None:
+        if node is None:
+            return
+        node = cast(SideEffectsNode, node)
+        if node.state_change_nodes is not None:
+            for state_var_id in node.state_change_nodes:
+                state_var = cast(StateChangeNode, program.get_node(state_var_id))
                 initial_state = program.get_node(state_var.initial_value_node_id)
-                if initial_state.node_type in [
+                if initial_state is not None and initial_state.node_type in [
                     NodeType.CallNode,
                     NodeType.LiteralAssignNode,
                     NodeType.StateChangeNode,
@@ -95,51 +101,62 @@ class Executor(GraphReader):
                     initial_state = initial_state.value
                     scoped_locals[state_var.variable_name] = initial_state
 
-            if node.import_nodes is not None:
-                for import_node in node.import_nodes:
-                    import_node = program.get_node(import_node)
-                    # if importlib.util.find_spec(import_node.library.name) is None:
-                    #     Executor.install(import_node.library.name)
-                    import_node.module = importlib.import_module(
-                        import_node.library.name
-                    )
-                    scoped_locals[import_node.library.name] = import_node.module
+        if node.import_nodes is not None:
+            for import_node_id in node.import_nodes:
+                import_node = cast(ImportNode, program.get_node(import_node_id))
+                # if importlib.util.find_spec(import_node.library.name) is None:
+                #     Executor.install(import_node.library.name)
+                import_node.module = importlib.import_module(import_node.library.name)
+                scoped_locals[import_node.library.name] = import_node.module
 
-        def update_node_side_effects(node, scoped_locals):
-            local_vars = scoped_locals
-            for state_var in node.state_change_nodes:
-                state_var = program.get_node(state_var)
+    def update_node_side_effects(
+        self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]
+    ) -> None:
+        if node is None:
+            return
+
+        local_vars = scoped_locals
+        node = cast(SideEffectsNode, node)
+        if node.state_change_nodes is not None:
+            for state_var_id in node.state_change_nodes:
+                state_var = cast(StateChangeNode, program.get_node(state_var_id))
 
                 state_var.value = local_vars[state_var.variable_name]
 
                 if state_var.variable_name is not None:
                     self._variable_values[state_var.variable_name] = state_var.value
 
-        def get_function(node: CallNode):
-            fn_name = node.function_name
-            fn = None
+    @staticmethod
+    def get_function(
+        node: CallNode, program: Graph, scoped_locals: Dict[str, Any]
+    ) -> Tuple[Any, str]:
+        fn_name = node.function_name
+        fn = None
 
-            if node.locally_defined_function_id is not None:
-                fn = scoped_locals[fn_name]
-            else:
-                function_module = program.get_node(node.function_module)
-                if (
-                    function_module is not None
-                    and function_module.node_type == NodeType.ImportNode
-                ):
-                    function_module = cast(ImportNode, function_module)
-                    if function_module.attributes is not None:
-                        fn_name = function_module.attributes[node.function_name]
+        if node.locally_defined_function_id is not None:
+            fn = scoped_locals[fn_name]
+        else:
+            function_module = program.get_node(node.function_module)
+            if (
+                function_module is not None
+                and function_module.node_type == NodeType.ImportNode
+            ):
+                function_module = cast(ImportNode, function_module)
+                if function_module.attributes is not None:
+                    fn_name = function_module.attributes[node.function_name]
 
-                retrieved_module = Executor.lookup_module(function_module, fn_name)
+            retrieved_module = Executor.lookup_module(function_module, fn_name)
 
-                # if we are performing a call on an object, e.g. a.append(5)
-                if retrieved_module is None:
-                    retrieved_module = program.get_node_value(function_module)
+            # if we are performing a call on an object, e.g. a.append(5)
+            if retrieved_module is None:
+                retrieved_module = program.get_node_value(function_module)
 
-                fn = getattr(retrieved_module, fn_name)
+            fn = getattr(retrieved_module, fn_name)
 
-            return fn, fn_name
+        return fn, fn_name
+
+    def walk(self, program: Graph) -> None:
+        sys.stdout = self._stdout
 
         for node_id in program.visit_order():
             node = program.get_node(node_id)
@@ -158,50 +175,50 @@ class Executor(GraphReader):
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
 
-                fn, fn_name = get_function(node)
+                fn, fn_name = Executor.get_function(node, program, scoped_locals)
 
                 args = []
                 for arg in node.arguments:
                     args.append(program.get_node_value(arg))
 
                 val = fn(*args)
+                node.value = val
 
-                if val is not None:
-                    node.value = val
-
+                # update the assigned variable
                 if node.assigned_variable_name is not None:
                     self._variable_values[node.assigned_variable_name] = node.value
 
+                # if we are calling a locally defined function
                 if node.locally_defined_function_id is not None:
-                    update_node_side_effects(
-                        program.get_node(node.locally_defined_function_id),
+                    locally_defined_func = program.get_node(
+                        node.locally_defined_function_id
+                    )
+                    self.update_node_side_effects(
+                        locally_defined_func,
+                        program,
                         scoped_locals,
                     )
 
             elif node.node_type == NodeType.ImportNode:
-                # if importlib.util.find_spec(node.library.name) is None:
-                #     Executor.install(node.library.name)
                 node = cast(ImportNode, node)
                 node.module = importlib.import_module(node.library.name)
 
             elif node.node_type in [NodeType.LoopNode, NodeType.ConditionNode]:
                 node = cast(SideEffectsNode, node)
                 # set up vars and imports
-                setup_context_for_node(node, scoped_locals)
+                self.setup_context_for_node(node, program, scoped_locals)
                 exec(node.code)
-                update_node_side_effects(node, scoped_locals)
+                self.update_node_side_effects(node, program, scoped_locals)
 
             elif node.node_type == NodeType.FunctionDefinitionNode:
                 node = cast(FunctionDefinitionNode, node)
-                setup_context_for_node(node, scoped_locals)
+                self.setup_context_for_node(node, program, scoped_locals)
                 exec(node.code, scoped_locals)
 
             elif node.node_type == NodeType.LiteralAssignNode:
                 node = cast(LiteralAssignNode, node)
                 if node.value is None and node.value_node_id is not None:
-                    node.value = program.get_node_value(
-                        program.get_node(node.value_node_id)
-                    )
+                    node.value = program.get_node_value_with_id(node.value_node_id)
 
                 self._variable_values[node.assigned_variable_name] = node.value
 

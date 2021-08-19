@@ -7,4 +7,5 @@ class GraphWriter(ABC):
     and write some results back to the DB.
     TODO
     """
+
     pass
