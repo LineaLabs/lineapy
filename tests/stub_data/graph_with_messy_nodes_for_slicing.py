@@ -8,6 +8,3 @@ f = a * b * c
 """
 
 # TODO: Dhruv, please add the nodes and complete the graph
-
-
-graph_with_messy_nodes.py
