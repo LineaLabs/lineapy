@@ -91,7 +91,7 @@ class Graph(object):
         else:
             return node.value
 
-    def get_node_value_with_id(self, node_id: Optional[LineaID]) -> Optional[Any]:
+    def get_node_value_from_id(self, node_id: Optional[LineaID]) -> Optional[Any]:
         node = self.get_node(node_id)
         return self.get_node_value(node)
 

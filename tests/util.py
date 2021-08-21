@@ -27,4 +27,5 @@ def reset_test_db():
     # TODO @dhruv. Please have a simple way of tearing down the test database
     # You might have to add some configs to the LineaDBConfig, or pass in some path to the db etc. If unsure, please sync with @yifanwu
     """
-    raise NotImplementedError
+    pass
+    # raise NotImplementedError

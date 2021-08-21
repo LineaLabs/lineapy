@@ -43,7 +43,7 @@ a_assign = CallNode(
     code="a = [1,2,3]",
     function_name="__build_list__",
     assigned_variable_name="a",
-    arguments=[arg_1, arg_2, arg_3],
+    arguments=[arg_1.id, arg_2.id, arg_3.id],
 )
 
 b_assign = VariableAliasNode(
@@ -66,7 +66,7 @@ a_append = CallNode(
     code="a.append(4)",
     function_name="append",
     function_module=a_assign.id,
-    arguments=[arg_4],
+    arguments=[arg_4.id],
 )
 
 b_arg = ArgumentNode(
@@ -82,7 +82,7 @@ b_sum = CallNode(
     code="s = sum(b)",
     function_name="sum",
     assigned_variable_name="s",
-    arguments=[b_arg],
+    arguments=[b_arg.id],
 )
 
 e_a_to_b = DirectedEdge(source_node_id=a_assign.id, sink_node_id=b_assign.id)
@@ -90,6 +90,6 @@ e_a_to_append = DirectedEdge(source_node_id=a_assign.id, sink_node_id=a_append.i
 e_b_to_sum = DirectedEdge(source_node_id=b_assign.id, sink_node_id=b_sum.id)
 
 graph_with_alias_by_reference = Graph(
-    nodes=[a_assign, b_assign, a_append, b_sum],
+    nodes=[arg_1, arg_2, arg_3, arg_4, b_arg, a_assign, b_assign, a_append, b_sum],
     edges=[e_a_to_b, e_a_to_append, e_b_to_sum],
 )

@@ -59,7 +59,7 @@ read_csv_call = CallNode(
     function_name="read_csv",
     function_module=import_pandas.id,
     assigned_variable_name="df",
-    arguments=[literal_node],
+    arguments=[literal_node.id],
 )
 
 col_name_literal = ArgumentNode(
@@ -75,7 +75,7 @@ access_a_column = CallNode(
     code="df['a']",
     function_name="__getitem__",  # @dhruv this is a built in method, not sure if we need to add a module here
     function_module=read_csv_call.id,
-    arguments=[col_name_literal],
+    arguments=[col_name_literal.id],
 )
 
 sum_call = CallNode(
@@ -98,6 +98,8 @@ e_df_to_sum = DirectedEdge(source_node_id=access_a_column.id, sink_node_id=sum_c
 
 graph_with_csv_import = Graph(
     [
+        literal_node,
+        col_name_literal,
         import_pandas,
         simple_data_node,
         access_a_column,

@@ -22,13 +22,17 @@ class StorageType(Enum):
 
 class HardwareSpec(BaseModel):
     # TODO: information about the machine the code is run on.
-    pass
+    class Config:
+        orm_mode = True
 
 
 class Library(BaseModel):
     name: str
     version: str
     path: str
+
+    class Config:
+        orm_mode = True
 
 
 class SessionContext(BaseModel):
@@ -43,12 +47,18 @@ class SessionContext(BaseModel):
     hardware_spec: Optional[HardwareSpec] = None
     libraries: Optional[List[Library]] = None
 
+    class Config:
+        orm_mode = True
+
 
 class NodeContext(BaseModel):
     lines: Tuple[int, int]
     columns: Tuple[int, int]
     execution_duration: datetime
     cell_id: Optional[str] = None  # only applicable to Jupyter sessions
+
+    class Config:
+        orm_mode = True
 
 
 # NodeValue = TypeVar("NodeValue")
@@ -79,7 +89,10 @@ class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.uuid
     node_type: NodeType = NodeType.Node
-    context: Optional[NodeContext] = None
+    # context: Optional[NodeContext] = None
+
+    class Config:
+        orm_mode = True
 
 
 class SideEffectsNode(Node):
@@ -87,9 +100,9 @@ class SideEffectsNode(Node):
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     # will deprecate when storing graph in a relational db
     state_change_nodes: Optional[List[LineaID]]
-    import_nodes: Optional[
-        List[LineaID]
-    ]  # modules required to run node code (ids point to ImportNode instances)
+
+    # modules required to run node code (ids point to ImportNode instances)
+    import_nodes: Optional[List[LineaID]]
 
 
 class ImportNode(Node):
@@ -117,7 +130,7 @@ class CallNode(Node):
 
     node_type: NodeType = NodeType.CallNode
     code: str
-    arguments: List[ArgumentNode]
+    arguments: List[LineaID]
     function_name: str
     function_module: Optional[
         LineaID
@@ -187,11 +200,6 @@ class LoopEnterNode(SideEffectsNode):
     """
 
     node_type: NodeType = NodeType.LoopNode
-    # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
-    state_change_nodes: Optional[
-        List[LineaID]
-    ]  # a list of variables that are used in loop
-    import_nodes: Optional[List[LineaID]]  # a list of modules that are used in loop
 
 
 # Not sure if we need the exit node, commenting out for now

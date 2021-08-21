@@ -1,10 +1,22 @@
 from typing import List
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import Node, LineaID
+from lineapy.data.types import Node, NodeType, LineaID, SessionContext, DirectedEdge
 from lineapy.db.caching_layer.decider import caching_decider
 
-from lineapy.db.base import LineaDBReader, LineaDBWriter
+from lineapy.db.base import LineaDBReader, LineaDBWriter, LineaDBConfig
+
+from lineapy.db.asset_manager.base import DataAssetManager
+
+from lineapy.db.relational.schema.relational import (
+    ArgumentNodeORM,
+    CallNodeORM,
+    NodeORM,
+    Base,
+)
+
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import create_engine
 
 
 class LineaDB(LineaDBReader, LineaDBWriter):
@@ -14,24 +26,45 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     - Also, at some point we might have a "cache" such that the readers don't have to go to the database if it's already ready, but that's lower priority
     """
 
-    def __init__(self):
+    def __init__(self, config: LineaDBConfig):
         # TODO: we eventually need some configurations
-        pass
+        DB_URI = "sqlite:///:memory:"
+        engine = create_engine(DB_URI, echo=True)
+        self.session = scoped_session(sessionmaker())
+        self.session.configure(bind=engine)
+        Base.metadata.create_all(engine)
 
     """
     Writers
     """
+
+    def data_asset_manager(self) -> DataAssetManager:
+        pass
+
+    def write_context(self, context: SessionContext) -> None:
+        pass
+
+    def write_edges(self, edges: List[DirectedEdge]) -> None:
+        pass
 
     def write_nodes(self, nodes: List[Node]) -> None:
         for n in nodes:
             self.write_single_node(n)
 
     def write_single_node(self, node: Node) -> None:
-        # @dhruv, first TODO, use SQLAchemy to write---you can directly use the types defined in types.py and no need to redefine them (thanks to Pydantic)
+        # @dhruv, first TODO, use SQLAchemy to write
+        node_orm = None
+        if node.node_type is NodeType.ArgumentNode:
+            node_orm = ArgumentNodeORM(**node.dict())
+        elif node.node_type is NodeType.CallNode:
+            node_orm = CallNodeORM(**node.dict())
+
+        self.session.add(node_orm)
+        self.session.commit()
 
         # basic caching logic
-        if caching_decider(node):
-            self.data_asset_manager.write_node_value(node)
+        # if caching_decider(node):
+        #     self.data_asset_manager.write_node_value(node)
 
     def add_node_id_to_artifact_table(self, node_id: LineaID):
         """
@@ -59,8 +92,8 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         """
         Returns the node by looking up the database by ID
         """
-
-        raise NotImplementedError
+        query_obj = self.session.query(NodeORM).filter(NodeORM.id == linea_id).one()
+        return Node.from_orm(query_obj)
 
     # fill out the rest based on base.py
     def get_graph_from_artifact_id(self, node: LineaID) -> Graph:

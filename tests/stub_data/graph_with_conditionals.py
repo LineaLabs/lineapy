@@ -2,7 +2,6 @@ from datetime import datetime
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    ImportNode,
     ArgumentNode,
     CallNode,
     DirectedEdge,
@@ -57,7 +56,7 @@ bs_line = CallNode(
     code="bs = [1,2]",
     function_name="__build_list__",
     assigned_variable_name="bs",
-    arguments=[arg_1, arg_2],
+    arguments=[arg_1.id, arg_2.id],
 )
 
 # line 1
@@ -84,5 +83,5 @@ condition_line = ConditionNode(
 e_bs_to_cond = DirectedEdge(source_node_id=bs_line_id, sink_node_id=condition_line_id)
 
 graph_with_conditionals = Graph(
-    nodes=[bs_line, condition_line, state_change], edges=[e_bs_to_cond]
+    nodes=[arg_1, arg_2, bs_line, condition_line, state_change], edges=[e_bs_to_cond]
 )
