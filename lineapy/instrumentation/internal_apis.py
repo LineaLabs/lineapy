@@ -2,7 +2,7 @@ from typing import Any, List, Union
 from lineapy.data.types import Node, DirectedEdge
 
 
-class Tracking:
+class Tracer:
     """
     The way that we expect users to use linea is:
     ```
