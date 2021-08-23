@@ -3,6 +3,8 @@ from lineapy.data.types import Node, DirectedEdge
 
 # from lineapy.db.
 
+# TODO: add another ORM type where it's just the ID and the table.
+
 RecordType = Union[Node, DirectedEdge]
 
 

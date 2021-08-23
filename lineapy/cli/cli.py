@@ -1,3 +1,4 @@
+from lineapy.utils import report_error_to_user
 import click
 from lineapy.transformer.transformer import Transformer
 
@@ -14,12 +15,12 @@ import click
 def linea_cli(mode, file_name):
     transformer = Transformer()
     try:
-        f = open("file.txt", "r").readlines()
-        lines = f
-        new_code = transformer.transform(lines, one_shot=True)
+        lines = open(file_name, "r").readlines()
+        original_code = "".join(lines)
+        new_code = transformer.transform(original_code, file_name, one_shot=True)
         exec(new_code)
     except IOError:
-        print("Error: File does not appear to exist.")
+        report_error_to_user("Error: File does not appear to exist.")
 
 
 if __name__ == "__main__":
