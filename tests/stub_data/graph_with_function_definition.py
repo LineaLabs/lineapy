@@ -51,7 +51,7 @@ a_state_change = StateChangeNode(
     session_id=session.uuid,
     variable_name="a",
     associated_node_id=fun_id,
-    initial_value_node_id=a_id
+    initial_value_node_id=a_id,
 )
 
 fun_def_node = FunctionDefinitionNode(
@@ -60,7 +60,7 @@ fun_def_node = FunctionDefinitionNode(
     function_name="my_function",
     code="def my_function():\n\tglobal a\n\ta = math.factorial(5)",
     state_change_nodes=[a_state_change_id],
-    import_nodes=[line_1_id]
+    import_nodes=[line_1_id],
 )
 
 func_call_id = get_new_id()
@@ -79,5 +79,6 @@ e_fun_to_call = DirectedEdge(source_node_id=fun_id, sink_node_id=func_call_id)
 
 
 graph_with_function_definition = Graph(
-    [line_1_import, line_2, a_state_change, fun_def_node, my_function_call], [e_a_to_fun, e_import_to_fun, e_fun_to_call]
+    [line_1_import, line_2, a_state_change, fun_def_node, my_function_call],
+    [e_a_to_fun, e_import_to_fun, e_fun_to_call],
 )

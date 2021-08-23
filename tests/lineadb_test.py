@@ -19,15 +19,16 @@ class TestLineaDB:
         self.lineadb = LineaDB(LineaDBConfig())
 
     def test_writing_and_reading_simple_graph_nodes(self):
-        # # let's write the in memory graph in (with all the nodes)
-        # self.lineadb.write_nodes(simple_graph_nodes)
-        # # lets then read some nodes back
-        # for reference in simple_graph_nodes:
-        #     result = self.lineadb.get_node_by_id(reference.id)
-        #     assert are_nodes_equal(reference, result, True)
-        pass
+        # let's write the in memory graph in (with all the nodes)
+        self.lineadb = LineaDB(LineaDBConfig())
+        self.lineadb.write_nodes(simple_graph._nodes)
+        # let's then read some nodes back
+        for reference in simple_graph._nodes:
+            result = self.lineadb.get_node_by_id(reference.id)
+            assert are_nodes_equal(reference, result, True)
 
     def test_slicing(self):
+        # self.lineadb = LineaDB(LineaDBConfig())
         # self.lineadb.write_nodes(graph_with_messy_nodes)
         # result = self.lineadb.get_graph_from_artifact_id()
         # graph_sliced_by_var_f
@@ -49,7 +50,6 @@ class TestLineaDB:
 
 if __name__ == "__main__":
     tester = TestLineaDB()
-    tester.set_up()
     tester.test_writing_and_reading_simple_graph_nodes()
     tester.test_search_artifacts_by_data_source()
     tester.tear_down()

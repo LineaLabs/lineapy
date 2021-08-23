@@ -26,6 +26,7 @@ class LineaDBConfig:
 
     database: DatabaseOption = DatabaseOption.SQLite
     file_system: FileSystemOption = FileSystemOption.Local
+    database_uri: str = "sqlite:///:memory:"
 
 
 class LineaDBReader(ABC):

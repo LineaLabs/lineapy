@@ -42,7 +42,7 @@ line_1 = CallNode(
     code="abs(-11)",
     function_name="abs",
     assigned_variable_name="a",
-    arguments=[arg_literal],
+    arguments=[arg_literal_id],
 )
 
-simple_graph = Graph([line_1])
+simple_graph = Graph([arg_literal, line_1])

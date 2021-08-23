@@ -178,8 +178,8 @@ class Executor(GraphReader):
                 fn, fn_name = Executor.get_function(node, program, scoped_locals)
 
                 args = []
-                for arg in node.arguments:
-                    args.append(program.get_node_value(arg))
+                for arg_id in node.arguments:
+                    args.append(program.get_node_value_from_id(arg_id))
 
                 val = fn(*args)
                 node.value = val
@@ -218,8 +218,7 @@ class Executor(GraphReader):
             elif node.node_type == NodeType.LiteralAssignNode:
                 node = cast(LiteralAssignNode, node)
                 if node.value is None and node.value_node_id is not None:
-                    node.value = program.get_node_value_with_id(node.value_node_id)
-
+                    node.value = program.get_node_value_from_id(node.value_node_id)
                 self._variable_values[node.assigned_variable_name] = node.value
 
         sys.stdout = self._old_stdout
