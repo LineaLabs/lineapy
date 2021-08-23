@@ -22,6 +22,8 @@ class StorageType(Enum):
 
 class HardwareSpec(BaseModel):
     # TODO: information about the machine the code is run on.
+
+    # orm_mode allows us to use from_orm to convert ORM objects to pydantic objects
     class Config:
         orm_mode = True
 

@@ -26,7 +26,6 @@ class TestLineaDB:
         for reference in simple_graph._nodes:
             result = self.lineadb.get_node_by_id(reference.id)
             assert are_nodes_equal(reference, result, True)
-        pass
 
     def test_slicing(self):
         # self.lineadb = LineaDB(LineaDBConfig())
