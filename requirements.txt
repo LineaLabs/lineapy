@@ -5,3 +5,4 @@ dataclasses==0.6
 altair==4.1.0
 scikit_learn==0.24.2
 seaborn==0.11.2
+pydantic==1.8.2
