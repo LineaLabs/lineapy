@@ -33,8 +33,6 @@ Base = declarative_base()
 # base tables #
 ###############
 
-LineaID = UUID
-
 # from https://stackoverflow.com/questions/183042/how-can-i-use-uuids-in-sqlalchemy
 class LineaID(types.TypeDecorator):
     impl = MSBinary

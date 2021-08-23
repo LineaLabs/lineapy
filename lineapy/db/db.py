@@ -28,11 +28,19 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
     def __init__(self, config: LineaDBConfig):
         # TODO: we eventually need some configurations
-        DB_URI = "sqlite:///:memory:"
-        engine = create_engine(DB_URI, echo=True)
+        engine = create_engine(config.database_uri, echo=True)
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
+
+    @staticmethod
+    def get_orm(node: Node) -> NodeORM:
+        pydantic_to_orm = {
+            NodeType.ArgumentNode: ArgumentNodeORM,
+            NodeType.CallNode: CallNodeORM,
+        }
+
+        return pydantic_to_orm[node.node_type]
 
     """
     Writers
@@ -52,12 +60,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             self.write_single_node(n)
 
     def write_single_node(self, node: Node) -> None:
-        # @dhruv, first TODO, use SQLAchemy to write
-        node_orm = None
-        if node.node_type is NodeType.ArgumentNode:
-            node_orm = ArgumentNodeORM(**node.dict())
-        elif node.node_type is NodeType.CallNode:
-            node_orm = CallNodeORM(**node.dict())
+        node_orm = LineaDB.get_orm(node)(**node.dict())
 
         self.session.add(node_orm)
         self.session.commit()
