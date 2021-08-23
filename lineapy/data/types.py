@@ -23,6 +23,7 @@ class StorageType(Enum):
 class HardwareSpec(BaseModel):
     # TODO: information about the machine the code is run on.
 
+    # note: this is specific to Pydantic
     # orm_mode allows us to use from_orm to convert ORM objects to pydantic objects
     class Config:
         orm_mode = True
@@ -93,6 +94,8 @@ class Node(BaseModel):
     node_type: NodeType = NodeType.Node
     # context: Optional[NodeContext] = None
 
+    # note: this is specific to Pydantic
+    # orm_mode allows us to use from_orm to convert ORM objects to pydantic objects
     class Config:
         orm_mode = True
 
