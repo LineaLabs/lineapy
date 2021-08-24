@@ -12,7 +12,7 @@ from lineapy.data.types import (
     StateChangeNode,
 )
 
-from tests.util import get_new_id
+from tests.util import get_new_id, get_new_session
 
 """
 Original code:
@@ -27,12 +27,7 @@ else:
 ```
 """
 
-session = SessionContext(
-    id=get_new_id(),
-    file_name="testing.py",
-    environment_type=SessionType.SCRIPT,
-    creation_time=datetime.now(),
-)
+session = get_new_session()
 
 arg_1 = ArgumentNode(
     id=get_new_id(),

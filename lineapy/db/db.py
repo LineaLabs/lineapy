@@ -91,7 +91,17 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         pass
 
     def write_context(self, context: SessionContext) -> None:
-        context_orm = SessionContextORM(**context.dict())
+        args = context.dict()
+
+        args["library_ids"] = args["libraries"]
+
+        for i in range(len(args["libraries"])):
+            self.session.add(LibraryORM(**context.libraries[i].dict()))
+            args["library_ids"][i] = context.libraries[i].id
+
+        del args["libraries"]
+
+        context_orm = SessionContextORM(**args)
 
         self.session.add(context_orm)
         self.session.commit()
@@ -113,16 +123,20 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
         if node.node_type is NodeType.ImportNode:
+            node = cast(ImportNode, node)
+            args["library_id"] = node.library.id
+            del args["library"]
             del args["module"]
+
         elif node.node_type in [NodeType.CallNode, NodeType.StateChangeNode]:
             del args["value"]
 
-        if node.node_type is NodeType.ArgumentNode:
+        elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
             if node.value_literal is not None:
                 args["value_literal_type"] = LineaDB.get_type(node.value_literal)
 
-        if node.node_type is NodeType.LiteralAssignNode:
+        elif node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNode, node)
             args["value_type"] = LineaDB.get_type(node.value)
 
@@ -163,7 +177,16 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             .filter(SessionContextORM.id == linea_id)
             .one()
         )
-        return SessionContext.from_orm(query_obj)
+        obj = SessionContext.from_orm(query_obj)
+        obj.libraries = []
+        for i in range(len(query_obj.library_ids)):
+            library_orm = (
+                self.session.query(LibraryORM)
+                .filter(LibraryORM.id == query_obj.library_ids[i])
+                .one()
+            )
+            obj.libraries.append(Library.from_orm(library_orm))
+        return obj
 
     def get_node_by_id(self, linea_id: LineaID) -> Node:
         """
@@ -175,12 +198,25 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
         # cast string serialized values to their appropriate types
         if query_obj.node_type is NodeType.LiteralAssignNode:
+            obj = cast(LiteralAssignNode, obj)
             obj.value = LineaDB.cast_serialized(obj.value, query_obj.value_type)
+            return obj
         elif query_obj.node_type is NodeType.ArgumentNode:
+            obj = cast(ArgumentNode, obj)
             if obj.value_literal is not None:
                 obj.value_literal = LineaDB.cast_serialized(
                     obj.value_literal, query_obj.value_literal_type
                 )
+                return obj
+        elif query_obj.node_type is NodeType.ImportNode:
+            obj = cast(ImportNode, obj)
+            library_orm = (
+                self.session.query(LibraryORM)
+                .filter(LibraryORM.id == query_obj.library_id)
+                .one()
+            )
+            obj.library = Library.from_orm(library_orm)
+            return obj
 
         return obj
 

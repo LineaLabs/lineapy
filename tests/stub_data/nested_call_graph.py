@@ -1,5 +1,5 @@
 from lineapy.data.graph import Graph
-from tests.util import get_new_id
+from tests.util import get_new_id, get_new_session
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
@@ -16,12 +16,7 @@ a = min(abs(-11), 10)
 ```
 """
 
-session = SessionContext(
-    id=get_new_id(),
-    file_name="testing.py",
-    environment_type=SessionType.SCRIPT,
-    creation_time=datetime.now(),
-)
+session = get_new_session()
 
 arg_literal_id = get_new_id()
 

@@ -1,6 +1,5 @@
 from lineapy.data.graph import Graph
-from tests.util import get_new_id
-from tests.stub_data.simple_graph import session
+from tests.util import get_new_id, get_new_session
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ImportNode,
@@ -28,13 +27,17 @@ my_function()
 
 """
 
+math_lib = Library(id=get_new_id(), name="math", version="1", path="home")
+
+session = get_new_session(libraries=[math_lib])
+
 line_1_id = get_new_id()
 
 line_1_import = ImportNode(
     id=line_1_id,
     session_id=session.id,
     code="import math",
-    library=Library(name="math", version="1", path="home"),
+    library=math_lib,
 )
 
 a_id = get_new_id()

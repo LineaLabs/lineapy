@@ -20,6 +20,7 @@ s = df['a'].sum()
 This test also has method chaining, which is a good case
 """
 pandas_lib = Library(
+    id=get_new_id(),
     name="pandas",
     version="1.2.4",
     path="/Users/yifanwu/miniforge3/lib/python3.9/site-packages/pandas",

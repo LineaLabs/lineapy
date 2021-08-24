@@ -1,5 +1,4 @@
-from tests.util import get_new_id
-from tests.stub_data.simple_graph import session
+from tests.util import get_new_id, get_new_session
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     LiteralAssignNode,
@@ -32,6 +31,9 @@ Graph method notes:
 
 """
 
+operator_lib = Library(id=get_new_id(), name="operator", version="1", path="")
+
+session = get_new_session(libraries=[operator_lib])
 
 a_id = get_new_id()
 
@@ -116,7 +118,7 @@ operator_module = ImportNode(
     id=operator_module_id,
     session_id=session.id,
     code="import operator",
-    library=Library(name="operator", version="1", path=""),
+    library=operator_lib,
 )
 
 x_argument_id = get_new_id()

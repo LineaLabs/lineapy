@@ -30,6 +30,7 @@ class HardwareSpec(BaseModel):
 
 
 class Library(BaseModel):
+    id: LineaID
     name: str
     version: str
     path: str
@@ -121,7 +122,7 @@ class SideEffectsNode(Node):
 class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
     code: str
-    library: Library
+    library: Optional[Library]
     attributes: Optional[Dict[str, str]] = None  # key is alias, value is full name
     alias: Optional[str] = None
     module: Any = None
@@ -133,7 +134,6 @@ class ArgumentNode(Node):
     positional_order: Optional[int]
     value_node_id: Optional[LineaID]
     value_literal: Optional[Any]
-    value_pickled: Optional[str]
 
 
 class CallNode(Node):
