@@ -80,7 +80,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         if literal_type is LiteralType.Integer:
             return int(val)
         elif literal_type is LiteralType.Boolean:
-            return val is "True"
+            return val == "True"
         return val
 
     """
