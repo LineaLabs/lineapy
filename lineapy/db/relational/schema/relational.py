@@ -1,4 +1,3 @@
-# TODO Create ORM for the objects defined in `linea.dataflow.data_types`
 from datetime import datetime
 from uuid import UUID
 
@@ -104,7 +103,6 @@ class SideEffectsNodeORM(NodeORM):
     import_nodes = Column(PickleType, nullable=True)
 
 
-# TODO: dictionary typing in SQLAlchemy
 class ImportNodeORM(NodeORM):
     __mapper_args__ = {"polymorphic_identity": NodeType.ImportNode}
 
