@@ -2,3 +2,4 @@ pydantic
 astor
 cloudpickle
 networkx
+click
