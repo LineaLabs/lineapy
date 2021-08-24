@@ -6,14 +6,7 @@ from lineapy.data.types import Node, DirectedEdge
 
 class Tracer:
     """
-    The way that we expect users to use linea is:
-    ```
-    import lineapy
-    ln = lineapy.start()
-    # ... their code
-    #
-    ln.save(variable_name)
-    ```
+    Tracer is internal to Linea and it implements the "hidden APIs" that are setup by the transformer.
     """
 
     def __init__(self, session_name: Optional[str]):

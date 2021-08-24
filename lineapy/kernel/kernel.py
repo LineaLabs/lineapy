@@ -1,12 +1,29 @@
-from lineapy.transformer.transformer import Transformer
+import os
+import json
+import sys
 from ipykernel.kernelbase import Kernel
+from lineapy.transformer.transformer import Transformer
+
+
+def get_kernel_json():
+    """Get the kernel json for the kernel."""
+    here = os.path.dirname(__file__)
+    with open(os.path.join(here, "kernel.json")) as fid:
+        data = json.load(fid)
+    data["argv"][0] = sys.executable
+    return data
 
 
 class LineaKernel(Kernel):
+    app_name = "linea_kernel"
     implementation = "Linea"
     """
-    TODO: it looks like we might need to support async as well.
+    TODO:
+    - [] the installation is still not working properly 
+    - [] we might need to support async as well.
     """
+
+    kernel_json = get_kernel_json()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
