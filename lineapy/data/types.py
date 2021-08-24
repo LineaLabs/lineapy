@@ -101,6 +101,7 @@ class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.id
     node_type: NodeType = NodeType.Node
+
     # context: Optional[NodeContext] = None
 
     # note: this is specific to Pydantic
@@ -241,16 +242,3 @@ class WithNode(Node):
     node_type: NodeType = NodeType.WithNode
     code: str
     # TODO
-
-
-class DirectedEdge(BaseModel):
-    """
-    When we have `a = foo(), b = bar(a)`, should the edge be between bar and foo, with foo being the source, and bar being the sink.
-    Yifan note: @dorx please review if this is what you had in mind
-    """
-
-    source_node_id: LineaID  # refers to Node.uuid
-    sink_node_id: LineaID  # refers to Node.uuid
-
-    class Config:
-        orm_mode = True
