@@ -24,7 +24,7 @@ b = a
 
 a_assign = LiteralAssignNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="a = 0",
     assigned_variable_name="a",
     value=0,
@@ -32,7 +32,7 @@ a_assign = LiteralAssignNode(
 
 b_assign = LiteralAssignNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="b = a",
     assigned_variable_name="b",
     value_node_id=a_assign.id,
@@ -42,7 +42,7 @@ b_assign = LiteralAssignNode(
 # @dorx can you think of a case when this would be?
 a_mutate = LiteralAssignNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="a = 2",
     assigned_variable_name="a",
     value=2,

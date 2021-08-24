@@ -1,22 +1,18 @@
-from typing import List
+from typing import List, cast
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import Node, NodeType, LineaID, SessionContext, DirectedEdge
+from lineapy.data.types import *
 from lineapy.db.caching_layer.decider import caching_decider
 
 from lineapy.db.base import LineaDBReader, LineaDBWriter, LineaDBConfig
 
 from lineapy.db.asset_manager.base import DataAssetManager
 
-from lineapy.db.relational.schema.relational import (
-    ArgumentNodeORM,
-    CallNodeORM,
-    NodeORM,
-    Base,
-)
+from lineapy.db.relational.schema.relational import *
 
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy import create_engine
+from sqlalchemy.sql.expression import and_
 
 
 class LineaDB(LineaDBReader, LineaDBWriter):
@@ -33,14 +29,59 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
 
+        self.session.query(NodeORM).delete()
+        self.session.commit()
+
     @staticmethod
     def get_orm(node: Node) -> NodeORM:
         pydantic_to_orm = {
             NodeType.ArgumentNode: ArgumentNodeORM,
             NodeType.CallNode: CallNodeORM,
+            NodeType.ImportNode: ImportNodeORM,
+            NodeType.LiteralAssignNode: LiteralAssignNodeORM,
+            NodeType.FunctionDefinitionNode: FunctionDefinitionNodeORM,
+            NodeType.ConditionNode: ConditionNodeORM,
+            NodeType.LoopNode: LoopNodeORM,
+            NodeType.DataSourceNode: DataSourceNodeORM,
+            NodeType.StateChangeNode: StateChangeNodeORM,
+            NodeType.VariableAliasNode: VariableAliasNodeORM,
         }
 
         return pydantic_to_orm[node.node_type]
+
+    @staticmethod
+    def get_pydantic(node: NodeORM) -> Node:
+        orm_to_pydantic = {
+            NodeType.ArgumentNode: ArgumentNode,
+            NodeType.CallNode: CallNode,
+            NodeType.ImportNode: ImportNode,
+            NodeType.LiteralAssignNode: LiteralAssignNode,
+            NodeType.FunctionDefinitionNode: FunctionDefinitionNode,
+            NodeType.ConditionNode: ConditionNode,
+            NodeType.LoopNode: LoopEnterNode,
+            NodeType.DataSourceNode: DataSourceNode,
+            NodeType.StateChangeNode: StateChangeNode,
+            NodeType.VariableAliasNode: VariableAliasNode,
+        }
+
+        return orm_to_pydantic[node.node_type]
+
+    @staticmethod
+    def get_type(val: Any) -> LiteralType:
+        if isinstance(val, str):
+            return LiteralType.String
+        elif isinstance(val, int):
+            return LiteralType.Integer
+        elif isinstance(val, bool):
+            return LiteralType.Boolean
+
+    @staticmethod
+    def cast_serialized(val: str, literal_type: LiteralType) -> Any:
+        if literal_type is LiteralType.Integer:
+            return int(val)
+        elif literal_type is LiteralType.Boolean:
+            return val is "True"
+        return val
 
     """
     Writers
@@ -50,17 +91,42 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         pass
 
     def write_context(self, context: SessionContext) -> None:
-        pass
+        context_orm = SessionContextORM(**context.dict())
+
+        self.session.add(context_orm)
+        self.session.commit()
 
     def write_edges(self, edges: List[DirectedEdge]) -> None:
-        pass
+        for e in edges:
+            self.write_single_edge(e)
 
     def write_nodes(self, nodes: List[Node]) -> None:
         for n in nodes:
             self.write_single_node(n)
 
+    def write_single_edge(self, edge: DirectedEdge) -> None:
+        edge_orm = DirectedEdgeORM(**edge.dict())
+
+        self.session.add(edge_orm)
+        self.session.commit()
+
     def write_single_node(self, node: Node) -> None:
-        node_orm = LineaDB.get_orm(node)(**node.dict())
+        args = node.dict()
+        if node.node_type is NodeType.ImportNode:
+            del args["module"]
+        elif node.node_type in [NodeType.CallNode, NodeType.StateChangeNode]:
+            del args["value"]
+
+        if node.node_type is NodeType.ArgumentNode:
+            node = cast(ArgumentNode, node)
+            if node.value_literal is not None:
+                args["value_literal_type"] = LineaDB.get_type(node.value_literal)
+
+        if node.node_type is NodeType.LiteralAssignNode:
+            node = cast(LiteralAssignNode, node)
+            args["value_type"] = LineaDB.get_type(node.value)
+
+        node_orm = LineaDB.get_orm(node)(**args)
 
         self.session.add(node_orm)
         self.session.commit()
@@ -91,12 +157,49 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     Readers
     """
 
+    def get_context(self, linea_id: LineaID) -> SessionContext:
+        query_obj = (
+            self.session.query(SessionContextORM)
+            .filter(SessionContextORM.id == linea_id)
+            .one()
+        )
+        return SessionContext.from_orm(query_obj)
+
     def get_node_by_id(self, linea_id: LineaID) -> Node:
         """
         Returns the node by looking up the database by ID
         """
+
         query_obj = self.session.query(NodeORM).filter(NodeORM.id == linea_id).one()
-        return Node.from_orm(query_obj)
+        obj = LineaDB.get_pydantic(query_obj).from_orm(query_obj)
+
+        # cast string serialized values to their appropriate types
+        if query_obj.node_type is NodeType.LiteralAssignNode:
+            obj.value = LineaDB.cast_serialized(obj.value, query_obj.value_type)
+        elif query_obj.node_type is NodeType.ArgumentNode:
+            if obj.value_literal is not None:
+                obj.value_literal = LineaDB.cast_serialized(
+                    obj.value_literal, query_obj.value_literal_type
+                )
+
+        return obj
+
+    def get_edge(self, source_node_id: LineaID, sink_node_id: LineaID) -> DirectedEdge:
+        """
+        Returns the directed edge by looking up the database by source and sink node IDs
+        """
+
+        query_obj = (
+            self.session.query(DirectedEdgeORM)
+            .filter(
+                and_(
+                    DirectedEdgeORM.source_node_id == source_node_id,
+                    DirectedEdgeORM.sink_node_id == sink_node_id,
+                )
+            )
+            .one()
+        )
+        return DirectedEdge.from_orm(query_obj)
 
     # fill out the rest based on base.py
     def get_graph_from_artifact_id(self, node: LineaID) -> Graph:

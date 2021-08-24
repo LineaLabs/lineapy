@@ -28,7 +28,7 @@ else:
 """
 
 session = SessionContext(
-    uuid=get_new_id(),
+    id=get_new_id(),
     file_name="testing.py",
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.now(),
@@ -36,14 +36,14 @@ session = SessionContext(
 
 arg_1 = ArgumentNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=0,
     value_literal=1,
 )
 
 arg_2 = ArgumentNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=1,
     value_literal=2,
 )
@@ -52,7 +52,7 @@ bs_line_id = get_new_id()
 
 bs_line = CallNode(
     id=bs_line_id,
-    session_id=session.uuid,
+    session_id=session.id,
     code="bs = [1,2]",
     function_name="__build_list__",
     assigned_variable_name="bs",
@@ -66,7 +66,7 @@ state_change_id = get_new_id()
 
 state_change = StateChangeNode(
     id=state_change_id,
-    session_id=session.uuid,
+    session_id=session.id,
     variable_name="bs",
     associated_node_id=condition_line_id,
     initial_value_node_id=bs_line_id,
@@ -74,7 +74,7 @@ state_change = StateChangeNode(
 
 condition_line = ConditionNode(
     id=condition_line_id,
-    session_id=session.uuid,
+    session_id=session.id,
     code="""if len(bs) > 4:\n\tprint("True")\nelse:\n\tbs.append(3)\n\tprint("False")""",
     dependent_variables_in_predicate=[bs_line_id],
     state_change_nodes=[state_change_id],

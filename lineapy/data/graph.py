@@ -9,6 +9,7 @@ from lineapy.data.types import (
     LineaID,
     ArgumentNode,
     VariableAliasNode,
+    DataSourceNode,
 )
 
 
@@ -88,6 +89,11 @@ class Graph(object):
             elif node.value_node_id is not None:
                 return self.get_node_value(self.get_node(node.value_node_id))
             return None
+
+        elif node.node_type is NodeType.DataSourceNode:
+            node = cast(DataSourceNode, node)
+            return node.access_path
+
         else:
             return node.value
 

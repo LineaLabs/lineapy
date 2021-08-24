@@ -18,28 +18,28 @@ s = sum(b)
 
 arg_1 = ArgumentNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=0,
     value_literal=1,
 )
 
 arg_2 = ArgumentNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=1,
     value_literal=2,
 )
 
 arg_3 = ArgumentNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=2,
     value_literal=3,
 )
 
 a_assign = CallNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="a = [1,2,3]",
     function_name="__build_list__",
     assigned_variable_name="a",
@@ -48,21 +48,21 @@ a_assign = CallNode(
 
 b_assign = VariableAliasNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="b = a",
     source_variable_id=a_assign.id,
 )
 
 arg_4 = ArgumentNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=0,
     value_literal=4,
 )
 
 a_append = CallNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="a.append(4)",
     function_name="append",
     function_module=a_assign.id,
@@ -71,14 +71,14 @@ a_append = CallNode(
 
 b_arg = ArgumentNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=0,
     value_node_id=b_assign.id,
 )
 
 b_sum = CallNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="s = sum(b)",
     function_name="sum",
     assigned_variable_name="s",

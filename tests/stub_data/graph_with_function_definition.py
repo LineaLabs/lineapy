@@ -32,7 +32,7 @@ line_1_id = get_new_id()
 
 line_1_import = ImportNode(
     id=line_1_id,
-    session_id=session.uuid,
+    session_id=session.id,
     code="import math",
     library=Library(name="math", version="1", path="home"),
 )
@@ -40,7 +40,7 @@ line_1_import = ImportNode(
 a_id = get_new_id()
 
 line_2 = LiteralAssignNode(
-    id=a_id, session_id=session.uuid, code="a = 0", assigned_variable_name="a", value=0
+    id=a_id, session_id=session.id, code="a = 0", assigned_variable_name="a", value=0
 )
 
 fun_id = get_new_id()
@@ -48,7 +48,7 @@ fun_id = get_new_id()
 a_state_change_id = get_new_id()
 a_state_change = StateChangeNode(
     id=a_state_change_id,
-    session_id=session.uuid,
+    session_id=session.id,
     variable_name="a",
     associated_node_id=fun_id,
     initial_value_node_id=a_id,
@@ -56,7 +56,7 @@ a_state_change = StateChangeNode(
 
 fun_def_node = FunctionDefinitionNode(
     id=fun_id,
-    session_id=session.uuid,
+    session_id=session.id,
     function_name="my_function",
     code="def my_function():\n\tglobal a\n\ta = math.factorial(5)",
     state_change_nodes=[a_state_change_id],
@@ -66,7 +66,7 @@ fun_def_node = FunctionDefinitionNode(
 func_call_id = get_new_id()
 my_function_call = CallNode(
     id=func_call_id,
-    session_id=session.uuid,
+    session_id=session.id,
     code="my_function()",
     function_name="my_function",
     locally_defined_function_id=fun_id,

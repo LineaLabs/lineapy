@@ -32,7 +32,7 @@ session = get_new_session(libraries=[pandas_lib])
 #     specify what the requirement implications are for the node gen API
 import_pandas = ImportNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="import pandas as pd",
     library=pandas_lib,
     alias="pd",
@@ -40,21 +40,21 @@ import_pandas = ImportNode(
 
 simple_data_node = DataSourceNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
     access_path="./tests/stub_data/simple_data.csv",
 )
 
 literal_node = ArgumentNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=0,
-    value_literal=simple_data_node.access_path,
+    value_node_id=simple_data_node.id,
 )
 
 read_csv_call = CallNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="df = pd.read_csv('ames_train_cleaned.csv')",
     function_name="read_csv",
     function_module=import_pandas.id,
@@ -64,14 +64,14 @@ read_csv_call = CallNode(
 
 col_name_literal = ArgumentNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=0,
     value_literal="a",
 )
 
 access_a_column = CallNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="df['a']",
     function_name="__getitem__",  # @dhruv this is a built in method, not sure if we need to add a module here
     function_module=read_csv_call.id,
@@ -80,7 +80,7 @@ access_a_column = CallNode(
 
 sum_call = CallNode(
     id=get_new_id(),
-    session_id=session.uuid,
+    session_id=session.id,
     code="s = df['a'].sum()",
     arguments=[],
     function_name="sum",
@@ -103,7 +103,6 @@ graph_with_csv_import = Graph(
         import_pandas,
         simple_data_node,
         access_a_column,
-        literal_node,
         read_csv_call,
         sum_call,
     ],

@@ -39,7 +39,7 @@ class Library(BaseModel):
 
 
 class SessionContext(BaseModel):
-    uuid: LineaID  # populated on creation by uuid.uuid4()
+    id: LineaID  # populated on creation by uuid.uuid4()
     environment_type: SessionType
     creation_time: datetime
     file_name: str  # making file name required since every thing runs from some file
@@ -86,11 +86,19 @@ class NodeType(Enum):
     DataSourceNode = 11
     VariableAliasNode = 12
     ClassDefinitionNode = 13
+    SideEffectsNode = 14
+
+
+class LiteralType(Enum):
+    String = 1
+    Integer = 2
+    Float = 3
+    Boolean = 4
 
 
 class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
-    session_id: LineaID  # refers to SessionContext.uuid
+    session_id: LineaID  # refers to SessionContext.id
     node_type: NodeType = NodeType.Node
     # context: Optional[NodeContext] = None
 
@@ -243,3 +251,6 @@ class DirectedEdge(BaseModel):
 
     source_node_id: LineaID  # refers to Node.uuid
     sink_node_id: LineaID  # refers to Node.uuid
+
+    class Config:
+        orm_mode = True
