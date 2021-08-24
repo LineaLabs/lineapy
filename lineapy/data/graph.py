@@ -92,8 +92,8 @@ class Graph(object):
                 source = cast(VariableAliasNode, source)
 
                 while (
-                    source is not None
-                    and source.node_type is NodeType.VariableAliasNode
+                        source is not None
+                        and source.node_type is NodeType.VariableAliasNode
                 ):
                     source = cast(VariableAliasNode, source)
                     source = self.get_node(source.source_variable_id)
