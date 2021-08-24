@@ -1,18 +1,18 @@
-from typing import cast
+from typing import List, cast
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.sql.expression import and_
-
-from lineapy.data.graph import DirectedEdge
 from lineapy.data.graph import Graph
 from lineapy.data.types import *
-from lineapy.db.asset_manager.base import DataAssetManager
+from lineapy.db.caching_layer.decider import caching_decider
+
 from lineapy.db.base import LineaDBReader, LineaDBWriter, LineaDBConfig
+
+from lineapy.db.asset_manager.base import DataAssetManager
+
 from lineapy.db.relational.schema.relational import *
 
-
-# from lineapy.db.caching_layer.decider import caching_decider
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import create_engine
+from sqlalchemy.sql.expression import and_
 
 
 class LineaDB(LineaDBReader, LineaDBWriter):
@@ -174,8 +174,8 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     def get_context(self, linea_id: LineaID) -> SessionContext:
         query_obj = (
             self.session.query(SessionContextORM)
-                .filter(SessionContextORM.id == linea_id)
-                .one()
+            .filter(SessionContextORM.id == linea_id)
+            .one()
         )
         obj = SessionContext.from_orm(query_obj)
         obj.libraries = []
@@ -227,19 +227,27 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
         query_obj = (
             self.session.query(DirectedEdgeORM)
-                .filter(
+            .filter(
                 and_(
                     DirectedEdgeORM.source_node_id == source_node_id,
                     DirectedEdgeORM.sink_node_id == sink_node_id,
                 )
             )
-                .one()
+            .one()
         )
         return DirectedEdge.from_orm(query_obj)
 
-    def get_session_graph(self, session_id: LineaID) -> Graph:
+    # fill out the rest based on base.py
+    def get_graph_from_artifact_id(self, node: LineaID) -> Graph:
         """
-        TODO: @dhruvm
-        Get all nodes associated with the session_id and construct the graph from the nodes retrieved.
+        - This is program slicing over database data.
+        - There are lots of complexities when it comes to mutation
+          - Examples:
+            - Third party libraries have functions that mutate some global or variable state.
+          - Strategy for now
+            - definitely take care of the simple cases, like `VariableAliasNode`
+            - simple heuristics that may create false positives (include things not necessary)
+            - but definitely NOT false negatives (then the program CANNOT be executed)
         """
-        ...
+
+        raise NotImplementedError
