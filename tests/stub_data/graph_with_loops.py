@@ -105,7 +105,7 @@ line_6 = CallNode(
     code="x = sum(a)",
     function_name="sum",
     assigned_variable_name="x",
-    arguments=[a_argument_node],
+    arguments=[a_argument_id],
 )
 
 e_loop_to_x = DirectedEdge(source_node_id=le_id, sink_node_id=x_id)
@@ -132,7 +132,7 @@ line_7 = CallNode(
     function_name="add",
     function_module=operator_module_id,  # built in
     assigned_variable_name="y",
-    arguments=[x_argument_node, b_argument_node],
+    arguments=[x_argument_id, b_argument_id],
 )
 
 e_loop_to_y = DirectedEdge(source_node_id=le_id, sink_node_id=y_id)
@@ -141,6 +141,9 @@ e_import_to_y = DirectedEdge(source_node_id=operator_module_id, sink_node_id=y_i
 
 graph_with_loops = Graph(
     [
+        a_argument_node,
+        x_argument_node,
+        b_argument_node,
         line_1,
         line_2,
         le,

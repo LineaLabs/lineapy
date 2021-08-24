@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from lineapy.data.graph import Graph
+from lineapy.db.asset_manager.base import DataAssetManager
 
 
 class GraphReader(ABC):
@@ -22,4 +23,8 @@ class GraphReader(ABC):
         Things to check for:
         - Loops are first entered and then exit.
         """
+        pass
+
+    @property
+    def data_asset_manager(self) -> DataAssetManager:
         pass

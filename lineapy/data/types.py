@@ -8,15 +8,6 @@ from pydantic import BaseModel
 # aliasing the ID type in case we chnage it later
 LineaID = UUID
 
-# TODO: not sure if this is the most intuitive name.
-class StateScope:
-    """
-    TODO
-    This captures the scope
-    """
-
-    pass
-
 
 class SessionType(Enum):
     JUPYTER = 1
@@ -31,13 +22,20 @@ class StorageType(Enum):
 
 class HardwareSpec(BaseModel):
     # TODO: information about the machine the code is run on.
-    pass
+
+    # note: this is specific to Pydantic
+    # orm_mode allows us to use from_orm to convert ORM objects to pydantic objects
+    class Config:
+        orm_mode = True
 
 
 class Library(BaseModel):
     name: str
     version: str
     path: str
+
+    class Config:
+        orm_mode = True
 
 
 class SessionContext(BaseModel):
@@ -52,12 +50,18 @@ class SessionContext(BaseModel):
     hardware_spec: Optional[HardwareSpec] = None
     libraries: Optional[List[Library]] = None
 
+    class Config:
+        orm_mode = True
+
 
 class NodeContext(BaseModel):
     lines: Tuple[int, int]
     columns: Tuple[int, int]
     execution_duration: datetime
     cell_id: Optional[str] = None  # only applicable to Jupyter sessions
+
+    class Config:
+        orm_mode = True
 
 
 # NodeValue = TypeVar("NodeValue")
@@ -80,23 +84,30 @@ class NodeType(Enum):
     ImportNode = 9
     StateChangeNode = 10
     DataSourceNode = 11
-    ClassDefinitionNode = 12
+    VariableAliasNode = 12
+    ClassDefinitionNode = 13
 
 
 class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.uuid
     node_type: NodeType = NodeType.Node
-    context: Optional[NodeContext] = None
+    # context: Optional[NodeContext] = None
+
+    # note: this is specific to Pydantic
+    # orm_mode allows us to use from_orm to convert ORM objects to pydantic objects
+    class Config:
+        orm_mode = True
 
 
 class SideEffectsNode(Node):
+    code: str
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     # will deprecate when storing graph in a relational db
     state_change_nodes: Optional[List[LineaID]]
-    import_nodes: Optional[
-        List[LineaID]
-    ]  # modules required to run node code (ids point to ImportNode instances)
+
+    # modules required to run node code (ids point to ImportNode instances)
+    import_nodes: Optional[List[LineaID]]
 
 
 class ImportNode(Node):
@@ -124,7 +135,7 @@ class CallNode(Node):
 
     node_type: NodeType = NodeType.CallNode
     code: str
-    arguments: List[ArgumentNode]
+    arguments: List[LineaID]
     function_name: str
     function_module: Optional[
         LineaID
@@ -141,7 +152,18 @@ class LiteralAssignNode(Node):
     node_type: NodeType = NodeType.LiteralAssignNode
     code: str
     assigned_variable_name: str
-    value: Optional[NodeValue]
+    value: NodeValue
+    value_node_id: Optional[LineaID]
+
+
+class VariableAliasNode(Node):
+    """
+    Y: We could in theory merge LiteralAssignNode and VariableAliasNode, but I'm not sure what the pro/con are and we can always refactor?
+    """
+
+    node_type: NodeType = NodeType.VariableAliasNode
+    code: str
+    source_variable_id: LineaID
 
 
 class FunctionDefinitionNode(SideEffectsNode):
@@ -152,7 +174,6 @@ class FunctionDefinitionNode(SideEffectsNode):
 
     node_type: NodeType = NodeType.FunctionDefinitionNode
     function_name: str
-    code: str  # the code definition for the function
     value: Optional[Any]  # loaded at run time
 
     # TODO: should we track if its an recursive function?
@@ -160,7 +181,7 @@ class FunctionDefinitionNode(SideEffectsNode):
 
 class ConditionNode(SideEffectsNode):
     node_type: NodeType = NodeType.ConditionNode
-    code: str
+
     dependent_variables_in_predicate: Optional[List[LineaID]]
 
 
@@ -184,12 +205,6 @@ class LoopEnterNode(SideEffectsNode):
     """
 
     node_type: NodeType = NodeType.LoopNode
-    code: str
-    # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
-    state_change_nodes: Optional[
-        List[LineaID]
-    ]  # a list of variables that are used in loop
-    import_nodes: Optional[List[LineaID]]  # a list of modules that are used in loop
 
 
 # Not sure if we need the exit node, commenting out for now

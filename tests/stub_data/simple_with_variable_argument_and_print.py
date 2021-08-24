@@ -30,7 +30,7 @@ line_2 = CallNode(
     code="min(a, 10)",
     function_name="min",
     assigned_variable_name="b",
-    arguments=[arg_a, arg_10],
+    arguments=[arg_a_id, arg_10_id],
 )
 
 e2 = DirectedEdge(source_node_id=line_1_id, sink_node_id=line_2_id)
@@ -47,9 +47,11 @@ line_3 = CallNode(
     session_id=session.uuid,
     code="print(b)",
     function_name="print",
-    arguments=[arg_b],
+    arguments=[arg_b_id],
 )
 
 e3 = DirectedEdge(source_node_id=line_2_id, sink_node_id=line_3_id)
 
-simple_with_variable_argument_and_print = Graph([line_1, line_2, line_3], [e2, e3])
+simple_with_variable_argument_and_print = Graph(
+    [arg_a, arg_10, arg_b, arg_literal, line_1, line_2, line_3], [e2, e3]
+)

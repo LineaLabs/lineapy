@@ -1,5 +1,5 @@
-pydantic
-astor
-cloudpickle
-networkx
-click
+networkx==2.6.2
+SQLAlchemy==1.4.23
+dataclasses==0.6
+pydantic==1.8.2
+click==8.0.1

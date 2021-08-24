@@ -16,6 +16,9 @@ from tests.stub_data.graph_with_csv_import import (
     session as graph_with_file_access_session,
 )
 
+from tests.stub_data.graph_with_alias_by_reference import graph_with_alias_by_reference
+from tests.stub_data.graph_with_alias_by_value import graph_with_alias_by_value
+
 
 class TestBasicExecutor:
     # we should probably do a shared setup in the future
@@ -80,10 +83,23 @@ class TestBasicExecutor:
 
     def test_program_with_file_access(self):
         e = Executor()
-        e.setup(graph_with_file_access_session)
-        e.execute_program(graph_with_csv_import)
+        e.execute_program(graph_with_csv_import, graph_with_file_access_session)
         s = e.get_value_by_variable_name("s")
         assert s == 25
+
+    def test_variable_alias_by_value(self):
+        e = Executor()
+        e.execute_program(graph_with_alias_by_value)
+        a = e.get_value_by_variable_name("a")
+        b = e.get_value_by_variable_name("b")
+        assert a == 2
+        assert b == 0
+
+    def test_variable_alias_by_reference(self):
+        e = Executor()
+        e.execute_program(graph_with_alias_by_reference)
+        s = e.get_value_by_variable_name("s")
+        assert s == 10
 
 
 if __name__ == "__main__":
@@ -92,8 +108,10 @@ if __name__ == "__main__":
     tester.test_nested_call_graph()
     tester.test_graph_with_print()
     tester.test_basic_import()
-    tester.test_pip_install_import()
     tester.test_graph_with_function_definition()
     tester.test_program_with_mutations()
     tester.test_program_with_loops()
     tester.test_program_with_conditionals()
+    tester.test_program_with_file_access()
+    tester.test_variable_alias_by_value()
+    tester.test_variable_alias_by_reference()

@@ -36,7 +36,7 @@ line_1a = CallNode(
     session_id=session.uuid,
     code="abs(-11)",
     function_name="abs",
-    arguments=[arg_literal],
+    arguments=[arg_literal_id],
 )
 
 arg_1_id = get_new_id()
@@ -58,9 +58,9 @@ line_1b = CallNode(
     code="min(abs(-11), 10)",
     function_name="min",
     assigned_variable_name="a",
-    arguments=[arg_1, arg_10],
+    arguments=[arg_1_id, arg_10_id],
 )
 
 e2 = DirectedEdge(source_node_id=line_1a_id, sink_node_id=line_1b_id)
 
-nested_call_graph = Graph([line_1a, line_1b], [e2])
+nested_call_graph = Graph([arg_literal, arg_1, arg_10, line_1a, line_1b], [e2])
