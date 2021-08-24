@@ -4,8 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.sql.expression import and_
 
-from lineapy.data.graph import DirectedEdge
-from lineapy.data.graph import Graph
+from lineapy.data.graph import Graph, DirectedEdge
 from lineapy.data.types import *
 from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.db.base import LineaDBReader, LineaDBWriter, LineaDBConfig
@@ -174,8 +173,8 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     def get_context(self, linea_id: LineaID) -> SessionContext:
         query_obj = (
             self.session.query(SessionContextORM)
-                .filter(SessionContextORM.id == linea_id)
-                .one()
+            .filter(SessionContextORM.id == linea_id)
+            .one()
         )
         obj = SessionContext.from_orm(query_obj)
         obj.libraries = []
@@ -227,13 +226,13 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
         query_obj = (
             self.session.query(DirectedEdgeORM)
-                .filter(
+            .filter(
                 and_(
                     DirectedEdgeORM.source_node_id == source_node_id,
                     DirectedEdgeORM.sink_node_id == sink_node_id,
                 )
             )
-                .one()
+            .one()
         )
         return DirectedEdge.from_orm(query_obj)
 
