@@ -12,7 +12,7 @@ def get_new_id():
     return uuid4()
 
 
-def get_new_session(libraries):
+def get_new_session(libraries=[]):
     return SessionContext(
         id=get_new_id(),
         file_name="testing.py",

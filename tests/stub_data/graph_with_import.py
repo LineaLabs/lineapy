@@ -11,7 +11,7 @@ from lineapy.data.types import (
     SessionType,
 )
 
-from tests.util import get_new_id
+from tests.util import get_new_id, get_new_session
 
 """
 
@@ -22,12 +22,9 @@ b = root(a)
 ```
 """
 
-session = SessionContext(
-    id=get_new_id(),
-    file_name="testing.py",
-    environment_type=SessionType.SCRIPT,
-    creation_time=datetime.now(),
-)
+math_lib = Library(id=get_new_id(), name="math", version="1", path="")
+
+session = get_new_session(libraries=[math_lib])
 
 line_1_id = get_new_id()
 
@@ -35,7 +32,7 @@ line_1 = ImportNode(
     id=line_1_id,
     session_id=session.id,
     code="from math import pow, sqrt as root",
-    library=Library(name="math", version="1", path=""),
+    library=math_lib,
     attributes={"power": "pow", "root": "sqrt"},
 )
 

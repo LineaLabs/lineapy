@@ -58,6 +58,14 @@ class LineaID(types.TypeDecorator):
         return False
 
 
+class LibraryORM(Base):
+    __tablename__ = "library"
+    id = Column(LineaID, primary_key=True)
+    name = Column(String)
+    version = Column(String)
+    path = Column(String)
+
+
 class SessionContextORM(Base):
     __tablename__ = "session_context"
     id = Column(LineaID, primary_key=True)
@@ -67,13 +75,13 @@ class SessionContextORM(Base):
     session_name = Column(String, nullable=True)
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)
-    libraries = Column(PickleType, nullable=True)
+    library_ids = Column(PickleType, nullable=True)
 
 
-# TODO: spec out artifact table
 class ArtifactORM(Base):
     __tablename__ = "artifact"
     id = Column(LineaID, primary_key=True)
+    description = Column(String, nullable=True)
 
 
 class NodeORM(Base):
@@ -92,8 +100,8 @@ class NodeORM(Base):
 
 class DirectedEdgeORM(Base):
     __tablename__ = "directed_edge"
-    source_node_id = Column(LineaID, primary_key=True)
-    sink_node_id = Column(LineaID, primary_key=True)
+    source_node_id = Column(LineaID, ForeignKey(NodeORM.id), primary_key=True)
+    sink_node_id = Column(LineaID, ForeignKey(NodeORM.id), primary_key=True)
 
 
 class SideEffectsNodeORM(NodeORM):
@@ -106,7 +114,7 @@ class SideEffectsNodeORM(NodeORM):
 class ImportNodeORM(NodeORM):
     __mapper_args__ = {"polymorphic_identity": NodeType.ImportNode}
 
-    library = Column(PickleType)
+    library_id = Column(LineaID)
     attributes = Column(PickleType, nullable=True)
     alias = Column(String, nullable=True)
 
@@ -118,7 +126,6 @@ class ArgumentNodeORM(NodeORM):
     positional_order = Column(Integer, nullable=True)
     value_literal = Column(String, nullable=True)
     value_literal_type = Column(Enum(LiteralType), nullable=True)
-    value_pickled = Column(PickleType, nullable=True)
 
     @declared_attr
     def value_node_id(cls):

@@ -6,13 +6,20 @@ from tests.stub_data.simple_graph import simple_graph
 from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
 )
-from tests.stub_data.graph_with_import import graph_with_import
+from tests.stub_data.graph_with_import import (
+    graph_with_import,
+    session as graph_with_import_session,
+)
 from tests.stub_data.nested_call_graph import nested_call_graph
 from tests.stub_data.simple_graph import simple_graph
-from tests.stub_data.graph_with_loops import graph_with_loops
+from tests.stub_data.graph_with_loops import (
+    graph_with_loops,
+    session as graph_with_loops_session,
+)
 from tests.stub_data.graph_with_conditionals import graph_with_conditionals
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
+    session as graph_with_function_definition_session,
 )
 from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
@@ -103,24 +110,30 @@ class TestLineaDB:
         """
         some imports are built in, such as "math" or "datetime"
         """
-        graph = self.write_and_read_graph(graph_with_import)
+        graph, context = self.write_and_read_graph(
+            graph_with_import, graph_with_import_session
+        )
         e = Executor()
-        e.execute_program(graph)
+        e.execute_program(graph, context)
         b = e.get_value_by_variable_name("b")
         assert b == 5
 
     def test_graph_with_function_definition(self):
         """ """
-        graph = self.write_and_read_graph(graph_with_function_definition)
+        graph, context = self.write_and_read_graph(
+            graph_with_function_definition, graph_with_function_definition_session
+        )
         e = Executor()
-        e.execute_program(graph)
+        e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
         assert a == 120
 
     def test_program_with_loops(self):
-        graph = self.write_and_read_graph(graph_with_loops)
+        graph, context = self.write_and_read_graph(
+            graph_with_loops, graph_with_loops_session
+        )
         e = Executor()
-        e.execute_program(graph)
+        e.execute_program(graph, context)
         y = e.get_value_by_variable_name("y")
         x = e.get_value_by_variable_name("x")
         a = e.get_value_by_variable_name("a")

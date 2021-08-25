@@ -7,7 +7,7 @@ from lineapy.data.types import (
     SessionContext,
     SessionType,
 )
-from tests.util import get_new_id
+from tests.util import get_new_id, get_new_session
 
 """
 The simple graph represents the execution of the following:
@@ -21,12 +21,7 @@ Notes:
 - the ids are kept constant so we can more easily reference the same values in a different file
 """
 
-session = SessionContext(
-    id=get_new_id(),
-    file_name="testing.py",
-    environment_type=SessionType.SCRIPT,
-    creation_time=datetime.now(),
-)
+session = get_new_session()
 
 arg_literal_id = get_new_id()
 
