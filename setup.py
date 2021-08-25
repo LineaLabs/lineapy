@@ -51,4 +51,19 @@ setup(
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
     ],
+    packages=find_packages(
+        exclude=[
+            "tests",
+        ]
+    ),
+    include_package_data=True,
+    data_files=[
+        (
+            "share/jupyter/kernels/lineapy",
+            [
+                "lineapy/kernel/kernel.json",
+                "lineapy/kernel/resources/lineapy-logo.png",
+            ],
+        ),
+    ],
 )
