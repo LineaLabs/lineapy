@@ -36,9 +36,10 @@ class Graph(object):
         self._edges: List[DirectedEdge] = self._get_edges_from_nodes(nodes)
         self._graph = nx.DiGraph()
         self._graph.add_nodes_from([node.id for node in nodes])
-        self._graph.add_edges_from(
-            [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
-        )
+        if self._edges is not None:  # TODO: remove this condition once _get_edges_from_nodes is implemented.
+            self._graph.add_edges_from(
+                [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
+            )
 
     @staticmethod
     def _get_edges_from_nodes(nodes: List[Node]) -> List[DirectedEdge]:
@@ -46,7 +47,7 @@ class Graph(object):
         TODO: @dhruvm
         Extract edges from nodes based on relationships encoded in the node attributes.
         """
-        pass
+        ...
 
     @property
     def graph(self) -> nx.DiGraph:
@@ -92,8 +93,8 @@ class Graph(object):
                 source = cast(VariableAliasNode, source)
 
                 while (
-                    source is not None
-                    and source.node_type is NodeType.VariableAliasNode
+                        source is not None
+                        and source.node_type is NodeType.VariableAliasNode
                 ):
                     source = cast(VariableAliasNode, source)
                     source = self.get_node(source.source_variable_id)
