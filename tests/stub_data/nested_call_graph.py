@@ -1,14 +1,9 @@
-from lineapy.data.graph import Graph
-from tests.util import get_new_id, get_new_session
+from lineapy.data.graph import Graph, DirectedEdge
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
-    DirectedEdge,
-    SessionContext,
-    SessionType,
 )
-
-from datetime import datetime
+from tests.util import get_new_id, get_new_session
 
 """
 ```
@@ -58,4 +53,4 @@ line_1b = CallNode(
 
 e2 = DirectedEdge(source_node_id=line_1a_id, sink_node_id=line_1b_id)
 
-nested_call_graph = Graph([arg_literal, arg_1, arg_10, line_1a, line_1b], [e2])
+nested_call_graph = Graph([arg_literal, arg_1, arg_10, line_1a, line_1b])

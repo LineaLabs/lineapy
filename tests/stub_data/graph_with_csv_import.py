@@ -1,13 +1,11 @@
-from lineapy.data.graph import Graph
+from lineapy.data.graph import Graph, DirectedEdge
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
     DataSourceNode,
     Library,
     ImportNode,
-    SessionType,
     StorageType,
-    DirectedEdge,
 )
 from tests.util import get_new_id, get_new_session
 
@@ -107,5 +105,4 @@ graph_with_csv_import = Graph(
         read_csv_call,
         sum_call,
     ],
-    [e_import_to_df, e_df_to_access_a, e_df_to_sum],
 )

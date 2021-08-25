@@ -1,5 +1,4 @@
-from tests.util import get_new_id, get_new_session
-from lineapy.data.graph import Graph
+from lineapy.data.graph import Graph, DirectedEdge
 from lineapy.data.types import (
     LiteralAssignNode,
     CallNode,
@@ -8,8 +7,8 @@ from lineapy.data.types import (
     ArgumentNode,
     ImportNode,
     Library,
-    DirectedEdge,
 )
+from tests.util import get_new_id, get_new_session
 
 """
 Original code:
@@ -154,13 +153,5 @@ graph_with_loops = Graph(
         line_6,
         operator_module,
         line_7,
-    ],
-    [
-        e_a_to_loop,
-        e_b_to_loop,
-        e_import_to_y,
-        e_loop_to_x,
-        e_loop_to_y,
-        e_x_to_y,
-    ],
+    ]
 )

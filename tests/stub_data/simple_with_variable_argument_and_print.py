@@ -1,8 +1,7 @@
-from lineapy.data.graph import Graph
-from tests.util import get_new_id
-from lineapy.data.types import ArgumentNode, CallNode, DirectedEdge
-
+from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.types import ArgumentNode, CallNode
 from tests.stub_data.simple_graph import line_1, line_1_id, session, arg_literal
+from tests.util import get_new_id
 
 """
 ```
@@ -53,5 +52,5 @@ line_3 = CallNode(
 e3 = DirectedEdge(source_node_id=line_2_id, sink_node_id=line_3_id)
 
 simple_with_variable_argument_and_print = Graph(
-    [arg_a, arg_10, arg_b, arg_literal, line_1, line_2, line_3], [e2, e3]
+    [arg_a, arg_10, arg_b, arg_literal, line_1, line_2, line_3]
 )

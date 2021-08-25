@@ -1,14 +1,9 @@
-from datetime import datetime
-
-from lineapy.data.graph import Graph
+from lineapy.data.graph import Graph, DirectedEdge
 from lineapy.data.types import (
     ImportNode,
     ArgumentNode,
     CallNode,
-    DirectedEdge,
     Library,
-    SessionContext,
-    SessionType,
 )
 
 from tests.util import get_new_id, get_new_session
@@ -80,5 +75,5 @@ line_3 = CallNode(
 e3 = DirectedEdge(source_node_id=line_2_id, sink_node_id=line_3_id)
 
 graph_with_import = Graph(
-    [arg_literal1, arg_literal2, arg_a, line_1, line_2, line_3], [e2, e3]
+    [arg_literal1, arg_literal2, arg_a, line_1, line_2, line_3]
 )
