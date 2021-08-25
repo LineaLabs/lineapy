@@ -96,7 +96,10 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         args["library_ids"] = args["libraries"]
 
         for i in range(len(args["libraries"])):
-            self.session.add(LibraryORM(**context.libraries[i].dict()))
+            lib_args = context.libraries[i].dict()
+            lib_args["session_id"] = context.id
+            self.session.add(LibraryORM(**lib_args))
+
             args["library_ids"][i] = context.libraries[i].id
 
         del args["libraries"]

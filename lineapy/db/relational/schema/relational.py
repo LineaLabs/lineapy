@@ -58,14 +58,6 @@ class LineaID(types.TypeDecorator):
         return False
 
 
-class LibraryORM(Base):
-    __tablename__ = "library"
-    id = Column(LineaID, primary_key=True)
-    name = Column(String)
-    version = Column(String)
-    path = Column(String)
-
-
 class SessionContextORM(Base):
     __tablename__ = "session_context"
     id = Column(LineaID, primary_key=True)
@@ -75,7 +67,16 @@ class SessionContextORM(Base):
     session_name = Column(String, nullable=True)
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)
-    library_ids = Column(PickleType, nullable=True)
+    library_ids = relationship("LibraryORM", backref="session")
+
+
+class LibraryORM(Base):
+    __tablename__ = "library"
+    id = Column(LineaID, primary_key=True)
+    session_id = Column(LineaID, ForeignKey("session_context.id"))
+    name = Column(String)
+    version = Column(String)
+    path = Column(String)
 
 
 class ArtifactORM(Base):
@@ -114,7 +115,7 @@ class SideEffectsNodeORM(NodeORM):
 class ImportNodeORM(NodeORM):
     __mapper_args__ = {"polymorphic_identity": NodeType.ImportNode}
 
-    library_id = Column(LineaID)
+    library_id = Column(LineaID, ForeignKey("library.id"))
     attributes = Column(PickleType, nullable=True)
     alias = Column(String, nullable=True)
 
