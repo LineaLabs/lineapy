@@ -1,23 +1,21 @@
 from lineapy.execution.executor import Executor
-from tests.stub_data.graph_with_import import graph_with_import
-from tests.stub_data.nested_call_graph import nested_call_graph
-from tests.stub_data.simple_graph import simple_graph
-from tests.stub_data.graph_with_loops import graph_with_loops
+from tests.stub_data.graph_with_alias_by_reference import graph_with_alias_by_reference
+from tests.stub_data.graph_with_alias_by_value import graph_with_alias_by_value
 from tests.stub_data.graph_with_conditionals import graph_with_conditionals
-from tests.stub_data.graph_with_function_definition import (
-    graph_with_function_definition,
-)
-from tests.stub_data.simple_with_variable_argument_and_print import (
-    simple_with_variable_argument_and_print,
-)
-
 from tests.stub_data.graph_with_csv_import import (
     graph_with_csv_import,
     session as graph_with_file_access_session,
 )
-
-from tests.stub_data.graph_with_alias_by_reference import graph_with_alias_by_reference
-from tests.stub_data.graph_with_alias_by_value import graph_with_alias_by_value
+from tests.stub_data.graph_with_function_definition import (
+    graph_with_function_definition,
+)
+from tests.stub_data.graph_with_import import graph_with_import
+from tests.stub_data.graph_with_loops import graph_with_loops
+from tests.stub_data.nested_call_graph import nested_call_graph
+from tests.stub_data.simple_graph import simple_graph
+from tests.stub_data.simple_with_variable_argument_and_print import (
+    simple_with_variable_argument_and_print,
+)
 
 
 class TestBasicExecutor:
@@ -100,6 +98,22 @@ class TestBasicExecutor:
         e.execute_program(graph_with_alias_by_reference)
         s = e.get_value_by_variable_name("s")
         assert s == 10
+
+    def test_execute_program_with_inputs_graph_with_loops(self):
+        e = Executor()
+        from tests.stub_data.graph_with_loops import a_argument_id
+        e.execute_program_with_inputs(graph_with_loops, {a_argument_id: [1, 2, 3]})
+        x = e.get_value_by_variable_name('x')
+        assert x == 6
+        y = e.get_value_by_variable_name('y')
+        assert y == 6
+
+    def test_execute_program_with_inputs_graph_with_conditionals(self):
+        e = Executor()
+        from tests.stub_data.graph_with_conditionals import bs_line_id
+        e.execute_program_with_inputs(graph_with_loops, {bs_line_id: [1, 2, 3, 4, 5]})
+        stdout = e.get_stdout()
+        assert stdout == "True\n"
 
 
 if __name__ == "__main__":
