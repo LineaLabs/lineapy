@@ -1,13 +1,11 @@
-from lineapy.data.graph import Graph
-from tests.util import get_new_id
-from tests.stub_data.simple_graph import session
+from lineapy.data.graph import Graph, DirectedEdge
 from lineapy.data.types import (
-    LiteralAssignNode,
     VariableAliasNode,
-    DirectedEdge,
     ArgumentNode,
     CallNode,
 )
+from tests.stub_data.simple_graph import session
+from tests.util import get_new_id
 
 """
 a = [1,2,3]
@@ -91,5 +89,4 @@ e_b_to_sum = DirectedEdge(source_node_id=b_assign.id, sink_node_id=b_sum.id)
 
 graph_with_alias_by_reference = Graph(
     nodes=[arg_1, arg_2, arg_3, arg_4, b_arg, a_assign, b_assign, a_append, b_sum],
-    edges=[e_a_to_b, e_a_to_append, e_b_to_sum],
 )
