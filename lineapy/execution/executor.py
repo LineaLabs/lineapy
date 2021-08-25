@@ -1,11 +1,11 @@
 import builtins
-import lineapy.lineabuiltins as lineabuiltins
 import importlib.util
 import io
 import subprocess
 import sys
-from typing import Any, List, Tuple, Optional, Dict, cast
+from typing import Any, Tuple, Optional, Dict, cast
 
+import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     SessionContext,
@@ -13,12 +13,11 @@ from lineapy.data.types import (
     Node,
     CallNode,
     ImportNode,
-    ConditionNode,
     LiteralAssignNode,
-    VariableAliasNode,
     SideEffectsNode,
     StateChangeNode,
-    FunctionDefinitionNode, LineaID,
+    FunctionDefinitionNode,
+    LineaID,
 )
 from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.graph_reader.base import GraphReader
@@ -78,7 +77,9 @@ class Executor(GraphReader):
     def get_value_by_variable_name(self, name: str) -> Any:
         return self._variable_values[name]
 
-    def execute_program_with_inputs(self, program: Graph, inputs: Dict[LineaID, Any]) -> Any:
+    def execute_program_with_inputs(
+        self, program: Graph, inputs: Dict[LineaID, Any]
+    ) -> Any:
         """
         Execute the `program` with specific `inputs`.
         Note: the inputs do not have to be root nodes in `program`. For a non-root node input, we should cut its
