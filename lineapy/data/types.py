@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-# aliasing the ID type in case we chnage it later
+# aliasing the ID type in case we change it later
 LineaID = UUID
 
 
