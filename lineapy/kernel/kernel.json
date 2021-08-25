@@ -1,0 +1,12 @@
+{
+    "argv": [
+        "python",
+        "-m",
+        "linea_kernel",
+        "-f",
+        "{connection_file}"
+    ],
+    "codemirror_mode": "shell",
+    "display_name": "Python 3 (Linea)",
+    "language": "python"
+}
