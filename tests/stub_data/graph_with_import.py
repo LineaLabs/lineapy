@@ -13,14 +13,9 @@ from lineapy.data.types import (
 
 from tests.util import get_new_id
 
-"""
 
-```
-from math import pow, sqrt
-a = power(5, 2)
-b = root(a)
-```
-"""
+import_code = "from math import pow, sqrt"
+import_body_code = "a = power(5, 2)\nb = root(a)"
 
 session = SessionContext(
     uuid=get_new_id(),
@@ -29,10 +24,9 @@ session = SessionContext(
     creation_time=datetime.now(),
 )
 
-line_1_id = get_new_id()
 
-line_1 = ImportNode(
-    id=line_1_id,
+import_math_node = ImportNode(
+    id=get_new_id(),
     session_id=session.uuid,
     code="from math import pow, sqrt as root",
     library=Library(name="math", version="1", path=""),
@@ -56,12 +50,12 @@ line_2 = CallNode(
     session_id=session.uuid,
     code="power(5, 2)",
     function_name="power",
-    function_module=line_1_id,
+    function_module=import_math_node.id,
     assigned_variable_name="a",
     arguments=[arg_literal_id_1, arg_literal_id_2],
 )
 
-e2 = DirectedEdge(source_node_id=line_1_id, sink_node_id=line_2_id)
+e2 = DirectedEdge(source_node_id=import_math_node.id, sink_node_id=line_2_id)
 
 arg_a_id = get_new_id()
 
@@ -75,7 +69,7 @@ line_3 = CallNode(
     session_id=session.uuid,
     code="root(a)",
     function_name="root",
-    function_module=line_1_id,
+    function_module=import_math_node.id,
     assigned_variable_name="b",
     arguments=[arg_a_id],
 )
@@ -83,5 +77,5 @@ line_3 = CallNode(
 e3 = DirectedEdge(source_node_id=line_2_id, sink_node_id=line_3_id)
 
 graph_with_import = Graph(
-    [arg_literal1, arg_literal2, arg_a, line_1, line_2, line_3], [e2, e3]
+    [arg_literal1, arg_literal2, arg_a, import_math_node, line_2, line_3], [e2, e3]
 )

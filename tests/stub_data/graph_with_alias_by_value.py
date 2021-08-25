@@ -1,11 +1,7 @@
 from lineapy.data.graph import Graph
-from tests.util import get_new_id
+from lineapy.utils import get_new_id
 from tests.stub_data.simple_graph import session
-from lineapy.data.types import (
-    LiteralAssignNode,
-    DirectedEdge,
-    CallNode,
-)
+from lineapy.data.types import LiteralAssignNode, DirectedEdge
 
 """
 ```

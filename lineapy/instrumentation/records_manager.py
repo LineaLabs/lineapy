@@ -15,7 +15,7 @@ class RecordsManager:
         # TODO, need to wait until the linea-db-spec is merged and everything
         # self.db = LineaDB()
 
-    def add_to_records_pool(self, record: RecordType):
+    def add_node(self, record: RecordType):
         pass
 
     def flush_records_and_close(self):

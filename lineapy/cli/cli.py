@@ -1,4 +1,4 @@
-from lineapy.utils import report_error_to_user
+from lineapy.utils import info_log, report_error_to_user
 import click
 from lineapy.transformer.transformer import Transformer
 
@@ -18,6 +18,7 @@ def linea_cli(mode, file_name):
         lines = open(file_name, "r").readlines()
         original_code = "".join(lines)
         new_code = transformer.transform(original_code, file_name, one_shot=True)
+        info_log("new_code", new_code)
         exec(new_code)
     except IOError:
         report_error_to_user("Error: File does not appear to exist.")

@@ -18,6 +18,12 @@ def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
     return True
 
 
+def are_nodes_conetent_equal(n1: Node, n2: Node) -> bool:
+    # this one skips the ID checking
+    # will refactor based on the linea-spec-db branch
+    pass
+
+
 def are_graphs_identical(g1: Graph, g2: Graph, deep_check=False) -> bool:
     """
     This is simple util to traverse the graph for direct comparisons.

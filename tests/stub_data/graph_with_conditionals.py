@@ -5,14 +5,13 @@ from lineapy.data.types import (
     ArgumentNode,
     CallNode,
     DirectedEdge,
-    LiteralAssignNode,
     SessionContext,
     SessionType,
     ConditionNode,
     StateChangeNode,
 )
 
-from tests.util import get_new_id
+from lineapy.utils import get_new_id
 
 """
 Original code:

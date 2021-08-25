@@ -1,5 +1,11 @@
 from tokenize import Triple
 from typing import Any, Optional
+from uuid import uuid4
+
+
+def get_new_id():
+    return uuid4()
+
 
 IS_DEBUG = True
 
@@ -51,9 +57,13 @@ def report_error_to_user(msg: str):
     print(bcolors.WARNING + "[Warning] " + msg + bcolors.ENDC)
 
 
-def info_log(function: str, msg: str):
+def internal_warning_log(*args):
+    print(bcolors.WARNING + "[Warning] ", *args, bcolors.ENDC)
+
+
+def info_log(*args):
     if IS_DEBUG:
-        print(bcolors.GREEN + f"\n[{function}]\n" + msg + "\n" + bcolors.ENDC)
+        print(bcolors.GREEN + "[Info] ", *args, "\n" + bcolors.ENDC)
 
 
 def debug_log(msg: str):

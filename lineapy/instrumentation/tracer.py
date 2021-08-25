@@ -1,7 +1,9 @@
+from typing import Dict
+from tests.util import get_new_id
 from lineapy.utils import info_log
 from lineapy.instrumentation.records_manager import RecordsManager
 from typing import Any, List, Optional, Union
-from lineapy.data.types import Node, DirectedEdge
+from lineapy.data.types import ImportNode, Library, Node, DirectedEdge, SessionType
 
 
 class Tracer:
@@ -9,9 +11,12 @@ class Tracer:
     Tracer is internal to Linea and it implements the "hidden APIs" that are setup by the transformer.
     """
 
-    def __init__(self, session_name: Optional[str]):
-        self.session_name = session_name
+    def __init__(self, environment_type: str, file_name: Optional[str]):
+        # TODO map to SessionType
+        self.environment_type = environment_type
+        self.file_name = file_name
         self.records_manager = RecordsManager()
+        self.session_id = get_new_id()
 
     def exit(self):
         info_log("Tracer", "exit")
@@ -21,6 +26,35 @@ class Tracer:
         # we'd have to do some introspection here to know what the ID is
         # then we can create a new ORM node (not our IR node, which is a little confusing)
         pass
+
+    def create_session_context(self):
+        pass
+
+    def trace_import(
+        self,
+        name: str,
+        code: str,
+        alias: Optional[str] = None,
+        attributes: Optional[Dict[str, str]] = None,
+    ) -> None:
+        """
+        didn't call it import because I think that's a protected name
+        """
+        library = Library(
+            name=name
+            # note that version and path will be instrospected at runtime
+        )
+        info_log("creating", name, code, alias, attributes)
+        node = ImportNode(
+            id=get_new_id(),
+            session_id=self.session_id,
+            code=code,
+            alias=alias,
+            library=library,
+            attributes=attributes,
+        )
+        self.records_manager.add_node(node)
+        return
 
     def literal(self) -> None:
         """

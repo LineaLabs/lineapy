@@ -5,11 +5,11 @@ from lineapy.data.types import (
     DataSourceNode,
     Library,
     ImportNode,
-    SessionType,
     StorageType,
     DirectedEdge,
 )
-from tests.util import get_new_id, get_new_session
+from lineapy.utils import get_new_id
+from tests.util import get_new_session
 
 """
 ```python
