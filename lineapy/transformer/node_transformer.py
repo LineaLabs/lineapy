@@ -1,4 +1,6 @@
 import ast
+from astpretty import pprint
+from lineapy.instrumentation.tracer import Tracer
 from typing import Optional
 from lineapy.utils import info_log
 from lineapy.transformer.transformer import LINEAPY_TRACER_NAME
@@ -58,7 +60,7 @@ class NodeTransformer(ast.NodeTransformer):
             ast.Call(
                 func=ast.Attribute(
                     value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                    attr="trace_import",
+                    attr=Tracer.TRACE_IMPORT,
                     ctx=ast.Load(),
                 ),
                 args=[],
@@ -70,5 +72,27 @@ class NodeTransformer(ast.NodeTransformer):
                     ),
                 ],
             )
+        )
+        return result
+
+    def visit_Call(self, node):
+        """
+        TODO: figure out what to do with the other type of expressions
+        """
+        argument_nodes = [self.visit(arg) for arg in node.args]
+        keyword_arg = ast.keyword(arg="arguments", value=ast.List(elts=argument_nodes))
+        result = ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.TRACE_CALL,
+                ctx=ast.Load(),
+            ),
+            args=[],
+            keywords=[
+                ast.keyword(
+                    arg="function_name", value=ast.Constant(value=node.func.id)
+                ),
+                keyword_arg,
+            ],
         )
         return result

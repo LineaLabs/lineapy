@@ -2,6 +2,8 @@
 import math as m
 from ast import NodeVisitor
 
-a = 1
-b = a + 2
-print(b)
+# print()
+print(abs(1), "hello")
+# a = 1
+# b = a + 2
+# print(b)

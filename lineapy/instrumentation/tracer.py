@@ -1,9 +1,18 @@
 from typing import Dict
+from webbrowser import get
 from tests.util import get_new_id
-from lineapy.utils import info_log
+from lineapy.utils import info_log, internal_warning_log
 from lineapy.instrumentation.records_manager import RecordsManager
 from typing import Any, List, Optional, Union
-from lineapy.data.types import ImportNode, Library, Node, DirectedEdge, SessionType
+from lineapy.data.types import (
+    ArgumentNode,
+    CallNode,
+    ImportNode,
+    Library,
+    Node,
+    DirectedEdge,
+    SessionType,
+)
 
 
 class Tracer:
@@ -29,6 +38,8 @@ class Tracer:
 
     def create_session_context(self):
         pass
+
+    TRACE_IMPORT = "trace_import"
 
     def trace_import(
         self,
@@ -80,14 +91,56 @@ class Tracer:
         Corresponds to the `VariableNode`
         """
 
-    def call(self) -> None:
+    TRACE_CALL = "call"
+
+    def call(
+        self,
+        function_name: str,
+        arguments: Any,
+        function_module: Optional[str] = None,
+    ) -> CallNode:
         """
         TODO:
-        - [ ] define input arguments
-        - [ ] append records (Node and DirectedEdge) to `records_pool`
+        - code: str
+        - need to look up the function module live to get the ID
 
         """
-        pass
+
+        # info_log("tracel call", function_name, code, function_module)
+        argument_nodes = []
+        # for a in arguments:
+        # FIXME, assumes 1 arg
+        for a in arguments:
+            if type(a) is int or str:
+                new_literal_arg = ArgumentNode(
+                    id=get_new_id(),
+                    session_id=self.session_id,
+                    value_literal=a,
+                )
+                self.records_manager.add_node(new_literal_arg)
+                argument_nodes.append(new_literal_arg.id)
+            elif type(a) is CallNode:
+                new_call_arg = ArgumentNode(
+                    id=get_new_id(), session_id=self.session_id, value_node_id=a.id
+                )
+                self.records_manager.add_node(new_call_arg)
+                argument_nodes.append(new_call_arg.id)
+            else:
+                # internal_warning_log()
+                raise NotImplementedError(type(a), "not supported!")
+
+        new_id = get_new_id()
+
+        node = CallNode(
+            id=new_id,
+            session_id=self.session_id,
+            code="",
+            function_name=function_name,
+            arguments=argument_nodes,
+        )
+        # self.records_manager.add_node(node)
+        info_log("call invoked from tracer", function_name, function_module, arguments)
+        return node
 
     def loop(self) -> None:
         """
