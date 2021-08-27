@@ -4,6 +4,7 @@ import importlib.util
 import io
 import subprocess
 import sys
+import operator
 from typing import Any, List, Tuple, Optional, Dict, cast
 
 from lineapy.data.graph import Graph
@@ -83,6 +84,7 @@ class Executor(GraphReader):
             self.setup(context)
         self.walk(program)
 
+    # TODO: need to setup handling for dependent_variables_in_predicate
     def setup_context_for_node(
         self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]
     ) -> None:
@@ -170,16 +172,14 @@ class Executor(GraphReader):
             scoped_locals = locals()
 
             # all of these have to be in the same scope in order to read
-            # and write to scoped_locals properly (this is just the way exec works)
+            # and write to scoped_locals properly (this is just the way Python exec works)
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
 
                 fn, fn_name = Executor.get_function(node, program, scoped_locals)
 
-                args = []
-                for arg_id in node.arguments:
-                    args.append(program.get_node_value_from_id(arg_id))
+                args = program.get_arguments_from_call_node(node)
 
                 val = fn(*args)
                 node.value = val

@@ -43,7 +43,7 @@ arg_literal1 = ArgumentNode(
 
 arg_literal_id_2 = get_new_id()
 arg_literal2 = ArgumentNode(
-    id=arg_literal_id_2, session_id=session.id, positional_order=1, value_literal=2
+    id=arg_literal_id_2, session_id=session.id, positional_order=2, value_literal=2
 )
 
 line_2_id = get_new_id()

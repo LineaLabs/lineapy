@@ -2,15 +2,7 @@ from typing import List, Dict, Optional, Any, cast
 
 import networkx as nx
 
-from lineapy.data.types import (
-    Node,
-    NodeType,
-    DirectedEdge,
-    LineaID,
-    ArgumentNode,
-    VariableAliasNode,
-    DataSourceNode,
-)
+from lineapy.data.types import *
 
 
 class Graph(object):
@@ -100,6 +92,14 @@ class Graph(object):
     def get_node_value_from_id(self, node_id: Optional[LineaID]) -> Optional[Any]:
         node = self.get_node(node_id)
         return self.get_node_value(node)
+
+    def get_arguments_from_call_node(self, node: CallNode) -> List[NodeValue]:
+        args = [self.get_node(a) for a in node.arguments]
+
+        # NOTE: for cases where a large list is being instantiated using the list constructor, this may add unwanted overhead
+        # can use operator.attrgetter instead of x.positional_order to speed up this process
+        args.sort(key=lambda x: x.positional_order)
+        return [self.get_node_value(a) for a in args]
 
     def print(self):
         for n in self._nodes:
