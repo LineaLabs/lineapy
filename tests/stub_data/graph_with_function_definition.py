@@ -1,17 +1,14 @@
-from lineapy.data.graph import Graph
-from tests.util import get_new_id, get_new_session
+from lineapy.data.graph import DirectedEdge
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ImportNode,
     CallNode,
     Library,
-    ArgumentNode,
     LiteralAssignNode,
     FunctionDefinitionNode,
     StateChangeNode,
-    DirectedEdge,
 )
-
+from tests.util import get_new_id, get_new_session
 
 """
 This also doubles to test scope of the variable, as well as functions with mutation
@@ -80,8 +77,6 @@ e_a_to_fun = DirectedEdge(source_node_id=a_id, sink_node_id=fun_id)
 e_import_to_fun = DirectedEdge(source_node_id=line_1_id, sink_node_id=fun_id)
 e_fun_to_call = DirectedEdge(source_node_id=fun_id, sink_node_id=func_call_id)
 
-
 graph_with_function_definition = Graph(
     [line_1_import, line_2, a_state_change, fun_def_node, my_function_call],
-    [e_a_to_fun, e_import_to_fun, e_fun_to_call],
 )

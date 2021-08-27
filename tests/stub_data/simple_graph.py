@@ -1,11 +1,7 @@
-from datetime import datetime
-
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
-    SessionContext,
-    SessionType,
 )
 from tests.util import get_new_id, get_new_session
 

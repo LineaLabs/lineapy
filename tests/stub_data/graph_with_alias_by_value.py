@@ -1,11 +1,9 @@
-from lineapy.data.graph import Graph
-from tests.util import get_new_id
-from tests.stub_data.simple_graph import session
+from lineapy.data.graph import Graph, DirectedEdge
 from lineapy.data.types import (
     LiteralAssignNode,
-    DirectedEdge,
-    CallNode,
 )
+from tests.stub_data.simple_graph import session
+from tests.util import get_new_id
 
 """
 ```
@@ -50,4 +48,4 @@ a_mutate = LiteralAssignNode(
 
 e_1 = DirectedEdge(source_node_id=a_assign.id, sink_node_id=b_assign.id)
 
-graph_with_alias_by_value = Graph(nodes=[a_assign, b_assign, a_mutate], edges=[e_1])
+graph_with_alias_by_value = Graph(nodes=[a_assign, b_assign, a_mutate])
