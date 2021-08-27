@@ -160,7 +160,10 @@ class LineaDB(LineaDBReader, LineaDBWriter):
                         },
                     )
 
-            if node.node_type is NodeType.ConditionNode:
+            if (
+                node.node_type is NodeType.ConditionNode
+                and node.dependent_variables_in_predicate is not None
+            ):
                 node = cast(ConditionNode, node)
                 for dependent_id in node.dependent_variables_in_predicate:
                     self.session.execute(
