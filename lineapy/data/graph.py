@@ -36,31 +36,22 @@ class Graph(object):
     @staticmethod
     def _get_edges_to_node(node: Node) -> List[DirectedEdge]:
         edges = []
+
+        def add_edge_from_node(id: LineaID) -> None:
+            edges.append(DirectedEdge(source_node_id=id, sink_node_id=node.id))
+
         if node.node_type is NodeType.CallNode:
             node = cast(CallNode, node)
             for arg in node.arguments:
-                edges.append(DirectedEdge(source_node_id=arg, sink_node_id=node.id))
+                add_edge_from_node(arg)
             if node.function_module is not None:
-                edges.append(
-                    DirectedEdge(
-                        source_node_id=node.function_module, sink_node_id=node.id
-                    )
-                )
+                add_edge_from_node(node.function_module)
             if node.locally_defined_function_id is not None:
-                edges.append(
-                    DirectedEdge(
-                        source_node_id=node.locally_defined_function_id,
-                        sink_node_id=node.id,
-                    )
-                )
+                add_edge_from_node(node.locally_defined_function_id)
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
             if node.value_node_id is not None:
-                edges.append(
-                    DirectedEdge(
-                        source_node_id=node.value_node_id, sink_node_id=node.id
-                    )
-                )
+                add_edge_from_node(node.value_node_id)
         elif node.node_type in [
             NodeType.LoopNode,
             NodeType.ConditionNode,
@@ -69,49 +60,27 @@ class Graph(object):
             node = cast(SideEffectsNode, node)
             if node.state_change_nodes is not None:
                 for state_change in node.state_change_nodes:
-                    edges.append(
-                        DirectedEdge(source_node_id=state_change, sink_node_id=node.id)
-                    )
+                    add_edge_from_node(state_change)
             if node.import_nodes is not None:
                 for import_node in node.import_nodes:
-                    edges.append(
-                        DirectedEdge(source_node_id=import_node, sink_node_id=node.id)
-                    )
+                    add_edge_from_node(import_node)
             if (
                 node.node_type is NodeType.ConditionNode
                 and node.dependent_variables_in_predicate is not None
             ):
                 for dep_var in node.dependent_variables_in_predicate:
-                    edges.append(
-                        DirectedEdge(source_node_id=dep_var, sink_node_id=node.id)
-                    )
+                    add_edge_from_node(dep_var)
         elif node.node_type is StateChangeNode:
             node = cast(StateChangeNode, node)
-            edges.append(
-                DirectedEdge(
-                    source_node_id=node.associated_node_id, sink_node_id=node.id
-                )
-            )
-            edges.append(
-                DirectedEdge(
-                    source_node_id=node.initial_value_node_id, sink_node_id=node.id
-                )
-            )
+            add_edge_from_node(node.associated_node_id)
+            add_edge_from_node(node.initial_value_node_id)
         elif node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNode, node)
             if node.value_node_id is not None:
-                edges.append(
-                    DirectedEdge(
-                        source_node_id=node.value_node_id, sink_node_id=node.id
-                    )
-                )
+                add_edge_from_node(node.value_node_id)
         elif node.node_type is NodeType.VariableAliasNode:
             node = cast(VariableAliasNode, node)
-            edges.append(
-                DirectedEdge(
-                    source_node_id=node.source_variable_id, sink_node_id=node.id
-                )
-            )
+            add_edge_from_node(node.source_variable_id)
         return edges
 
     @property
