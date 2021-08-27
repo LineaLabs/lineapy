@@ -97,12 +97,12 @@ e_df_to_sum = DirectedEdge(source_node_id=access_a_column.id, sink_node_id=sum_c
 
 graph_with_csv_import = Graph(
     [
-        literal_node,
-        col_name_literal,
         import_pandas,
         simple_data_node,
-        access_a_column,
+        literal_node,
         read_csv_call,
+        col_name_literal,
+        access_a_column,
         sum_call,
     ],
 )
