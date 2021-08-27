@@ -84,7 +84,6 @@ class Executor(GraphReader):
             self.setup(context)
         self.walk(program)
 
-    # TODO: need to setup handling for dependent_variables_in_predicate
     def setup_context_for_node(
         self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]
     ) -> None:
