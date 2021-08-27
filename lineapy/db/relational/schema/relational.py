@@ -230,6 +230,7 @@ class CallNodeORM(NodeORM):
     function_module = Column(LineaID, nullable=True)
     locally_defined_function_id = Column(LineaID, nullable=True)
 
+    # this pattern is used when multiple sibling classes have the same column
     @declared_attr
     def assigned_variable_name(cls):
         return NodeORM.__table__.c.get(

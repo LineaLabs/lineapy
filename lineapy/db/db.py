@@ -55,7 +55,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             NodeType.LiteralAssignNode: LiteralAssignNode,
             NodeType.FunctionDefinitionNode: FunctionDefinitionNode,
             NodeType.ConditionNode: ConditionNode,
-            NodeType.LoopNode: LoopEnterNode,
+            NodeType.LoopNode: LoopNode,
             NodeType.DataSourceNode: DataSourceNode,
             NodeType.StateChangeNode: StateChangeNode,
             NodeType.VariableAliasNode: VariableAliasNode,
@@ -311,18 +311,6 @@ class LineaDB(LineaDBReader, LineaDBWriter):
                     node.dependent_variables_in_predicate = [
                         a.dependent_node_id for a in dependent_variables_in_predicate
                     ]
-
-        # elif query_obj.node_type is NodeType.CallNode:
-        #     obj.
-        # elif query_obj.node_type is NodeType.CallNode:
-        #     obj = cast(CallNode, obj)
-        #     arguments = (
-        #         self.session.query(ArgumentNodeORM)
-        #         .filter(ArgumentNodeORM.call_node_id == linea_id)
-        #         .all()
-        #     )
-        #     obj.arguments = []
-        #     print(obj.arguments)
 
         return LineaDB.get_pydantic(node).from_orm(node)
 

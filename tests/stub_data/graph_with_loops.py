@@ -2,7 +2,7 @@ from lineapy.data.graph import Graph, DirectedEdge
 from lineapy.data.types import (
     LiteralAssignNode,
     CallNode,
-    LoopEnterNode,
+    LoopNode,
     StateChangeNode,
     ArgumentNode,
     ImportNode,
@@ -87,7 +87,7 @@ b_argument_node = ArgumentNode(
     value_node_id=b_state_change_id,
 )
 
-le = LoopEnterNode(
+le = LoopNode(
     id=le_id,
     session_id=session.id,
     # @Dhruv, please watch out for indentation oddities when you run into errors
