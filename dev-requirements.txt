@@ -3,3 +3,5 @@ mypy
 black
 pep8
 pylint
+pytest
+astpretty
