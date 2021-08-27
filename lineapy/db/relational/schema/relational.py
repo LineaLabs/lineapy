@@ -1,32 +1,4 @@
-from datetime import datetime
-from uuid import UUID
-import json
-
-from sqlalchemy import (
-    Column,
-    UniqueConstraint,
-    Integer,
-    String,
-    Enum,
-    ForeignKey,
-    Table,
-    DateTime,
-    types,
-)
-from sqlalchemy.dialects.mysql.base import MSBinary
-from sqlalchemy.dialects.postgresql import ARRAY, Any
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import (
-    backref,
-    relationship,
-    declarative_mixin,
-    declared_attr,
-)
-from sqlalchemy.sql.sqltypes import Boolean, Text
-
-from lineapy.data.types import SessionType, NodeType, StorageType, LiteralType
-
-""" Graph Relationships
+""" Relationships
 SessionContext
 - Library (One to Many)
 - HardwareSpec (Many to One)
@@ -63,6 +35,34 @@ StateChangeNode
 - Node (Many to One)
 
 """
+
+from datetime import datetime
+from uuid import UUID
+import json
+
+from sqlalchemy import (
+    Column,
+    UniqueConstraint,
+    Integer,
+    String,
+    Enum,
+    ForeignKey,
+    Table,
+    DateTime,
+    types,
+)
+from sqlalchemy.dialects.mysql.base import MSBinary
+from sqlalchemy.dialects.postgresql import ARRAY, Any
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import (
+    backref,
+    relationship,
+    declarative_mixin,
+    declared_attr,
+)
+from sqlalchemy.sql.sqltypes import Boolean, Text
+
+from lineapy.data.types import SessionType, NodeType, StorageType, LiteralType
 
 Base = declarative_base()
 
