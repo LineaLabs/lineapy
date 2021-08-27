@@ -108,8 +108,6 @@ class Tracer:
 
         # info_log("tracel call", function_name, code, function_module)
         argument_nodes = []
-        # for a in arguments:
-        # FIXME, assumes 1 arg
         for a in arguments:
             if type(a) is int or str:
                 new_literal_arg = ArgumentNode(
@@ -137,9 +135,11 @@ class Tracer:
             code="",
             function_name=function_name,
             arguments=argument_nodes,
+            function_module=function_module,
         )
-        # self.records_manager.add_node(node)
-        info_log("call invoked from tracer", function_name, function_module, arguments)
+
+        self.records_manager.add_node(node)
+        # info_log("call invoked from tracer", function_name, function_module, arguments)
         return node
 
     def loop(self) -> None:
