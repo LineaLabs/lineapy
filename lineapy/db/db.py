@@ -127,7 +127,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             node = cast(CallNode, node)
             for arg in node.arguments:
                 self.session.execute(
-                    callnode_association_table.insert(),
+                    call_node_association_table.insert(),
                     params={"call_node_id": node.id, "argument_node_id": arg},
                 )
             del args["arguments"]
@@ -143,7 +143,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             if node.state_change_nodes is not None:
                 for state_change_id in node.state_change_nodes:
                     self.session.execute(
-                        sideeffects_statechange_association_table.insert(),
+                        side_effects_state_change_association_table.insert(),
                         params={
                             "side_effects_node_id": node.id,
                             "state_change_node_id": state_change_id,
@@ -153,7 +153,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             if node.import_nodes is not None:
                 for import_id in node.import_nodes:
                     self.session.execute(
-                        sideeffects_import_association_table.insert(),
+                        side_effects_import_association_table.insert(),
                         params={
                             "side_effects_node_id": node.id,
                             "import_node_id": import_id,
@@ -257,8 +257,8 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         elif node.node_type is NodeType.CallNode:
             node = cast(CallNode, node)
             arguments = (
-                self.session.query(callnode_association_table)
-                .filter(callnode_association_table.c.call_node_id == node.id)
+                self.session.query(call_node_association_table)
+                .filter(call_node_association_table.c.call_node_id == node.id)
                 .all()
             )
             node.arguments = [a.argument_node_id for a in arguments]
@@ -271,9 +271,9 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         ]:
             node = cast(SideEffectsNode, node)
             state_change_nodes = (
-                self.session.query(sideeffects_statechange_association_table)
+                self.session.query(side_effects_state_change_association_table)
                 .filter(
-                    sideeffects_statechange_association_table.c.side_effects_node_id
+                    side_effects_state_change_association_table.c.side_effects_node_id
                     == node.id
                 )
                 .all()
@@ -285,9 +285,9 @@ class LineaDB(LineaDBReader, LineaDBWriter):
                 ]
 
             import_nodes = (
-                self.session.query(sideeffects_import_association_table)
+                self.session.query(side_effects_import_association_table)
                 .filter(
-                    sideeffects_import_association_table.c.side_effects_node_id
+                    side_effects_import_association_table.c.side_effects_node_id
                     == node.id
                 )
                 .all()

@@ -106,10 +106,19 @@ class Executor(GraphReader):
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
                 import_node = cast(ImportNode, program.get_node(import_node_id))
-                # if importlib.util.find_spec(import_node.library.name) is None:
-                #     Executor.install(import_node.library.name)
                 import_node.module = importlib.import_module(import_node.library.name)
                 scoped_locals[import_node.library.name] = import_node.module
+
+        if (
+            node.node_type is NodeType.ConditionNode
+            and node.dependent_variables_in_predicate is not None
+        ):
+            for dependent_var_id in node.dependent_variables_in_predicate:
+                dependent_var = program.get_node(dependent_var_id)
+                dependent_var_value = program.get_node_value(dependent_var)
+                scoped_locals[
+                    dependent_var.assigned_variable_name
+                ] = dependent_var_value
 
     def update_node_side_effects(
         self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]

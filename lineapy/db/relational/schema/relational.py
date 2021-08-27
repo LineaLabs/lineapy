@@ -124,8 +124,8 @@ class DirectedEdgeORM(Base):
     sink_node_id = Column(LineaID, ForeignKey(NodeORM.id), primary_key=True)
 
 
-sideeffects_statechange_association_table = Table(
-    "sideeffects_statechange_association",
+side_effects_state_change_association_table = Table(
+    "side_effects_state_change_association",
     Base.metadata,
     Column(
         "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
@@ -135,8 +135,8 @@ sideeffects_statechange_association_table = Table(
     ),
 )
 
-sideeffects_import_association_table = Table(
-    "sideeffects_import_association",
+side_effects_import_association_table = Table(
+    "side_effects_import_association",
     Base.metadata,
     Column(
         "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
@@ -176,8 +176,8 @@ class StateChangeNodeORM(NodeORM):
     initial_value_node_id = Column(LineaID)
 
 
-callnode_association_table = Table(
-    "callnode_association",
+call_node_association_table = Table(
+    "call_node_association",
     Base.metadata,
     Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
     Column("argument_node_id", ForeignKey("argument_node.id"), primary_key=True),
