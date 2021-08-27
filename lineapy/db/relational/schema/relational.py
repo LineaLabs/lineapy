@@ -26,6 +26,43 @@ from sqlalchemy.sql.sqltypes import Boolean, Text
 
 from lineapy.data.types import SessionType, NodeType, StorageType, LiteralType
 
+""" Graph Relationships
+SessionContext
+- Library (One to Many)
+- HardwareSpec (Many to One)
+
+Node
+- SessionContext (Many to One)
+
+SideEffectsNode
+- StateChangeNode (One to Many)
+- ImportNode (Many to Many)
+
+ImportNode
+- Library (Many to One)
+
+ArgumentNode
+- Node (One to One)
+
+CallNode
+- ArgumentNode (One to Many)
+- ImportNode/CallNode (function_module) (One to One)
+- FunctionDefinitionNode (One to One)
+
+LiteralAssignNode
+- ValueNode (One to One)
+
+VariableAliasNode
+- VariableAliasNode/CallNode (Many to One)
+
+ConditionNode
+- Node (Many to Many)
+
+StateChangeNode
+- SideEffectsNode (One to One)
+- Node (Many to One)
+
+"""
 
 Base = declarative_base()
 
