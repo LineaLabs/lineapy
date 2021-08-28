@@ -55,7 +55,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             NodeType.LiteralAssignNode: LiteralAssignNode,
             NodeType.FunctionDefinitionNode: FunctionDefinitionNode,
             NodeType.ConditionNode: ConditionNode,
-            NodeType.LoopNode: LoopEnterNode,
+            NodeType.LoopNode: LoopNode,
             NodeType.DataSourceNode: DataSourceNode,
             NodeType.StateChangeNode: StateChangeNode,
             NodeType.VariableAliasNode: VariableAliasNode,
@@ -103,19 +103,9 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         self.session.add(context_orm)
         self.session.commit()
 
-    def write_edges(self, edges: List[DirectedEdge]) -> None:
-        for e in edges:
-            self.write_single_edge(e)
-
     def write_nodes(self, nodes: List[Node]) -> None:
         for n in nodes:
             self.write_single_node(n)
-
-    def write_single_edge(self, edge: DirectedEdge) -> None:
-        edge_orm = DirectedEdgeORM(**edge.dict())
-
-        self.session.add(edge_orm)
-        self.session.commit()
 
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
@@ -312,36 +302,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
                         a.dependent_node_id for a in dependent_variables_in_predicate
                     ]
 
-        # elif query_obj.node_type is NodeType.CallNode:
-        #     obj.
-        # elif query_obj.node_type is NodeType.CallNode:
-        #     obj = cast(CallNode, obj)
-        #     arguments = (
-        #         self.session.query(ArgumentNodeORM)
-        #         .filter(ArgumentNodeORM.call_node_id == linea_id)
-        #         .all()
-        #     )
-        #     obj.arguments = []
-        #     print(obj.arguments)
-
         return LineaDB.get_pydantic(node).from_orm(node)
-
-    def get_edge(self, source_node_id: LineaID, sink_node_id: LineaID) -> DirectedEdge:
-        """
-        Returns the directed edge by looking up the database by source and sink node IDs
-        """
-
-        query_obj = (
-            self.session.query(DirectedEdgeORM)
-            .filter(
-                and_(
-                    DirectedEdgeORM.source_node_id == source_node_id,
-                    DirectedEdgeORM.sink_node_id == sink_node_id,
-                )
-            )
-            .one()
-        )
-        return DirectedEdge.from_orm(query_obj)
 
     # fill out the rest based on base.py
     def get_graph_from_artifact_id(self, node: LineaID) -> Graph:

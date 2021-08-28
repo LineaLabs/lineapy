@@ -46,6 +46,4 @@ a_mutate = LiteralAssignNode(
     value=2,
 )
 
-e_1 = DirectedEdge(source_node_id=a_assign.id, sink_node_id=b_assign.id)
-
 graph_with_alias_by_value = Graph(nodes=[a_assign, b_assign, a_mutate])

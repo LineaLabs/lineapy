@@ -6,24 +6,19 @@ from lineapy.data.types import *
 
 
 class Graph(object):
-    def __init__(self, nodes: List[Node], edges: Optional[List[DirectedEdge]] = None):
+    def __init__(self, nodes: List[Node]):
         """
         Note:
         - edges could be none for very simple programs
         """
-        if edges is None:
-            edges = []
         self._nodes: List[Node] = nodes
         self._ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
-        self._edges: List[DirectedEdge] = edges
+        self._edges: List[DirectedEdge] = Graph._get_edges_from_nodes(nodes)
         self._graph = nx.DiGraph()
         self._graph.add_nodes_from([node.id for node in nodes])
-        if (
-            self._edges is not None
-        ):  # TODO: remove this condition once _get_edges_from_nodes is implemented.
-            self._graph.add_edges_from(
-                [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
-            )
+        self._graph.add_edges_from(
+            [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
+        )
 
     @staticmethod
     def _get_edges_from_nodes(nodes: List[Node]) -> List[DirectedEdge]:
@@ -31,7 +26,60 @@ class Graph(object):
         TODO: @dhruvm
         Extract edges from nodes based on relationships encoded in the node attributes.
         """
-        ...
+        edges = []
+        for node in nodes:
+            edges.extend(Graph._get_edges_to_node(node))
+        return edges
+
+    @staticmethod
+    def _get_edges_to_node(node: Node) -> List[DirectedEdge]:
+        edges = []
+
+        def add_edge_from_node(id: LineaID) -> None:
+            edges.append(DirectedEdge(source_node_id=id, sink_node_id=node.id))
+
+        if node.node_type is NodeType.CallNode:
+            node = cast(CallNode, node)
+            for arg in node.arguments:
+                add_edge_from_node(arg)
+            if node.function_module is not None:
+                add_edge_from_node(node.function_module)
+            if node.locally_defined_function_id is not None:
+                add_edge_from_node(node.locally_defined_function_id)
+        elif node.node_type is NodeType.ArgumentNode:
+            node = cast(ArgumentNode, node)
+            if node.value_node_id is not None:
+                add_edge_from_node(node.value_node_id)
+        elif node.node_type in [
+            NodeType.LoopNode,
+            NodeType.ConditionNode,
+            NodeType.FunctionDefinitionNode,
+        ]:
+            node = cast(SideEffectsNode, node)
+            if node.state_change_nodes is not None:
+                for state_change in node.state_change_nodes:
+                    add_edge_from_node(state_change)
+            if node.import_nodes is not None:
+                for import_node in node.import_nodes:
+                    add_edge_from_node(import_node)
+            if (
+                node.node_type is NodeType.ConditionNode
+                and node.dependent_variables_in_predicate is not None
+            ):
+                for dep_var in node.dependent_variables_in_predicate:
+                    add_edge_from_node(dep_var)
+        elif node.node_type is StateChangeNode:
+            node = cast(StateChangeNode, node)
+            add_edge_from_node(node.associated_node_id)
+            add_edge_from_node(node.initial_value_node_id)
+        elif node.node_type is NodeType.LiteralAssignNode:
+            node = cast(LiteralAssignNode, node)
+            if node.value_node_id is not None:
+                add_edge_from_node(node.value_node_id)
+        elif node.node_type is NodeType.VariableAliasNode:
+            node = cast(VariableAliasNode, node)
+            add_edge_from_node(node.source_variable_id)
+        return edges
 
     @property
     def graph(self) -> nx.DiGraph:

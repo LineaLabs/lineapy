@@ -207,18 +207,12 @@ class StateChangeNode(Node):
     value: Optional[NodeValue]
 
 
-class LoopEnterNode(SideEffectsNode):
+class LoopNode(SideEffectsNode):
     """
     We do not care about the intermeidate states, but rather just what state has changed. It's conceptually similar to representing loops in a more functional way (such as map and reduce).  We do this by treating the LoopNode as a node similar to "CallNode".
     """
 
     node_type: NodeType = NodeType.LoopNode
-
-
-# Not sure if we need the exit node, commenting out for now
-# class LoopExitNode(Node):
-#     node_type: NodeType = NodeType.LoopNode
-#     pass
 
 
 class DataSourceNode(Node):

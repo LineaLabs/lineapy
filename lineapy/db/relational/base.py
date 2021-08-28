@@ -27,8 +27,5 @@ class RelationalLineaDB(LineaDBReader, LineaDBWriter, ABC):
     def write_nodes(self, nodes: List[Node]) -> None:
         pass
 
-    def write_edges(self, edges: List[DirectedEdge]) -> None:
-        pass
-
     def write_context(self, context: SessionContext):
         pass
