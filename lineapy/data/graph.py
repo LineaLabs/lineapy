@@ -37,13 +37,12 @@ class Graph(object):
     def _get_edges_to_node(node: Node) -> List[DirectedEdge]:
         edges = []
 
-        def add_edge_from_node(id: LineaID) -> None:
-            edges.append(DirectedEdge(source_node_id=id, sink_node_id=node.id))
+        def add_edge_from_node(node_id: LineaID) -> None:
+            edges.append(DirectedEdge(source_node_id=node_id, sink_node_id=node.id))
 
         if node.node_type is NodeType.CallNode:
             node = cast(CallNode, node)
-            for arg in node.arguments:
-                add_edge_from_node(arg)
+            map(add_edge_from_node, node.arguments)
             if node.function_module is not None:
                 add_edge_from_node(node.function_module)
             if node.locally_defined_function_id is not None:
@@ -59,17 +58,14 @@ class Graph(object):
         ]:
             node = cast(SideEffectsNode, node)
             if node.state_change_nodes is not None:
-                for state_change in node.state_change_nodes:
-                    add_edge_from_node(state_change)
+                map(add_edge_from_node, node.state_change_nodes)
             if node.import_nodes is not None:
-                for import_node in node.import_nodes:
-                    add_edge_from_node(import_node)
+                map(add_edge_from_node, node.import_nodes)
             if (
                 node.node_type is NodeType.ConditionNode
                 and node.dependent_variables_in_predicate is not None
             ):
-                for dep_var in node.dependent_variables_in_predicate:
-                    add_edge_from_node(dep_var)
+                map(add_edge_from_node, node.dependent_variables_in_predicate)
         elif node.node_type is StateChangeNode:
             node = cast(StateChangeNode, node)
             add_edge_from_node(node.associated_node_id)
