@@ -103,19 +103,9 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         self.session.add(context_orm)
         self.session.commit()
 
-    def write_edges(self, edges: List[DirectedEdge]) -> None:
-        for e in edges:
-            self.write_single_edge(e)
-
     def write_nodes(self, nodes: List[Node]) -> None:
         for n in nodes:
             self.write_single_node(n)
-
-    def write_single_edge(self, edge: DirectedEdge) -> None:
-        edge_orm = DirectedEdgeORM(**edge.dict())
-
-        self.session.add(edge_orm)
-        self.session.commit()
 
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
@@ -313,23 +303,6 @@ class LineaDB(LineaDBReader, LineaDBWriter):
                     ]
 
         return LineaDB.get_pydantic(node).from_orm(node)
-
-    def get_edge(self, source_node_id: LineaID, sink_node_id: LineaID) -> DirectedEdge:
-        """
-        Returns the directed edge by looking up the database by source and sink node IDs
-        """
-
-        query_obj = (
-            self.session.query(DirectedEdgeORM)
-            .filter(
-                and_(
-                    DirectedEdgeORM.source_node_id == source_node_id,
-                    DirectedEdgeORM.sink_node_id == sink_node_id,
-                )
-            )
-            .one()
-        )
-        return DirectedEdge.from_orm(query_obj)
 
     # fill out the rest based on base.py
     def get_graph_from_artifact_id(self, node: LineaID) -> Graph:

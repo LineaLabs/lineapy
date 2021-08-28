@@ -51,6 +51,4 @@ line_1b = CallNode(
     arguments=[arg_1_id, arg_10_id],
 )
 
-e2 = DirectedEdge(source_node_id=line_1a_id, sink_node_id=line_1b_id)
-
 nested_call_graph = Graph([arg_literal, arg_1, arg_10, line_1a, line_1b])

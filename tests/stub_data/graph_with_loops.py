@@ -95,9 +95,6 @@ le = LoopNode(
     state_change_nodes=[a_state_change_id, b_state_change_id],
 )
 
-e_a_to_loop = DirectedEdge(source_node_id=a_id, sink_node_id=le_id)
-e_b_to_loop = DirectedEdge(source_node_id=b_id, sink_node_id=le_id)
-
 x_id = get_new_id()
 
 line_6 = CallNode(
@@ -108,8 +105,6 @@ line_6 = CallNode(
     assigned_variable_name="x",
     arguments=[a_argument_id],
 )
-
-e_loop_to_x = DirectedEdge(source_node_id=le_id, sink_node_id=x_id)
 
 operator_module_id = get_new_id()
 
@@ -135,10 +130,6 @@ line_7 = CallNode(
     assigned_variable_name="y",
     arguments=[x_argument_id, b_argument_id],
 )
-
-e_loop_to_y = DirectedEdge(source_node_id=le_id, sink_node_id=y_id)
-e_x_to_y = DirectedEdge(source_node_id=x_id, sink_node_id=y_id)
-e_import_to_y = DirectedEdge(source_node_id=operator_module_id, sink_node_id=y_id)
 
 graph_with_loops = Graph(
     [

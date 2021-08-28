@@ -87,14 +87,6 @@ sum_call = CallNode(
     assigned_variable_name="s",
 )
 
-e_import_to_df = DirectedEdge(
-    source_node_id=import_pandas.id, sink_node_id=read_csv_call.id
-)
-e_df_to_access_a = DirectedEdge(
-    source_node_id=read_csv_call.id, sink_node_id=access_a_column.id
-)
-e_df_to_sum = DirectedEdge(source_node_id=access_a_column.id, sink_node_id=sum_call.id)
-
 graph_with_csv_import = Graph(
     [
         access_a_column,

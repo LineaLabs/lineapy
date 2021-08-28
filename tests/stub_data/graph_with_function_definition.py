@@ -73,10 +73,6 @@ my_function_call = CallNode(
     arguments=[],
 )
 
-e_a_to_fun = DirectedEdge(source_node_id=a_id, sink_node_id=fun_id)
-e_import_to_fun = DirectedEdge(source_node_id=line_1_id, sink_node_id=fun_id)
-e_fun_to_call = DirectedEdge(source_node_id=fun_id, sink_node_id=func_call_id)
-
 graph_with_function_definition = Graph(
     [my_function_call, fun_def_node, line_1_import, line_2, a_state_change],
 )

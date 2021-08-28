@@ -6,13 +6,11 @@ from lineapy.data.types import *
 
 
 class Graph(object):
-    def __init__(self, nodes: List[Node], edges: Optional[List[DirectedEdge]] = None):
+    def __init__(self, nodes: List[Node]):
         """
         Note:
         - edges could be none for very simple programs
         """
-        if edges is None:
-            edges = []
         self._nodes: List[Node] = nodes
         self._ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
         self._edges: List[DirectedEdge] = Graph._get_edges_from_nodes(nodes)
