@@ -137,8 +137,9 @@ class LibraryORM(Base):
 
 class ArtifactORM(Base):
     __tablename__ = "artifact"
-    id = Column(LineaID, primary_key=True)
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
     description = Column(String, nullable=True)
+    timestamp = Column(DateTime, nullable=True)
 
 
 class NodeORM(Base):

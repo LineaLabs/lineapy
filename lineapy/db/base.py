@@ -38,7 +38,6 @@ class LineaDBReader(ABC):
         pass
 
     def get_graph_from_artifact_id(self, linea_id: LineaID):
-        # @dhruv high priority implementation once you have the db writer done
         pass
 
     def find_all_artifacts_derived_from_data_source(

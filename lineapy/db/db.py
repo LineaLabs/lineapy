@@ -1,4 +1,4 @@
-from typing import List, cast
+from typing import List, Set, cast
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import *
@@ -195,19 +195,23 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         """
         Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
         """
-        # @dhruv TODO:
         # - check node type: should just be CallNode and FunctionDefinitionNode
         #
         # - then insert into a table that's literally just the NodeID and maybe a timestamp for when it was registered as artifact
-        raise NotImplementedError
+
+        node = self.get_node_by_id(node_id)
+        if node.node_type in [NodeType.CallNode, NodeType.FunctionDefinitionNode]:
+            artifact = ArtifactORM(id=node_id)
+            self.session.add(artifact)
+            self.session.commit()
 
     def remove_node_id_from_artifact_table(self, node_id: LineaID):
         """
-        #dhruv TODO
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
         """
-        raise NotImplementedError
+        self.session.query(ArtifactORM).filter(ArtifactORM.id == node_id).delete()
+        self.session.commit()
 
     """
     Readers
@@ -305,7 +309,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         return LineaDB.get_pydantic(node).from_orm(node)
 
     # fill out the rest based on base.py
-    def get_graph_from_artifact_id(self, node: LineaID) -> Graph:
+    def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
         """
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation
@@ -316,5 +320,25 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             - simple heuristics that may create false positives (include things not necessary)
             - but definitely NOT false negatives (then the program CANNOT be executed)
         """
+        node_ids = list(self.get_ancestors_from_node(artifact_id))
+        node_ids.append(artifact_id)
+        nodes = [self.get_node_by_id(node_id) for node_id in node_ids]
+        return Graph(nodes)
 
-        raise NotImplementedError
+    ###
+    # NOTE: I added some simple code to have this create the edges simultaneously instead of
+    # creating edges when the graph is initialized (thereby running through the entire graph
+    # again), but it technically doesn't improve the time complexity of our algorithm, so I
+    # opted to keep our Graph inits simple (only take in nodes)
+    ###
+
+    def get_ancestors_from_node(self, node_id: LineaID) -> Set[LineaID]:
+        node = self.get_node_by_id(node_id)
+        parents = Graph.get_parents_from_node(node)
+        ancestors = set(parents)
+
+        for parent in parents:
+            new_ancestors = self.get_ancestors_from_node(parent)
+            ancestors.update(new_ancestors)
+
+        return ancestors
