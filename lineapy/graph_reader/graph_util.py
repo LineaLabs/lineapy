@@ -25,4 +25,4 @@ def are_graphs_identical(g1: Graph, g2: Graph, deep_check=False) -> bool:
     This is simple util to traverse the graph for direct comparisons.
     In the future, for caching, we will have to do more advanced entity resolution
     """
-    return nx.is_isomorphic(g1.graph, g2.graph)
+    return nx.is_isomorphic(g1.nx_graph, g2.nx_graph)

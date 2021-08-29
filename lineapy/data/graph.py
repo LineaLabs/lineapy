@@ -14,34 +14,34 @@ class Graph(object):
         self._nodes: List[Node] = nodes
         self._ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
         self._edges: List[DirectedEdge] = Graph.__get_edges_from_nodes(nodes)
-        self._graph = nx.DiGraph()
-        self._graph.add_nodes_from([node.id for node in nodes])
-        self._graph.add_edges_from(
+        self._nx_graph = nx.DiGraph()
+        self._nx_graph.add_nodes_from([node.id for node in nodes])
+        self._nx_graph.add_edges_from(
             [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
         )
 
     @property
-    def graph(self) -> nx.DiGraph:
-        return self._graph
+    def nx_graph(self) -> nx.DiGraph:
+        return self._nx_graph
 
     @property
     def ids(self) -> Dict[LineaID, Node]:
         return self._ids
 
     def visit_order(self) -> List[LineaID]:
-        return list(nx.topological_sort(self.graph))
+        return list(nx.topological_sort(self.nx_graph))
 
     def get_parents(self, node: Node) -> List[Node]:
-        return list(self.graph.predecessors(node))
+        return list(self.nx_graph.predecessors(node))
 
     def get_ancestors(self, node: Node) -> List[Node]:
-        return list(nx.ancestors(self.graph, node))
+        return list(nx.ancestors(self.nx_graph, node))
 
     def get_children(self, node: Node) -> List[Node]:
-        return list(self.graph.successors(node))
+        return list(self.nx_graph.successors(node))
 
     def get_descendants(self, node: Node) -> List[Node]:
-        return list(nx.descendants(self.graph, node))
+        return list(nx.descendants(self.nx_graph, node))
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
         if node_id in self.ids:
