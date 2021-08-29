@@ -101,7 +101,6 @@ class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.id
     node_type: NodeType = NodeType.Node
-
     # context: Optional[NodeContext] = None
 
     # note: this is specific to Pydantic
@@ -208,18 +207,12 @@ class StateChangeNode(Node):
     value: Optional[NodeValue]
 
 
-class LoopEnterNode(SideEffectsNode):
+class LoopNode(SideEffectsNode):
     """
     We do not care about the intermeidate states, but rather just what state has changed. It's conceptually similar to representing loops in a more functional way (such as map and reduce).  We do this by treating the LoopNode as a node similar to "CallNode".
     """
 
     node_type: NodeType = NodeType.LoopNode
-
-
-# Not sure if we need the exit node, commenting out for now
-# class LoopExitNode(Node):
-#     node_type: NodeType = NodeType.LoopNode
-#     pass
 
 
 class DataSourceNode(Node):
@@ -242,3 +235,16 @@ class WithNode(Node):
     node_type: NodeType = NodeType.WithNode
     code: str
     # TODO
+
+
+class DirectedEdge(BaseModel):
+    """
+    When we have `a = foo(), b = bar(a)`, should the edge be between bar and foo, with foo being the source, and bar being the sink.
+    Yifan note: @dorx please review if this is what you had in mind
+    """
+
+    source_node_id: LineaID  # refers to Node.uuid
+    sink_node_id: LineaID  # refers to Node.uuid
+
+    class Config:
+        orm_mode = True

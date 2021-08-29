@@ -83,10 +83,6 @@ b_sum = CallNode(
     arguments=[b_arg.id],
 )
 
-e_a_to_b = DirectedEdge(source_node_id=a_assign.id, sink_node_id=b_assign.id)
-e_a_to_append = DirectedEdge(source_node_id=a_assign.id, sink_node_id=a_append.id)
-e_b_to_sum = DirectedEdge(source_node_id=b_assign.id, sink_node_id=b_sum.id)
-
 graph_with_alias_by_reference = Graph(
     nodes=[arg_1, arg_2, arg_3, arg_4, b_arg, a_assign, b_assign, a_append, b_sum],
 )

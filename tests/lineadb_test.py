@@ -57,7 +57,6 @@ class TestLineaDB:
         # let's write the in memory graph in (with all the nodes)
         self.lineadb = LineaDB(LineaDBConfig())
         self.lineadb.write_nodes(graph._nodes)
-        self.lineadb.write_edges(graph._edges)
 
         if context is not None:
             self.lineadb.write_context(context)
@@ -74,14 +73,7 @@ class TestLineaDB:
             nodes.append(node)
             assert are_nodes_equal(reference, node, True)
 
-        edges = []
-        for reference in original_graph._edges:
-            edge = self.lineadb.get_edge(
-                reference.source_node_id, reference.sink_node_id
-            )
-            edges.append(edge)
-
-        db_graph = Graph(nodes, edges)
+        db_graph = Graph(nodes)
 
         return db_graph
 
@@ -182,7 +174,7 @@ class TestLineaDB:
         # graph_sliced_by_var_f
         pass
 
-    # TODO: please add the test for all the other graphs that we have stubbed
+    # # TODO: please add the test for all the other graphs that we have stubbed
 
     def test_search_artifacts_by_data_source(self):
         # TODO

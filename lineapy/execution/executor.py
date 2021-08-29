@@ -3,7 +3,8 @@ import importlib.util
 import io
 import subprocess
 import sys
-from typing import Any, Tuple, Optional, Dict, cast
+import operator
+from typing import Any, List, Tuple, Optional, Dict, cast
 
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
@@ -119,10 +120,19 @@ class Executor(GraphReader):
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
                 import_node = cast(ImportNode, program.get_node(import_node_id))
-                # if importlib.util.find_spec(import_node.library.name) is None:
-                #     Executor.install(import_node.library.name)
                 import_node.module = importlib.import_module(import_node.library.name)
                 scoped_locals[import_node.library.name] = import_node.module
+
+        if (
+            node.node_type is NodeType.ConditionNode
+            and node.dependent_variables_in_predicate is not None
+        ):
+            for dependent_var_id in node.dependent_variables_in_predicate:
+                dependent_var = program.get_node(dependent_var_id)
+                dependent_var_value = program.get_node_value(dependent_var)
+                scoped_locals[
+                    dependent_var.assigned_variable_name
+                ] = dependent_var_value
 
     def update_node_side_effects(
         self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]
@@ -185,16 +195,14 @@ class Executor(GraphReader):
             scoped_locals = locals()
 
             # all of these have to be in the same scope in order to read
-            # and write to scoped_locals properly (this is just the way exec works)
+            # and write to scoped_locals properly (this is just the way Python exec works)
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
 
                 fn, fn_name = Executor.get_function(node, program, scoped_locals)
 
-                args = []
-                for arg_id in node.arguments:
-                    args.append(program.get_node_value_from_id(arg_id))
+                args = program.get_arguments_from_call_node(node)
 
                 val = fn(*args)
                 node.value = val
