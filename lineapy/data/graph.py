@@ -31,16 +31,16 @@ class Graph(object):
     def visit_order(self) -> List[LineaID]:
         return list(nx.topological_sort(self.nx_graph))
 
-    def get_parents(self, node: Node) -> List[Node]:
+    def get_parents(self, node: Node) -> List[LineaID]:
         return list(self.nx_graph.predecessors(node))
 
-    def get_ancestors(self, node: Node) -> List[Node]:
+    def get_ancestors(self, node: Node) -> List[LineaID]:
         return list(nx.ancestors(self.nx_graph, node))
 
-    def get_children(self, node: Node) -> List[Node]:
+    def get_children(self, node: Node) -> List[LineaID]:
         return list(self.nx_graph.successors(node))
 
-    def get_descendants(self, node: Node) -> List[Node]:
+    def get_descendants(self, node: Node) -> List[LineaID]:
         return list(nx.descendants(self.nx_graph, node))
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
@@ -48,7 +48,7 @@ class Graph(object):
             return self.ids[node_id]
         return None
 
-    def get_node_value(self, node: Optional[Node]) -> Optional[Any]:
+    def get_node_value(self, node: Optional[Node]) -> Optional[NodeValue]:
         if node is None:
             return None
 

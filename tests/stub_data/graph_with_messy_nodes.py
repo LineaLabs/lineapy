@@ -29,8 +29,6 @@ f = a * b * c
 ```
 """
 
-# TODO: @dhruv, please add the nodes and complete the graph, and its expected slice
-
 operator_lib = Library(id=get_new_id(), name="operator", version="1", path="")
 
 session = get_new_session(libraries=[operator_lib])

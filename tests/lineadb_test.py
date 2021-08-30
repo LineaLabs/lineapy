@@ -37,6 +37,8 @@ from tests.stub_data.graph_with_messy_nodes import (
     graph_sliced_by_var_f,
     session as graph_with_messy_nodes_session,
     f_assign,
+    e_assign,
+    a_assign,
 )
 from tests.util import reset_test_db
 from lineapy.data.graph import Graph
@@ -194,9 +196,17 @@ class TestLineaDB:
         assert are_graphs_identical(result, graph_sliced_by_var_f)
 
     def test_search_artifacts_by_data_source(self):
-        # TODO
         # @dhruv we should create at least one more stub_graph with the same csv file ("sample_data.csv")---it's currently not in this branch but we can merge master in here later.
-        pass
+        # using an existing stub for now
+        graph, context = self.write_and_read_graph(
+            graph_with_messy_nodes, graph_with_messy_nodes_session
+        )
+        self.lineadb.add_node_id_to_artifact_table(f_assign.id)
+        self.lineadb.add_node_id_to_artifact_table(e_assign.id)
+        derived = self.lineadb.find_all_artifacts_derived_from_data_source(
+            graph, a_assign
+        )
+        assert len(derived) == 2
 
     def tear_down(self):
         # remove the test db

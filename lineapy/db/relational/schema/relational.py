@@ -49,6 +49,7 @@ from sqlalchemy import (
     ForeignKey,
     Table,
     DateTime,
+    PickleType,
     types,
 )
 from sqlalchemy.dialects.mysql.base import MSBinary
@@ -140,6 +141,12 @@ class ArtifactORM(Base):
     id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
     description = Column(String, nullable=True)
     timestamp = Column(DateTime, nullable=True)
+
+
+class NodeValueORM(Base):
+    __tablename__ = "node_value"
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+    value = Column(PickleType)
 
 
 class NodeORM(Base):

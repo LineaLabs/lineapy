@@ -2,11 +2,10 @@ from typing import List, Set, cast
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import *
-from lineapy.db.caching_layer.decider import caching_decider
 
 from lineapy.db.base import LineaDBReader, LineaDBWriter, LineaDBConfig
 
-from lineapy.db.asset_manager.base import DataAssetManager
+from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
 
 from lineapy.db.relational.schema.relational import *
 
@@ -28,6 +27,8 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
+
+        self._data_asset_manager = LocalDataAssetManager(self.session)
 
     @staticmethod
     def get_orm(node: Node) -> NodeORM:
@@ -85,7 +86,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     """
 
     def data_asset_manager(self) -> DataAssetManager:
-        pass
+        return self._data_asset_manager
 
     def write_context(self, context: SessionContext) -> None:
         args = context.dict()
@@ -184,12 +185,9 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         node_orm = LineaDB.get_orm(node)(**args)
 
         self.session.add(node_orm)
-
         self.session.commit()
 
-        # basic caching logic
-        # if caching_decider(node):
-        #     self.data_asset_manager.write_node_value(node)
+        self.data_asset_manager().write_node_value(node)
 
     def add_node_id_to_artifact_table(self, node_id: LineaID):
         """
@@ -325,13 +323,6 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         nodes = [self.get_node_by_id(node_id) for node_id in node_ids]
         return Graph(nodes)
 
-    ###
-    # NOTE: I added some simple code to have this create the edges simultaneously instead of
-    # creating edges when the graph is initialized (thereby running through the entire graph
-    # again), but it technically doesn't improve the time complexity of our algorithm, so I
-    # opted to keep our Graph inits simple (only take in nodes)
-    ###
-
     def get_ancestors_from_node(self, node_id: LineaID) -> Set[LineaID]:
         node = self.get_node_by_id(node_id)
         parents = Graph.get_parents_from_node(node)
@@ -342,3 +333,21 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             ancestors.update(new_ancestors)
 
         return ancestors
+
+    def find_all_artifacts_derived_from_data_source(
+        self, program: Graph, data_source_node: DataSourceNode
+    ) -> List[Node]:
+        descendants = program.get_descendants(data_source_node.id)
+        artifacts = []
+        for d_id in descendants:
+            artifact = (
+                self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
+            )
+            if artifact is not None:
+                artifacts.append(program.get_node(d_id))
+        return artifacts
+
+    def gather_artifact_intermediate_nodes(self, program: Graph):
+        """
+        While this is on a single graph, it actually requires talking to the data asset manager, so didn't get put into the MetadataExtractor.
+        """
