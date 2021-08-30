@@ -32,8 +32,6 @@ line_2 = CallNode(
     arguments=[arg_a_id, arg_10_id],
 )
 
-e2 = DirectedEdge(source_node_id=line_1_id, sink_node_id=line_2_id)
-
 arg_b_id = get_new_id()
 
 arg_b = ArgumentNode(
@@ -48,8 +46,6 @@ line_3 = CallNode(
     function_name="print",
     arguments=[arg_b_id],
 )
-
-e3 = DirectedEdge(source_node_id=line_2_id, sink_node_id=line_3_id)
 
 simple_with_variable_argument_and_print = Graph(
     [arg_a, arg_10, arg_b, arg_literal, line_1, line_2, line_3]

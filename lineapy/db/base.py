@@ -42,7 +42,7 @@ class LineaDBReader(ABC):
         pass
 
     def find_all_artifacts_derived_from_data_source(
-            self, program: Graph, data_source_node: DataSourceNode
+        self, program: Graph, data_source_node: DataSourceNode
     ) -> List[Node]:
         # @dhruv: high priority implmenetation once you have the asset manager and relational done.
         pass
@@ -65,10 +65,6 @@ class LineaDBWriter(ABC):
         """
         Note that inside write_nodes, you
         """
-        ...
-
-    @abstractmethod
-    def write_edges(self, edges: List[DirectedEdge]) -> None:
         ...
 
     @abstractmethod

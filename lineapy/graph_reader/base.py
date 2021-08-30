@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID
 from lineapy.db.asset_manager.base import DataAssetManager
 
 
@@ -29,13 +28,3 @@ class GraphReader(ABC):
     @property
     def data_asset_manager(self) -> DataAssetManager:
         pass
-
-    def slice_graph(self, artifact_id: LineaID, graph: Graph) -> Graph:
-        """
-        TODO @dhruvm
-
-        Given an artifact ID and a graph, traverse the graph to prune any node that is not a dependency of the artifact.
-
-        Suggest: get ancestors of the artifact node in graph.
-        """
-        ...
