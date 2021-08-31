@@ -13,73 +13,12 @@ class Graph(object):
         """
         self._nodes: List[Node] = nodes
         self._ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
-        self._edges: List[DirectedEdge] = Graph._get_edges_from_nodes(nodes)
+        self._edges: List[DirectedEdge] = Graph.__get_edges_from_nodes(nodes)
         self._nx_graph = nx.DiGraph()
         self._nx_graph.add_nodes_from([node.id for node in nodes])
         self._nx_graph.add_edges_from(
             [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
         )
-
-    @staticmethod
-    def _get_edges_from_nodes(nodes: List[Node]) -> List[DirectedEdge]:
-        """
-        TODO: @dhruvm
-        Extract edges from nodes based on relationships encoded in the node attributes.
-        """
-        edges = []
-        for node in nodes:
-            edges.extend(Graph._get_edges_to_node(node))
-        return edges
-
-    @staticmethod
-    def _get_edges_to_node(node: Node) -> List[DirectedEdge]:
-        edges = []
-
-        def add_edge_from_node(id: LineaID) -> None:
-            edges.append(DirectedEdge(source_node_id=id, sink_node_id=node.id))
-
-        if node.node_type is NodeType.CallNode:
-            node = cast(CallNode, node)
-            for arg in node.arguments:
-                add_edge_from_node(arg)
-            if node.function_module is not None:
-                add_edge_from_node(node.function_module)
-            if node.locally_defined_function_id is not None:
-                add_edge_from_node(node.locally_defined_function_id)
-        elif node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNode, node)
-            if node.value_node_id is not None:
-                add_edge_from_node(node.value_node_id)
-        elif node.node_type in [
-            NodeType.LoopNode,
-            NodeType.ConditionNode,
-            NodeType.FunctionDefinitionNode,
-        ]:
-            node = cast(SideEffectsNode, node)
-            if node.state_change_nodes is not None:
-                for state_change in node.state_change_nodes:
-                    add_edge_from_node(state_change)
-            if node.import_nodes is not None:
-                for import_node in node.import_nodes:
-                    add_edge_from_node(import_node)
-            if (
-                node.node_type is NodeType.ConditionNode
-                and node.dependent_variables_in_predicate is not None
-            ):
-                for dep_var in node.dependent_variables_in_predicate:
-                    add_edge_from_node(dep_var)
-        elif node.node_type is StateChangeNode:
-            node = cast(StateChangeNode, node)
-            add_edge_from_node(node.associated_node_id)
-            add_edge_from_node(node.initial_value_node_id)
-        elif node.node_type is NodeType.LiteralAssignNode:
-            node = cast(LiteralAssignNode, node)
-            if node.value_node_id is not None:
-                add_edge_from_node(node.value_node_id)
-        elif node.node_type is NodeType.VariableAliasNode:
-            node = cast(VariableAliasNode, node)
-            add_edge_from_node(node.source_variable_id)
-        return edges
 
     @property
     def nx_graph(self) -> nx.DiGraph:
@@ -92,16 +31,16 @@ class Graph(object):
     def visit_order(self) -> List[LineaID]:
         return list(nx.topological_sort(self.nx_graph))
 
-    def get_parents(self, node: Node) -> List[Node]:
+    def get_parents(self, node: Node) -> List[LineaID]:
         return list(self.nx_graph.predecessors(node))
 
-    def get_ancestors(self, node: Node) -> List[Node]:
+    def get_ancestors(self, node: Node) -> List[LineaID]:
         return list(nx.ancestors(self.nx_graph, node))
 
-    def get_children(self, node: Node) -> List[Node]:
+    def get_children(self, node: Node) -> List[LineaID]:
         return list(self.nx_graph.successors(node))
 
-    def get_descendants(self, node: Node) -> List[Node]:
+    def get_descendants(self, node: Node) -> List[LineaID]:
         return list(nx.descendants(self.nx_graph, node))
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
@@ -109,7 +48,7 @@ class Graph(object):
             return self.ids[node_id]
         return None
 
-    def get_node_value(self, node: Optional[Node]) -> Optional[Any]:
+    def get_node_value(self, node: Optional[Node]) -> Optional[NodeValue]:
         if node is None:
             return None
 
@@ -159,6 +98,66 @@ class Graph(object):
         # can use operator.attrgetter instead of x.positional_order to speed up this process
         args.sort(key=lambda x: x.positional_order)
         return [self.get_node_value(a) for a in args]
+
+    # getting a node's parents before the graph has been constructed
+    @staticmethod
+    def get_parents_from_node(node: Node) -> List[LineaID]:
+        source_nodes = []
+
+        if node.node_type is NodeType.CallNode:
+            node = cast(CallNode, node)
+            source_nodes.extend(node.arguments)
+            if node.function_module is not None:
+                source_nodes.append(node.function_module)
+            if node.locally_defined_function_id is not None:
+                source_nodes.append(node.locally_defined_function_id)
+        elif node.node_type is NodeType.ArgumentNode:
+            node = cast(ArgumentNode, node)
+            if node.value_node_id is not None:
+                source_nodes.append(node.value_node_id)
+        elif node.node_type in [
+            NodeType.LoopNode,
+            NodeType.ConditionNode,
+            NodeType.FunctionDefinitionNode,
+        ]:
+            node = cast(SideEffectsNode, node)
+            if node.state_change_nodes is not None:
+                source_nodes.extend(node.state_change_nodes)
+            if node.import_nodes is not None:
+                source_nodes.extend(node.import_nodes)
+            if (
+                node.node_type is NodeType.ConditionNode
+                and node.dependent_variables_in_predicate is not None
+            ):
+                source_nodes.extend(node.dependent_variables_in_predicate)
+        elif node.node_type is StateChangeNode:
+            node = cast(StateChangeNode, node)
+            source_nodes.append(node.associated_node_id)
+            source_nodes.append(node.initial_value_node_id)
+        elif node.node_type is NodeType.LiteralAssignNode:
+            node = cast(LiteralAssignNode, node)
+            if node.value_node_id is not None:
+                source_nodes.append(node.value_node_id)
+        elif node.node_type is NodeType.VariableAliasNode:
+            node = cast(VariableAliasNode, node)
+            source_nodes.append(node.source_variable_id)
+
+        return source_nodes
+
+    @staticmethod
+    def __get_edges_from_nodes(nodes: List[Node]) -> List[DirectedEdge]:
+        edges = []
+        for node in nodes:
+            edges.extend(Graph.__get_edges_to_node(node))
+        return edges
+
+    @staticmethod
+    def __get_edges_to_node(node: Node) -> List[DirectedEdge]:
+        def add_edge_from_node(id: LineaID) -> DirectedEdge:
+            return DirectedEdge(source_node_id=id, sink_node_id=node.id)
+
+        edges = list(map(add_edge_from_node, Graph.get_parents_from_node(node)))
+        return edges
 
     def print(self):
         for n in self._nodes:

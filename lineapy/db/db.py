@@ -1,12 +1,11 @@
-from typing import List, cast
+from typing import List, Set, cast
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import *
-from lineapy.db.caching_layer.decider import caching_decider
 
 from lineapy.db.base import LineaDBReader, LineaDBWriter, LineaDBConfig
 
-from lineapy.db.asset_manager.base import DataAssetManager
+from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
 
 from lineapy.db.relational.schema.relational import *
 
@@ -28,6 +27,8 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
+
+        self._data_asset_manager = LocalDataAssetManager(self.session)
 
     @staticmethod
     def get_orm(node: Node) -> NodeORM:
@@ -85,7 +86,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     """
 
     def data_asset_manager(self) -> DataAssetManager:
-        pass
+        return self._data_asset_manager
 
     def write_context(self, context: SessionContext) -> None:
         args = context.dict()
@@ -184,30 +185,31 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         node_orm = LineaDB.get_orm(node)(**args)
 
         self.session.add(node_orm)
-
         self.session.commit()
 
-        # basic caching logic
-        # if caching_decider(node):
-        #     self.data_asset_manager.write_node_value(node)
+        self.data_asset_manager().write_node_value(node)
 
     def add_node_id_to_artifact_table(self, node_id: LineaID):
         """
         Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
         """
-        # @dhruv TODO:
         # - check node type: should just be CallNode and FunctionDefinitionNode
         #
         # - then insert into a table that's literally just the NodeID and maybe a timestamp for when it was registered as artifact
-        raise NotImplementedError
+
+        node = self.get_node_by_id(node_id)
+        if node.node_type in [NodeType.CallNode, NodeType.FunctionDefinitionNode]:
+            artifact = ArtifactORM(id=node_id)
+            self.session.add(artifact)
+            self.session.commit()
 
     def remove_node_id_from_artifact_table(self, node_id: LineaID):
         """
-        #dhruv TODO
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
         """
-        raise NotImplementedError
+        self.session.query(ArtifactORM).filter(ArtifactORM.id == node_id).delete()
+        self.session.commit()
 
     """
     Readers
@@ -305,7 +307,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         return LineaDB.get_pydantic(node).from_orm(node)
 
     # fill out the rest based on base.py
-    def get_graph_from_artifact_id(self, node: LineaID) -> Graph:
+    def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
         """
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation
@@ -316,5 +318,36 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             - simple heuristics that may create false positives (include things not necessary)
             - but definitely NOT false negatives (then the program CANNOT be executed)
         """
+        node_ids = list(self.get_ancestors_from_node(artifact_id))
+        node_ids.append(artifact_id)
+        nodes = [self.get_node_by_id(node_id) for node_id in node_ids]
+        return Graph(nodes)
 
-        raise NotImplementedError
+    def get_ancestors_from_node(self, node_id: LineaID) -> Set[LineaID]:
+        node = self.get_node_by_id(node_id)
+        parents = Graph.get_parents_from_node(node)
+        ancestors = set(parents)
+
+        for parent in parents:
+            new_ancestors = self.get_ancestors_from_node(parent)
+            ancestors.update(new_ancestors)
+
+        return ancestors
+
+    def find_all_artifacts_derived_from_data_source(
+        self, program: Graph, data_source_node: DataSourceNode
+    ) -> List[Node]:
+        descendants = program.get_descendants(data_source_node.id)
+        artifacts = []
+        for d_id in descendants:
+            artifact = (
+                self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
+            )
+            if artifact is not None:
+                artifacts.append(program.get_node(d_id))
+        return artifacts
+
+    def gather_artifact_intermediate_nodes(self, program: Graph):
+        """
+        While this is on a single graph, it actually requires talking to the data asset manager, so didn't get put into the MetadataExtractor.
+        """
