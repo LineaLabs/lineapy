@@ -41,7 +41,8 @@ simple_data_node = DataSourceNode(
     id=get_new_id(),
     session_id=session.id,
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
-    access_path="./tests/stub_data/simple_data.csv",
+    # access_path="./tests/stub_data/simple_data.csv",
+    access_path="../../tests/stub_data/simple_data.csv",
 )
 
 literal_node = ArgumentNode(

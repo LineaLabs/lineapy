@@ -63,7 +63,13 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.sql.sqltypes import Boolean, Text
 
-from lineapy.data.types import SessionType, NodeType, StorageType, LiteralType
+from lineapy.data.types import (
+    SessionType,
+    NodeType,
+    StorageType,
+    LiteralType,
+    DataAssetType,
+)
 
 Base = declarative_base()
 
@@ -139,14 +145,35 @@ class LibraryORM(Base):
 class ArtifactORM(Base):
     __tablename__ = "artifact"
     id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+    value_type = Column(Enum(DataAssetType), nullable=True)
     description = Column(String, nullable=True)
     timestamp = Column(DateTime, nullable=True)
 
 
+# execution_node_value_association_table = Table(
+#     "execution_node_value_association",
+#     Base.metadata,
+#     Column(
+#         "execution_", ForeignKey("side_effects_node.id"), primary_key=True
+#     ),
+#     Column(
+#         "state_change_node_id", ForeignKey("state_change_node.id"), primary_key=True
+#     ),
+# )
+
+
+class ExecutionORM(Base):
+    __tablename__ = "execution"
+    artifact_id = Column(LineaID, ForeignKey("artifact.id"), primary_key=True)
+    version = Column(Integer, primary_key=True)
+
+
 class NodeValueORM(Base):
     __tablename__ = "node_value"
-    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
-    value = Column(PickleType)
+    node_id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+    version = Column(Integer, primary_key=True)
+    value = Column(PickleType, nullable=True)
+    virtual = Column(Boolean)
 
 
 class NodeORM(Base):

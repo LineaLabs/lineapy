@@ -11,7 +11,10 @@ from lineapy.db.relational.schema.relational import *
 
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
+
+from numpy import integer
 
 
 class LineaDB(LineaDBReader, LineaDBWriter):
@@ -23,7 +26,13 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
     def __init__(self, config: LineaDBConfig):
         # TODO: we eventually need some configurations
-        engine = create_engine(config.database_uri, echo=True)
+        # create_engine params from https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
+        engine = create_engine(
+            config.database_uri,
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+            echo=True,
+        )
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
@@ -68,7 +77,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     def get_type(val: Any) -> LiteralType:
         if isinstance(val, str):
             return LiteralType.String
-        elif isinstance(val, int):
+        elif isinstance(val, (int, integer)):
             return LiteralType.Integer
         elif isinstance(val, bool):
             return LiteralType.Boolean
@@ -107,6 +116,10 @@ class LineaDB(LineaDBReader, LineaDBWriter):
     def write_nodes(self, nodes: List[Node]) -> None:
         for n in nodes:
             self.write_single_node(n)
+
+    def write_node_values(self, nodes: List[Node], version: int) -> None:
+        for n in nodes:
+            self.write_single_node_value(n, version)
 
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
@@ -187,9 +200,14 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         self.session.add(node_orm)
         self.session.commit()
 
-        self.data_asset_manager().write_node_value(node)
+        self.write_single_node_value(node, version=1)
 
-    def add_node_id_to_artifact_table(self, node_id: LineaID):
+    def write_single_node_value(self, node: Node, version: int) -> None:
+        self.data_asset_manager().write_node_value(node, version)
+
+    def add_node_id_to_artifact_table(
+        self, node_id: LineaID, value_type: DataAssetType = None
+    ):
         """
         Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
         """
@@ -199,7 +217,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
         node = self.get_node_by_id(node_id)
         if node.node_type in [NodeType.CallNode, NodeType.FunctionDefinitionNode]:
-            artifact = ArtifactORM(id=node_id)
+            artifact = ArtifactORM(id=node_id, value_type=value_type)
             self.session.add(artifact)
             self.session.commit()
 
@@ -305,6 +323,23 @@ class LineaDB(LineaDBReader, LineaDBWriter):
                     ]
 
         return LineaDB.get_pydantic(node).from_orm(node)
+
+    def get_node_value(self, node_id: LineaID, version: int) -> Optional[NodeValue]:
+        return (
+            self.session.query(NodeValueORM)
+            .filter(
+                and_(NodeValueORM.node_id == node_id, NodeValueORM.version == version)
+            )
+            .first()
+            .value
+        )
+
+    def get_artifact(self, artifact_id: LineaID) -> Optional[Artifact]:
+        return Artifact.from_orm(
+            self.session.query(ArtifactORM)
+            .filter(ArtifactORM.id == artifact_id)
+            .first()
+        )
 
     # fill out the rest based on base.py
     def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:

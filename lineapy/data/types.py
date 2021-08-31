@@ -97,6 +97,31 @@ class LiteralType(Enum):
     Boolean = 4
 
 
+class DataAssetType(Enum):
+    Chart = "chart"
+    Array = "array"
+    Dataset = "dataset"
+    Code = "code"
+
+
+class Execution(BaseModel):
+    artifact_id: LineaID
+    version: str
+
+    class Config:
+        orm_mode = True
+
+
+class Artifact(BaseModel):
+    id: LineaID
+    value_type: DataAssetType
+    description: Optional[str]
+    timestamp: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
+
 class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.id
