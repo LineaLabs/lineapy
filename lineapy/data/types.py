@@ -108,6 +108,7 @@ class DataAssetType(Enum):
 class Execution(BaseModel):
     artifact_id: LineaID
     version: str
+    timestamp: Optional[datetime]
 
     class Config:
         orm_mode = True
@@ -115,9 +116,9 @@ class Execution(BaseModel):
 
 class Artifact(BaseModel):
     id: LineaID
+    context: LineaID
     value_type: DataAssetType
     description: Optional[str]
-    timestamp: Optional[datetime]
 
     class Config:
         orm_mode = True

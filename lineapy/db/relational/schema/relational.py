@@ -145,27 +145,16 @@ class LibraryORM(Base):
 class ArtifactORM(Base):
     __tablename__ = "artifact"
     id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+    context = Column(LineaID, ForeignKey("session_context.id"))
     value_type = Column(Enum(DataAssetType), nullable=True)
     description = Column(String, nullable=True)
-    timestamp = Column(DateTime, nullable=True)
-
-
-# execution_node_value_association_table = Table(
-#     "execution_node_value_association",
-#     Base.metadata,
-#     Column(
-#         "execution_", ForeignKey("side_effects_node.id"), primary_key=True
-#     ),
-#     Column(
-#         "state_change_node_id", ForeignKey("state_change_node.id"), primary_key=True
-#     ),
-# )
 
 
 class ExecutionORM(Base):
     __tablename__ = "execution"
     artifact_id = Column(LineaID, ForeignKey("artifact.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, nullable=True)
 
 
 class NodeValueORM(Base):
@@ -173,7 +162,7 @@ class NodeValueORM(Base):
     node_id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
     value = Column(PickleType, nullable=True)
-    virtual = Column(Boolean)
+    virtual = Column(Boolean)  # if True, value is not materialized in cache
 
 
 class NodeORM(Base):

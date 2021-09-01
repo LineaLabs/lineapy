@@ -21,7 +21,6 @@ from lineapy.data.types import (
     LineaID,
 )
 from lineapy.db.asset_manager.base import DataAssetManager
-from lineapy.db.asset_manager.local import LocalDataAssetManager
 from lineapy.graph_reader.base import GraphReader
 
 

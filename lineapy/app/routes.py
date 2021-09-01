@@ -3,11 +3,6 @@ from requests import get
 import os
 from app_db import lineadb
 from tests.stub_data.stub import stub_data_assets
-from tests.stub_data.api_stub_graph import (
-    graph_with_csv_import as stub_graph,
-    session,
-    sum_call,
-)
 from lineapy.db.relational.schema.relational import *
 from lineapy.data.types import *
 from lineapy.execution.executor import Executor
@@ -18,38 +13,9 @@ from sqlalchemy import func
 
 
 # IS_DEV = config("FLASK_ENV") == "development"
-WEBPACK_DEV_SERVER_HOST = "http://localhost:3000"
-HTTP_REQUEST_HOST = "http://localhost:6000"
+HTTP_REQUEST_HOST = "http://localhost:4000"
 
 routes_blueprint = Blueprint("routes", __name__)
-
-
-def proxy(host, path):
-    """
-    This proxy setup is to allow webpack hot-reload to work
-    """
-    response = get(f"{host}{path}")
-    excluded_headers = [
-        "content-encoding",
-        "content-length",
-        "transfer-encoding",
-        "connection",
-    ]
-    headers = {
-        name: value
-        for name, value in response.raw.headers.items()
-        if name.lower() not in excluded_headers
-    }
-    return (response.content, response.status_code, headers)
-
-
-# @app.route("/app/", defaults={"path": "index.html"}, methods=["POST", "OPTIONS"])
-# @app.route("/app/<path:path>")
-# def getApp(path):
-#     if IS_DEV:
-#         print("in dev environemtn")
-#         return proxy(WEBPACK_DEV_SERVER_HOST, request.path)
-#     return app.send_static_file(path)
 
 
 @routes_blueprint.route("/")
@@ -60,6 +26,8 @@ def home():
 @routes_blueprint.route("/api/v1/executor/execute/<artifact_id>", methods=["GET"])
 def execute(artifact_id):
     artifact_id = UUID(artifact_id)
+    artifact = lineadb.get_artifact(artifact_id)
+
     # find version
     version = lineadb.session.query(func.max(NodeValueORM.version)).scalar()
 
@@ -68,33 +36,16 @@ def execute(artifact_id):
         version = 0
     version += 1
 
-    executor = Executor()
-
-    # NOTE: in the future the graph nodes will already exist in the database before
-    # the execution API is called. So this is just a filler for testing for MVP
-    # this is all stuff that should have happened before execute API is called
-    # version will never be 1 during re-exec
-    if version == 1:
-        # execute stub graph and write to database
-        executor.execute_program(stub_graph)
-        lineadb.write_context(session)
-        lineadb.write_nodes(stub_graph._nodes)
-
-        # TODO: determine type of artifact view
-        lineadb.add_node_id_to_artifact_table(
-            artifact_id, value_type=DataAssetType.Value
-        )
-
     # create row in exec table
     exec_orm = ExecutionORM(artifact_id=artifact_id, version=version)
     lineadb.session.add(exec_orm)
     lineadb.session.commit()
 
-    # call get_graph_from_artifact_id
+    # get graph and re-execute
+    executor = Executor()
     program = lineadb.get_graph_from_artifact_id(artifact_id)
-
-    # call execute_program on Graph
-    executor.execute_program(program, session)
+    context = lineadb.get_context(artifact.context)
+    executor.execute_program(program, context)
 
     # run through Graph nodes and write values to NodeValueORM with new version
     lineadb.write_node_values(program._nodes, version)
@@ -108,7 +59,6 @@ def execute(artifact_id):
 
     # TODO: add handling for different DataAssetTypes
     result = None
-    artifact = lineadb.get_artifact(artifact_id)
     if artifact.value_type == DataAssetType.Value:
         result = LineaDB.cast_serialized(
             artifact_value, LineaDB.get_type(artifact_value)

@@ -9,7 +9,8 @@ load_dotenv()
 class Config:
     """Base config."""
 
-    SECRET_KEY = environ.get("SECRET_KEY")
+    # SECRET_KEY = environ.get("SECRET_KEY")
+    pass
 
 
 class ProdConfig(Config):

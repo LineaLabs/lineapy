@@ -10,12 +10,12 @@ def create_app():
     app = Flask(__name__)
     CORS(app)
 
-    if hasattr(sys, "_called_from_test"):
-        print(f"🐍 TEST MODE 🐍")
-        app.config.from_object(TestConfig())
+    # if hasattr(sys, "_called_from_test"):
+    #     print(f"🐍 TEST MODE 🐍")
+    #     app.config.from_object(TestConfig())
 
-    else:
-        app.config.from_object(DevConfig())
+    # else:
+    app.config.from_object(DevConfig())
 
     init_db(app)
 
