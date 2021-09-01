@@ -348,6 +348,10 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             .first()
         )
 
+    # TODO
+    def jsonify_artifact(self, artifact: Artifact) -> Dict:
+        ...
+
     def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
         """
         - This is program slicing over database data.

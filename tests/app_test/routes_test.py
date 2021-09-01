@@ -1,7 +1,7 @@
 from flask import request, Blueprint, jsonify, send_file, make_response
 from requests import get
 import os
-from app_db import lineadb
+from app_db_test import lineadb
 from tests.stub_data.stub import stub_data_assets
 from lineapy.db.relational.schema.relational import *
 from lineapy.data.types import *
@@ -15,7 +15,7 @@ from sqlalchemy import func
 # IS_DEV = config("FLASK_ENV") == "development"
 HTTP_REQUEST_HOST = "http://localhost:4000"
 
-routes_blueprint = Blueprint("routes", __name__)
+routes_blueprint = Blueprint("routes_test", __name__)
 
 
 @routes_blueprint.route("/")
@@ -58,13 +58,21 @@ def execute(artifact_id):
     artifact_value = lineadb.get_node_value(artifact_id, version)
 
     # TODO: add handling for different DataAssetTypes
-    asset = lineadb.jsonify_artifact(artifact)
+    result = None
     if artifact.value_type == DataAssetType.Value:
         result = LineaDB.cast_serialized(
             artifact_value, LineaDB.get_type(artifact_value)
         )
-        asset["text"] = result
 
-    response = jsonify({"data_asset": asset})
+    # # get artifact from stub
+    for asset in stub_data_assets:
+        if asset["id"] == artifact_id:
+            # prepare_asset(asset, preview=False)
+            asset["text"] = result
+            response = jsonify({"data_asset": asset})
+            response.headers.add("Access-Control-Allow-Origin", "*")
+            return response
+
+    response = jsonify({"error": "asset not found"})
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
