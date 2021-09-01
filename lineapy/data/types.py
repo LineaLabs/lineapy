@@ -102,6 +102,7 @@ class DataAssetType(Enum):
     Array = "array"
     Dataset = "dataset"
     Code = "code"
+    Value = "value"
 
 
 class Execution(BaseModel):

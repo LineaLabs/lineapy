@@ -3,7 +3,7 @@ from requests import get
 import os
 from app_db import lineadb
 from tests.stub_data.stub import stub_data_assets
-from tests.stub_data.graph_with_csv_import import (
+from tests.stub_data.api_stub_graph import (
     graph_with_csv_import as stub_graph,
     session,
     sum_call,
@@ -59,8 +59,7 @@ def home():
 
 @routes_blueprint.route("/api/v1/executor/execute/<artifact_id>", methods=["GET"])
 def execute(artifact_id):
-    artifact_id = sum_call.id
-
+    artifact_id = UUID(artifact_id)
     # find version
     version = lineadb.session.query(func.max(NodeValueORM.version)).scalar()
 
@@ -81,9 +80,9 @@ def execute(artifact_id):
         lineadb.write_context(session)
         lineadb.write_nodes(stub_graph._nodes)
 
-        # TODO: determine type of artifact value
+        # TODO: determine type of artifact view
         lineadb.add_node_id_to_artifact_table(
-            artifact_id, value_type=DataAssetType.Array
+            artifact_id, value_type=DataAssetType.Value
         )
 
     # create row in exec table
@@ -110,11 +109,20 @@ def execute(artifact_id):
     # TODO: add handling for different DataAssetTypes
     result = None
     artifact = lineadb.get_artifact(artifact_id)
-    if artifact.value_type == DataAssetType.Array:
+    if artifact.value_type == DataAssetType.Value:
         result = LineaDB.cast_serialized(
             artifact_value, LineaDB.get_type(artifact_value)
         )
 
-    response = jsonify({"result": result})
+    # get artifact from stub
+    for asset in stub_data_assets:
+        if asset["id"] == artifact_id:
+            # prepare_asset(asset, preview=False)
+            asset["text"] = result
+            response = jsonify({"data_asset": asset})
+            response.headers.add("Access-Control-Allow-Origin", "*")
+            return response
+
+    response = jsonify({"error": "asset not found"})
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response

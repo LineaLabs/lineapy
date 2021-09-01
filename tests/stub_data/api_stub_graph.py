@@ -9,6 +9,8 @@ from lineapy.data.types import (
 )
 from tests.util import get_new_id, get_new_session
 
+from uuid import UUID
+
 """
 ```python
 import pandas as pd
@@ -41,7 +43,8 @@ simple_data_node = DataSourceNode(
     id=get_new_id(),
     session_id=session.id,
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
-    access_path="./tests/stub_data/simple_data.csv",
+    # access_path="./tests/stub_data/simple_data.csv",
+    access_path="../../tests/stub_data/simple_data.csv",
 )
 
 literal_node = ArgumentNode(
@@ -78,7 +81,7 @@ access_a_column = CallNode(
 )
 
 sum_call = CallNode(
-    id=get_new_id(),
+    id=UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"),
     session_id=session.id,
     code="s = df['a'].sum()",
     arguments=[],
