@@ -1,18 +1,19 @@
-from typing import Dict
-from webbrowser import get
+from lineapy.data.graph import Graph
+from typing import Dict, Any, Optional, List
+
 from tests.util import get_new_id
 from lineapy.utils import info_log, internal_warning_log
 from lineapy.instrumentation.records_manager import RecordsManager
-from typing import Any, List, Optional, Union
+from lineapy.execution.executor import Executor
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
     ImportNode,
     Library,
     Node,
-    DirectedEdge,
     SessionType,
 )
+from lineapy.db.base import LineaDBConfig
 
 
 class Tracer:
@@ -20,14 +21,39 @@ class Tracer:
     Tracer is internal to Linea and it implements the "hidden APIs" that are setup by the transformer.
     """
 
-    def __init__(self, environment_type: str, file_name: Optional[str]):
-        # TODO map to SessionType
-        self.environment_type = environment_type
+    def __init__(self, session_type: SessionType, file_name: Optional[str]):
+        self.session_type = session_type
         self.file_name = file_name
-        self.records_manager = RecordsManager()
+        self.execution_pool: List[Node] = []
+        # TODO: we should probably poll from the local linea config file what this configuration should be
+        # FIXME: using this for testing
+        config = LineaDBConfig(database_uri="sqlite:///tracer_test.sqlite")
+        self.records_manager = RecordsManager(config)
         self.session_id = get_new_id()
+        self.executor = Executor()
+
+    def add_unevaluated_node(self, record: Node):
+        self.execution_pool.append(record)
+
+    def evaluate_records_so_far(self):
+        # going to evaluate everything in the execution_pool
+        # pipe the records with their values to the records_manager
+        # and then remove them (so that the runtime could reclaim space)
+
+        if self.session_type == SessionType.JUPYTER:
+            # 🔥 FIXME 🔥
+            internal_warning_log(
+                "The method `evaluate_records_so_far` will not evaluate correctly"
+            )
+        self.executor.execute_program(Graph(self.execution_pool))
+        self.records_manager.add_evaluated_nodes(self.execution_pool)
+        # reset
+        self.execution_pool = []
+        return
 
     def exit(self):
+        self.evaluate_records_so_far()
+        self.records_manager.exit()
         info_log("Tracer", "exit")
         pass
 
@@ -52,10 +78,10 @@ class Tracer:
         didn't call it import because I think that's a protected name
         """
         library = Library(
+            id=get_new_id(),
             name=name
             # note that version and path will be instrospected at runtime
         )
-        info_log("creating", name, code, alias, attributes)
         node = ImportNode(
             id=get_new_id(),
             session_id=self.session_id,
@@ -64,7 +90,8 @@ class Tracer:
             library=library,
             attributes=attributes,
         )
-        self.records_manager.add_node(node)
+        info_log("creating", name, code, alias, attributes)
+        self.add_unevaluated_node(node)
         return
 
     def literal(self) -> None:
@@ -108,29 +135,31 @@ class Tracer:
 
         # info_log("tracel call", function_name, code, function_module)
         argument_nodes = []
-        for a in arguments:
+        for idx, a in enumerate(arguments):
             if type(a) is int or str:
                 new_literal_arg = ArgumentNode(
                     id=get_new_id(),
                     session_id=self.session_id,
                     value_literal=a,
+                    positional_order=idx,
                 )
-                self.records_manager.add_node(new_literal_arg)
+                self.add_unevaluated_node(new_literal_arg)
                 argument_nodes.append(new_literal_arg.id)
             elif type(a) is CallNode:
                 new_call_arg = ArgumentNode(
-                    id=get_new_id(), session_id=self.session_id, value_node_id=a.id
+                    id=get_new_id(),
+                    session_id=self.session_id,
+                    value_node_id=a.id,
+                    positional_order=idx,
                 )
-                self.records_manager.add_node(new_call_arg)
+                self.add_unevaluated_node(new_call_arg)
                 argument_nodes.append(new_call_arg.id)
             else:
                 # internal_warning_log()
                 raise NotImplementedError(type(a), "not supported!")
 
-        new_id = get_new_id()
-
         node = CallNode(
-            id=new_id,
+            id=get_new_id(),
             session_id=self.session_id,
             code="",
             function_name=function_name,
@@ -138,7 +167,7 @@ class Tracer:
             function_module=function_module,
         )
 
-        self.records_manager.add_node(node)
+        self.add_unevaluated_node(node)
         # info_log("call invoked from tracer", function_name, function_module, arguments)
         return node
 

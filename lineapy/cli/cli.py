@@ -1,3 +1,4 @@
+from lineapy.data.types import SessionType
 from lineapy.utils import info_log, report_error_to_user
 import click
 from lineapy.transformer.transformer import Transformer
@@ -17,7 +18,11 @@ def linea_cli(mode, file_name):
     try:
         lines = open(file_name, "r").readlines()
         original_code = "".join(lines)
-        new_code = transformer.transform(original_code, file_name, one_shot=True)
+        new_code = transformer.transform(
+            original_code,
+            session_type=SessionType.SCRIPT,
+            session_name=file_name,
+        )
         info_log("new_code", new_code)
         exec(new_code)
     except IOError:

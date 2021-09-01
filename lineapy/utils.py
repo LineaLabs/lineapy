@@ -58,7 +58,7 @@ def report_error_to_user(msg: str):
 
 
 def internal_warning_log(*args):
-    print(bcolors.WARNING + "[Warning] ", *args, bcolors.ENDC)
+    print(bcolors.WARNING + "🔥 ", *args, " 🔥", bcolors.ENDC)
 
 
 def info_log(*args):

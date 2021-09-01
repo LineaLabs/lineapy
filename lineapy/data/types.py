@@ -32,8 +32,8 @@ class HardwareSpec(BaseModel):
 class Library(BaseModel):
     id: LineaID
     name: str
-    version: Optional[str]  # optional because retrieved at runtime
-    path: Optional[str]  # optional because retrieved at runtime
+    version: Optional[str] = None  # optional because retrieved at runtime
+    path: Optional[str] = None  # optional because retrieved at runtime
 
     class Config:
         orm_mode = True

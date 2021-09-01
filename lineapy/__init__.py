@@ -1,5 +1,6 @@
 from lineapy.utils import FunctionShouldNotBeCalled
 from lineapy.data.graph import Graph
+from lineapy.data.types import SessionType
 from lineapy.instrumentation.tracer import Tracer
 
 
@@ -25,4 +26,4 @@ def publish_with_tracer(
     tracer.publish(variable_name, description)
 
 
-__all__ = ["Graph", "Tracer", "publish", "publish_with_tracer"]
+__all__ = ["Graph", "Tracer", "publish", "publish_with_tracer", "SessionType"]

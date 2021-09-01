@@ -142,3 +142,6 @@ scratch/
 *.tmp
 temp.py
 
+
+## Linea specific
+*_test.sqlite
