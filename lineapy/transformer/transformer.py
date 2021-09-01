@@ -21,7 +21,9 @@ class Transformer:
     def __init__(self):
         self.has_initiated = False
 
-    def transform(self, code: str, session_name: Optional[str], one_shot=True) -> str:
+    def transform(
+        self, code: str, session_name: Optional[str] = None, one_shot=True
+    ) -> str:
         info_log("transform", code)
         transformed_tree = self.transform_user_code(code)
         if one_shot:
@@ -40,6 +42,9 @@ class Transformer:
         tree = ast.parse(code)
         new_tree = node_transformer.visit(tree)
         return new_tree
+
+    def set_active_cell(self, cell_id):
+        pass
 
     def create_exit(self) -> List[TreeNodeType]:
         """

@@ -10,8 +10,6 @@ pip install -r dev-requirements.txt
 pip install -e . --user
 ```
 
-
-
 ## Tests
 Note: these should be run in root (``graph_with_csv_import`` does a relative file access)
 ```bash

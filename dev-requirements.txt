@@ -4,3 +4,4 @@ black
 pep8
 pylint
 astpretty
+jupyter
