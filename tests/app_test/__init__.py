@@ -1,9 +1,9 @@
 import sys
 
-from config_test import TestConfig, DevConfig
+from tests.app_test.config_test import TestConfig, DevConfig
 from flask import Flask
 from flask_cors import CORS
-from app_db_test import init_db
+from tests.app_test.app_db_test import init_db
 
 
 def create_app():
