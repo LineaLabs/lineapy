@@ -4,3 +4,4 @@ dataclasses
 pydantic
 click
 astor
+numpy
