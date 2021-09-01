@@ -186,7 +186,9 @@ class TestLineaDB:
         self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
         )
-        self.lineadb.add_node_id_to_artifact_table(f_assign.id)
+        self.lineadb.add_node_id_to_artifact_table(
+            f_assign.id, graph_with_messy_nodes_session.id
+        )
         result = self.lineadb.get_graph_from_artifact_id(f_assign.id)
         self.lineadb.remove_node_id_from_artifact_table(f_assign.id)
         e = Executor()
@@ -201,8 +203,12 @@ class TestLineaDB:
         graph, context = self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
         )
-        self.lineadb.add_node_id_to_artifact_table(f_assign.id)
-        self.lineadb.add_node_id_to_artifact_table(e_assign.id)
+        self.lineadb.add_node_id_to_artifact_table(
+            f_assign.id, graph_with_messy_nodes_session.id
+        )
+        self.lineadb.add_node_id_to_artifact_table(
+            e_assign.id, graph_with_messy_nodes_session.id
+        )
         derived = self.lineadb.find_all_artifacts_derived_from_data_source(
             graph, a_assign
         )
