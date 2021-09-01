@@ -124,6 +124,7 @@ class Tracer:
         self,
         function_name: str,
         arguments: Any,
+        code: str,
         function_module: Optional[str] = None,
     ) -> CallNode:
         """
@@ -133,10 +134,12 @@ class Tracer:
 
         """
 
-        # info_log("tracel call", function_name, code, function_module)
+        info_log("arguments", arguments)
         argument_nodes = []
         for idx, a in enumerate(arguments):
-            if type(a) is int or str:
+            info_log("type of arg", type(a))
+            if type(a) is int or type(a) is str:
+                info_log("argument is literal", a)
                 new_literal_arg = ArgumentNode(
                     id=get_new_id(),
                     session_id=self.session_id,
@@ -146,6 +149,7 @@ class Tracer:
                 self.add_unevaluated_node(new_literal_arg)
                 argument_nodes.append(new_literal_arg.id)
             elif type(a) is CallNode:
+                info_log("argument is call", a)
                 new_call_arg = ArgumentNode(
                     id=get_new_id(),
                     session_id=self.session_id,
@@ -155,13 +159,13 @@ class Tracer:
                 self.add_unevaluated_node(new_call_arg)
                 argument_nodes.append(new_call_arg.id)
             else:
-                # internal_warning_log()
+                internal_warning_log("haven't seen this argument before!")
                 raise NotImplementedError(type(a), "not supported!")
 
         node = CallNode(
             id=get_new_id(),
             session_id=self.session_id,
-            code="",
+            code=code,
             function_name=function_name,
             arguments=argument_nodes,
             function_module=function_module,
