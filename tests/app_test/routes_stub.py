@@ -1,7 +1,7 @@
 from flask import request, Blueprint, jsonify, send_file, make_response
 from requests import get
 import os
-from tests.app_test.app_db_test import lineadb
+from app_db_stub import lineadb
 from tests.stub_data.stub import stub_data_assets
 from lineapy.db.relational.schema.relational import *
 from lineapy.data.types import *

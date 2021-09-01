@@ -1,9 +1,9 @@
 import sys
 
-from tests.app_test.config_test import TestConfig, DevConfig
+from config_stub import TestConfig, DevConfig
 from flask import Flask
 from flask_cors import CORS
-from tests.app_test.app_db_test import init_db
+from app_db_stub import init_db
 
 
 def create_app():
@@ -21,7 +21,7 @@ def create_app():
 
     with app.app_context():
 
-        import routes_test
+        import routes_stub
 
-        app.register_blueprint(routes_test.routes_blueprint)
+        app.register_blueprint(routes_stub.routes_blueprint)
         return app
