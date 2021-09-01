@@ -1,16 +1,55 @@
-# TODO Create ORM for the objects defined in `linea.dataflow.data_types`
+""" Relationships
+SessionContext
+- Library (One to Many)
+- HardwareSpec (Many to One)
+
+Node
+- SessionContext (Many to One)
+
+SideEffectsNode
+- StateChangeNode (One to Many)
+- ImportNode (Many to Many)
+
+ImportNode
+- Library (Many to One)
+
+ArgumentNode
+- Node (One to One)
+
+CallNode
+- ArgumentNode (One to Many)
+- ImportNode/CallNode (function_module) (One to One)
+- FunctionDefinitionNode (One to One)
+
+LiteralAssignNode
+- ValueNode (One to One)
+
+VariableAliasNode
+- VariableAliasNode/CallNode (Many to One)
+
+ConditionNode
+- Node (Many to Many)
+
+StateChangeNode
+- SideEffectsNode (One to One)
+- Node (Many to One)
+
+"""
+
 from datetime import datetime
 from uuid import UUID
+import json
 
 from sqlalchemy import (
     Column,
+    UniqueConstraint,
     Integer,
     String,
     Enum,
     ForeignKey,
     Table,
-    PickleType,
     DateTime,
+    PickleType,
     types,
 )
 from sqlalchemy.dialects.mysql.base import MSBinary
@@ -22,10 +61,9 @@ from sqlalchemy.orm import (
     declarative_mixin,
     declared_attr,
 )
-from sqlalchemy.sql.sqltypes import Boolean
+from sqlalchemy.sql.sqltypes import Boolean, Text
 
-from lineapy.data.types import SessionType, NodeType
-
+from lineapy.data.types import SessionType, NodeType, StorageType, LiteralType
 
 Base = declarative_base()
 
@@ -59,6 +97,23 @@ class LineaID(types.TypeDecorator):
         return False
 
 
+class AttributesDict(types.TypeDecorator):
+
+    impl = Text()
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+
+        return value
+
+
 class SessionContextORM(Base):
     __tablename__ = "session_context"
     id = Column(LineaID, primary_key=True)
@@ -68,93 +123,218 @@ class SessionContextORM(Base):
     session_name = Column(String, nullable=True)
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)
-    # libraries = Column(ARRAY(Library), nullable=True)
+    libraries = relationship("LibraryORM", backref="session")
+
+
+class LibraryORM(Base):
+    __tablename__ = "library"
+    __table_args__ = (UniqueConstraint("session_id", "name", "version", "path"),)
+    id = Column(LineaID, primary_key=True)
+    session_id = Column(LineaID, ForeignKey("session_context.id"))
+    name = Column(String)
+    version = Column(String)
+    path = Column(String)
+
+
+class ArtifactORM(Base):
+    __tablename__ = "artifact"
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+    description = Column(String, nullable=True)
+    timestamp = Column(DateTime, nullable=True)
+
+
+class NodeValueORM(Base):
+    __tablename__ = "node_value"
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+    value = Column(PickleType)
 
 
 class NodeORM(Base):
     __tablename__ = "node"
-    __mapper_args__ = {"polymorphic_identity": "node"}
+
     id = Column(LineaID, primary_key=True)
     code = Column(String, nullable=True)
     session_id = Column(LineaID)
     node_type = Column(Enum(NodeType))
 
-
-# class SideEffectsNodeORM(NodeORM):
-#     __mapper_args__ = {"polymorphic_identity": "side_effects_node"}
-
-#     state_change_nodes = Column(ARRAY(LineaID), nullable=True)
-#     import_nodes = Column(ARRAY(LineaID), nullable=True)
+    __mapper_args__ = {
+        "polymorphic_on": node_type,
+        "polymorphic_identity": NodeType.Node,
+    }
 
 
-# TODO: dictionary typing in SQLAlchemy
-# class ImportNodeORM(NodeORM):
-#     __mapper_args__ = {"polymorphic_identity": "import_node"}
+side_effects_state_change_association_table = Table(
+    "side_effects_state_change_association",
+    Base.metadata,
+    Column(
+        "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
+    ),
+    Column(
+        "state_change_node_id", ForeignKey("state_change_node.id"), primary_key=True
+    ),
+)
 
-#     node_type = Column(Enum(NodeType), default=NodeType.ImportNode)
-#     code = Column(String)
-#     library = Column(Library)
-#     attributes = Column(nullable=True)
-#     alias = Column(String, nullable=True)
-#     module = Column(Any, nullable=True)
+side_effects_import_association_table = Table(
+    "side_effects_import_association",
+    Base.metadata,
+    Column(
+        "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
+    ),
+    Column("import_node_id", ForeignKey("import_node.id"), primary_key=True),
+)
 
 
-class ArgumentNodeORM(NodeORM):
-    __mapper_args__ = {"polymorphic_identity": "argument_node"}
+class SideEffectsNodeORM(NodeORM):
 
-    keyword = Column(String, nullable=True)
-    positional_order = Column(Integer, nullable=True)
-    value_node_id = Column(LineaID, nullable=True)
-    value_literal = Column(Integer, nullable=True)
-    value_pickled = Column(String, nullable=True)
+    __tablename__ = "side_effects_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.SideEffectsNode}
+
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+
+
+class ImportNodeORM(NodeORM):
+
+    __tablename__ = "import_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.ImportNode}
+
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+
+    library_id = Column(LineaID, ForeignKey("library.id"))
+    attributes = Column(AttributesDict(), nullable=True)
+    alias = Column(String, nullable=True)
+
+
+class StateChangeNodeORM(NodeORM):
+    __tablename__ = "state_change_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.StateChangeNode}
+
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+
+    variable_name = Column(String)
+    associated_node_id = Column(LineaID)
+    initial_value_node_id = Column(LineaID)
+
+
+call_node_association_table = Table(
+    "call_node_association",
+    Base.metadata,
+    Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
+    Column("argument_node_id", ForeignKey("argument_node.id"), primary_key=True),
+)
 
 
 class CallNodeORM(NodeORM):
-    __mapper_args__ = {"polymorphic_identity": "call_node"}
+    __tablename__ = "call_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.CallNode}
 
-    arguments = Column(PickleType)
-    function_name = Column(String)
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+
     function_module = Column(LineaID, nullable=True)
     locally_defined_function_id = Column(LineaID, nullable=True)
-    assigned_variable_name = Column(String, nullable=True)
-    value = Column(String, nullable=True)
 
-    # @declared_attr
-    # def assigned_variable_name(cls):
-    #     return NodeORM.__table__.c.get(
-    #         "assigned_variable_name", Column(String, nullable=True)
-    #     )
+    # this pattern is used when multiple sibling classes have the same column
+    @declared_attr
+    def assigned_variable_name(cls):
+        return NodeORM.__table__.c.get(
+            "assigned_variable_name", Column(String, nullable=True)
+        )
 
-
-# class LiteralAssignNodeORM(NodeORM):
-#     __mapper_args__ = {"polymorphic_identity": "literal_assign_node"}
-
-#     value = Column(String)
-#     value_node_id = Column(LineaID, nullable=True)
-
-#     @declared_attr
-#     def assigned_variable_name(cls):
-#         return NodeORM.__table__.c.get(
-#             "assigned_variable_name", Column(String, nullable=True)
-#         )
+    @declared_attr
+    def function_name(cls):
+        return NodeORM.__table__.c.get("function_name", Column(String))
 
 
-# class FunctionDefinitionNodeORM(SideEffectsNodeORM):
-#     __mapper_args__ = {"polymorphic_identity": "function_definition_node"}
+class ArgumentNodeORM(NodeORM):
+    __tablename__ = "argument_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.ArgumentNode}
 
-#     function_name = Column(String)
-#     value = Column(Any, nullable=True)
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+
+    keyword = Column(String, nullable=True)
+    positional_order = Column(Integer, nullable=True)
+    value_literal = Column(String, nullable=True)
+    value_literal_type = Column(Enum(LiteralType), nullable=True)
+
+    @declared_attr
+    def value_node_id(cls):
+        return NodeORM.__table__.c.get("value_node_id", Column(LineaID))
 
 
-# class ConditionNodeORM(SideEffectsNodeORM):
-#     __mapper_args__ = {"polymorphic_identity": "condition_node"}
+class LiteralAssignNodeORM(NodeORM):
+    __tablename__ = "literal_assign_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.LiteralAssignNode}
 
-#     node_type = Column(Enum(NodeType), default=NodeType.ConditionNode)
-#     dependent_variables_in_predicate = Column(ARRAY(LineaID), nullable=True)
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+
+    value_type = Column(Enum(LiteralType))
+
+    @declared_attr
+    def assigned_variable_name(cls):
+        return NodeORM.__table__.c.get(
+            "assigned_variable_name", Column(String, nullable=True)
+        )
+
+    @declared_attr
+    def value(cls):
+        return NodeORM.__table__.c.get("value", Column(String))
+
+    @declared_attr
+    def value_node_id(cls):
+        return NodeORM.__table__.c.get("value_node_id", Column(LineaID))
 
 
-class DirectedEdgeORM(Base):
-    __tablename__ = "directed_edge"
-    id = Column(LineaID, primary_key=True)
-    source_node_id = Column(LineaID)
-    sink_node_id = Column(LineaID)
+class FunctionDefinitionNodeORM(SideEffectsNodeORM):
+    __tablename__ = "function_definition_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.FunctionDefinitionNode}
+
+    id = Column(LineaID, ForeignKey("side_effects_node.id"), primary_key=True)
+
+    @declared_attr
+    def value(cls):
+        return NodeORM.__table__.c.get("value", Column(String))
+
+    @declared_attr
+    def function_name(cls):
+        return NodeORM.__table__.c.get("function_name", Column(String))
+
+
+class VariableAliasNodeORM(NodeORM):
+    __tablename__ = "variable_alias_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.VariableAliasNode}
+
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+
+    source_variable_id = Column(LineaID)
+
+
+class LoopNodeORM(SideEffectsNodeORM):
+    __tablename__ = "loop_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.LoopNode}
+
+    id = Column(LineaID, ForeignKey("side_effects_node.id"), primary_key=True)
+
+
+condition_association_table = Table(
+    "condition_association",
+    Base.metadata,
+    Column("condition_node_id", ForeignKey("condition_node.id"), primary_key=True),
+    Column("dependent_node_id", ForeignKey("node.id"), primary_key=True),
+)
+
+
+class ConditionNodeORM(SideEffectsNodeORM):
+    __tablename__ = "condition_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.ConditionNode}
+
+    id = Column(LineaID, ForeignKey("side_effects_node.id"), primary_key=True)
+
+
+class DataSourceNodeORM(NodeORM):
+    __tablename__ = "data_source_node"
+    __mapper_args__ = {"polymorphic_identity": NodeType.DataSourceNode}
+
+    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+
+    storage_type = Column(Enum(StorageType))
+    access_path = Column(String)
+    name = Column(String, nullable=True)

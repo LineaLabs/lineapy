@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-# aliasing the ID type in case we chnage it later
+# aliasing the ID type in case we change it later
 LineaID = UUID
 
 
@@ -30,6 +30,7 @@ class HardwareSpec(BaseModel):
 
 
 class Library(BaseModel):
+    id: LineaID
     name: str
     version: Optional[str]  # optional because retrieved at runtime
     path: Optional[str]  # optional because retrieved at runtime
@@ -39,7 +40,7 @@ class Library(BaseModel):
 
 
 class SessionContext(BaseModel):
-    uuid: LineaID  # populated on creation by uuid.uuid4()
+    id: LineaID  # populated on creation by uuid.uuid4()
     environment_type: SessionType
     creation_time: datetime
     file_name: str  # making file name required since every thing runs from some file
@@ -86,11 +87,19 @@ class NodeType(Enum):
     DataSourceNode = 11
     VariableAliasNode = 12
     ClassDefinitionNode = 13
+    SideEffectsNode = 14
+
+
+class LiteralType(Enum):
+    String = 1
+    Integer = 2
+    Float = 3
+    Boolean = 4
 
 
 class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
-    session_id: LineaID  # refers to SessionContext.uuid
+    session_id: LineaID  # refers to SessionContext.id
     node_type: NodeType = NodeType.Node
     # context: Optional[NodeContext] = None
 
@@ -113,7 +122,7 @@ class SideEffectsNode(Node):
 class ImportNode(Node):
     node_type: NodeType = NodeType.ImportNode
     code: str
-    library: Library
+    library: Optional[Library]
     attributes: Optional[Dict[str, str]] = None  # key is alias, value is full name
     alias: Optional[str] = None
     module: Any = None
@@ -125,7 +134,6 @@ class ArgumentNode(Node):
     positional_order: Optional[int] = None
     value_node_id: Optional[LineaID] = None
     value_literal: Optional[Any] = None
-    value_pickled: Optional[str] = None
 
 
 class CallNode(Node):
@@ -199,18 +207,12 @@ class StateChangeNode(Node):
     value: Optional[NodeValue]
 
 
-class LoopEnterNode(SideEffectsNode):
+class LoopNode(SideEffectsNode):
     """
     We do not care about the intermeidate states, but rather just what state has changed. It's conceptually similar to representing loops in a more functional way (such as map and reduce).  We do this by treating the LoopNode as a node similar to "CallNode".
     """
 
     node_type: NodeType = NodeType.LoopNode
-
-
-# Not sure if we need the exit node, commenting out for now
-# class LoopExitNode(Node):
-#     node_type: NodeType = NodeType.LoopNode
-#     pass
 
 
 class DataSourceNode(Node):
@@ -243,3 +245,6 @@ class DirectedEdge(BaseModel):
 
     source_node_id: LineaID  # refers to Node.uuid
     sink_node_id: LineaID  # refers to Node.uuid
+
+    class Config:
+        orm_mode = True

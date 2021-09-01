@@ -1,12 +1,12 @@
-from enum import Enum
 from abc import ABC, abstractmethod
-from typing import List
 from dataclasses import dataclass
+from enum import Enum
+from typing import List
 
-from lineapy.data.types import LineaID, Node, DirectedEdge, SessionContext
-from lineapy.db.asset_manager.base import DataAssetManager
+from lineapy.data.graph import Graph, DirectedEdge
 from lineapy.data.types import DataSourceNode, Node
-from lineapy.data.graph import Graph
+from lineapy.data.types import LineaID, SessionContext
+from lineapy.db.asset_manager.base import DataAssetManager
 
 
 class DatabaseOption(Enum):
@@ -38,7 +38,6 @@ class LineaDBReader(ABC):
         pass
 
     def get_graph_from_artifact_id(self, linea_id: LineaID):
-        # @dhruv high priority implementation once you have the db writer done
         pass
 
     def find_all_artifacts_derived_from_data_source(
@@ -65,10 +64,6 @@ class LineaDBWriter(ABC):
         """
         Note that inside write_nodes, you
         """
-        ...
-
-    @abstractmethod
-    def write_edges(self, edges: List[DirectedEdge]) -> None:
         ...
 
     @abstractmethod

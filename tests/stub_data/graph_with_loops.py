@@ -1,15 +1,14 @@
-from lineapy.utils import get_new_id
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     LiteralAssignNode,
     CallNode,
-    LoopEnterNode,
+    LoopNode,
     StateChangeNode,
     ArgumentNode,
     ImportNode,
     Library,
-    DirectedEdge,
 )
+from tests.util import get_new_id, get_new_session
 
 from tests.stub_data.simple_graph import session
 
@@ -33,12 +32,15 @@ Graph method notes:
 
 """
 
+operator_lib = Library(id=get_new_id(), name="operator", version="1", path="")
+
+session = get_new_session(libraries=[operator_lib])
 
 a_id = get_new_id()
 
 line_1 = CallNode(
     id=a_id,
-    session_id=session.uuid,
+    session_id=session.id,
     code="a = []",
     function_name="list",
     assigned_variable_name="a",
@@ -48,7 +50,7 @@ line_1 = CallNode(
 b_id = get_new_id()
 
 line_2 = LiteralAssignNode(
-    id=b_id, session_id=session.uuid, code="b = 0", assigned_variable_name="b", value=0
+    id=b_id, session_id=session.id, code="b = 0", assigned_variable_name="b", value=0
 )
 
 le_id = get_new_id()
@@ -58,14 +60,14 @@ a_argument_id = get_new_id()
 
 a_state_change = StateChangeNode(
     id=a_state_change_id,
-    session_id=session.uuid,
+    session_id=session.id,
     variable_name="a",
     associated_node_id=le_id,
     initial_value_node_id=a_id,
 )
 a_argument_node = ArgumentNode(
     id=a_argument_id,
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=0,
     value_node_id=a_state_change_id,
 )
@@ -75,70 +77,61 @@ b_argument_id = get_new_id()
 
 b_state_change = StateChangeNode(
     id=b_state_change_id,
-    session_id=session.uuid,
+    session_id=session.id,
     variable_name="b",
     associated_node_id=le_id,
     initial_value_node_id=b_id,
 )
 b_argument_node = ArgumentNode(
     id=b_argument_id,
-    session_id=session.uuid,
+    session_id=session.id,
     positional_order=1,
     value_node_id=b_state_change_id,
 )
 
-le = LoopEnterNode(
+le = LoopNode(
     id=le_id,
-    session_id=session.uuid,
+    session_id=session.id,
     # @Dhruv, please watch out for indentation oddities when you run into errors
     code="for x in range(9):\n\ta.append(x)\n\tb+=x",
     state_change_nodes=[a_state_change_id, b_state_change_id],
 )
 
-e_a_to_loop = DirectedEdge(source_node_id=a_id, sink_node_id=le_id)
-e_b_to_loop = DirectedEdge(source_node_id=b_id, sink_node_id=le_id)
-
 x_id = get_new_id()
 
 line_6 = CallNode(
     id=x_id,
-    session_id=session.uuid,
+    session_id=session.id,
     code="x = sum(a)",
     function_name="sum",
     assigned_variable_name="x",
     arguments=[a_argument_id],
 )
 
-e_loop_to_x = DirectedEdge(source_node_id=le_id, sink_node_id=x_id)
-
 operator_module_id = get_new_id()
 
 operator_module = ImportNode(
     id=operator_module_id,
-    session_id=session.uuid,
+    session_id=session.id,
     code="import operator",
-    library=Library(name="operator", version="1", path=""),
+    library=operator_lib,
 )
 
 x_argument_id = get_new_id()
 x_argument_node = ArgumentNode(
-    id=x_argument_id, session_id=session.uuid, positional_order=0, value_node_id=x_id
+    id=x_argument_id, session_id=session.id, positional_order=0, value_node_id=x_id
 )
 
 y_id = get_new_id()
 line_7 = CallNode(
     id=y_id,
-    session_id=session.uuid,
+    session_id=session.id,
     code="y = x + b",
     function_name="add",
     function_module=operator_module_id,  # built in
     assigned_variable_name="y",
     arguments=[x_argument_id, b_argument_id],
 )
-
-e_loop_to_y = DirectedEdge(source_node_id=le_id, sink_node_id=y_id)
-e_x_to_y = DirectedEdge(source_node_id=x_id, sink_node_id=y_id)
-e_import_to_y = DirectedEdge(source_node_id=operator_module_id, sink_node_id=y_id)
 
 graph_with_loops = Graph(
     [
@@ -153,13 +146,5 @@ graph_with_loops = Graph(
         line_6,
         operator_module,
         line_7,
-    ],
-    [
-        e_a_to_loop,
-        e_b_to_loop,
-        e_import_to_y,
-        e_loop_to_x,
-        e_loop_to_y,
-        e_x_to_y,
-    ],
+    ]
 )

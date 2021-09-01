@@ -10,9 +10,9 @@ from lineapy.data.types import (
 )
 
 
-def get_new_session(libraries):
+def get_new_session(libraries=[]):
     return SessionContext(
-        uuid=get_new_id(),
+        id=get_new_id(),
         file_name="testing.py",
         environment_type=SessionType.SCRIPT,
         creation_time=datetime.now(),
