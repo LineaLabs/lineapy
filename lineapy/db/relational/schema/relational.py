@@ -154,7 +154,7 @@ class ExecutionORM(Base):
     __tablename__ = "execution"
     artifact_id = Column(LineaID, ForeignKey("artifact.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
-    timestamp = Column(DateTime, nullable=True)
+    timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 
 
 class NodeValueORM(Base):

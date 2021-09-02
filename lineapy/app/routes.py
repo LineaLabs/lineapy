@@ -1,13 +1,15 @@
-from flask import request, Blueprint, jsonify, send_file, make_response
+from flask import Blueprint, request, jsonify, send_file, make_response
+from sqlalchemy import func
 from requests import get
 import os
-from app_db import lineadb
-from tests.stub_data.stub import stub_data_assets
+
+from lineapy.app.app_db import lineadb
 from lineapy.db.relational.schema.relational import *
 from lineapy.data.types import *
 from lineapy.execution.executor import Executor
 from lineapy.db.db import LineaDB
-from sqlalchemy import func
+from tests.stub_data.stub import stub_data_assets
+
 
 # from decouple import config
 
@@ -58,7 +60,13 @@ def execute(artifact_id):
     artifact_value = lineadb.get_node_value(artifact_id, version)
 
     # TODO: add handling for different DataAssetTypes
-    asset = lineadb.jsonify_artifact(artifact)
+    # asset = lineadb.jsonify_artifact(artifact)
+    # # get artifact from stub
+    asset = None
+    for a in stub_data_assets:
+        if a["id"] == artifact_id:
+            # prepare_asset(asset, preview=False)
+            asset = a
     if artifact.value_type == DataAssetType.Value:
         result = LineaDB.cast_serialized(
             artifact_value, LineaDB.get_type(artifact_value)
