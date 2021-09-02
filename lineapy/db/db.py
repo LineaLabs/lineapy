@@ -1,5 +1,10 @@
 from typing import List, Set, cast
 
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
+from sqlalchemy.sql.expression import and_
+
 from lineapy.data.graph import Graph
 from lineapy.data.types import *
 
@@ -8,13 +13,6 @@ from lineapy.db.base import LineaDBReader, LineaDBWriter, LineaDBConfig
 from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
 
 from lineapy.db.relational.schema.relational import *
-
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import create_engine
-from sqlalchemy.pool import StaticPool
-from sqlalchemy.sql.expression import and_
-
-from numpy import integer
 
 
 class LineaDB(LineaDBReader, LineaDBWriter):
@@ -75,9 +73,16 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
     @staticmethod
     def get_type(val: Any) -> LiteralType:
+        def is_integer(val):
+            try:
+                int(val)
+            except Exception as e:
+                return False
+            return True
+
         if isinstance(val, str):
             return LiteralType.String
-        elif isinstance(val, (int, integer)):
+        elif is_integer(val):
             return LiteralType.Integer
         elif isinstance(val, bool):
             return LiteralType.Boolean

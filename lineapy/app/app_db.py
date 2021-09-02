@@ -1,20 +1,19 @@
 from lineapy.db.db import LineaDB
 from lineapy.db.base import LineaDBConfig
 
-lineadb = None
+lineadb = LineaDB(LineaDBConfig())
 
 
 def init_db(app):
-    global lineadb
     print("🛠", app.config)
     # TODO: set LineaDBConfig to be app.config
-    lineadb = LineaDB(LineaDBConfig())
     setup_tests()
 
 
 # set up the database with stub data for testing/debugging
 def setup_tests():
     from lineapy.execution.executor import Executor
+    from lineapy.db.relational.schema.relational import ExecutionORM
     from lineapy.data.types import DataAssetType
 
     from tests.stub_data.api_stub_graph import (
@@ -34,3 +33,7 @@ def setup_tests():
     lineadb.add_node_id_to_artifact_table(
         sum_call.id, context_id=context.id, value_type=DataAssetType.Value
     )
+
+    exec_orm = ExecutionORM(artifact_id=sum_call.id, version=1)
+    lineadb.session.add(exec_orm)
+    lineadb.session.commit()

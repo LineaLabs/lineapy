@@ -147,6 +147,8 @@ class ArtifactORM(Base):
     id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
     context = Column(LineaID, ForeignKey("session_context.id"))
     value_type = Column(Enum(DataAssetType), nullable=True)
+    name = Column(String, nullable=True)
+    project = Column(String, nullable=True)
     description = Column(String, nullable=True)
 
 

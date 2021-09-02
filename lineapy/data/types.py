@@ -118,6 +118,8 @@ class Artifact(BaseModel):
     id: LineaID
     context: LineaID
     value_type: DataAssetType
+    name: Optional[str]
+    project: Optional[str]
     description: Optional[str]
 
     class Config:

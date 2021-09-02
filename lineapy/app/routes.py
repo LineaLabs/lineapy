@@ -76,3 +76,20 @@ def execute(artifact_id):
     response = jsonify({"data_asset": asset})
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
+
+
+@routes_blueprint.route("/api/v1/executor/executions/<artifact_id>", methods=["GET"])
+def get_executions(artifact_id):
+    artifact_id = UUID(artifact_id)
+
+    execution_orms = (
+        lineadb.session.query(ExecutionORM)
+        .filter(ExecutionORM.artifact_id == artifact_id)
+        .all()
+    )
+    executions = [Execution.from_orm(e) for e in execution_orms]
+
+    jsons = [e.dict() for e in executions]
+    response = jsonify({"executions": jsons})
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
