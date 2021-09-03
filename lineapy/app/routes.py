@@ -8,7 +8,6 @@ from lineapy.db.relational.schema.relational import *
 from lineapy.data.types import *
 from lineapy.execution.executor import Executor
 from lineapy.db.db import LineaDB
-from tests.stub_data.stub import stub_data_assets
 
 
 # from decouple import config
@@ -60,18 +59,17 @@ def execute(artifact_id):
     artifact_value = lineadb.get_node_value(artifact_id, version)
 
     # TODO: add handling for different DataAssetTypes
-    # asset = lineadb.jsonify_artifact(artifact)
-    # # get artifact from stub
-    asset = None
-    for a in stub_data_assets:
-        if a["id"] == artifact_id:
-            # prepare_asset(asset, preview=False)
-            asset = a
-    if artifact.value_type == DataAssetType.Value:
+    asset = lineadb.jsonify_artifact(artifact)
+
+    if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
         result = LineaDB.cast_serialized(
             artifact_value, LineaDB.get_type(artifact_value)
         )
         asset["text"] = result
+    elif artifact.value_type is CHART:
+        ...
+    elif artifact.value_type is DATASET:
+        ...
 
     response = jsonify({"data_asset": asset})
     response.headers.add("Access-Control-Allow-Origin", "*")

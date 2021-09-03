@@ -68,7 +68,6 @@ from lineapy.data.types import (
     NodeType,
     StorageType,
     LiteralType,
-    DataAssetType,
 )
 
 Base = declarative_base()
@@ -146,10 +145,35 @@ class ArtifactORM(Base):
     __tablename__ = "artifact"
     id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
     context = Column(LineaID, ForeignKey("session_context.id"))
-    value_type = Column(Enum(DataAssetType), nullable=True)
+    value_type = Column(String, nullable=True)
     name = Column(String, nullable=True)
     project = Column(String, nullable=True)
     description = Column(String, nullable=True)
+    date_created = Column(String)
+    code = Column(LineaID, nullable=True)
+
+
+code_token_association_table = Table(
+    "code_token_association",
+    Base.metadata,
+    Column("code", ForeignKey("code.id"), primary_key=True),
+    Column("token", ForeignKey("token.id"), primary_key=True),
+)
+
+
+class CodeORM(Base):
+    __tablename__ = "code"
+    id = Column(LineaID, primary_key=True)
+    text = Column(String)
+
+
+class TokenORM(Base):
+    __tablename__ = "token"
+    id = Column(LineaID, primary_key=True)
+    line = Column(Integer)
+    start = Column(Integer)
+    end = Column(Integer)
+    intermediate = Column(LineaID)
 
 
 class ExecutionORM(Base):

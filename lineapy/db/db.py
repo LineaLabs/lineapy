@@ -214,7 +214,10 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         self,
         node_id: LineaID,
         context_id: LineaID,
-        value_type: DataAssetType = None,
+        name: str,
+        date_created: str,
+        code: LineaID,
+        value_type: str = None,
     ) -> None:
         """
         Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
@@ -226,7 +229,12 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         node = self.get_node_by_id(node_id)
         if node.node_type in [NodeType.CallNode, NodeType.FunctionDefinitionNode]:
             artifact = ArtifactORM(
-                id=node_id, context=context_id, value_type=value_type
+                id=node_id,
+                context=context_id,
+                value_type=value_type,
+                name=name,
+                date_created=date_created,
+                code=code,
             )
             self.session.add(artifact)
             self.session.commit()
@@ -353,9 +361,63 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             .first()
         )
 
-    # TODO
     def jsonify_artifact(self, artifact: Artifact) -> Dict:
-        ...
+        json_artifact = artifact.dict()
+
+        json_artifact["type"] = json_artifact["value_type"]
+        del json_artifact["value_type"]
+
+        json_artifact["date"] = json_artifact["date_created"]
+        del json_artifact["date_created"]
+
+        json_artifact["file"] = ""
+
+        code = Code.from_orm(
+            self.session.query(CodeORM).filter(CodeORM.id == artifact.code).first()
+        )
+        json_artifact["code"] = code.dict()
+
+        token_associations = (
+            self.session.query(code_token_association_table)
+            .filter(code_token_association_table.c.code == code.id)
+            .all()
+        )
+        # NOTE/TODO: currently only supports DataFrames and values as tokens
+        tokens_json = []
+        if token_associations is not None:
+            for association in token_associations:
+                token_orm = (
+                    self.session.query(TokenORM)
+                    .filter(TokenORM.id == association.token)
+                    .first()
+                )
+                token_json = Token.from_orm(token_orm).dict()
+
+                intermediate_value = (
+                    self.session.query(NodeValueORM)
+                    .filter(NodeValueORM.node_id == token_json["intermediate"])
+                    .first()
+                    .value
+                )
+
+                # check object type (for now this only supports DataFrames and values)
+                if hasattr(intermediate_value, "to_csv"):
+                    intermediate_value = intermediate_value.to_csv(index=False)
+
+                intermediate = {
+                    "file": "",
+                    "id": token_json["intermediate"],
+                    "name": "",
+                    "type": DATASET_TYPE,
+                    "date": "1372944000",
+                    "text": intermediate_value,
+                }
+                token_json["intermediate"] = intermediate
+                tokens_json.append(token_json)
+
+        json_artifact["code"]["tokens"] = tokens_json
+
+        return json_artifact
 
     def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
         """

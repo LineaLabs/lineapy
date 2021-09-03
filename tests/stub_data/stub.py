@@ -10,15 +10,20 @@ stub_data_assets = [
         "text": 5,
         "code": {
             "text": "import pandas as pd\ndf = pd.read_csv('simple_data.csv')\ns = df['a'].sum()",
-            "tokens": [],
-        },
-        "rest_endpoint": "https://acme.linea.ai/models?modelName=housing_model&data_point=[your_data]",
-        "refresh_config": {
-            "auto_refresh": True,
-            "refresh_on_data_update": False,
-            "refresh_on_frequency": True,
-            "frequency": "Every Sunday",
-            "notification": [],
+            "tokens": [
+                {
+                    "line": 2,
+                    "start": 1,
+                    "end": 3,
+                    "intermediate": {
+                        "file": "",
+                        "id": UUID("e01d7a89-0d6d-474b-8119-b5f087cbd66e"),
+                        "name": "",
+                        "type": "dataset",
+                        "date": "1272944000",
+                    },
+                }
+            ],
         },
     },
     {

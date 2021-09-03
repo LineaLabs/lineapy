@@ -55,7 +55,7 @@ literal_node = ArgumentNode(
 )
 
 read_csv_call = CallNode(
-    id=get_new_id(),
+    id=UUID("e01d7a89-0d6d-474b-8119-b5f087cbd66e"),
     session_id=session.id,
     code="df = pd.read_csv('ames_train_cleaned.csv')",
     function_name="read_csv",
