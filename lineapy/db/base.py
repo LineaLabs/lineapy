@@ -2,8 +2,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import List
-import toml
-import os.path as path
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import DataSourceNode, Node
