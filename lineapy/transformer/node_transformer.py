@@ -13,6 +13,11 @@ def turn_none_to_empty_str(a: Optional[str]):
 
 
 class NodeTransformer(ast.NodeTransformer):
+    """
+    Notes:
+    - Need to be careful about the order by which these calls are invoked so that the transformation do not get called more than once.
+    """
+
     def __init__(self, source: str):
         self.source = source
 
@@ -80,7 +85,7 @@ class NodeTransformer(ast.NodeTransformer):
         )
         return result
 
-    def visit_Call(self, node):
+    def visit_Call(self, node) -> ast.Call:
         """
         TODO: figure out what to do with the other type of expressions
         TODO: find function_module
@@ -109,4 +114,40 @@ class NodeTransformer(ast.NodeTransformer):
                 ),
             ],
         )
+        return result
+
+    def visit_Assign(self, node: ast.Assign) -> ast.Expr:
+        """
+        Note
+        - some code segments subsume the others
+        - need to pad with expr to make astor happy
+        https://stackoverflow.com/questions/49646402/function-isnt-added-to-new-line-when-adding-node-to-ast-in-python
+        """
+        code = self._get_code_from_node(node)
+        if type(node.targets[0]) is not ast.Name:
+            raise NotImplementedError("other assignment types are not supported")
+        variable_name = node.targets[0].id  # type: ignore
+        call_ast = ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.TRACE_ASSIGN,
+                ctx=ast.Load(),
+            ),
+            args=[],
+            keywords=[
+                ast.keyword(
+                    arg="variable_name",
+                    value=ast.Constant(value=variable_name),
+                ),
+                ast.keyword(
+                    arg="value_node",
+                    value=self.visit(node.value),
+                ),
+                ast.keyword(
+                    arg="code",
+                    value=ast.Constant(value=code),
+                ),
+            ],
+        )
+        result = ast.Expr(value=call_ast)
         return result

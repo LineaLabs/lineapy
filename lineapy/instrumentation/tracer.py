@@ -1,5 +1,9 @@
+from lineapy.instrumentation.instrumentation_util import (
+    get_linea_db_config_from_execution_mode,
+)
+from lineapy.transformer.constants import ExecutionMode
 from lineapy.data.graph import Graph
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, cast
 
 from tests.util import get_new_id
 from lineapy.utils import info_log, internal_warning_log
@@ -13,7 +17,6 @@ from lineapy.data.types import (
     Node,
     SessionType,
 )
-from lineapy.db.base import LineaDBConfig
 
 
 class Tracer:
@@ -21,13 +24,18 @@ class Tracer:
     Tracer is internal to Linea and it implements the "hidden APIs" that are setup by the transformer.
     """
 
-    def __init__(self, session_type: SessionType, file_name: Optional[str]):
+    def __init__(
+        self,
+        session_type: SessionType,
+        file_name: Optional[str] = None,
+        execution_mode: ExecutionMode = ExecutionMode.TEST,
+    ):
         self.session_type = session_type
         self.file_name = file_name
         self.execution_pool: List[Node] = []
         # TODO: we should probably poll from the local linea config file what this configuration should be
         # FIXME: using this for testing
-        config = LineaDBConfig(database_uri="sqlite:///tracer_test.sqlite")
+        config = get_linea_db_config_from_execution_mode(execution_mode)
         self.records_manager = RecordsManager(config)
         self.session_id = get_new_id()
         self.executor = Executor()
@@ -128,6 +136,8 @@ class Tracer:
         function_module: Optional[str] = None,
     ) -> CallNode:
         """
+        Note that it's important for the call to return the call node so that we can programmatically chain the the nodes together, e.g., for the assignment call to modify the previous call node.
+
         TODO:
         - code: str
         - need to look up the function module live to get the ID
@@ -174,6 +184,22 @@ class Tracer:
         self.add_unevaluated_node(node)
         # info_log("call invoked from tracer", function_name, function_module, arguments)
         return node
+
+    TRACE_ASSIGN = "assign"
+
+    def assign(self, variable_name: str, value_node: Any, code: str):
+        """
+        Assign modifies the call node. This is not the most functional but it gets the job done.
+        TODO: add support for other types of assignment
+        """
+        if type(value_node) is CallNode:
+            call_node = cast(CallNode, value_node)
+            call_node.assigned_variable_name = variable_name
+            # the assignment subsumes the original call code
+            call_node.code = code
+        else:
+            internal_warning_log("got type", type(value_node), value_node)
+            raise NotImplementedError
 
     def loop(self) -> None:
         """

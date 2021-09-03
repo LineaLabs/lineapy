@@ -17,6 +17,8 @@ Notes:
 - the ids are kept constant so we can more easily reference the same values in a different file
 """
 
+simple_graph_code = "a = abs(-1)"
+
 session = get_new_session()
 
 arg_literal_id = get_new_id()

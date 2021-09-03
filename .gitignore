@@ -144,4 +144,4 @@ temp.py
 
 
 ## Linea specific
-*_test.sqlite
+*.sqlite

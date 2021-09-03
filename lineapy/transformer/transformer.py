@@ -1,13 +1,16 @@
 from lineapy.transformer.constants import (
+    LINEAPY_EXECUTION_MODE,
     LINEAPY_IMPORT_LIB_NAME,
     LINEAPY_SESSION_TYPE,
     LINEAPY_TRACER_CLASS,
     LINEAPY_TRACER_NAME,
     LINEAPY_SESSION_TYPE_SCRIPT,
     LINEAPY_SESSION_TYPE_JUPYTER,
+    ExecutionMode,
+    get_execution_mode_str,
 )
 from lineapy.transformer.node_transformer import NodeTransformer
-from lineapy.data.types import Node, SessionType
+from lineapy.data.types import SessionType
 from typing import Any, List, Optional
 import ast
 from astor import to_source
@@ -38,12 +41,16 @@ class Transformer:
         self.has_initiated = False
 
     def transform(
-        self, code: str, session_type: SessionType, session_name: Optional[str] = None
+        self,
+        code: str,
+        session_type: SessionType,
+        execution_mode: ExecutionMode,
+        session_name: Optional[str] = None,
     ) -> str:
         info_log("transform", code)
         transformed_tree = self.transform_user_code(code)
         if not self.has_initiated:
-            enter_tree = self.create_enter(session_type, session_name)
+            enter_tree = self.create_enter(session_type, session_name, execution_mode)
             append_code_to_tree(transformed_tree, enter_tree, is_beginning=True)
             self.has_initiated = True
 
@@ -85,7 +92,10 @@ class Transformer:
         ]
 
     def create_enter(
-        self, session_type: SessionType, session_name: Optional[str]
+        self,
+        session_type: SessionType,
+        session_name: Optional[str] = None,
+        execution_mode: ExecutionMode = ExecutionMode.TEST,
     ) -> List[TreeNodeType]:
         """
         Also a hack for now...
@@ -101,6 +111,7 @@ class Transformer:
             names=[
                 ast.alias(name=LINEAPY_SESSION_TYPE, asname=None),
                 ast.alias(name=LINEAPY_TRACER_CLASS, asname=None),
+                ast.alias(name=LINEAPY_EXECUTION_MODE, asname=None),
             ],
             level=0,
         )
@@ -110,11 +121,23 @@ class Transformer:
             else LINEAPY_SESSION_TYPE_JUPYTER
         )
         session_type_node = ast.Attribute(
-            value=ast.Name(id=LINEAPY_SESSION_TYPE, ctx=ast.Load()),
+            value=ast.Name(
+                id=LINEAPY_SESSION_TYPE,
+                ctx=ast.Load(),
+            ),
             attr=session_type_node_attr,
             ctx=ast.Load(),
         )
 
+        execution_mode_node_attr = get_execution_mode_str(execution_mode)
+        execution_mode_node = ast.Attribute(
+            value=ast.Name(
+                id=LINEAPY_EXECUTION_MODE,
+                ctx=ast.Load(),
+            ),
+            attr=execution_mode_node_attr,
+            ctx=ast.Load(),
+        )
         tracer_node = ast.Assign(
             id=LINEAPY_TRACER_NAME,
             ctx=ast.Store(),
@@ -124,6 +147,7 @@ class Transformer:
                 args=[
                     session_type_node,
                     ast.Constant(value=session_name),
+                    execution_mode_node,
                 ],
                 keywords=[],
             ),
