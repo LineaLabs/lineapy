@@ -26,8 +26,8 @@ def parse_artifact_orm(artifact_orm):
 
     artifact_value = lineadb.get_node_value(artifact.id, latest_version())
     if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
-        result = LineaDB.cast_serialized(
-            artifact_value, LineaDB.get_type(artifact_value)
+        result = RelationalLineaDB.cast_serialized(
+            artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         artifact_json["text"] = result
     elif artifact.value_type is CHART:
@@ -88,7 +88,7 @@ def execute(artifact_id):
     elif artifact.value_type is CHART:
         ...
     elif artifact.value_type is DATASET:
-        result = LineaDB.cast_dataset(artifact_value)
+        result = RelationalLineaDB.cast_dataset(artifact_value)
         asset["text"] = result
 
     response = jsonify({"data_asset": asset})
@@ -102,8 +102,8 @@ def get_executions(artifact_id):
 
     execution_orms = (
         lineadb.session.query(ExecutionORM)
-            .filter(ExecutionORM.artifact_id == artifact_id)
-            .all()
+        .filter(ExecutionORM.artifact_id == artifact_id)
+        .all()
     )
     executions = [Execution.from_orm(e) for e in execution_orms]
 
@@ -149,7 +149,7 @@ def get_node_value(node_id):
     node_id = UUID(node_id)
     node_value = lineadb.get_node_value(node_id, latest_version())
 
-    node_value = LineaDB.cast_dataset(node_value)
+    node_value = RelationalLineaDB.cast_dataset(node_value)
 
     response = jsonify({"node_value": node_value})
     response.headers.add("Access-Control-Allow-Origin", "*")

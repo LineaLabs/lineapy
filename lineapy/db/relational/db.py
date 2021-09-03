@@ -413,7 +413,7 @@ class RelationalLineaDB(LineaDB):
                 )
 
                 # check object type (for now this only supports DataFrames and values)
-                intermediate_value = LineaDB.cast_dataset(intermediate_value)
+                intermediate_value = RelationalLineaDB.cast_dataset(intermediate_value)
                 intermediate = {
                     "file": "",
                     "id": token_json["intermediate"],

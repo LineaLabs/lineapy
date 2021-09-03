@@ -1,6 +1,7 @@
 # set up the database with stub data for testing/debugging
 import pytest
 from uuid import UUID
+import os.path as path
 
 import lineapy.app.app_db
 
@@ -10,8 +11,23 @@ from lineapy.db.relational.db import RelationalLineaDB
 
 @pytest.fixture(autouse=True)
 def test_db_mock(monkeypatch):
+    test_db = setup_db("TEST")
+    monkeypatch.setattr(lineapy.app.app_db, "lineadb", test_db)
+
+
+def test_something(test_db_mock):
+    from lineapy.app.app_db import lineadb
+
+    data_asset_manager = lineadb.data_asset_manager()
+    s = data_asset_manager.read_node_value(
+        UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"), 1
+    )
+    assert s == 25
+
+
+def setup_db(mode):
     test_db = RelationalLineaDB()
-    test_db.init_db(LineaDBConfig(mode="TEST"))
+    test_db.init_db(LineaDBConfig(mode=mode))
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import (
         ExecutionORM,
@@ -26,8 +42,15 @@ def test_db_mock(monkeypatch):
         session as context,
         sum_call,
         read_csv_call,
+        simple_data_node,
     )
     from tests.util import get_new_id
+
+    if mode is "DEV":
+        simple_data_node.access_path = (
+            path.abspath(path.join(__file__, "../.."))
+            + "/tests/stub_data/simple_data.csv"
+        )
 
     executor = Executor()
 
@@ -73,15 +96,4 @@ def test_db_mock(monkeypatch):
     exec_orm = ExecutionORM(artifact_id=sum_call.id, version=1)
     test_db.session.add(exec_orm)
     test_db.session.commit()
-
-    monkeypatch.setattr(lineapy.app.app_db, "lineadb", test_db)
-
-
-def test_something(test_db_mock):
-    from lineapy.app.app_db import lineadb
-
-    data_asset_manager = lineadb.data_asset_manager()
-    s = data_asset_manager.read_node_value(
-        UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"), 1
-    )
-    assert s == 25
+    return test_db
