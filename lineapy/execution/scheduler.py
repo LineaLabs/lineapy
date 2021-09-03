@@ -17,7 +17,9 @@ class Scheduler:
     def __init__(self, executor: Executor):
         self._executor = executor
 
-    def submit_job(self, program: Graph, inputs: Optional[Dict[LineaID, Any]] = None) -> Job:
+    def submit_job(
+        self, program: Graph, inputs: Optional[Dict[LineaID, Any]] = None
+    ) -> Job:
         """
         TODO
         :param program:
@@ -34,4 +36,3 @@ class Scheduler:
         :return:
         """
         pass
-
