@@ -32,11 +32,11 @@ class LineaDBConfig:
     database_uri: str = None
 
     def __init__(self, mode: str):
-        if mode is "TEST":
+        if mode == "TEST":
             self.database_uri = config.TEST_DATABASE_URI
-        elif mode is "DEV":
+        elif mode == "DEV":
             self.database_uri = config.DEV_DATABASE_URI
-        elif mode is "PROD":
+        elif mode == "PROD":
             self.database_uri = config.PROD_DATABASE_URI
 
 
