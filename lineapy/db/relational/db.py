@@ -1,30 +1,30 @@
-from typing import List, Set, cast
+from typing import Set, cast
 
-from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import *
-
-from lineapy.db.base import LineaDBReader, LineaDBWriter, LineaDBConfig
-
 from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
-
+from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 
 
-class LineaDB(LineaDBReader, LineaDBWriter):
+class RelationalLineaDB(LineaDB):
     """
     - Note that LineaDB coordinates with assset manager and relational db.
-      - The asset manager deals with binaries (e.g., cached values) - the relational db deals with more structured data, such as the Nodes and edges.
-    - Also, at some point we might have a "cache" such that the readers don't have to go to the database if it's already ready, but that's lower priority
+      - The asset manager deals with binaries (e.g., cached values) - the relational db deals with more structured data,
+      such as the Nodes and edges.
+    - Also, at some point we might have a "cache" such that the readers don't have to go to the database if it's already
+    ready, but that's lower priority.
     """
 
     def __init__(self, config: LineaDBConfig):
         # TODO: we eventually need some configurations
-        # create_engine params from https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
+        # create_engine params from
+        # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         engine = create_engine(
             config.database_uri,
             connect_args={"check_same_thread": False},
@@ -130,7 +130,9 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         args = node.dict()
         if node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
-            args["value_literal_type"] = LineaDB.get_type(args["value_literal"])
+            args["value_literal_type"] = RelationalLineaDB.get_type(
+                args["value_literal"]
+            )
 
         elif node.node_type is NodeType.CallNode:
             node = cast(CallNode, node)
@@ -198,9 +200,9 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
         elif node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNode, node)
-            args["value_type"] = LineaDB.get_type(node.value)
+            args["value_type"] = RelationalLineaDB.get_type(node.value)
 
-        node_orm = LineaDB.get_orm(node)(**args)
+        node_orm = RelationalLineaDB.get_orm(node)(**args)
 
         self.session.add(node_orm)
         self.session.commit()
@@ -270,11 +272,11 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNode, node)
-            node.value = LineaDB.cast_serialized(node.value, node.value_type)
+            node.value = RelationalLineaDB.cast_serialized(node.value, node.value_type)
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
             if node.value_literal is not None:
-                node.value_literal = LineaDB.cast_serialized(
+                node.value_literal = RelationalLineaDB.cast_serialized(
                     node.value_literal, node.value_literal_type
                 )
         elif node.node_type is NodeType.ImportNode:
@@ -340,7 +342,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
                         a.dependent_node_id for a in dependent_variables_in_predicate
                     ]
 
-        return LineaDB.get_pydantic(node).from_orm(node)
+        return RelationalLineaDB.get_pydantic(node).from_orm(node)
 
     def get_node_value(self, node_id: LineaID, version: int) -> Optional[NodeValue]:
         value_orm = (

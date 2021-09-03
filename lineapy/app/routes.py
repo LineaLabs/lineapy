@@ -1,14 +1,11 @@
-from flask import Blueprint, request, jsonify, send_file, make_response
+from flask import Blueprint, jsonify
 from sqlalchemy import func
-from requests import get
-import os
 
 from lineapy.app.app_db import lineadb
-from lineapy.db.relational.schema.relational import *
 from lineapy.data.types import *
+from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.db.relational.schema.relational import *
 from lineapy.execution.executor import Executor
-from lineapy.db.db import LineaDB
-
 
 # from decouple import config
 
@@ -62,8 +59,8 @@ def execute(artifact_id):
     asset = lineadb.jsonify_artifact(artifact)
 
     if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
-        result = LineaDB.cast_serialized(
-            artifact_value, LineaDB.get_type(artifact_value)
+        result = RelationalLineaDB.cast_serialized(
+            artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         asset["text"] = result
     elif artifact.value_type is CHART:

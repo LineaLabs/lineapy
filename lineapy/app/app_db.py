@@ -1,7 +1,7 @@
-from lineapy.db.db import LineaDB
 from lineapy.db.base import LineaDBConfig
+from lineapy.db.relational.db import RelationalLineaDB
 
-lineadb = LineaDB(LineaDBConfig())
+lineadb = RelationalLineaDB(LineaDBConfig())
 
 
 def init_db(app):
@@ -11,7 +11,6 @@ def init_db(app):
         setup_tests()
 
 
-# set up the database with stub data for testing/debugging
 def setup_tests():
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import (
@@ -28,7 +27,7 @@ def setup_tests():
         sum_call,
         read_csv_call,
     )
-    from tests.util import get_new_id, get_new_session
+    from tests.util import get_new_id
 
     executor = Executor()
 
