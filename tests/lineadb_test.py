@@ -47,9 +47,8 @@ class TestLineaDB:
 
     def set_up(self):
         # just use the default config
-        config = LineaDBConfig()
-        config.database_uri = "sqlite:///:memory:"
-        self.lineadb = RelationalLineaDB(config)
+        self.lineadb = RelationalLineaDB()
+        self.lineadb.init_db(LineaDBConfig(mode="TEST"))
 
     def write_and_read_graph(
         self, graph: Graph, context: SessionContext = None

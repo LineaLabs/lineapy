@@ -10,9 +10,8 @@ from lineapy.db.relational.db import RelationalLineaDB
 
 @pytest.fixture(autouse=True)
 def test_db_mock(monkeypatch):
-    config = LineaDBConfig()
-    config.database_uri = "sqlite:///:memory:"
-    test_db = RelationalLineaDB(config)
+    test_db = RelationalLineaDB()
+    test_db.init_db(LineaDBConfig(mode="TEST"))
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import (
         ExecutionORM,

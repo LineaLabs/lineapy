@@ -1,15 +1,20 @@
 from flask import Flask
 from flask_cors import CORS
+import toml
+import os.path as path
 
 from lineapy.app.app_db import init_db
-from lineapy.app.config import DevConfig
+import config
 
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
 
-    app.config.from_object(DevConfig())
+    app.config["ENV"] = config.DEV_ENV
+    app.config["DEBUG"] = config.DEV_DEBUG
+    app.config["TESTING"] = config.DEV_TESTING
+    app.config["DATABASE_URI"] = config.DEV_DATABASE_URI
 
     with app.app_context():
         init_db(app)

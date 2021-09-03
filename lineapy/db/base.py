@@ -2,11 +2,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import List
+import toml
+import os.path as path
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import DataSourceNode, Node
 from lineapy.data.types import LineaID, SessionContext
 from lineapy.db.asset_manager.base import DataAssetManager
+import config
 
 
 class DatabaseOption(Enum):
@@ -26,7 +29,15 @@ class LineaDBConfig:
 
     database: DatabaseOption = DatabaseOption.SQLite
     file_system: FileSystemOption = FileSystemOption.Local
-    database_uri: str = "sqlite:///test.db"
+    database_uri: str = None
+
+    def __init__(self, mode: str):
+        if mode is "TEST":
+            self.database_uri = config.TEST_DATABASE_URI
+        elif mode is "DEV":
+            self.database_uri = config.DEV_DATABASE_URI
+        elif mode is "PROD":
+            self.database_uri = config.PROD_DATABASE_URI
 
 
 class LineaDBReader(ABC):

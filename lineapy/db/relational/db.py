@@ -21,7 +21,11 @@ class RelationalLineaDB(LineaDB):
     ready, but that's lower priority.
     """
 
-    def __init__(self, config: LineaDBConfig):
+    def __init__(self):
+        self.session: Optional[scoped_session] = None
+        self._data_asset_manager: Optional[DataAssetManager] = None
+
+    def init_db(self, config: LineaDBConfig):
         # TODO: we eventually need some configurations
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
