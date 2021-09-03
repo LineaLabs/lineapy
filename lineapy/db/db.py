@@ -95,6 +95,12 @@ class LineaDB(LineaDBReader, LineaDBWriter):
             return val == "True"
         return val
 
+    @staticmethod
+    def cast_dataset(val: Any) -> str:
+        if hasattr(val, "to_csv"):
+            return val.to_csv(index=False)
+        return None
+
     """
     Writers
     """
@@ -401,9 +407,7 @@ class LineaDB(LineaDBReader, LineaDBWriter):
                 )
 
                 # check object type (for now this only supports DataFrames and values)
-                if hasattr(intermediate_value, "to_csv"):
-                    intermediate_value = intermediate_value.to_csv(index=False)
-
+                intermediate_value = LineaDB.cast_dataset(intermediate_value)
                 intermediate = {
                     "file": "",
                     "id": token_json["intermediate"],
