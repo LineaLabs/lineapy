@@ -46,7 +46,7 @@ def execute(artifact_id):
     executor.execute_program(program, context)
 
     # run through Graph nodes and write values to NodeValueORM with new version
-    lineadb.write_node_values(program._nodes, version)
+    lineadb.write_node_values(program.nodes, version)
 
     # NOTE: we can hold off on the following comment because
     # the version property of both classes implicitly creates the relationship for us.

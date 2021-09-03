@@ -54,7 +54,7 @@ class TestLineaDB:
     ) -> Graph:
         # let's write the in memory graph in (with all the nodes)
         self.lineadb = RelationalLineaDB(LineaDBConfig())
-        self.lineadb.write_nodes(graph._nodes)
+        self.lineadb.write_nodes(graph.nodes)
 
         if context is not None:
             self.lineadb.write_context(context)
@@ -66,7 +66,7 @@ class TestLineaDB:
     def reconstruct_graph(self, original_graph: Graph) -> Graph:
         # let's then read some nodes back
         nodes = []
-        for reference in original_graph._nodes:
+        for reference in original_graph.nodes:
             node = self.lineadb.get_node_by_id(reference.id)
             nodes.append(node)
             assert are_nodes_equal(reference, node, True)
