@@ -46,7 +46,7 @@ def setup_db(mode):
     )
     from tests.util import get_new_id
 
-    if mode is "DEV":
+    if mode == "DEV":
         simple_data_node.access_path = (
             path.abspath(path.join(__file__, "../.."))
             + "/tests/stub_data/simple_data.csv"
