@@ -102,8 +102,8 @@ def get_executions(artifact_id):
 
     execution_orms = (
         lineadb.session.query(ExecutionORM)
-        .filter(ExecutionORM.artifact_id == artifact_id)
-        .all()
+            .filter(ExecutionORM.artifact_id == artifact_id)
+            .all()
     )
     executions = [Execution.from_orm(e) for e in execution_orms]
 
@@ -142,7 +142,8 @@ def get_artifact(artifact_id):
     return response
 
 
-# right now we only support Dataset intermediates, because we don't have a way of automatically demarking what type each intermediate is
+# right now we only support Dataset intermediates, because we don't have a way of automatically demarking what type
+# each intermediate is
 @routes_blueprint.route("/api/v1/node/value/<node_id>", methods=["GET"])
 def get_node_value(node_id):
     node_id = UUID(node_id)

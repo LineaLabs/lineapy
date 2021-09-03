@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 
 from lineapy.app.app_db import init_db
-from lineapy.app.config import TestConfig, DevConfig
+from lineapy.app.config import DevConfig
 
 
 def create_app():
@@ -12,7 +12,6 @@ def create_app():
     app.config.from_object(DevConfig())
 
     with app.app_context():
-
         init_db(app)
 
         from lineapy.app.routes import routes_blueprint
@@ -21,6 +20,6 @@ def create_app():
         return app
 
 
-app = create_app()
 if __name__ == "__main__":
+    app = create_app()
     app.run(port=4000)
