@@ -47,13 +47,15 @@ class TestLineaDB:
 
     def set_up(self):
         # just use the default config
-        self.lineadb = RelationalLineaDB(LineaDBConfig())
+        config = LineaDBConfig()
+        config.database_uri = "sqlite:///:memory:"
+        self.lineadb = RelationalLineaDB(config)
 
     def write_and_read_graph(
         self, graph: Graph, context: SessionContext = None
     ) -> Graph:
         # let's write the in memory graph in (with all the nodes)
-        self.lineadb = RelationalLineaDB(LineaDBConfig())
+        self.set_up()
         self.lineadb.write_nodes(graph.nodes)
 
         if context is not None:

@@ -1,15 +1,18 @@
 # set up the database with stub data for testing/debugging
 import pytest
+from uuid import UUID
 
-import lineapy
-from lineapy.app.app_db import lineadb
+import lineapy.app.app_db
+
 from lineapy.db.base import LineaDBConfig
 from lineapy.db.relational.db import RelationalLineaDB
 
 
 @pytest.fixture(autouse=True)
-def test_db(monkeypatch):
-    test_db = RelationalLineaDB(LineaDBConfig())
+def test_db_mock(monkeypatch):
+    config = LineaDBConfig()
+    config.database_uri = "sqlite:///:memory:"
+    test_db = RelationalLineaDB(config)
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import (
         ExecutionORM,
@@ -72,10 +75,14 @@ def test_db(monkeypatch):
     test_db.session.add(exec_orm)
     test_db.session.commit()
 
-    monkeypatch.setattr(lineapy.app.app_db, 'lineadb', test_db)
+    monkeypatch.setattr(lineapy.app.app_db, "lineadb", test_db)
 
 
-def test_something(test_db):
+def test_something(test_db_mock):
+    from lineapy.app.app_db import lineadb
+
     data_asset_manager = lineadb.data_asset_manager()
-    s = data_asset_manager.read_node_value("ccebc2e9-d710-4943-8bae-947fa1492d7f")
+    s = data_asset_manager.read_node_value(
+        UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"), 1
+    )
     assert s == 25

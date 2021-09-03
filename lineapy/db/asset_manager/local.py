@@ -26,8 +26,12 @@ class LocalDataAssetManager(DataAssetManager):
         self.session.add(value_orm)
         self.session.commit()
 
-    def read_node_value(self, id: LineaID) -> NodeValue:
-        value_orm = self.session.query(NodeValueORM).filter(NodeValueORM.id == id).one()
+    def read_node_value(self, id: LineaID, version: int) -> NodeValue:
+        value_orm = (
+            self.session.query(NodeValueORM)
+            .filter(and_(NodeValueORM.node_id == id, NodeValueORM.version == version))
+            .one()
+        )
         return value_orm.value
 
     def is_node_cached(self, node: Node, version: int):

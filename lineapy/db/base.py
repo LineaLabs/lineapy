@@ -26,7 +26,7 @@ class LineaDBConfig:
 
     database: DatabaseOption = DatabaseOption.SQLite
     file_system: FileSystemOption = FileSystemOption.Local
-    database_uri: str = "sqlite:///:memory:"
+    database_uri: str = "sqlite:///test.db"
 
 
 class LineaDBReader(ABC):
@@ -41,7 +41,7 @@ class LineaDBReader(ABC):
         pass
 
     def find_all_artifacts_derived_from_data_source(
-            self, program: Graph, data_source_node: DataSourceNode
+        self, program: Graph, data_source_node: DataSourceNode
     ) -> List[Node]:
         # @dhruv: high priority implmenetation once you have the asset manager and relational done.
         pass
