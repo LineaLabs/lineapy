@@ -15,7 +15,7 @@ def test_db_mock(monkeypatch):
     monkeypatch.setattr(lineapy.app.app_db, "lineadb", test_db)
 
 
-def test_something(test_db_mock):
+def test_executor_and_db_apis(test_db_mock):
     from lineapy.app.app_db import lineadb
 
     data_asset_manager = lineadb.data_asset_manager()
