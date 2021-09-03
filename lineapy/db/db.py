@@ -214,10 +214,10 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         self,
         node_id: LineaID,
         context_id: LineaID,
-        name: str,
-        date_created: str,
-        code: LineaID,
-        value_type: str = None,
+        name: str = "",
+        date_created: str = "",
+        code: LineaID = "",
+        value_type: str = "",
     ) -> None:
         """
         Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
