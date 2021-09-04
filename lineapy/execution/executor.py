@@ -58,8 +58,12 @@ class Executor(GraphReader):
     def setup(self, context: SessionContext) -> None:
         if context.libraries is not None:
             for library in context.libraries:
-                if importlib.util.find_spec(library.name) is None:
-                    Executor.install(library.name)
+                try:
+                    if importlib.util.find_spec(library.name) is None:
+                        Executor.install(library.name)
+                except ModuleNotFoundError:
+                    # TODO: handle imports with multiple levels of parent packages (e.g. from x.y.z import a)
+                    Executor.install(library.name.split(".")[0])
 
     def get_stdout(self) -> str:
         """

@@ -3,6 +3,7 @@ mypy
 black
 pep8
 pylint
+pytest
+pytest-mock
 astpretty
 jupyter
-pytest

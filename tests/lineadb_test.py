@@ -1,37 +1,29 @@
-from lineapy.db.db import LineaDB
-from lineapy.graph_reader.graph_util import are_nodes_equal
+from lineapy.data.graph import Graph
+from lineapy.data.types import SessionContext
 from lineapy.db.base import LineaDBConfig
-
-from tests.stub_data.simple_graph import simple_graph
-from tests.stub_data.simple_with_variable_argument_and_print import (
-    simple_with_variable_argument_and_print,
+from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.execution.executor import Executor
+from lineapy.graph_reader.graph_util import are_graphs_identical
+from lineapy.graph_reader.graph_util import are_nodes_equal
+from tests.stub_data.graph_with_alias_by_reference import graph_with_alias_by_reference
+from tests.stub_data.graph_with_alias_by_value import graph_with_alias_by_value
+from tests.stub_data.graph_with_conditionals import graph_with_conditionals
+from tests.stub_data.graph_with_csv_import import (
+    graph_with_csv_import,
+    session as graph_with_file_access_session,
+)
+from tests.stub_data.graph_with_function_definition import (
+    graph_with_function_definition,
+    session as graph_with_function_definition_session,
 )
 from tests.stub_data.graph_with_import import (
     graph_with_import,
     session as graph_with_import_session,
 )
-from tests.stub_data.nested_call_graph import nested_call_graph
-from tests.stub_data.simple_graph import simple_graph
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
 )
-from tests.stub_data.graph_with_conditionals import graph_with_conditionals
-from tests.stub_data.graph_with_function_definition import (
-    graph_with_function_definition,
-    session as graph_with_function_definition_session,
-)
-from tests.stub_data.simple_with_variable_argument_and_print import (
-    simple_with_variable_argument_and_print,
-)
-
-from tests.stub_data.graph_with_csv_import import (
-    graph_with_csv_import,
-    session as graph_with_file_access_session,
-)
-
-from tests.stub_data.graph_with_alias_by_reference import graph_with_alias_by_reference
-from tests.stub_data.graph_with_alias_by_value import graph_with_alias_by_value
 from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
     graph_sliced_by_var_f,
@@ -40,11 +32,12 @@ from tests.stub_data.graph_with_messy_nodes import (
     e_assign,
     a_assign,
 )
+from tests.stub_data.nested_call_graph import nested_call_graph
+from tests.stub_data.simple_graph import simple_graph
+from tests.stub_data.simple_with_variable_argument_and_print import (
+    simple_with_variable_argument_and_print,
+)
 from tests.util import reset_test_db
-from lineapy.data.graph import Graph
-from lineapy.execution.executor import Executor
-from lineapy.data.types import SessionContext
-from lineapy.graph_reader.graph_util import are_graphs_identical
 
 
 class TestLineaDB:
@@ -54,14 +47,15 @@ class TestLineaDB:
 
     def set_up(self):
         # just use the default config
-        self.lineadb = LineaDB(LineaDBConfig())
+        self.lineadb = RelationalLineaDB()
+        self.lineadb.init_db(LineaDBConfig(mode="TEST"))
 
     def write_and_read_graph(
         self, graph: Graph, context: SessionContext = None
     ) -> Graph:
         # let's write the in memory graph in (with all the nodes)
-        self.lineadb = LineaDB(LineaDBConfig())
-        self.lineadb.write_nodes(graph._nodes)
+        self.set_up()
+        self.lineadb.write_nodes(graph.nodes)
 
         if context is not None:
             self.lineadb.write_context(context)
@@ -73,7 +67,7 @@ class TestLineaDB:
     def reconstruct_graph(self, original_graph: Graph) -> Graph:
         # let's then read some nodes back
         nodes = []
-        for reference in original_graph._nodes:
+        for reference in original_graph.nodes:
             node = self.lineadb.get_node_by_id(reference.id)
             nodes.append(node)
             assert are_nodes_equal(reference, node, True)
@@ -186,7 +180,10 @@ class TestLineaDB:
         self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
         )
-        self.lineadb.add_node_id_to_artifact_table(f_assign.id)
+        self.lineadb.add_node_id_to_artifact_table(
+            f_assign.id,
+            graph_with_messy_nodes_session.id,
+        )
         result = self.lineadb.get_graph_from_artifact_id(f_assign.id)
         self.lineadb.remove_node_id_from_artifact_table(f_assign.id)
         e = Executor()
@@ -201,8 +198,12 @@ class TestLineaDB:
         graph, context = self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
         )
-        self.lineadb.add_node_id_to_artifact_table(f_assign.id)
-        self.lineadb.add_node_id_to_artifact_table(e_assign.id)
+        self.lineadb.add_node_id_to_artifact_table(
+            f_assign.id, graph_with_messy_nodes_session.id
+        )
+        self.lineadb.add_node_id_to_artifact_table(
+            e_assign.id, graph_with_messy_nodes_session.id
+        )
         derived = self.lineadb.find_all_artifacts_derived_from_data_source(
             graph, a_assign
         )

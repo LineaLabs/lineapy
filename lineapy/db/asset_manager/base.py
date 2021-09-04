@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from lineapy.data.types import Node, NodeValue, LineaID
+from lineapy.data.types import Node, NodeValue, NodeType, LineaID
 
 
 class DataAssetManager(ABC):
@@ -27,3 +27,11 @@ class DataAssetManager(ABC):
         :return: the value associated with the node with uuid.
         """
         ...
+
+    # right now it's just a simple function that returns true if the callnode has an assignment, but in the future we should definitely add more logic
+    @staticmethod
+    def caching_decider(node: Node):
+        if node.node_type == NodeType.CallNode:
+            if hasattr(node, "assigned_variable_name"):
+                return True
+        return False
