@@ -3,8 +3,7 @@ import importlib.util
 import io
 import subprocess
 import sys
-import operator
-from typing import Any, List, Tuple, Optional, Dict, cast
+from typing import Any, Tuple, Optional, Dict, cast
 
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph

@@ -1,6 +1,6 @@
 from typing import List
 
-from lineapy.data.types import Node
+from lineapy.data.types import Node, SessionContext
 from lineapy.db.base import LineaDBConfig
 from lineapy.db.db import LineaDB
 
@@ -11,6 +11,12 @@ class RecordsManager:
     def __init__(self, config: LineaDBConfig):
         self.records_pool: List[Node] = []
         self.db = LineaDB(config)
+
+    def write_session_context(self, context: SessionContext) -> None:
+        """
+        Special casing this since its done once at the beginning
+        """
+        pass
 
     def add_evaluated_nodes(self, nodes: List[Node]) -> None:
         self.records_pool += nodes

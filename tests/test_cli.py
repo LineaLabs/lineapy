@@ -9,10 +9,10 @@ from lineapy.utils import info_log
 from lineapy.db.relational.schema.relational import CallNodeORM
 from lineapy.db.base import LineaDBConfig
 from lineapy.db.db import LineaDB
-from lineapy.data.types import SessionType
+from lineapy.data.types import NodeType, SessionType
 from lineapy.graph_reader.graph_util import are_nodes_conetent_equal
 from lineapy.cli.cli import linea_cli
-from tests.stub_data.simple_graph import simple_graph_code
+from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
 
 
 class CliTest:
@@ -37,16 +37,22 @@ class CliTest:
         config = get_linea_db_config_from_execution_mode(ExecutionMode.TEST)
         self.db = LineaDB(config)
 
-    def test_end_to_end(self):
+    def test_end_to_end_simple_graph(self):
         with NamedTemporaryFile() as tmp:
             tmp.write(str.encode(simple_graph_code))
             # might also need os.path.dirname() in addition to file name
-            result = self.runner.invoke(linea_cli, [tmp.name])
+            tmp_file_name = tmp.name
+            result = self.runner.invoke(linea_cli, [tmp_file_name])
             assert result.exit_code == 0
-            call_nodes = self.db.session.query(CallNodeORM).all()
-            for c in call_nodes:
-                processed_call_node = self.db.get_node_by_id(c.id)
-                info_log("found_call_node", processed_call_node)
+            nodes = self.db.get_nodes_by_file_name(tmp_file_name)
+            # there should just be two
+            assert len(nodes) == 2
+            for c in nodes:
+                if c.node_type == NodeType.CallNode:
+                    assert are_nodes_conetent_equal(c, line_1)
+                if c.node_type == NodeType.ArgumentNode:
+                    assert are_nodes_conetent_equal(c, arg_literal)
+                info_log("found_call_node", c)
 
     def test_no_script_error(self):
         # TODO
@@ -76,4 +82,4 @@ class CliTest:
 if __name__ == "__main__":
     tester = CliTest()
     tester.setup()
-    tester.test_end_to_end()
+    tester.test_end_to_end_simple_graph()

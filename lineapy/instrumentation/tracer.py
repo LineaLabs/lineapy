@@ -1,20 +1,23 @@
+from typing import Dict, Any, Optional, List, cast
+from datetime import datetime
+
+from tests.util import get_new_id
+
 from lineapy.instrumentation.instrumentation_util import (
     get_linea_db_config_from_execution_mode,
 )
 from lineapy.transformer.constants import ExecutionMode
-from lineapy.data.graph import Graph
-from typing import Dict, Any, Optional, List, cast
-
-from tests.util import get_new_id
 from lineapy.utils import info_log, internal_warning_log
 from lineapy.instrumentation.records_manager import RecordsManager
 from lineapy.execution.executor import Executor
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
     ImportNode,
     Library,
     Node,
+    SessionContext,
     SessionType,
 )
 
@@ -70,8 +73,15 @@ class Tracer:
         # then we can create a new ORM node (not our IR node, which is a little confusing)
         pass
 
-    def create_session_context(self):
-        pass
+    def create_session_context(self, session_type: SessionType):
+        session_context = SessionContext(
+            id=self.session_id,
+            # TODO: hm, we should prob refactor the name, kinda confusing here
+            environmen_type=session_type,
+            create_time=datetime.now,
+        )
+
+        self.records_manager.add_evaluated_nodes(session_context)
 
     TRACE_IMPORT = "trace_import"
 
