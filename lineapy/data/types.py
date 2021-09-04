@@ -97,6 +97,56 @@ class LiteralType(Enum):
     Boolean = 4
 
 
+# class DataAssetType(Enum):
+CHART_TYPE = "chart"
+ARRAY_TYPE = "array"
+DATASET_TYPE = "dataset"
+CODE_TYPE = "code"
+VALUE_TYPE = "value"
+
+
+class Execution(BaseModel):
+    artifact_id: LineaID
+    version: str
+    timestamp: Optional[datetime]
+
+    class Config:
+        orm_mode = True
+
+
+class Artifact(BaseModel):
+    id: LineaID
+    context: LineaID
+    value_type: str
+    name: Optional[str]
+    project: Optional[str]
+    description: Optional[str]
+    date_created: str
+    code: Optional[LineaID]
+
+    class Config:
+        orm_mode = True
+
+
+class Code(BaseModel):
+    id: LineaID
+    text: str
+
+    class Config:
+        orm_mode = True
+
+
+class Token(BaseModel):
+    id: LineaID
+    line: int
+    start: int
+    end: int
+    intermediate: LineaID  # this is a reference to a NodeValue
+
+    class Config:
+        orm_mode = True
+
+
 class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.id

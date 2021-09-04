@@ -1,29 +1,40 @@
-from typing import List, Set, cast
+from typing import Set, cast
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.pool import StaticPool
+from sqlalchemy.sql.expression import and_
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import *
-
-from lineapy.db.base import LineaDBReader, LineaDBWriter, LineaDBConfig
-
 from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
-
+from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import create_engine
-from sqlalchemy.sql.expression import and_
 
-
-class LineaDB(LineaDBReader, LineaDBWriter):
+class RelationalLineaDB(LineaDB):
     """
     - Note that LineaDB coordinates with assset manager and relational db.
-      - The asset manager deals with binaries (e.g., cached values) - the relational db deals with more structured data, such as the Nodes and edges.
-    - Also, at some point we might have a "cache" such that the readers don't have to go to the database if it's already ready, but that's lower priority
+      - The asset manager deals with binaries (e.g., cached values) - the relational db deals with more structured data,
+      such as the Nodes and edges.
+    - Also, at some point we might have a "cache" such that the readers don't have to go to the database if it's already
+    ready, but that's lower priority.
     """
 
-    def __init__(self, config: LineaDBConfig):
+    def __init__(self):
+        self.session: Optional[scoped_session] = None
+        self._data_asset_manager: Optional[DataAssetManager] = None
+
+    def init_db(self, config: LineaDBConfig):
         # TODO: we eventually need some configurations
-        engine = create_engine(config.database_uri, echo=True)
+        # create_engine params from
+        # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
+        engine = create_engine(
+            config.database_uri,
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+            echo=True,
+        )
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
@@ -66,9 +77,16 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
     @staticmethod
     def get_type(val: Any) -> LiteralType:
+        def is_integer(val):
+            try:
+                int(val)
+            except Exception as e:
+                return False
+            return True
+
         if isinstance(val, str):
             return LiteralType.String
-        elif isinstance(val, int):
+        elif is_integer(val):
             return LiteralType.Integer
         elif isinstance(val, bool):
             return LiteralType.Boolean
@@ -80,6 +98,12 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         elif literal_type is LiteralType.Boolean:
             return val == "True"
         return val
+
+    @staticmethod
+    def cast_dataset(val: Any) -> str:
+        if hasattr(val, "to_csv"):
+            return val.to_csv(index=False)
+        return None
 
     """
     Writers
@@ -108,11 +132,17 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         for n in nodes:
             self.write_single_node(n)
 
+    def write_node_values(self, nodes: List[Node], version: int) -> None:
+        for n in nodes:
+            self.write_single_node_value(n, version)
+
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
         if node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
-            args["value_literal_type"] = LineaDB.get_type(args["value_literal"])
+            args["value_literal_type"] = RelationalLineaDB.get_type(
+                args["value_literal"]
+            )
 
         elif node.node_type is NodeType.CallNode:
             node = cast(CallNode, node)
@@ -180,16 +210,27 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
         elif node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNode, node)
-            args["value_type"] = LineaDB.get_type(node.value)
+            args["value_type"] = RelationalLineaDB.get_type(node.value)
 
-        node_orm = LineaDB.get_orm(node)(**args)
+        node_orm = RelationalLineaDB.get_orm(node)(**args)
 
         self.session.add(node_orm)
         self.session.commit()
 
-        self.data_asset_manager().write_node_value(node)
+        self.write_single_node_value(node, version=1)
 
-    def add_node_id_to_artifact_table(self, node_id: LineaID):
+    def write_single_node_value(self, node: Node, version: int) -> None:
+        self.data_asset_manager().write_node_value(node, version)
+
+    def add_node_id_to_artifact_table(
+        self,
+        node_id: LineaID,
+        context_id: LineaID,
+        name: str = "",
+        date_created: str = "",
+        code: LineaID = "",
+        value_type: str = "",
+    ) -> None:
         """
         Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
         """
@@ -199,11 +240,18 @@ class LineaDB(LineaDBReader, LineaDBWriter):
 
         node = self.get_node_by_id(node_id)
         if node.node_type in [NodeType.CallNode, NodeType.FunctionDefinitionNode]:
-            artifact = ArtifactORM(id=node_id)
+            artifact = ArtifactORM(
+                id=node_id,
+                context=context_id,
+                value_type=value_type,
+                name=name,
+                date_created=date_created,
+                code=code,
+            )
             self.session.add(artifact)
             self.session.commit()
 
-    def remove_node_id_from_artifact_table(self, node_id: LineaID):
+    def remove_node_id_from_artifact_table(self, node_id: LineaID) -> None:
         """
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
@@ -234,11 +282,11 @@ class LineaDB(LineaDBReader, LineaDBWriter):
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNode, node)
-            node.value = LineaDB.cast_serialized(node.value, node.value_type)
+            node.value = RelationalLineaDB.cast_serialized(node.value, node.value_type)
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
             if node.value_literal is not None:
-                node.value_literal = LineaDB.cast_serialized(
+                node.value_literal = RelationalLineaDB.cast_serialized(
                     node.value_literal, node.value_literal_type
                 )
         elif node.node_type is NodeType.ImportNode:
@@ -304,9 +352,83 @@ class LineaDB(LineaDBReader, LineaDBWriter):
                         a.dependent_node_id for a in dependent_variables_in_predicate
                     ]
 
-        return LineaDB.get_pydantic(node).from_orm(node)
+        return RelationalLineaDB.get_pydantic(node).from_orm(node)
 
-    # fill out the rest based on base.py
+    def get_node_value(self, node_id: LineaID, version: int) -> Optional[NodeValue]:
+        value_orm = (
+            self.session.query(NodeValueORM)
+            .filter(
+                and_(NodeValueORM.node_id == node_id, NodeValueORM.version == version)
+            )
+            .first()
+        )
+        if value_orm is not None:
+            return value_orm.value
+        return None
+
+    def get_artifact(self, artifact_id: LineaID) -> Optional[Artifact]:
+        return Artifact.from_orm(
+            self.session.query(ArtifactORM)
+            .filter(ArtifactORM.id == artifact_id)
+            .first()
+        )
+
+    def jsonify_artifact(self, artifact: Artifact) -> Dict:
+        json_artifact = artifact.dict()
+
+        json_artifact["type"] = json_artifact["value_type"]
+        del json_artifact["value_type"]
+
+        json_artifact["date"] = json_artifact["date_created"]
+        del json_artifact["date_created"]
+
+        json_artifact["file"] = ""
+
+        code = Code.from_orm(
+            self.session.query(CodeORM).filter(CodeORM.id == artifact.code).first()
+        )
+        json_artifact["code"] = code.dict()
+
+        token_associations = (
+            self.session.query(code_token_association_table)
+            .filter(code_token_association_table.c.code == code.id)
+            .all()
+        )
+        # NOTE/TODO: currently only supports DataFrames and values as tokens
+        tokens_json = []
+        if token_associations is not None:
+            for association in token_associations:
+                token_orm = (
+                    self.session.query(TokenORM)
+                    .filter(TokenORM.id == association.token)
+                    .first()
+                )
+                token_json = Token.from_orm(token_orm).dict()
+
+                intermediate_value = (
+                    self.session.query(NodeValueORM)
+                    .filter(NodeValueORM.node_id == token_json["intermediate"])
+                    .first()
+                    .value
+                )
+
+                # check object type (for now this only supports DataFrames and values)
+                intermediate_value = RelationalLineaDB.cast_dataset(intermediate_value)
+                intermediate = {
+                    "file": "",
+                    "id": token_json["intermediate"],
+                    "name": "",
+                    "type": DATASET_TYPE,
+                    "date": "1372944000",
+                    "text": intermediate_value,
+                }
+                token_json["intermediate"] = intermediate
+                tokens_json.append(token_json)
+
+        json_artifact["code"]["tokens"] = tokens_json
+
+        return json_artifact
+
     def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
         """
         - This is program slicing over database data.

@@ -140,3 +140,4 @@ scratch/
 
 # Temp files
 *.tmp
+*.db

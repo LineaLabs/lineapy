@@ -4,3 +4,6 @@ dataclasses
 pydantic
 click
 astor
+flask
+flask_cors
+python-dotenv

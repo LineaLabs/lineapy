@@ -63,7 +63,12 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.sql.sqltypes import Boolean, Text
 
-from lineapy.data.types import SessionType, NodeType, StorageType, LiteralType
+from lineapy.data.types import (
+    SessionType,
+    NodeType,
+    StorageType,
+    LiteralType,
+)
 
 Base = declarative_base()
 
@@ -139,14 +144,57 @@ class LibraryORM(Base):
 class ArtifactORM(Base):
     __tablename__ = "artifact"
     id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+    context = Column(LineaID, ForeignKey("session_context.id"))
+    value_type = Column(String, nullable=True)
+    name = Column(String, nullable=True)
+    project = Column(String, nullable=True)
     description = Column(String, nullable=True)
-    timestamp = Column(DateTime, nullable=True)
+    date_created = Column(String)
+    code = Column(LineaID, nullable=True)
+
+
+# one to many
+code_token_association_table = Table(
+    "code_token_association",
+    Base.metadata,
+    Column("code", ForeignKey("code.id"), primary_key=True),
+    Column("token", ForeignKey("token.id"), primary_key=True),
+)
+
+# CodeORM and TokenORM are temporary, to be used for integration testing of intermediates
+
+# CodeORM is derived from an Artifact, and used for the frontend Code objects that hold
+# intermediate values (Tokens)
+class CodeORM(Base):
+    __tablename__ = "code"
+    id = Column(LineaID, primary_key=True)
+    text = Column(String)
+
+
+# TokenORMs should be derived from existing NodeValueORMs, representing intermediates
+# for the CodeView to handle
+class TokenORM(Base):
+    __tablename__ = "token"
+    id = Column(LineaID, primary_key=True)
+    line = Column(Integer)
+    start = Column(Integer)
+    end = Column(Integer)
+    intermediate = Column(LineaID)  # points to a NodeValueORM
+
+
+class ExecutionORM(Base):
+    __tablename__ = "execution"
+    artifact_id = Column(LineaID, ForeignKey("artifact.id"), primary_key=True)
+    version = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 
 
 class NodeValueORM(Base):
     __tablename__ = "node_value"
-    id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
-    value = Column(PickleType)
+    node_id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
+    version = Column(Integer, primary_key=True)
+    value = Column(PickleType, nullable=True)
+    virtual = Column(Boolean)  # if True, value is not materialized in cache
 
 
 class NodeORM(Base):
