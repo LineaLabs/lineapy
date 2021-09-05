@@ -4,6 +4,7 @@
 # Still kinda confused why we need this... Per the question here: https://github.com/jupyter/echo_kernel/issues/12
 
 import argparse
+
 # -*- coding: future_annotations -*-
 import json
 import os
