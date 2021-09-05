@@ -6,3 +6,4 @@ pylint
 pytest
 pytest-mock
 astpretty
+jupyter
