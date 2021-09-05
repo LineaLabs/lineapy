@@ -1,5 +1,5 @@
-from sqlalchemy.orm import scoped_session
 from sqlalchemy import and_
+from sqlalchemy.orm import scoped_session
 
 from lineapy.data.types import NodeValue, Node, LineaID
 from lineapy.db.asset_manager.base import DataAssetManager

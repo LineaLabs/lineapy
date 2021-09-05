@@ -1,17 +1,16 @@
-from click.testing import CliRunner
 from tempfile import NamedTemporaryFile
 
+from click.testing import CliRunner
+
+from lineapy.cli.cli import linea_cli
+from lineapy.data.types import NodeType
+from lineapy.db.base import LineaDB
+from lineapy.graph_reader.graph_util import are_nodes_conetent_equal
 from lineapy.instrumentation.instrumentation_util import (
     get_linea_db_config_from_execution_mode,
 )
 from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import info_log
-from lineapy.db.relational.schema.relational import CallNodeORM
-from lineapy.db.base import LineaDBConfig
-from lineapy.db.db import LineaDB
-from lineapy.data.types import NodeType, SessionType
-from lineapy.graph_reader.graph_util import are_nodes_conetent_equal
-from lineapy.cli.cli import linea_cli
 from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
 
 

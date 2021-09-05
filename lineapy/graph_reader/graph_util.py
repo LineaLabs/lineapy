@@ -1,9 +1,10 @@
-from lineapy.utils import internal_warning_log
 from typing import cast
-from lineapy.data.graph import Graph
-from lineapy.data.types import ArgumentNode, CallNode, Node, NodeType
 
 import networkx as nx
+
+from lineapy.data.graph import Graph
+from lineapy.data.types import ArgumentNode, CallNode, Node, NodeType
+from lineapy.utils import internal_warning_log
 
 
 def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:

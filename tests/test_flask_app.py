@@ -1,10 +1,10 @@
 # set up the database with stub data for testing/debugging
-import pytest
-from uuid import UUID
 import os.path as path
+from uuid import UUID
+
+import pytest
 
 import lineapy.app.app_db
-
 from lineapy.db.base import LineaDBConfig
 from lineapy.db.relational.db import RelationalLineaDB
 

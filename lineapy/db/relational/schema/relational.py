@@ -36,9 +36,9 @@ StateChangeNode
 
 """
 
+import json
 from datetime import datetime
 from uuid import UUID
-import json
 
 from sqlalchemy import (
     Column,
@@ -53,12 +53,9 @@ from sqlalchemy import (
     types,
 )
 from sqlalchemy.dialects.mysql.base import MSBinary
-from sqlalchemy.dialects.postgresql import ARRAY, Any
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (
-    backref,
     relationship,
-    declarative_mixin,
     declared_attr,
 )
 from sqlalchemy.sql.sqltypes import Boolean, Text

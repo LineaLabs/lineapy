@@ -3,15 +3,15 @@
 # https://github.com/nbsafety-project/nbsafety/blob/master/nbsafety/kernel/install.py
 # Still kinda confused why we need this... Per the question here: https://github.com/jupyter/echo_kernel/issues/12
 
+import argparse
 # -*- coding: future_annotations -*-
 import json
 import os
 import platform
 import sys
-import argparse
 
-from jupyter_client.kernelspec import KernelSpecManager
 from IPython.utils.tempdir import TemporaryDirectory
+from jupyter_client.kernelspec import KernelSpecManager
 
 PACKAGE = __package__.split(".")[0]
 DISPLAY_NAME = f"Python 3 ({PACKAGE})"
@@ -59,7 +59,6 @@ def _is_root():
 
 
 def main(argv=None):
-
     parser = argparse.ArgumentParser(
         description=f"Install KernelSpec for {PACKAGE} kernel."
     )

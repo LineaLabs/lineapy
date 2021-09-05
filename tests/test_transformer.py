@@ -1,8 +1,9 @@
 from ast import NodeTransformer, parse
+
 from astor import to_source
 
-from tests.util import compare_ast
 from tests.stub_data.graph_with_import import import_code
+from tests.util import compare_ast
 
 
 class NodeTransformerTest:

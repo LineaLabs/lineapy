@@ -1,13 +1,12 @@
-from lineapy.data.types import SessionType
-from lineapy.utils import UserError, info_log, report_error_to_user
 import click
+
+from lineapy.data.types import SessionType
 from lineapy.transformer.transformer import ExecutionMode, Transformer
+from lineapy.utils import UserError, info_log, report_error_to_user
 
 """
 We are using click because our package will likely already have a dependency on flask and it's fairly well-starred.
 """
-
-import click
 
 
 def mode_to_enum(mode: str):

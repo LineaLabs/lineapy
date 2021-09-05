@@ -1,6 +1,7 @@
 from typing import List
-from lineapy.data.types import DataSourceNode, Node
+
 from lineapy.data.graph import Graph
+from lineapy.data.types import DataSourceNode, Node
 from lineapy.graph_reader.base import GraphReader
 
 

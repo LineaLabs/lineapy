@@ -1,8 +1,8 @@
 from typing import List
 
 from lineapy.data.types import Node, SessionContext
-from lineapy.db.base import LineaDBConfig
-from lineapy.db.db import LineaDB
+from lineapy.db.base import LineaDBConfig, LineaDB
+
 
 # TODO: add another ORM type where it's just the ID and the table.
 

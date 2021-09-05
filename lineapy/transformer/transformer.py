@@ -1,3 +1,9 @@
+import ast
+from typing import Any, List, Optional
+
+from astor import to_source
+
+from lineapy.data.types import SessionType
 from lineapy.transformer.constants import (
     LINEAPY_EXECUTION_MODE,
     LINEAPY_IMPORT_LIB_NAME,
@@ -10,13 +16,7 @@ from lineapy.transformer.constants import (
     get_execution_mode_str,
 )
 from lineapy.transformer.node_transformer import NodeTransformer
-from lineapy.data.types import SessionType
-from typing import Any, List, Optional
-import ast
-from astor import to_source
 from lineapy.utils import info_log
-
-from astpretty import pprint
 
 # FIXME: find the typing for AST nodes
 TreeNodeType = Any

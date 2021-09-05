@@ -11,9 +11,6 @@ from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManag
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 
-from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy import create_engine
-
 
 class RelationalLineaDB(LineaDB):
     """

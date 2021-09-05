@@ -1,8 +1,7 @@
 import ast
-from astpretty import pprint
-from lineapy.instrumentation.tracer import Tracer
 from typing import Optional
-from lineapy.utils import info_log
+
+from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.transformer import LINEAPY_TRACER_NAME
 
 
