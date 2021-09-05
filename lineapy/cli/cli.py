@@ -1,6 +1,5 @@
-from lineapy.utils import report_error_to_user
-import click
 from lineapy.transformer.transformer import Transformer
+from lineapy.utils import report_error_to_user
 
 """
 We are using click because our package will likely already have a dependency on flask and it's fairly well-starred.

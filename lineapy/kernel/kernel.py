@@ -1,7 +1,9 @@
-import os
 import json
+import os
 import sys
+
 from ipykernel.kernelbase import Kernel
+
 from lineapy.transformer.transformer import Transformer
 
 

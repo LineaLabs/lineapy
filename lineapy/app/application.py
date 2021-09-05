@@ -1,8 +1,8 @@
 from flask import Flask
 from flask_cors import CORS
 
+from lineapy import config
 from lineapy.app.app_db import init_db
-import config
 
 
 def create_app(mode):
