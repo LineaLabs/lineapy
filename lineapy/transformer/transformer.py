@@ -13,7 +13,6 @@ from lineapy.transformer.constants import (
     LINEAPY_SESSION_TYPE_SCRIPT,
     LINEAPY_SESSION_TYPE_JUPYTER,
     ExecutionMode,
-    get_execution_mode_str,
 )
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import info_log
@@ -129,7 +128,7 @@ class Transformer:
             ctx=ast.Load(),
         )
 
-        execution_mode_node_attr = get_execution_mode_str(execution_mode)
+        execution_mode_node_attr = execution_mode.name
         execution_mode_node = ast.Attribute(
             value=ast.Name(
                 id=LINEAPY_EXECUTION_MODE,

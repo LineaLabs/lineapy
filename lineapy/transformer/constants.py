@@ -17,17 +17,3 @@ class ExecutionMode(Enum):
     TEST = 0
     DEV = 1
     PROD = 2
-
-
-def get_execution_mode_str(m: ExecutionMode):
-    """
-    Note:
-    - this is pretty tedious
-    - looked into maybe using strings but this post makes me think it's not possible? https://stackoverflow.com/questions/43862184/associating-string-representations-with-an-enum-that-uses-integer-values
-    """
-    if m == ExecutionMode.TEST:
-        return "TEST"
-    if m == ExecutionMode.DEV:
-        return "DEV"
-    if m == ExecutionMode.PROD:
-        return "PROD"
