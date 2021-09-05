@@ -20,6 +20,14 @@ black linea/ --check
 pytest
 ```
 
+## Jupyter
+
+To make use of our virtual env, you need to do these steps (referece: https://medium.com/@nrk25693/how-to-add-your-conda-environment-to-your-jupyter-notebook-in-just-4-steps-abeab8b8d084)
+
+```bash
+conda install -c anaconda ipykernel 
+python -m ipykernel install --user --name=lineapy-env
+```
 
 ## Best practices
 
