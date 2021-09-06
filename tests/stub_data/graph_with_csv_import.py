@@ -7,7 +7,8 @@ from lineapy.data.types import (
     ImportNode,
     StorageType,
 )
-from tests.util import get_new_id, get_new_session
+from lineapy.utils import get_new_id
+from tests.util import get_new_session
 
 """
 ```python

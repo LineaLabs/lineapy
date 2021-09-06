@@ -263,6 +263,35 @@ class RelationalLineaDB(LineaDB):
     Readers
     """
 
+    def get_nodes_by_file_name(self, file_name: str):
+        """
+        First queries SessionContext for file_name
+        Then find all the nodes by session_id
+        Note:
+        - This is currently used for testing purposes
+        - TODO: finish enumerating over all the tables (just a subset for now)
+        - FIXME: I wonder if there is a way to write this in a single query, I would refer for the database to optimize this instead of relying on the ORM.
+        """
+        session_context = (
+            self.session.query(SessionContextORM)
+            .filter(SessionContextORM.file_name == file_name)
+            .one()
+        )
+        # enumerating over all the tables...
+        call_nodes = (
+            self.session.query(CallNodeORM)
+            .filter(CallNodeORM.session_id == session_context.id)
+            .all()
+        )
+        argument_nodes = (
+            self.session.query(ArgumentNodeORM)
+            .filter(ArgumentNodeORM.session_id == session_context.id)
+            .all()
+        )
+        call_nodes.extend(argument_nodes)
+        nodes = [self.get_node_by_id(node_id) for node_id in call_nodes]
+        return nodes
+
     def get_context(self, linea_id: LineaID) -> SessionContext:
         query_obj = (
             self.session.query(SessionContextORM)

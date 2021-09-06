@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     LiteralAssignNode,
 )

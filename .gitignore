@@ -140,4 +140,9 @@ scratch/
 
 # Temp files
 *.tmp
+temp.py
+
+
+## Linea specific
+*.sqlite
 *.db

@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     LiteralAssignNode,
     CallNode,
@@ -9,6 +9,8 @@ from lineapy.data.types import (
     Library,
 )
 from tests.util import get_new_id, get_new_session
+
+from tests.stub_data.simple_graph import session
 
 """
 Original code:

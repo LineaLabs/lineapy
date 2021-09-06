@@ -32,8 +32,8 @@ class HardwareSpec(BaseModel):
 class Library(BaseModel):
     id: LineaID
     name: str
-    version: str
-    path: str
+    version: Optional[str] = None  # optional because retrieved at runtime
+    path: Optional[str] = None  # optional because retrieved at runtime
 
     class Config:
         orm_mode = True
@@ -180,10 +180,10 @@ class ImportNode(Node):
 
 class ArgumentNode(Node):
     node_type: NodeType = NodeType.ArgumentNode
-    keyword: Optional[str]
-    positional_order: Optional[int]
-    value_node_id: Optional[LineaID]
-    value_literal: Optional[Any]
+    keyword: Optional[str] = None
+    positional_order: Optional[int] = None
+    value_node_id: Optional[LineaID] = None
+    value_literal: Optional[Any] = None
 
 
 class CallNode(Node):
@@ -197,9 +197,9 @@ class CallNode(Node):
     function_name: str
     function_module: Optional[
         LineaID
-    ]  # could reference an Import Node, or a class (which would be the result of a CallNode)
-    locally_defined_function_id: Optional[LineaID]
-    assigned_variable_name: Optional[str]
+    ] = None  # could reference an Import Node, or a class (which would be the result of a CallNode)
+    locally_defined_function_id: Optional[LineaID] = None
+    assigned_variable_name: Optional[str] = None
     # value of the result, filled at runtime
     # TODO: maybe we should create a new class to differentiate?
     #       this run time value also applies to StateChange.
