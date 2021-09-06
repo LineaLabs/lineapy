@@ -3,6 +3,8 @@ from typing import Any, List, Optional
 
 from astor import to_source
 
+from lineapy.utils import info_log
+
 from lineapy.data.types import SessionType
 from lineapy.transformer.constants import (
     LINEAPY_EXECUTION_MODE,
