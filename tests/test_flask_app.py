@@ -50,8 +50,8 @@ def setup_db(mode: ExecutionMode):
 
     if mode == "DEV":
         simple_data_node.access_path = (
-                path.abspath(path.join(__file__, "../.."))
-                + "/tests/stub_data/simple_data.csv"
+            path.abspath(path.join(__file__, "../.."))
+            + "/tests/stub_data/simple_data.csv"
         )
 
     executor = Executor()

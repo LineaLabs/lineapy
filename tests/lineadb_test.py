@@ -1,7 +1,7 @@
 from lineapy import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionContext
-from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
+from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.graph_util import are_graphs_identical

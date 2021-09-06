@@ -1,13 +1,12 @@
-from datetime import datetime
 from ast import AST
+from datetime import datetime
 from itertools import starmap
-
-from lineapy.utils import get_new_id
 
 from lineapy.data.types import (
     SessionContext,
     SessionType,
 )
+from lineapy.utils import get_new_id
 
 
 def get_new_session(libraries=[]):

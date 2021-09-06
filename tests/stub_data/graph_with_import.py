@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ImportNode,
     ArgumentNode,
@@ -8,14 +8,16 @@ from lineapy.data.types import (
 
 from tests.util import get_new_id, get_new_session
 
-
 import_code = "from math import pow, sqrt"
 import_body_code = "a = power(5, 2)\nb = root(a)"
+
+code = """from math import pow, sqrt
+a = power(5, 2)\nb = root(a)
+"""
 
 math_lib = Library(id=get_new_id(), name="math", version="1", path="")
 
 session = get_new_session(libraries=[math_lib])
-
 
 import_math_node = ImportNode(
     id=get_new_id(),
@@ -46,7 +48,6 @@ line_2 = CallNode(
     assigned_variable_name="a",
     arguments=[arg_literal_id_1, arg_literal_id_2],
 )
-
 
 arg_a = ArgumentNode(
     id=get_new_id(), session_id=session.id, positional_order=1, value_node_id=line_2_id

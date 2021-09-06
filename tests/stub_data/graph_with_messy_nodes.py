@@ -8,7 +8,6 @@ from lineapy.data.types import (
 )
 from tests.util import get_new_id, get_new_session
 
-
 """
 ```
 a = 1
@@ -27,6 +26,14 @@ b = a + 2
 c = 2
 f = a * b * c
 ```
+"""
+
+code = """a = 1
+b = a + 2
+c = 2
+d = 4
+e = d + a
+f = a * b * c
 """
 
 operator_lib = Library(id=get_new_id(), name="operator", version="1", path="")
@@ -177,7 +184,6 @@ graph_with_messy_nodes = Graph(
         f_assign,
     ]
 )
-
 
 graph_sliced_by_var_f = Graph(
     [

@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import ArgumentNode, CallNode
 from tests.stub_data.simple_graph import line_1, line_1_id, session, arg_literal
 from tests.util import get_new_id
@@ -9,6 +9,11 @@ a = abs(-11)
 b = min(a, 10)
 print(b)
 ```
+"""
+
+code = """a = abs(-11)
+b = min(a, 10)
+print(b)
 """
 
 arg_a_id = get_new_id()
