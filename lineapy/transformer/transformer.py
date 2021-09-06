@@ -3,8 +3,6 @@ from typing import Any, List, Optional
 
 from astor import to_source
 
-from lineapy.utils import info_log
-
 from lineapy.data.types import SessionType
 from lineapy.transformer.constants import (
     LINEAPY_EXECUTION_MODE,
@@ -42,11 +40,11 @@ class Transformer:
         self.has_initiated = False
 
     def transform(
-        self,
-        code: str,
-        session_type: SessionType,
-        execution_mode: ExecutionMode,
-        session_name: Optional[str] = None,
+            self,
+            code: str,
+            session_type: SessionType,
+            execution_mode: ExecutionMode,
+            session_name: Optional[str] = None,
     ) -> str:
         info_log("transform", code)
         transformed_tree = self.transform_user_code(code)
@@ -93,10 +91,10 @@ class Transformer:
         ]
 
     def create_enter(
-        self,
-        session_type: SessionType,
-        session_name: Optional[str] = None,
-        execution_mode: ExecutionMode = ExecutionMode.TEST,
+            self,
+            session_type: SessionType,
+            session_name: Optional[str] = None,
+            execution_mode: ExecutionMode = ExecutionMode.TEST,
     ) -> List[TreeNodeType]:
         """
         Also a hack for now...
