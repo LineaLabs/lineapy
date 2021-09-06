@@ -28,6 +28,12 @@ def test_executor_and_db_apis(test_db_mock):
 def setup_db(mode):
     test_db = RelationalLineaDB()
     test_db.init_db(LineaDBConfig(mode=mode))
+    setup_value_test(test_db, mode)
+    setup_image_test(test_db, mode)
+    return test_db
+
+
+def setup_value_test(test_db, mode):
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import (
         ExecutionORM,
@@ -44,6 +50,7 @@ def setup_db(mode):
         read_csv_call,
         simple_data_node,
     )
+
     from tests.util import get_new_id
 
     if mode == "DEV":
@@ -96,4 +103,62 @@ def setup_db(mode):
     exec_orm = ExecutionORM(artifact_id=sum_call.id, version=1)
     test_db.session.add(exec_orm)
     test_db.session.commit()
-    return test_db
+
+
+def setup_image_test(test_db, mode):
+    from lineapy.execution.executor import Executor
+    from lineapy.db.relational.schema.relational import (
+        ExecutionORM,
+        CodeORM,
+        TokenORM,
+        code_token_association_table,
+    )
+    from lineapy.data.types import CHART_TYPE
+
+    from tests.stub_data.graph_with_basic_image import (
+        graph_with_basic_image as stub_graph,
+        session as context,
+        read_call,
+        simple_data_node,
+        img_data_node,
+    )
+
+    from tests.util import get_new_id
+
+    if mode == "DEV":
+        simple_data_node.access_path = (
+            path.abspath(path.join(__file__, "../.."))
+            + "/tests/stub_data/simple_data.csv"
+        )
+
+        img_data_node.access_path = (
+            path.abspath(path.join(__file__, "../..")) + "/lineapy/app/simple_data.png"
+        )
+
+    executor = Executor()
+
+    # execute stub graph and write to database
+    executor.execute_program(stub_graph)
+    test_db.write_context(context)
+    test_db.write_nodes(stub_graph.nodes)
+
+    artifact_code = CodeORM(
+        id=get_new_id(),
+        text="",
+    )
+
+    test_db.session.add(artifact_code)
+    test_db.session.commit()
+
+    test_db.add_node_id_to_artifact_table(
+        read_call.id,
+        context_id=context.id,
+        value_type=CHART_TYPE,
+        name="Graph With Image",
+        date_created="1372944000",
+        code=artifact_code.id,
+    )
+
+    exec_orm = ExecutionORM(artifact_id=read_call.id, version=1)
+    test_db.session.add(exec_orm)
+    test_db.session.commit()

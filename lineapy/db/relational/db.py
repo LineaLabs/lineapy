@@ -139,13 +139,13 @@ class RelationalLineaDB(LineaDB):
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
         if node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNode, node)
+            node = cast(ArgumentNodeORM, node)
             args["value_literal_type"] = RelationalLineaDB.get_type(
                 args["value_literal"]
             )
 
         elif node.node_type is NodeType.CallNode:
-            node = cast(CallNode, node)
+            node = cast(CallNodeORM, node)
             for arg in node.arguments:
                 self.session.execute(
                     call_node_association_table.insert(),
@@ -159,7 +159,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.ConditionNode,
             NodeType.FunctionDefinitionNode,
         ]:
-            node = cast(SideEffectsNode, node)
+            node = cast(SideEffectsNodeORM, node)
 
             if node.state_change_nodes is not None:
                 for state_change_id in node.state_change_nodes:
@@ -185,7 +185,7 @@ class RelationalLineaDB(LineaDB):
                 node.node_type is NodeType.ConditionNode
                 and node.dependent_variables_in_predicate is not None
             ):
-                node = cast(ConditionNode, node)
+                node = cast(ConditionNodeORM, node)
                 for dependent_id in node.dependent_variables_in_predicate:
                     self.session.execute(
                         condition_association_table.insert(),
@@ -200,7 +200,7 @@ class RelationalLineaDB(LineaDB):
             del args["import_nodes"]
 
         elif node.node_type is NodeType.ImportNode:
-            node = cast(ImportNode, node)
+            node = cast(ImportNodeORM, node)
             args["library_id"] = node.library.id
             del args["library"]
             del args["module"]
@@ -209,7 +209,7 @@ class RelationalLineaDB(LineaDB):
             del args["value"]
 
         elif node.node_type is NodeType.LiteralAssignNode:
-            node = cast(LiteralAssignNode, node)
+            node = cast(LiteralAssignNodeORM, node)
             args["value_type"] = RelationalLineaDB.get_type(node.value)
 
         node_orm = RelationalLineaDB.get_orm(node)(**args)
@@ -281,16 +281,16 @@ class RelationalLineaDB(LineaDB):
 
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralAssignNode:
-            node = cast(LiteralAssignNode, node)
+            node = cast(LiteralAssignNodeORM, node)
             node.value = RelationalLineaDB.cast_serialized(node.value, node.value_type)
         elif node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNode, node)
+            node = cast(ArgumentNodeORM, node)
             if node.value_literal is not None:
                 node.value_literal = RelationalLineaDB.cast_serialized(
                     node.value_literal, node.value_literal_type
                 )
         elif node.node_type is NodeType.ImportNode:
-            node = cast(ImportNode, node)
+            node = cast(ImportNodeORM, node)
             library_orm = (
                 self.session.query(LibraryORM)
                 .filter(LibraryORM.id == node.library_id)
@@ -298,7 +298,7 @@ class RelationalLineaDB(LineaDB):
             )
             node.library = Library.from_orm(library_orm)
         elif node.node_type is NodeType.CallNode:
-            node = cast(CallNode, node)
+            node = cast(CallNodeORM, node)
             arguments = (
                 self.session.query(call_node_association_table)
                 .filter(call_node_association_table.c.call_node_id == node.id)
@@ -312,7 +312,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.ConditionNode,
             NodeType.FunctionDefinitionNode,
         ]:
-            node = cast(SideEffectsNode, node)
+            node = cast(SideEffectsNodeORM, node)
             state_change_nodes = (
                 self.session.query(side_effects_state_change_association_table)
                 .filter(
@@ -340,7 +340,7 @@ class RelationalLineaDB(LineaDB):
                 node.import_nodes = [a.import_node_id for a in import_nodes]
 
             if node.node_type is NodeType.ConditionNode:
-                node = cast(ConditionNode, node)
+                node = cast(ConditionNodeORM, node)
                 dependent_variables_in_predicate = (
                     self.session.query(condition_association_table)
                     .filter(condition_association_table.c.condition_node_id == node.id)

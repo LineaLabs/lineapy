@@ -13,9 +13,11 @@ class Graph(object):
         """
         self._nodes: List[Node] = nodes
         self._ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
-        self._edges: List[DirectedEdge] = Graph.__get_edges_from_nodes(nodes)
         self._nx_graph = nx.DiGraph()
         self._nx_graph.add_nodes_from([node.id for node in nodes])
+
+        self._edges: List[DirectedEdge] = Graph.__get_edges_from_nodes(nodes)
+        self._edges.extend(self.__get_edges_from_line_number())
         self._nx_graph.add_edges_from(
             [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
         )
@@ -162,6 +164,9 @@ class Graph(object):
 
         edges = list(map(add_edge_from_node, Graph.get_parents_from_node(node)))
         return edges
+
+    def __get_edges_from_line_number(self):
+        pass
 
     def print(self):
         for n in self._nodes:

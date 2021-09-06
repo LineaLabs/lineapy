@@ -1,5 +1,8 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, send_file, make_response
 from sqlalchemy import func
+import io
+from PIL import Image
+import numpy as np
 
 from lineapy.app.app_db import lineadb
 from lineapy.data.types import *
@@ -11,7 +14,7 @@ from lineapy.execution.executor import Executor
 
 
 # IS_DEV = config("FLASK_ENV") == "development"
-HTTP_REQUEST_HOST = "http://localhost:4000"
+BACKEND_REQUEST_HOST = "http://localhost:4000"
 
 routes_blueprint = Blueprint("routes", __name__)
 
@@ -30,9 +33,11 @@ def parse_artifact_orm(artifact_orm):
             artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         artifact_json["text"] = result
-    elif artifact.value_type is CHART:
-        ...
-    elif artifact.value_type is DATASET:
+    elif artifact.value_type == CHART_TYPE:
+        artifact_json["image"] = (
+            BACKEND_REQUEST_HOST + "/api/v1/images/" + str(artifact.id)
+        )
+    elif artifact.value_type == DATASET_TYPE:
         result = LineaDB.cast_dataset(artifact_value)
         artifact_json["text"] = result
     return artifact_json
@@ -85,9 +90,9 @@ def execute(artifact_id):
             artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         asset["text"] = result
-    elif artifact.value_type is CHART:
-        ...
-    elif artifact.value_type is DATASET:
+    elif artifact.value_type == CHART_TYPE:
+        asset["image"] = BACKEND_REQUEST_HOST + "/api/v1/images/" + str(artifact.id)
+    elif artifact.value_type == DATASET_TYPE:
         result = RelationalLineaDB.cast_dataset(artifact_value)
         asset["text"] = result
 
@@ -138,6 +143,31 @@ def get_artifact(artifact_id):
         return response
 
     response = jsonify({"error": "asset not found"})
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
+
+# assuming binaries are in PNG format
+@routes_blueprint.route("/api/v1/images/<value_id>", methods=["GET"])
+def get_image(value_id):
+    value_id = UUID(value_id)
+    img = lineadb.get_node_value(value_id, latest_version())
+
+    # create file-object in memory
+    file_object = io.BytesIO()
+
+    # write PNG in file-object
+    img.save(file_object, "PNG")
+
+    # move to beginning of file so `send_file()` it will read from start
+    file_object.seek(0)
+
+    response = make_response(
+        send_file(
+            file_object,
+            mimetype="image/PNG",
+        )
+    )
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
