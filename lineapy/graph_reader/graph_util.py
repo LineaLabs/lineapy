@@ -1,7 +1,7 @@
+import networkx as nx
+
 from lineapy.data.graph import Graph
 from lineapy.data.types import Node
-
-import networkx as nx
 
 
 def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:

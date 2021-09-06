@@ -1,7 +1,6 @@
-from lineapy.utils import FunctionShouldNotBeCalled
 from lineapy.data.graph import Graph
 from lineapy.instrumentation.tracer import Tracer
-
+from lineapy.utils import FunctionShouldNotBeCalled
 
 __version__ = "0.0.1"
 

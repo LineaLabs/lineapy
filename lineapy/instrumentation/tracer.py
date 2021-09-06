@@ -1,7 +1,7 @@
-from lineapy.utils import info_log
+from typing import Optional
+
 from lineapy.instrumentation.records_manager import RecordsManager
-from typing import Any, List, Optional, Union
-from lineapy.data.types import Node, DirectedEdge
+from lineapy.utils import info_log
 
 
 class Tracer:
