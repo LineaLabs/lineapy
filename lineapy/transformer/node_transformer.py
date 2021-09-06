@@ -2,7 +2,7 @@ import ast
 from typing import Optional
 
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.transformer.transformer import LINEAPY_TRACER_NAME
+from lineapy.constants import LINEAPY_TRACER_NAME
 
 
 def turn_none_to_empty_str(a: Optional[str]):

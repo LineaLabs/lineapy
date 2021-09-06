@@ -18,7 +18,7 @@ from lineapy.instrumentation.instrumentation_util import (
 )
 from lineapy.instrumentation.records_manager import RecordsManager
 from lineapy.utils import info_log, internal_warning_log
-from tests.util import get_new_id
+from lineapy.utils import get_new_id
 
 
 class Tracer:
