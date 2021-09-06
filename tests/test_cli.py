@@ -1,6 +1,8 @@
 from tempfile import NamedTemporaryFile
-
 from click.testing import CliRunner
+
+from tests.util import reset_test_db
+from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
 
 from lineapy.cli.cli import linea_cli
 from lineapy.data.types import NodeType
@@ -11,10 +13,9 @@ from lineapy.instrumentation.instrumentation_util import (
 )
 from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import info_log
-from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
 
 
-class CliTest:
+class TestCli:
     """
     This Cli test serves as one end to end test and covers the following components:
     - LineaCli
@@ -34,18 +35,25 @@ class CliTest:
         # FIXME: test harness cli, extract out magic string
         # FIXME: add methods instead of accessing session
         config = get_linea_db_config_from_execution_mode(ExecutionMode.TEST)
+        # also reset the file
+        reset_test_db(config.database_uri)
         self.db = RelationalLineaDB()
         self.db.init_db(config)
 
     def test_end_to_end_simple_graph(self):
         with NamedTemporaryFile() as tmp:
+            info_log("simple graph code", simple_graph_code)
             tmp.write(str.encode(simple_graph_code))
+            tmp.flush()
             # might also need os.path.dirname() in addition to file name
             tmp_file_name = tmp.name
-            result = self.runner.invoke(linea_cli, [tmp_file_name])
+            # FIXME: make into constants
+            result = self.runner.invoke(linea_cli, ["--mode", "test", tmp_file_name])
             assert result.exit_code == 0
+            info_log("testing file:", tmp_file_name)
             nodes = self.db.get_nodes_by_file_name(tmp_file_name)
             # there should just be two
+            info_log("nodes", len(nodes), nodes)
             assert len(nodes) == 2
             for c in nodes:
                 if c.node_type == NodeType.CallNode:
@@ -80,6 +88,6 @@ class CliTest:
 
 
 if __name__ == "__main__":
-    tester = CliTest()
+    tester = TestCli()
     tester.setup()
     tester.test_end_to_end_simple_graph()

@@ -1,6 +1,8 @@
 from datetime import datetime
 from ast import AST
 from itertools import starmap
+from os import remove
+
 
 from lineapy.utils import get_new_id
 
@@ -20,13 +22,14 @@ def get_new_session(libraries=[]):
     )
 
 
-def reset_test_db():
-    """
-    # TODO @dhruv. Please have a simple way of tearing down the test database
-    # You might have to add some configs to the LineaDBConfig, or pass in some path to the db etc. If unsure, please sync with @yifanwu
-    """
-    pass
-    # raise NotImplementedError
+def reset_test_db(sqlite_uri: str):
+    """ """
+    try:
+        r = sqlite_uri.split("///")
+        remove(r[1])
+        return True
+    except:
+        return False
 
 
 # adapted from https://stackoverflow.com/questions/3312989/elegant-way-to-test-python-asts-for-equality-not-reference-or-object-identity

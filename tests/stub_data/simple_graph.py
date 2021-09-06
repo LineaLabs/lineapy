@@ -32,7 +32,7 @@ line_1_id = get_new_id()
 line_1 = CallNode(
     id=line_1_id,
     session_id=session.id,
-    code="abs(-11)",
+    code="a = abs(-1)",
     function_name="abs",
     assigned_variable_name="a",
     arguments=[arg_literal_id],
