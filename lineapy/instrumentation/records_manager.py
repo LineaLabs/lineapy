@@ -18,7 +18,8 @@ class RecordsManager:
         """
         Special casing this since its done once at the beginning
         """
-        pass
+        self.db.write_context(context)
+        return
 
     def add_evaluated_nodes(self, nodes: List[Node]) -> None:
         self.records_pool += nodes

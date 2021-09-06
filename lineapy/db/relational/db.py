@@ -1,3 +1,4 @@
+from lineapy.utils import NullValueError
 from typing import Set, cast
 
 from sqlalchemy import create_engine
@@ -22,8 +23,17 @@ class RelationalLineaDB(LineaDB):
     """
 
     def __init__(self):
-        self.session: Optional[scoped_session] = None
         self._data_asset_manager: Optional[DataAssetManager] = None
+
+    @property
+    def session(self) -> scoped_session:
+        if self._session:
+            return self._session
+        raise NullValueError("db should have been initialized")
+
+    @session.setter
+    def session(self, value):
+        self._session = value
 
     def init_db(self, config: LineaDBConfig):
         # TODO: we eventually need some configurations
@@ -109,19 +119,29 @@ class RelationalLineaDB(LineaDB):
     Writers
     """
 
+    @property
     def data_asset_manager(self) -> DataAssetManager:
-        return self._data_asset_manager
+        if self._data_asset_manager:
+            return self._data_asset_manager
+        raise NullValueError("data asset manager should have been initialized")
+
+    @data_asset_manager.setter
+    def data_asset_manager(self, value: DataAssetManager) -> None:
+        self._data_asset_manager = value
 
     def write_context(self, context: SessionContext) -> None:
         args = context.dict()
 
-        for i in range(len(args["libraries"])):
-            lib_args = context.libraries[i].dict()
-            lib_args["session_id"] = context.id
-            library_orm = LibraryORM(**lib_args)
-            self.session.add(library_orm)
+        if context.libraries:
+            for i in range(len(args["libraries"])):
+                lib_args = context.libraries[i].dict()
+                lib_args["session_id"] = context.id
+                library_orm = LibraryORM(**lib_args)
+                self.session.add(library_orm)
 
-            args["libraries"][i] = library_orm
+                args["libraries"][i] = library_orm
+        else:
+            args["libraries"] = []
 
         context_orm = SessionContextORM(**args)
 
@@ -220,7 +240,7 @@ class RelationalLineaDB(LineaDB):
         self.write_single_node_value(node, version=1)
 
     def write_single_node_value(self, node: Node, version: int) -> None:
-        self.data_asset_manager().write_node_value(node, version)
+        self.data_asset_manager.write_node_value(node, version)
 
     def add_node_id_to_artifact_table(
         self,
