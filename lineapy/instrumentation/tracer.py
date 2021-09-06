@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Dict, Any, Optional, List, cast
 
+from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
@@ -16,7 +17,6 @@ from lineapy.instrumentation.instrumentation_util import (
     get_linea_db_config_from_execution_mode,
 )
 from lineapy.instrumentation.records_manager import RecordsManager
-from lineapy.transformer.constants import ExecutionMode
 from lineapy.utils import info_log, internal_warning_log
 from tests.util import get_new_id
 

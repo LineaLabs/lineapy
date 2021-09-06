@@ -1,7 +1,8 @@
 from typing import List
 
 from lineapy.data.types import Node, SessionContext
-from lineapy.db.base import LineaDBConfig, LineaDB
+from lineapy.db.base import LineaDBConfig
+from lineapy.db.relational.db import RelationalLineaDB
 
 
 # TODO: add another ORM type where it's just the ID and the table.
@@ -10,7 +11,8 @@ from lineapy.db.base import LineaDBConfig, LineaDB
 class RecordsManager:
     def __init__(self, config: LineaDBConfig):
         self.records_pool: List[Node] = []
-        self.db = LineaDB(config)
+        self.db = RelationalLineaDB()
+        self.db.init_db(config)
 
     def write_session_context(self, context: SessionContext) -> None:
         """

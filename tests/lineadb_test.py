@@ -1,6 +1,7 @@
+from lineapy import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionContext
-from lineapy.db.base import LineaDBConfig
+from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.graph_util import are_graphs_identical
@@ -48,7 +49,8 @@ class TestLineaDB:
     def set_up(self):
         # just use the default config
         self.lineadb = RelationalLineaDB()
-        self.lineadb.init_db(LineaDBConfig(mode="TEST"))
+        db_config = get_default_config_by_environment(ExecutionMode.TEST)
+        self.lineadb.init_db(db_config)
 
     def write_and_read_graph(
         self, graph: Graph, context: SessionContext = None

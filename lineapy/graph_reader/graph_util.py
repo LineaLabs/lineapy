@@ -23,7 +23,7 @@ def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
     return True
 
 
-def are_nodes_conetent_equal(n1: Node, n2: Node) -> bool:
+def are_nodes_content_equal(n1: Node, n2: Node) -> bool:
     """
     TODO:
     - we should probably make use of PyDantic's built in comparison, not possible right now since we have the extra ID field.

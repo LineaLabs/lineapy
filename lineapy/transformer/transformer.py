@@ -3,8 +3,7 @@ from typing import Any, List, Optional
 
 from astor import to_source
 
-from lineapy.data.types import SessionType
-from lineapy.transformer.constants import (
+from lineapy.constants import (
     LINEAPY_EXECUTION_MODE,
     LINEAPY_IMPORT_LIB_NAME,
     LINEAPY_SESSION_TYPE,
@@ -14,6 +13,7 @@ from lineapy.transformer.constants import (
     LINEAPY_SESSION_TYPE_JUPYTER,
     ExecutionMode,
 )
+from lineapy.data.types import SessionType
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import info_log
 

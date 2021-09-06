@@ -4,8 +4,8 @@ from click.testing import CliRunner
 
 from lineapy.cli.cli import linea_cli
 from lineapy.data.types import NodeType
-from lineapy.db.base import LineaDB
-from lineapy.graph_reader.graph_util import are_nodes_conetent_equal
+from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.graph_reader.graph_util import are_nodes_content_equal
 from lineapy.instrumentation.instrumentation_util import (
     get_linea_db_config_from_execution_mode,
 )
@@ -34,7 +34,8 @@ class CliTest:
         # FIXME: test harness cli, extract out magic string
         # FIXME: add methods instead of accessing session
         config = get_linea_db_config_from_execution_mode(ExecutionMode.TEST)
-        self.db = LineaDB(config)
+        self.db = RelationalLineaDB()
+        self.db.init_db(config)
 
     def test_end_to_end_simple_graph(self):
         with NamedTemporaryFile() as tmp:
@@ -48,9 +49,9 @@ class CliTest:
             assert len(nodes) == 2
             for c in nodes:
                 if c.node_type == NodeType.CallNode:
-                    assert are_nodes_conetent_equal(c, line_1)
+                    assert are_nodes_content_equal(c, line_1)
                 if c.node_type == NodeType.ArgumentNode:
-                    assert are_nodes_conetent_equal(c, arg_literal)
+                    assert are_nodes_content_equal(c, arg_literal)
                 info_log("found_call_node", c)
 
     def test_no_script_error(self):
@@ -63,7 +64,7 @@ class CliTest:
         # assert "Usage:" in result.stderr
         pass
 
-    def test_no_server_error():
+    def test_no_server_error(self):
         """
         When linea is running, there should be a database server that is active and receiving the scripts
         TODO

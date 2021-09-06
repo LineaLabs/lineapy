@@ -1,6 +1,6 @@
+from lineapy.constants import ExecutionMode
 from lineapy.db.base import DatabaseOption, FileSystemOption
 from lineapy.db.base import LineaDBConfig
-from lineapy.transformer.constants import ExecutionMode
 
 
 def get_linea_db_config_from_execution_mode(
