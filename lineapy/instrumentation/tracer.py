@@ -17,8 +17,7 @@ from lineapy.instrumentation.instrumentation_util import (
     get_linea_db_config_from_execution_mode,
 )
 from lineapy.instrumentation.records_manager import RecordsManager
-from lineapy.utils import info_log, internal_warning_log
-from lineapy.utils import get_new_id
+from lineapy.utils import info_log, internal_warning_log, get_new_id
 
 
 class Tracer:
