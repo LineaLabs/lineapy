@@ -4,9 +4,9 @@ from uuid import UUID
 
 import pytest
 
-import lineapy.app.app_db
 from lineapy import ExecutionMode
-from lineapy.db.base import get_default_config_by_environment
+import lineapy.app.app_db
+from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 
 
@@ -98,9 +98,3 @@ def setup_db(mode: ExecutionMode):
     test_db.session.add(exec_orm)
     test_db.session.commit()
     return test_db
-
-
-if __name__ == "__main__":
-    # This is for spinning up a DB for testing the front-end.
-    # No backend tests depend on this.
-    setup_db(ExecutionMode.DEV)
