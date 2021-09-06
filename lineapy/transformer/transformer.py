@@ -23,7 +23,9 @@ class Transformer:
     def __init__(self):
         self.has_initiated = False
 
-    def transform(self, code: str, session_name: Optional[str], one_shot=True) -> str:
+    def transform(
+        self, code: str, session_name: Optional[str] = None, one_shot=True
+    ) -> str:
         info_log("transform", code)
         transformed_tree = self.transform_user_code(code)
         if one_shot:

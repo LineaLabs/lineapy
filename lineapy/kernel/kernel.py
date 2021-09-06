@@ -6,6 +6,7 @@ import sys
 
 from ipykernel.ipkernel import IPythonKernel
 
+from lineapy import __version__
 from lineapy.transformer.transformer import Transformer
 
 
@@ -16,9 +17,6 @@ def get_kernel_json():
         data = json.load(fid)
     data["argv"][0] = sys.executable
     return data
-
-
-from lineapy import __version__
 
 
 class LineaKernel(IPythonKernel):
@@ -97,7 +95,6 @@ class LineaKernel(IPythonKernel):
                 )
 
             linea_transformed_code = self.transformer.transform(code)
-            linea_transformed_code
             return _run_cell_func(linea_transformed_code)
 
             # below are some reference code if we ever want to support async.
