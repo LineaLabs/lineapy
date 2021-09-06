@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     VariableAliasNode,
     ArgumentNode,
@@ -7,8 +7,7 @@ from lineapy.data.types import (
 from tests.stub_data.simple_graph import session
 from tests.util import get_new_id
 
-"""
-a = [1,2,3]
+code = """a = [1,2,3]
 b = a
 a.append(4)
 s = sum(b)
