@@ -25,6 +25,9 @@ LINEAPY_SESSION_TYPE_JUPYTER = "JUPYTER"
 LINEAPY_SESSION_TYPE_SCRIPT = "SCRIPT"
 LINEAPY_EXECUTION_MODE = "ExecutionMode"
 
+# no addressable file location
+DB_DATA_ASSET_MANAGER = "virtual"
+
 
 class ExecutionMode(Enum):
     """

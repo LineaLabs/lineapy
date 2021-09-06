@@ -29,18 +29,18 @@ class Tracer:
     def __init__(
         self,
         session_type: SessionType,
-        file_name: Optional[str] = None,
+        file_name: str = "",
         execution_mode: ExecutionMode = ExecutionMode.TEST,
     ):
         self.session_type = session_type
         self.file_name = file_name
         self.execution_pool: List[Node] = []
         # TODO: we should probably poll from the local linea config file what this configuration should be
-        # FIXME: using this for testing
         config = get_linea_db_config_from_execution_mode(execution_mode)
         self.records_manager = RecordsManager(config)
         self.session_id = get_new_id()
         self.executor = Executor()
+        self.create_session_context(session_type, file_name)
 
     def add_unevaluated_node(self, record: Node):
         self.execution_pool.append(record)
@@ -72,15 +72,15 @@ class Tracer:
         # then we can create a new ORM node (not our IR node, which is a little confusing)
         pass
 
-    def create_session_context(self, session_type: SessionType):
+    def create_session_context(self, session_type: SessionType, file_name: str):
         session_context = SessionContext(
             id=self.session_id,
             # TODO: hm, we should prob refactor the name, kinda confusing here
-            environmen_type=session_type,
-            create_time=datetime.now,
+            environment_type=session_type,
+            creation_time=datetime.now(),
+            file_name=file_name,
         )
-
-        self.records_manager.add_evaluated_nodes(session_context)
+        self.records_manager.write_session_context(session_context)
 
     TRACE_IMPORT = "trace_import"
 
