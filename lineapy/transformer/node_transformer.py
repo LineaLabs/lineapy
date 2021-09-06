@@ -2,7 +2,7 @@ import ast
 from typing import Optional
 
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.transformer.transformer import LINEAPY_TRACER_NAME
+from lineapy.constants import LINEAPY_TRACER_NAME
 
 
 def turn_none_to_empty_str(a: Optional[str]):
@@ -14,7 +14,8 @@ def turn_none_to_empty_str(a: Optional[str]):
 class NodeTransformer(ast.NodeTransformer):
     """
     Notes:
-    - Need to be careful about the order by which these calls are invoked so that the transformation do not get called more than once.
+    - Need to be careful about the order by which these calls are invoked so that the transformation do not get called
+    more than once.
     """
 
     def __init__(self, source: str):

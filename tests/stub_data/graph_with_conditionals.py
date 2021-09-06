@@ -21,6 +21,14 @@ else:
 ```
 """
 
+code = """bs = [1,2]
+if len(bs) > 4:
+    print("True")
+else:
+    bs.append(3)
+    print("False)
+"""
+
 session = get_new_session()
 
 arg_1 = ArgumentNode(

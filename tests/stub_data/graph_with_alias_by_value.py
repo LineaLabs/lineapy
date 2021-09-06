@@ -20,6 +20,11 @@ b = a
 ```
 """
 
+code = """a = 0
+b = a
+a = 2
+"""
+
 a_assign = LiteralAssignNode(
     id=get_new_id(),
     session_id=session.id,

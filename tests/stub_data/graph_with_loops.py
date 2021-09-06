@@ -32,6 +32,15 @@ Graph method notes:
 
 """
 
+code = """a = []
+b = 0
+for x in range(9):
+    a.append(x)
+    b+=x
+x = sum(a)
+y = x + b
+"""
+
 operator_lib = Library(id=get_new_id(), name="operator", version="1", path="")
 
 session = get_new_session(libraries=[operator_lib])

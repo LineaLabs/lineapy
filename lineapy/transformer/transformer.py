@@ -1,10 +1,9 @@
 import ast
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from astor import to_source
 
-from lineapy.data.types import SessionType
-from lineapy.transformer.constants import (
+from lineapy.constants import (
     LINEAPY_EXECUTION_MODE,
     LINEAPY_IMPORT_LIB_NAME,
     LINEAPY_SESSION_TYPE,
@@ -14,11 +13,23 @@ from lineapy.transformer.constants import (
     LINEAPY_SESSION_TYPE_JUPYTER,
     ExecutionMode,
 )
+from lineapy.data.types import SessionType
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import info_log
 
 # FIXME: find the typing for AST nodes
-TreeNodeType = Any
+TreeNodeType = ast.AST
+
+
+# FIXME: add typing
+def append_code_to_tree(
+    source: ast.Module, to_append: List[TreeNodeType], is_beginning: bool = False
+) -> ast.Module:
+    if is_beginning:
+        source.body = to_append + source.body
+    else:
+        source.body = source.body + to_append
+    return source
 
 
 # FIXME: add typing
@@ -32,7 +43,8 @@ def append_code_to_tree(source: ast.Module, to_append, is_beginning=False):
 
 class Transformer:
     """
-    The reason why we have the transformer and the instrumentation separate is that we need runtime information when creating the nodes.
+    The reason why we have the transformer and the instrumentation separate is that we need runtime information when
+    creating the nodes.
     If we created the instrumentation statically, then the node level information would be lost.
     """
 

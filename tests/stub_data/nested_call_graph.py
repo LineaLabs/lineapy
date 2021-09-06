@@ -11,6 +11,8 @@ a = min(abs(-11), 10)
 ```
 """
 
+code = "a = min(abs(-11), 10)"
+
 session = get_new_session()
 
 arg_literal_id = get_new_id()

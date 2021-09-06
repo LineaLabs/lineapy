@@ -23,7 +23,7 @@ def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
     return True
 
 
-def are_nodes_conetent_equal(n1: Node, n2: Node) -> bool:
+def are_nodes_content_equal(n1: Node, n2: Node) -> bool:
     """
     TODO:
     - we should probably make use of PyDantic's built in comparison, not possible right now since we have the extra ID field.
@@ -52,10 +52,21 @@ def are_nodes_conetent_equal(n1: Node, n2: Node) -> bool:
         n1 = cast(ArgumentNode, n1)
         n2 = cast(ArgumentNode, n2)
         if n1.positional_order != n2.positional_order:
+            internal_warning_log(
+                "Nodes have different positional_order",
+                n1.positional_order,
+                n2.positional_order,
+            )
             return False
         if n1.value_node_id != n2.value_node_id:
+            internal_warning_log(
+                "Nodes have different value_node_id", n1.value_node_id, n2.value_node_id
+            )
             return False
         if n2.value_literal != n2.value_literal:
+            internal_warning_log(
+                "Nodes have different value_literal", n1.value_literal, n2.value_literal
+            )
             return False
         return True
 

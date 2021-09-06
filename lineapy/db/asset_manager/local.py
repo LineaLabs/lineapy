@@ -1,7 +1,9 @@
 from sqlalchemy import and_
 from sqlalchemy.orm import scoped_session
+from typing import Optional, cast
 
-from lineapy.data.types import NodeValue, Node, LineaID
+from lineapy.constants import DB_DATA_ASSET_MANAGER
+from lineapy.data.types import CallNode, NodeType, NodeValue, Node, LineaID
 from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.db.relational.schema.relational import NodeValueORM
 
@@ -10,21 +12,27 @@ class LocalDataAssetManager(DataAssetManager):
     def __init__(self, session: scoped_session):
         self.session = session
 
-    def write_node_value(self, node: Node, version: int) -> str:
+    def write_node_value(self, node: Node, version: int) -> Optional[str]:
         # first check if node value already exists
         if self.is_node_cached(node, version):
-            return
+            return DB_DATA_ASSET_MANAGER
 
-        materialize = DataAssetManager.caching_decider(node)
-        value = None
-        if materialize:
-            value = node.value
+        if node.node_type == NodeType.CallNode:
+            node = cast(CallNode, node)
+            materialize = DataAssetManager.caching_decider(node)
+            if materialize:
+                value = node.value
 
-        value_orm = NodeValueORM(
-            node_id=node.id, value=value, version=version, virtual=not materialize
-        )
-        self.session.add(value_orm)
-        self.session.commit()
+                value_orm = NodeValueORM(
+                    node_id=node.id,
+                    value=value,
+                    version=version,
+                    virtual=not materialize,
+                )
+                self.session.add(value_orm)
+                self.session.commit()
+                return DB_DATA_ASSET_MANAGER
+        return None
 
     def read_node_value(self, id: LineaID, version: int) -> NodeValue:
         value_orm = (
