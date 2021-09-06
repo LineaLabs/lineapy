@@ -22,14 +22,14 @@ def get_new_session(libraries: Optional[List] = None) -> SessionContext:
     )
 
 
-def reset_test_db():
-    """
-    # TODO @dhruv. Please have a simple way of tearing down the test database
-    # You might have to add some configs to the LineaDBConfig, or pass in some path to the db etc.
-    If unsure, please sync with @yifanwu
-    """
-    pass
-    # raise NotImplementedError
+def reset_test_db(sqlite_uri: str):
+    """ """
+    try:
+        r = sqlite_uri.split("///")
+        remove(r[1])
+        return True
+    except:
+        return False
 
 
 def compare_ast(node1: AST, node2: AST):

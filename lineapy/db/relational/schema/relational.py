@@ -76,6 +76,7 @@ Base = declarative_base()
 # from https://stackoverflow.com/questions/183042/how-can-i-use-uuids-in-sqlalchemy
 class LineaID(types.TypeDecorator):
     impl = MSBinary
+    cache_ok = True  # this surppress an error from SQLAlchemy
 
     def __init__(self):
         self.impl.length = 16
@@ -85,7 +86,7 @@ class LineaID(types.TypeDecorator):
         if value and isinstance(value, UUID):
             return value.bytes
         elif value and not isinstance(value, UUID):
-            raise (ValueError, "value %s is not a valid UUID" % value)
+            raise ValueError("value %s is not a valid UUID" % value)
         else:
             return None
 
@@ -102,6 +103,7 @@ class LineaID(types.TypeDecorator):
 class AttributesDict(types.TypeDecorator):
 
     impl = Text()
+    cache_ok = True
 
     def process_bind_param(self, value, dialect):
         if value is not None:

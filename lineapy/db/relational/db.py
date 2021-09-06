@@ -309,7 +309,7 @@ class RelationalLineaDB(LineaDB):
             .all()
         )
         call_nodes.extend(argument_nodes)
-        nodes = [self.get_node_by_id(node_id) for node_id in call_nodes]
+        nodes = [self.map_orm_to_pydantic(node) for node in call_nodes]
         return nodes
 
     def get_context(self, linea_id: LineaID) -> SessionContext:
@@ -327,7 +327,9 @@ class RelationalLineaDB(LineaDB):
         """
 
         node = self.session.query(NodeORM).filter(NodeORM.id == linea_id).one()
+        return self.map_orm_to_pydantic(node)
 
+    def map_orm_to_pydantic(self, node: NodeORM) -> Node:
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNode, node)
