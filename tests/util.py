@@ -1,7 +1,9 @@
 from ast import AST
 from datetime import datetime
-from astpretty import pformat
+from os import remove
 from typing import Optional, List
+
+from astpretty import pformat
 
 from lineapy.data.types import (
     SessionContext,
