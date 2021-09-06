@@ -1,5 +1,10 @@
 # Transformer
 
+## Testing Locally
+
+This is a temporary solution and we should have something more permanent later: go to the root directory `python lineapy/cli/cli.py tests/stub_data/script_error_free.py`.
+
+And to trigger the CLI test: `python tests/test_cli.py`.
 
 ## Special functions that we need to NOT capture
 For `linea.publish(var_name, "optional_description")`, we need to identify what node it points to at runt time.

@@ -2,10 +2,7 @@ import io
 import os
 import re
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 LONG_DESCRIPTION = """"""
 DESCRIPTION = ""

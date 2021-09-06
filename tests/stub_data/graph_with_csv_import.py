@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
@@ -7,7 +7,8 @@ from lineapy.data.types import (
     ImportNode,
     StorageType,
 )
-from tests.util import get_new_id, get_new_session
+from lineapy.utils import get_new_id
+from tests.util import get_new_session
 
 """
 ```python
@@ -17,6 +18,12 @@ s = df['a'].sum()
 ```
 This test also has method chaining, which is a good case
 """
+
+code = """import pandas as pd
+df = pd.read_csv('simple_data.csv')
+s = df['a'].sum()
+"""
+
 pandas_lib = Library(
     id=get_new_id(),
     name="pandas",

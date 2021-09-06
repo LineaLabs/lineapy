@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
@@ -19,6 +19,14 @@ else:
     bs.append(3)
     print("False)    
 ```
+"""
+
+code = """bs = [1,2]
+if len(bs) > 4:
+    print("True")
+else:
+    bs.append(3)
+    print("False)
 """
 
 session = get_new_session()

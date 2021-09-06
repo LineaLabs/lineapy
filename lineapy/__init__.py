@@ -1,9 +1,10 @@
+from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
+from lineapy.data.types import SessionType
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils import FunctionShouldNotBeCalled
 
 __version__ = "0.0.1"
-
 
 from typing import Optional
 
@@ -24,4 +25,12 @@ def publish_with_tracer(
     tracer.publish(variable_name, description)
 
 
-__all__ = ["Graph", "Tracer", "publish", "publish_with_tracer"]
+__all__ = [
+    "Graph",
+    "Tracer",
+    "publish",
+    "publish_with_tracer",
+    "SessionType",
+    "ExecutionMode",
+    "__version__",
+]

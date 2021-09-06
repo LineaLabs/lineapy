@@ -1,10 +1,4 @@
 import uuid
-from datetime import datetime
-from enum import Enum
-from typing import Any, Tuple, Optional, List
-
-from pydantic.dataclasses import dataclass
-
 
 import altair as alt
 import pandas as pd
@@ -114,7 +108,6 @@ lookup = {
     "RandomForestClassifier": rf_node,
 }
 
-
 # Altair setup
 dt_node_context = NodeContext(
     lines=(6, 6), columns=(1, 22), execution_time=datetime.now()
@@ -155,7 +148,6 @@ render_node = Node(
 
 edge3 = DirectedEdge(source_node_id=alt_node.id, sink_node_id=render_node.id)
 
-
 enable2_node_context = NodeContext(
     lines=(7, 7), columns=(14, 33), execution_time=datetime.now()
 )
@@ -168,7 +160,6 @@ enable2_node = Node(
 )
 
 edge4 = DirectedEdge(source_node_id=render_node.id, sink_node_id=enable2_node.id)
-
 
 stub_mutation_node = Node(
     name="alt_1", uuid=get_new_id(), code="", session_id=session.uuid
@@ -184,7 +175,6 @@ lookup: Any = {
     "sns": sns_node,
     "RandomForestClassifier": rf_node,
 }
-
 
 assets_node_context = NodeContext(
     lines=(9, 9), columns=(1, 47), execution_time=datetime.now()
@@ -221,7 +211,6 @@ lookup: Any = {
 
 edge8 = DirectedEdge(source_node_id=sns_node.id, sink_node_id=plot_node.id)
 egde9 = DirectedEdge(source_node_id=assets_node.id, sink_node_id=plot_node.id)
-
 
 # Function definitions
 # Currently assumes pure functions
