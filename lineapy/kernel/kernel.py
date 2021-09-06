@@ -30,7 +30,7 @@ class LineaKernel(IPythonKernel):
 
     """
     TODO:
-    - [] the installation is still not working properly 
+    - [] the installation is still not working properly
     - [] we might need to support async as well.
     """
 

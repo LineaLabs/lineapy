@@ -1,4 +1,5 @@
-from typing import Any, List, Union
+from typing import List, Union
+
 from lineapy.data.types import Node, DirectedEdge
 
 # from lineapy.db.
