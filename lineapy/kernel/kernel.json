@@ -2,7 +2,7 @@
     "argv": [
         "python",
         "-m",
-        "lineapy.kernel",
+        "linea_kernel",
         "-f",
         "{connection_file}"
     ],

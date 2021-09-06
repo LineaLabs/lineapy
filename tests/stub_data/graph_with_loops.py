@@ -10,8 +10,6 @@ from lineapy.data.types import (
 )
 from tests.util import get_new_id, get_new_session
 
-from tests.stub_data.simple_graph import session
-
 """
 Original code:
 

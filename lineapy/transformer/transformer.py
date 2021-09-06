@@ -32,15 +32,6 @@ def append_code_to_tree(
     return source
 
 
-# FIXME: add typing
-def append_code_to_tree(source: ast.Module, to_append, is_beginning=False):
-    if is_beginning:
-        source.body = to_append + source.body
-    else:
-        source.body = source.body + to_append
-    return source
-
-
 class Transformer:
     """
     The reason why we have the transformer and the instrumentation separate is that we need runtime information when
