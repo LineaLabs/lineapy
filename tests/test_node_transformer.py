@@ -29,10 +29,10 @@ class TestNodeTransformer:
 
     def test_visit_import(self):
         simple_import = "import pandas"
-        simple_expected = "lineapy_tracer.trace_import(name=\'pandas\', code=\'import pandas\', alias=None)\n"
+        simple_expected = "lineapy_tracer.trace_import(name='pandas', code='import pandas', alias=None)\n"
         self._check_equality(simple_import, simple_expected)
         alias_import = "import pandas as pd"
-        alias_expected = "lineapy_tracer.trace_import(name=\'pandas\', code=\'import pandas as pd\',\n    alias=\'pd\')\n"
+        alias_expected = "lineapy_tracer.trace_import(name='pandas', code='import pandas as pd',\n    alias='pd')\n"
         self._check_equality(alias_import, alias_expected)
         # multiple_imports = "import os, time"
         # multiple_expected = ""
