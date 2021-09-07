@@ -1,3 +1,6 @@
+import unittest
+from typing import Tuple, Union
+
 from lineapy import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionContext
@@ -41,22 +44,29 @@ from tests.stub_data.simple_with_variable_argument_and_print import (
 from tests.util import reset_test_db
 
 
-class TestLineaDB:
+class TestLineaDB(unittest.TestCase):
     """
     Maybe we should wrap this in the unit test class?
     """
 
-    def set_up(self):
+    @property
+    def db_config(self):
+        return get_default_config_by_environment(ExecutionMode.TEST)
+
+    def setUp(self):
         # just use the default config
         self.lineadb = RelationalLineaDB()
-        db_config = get_default_config_by_environment(ExecutionMode.TEST)
-        self.lineadb.init_db(db_config)
+        self.lineadb.init_db(self.db_config)
+
+    def tearDown(self):
+        # remove the test db
+        reset_test_db(self.db_config.database_uri)
+        pass
 
     def write_and_read_graph(
         self, graph: Graph, context: SessionContext = None
-    ) -> Graph:
+    ) -> Union[Tuple[Graph, SessionContext], Graph]:
         # let's write the in memory graph in (with all the nodes)
-        self.set_up()
         self.lineadb.write_nodes(graph.nodes)
 
         if context is not None:
@@ -210,16 +220,3 @@ class TestLineaDB:
             graph, a_assign
         )
         assert len(derived) == 2
-
-    def tear_down(self):
-        # remove the test db
-        # @dorx, please share what the best way to do a tear down is---I think having a delete_db function on LineaDBWriter seems a little dangerous?
-        reset_test_db()
-        pass
-
-
-if __name__ == "__main__":
-    tester = TestLineaDB()
-    tester.test_writing_and_reading_simple_graph_nodes()
-    tester.test_search_artifacts_by_data_source()
-    tester.tear_down()

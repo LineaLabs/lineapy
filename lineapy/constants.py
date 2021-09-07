@@ -3,19 +3,19 @@ from enum import Enum
 PROD_ENV = "production"
 PROD_DEBUG = False
 PROD_TESTING = False
-PROD_DATABASE_URI = "sqlite:///local.db"
+PROD_DATABASE_URI = "sqlite:///prod.sqlite"
 
 # persistent tests
 DEV_ENV = "development"
 DEV_DEBUG = True
 DEV_TESTING = False
-DEV_DATABASE_URI = "sqlite:///local.db"
+DEV_DATABASE_URI = "sqlite:///dev.sqlite"
 
 # in memory tests
-TEST_ENV = "development"
+TEST_ENV = "test"
 TEST_DEBUG = True
 TEST_TESTING = True
-TEST_DATABASE_URI = "sqlite:///:memory:"
+TEST_DATABASE_URI = "sqlite:///test.sqlite"
 
 LINEAPY_TRACER_CLASS = "Tracer"
 LINEAPY_TRACER_NAME = "lineapy_tracer"
