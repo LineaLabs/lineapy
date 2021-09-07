@@ -1,5 +1,4 @@
-from lineapy.utils import NullValueError
-from typing import Set, cast
+from typing import Set, Union, cast
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -11,6 +10,9 @@ from lineapy.data.types import *
 from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
+from lineapy.utils import CaseNotHandledError, NullValueError
+
+LineaIDAlias = Union[LineaID, LineaIDORM]
 
 
 class RelationalLineaDB(LineaDB):
@@ -66,7 +68,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.VariableAliasNode: VariableAliasNodeORM,
         }
 
-        return pydantic_to_orm[node.node_type]
+        return pydantic_to_orm[node.node_type]  # type: ignore
 
     @staticmethod
     def get_pydantic(node: NodeORM) -> Node:
@@ -83,7 +85,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.VariableAliasNode: VariableAliasNode,
         }
 
-        return orm_to_pydantic[node.node_type]
+        return orm_to_pydantic[node.node_type]  # type: ignore
 
     @staticmethod
     def get_type(val: Any) -> LiteralType:
@@ -100,6 +102,7 @@ class RelationalLineaDB(LineaDB):
             return LiteralType.Integer
         elif isinstance(val, bool):
             return LiteralType.Boolean
+        raise CaseNotHandledError("Literal is not string, int, or boolean")
 
     @staticmethod
     def cast_serialized(val: str, literal_type: LiteralType) -> Any:
@@ -110,7 +113,7 @@ class RelationalLineaDB(LineaDB):
         return val
 
     @staticmethod
-    def cast_dataset(val: Any) -> str:
+    def cast_dataset(val: Any) -> Optional[str]:
         if hasattr(val, "to_csv"):
             return val.to_csv(index=False)
         return None
@@ -160,9 +163,10 @@ class RelationalLineaDB(LineaDB):
         args = node.dict()
         if node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
-            args["value_literal_type"] = RelationalLineaDB.get_type(
-                args["value_literal"]
-            )
+            if args["value_literal"] is not None:
+                args["value_literal_type"] = RelationalLineaDB.get_type(
+                    args["value_literal"]
+                )
 
         elif node.node_type is NodeType.CallNode:
             node = cast(CallNode, node)
@@ -201,20 +205,19 @@ class RelationalLineaDB(LineaDB):
                         },
                     )
 
-            if (
-                node.node_type is NodeType.ConditionNode
-                and node.dependent_variables_in_predicate is not None
-            ):
+            if node.node_type is NodeType.ConditionNode:
                 node = cast(ConditionNode, node)
-                for dependent_id in node.dependent_variables_in_predicate:
-                    self.session.execute(
-                        condition_association_table.insert(),
-                        params={
-                            "condition_node_id": node.id,
-                            "dependent_node_id": dependent_id,
-                        },
-                    )
-                del args["dependent_variables_in_predicate"]
+                if node.dependent_variables_in_predicate is not None:
+
+                    for dependent_id in node.dependent_variables_in_predicate:
+                        self.session.execute(
+                            condition_association_table.insert(),
+                            params={
+                                "condition_node_id": node.id,
+                                "dependent_node_id": dependent_id,
+                            },
+                        )
+                    del args["dependent_variables_in_predicate"]
 
             del args["state_change_nodes"]
             del args["import_nodes"]
@@ -244,11 +247,11 @@ class RelationalLineaDB(LineaDB):
 
     def add_node_id_to_artifact_table(
         self,
-        node_id: LineaID,
-        context_id: LineaID,
+        node_id: LineaIDORM,
+        context_id: LineaIDORM,
         name: str = "",
         date_created: str = "",
-        code: LineaID = "",
+        code: Any = "",  # FIXME: this should NOT be passed in
         value_type: str = "",
     ) -> None:
         """
@@ -271,7 +274,7 @@ class RelationalLineaDB(LineaDB):
             self.session.add(artifact)
             self.session.commit()
 
-    def remove_node_id_from_artifact_table(self, node_id: LineaID) -> None:
+    def remove_node_id_from_artifact_table(self, node_id: LineaIDORM) -> None:
         """
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
@@ -312,7 +315,7 @@ class RelationalLineaDB(LineaDB):
         nodes = [self.map_orm_to_pydantic(node) for node in call_nodes]
         return nodes
 
-    def get_context(self, linea_id: LineaID) -> SessionContext:
+    def get_context(self, linea_id: LineaIDORM) -> SessionContext:
         query_obj = (
             self.session.query(SessionContextORM)
             .filter(SessionContextORM.id == linea_id)
@@ -321,11 +324,12 @@ class RelationalLineaDB(LineaDB):
         obj = SessionContext.from_orm(query_obj)
         return obj
 
-    def get_node_by_id(self, linea_id: LineaID) -> Node:
+    def get_node_by_id(self, linea_id: LineaIDAlias) -> Node:
         """
         Returns the node by looking up the database by ID
+        SQLAlchemy is able to translate between the two types on demand
         """
-
+        # linea_id_orm = LineaIDORM().process_bind_param(linea_id)
         node = self.session.query(NodeORM).filter(NodeORM.id == linea_id).one()
         return self.map_orm_to_pydantic(node)
 
@@ -405,7 +409,9 @@ class RelationalLineaDB(LineaDB):
 
         return RelationalLineaDB.get_pydantic(node).from_orm(node)
 
-    def get_node_value(self, node_id: LineaID, version: int) -> Optional[NodeValue]:
+    def get_node_value(
+        self, node_id: LineaIDAlias, version: int
+    ) -> Optional[NodeValue]:
         value_orm = (
             self.session.query(NodeValueORM)
             .filter(
@@ -417,7 +423,7 @@ class RelationalLineaDB(LineaDB):
             return value_orm.value
         return None
 
-    def get_artifact(self, artifact_id: LineaID) -> Optional[Artifact]:
+    def get_artifact(self, artifact_id: LineaIDAlias) -> Optional[Artifact]:
         return Artifact.from_orm(
             self.session.query(ArtifactORM)
             .filter(ArtifactORM.id == artifact_id)
@@ -480,7 +486,7 @@ class RelationalLineaDB(LineaDB):
 
         return json_artifact
 
-    def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
+    def get_graph_from_artifact_id(self, artifact_id: LineaIDAlias) -> Graph:
         """
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation
@@ -496,7 +502,7 @@ class RelationalLineaDB(LineaDB):
         nodes = [self.get_node_by_id(node_id) for node_id in node_ids]
         return Graph(nodes)
 
-    def get_ancestors_from_node(self, node_id: LineaID) -> Set[LineaID]:
+    def get_ancestors_from_node(self, node_id: LineaIDAlias) -> Set[LineaIDAlias]:
         node = self.get_node_by_id(node_id)
         parents = Graph.get_parents_from_node(node)
         ancestors = set(parents)
