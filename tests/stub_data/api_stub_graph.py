@@ -42,6 +42,10 @@ import_pandas = ImportNode(
     session_id=session.id,
     library=pandas_lib,
     alias="pd",
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=19,
 )
 
 simple_data_node = DataSourceNode(
@@ -57,6 +61,10 @@ literal_node = ArgumentNode(
     session_id=session.id,
     positional_order=0,
     value_node_id=simple_data_node.id,
+    lineno=2,
+    col_offset=17,
+    end_lineno=2,
+    end_col_offset=34,
 )
 
 read_csv_call = CallNode(
@@ -66,6 +74,10 @@ read_csv_call = CallNode(
     function_module=import_pandas.id,
     assigned_variable_name="df",
     arguments=[literal_node.id],
+    lineno=2,
+    col_offset=0,
+    end_lineno=2,
+    end_col_offset=35,
 )
 
 col_name_literal = ArgumentNode(
@@ -73,6 +85,10 @@ col_name_literal = ArgumentNode(
     session_id=session.id,
     positional_order=0,
     value_literal="a",
+    lineno=3,
+    col_offset=7,
+    end_lineno=3,
+    end_col_offset=10,
 )
 
 access_a_column = CallNode(
@@ -81,6 +97,10 @@ access_a_column = CallNode(
     function_name="__getitem__",  # @dhruv this is a built in method, not sure if we need to add a module here
     function_module=read_csv_call.id,
     arguments=[col_name_literal.id],
+    lineno=3,
+    col_offset=4,
+    end_lineno=3,
+    end_col_offset=11,
 )
 
 sum_call = CallNode(
@@ -90,6 +110,10 @@ sum_call = CallNode(
     function_name="sum",
     function_module=access_a_column.id,
     assigned_variable_name="s",
+    lineno=3,
+    col_offset=0,
+    end_lineno=3,
+    end_col_offset=17,
 )
 
 graph_with_csv_import = Graph(
