@@ -142,7 +142,3 @@ scratch/
 *.tmp
 temp.py
 
-
-## Linea specific
-*.sqlite
-*.db

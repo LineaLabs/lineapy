@@ -1,24 +1,26 @@
-from enum import Enum
 import os.path as path
+import sys
+from enum import Enum
 
-_base = path.dirname(__file__)
+lineapy_module = sys.modules[__name__]
+_base = path.split(path.dirname(lineapy_module.__file__))[0]
 
 PROD_ENV = "production"
 PROD_DEBUG = False
 PROD_TESTING = False
-PROD_DATABASE_URI = "sqlite:///prod.sqlite"
+PROD_DATABASE_URI = f"sqlite:///{path.join(_base, 'prod.sqlite')}"
 
 # persistent tests
 DEV_ENV = "development"
 DEV_DEBUG = True
 DEV_TESTING = False
-DEV_DATABASE_URI = "sqlite:///dev.sqlite"
+DEV_DATABASE_URI = f"sqlite:///{path.join(_base, 'dev.sqlite')}"
 
 # in memory tests
 TEST_ENV = "test"
 TEST_DEBUG = True
 TEST_TESTING = True
-TEST_DATABASE_URI = "sqlite:///test.sqlite"
+TEST_DATABASE_URI = f"sqlite:///{path.join(_base, 'test.sqlite')}"
 
 LINEAPY_TRACER_CLASS = "Tracer"
 LINEAPY_TRACER_NAME = "lineapy_tracer"
