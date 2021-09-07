@@ -69,14 +69,19 @@ from lineapy.data.types import (
 
 Base = declarative_base()
 
+
 ###############
 # base tables #
 ###############
 
 # from https://stackoverflow.com/questions/183042/how-can-i-use-uuids-in-sqlalchemy
 class LineaIDORM(types.TypeDecorator):
+    # FIXME: missing two inherited abstract methods that need to be implemented:
+    #  `process_literal_param` from  `TypeDecorator` and
+    #  `python_type` from `TypeEngine`.
+
     impl = MSBinary
-    cache_ok = True  # this surppress an error from SQLAlchemy
+    cache_ok = True  # this suppresses an error from SQLAlchemy
 
     def __init__(self):
         self.impl.length = 16
@@ -101,6 +106,9 @@ class LineaIDORM(types.TypeDecorator):
 
 
 class AttributesDict(types.TypeDecorator):
+    # FIXME: missing two inherited abstract methods that need to be implemented:
+    #  `process_literal_param` from  `TypeDecorator` and
+    #  `python_type` from `TypeEngine`.
 
     impl = Text()
     cache_ok = True
@@ -159,6 +167,7 @@ code_token_association_table = Table(
     Column("code", ForeignKey("code.id"), primary_key=True),
     Column("token", ForeignKey("token.id"), primary_key=True),
 )
+
 
 # CodeORM and TokenORM are temporary, to be used for integration testing of intermediates
 
@@ -232,7 +241,6 @@ side_effects_import_association_table = Table(
 
 
 class SideEffectsNodeORM(NodeORM):
-
     __tablename__ = "side_effects_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.SideEffectsNode}
 
@@ -240,7 +248,6 @@ class SideEffectsNodeORM(NodeORM):
 
 
 class ImportNodeORM(NodeORM):
-
     __tablename__ = "import_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.ImportNode}
 
