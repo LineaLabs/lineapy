@@ -1,10 +1,10 @@
-from lineapy.utils import NullValueError
-from lineapy.graph_reader.graph_helper import get_arg_position
 from typing import cast
 
 import networkx as nx
 
 from lineapy.data.types import *
+from lineapy.graph_reader.graph_helper import get_arg_position
+from lineapy.utils import NullValueError
 
 
 class Graph(object):
@@ -50,7 +50,7 @@ class Graph(object):
         return list(nx.descendants(self.nx_graph, node))
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
-        if node_id and node_id in self.ids:
+        if node_id is not None and node_id in self.ids:
             return self.ids[node_id]
         return None
 

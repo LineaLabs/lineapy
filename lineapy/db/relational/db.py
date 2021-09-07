@@ -1,4 +1,3 @@
-from lineapy.utils import CaseNotHandledError, NullValueError
 from typing import Set, Union, cast
 
 from sqlalchemy import create_engine
@@ -11,6 +10,7 @@ from lineapy.data.types import *
 from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
+from lineapy.utils import CaseNotHandledError, NullValueError
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
 

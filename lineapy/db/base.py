@@ -2,12 +2,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List, Optional
 
-from lineapy.utils import CaseNotHandledError
 from lineapy.constants import *
 from lineapy.data.graph import Graph
 from lineapy.data.types import DataSourceNode, Node
 from lineapy.data.types import LineaID, SessionContext
 from lineapy.db.asset_manager.base import DataAssetManager
+from lineapy.utils import CaseNotHandledError
 
 
 class DatabaseOption(Enum):
