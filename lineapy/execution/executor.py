@@ -29,8 +29,8 @@ class Executor(GraphReader):
         self._variable_values = {}
 
         # Note: no output will be shown in Terminal because it is being redirected here
-        # self._old_stdout = sys.stdout
-        # self._stdout = io.StringIO()
+        self._old_stdout = sys.stdout
+        self._stdout = io.StringIO()
 
     @property
     def data_asset_manager(self) -> DataAssetManager:
@@ -185,7 +185,7 @@ class Executor(GraphReader):
         return fn, fn_name
 
     def walk(self, program: Graph) -> None:
-        # sys.stdout = self._stdout
+        sys.stdout = self._stdout
 
         for node_id in program.visit_order():
             node = program.get_node(node_id)
@@ -197,8 +197,6 @@ class Executor(GraphReader):
                 continue
 
             scoped_locals = locals()
-
-            print((node.node_type, node.line))
 
             # all of these have to be in the same scope in order to read
             # and write to scoped_locals properly (this is just the way Python exec works)
@@ -249,7 +247,7 @@ class Executor(GraphReader):
                     node.value = program.get_node_value_from_id(node.value_node_id)
                 self._variable_values[node.assigned_variable_name] = node.value
 
-        # sys.stdout = self._old_stdout
+        sys.stdout = self._old_stdout
 
     def validate(self, program: Graph) -> None:
         pass

@@ -455,21 +455,6 @@ class RelationalLineaDB(LineaDB):
         ancestors = full_graph.get_ancestors(artifact)
         ancestors.append(artifact_id)
         return Graph([full_graph.get_node(a) for a in ancestors])
-        # node_ids = list(self.get_ancestors_from_node(artifact_id))
-        # node_ids.append(artifact_id)
-        # nodes = [self.get_node_by_id(node_id) for node_id in node_ids]
-        # return Graph(nodes)
-
-    def get_ancestors_from_node(self, node_id: LineaID) -> Set[LineaID]:
-        node = self.get_node_by_id(node_id)
-        parents = Graph.get_parents_from_node(node)
-        ancestors = set(parents)
-
-        for parent in parents:
-            new_ancestors = self.get_ancestors_from_node(parent)
-            ancestors.update(new_ancestors)
-
-        return ancestors
 
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode
