@@ -248,8 +248,7 @@ class RelationalLineaDB(LineaDB):
     def add_node_id_to_artifact_table(
         self,
         node_id: LineaID,
-        date_created,
-        value_type: str,
+        date_created: str,
         description: Optional[str] = None,
     ) -> None:
         """
@@ -258,12 +257,12 @@ class RelationalLineaDB(LineaDB):
         # - check node type: should just be CallNode and FunctionDefinitionNode
         #
         # - then insert into a table that's literally just the NodeID and maybe a timestamp for when it was registered as artifact
-
+        # figure out DataAssetType
+        # value_type,
         node = self.get_node_by_id(node_id)
         if node.node_type in [NodeType.CallNode, NodeType.FunctionDefinitionNode]:
             artifact = ArtifactORM(
                 id=node_id,
-                value_type=value_type,
                 description=description,
                 date_created=date_created,
             )
@@ -311,7 +310,7 @@ class RelationalLineaDB(LineaDB):
         nodes = [self.map_orm_to_pydantic(node) for node in call_nodes]
         return nodes
 
-    def get_context(self, linea_id: LineaIDORM) -> SessionContext:
+    def get_context(self, linea_id: LineaIDAlias) -> SessionContext:
         query_obj = (
             self.session.query(SessionContextORM)
             .filter(SessionContextORM.id == linea_id)
@@ -415,9 +414,7 @@ class RelationalLineaDB(LineaDB):
             )
             .first()
         )
-        if value_orm is not None:
-            return value_orm.value
-        return None
+        return value_orm
 
     def get_artifact(self, artifact_id: LineaIDAlias) -> Optional[Artifact]:
         return Artifact.from_orm(

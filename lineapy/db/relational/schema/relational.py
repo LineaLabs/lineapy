@@ -61,6 +61,7 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql.sqltypes import Boolean, Text
 
 from lineapy.data.types import (
+    DataAssetType,
     SessionType,
     NodeType,
     StorageType,
@@ -212,6 +213,7 @@ class NodeValueORM(Base):  # type: ignore
     __tablename__ = "node_value"
     node_id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
+    value_type = Column(Enum(DataAssetType))
     value = Column(PickleType, nullable=True)
     virtual = Column(Boolean)  # if True, value is not materialized in cache
 

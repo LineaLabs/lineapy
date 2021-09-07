@@ -41,6 +41,11 @@ class UserError(Exception):
         super().__init__(message)
 
 
+class EntryNotFoundError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class NullValueError(Exception):
     def __init__(self, message):
         super().__init__(message)

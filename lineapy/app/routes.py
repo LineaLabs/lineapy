@@ -1,13 +1,17 @@
 from uuid import UUID
-from lineapy.db.relational.schema.relational import ExecutionORM, NodeValueORM
-from lineapy.data.types import Artifact, Execution
 from flask import Blueprint, jsonify
 from sqlalchemy import func
 
+from lineapy.db.relational.schema.relational import (
+    ArtifactORM,
+    ExecutionORM,
+    NodeValueORM,
+)
+from lineapy.data.types import Artifact, DataAssetType, Execution
+from lineapy.utils import EntryNotFoundError
 from lineapy.app.app_db import lineadb
 from lineapy.db.relational.db import RelationalLineaDB
-
-# from lineapy.db.relational.schema.relational import *
+from lineapy.utils import EntryNotFoundError
 from lineapy.execution.executor import Executor
 
 # from decouple import config
@@ -27,18 +31,23 @@ def parse_artifact_orm(artifact_orm):
     artifact = Artifact.from_orm(artifact_orm)
     artifact_json = lineadb.jsonify_artifact(artifact)
 
-    artifact_value = lineadb.get_node_value(artifact.id, latest_version())
-    if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
-        result = RelationalLineaDB.cast_serialized(
-            artifact_value, RelationalLineaDB.get_type(artifact_value)
-        )
-        artifact_json["text"] = result
-    elif artifact.value_type is CHART_TYPE:
-        ...
-    elif artifact.value_type is DATASET_TYPE:
-        result = LineaDB.cast_dataset(artifact_value)
-        artifact_json["text"] = result
-    return artifact_json
+    node_value = lineadb.get_node_value(artifact.id, latest_version())
+    if artifact_value:
+        if (
+            artifact.value_type is DataAssetType.BlobValue
+            or artifact.value_type is DataAssetType.NumpyArray
+        ):
+            result = RelationalLineaDB.cast_serialized(
+                artifact_value, RelationalLineaDB.get_type(artifact_value)
+            )
+            artifact_json["text"] = result
+        elif artifact.value_type is DataAssetType.MatplotlibFig:
+            ...
+        elif artifact.value_type is DataAssetType.PandasDataFrame:
+            result = RelationalLineaDB.cast_dataset(artifact_value)
+            artifact_json["text"] = result
+        return artifact_json
+    raise EntryNotFoundError(f"Value for {artifact.id} is not found")
 
 
 @routes_blueprint.route("/")
@@ -50,7 +59,8 @@ def home():
 def execute(artifact_id):
     artifact_id = UUID(artifact_id)
     artifact = lineadb.get_artifact(artifact_id)
-
+    if artifact is None:
+        raise EntryNotFoundError(f"Artifact with {artifact_id} is not found")
     # find version
     version = latest_version()
 
@@ -79,18 +89,23 @@ def execute(artifact_id):
 
     # return new Artifact JSON with new NodeValue
     artifact_value = lineadb.get_node_value(artifact_id, version)
+    if artifact_value is None:
+        raise EntryNotFoundError(f"Artifact value with {artifact_id} is not found")
 
     # TODO: add handling for different data asset types
     asset = lineadb.jsonify_artifact(artifact)
 
-    if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
+    if (
+        artifact.value_type is DataAssetType.NumpyArray
+        or artifact.value_type is DataAssetType.NumpyArray
+    ):
         result = RelationalLineaDB.cast_serialized(
             artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         asset["text"] = result
-    elif artifact.value_type is CHART:
+    elif artifact.value_type is DataAssetType.MatplotlibFig:
         ...
-    elif artifact.value_type is DATASET:
+    elif artifact.value_type is DataAssetType.PandasDataFrame:
         result = RelationalLineaDB.cast_dataset(artifact_value)
         asset["text"] = result
 

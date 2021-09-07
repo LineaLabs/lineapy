@@ -1,6 +1,7 @@
-from typing import List
+from lineapy.db.db_utils import get_current_time_in_str
+from typing import List, Optional
 
-from lineapy.data.types import Node, SessionContext
+from lineapy.data.types import LineaID, Node, SessionContext
 from lineapy.db.base import LineaDBConfig
 from lineapy.db.relational.db import RelationalLineaDB
 
@@ -13,7 +14,6 @@ class RecordsManager:
         self.records_pool: List[Node] = []
         self.db = RelationalLineaDB()
         self.db.init_db(config)
-
 
     def add_evaluated_nodes(self, nodes: List[Node]) -> None:
         self.records_pool += nodes
@@ -45,4 +45,8 @@ class RecordsManager:
         """
         self.db.write_context(context)
 
-    def  add_node_id_to_artifact_table(self, node_id: LineaID, context_id: LineaID, )
+    def add_node_id_to_artifact_table(
+        self, node_id: LineaID, description: Optional[str] = None
+    ):
+        date_created = get_current_time_in_str()
+        self.db.add_node_id_to_artifact_table(node_id, date_created)

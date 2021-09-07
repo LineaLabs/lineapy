@@ -65,9 +65,7 @@ class NodeContext(BaseModel):
         orm_mode = True
 
 
-# NodeValue = TypeVar("NodeValue")
-# NodeValue = NewType('NodeValue', Optional[Any])
-NodeValue = Any
+NodeValueType = Any
 
 
 # Yifan note: something weird here about optional and NewType... https://github.com/python/mypy/issues/4580; tried to use TypeVar but also kinda weird. Seems hairy https://stackoverflow.com/questions/59360567/define-a-custom-type-that-behaves-like-typing-any
@@ -98,12 +96,22 @@ class LiteralType(Enum):
 
 
 class DataAssetType(Enum):
-    Chart = 1
-    Array = 2
-    Table = 3
+    """
+    We might grow this enum going into the future
+    We might need support for more data types or more
+      general ways of dealing with the data types
+    """
+
+    Number = 1
+    Str = 2
+    List = 3
     Function = 4
     Model = 5
     BlobValue = 6
+    MatplotlibFig = 7
+    NumpyArray = 9
+    PandasDataFrame = 10
+    PandasSeries = 11
 
 
 # CHART_TYPE = "chart"
@@ -125,9 +133,19 @@ class Execution(BaseModel):
 class Artifact(BaseModel):
     id: LineaID
     context: LineaID
-    value_type: str  # @dhruv since this is not an enum please write down the possible string values?
     description: Optional[str]
     date_created: str
+
+    class Config:
+        orm_mode = True
+
+
+class NodeValue(BaseModel):
+    node_id: LineaID
+    version: int
+    value_type: DataAssetType
+    value: NodeValueType
+    virtual: bool
 
     class Config:
         orm_mode = True
@@ -217,14 +235,14 @@ class CallNode(Node):
     # value of the result, filled at runtime
     # TODO: maybe we should create a new class to differentiate?
     #       this run time value also applies to StateChange.
-    value: Optional[NodeValue] = None
+    value: Optional[NodeValueType] = None
 
 
 class LiteralAssignNode(Node):
     node_type: NodeType = NodeType.LiteralAssignNode
     code: str
     assigned_variable_name: str
-    value: NodeValue
+    value: NodeValueType
     value_node_id: Optional[LineaID]
 
 
@@ -268,7 +286,7 @@ class StateChangeNode(Node):
     # this could be call id or loop id, or any code blocks
     associated_node_id: LineaID
     initial_value_node_id: LineaID  # points to a node that represents the value of the node before the change (can be another state change node)
-    value: Optional[NodeValue]
+    value: Optional[NodeValueType]
 
 
 class LoopNode(SideEffectsNode):
