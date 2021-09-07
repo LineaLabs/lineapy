@@ -1,5 +1,6 @@
 import ast
-from typing import Any, List, Optional
+from lineapy.utils import CaseNotHandledError
+from typing import Any, List, Optional, cast
 
 from lineapy.constants import LINEAPY_TRACER_NAME
 from lineapy.instrumentation.tracer import Tracer
@@ -7,6 +8,19 @@ from lineapy.instrumentation.tracer import Tracer
 """
 AST synthesizers used by node_transformers
 """
+
+
+def get_call_function_name(node: ast.Call):
+    if type(node.func) == ast.Name:
+        func_name = cast(ast.Name, node.func)
+        return {"function_name": func_name.id}
+    if type(node.func) == ast.Attribute:
+        func_attribute = cast(ast.Attribute, node.func)
+        return {
+            "function_name": func_attribute.attr,
+            "function_module": func_attribute.value.id,
+        }
+    raise CaseNotHandledError("Other types of function calls!")
 
 
 def synthesize_tracer_call_ast(
@@ -39,8 +53,12 @@ def synthesize_tracer_call_ast(
 
 
 def synthesize_linea_publish_call_ast(
-    variable_name: str, description: Optional[str] = None
+    variable_name: str,
+    description: Optional[str] = None,
 ):
+    """
+    TODO: add modules
+    """
     keywords = [
         ast.keyword(
             arg="variable_name",

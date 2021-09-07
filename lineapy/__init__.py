@@ -6,10 +6,10 @@ from lineapy.utils import FunctionShouldNotBeCalled
 
 __version__ = "0.0.1"
 
-from typing import Optional
+from typing import Any, Optional
 
 
-def linea_publish(variable_name: str, description: Optional[str]) -> None:
+def linea_publish(variable: Any, description: Optional[str] = None) -> None:
     """
     Publishes artifact, notifies the user through printing, and this would be compatible with either scriptingor the notebook: again
     Note:

@@ -1,3 +1,4 @@
+from lineapy.constants import LINEAPY_IMPORT_LIB_NAME, LINEAPY_PUBLISH_FUNCTION_NAME
 from tempfile import NamedTemporaryFile
 
 from click.testing import CliRunner
@@ -62,7 +63,7 @@ class TestCli:
         testing something super simple
         """
         with NamedTemporaryFile() as tmp:
-            publish_code = """import lineapy\na = abs(-11)\nlineapy.publish(a)\n"""
+            publish_code = f"import {LINEAPY_IMPORT_LIB_NAME}\na = abs(-11)\n{LINEAPY_IMPORT_LIB_NAME}.{LINEAPY_PUBLISH_FUNCTION_NAME}(a)\n"
             tmp.write(str.encode(publish_code))
             tmp.flush()
             result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp.name])

@@ -1,6 +1,7 @@
 import ast
 from lineapy.utils import UserError
 from lineapy.transformer.transformer_help import (
+    get_call_function_name,
     synthesize_linea_publish_call_ast,
     synthesize_tracer_call_ast,
 )
@@ -95,9 +96,9 @@ class NodeTransformer(ast.NodeTransformer):
         TODO: support key workd
         TODO: find function_module
         """
-        function_name = node.func.id
+        name_ref = get_call_function_name(node)
         # we have a special case for linea publish
-        if function_name == LINEAPY_PUBLISH_FUNCTION_NAME:
+        if name_ref["function_name"] == LINEAPY_PUBLISH_FUNCTION_NAME:
             # a little hacky, assume no one else would have a function name called linea_publish
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:
@@ -129,7 +130,9 @@ class NodeTransformer(ast.NodeTransformer):
             # this is the normal case
             code = self._get_code_from_node(node)
             argument_nodes = [self.visit(arg) for arg in node.args]
-            return synthesize_tracer_call_ast(function_name, argument_nodes, code)
+            return synthesize_tracer_call_ast(
+                name_ref["function_name"], argument_nodes, code
+            )
 
     def visit_Assign(self, node: ast.Assign) -> ast.Expr:
         """

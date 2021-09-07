@@ -1,3 +1,4 @@
+from lineapy.db.db_utils import get_current_time_in_str
 import unittest
 from typing import Tuple, Union
 
@@ -64,7 +65,9 @@ class TestLineaDB(unittest.TestCase):
         pass
 
     def write_and_read_graph(
-        self, graph: Graph, context: SessionContext = None
+        self,
+        graph: Graph,
+        context: SessionContext = None,
     ) -> Union[Tuple[Graph, SessionContext], Graph]:
         # let's write the in memory graph in (with all the nodes)
         self.lineadb.write_nodes(graph.nodes)
@@ -194,7 +197,7 @@ class TestLineaDB(unittest.TestCase):
         )
         self.lineadb.add_node_id_to_artifact_table(
             f_assign.id,
-            graph_with_messy_nodes_session.id,
+            get_current_time_in_str(),
         )
         result = self.lineadb.get_graph_from_artifact_id(f_assign.id)
         self.lineadb.remove_node_id_from_artifact_table(f_assign.id)
@@ -207,15 +210,16 @@ class TestLineaDB(unittest.TestCase):
     def test_search_artifacts_by_data_source(self):
         # @dhruv we should create at least one more stub_graph with the same csv file ("sample_data.csv")---it's currently not in this branch but we can merge master in here later.
         # using an existing stub for now
+        time = get_current_time_in_str()
         graph, context = self.write_and_read_graph(
-            graph_with_messy_nodes, graph_with_messy_nodes_session
+            graph_with_messy_nodes,
+            graph_with_messy_nodes_session,
         )
         self.lineadb.add_node_id_to_artifact_table(
-            f_assign.id, graph_with_messy_nodes_session.id
+            f_assign.id,
+            time,
         )
-        self.lineadb.add_node_id_to_artifact_table(
-            e_assign.id, graph_with_messy_nodes_session.id
-        )
+        self.lineadb.add_node_id_to_artifact_table(e_assign.id, time)
         derived = self.lineadb.find_all_artifacts_derived_from_data_source(
             graph, a_assign
         )

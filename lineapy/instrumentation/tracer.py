@@ -1,4 +1,5 @@
 from datetime import datetime
+from lineapy.db.db_utils import get_current_time_in_str
 from typing import Dict, Any, Optional, List, cast
 
 from lineapy.constants import ExecutionMode
@@ -15,7 +16,7 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.records_manager import RecordsManager
-from lineapy.utils import info_log, internal_warning_log, get_new_id
+from lineapy.utils import UserError, info_log, internal_warning_log, get_new_id
 
 
 class Tracer:
@@ -38,6 +39,7 @@ class Tracer:
         self.session_id = get_new_id()
         self.executor = Executor()
         self.create_session_context(session_type, file_name)
+        self.variable_name_to_id = {}
 
     def add_unevaluated_node(self, record: Node):
         self.execution_pool.append(record)
@@ -64,13 +66,23 @@ class Tracer:
         info_log("Tracer", "exit")
         pass
 
+    def _look_up_node_id_by_variable_name(self, variable_name: str):
+        if variable_name in self.variable_name_to_id:
+            return self.variable_name_to_id[variable_name]
+
+        # Note that this could also be because we didn't track variables ourselves.
+        raise UserError(
+            f"Trying to publish variable {variable_name}, which is not found"
+        )
+
     TRACE_PUBLISH = "publish"
 
-    def publish(self, variable_name: str, description: Optional[str]) -> None:
+    def publish(self, variable_name: str, description: Optional[str] = None) -> None:
         # we'd have to do some introspection here to know what the ID is
         # then we can create a new ORM node (not our IR node, which is a little confusing)
-        self.records_manager.add_node_id_to_artifact_table()
-        pass
+        # TODO: look up node_id base on variable_name
+        node_id = self._look_up_node_id_by_variable_name(variable_name)
+        self.records_manager.add_node_id_to_artifact_table(node_id, description)
 
     def create_session_context(self, session_type: SessionType, file_name: str):
         session_context = SessionContext(
@@ -206,6 +218,7 @@ class Tracer:
             call_node.assigned_variable_name = variable_name
             # the assignment subsumes the original call code
             call_node.code = code
+            self.variable_name_to_id[variable_name] = call_node.id
         else:
             internal_warning_log("got type", type(value_node), value_node)
             raise NotImplementedError

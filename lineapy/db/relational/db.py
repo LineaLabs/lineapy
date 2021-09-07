@@ -1,3 +1,4 @@
+from lineapy.db.db_utils import is_integer
 from typing import Set, Union, cast
 
 from sqlalchemy import create_engine
@@ -89,12 +90,6 @@ class RelationalLineaDB(LineaDB):
 
     @staticmethod
     def get_type(val: Any) -> LiteralType:
-        def is_integer(val):
-            try:
-                int(val)
-            except Exception as e:
-                return False
-            return True
 
         if isinstance(val, str):
             return LiteralType.String
@@ -269,7 +264,7 @@ class RelationalLineaDB(LineaDB):
             self.session.add(artifact)
             self.session.commit()
 
-    def remove_node_id_from_artifact_table(self, node_id: LineaIDORM) -> None:
+    def remove_node_id_from_artifact_table(self, node_id: LineaIDAlias) -> None:
         """
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
@@ -523,7 +518,9 @@ class RelationalLineaDB(LineaDB):
         return ancestors
 
     def find_all_artifacts_derived_from_data_source(
-        self, program: Graph, data_source_node: DataSourceNode
+        self,
+        program: Graph,
+        data_source_node: DataSourceNode,
     ) -> List[Node]:
         descendants = program.get_descendants(data_source_node.id)
         artifacts = []

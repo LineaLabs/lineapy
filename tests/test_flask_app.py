@@ -6,7 +6,7 @@ import pytest
 
 from lineapy import ExecutionMode
 import lineapy.app.app_db
-from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
+from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 
 
@@ -36,7 +36,6 @@ def setup_db(mode: ExecutionMode):
         TokenORM,
         code_token_association_table,
     )
-    from lineapy.data.types import VALUE_TYPE
 
     from tests.stub_data.api_stub_graph import (
         graph_with_csv_import as stub_graph,
@@ -87,7 +86,6 @@ def setup_db(mode: ExecutionMode):
 
     test_db.add_node_id_to_artifact_table(
         sum_call.id,
-        value_type=VALUE_TYPE,
         description="Graph With CSV Import",
         date_created="1372944000",
     )

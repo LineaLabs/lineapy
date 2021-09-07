@@ -1,3 +1,4 @@
+from lineapy.db.db_utils import is_integer
 from lineapy.utils import CaseNotHandledError
 from typing import Any
 import sys
@@ -12,8 +13,10 @@ def get_data_asset_type(val: Any) -> DataAssetType:
     TODO
     - We need to more gracefully handle cases that we do not recognize
     """
-    if isinstance(val, int) or isinstance(val, float):
+    if is_integer(val):
         return DataAssetType.Number
+    # if isinstance(val, int) or isinstance(val, float):
+    #     return DataAssetType.Number
     if isinstance(val, str):
         return DataAssetType.Str
     if isinstance(val, list):

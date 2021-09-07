@@ -152,8 +152,6 @@ class LibraryORM(Base):  # type: ignore
 class ArtifactORM(Base):  # type: ignore
     __tablename__ = "artifact"
     id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
-    context = Column(LineaIDORM, ForeignKey("session_context.id"))
-    value_type = Column(String, nullable=True)
     description = Column(String, nullable=True)
     date_created = Column(String)
 
