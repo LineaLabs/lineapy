@@ -64,9 +64,12 @@ class Tracer:
         info_log("Tracer", "exit")
         pass
 
+    TRACE_PUBLISH = "publish"
+
     def publish(self, variable_name: str, description: Optional[str]) -> None:
         # we'd have to do some introspection here to know what the ID is
         # then we can create a new ORM node (not our IR node, which is a little confusing)
+        self.records_manager.add_node_id_to_artifact_table()
         pass
 
     def create_session_context(self, session_type: SessionType, file_name: str):

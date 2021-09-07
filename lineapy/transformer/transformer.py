@@ -26,9 +26,9 @@ def append_code_to_tree(
     source: ast.Module, to_append: List[TreeNodeType], is_beginning: bool = False
 ) -> ast.Module:
     if is_beginning:
-        source.body = to_append + source.body
+        source.body = to_append + source.body  # type: ignore
     else:
-        source.body = source.body + to_append
+        source.body = source.body + to_append  # type: ignore
     return source
 
 
@@ -100,7 +100,7 @@ class Transformer:
         execution_mode: ExecutionMode = ExecutionMode.TEST,
     ) -> List[TreeNodeType]:
         """
-        Also a hack for now...
+        This creates the setup needed for tracer to work
         """
         # import_node = ast.Import(
         #     names=[

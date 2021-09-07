@@ -97,12 +97,20 @@ class LiteralType(Enum):
     Boolean = 4
 
 
-# class DataAssetType(Enum):
-CHART_TYPE = "chart"
-ARRAY_TYPE = "array"
-DATASET_TYPE = "dataset"
-CODE_TYPE = "code"
-VALUE_TYPE = "value"
+class DataAssetType(Enum):
+    Chart = 1
+    Array = 2
+    Table = 3
+    Function = 4
+    Model = 5
+    BlobValue = 6
+
+
+# CHART_TYPE = "chart"
+# ARRAY_TYPE = "array"
+# DATASET_TYPE = "dataset"
+# CODE_TYPE = "code"
+# VALUE_TYPE = "value"
 
 
 class Execution(BaseModel):
@@ -118,11 +126,8 @@ class Artifact(BaseModel):
     id: LineaID
     context: LineaID
     value_type: str  # @dhruv since this is not an enum please write down the possible string values?
-    name: Optional[str]
-    project: Optional[str]
     description: Optional[str]
     date_created: str
-    code: Optional[LineaID]
 
     class Config:
         orm_mode = True

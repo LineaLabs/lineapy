@@ -145,11 +145,22 @@ class ArtifactORM(Base):
     id = Column(LineaID, ForeignKey("node.id"), primary_key=True)
     context = Column(LineaID, ForeignKey("session_context.id"))
     value_type = Column(String, nullable=True)
-    name = Column(String, nullable=True)
-    project = Column(String, nullable=True)
     description = Column(String, nullable=True)
     date_created = Column(String)
-    code = Column(LineaID, nullable=True)
+
+
+artifact_project_association_table = Table(
+    "artifact_project_association",
+    Base.metadata,
+    Column("artifact", ForeignKey("artifact.id"), primary_key=True),
+    Column("project", ForeignKey("project.id"), primary_key=True),
+)
+
+
+class ProjectORM(Base):
+    __tablename__ = "project"
+    id = Column(LineaID, primary_key=True)
+    name = Column(String, nullable=False)
 
 
 # one to many

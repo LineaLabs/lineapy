@@ -87,11 +87,9 @@ def setup_db(mode: ExecutionMode):
 
     test_db.add_node_id_to_artifact_table(
         sum_call.id,
-        context_id=context.id,
         value_type=VALUE_TYPE,
-        name="Graph With CSV Import",
+        description="Graph With CSV Import",
         date_created="1372944000",
-        code=artifact_code.id,
     )
 
     exec_orm = ExecutionORM(artifact_id=sum_call.id, version=1)

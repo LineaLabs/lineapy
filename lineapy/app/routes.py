@@ -1,10 +1,13 @@
+from uuid import UUID
+from lineapy.db.relational.schema.relational import ExecutionORM, NodeValueORM
+from lineapy.data.types import Artifact, Execution
 from flask import Blueprint, jsonify
 from sqlalchemy import func
 
 from lineapy.app.app_db import lineadb
-from lineapy.data.types import *
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.db.relational.schema.relational import *
+
+# from lineapy.db.relational.schema.relational import *
 from lineapy.execution.executor import Executor
 
 # from decouple import config
@@ -30,9 +33,9 @@ def parse_artifact_orm(artifact_orm):
             artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         artifact_json["text"] = result
-    elif artifact.value_type is CHART:
+    elif artifact.value_type is CHART_TYPE:
         ...
-    elif artifact.value_type is DATASET:
+    elif artifact.value_type is DATASET_TYPE:
         result = LineaDB.cast_dataset(artifact_value)
         artifact_json["text"] = result
     return artifact_json

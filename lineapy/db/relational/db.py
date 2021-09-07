@@ -245,11 +245,9 @@ class RelationalLineaDB(LineaDB):
     def add_node_id_to_artifact_table(
         self,
         node_id: LineaID,
-        context_id: LineaID,
-        name: str = "",
-        date_created: str = "",
-        code: LineaID = "",
-        value_type: str = "",
+        date_created,
+        value_type: str,
+        description: Optional[str] = None,
     ) -> None:
         """
         Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
@@ -262,11 +260,9 @@ class RelationalLineaDB(LineaDB):
         if node.node_type in [NodeType.CallNode, NodeType.FunctionDefinitionNode]:
             artifact = ArtifactORM(
                 id=node_id,
-                context=context_id,
                 value_type=value_type,
-                name=name,
+                description=description,
                 date_created=date_created,
-                code=code,
             )
             self.session.add(artifact)
             self.session.commit()
@@ -471,6 +467,7 @@ class RelationalLineaDB(LineaDB):
                 )
                 token_json = Token.from_orm(token_orm).dict()
 
+                # FIXME: we need to check for None here
                 intermediate_value = (
                     self.session.query(NodeValueORM)
                     .filter(NodeValueORM.node_id == token_json["intermediate"])

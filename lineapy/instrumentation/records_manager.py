@@ -14,12 +14,6 @@ class RecordsManager:
         self.db = RelationalLineaDB()
         self.db.init_db(config)
 
-    def write_session_context(self, context: SessionContext) -> None:
-        """
-        Special casing this since its done once at the beginning
-        """
-        self.db.write_context(context)
-        return
 
     def add_evaluated_nodes(self, nodes: List[Node]) -> None:
         self.records_pool += nodes
@@ -39,3 +33,16 @@ class RecordsManager:
         self.flush_records()
         # TODO: do we need some DB cleanup code?
         return
+
+    """
+    Pass through functions to the db
+    Maybe we can just expose the db instead, but having a layer of indirection just in cas?
+    """
+
+    def write_session_context(self, context: SessionContext) -> None:
+        """
+        Special casing this since its done once at the beginning
+        """
+        self.db.write_context(context)
+
+    def  add_node_id_to_artifact_table(self, node_id: LineaID, context_id: LineaID, )

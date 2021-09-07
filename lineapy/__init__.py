@@ -9,9 +9,11 @@ __version__ = "0.0.1"
 from typing import Optional
 
 
-def publish(variable_name: str, description: Optional[str]) -> None:
+def linea_publish(variable_name: str, description: Optional[str]) -> None:
     """
     Publishes artifact, notifies the user through printing, and this would be compatible with either scriptingor the notebook: again
+    Note:
+    - The name of this function must match the constant `LINEAPY_PUBLISH_FUNCTION_NAME` in `contants.py`.
     TODO
     - [] Note that we need to instrument this at runtime to pass in the tracer and change the function call
     """
@@ -28,7 +30,7 @@ def publish_with_tracer(
 __all__ = [
     "Graph",
     "Tracer",
-    "publish",
+    "linea_publish",
     "publish_with_tracer",
     "SessionType",
     "ExecutionMode",
