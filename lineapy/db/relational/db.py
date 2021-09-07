@@ -272,6 +272,13 @@ class RelationalLineaDB(LineaDB):
         obj = SessionContext.from_orm(query_obj)
         return obj
 
+    def get_nodes_from_db(self) -> List[Node]:
+        node_orms = self.session.query(NodeORM).all()
+        nodes = []
+        for orm in node_orms:
+            nodes.append(self.get_node_by_id(orm.id))
+        return nodes
+
     def get_node_by_id(self, linea_id: LineaID) -> Node:
         """
         Returns the node by looking up the database by ID
@@ -429,7 +436,9 @@ class RelationalLineaDB(LineaDB):
 
         return json_artifact
 
-    def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
+    def get_graph_from_artifact_id(
+        self, artifact_id: LineaID, session_context: LineaID
+    ) -> Graph:
         """
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation
@@ -440,10 +449,16 @@ class RelationalLineaDB(LineaDB):
             - simple heuristics that may create false positives (include things not necessary)
             - but definitely NOT false negatives (then the program CANNOT be executed)
         """
-        node_ids = list(self.get_ancestors_from_node(artifact_id))
-        node_ids.append(artifact_id)
-        nodes = [self.get_node_by_id(node_id) for node_id in node_ids]
-        return Graph(nodes)
+        nodes = self.get_nodes_from_db()
+        full_graph = Graph(nodes)
+        artifact = full_graph.get_node(artifact_id)
+        ancestors = full_graph.get_ancestors(artifact)
+        ancestors.append(artifact_id)
+        return Graph([full_graph.get_node(a) for a in ancestors])
+        # node_ids = list(self.get_ancestors_from_node(artifact_id))
+        # node_ids.append(artifact_id)
+        # nodes = [self.get_node_by_id(node_id) for node_id in node_ids]
+        # return Graph(nodes)
 
     def get_ancestors_from_node(self, node_id: LineaID) -> Set[LineaID]:
         node = self.get_node_by_id(node_id)

@@ -37,6 +37,7 @@ import_pandas = ImportNode(
     code="import pandas as pd",
     library=pandas_lib,
     alias="pd",
+    line=0,
 )
 
 simple_data_node = DataSourceNode(
@@ -45,6 +46,7 @@ simple_data_node = DataSourceNode(
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
     # access_path="./tests/stub_data/simple_data.csv",
     access_path="tests/stub_data/simple_data.csv",
+    line=1,
 )
 
 literal_node = ArgumentNode(
@@ -52,6 +54,7 @@ literal_node = ArgumentNode(
     session_id=session.id,
     positional_order=0,
     value_node_id=simple_data_node.id,
+    line=1,
 )
 
 read_csv_call = CallNode(
@@ -62,6 +65,7 @@ read_csv_call = CallNode(
     function_module=import_pandas.id,
     assigned_variable_name="df",
     arguments=[literal_node.id],
+    line=1,
 )
 
 col_name_literal = ArgumentNode(
@@ -69,6 +73,7 @@ col_name_literal = ArgumentNode(
     session_id=session.id,
     positional_order=0,
     value_literal="a",
+    line=2,
 )
 
 access_a_column = CallNode(
@@ -78,6 +83,7 @@ access_a_column = CallNode(
     function_name="__getitem__",  # @dhruv this is a built in method, not sure if we need to add a module here
     function_module=read_csv_call.id,
     arguments=[col_name_literal.id],
+    line=2,
 )
 
 sum_call = CallNode(
@@ -88,6 +94,7 @@ sum_call = CallNode(
     function_name="sum",
     function_module=access_a_column.id,
     assigned_variable_name="s",
+    line=2,
 )
 
 graph_with_csv_import = Graph(

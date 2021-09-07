@@ -17,10 +17,16 @@ class Graph(object):
         self._nx_graph.add_nodes_from([node.id for node in nodes])
 
         self._edges: List[DirectedEdge] = Graph.__get_edges_from_nodes(nodes)
-        self._edges.extend(self.__get_edges_from_line_number())
         self._nx_graph.add_edges_from(
             [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
         )
+        self._nx_graph.add_edges_from(
+            [
+                (edge.source_node_id, edge.sink_node_id)
+                for edge in self.__get_edges_from_line_number()
+            ]
+        )
+        self.visit_order()
 
     @property
     def nx_graph(self) -> nx.DiGraph:
@@ -38,16 +44,16 @@ class Graph(object):
         return list(nx.topological_sort(self.nx_graph))
 
     def get_parents(self, node: Node) -> List[LineaID]:
-        return list(self.nx_graph.predecessors(node))
+        return list(self.nx_graph.predecessors(node.id))
 
     def get_ancestors(self, node: Node) -> List[LineaID]:
-        return list(nx.ancestors(self.nx_graph, node))
+        return list(nx.ancestors(self.nx_graph, node.id))
 
     def get_children(self, node: Node) -> List[LineaID]:
-        return list(self.nx_graph.successors(node))
+        return list(self.nx_graph.successors(node.id))
 
     def get_descendants(self, node: Node) -> List[LineaID]:
-        return list(nx.descendants(self.nx_graph, node))
+        return list(nx.descendants(self.nx_graph, node.id))
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
         if node_id in self.ids:
@@ -165,8 +171,33 @@ class Graph(object):
         edges = list(map(add_edge_from_node, Graph.get_parents_from_node(node)))
         return edges
 
-    def __get_edges_from_line_number(self):
-        pass
+    def __get_edges_from_line_number(self) -> List[DirectedEdge]:
+        edges = []
+        # find all data source nodes
+        for node in self.nodes:
+            if node.node_type is NodeType.DataSourceNode:
+                descendants = [
+                    n
+                    for n in self.get_descendants(node)
+                    if self.get_node(n).node_type is NodeType.CallNode
+                ]
+
+                # sort data source nodes children
+                descendants.sort(key=lambda n: self.get_node(n).line)
+                # add edges between children
+                for d in range(len(descendants) - 1):
+                    if self.nx_graph.has_edge(
+                        descendants[d], descendants[d + 1]
+                    ) or self.nx_graph.has_edge(descendants[d + 1], descendants[d]):
+                        continue
+                    edges.append(
+                        DirectedEdge(
+                            source_node_id=descendants[d],
+                            sink_node_id=descendants[d + 1],
+                        )
+                    )
+        # print(edges)
+        return edges
 
     def print(self):
         for n in self._nodes:

@@ -46,7 +46,7 @@ class LineaDBReader(ABC):
     def get_node_by_id(self, linea_id: LineaID) -> Node:
         pass
 
-    def get_graph_from_artifact_id(self, linea_id: LineaID):
+    def get_graph_from_artifact_id(self, linea_id: LineaID, session_context: LineaID):
         pass
 
     def find_all_artifacts_derived_from_data_source(

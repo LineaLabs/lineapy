@@ -3,6 +3,7 @@ from sqlalchemy import func
 import io
 from PIL import Image
 import numpy as np
+from flask import request
 
 from lineapy.app.app_db import lineadb
 from lineapy.data.types import *
@@ -19,15 +20,25 @@ BACKEND_REQUEST_HOST = "http://localhost:4000"
 routes_blueprint = Blueprint("routes", __name__)
 
 
-def latest_version():
-    return lineadb.session.query(func.max(NodeValueORM.version)).scalar()
+def latest_version_of_node(node_id):
+    subqry = lineadb.session.query(func.max(NodeValueORM.version)).filter(
+        NodeValueORM.node_id == node_id
+    )
+    qry = (
+        lineadb.session.query(NodeValueORM)
+        .filter(NodeValueORM.node_id == node_id, NodeValueORM.version == subqry)
+        .first()
+    )
+    return qry.version
 
 
 def parse_artifact_orm(artifact_orm):
     artifact = Artifact.from_orm(artifact_orm)
     artifact_json = lineadb.jsonify_artifact(artifact)
 
-    artifact_value = lineadb.get_node_value(artifact.id, latest_version())
+    latest_version = latest_version_of_node(artifact_orm.id)
+
+    artifact_value = lineadb.get_node_value(artifact.id, latest_version)
     if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
         result = RelationalLineaDB.cast_serialized(
             artifact_value, RelationalLineaDB.get_type(artifact_value)
@@ -35,7 +46,11 @@ def parse_artifact_orm(artifact_orm):
         artifact_json["text"] = result
     elif artifact.value_type == CHART_TYPE:
         artifact_json["image"] = (
-            BACKEND_REQUEST_HOST + "/api/v1/images/" + str(artifact.id)
+            BACKEND_REQUEST_HOST
+            + "/api/v1/images/"
+            + str(artifact.id)
+            + "/"
+            + str(latest_version)
         )
     elif artifact.value_type == DATASET_TYPE:
         result = LineaDB.cast_dataset(artifact_value)
@@ -54,7 +69,7 @@ def execute(artifact_id):
     artifact = lineadb.get_artifact(artifact_id)
 
     # find version
-    version = latest_version()
+    version = latest_version_of_node(artifact.id)
 
     # increment version
     if version is None:
@@ -68,7 +83,7 @@ def execute(artifact_id):
 
     # get graph and re-execute
     executor = Executor()
-    program = lineadb.get_graph_from_artifact_id(artifact_id)
+    program = lineadb.get_graph_from_artifact_id(artifact_id, artifact.context)
     context = lineadb.get_context(artifact.context)
     executor.execute_program(program, context)
 
@@ -91,7 +106,13 @@ def execute(artifact_id):
         )
         asset["text"] = result
     elif artifact.value_type == CHART_TYPE:
-        asset["image"] = BACKEND_REQUEST_HOST + "/api/v1/images/" + str(artifact.id)
+        asset["image"] = (
+            BACKEND_REQUEST_HOST
+            + "/api/v1/images/"
+            + str(artifact_id)
+            + "/"
+            + str(version)
+        )
     elif artifact.value_type == DATASET_TYPE:
         result = RelationalLineaDB.cast_dataset(artifact_value)
         asset["text"] = result
@@ -148,10 +169,11 @@ def get_artifact(artifact_id):
 
 
 # assuming binaries are in PNG format
-@routes_blueprint.route("/api/v1/images/<value_id>", methods=["GET"])
-def get_image(value_id):
+@routes_blueprint.route("/api/v1/images/<value_id>/<version>", methods=["GET"])
+def get_image(value_id, version):
     value_id = UUID(value_id)
-    img = lineadb.get_node_value(value_id, latest_version())
+    version = int(version)
+    img = lineadb.get_node_value(value_id, version)
 
     # create file-object in memory
     file_object = io.BytesIO()
@@ -177,7 +199,7 @@ def get_image(value_id):
 @routes_blueprint.route("/api/v1/node/value/<node_id>", methods=["GET"])
 def get_node_value(node_id):
     node_id = UUID(node_id)
-    node_value = lineadb.get_node_value(node_id, latest_version())
+    node_value = lineadb.get_node_value(node_id, latest_version_of_node(node_id))
 
     node_value = RelationalLineaDB.cast_dataset(node_value)
 

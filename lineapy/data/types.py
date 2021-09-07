@@ -97,7 +97,6 @@ class LiteralType(Enum):
     Boolean = 4
 
 
-# class DataAssetType(Enum):
 CHART_TYPE = "chart"
 ARRAY_TYPE = "array"
 DATASET_TYPE = "dataset"
@@ -151,6 +150,11 @@ class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.id
     node_type: NodeType = NodeType.Node
+
+    line: Optional[int]
+    line_end: Optional[int]
+    col_start: Optional[int]
+    col_end: Optional[int]
     # context: Optional[NodeContext] = None
 
     # note: this is specific to Pydantic

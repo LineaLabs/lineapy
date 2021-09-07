@@ -205,6 +205,11 @@ class NodeORM(Base):
     session_id = Column(LineaID)
     node_type = Column(Enum(NodeType))
 
+    line = Column(Integer, nullable=True)
+    line_end = Column(Integer, nullable=True)
+    col_start = Column(Integer, nullable=True)
+    col_end = Column(Integer, nullable=True)
+
     __mapper_args__ = {
         "polymorphic_on": node_type,
         "polymorphic_identity": NodeType.Node,

@@ -46,6 +46,7 @@ import_pandas = ImportNode(
     code="import pandas as pd",
     library=pandas_lib,
     alias="pd",
+    line=0,
 )
 
 import_pyplot = ImportNode(
@@ -54,6 +55,7 @@ import_pyplot = ImportNode(
     code="import matplotlib.pyplot as plt",
     library=plt_lib,
     alias="plt",
+    line=1,
 )
 
 import_pil = ImportNode(
@@ -62,6 +64,7 @@ import_pil = ImportNode(
     code="from PIL.Image import open",
     library=img_lib,
     attributes={"open": "open"},
+    line=2,
 )
 
 
@@ -71,6 +74,7 @@ simple_data_node = DataSourceNode(
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
     # access_path="./tests/stub_data/simple_data.csv",
     access_path="tests/stub_data/simple_data.csv",
+    line=3,
 )
 
 literal_node = ArgumentNode(
@@ -78,6 +82,7 @@ literal_node = ArgumentNode(
     session_id=session.id,
     positional_order=0,
     value_node_id=simple_data_node.id,
+    line=3,
 )
 
 read_csv_call = CallNode(
@@ -88,6 +93,7 @@ read_csv_call = CallNode(
     function_module=import_pandas.id,
     assigned_variable_name="df",
     arguments=[literal_node.id],
+    line=3,
 )
 
 img_data_node = DataSourceNode(
@@ -96,6 +102,7 @@ img_data_node = DataSourceNode(
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
     # access_path="./tests/stub_data/simple_data.csv",
     access_path="simple_data.png",
+    line=4,
 )
 
 savefig_arg = ArgumentNode(
@@ -103,6 +110,7 @@ savefig_arg = ArgumentNode(
     session_id=session.id,
     positional_order=1,
     value_node_id=img_data_node.id,
+    line=4,
 )
 
 df_arg = ArgumentNode(
@@ -110,6 +118,7 @@ df_arg = ArgumentNode(
     session_id=session.id,
     positional_order=2,
     value_node_id=read_csv_call.id,
+    line=4,
 )
 
 savefig_call = CallNode(
@@ -119,6 +128,7 @@ savefig_call = CallNode(
     function_name="imsave",
     function_module=import_pyplot.id,
     arguments=[savefig_arg.id, df_arg.id],
+    line=4,
 )
 
 savefig_arg2 = ArgumentNode(
@@ -126,6 +136,7 @@ savefig_arg2 = ArgumentNode(
     session_id=session.id,
     positional_order=1,
     value_node_id=img_data_node.id,
+    line=5,
 )
 
 read_call = CallNode(
@@ -136,6 +147,7 @@ read_call = CallNode(
     function_module=import_pil.id,
     assigned_variable_name="img",
     arguments=[savefig_arg2.id],
+    line=5,
 )
 
 
