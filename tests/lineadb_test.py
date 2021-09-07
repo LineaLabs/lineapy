@@ -64,7 +64,7 @@ class TestLineaDB(unittest.TestCase):
         pass
 
     def write_and_read_graph(
-            self, graph: Graph, context: SessionContext = None
+        self, graph: Graph, context: SessionContext = None
     ) -> Union[Tuple[Graph, SessionContext], Graph]:
         # let's write the in memory graph in (with all the nodes)
         self.lineadb.write_nodes(graph.nodes)
