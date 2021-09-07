@@ -51,7 +51,7 @@ class TestLineaDB(unittest.TestCase):
 
     @property
     def db_config(self):
-        return get_default_config_by_environment(ExecutionMode.TEST)
+        return get_default_config_by_environment(ExecutionMode.MEMORY)
 
     def setUp(self):
         # just use the default config

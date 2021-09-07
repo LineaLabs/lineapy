@@ -16,11 +16,12 @@ DEV_DEBUG = True
 DEV_TESTING = False
 DEV_DATABASE_URI = f"sqlite:///{path.join(_base, 'dev.sqlite')}"
 
-# in memory tests
 TEST_ENV = "test"
 TEST_DEBUG = True
 TEST_TESTING = True
 TEST_DATABASE_URI = f"sqlite:///{path.join(_base, 'test.sqlite')}"
+
+MEMORY_DATABASE_URI = "sqlite:///:memory:"
 
 LINEAPY_TRACER_CLASS = "Tracer"
 LINEAPY_TRACER_NAME = "lineapy_tracer"
@@ -42,3 +43,4 @@ class ExecutionMode(Enum):
     TEST = 0
     DEV = 1
     PROD = 2
+    MEMORY = 3

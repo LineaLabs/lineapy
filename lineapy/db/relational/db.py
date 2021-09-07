@@ -1,3 +1,4 @@
+import logging
 from typing import Set, Union, cast
 
 from sqlalchemy import create_engine
@@ -26,10 +27,11 @@ class RelationalLineaDB(LineaDB):
 
     def __init__(self):
         self._data_asset_manager: Optional[DataAssetManager] = None
+        self._session: Optional[scoped_session] = None
 
     @property
     def session(self) -> scoped_session:
-        if self._session:
+        if self._session is not None:
             return self._session
         raise NullValueError("db should have been initialized")
 
@@ -41,6 +43,7 @@ class RelationalLineaDB(LineaDB):
         # TODO: we eventually need some configurations
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
+        logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
             connect_args={"check_same_thread": False},
