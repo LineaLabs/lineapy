@@ -128,6 +128,7 @@ class SessionContextORM(Base):
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)
     libraries = relationship("LibraryORM", backref="session")
+    code = Column(String)
 
 
 class LibraryORM(Base):
@@ -198,11 +199,13 @@ class NodeValueORM(Base):
 
 class NodeORM(Base):
     __tablename__ = "node"
-
     id = Column(LineaID, primary_key=True)
-    code = Column(String, nullable=True)
     session_id = Column(LineaID)
     node_type = Column(Enum(NodeType))
+    lineno = Column(Integer, nullable=True)
+    col_offset = Column(Integer, nullable=True)
+    end_lineno = Column(Integer, nullable=True)
+    end_col_offset = Column(Integer, nullable=True)
 
     __mapper_args__ = {
         "polymorphic_on": node_type,

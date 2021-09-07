@@ -33,21 +33,31 @@ my_function()
 
 math_lib = Library(id=get_new_id(), name="math", version="1", path="home")
 
-session = get_new_session(libraries=[math_lib])
+session = get_new_session(code, libraries=[math_lib])
 
 line_1_id = get_new_id()
 
 line_1_import = ImportNode(
     id=line_1_id,
     session_id=session.id,
-    code="import math",
     library=math_lib,
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=11,
 )
 
 a_id = get_new_id()
 
 line_2 = LiteralAssignNode(
-    id=a_id, session_id=session.id, code="a = 0", assigned_variable_name="a", value=0
+    id=a_id,
+    session_id=session.id,
+    assigned_variable_name="a",
+    value=0,
+    lineno=2,
+    col_offset=0,
+    end_lineno=2,
+    end_col_offset=5,
 )
 
 fun_id = get_new_id()
@@ -65,19 +75,25 @@ fun_def_node = FunctionDefinitionNode(
     id=fun_id,
     session_id=session.id,
     function_name="my_function",
-    code="def my_function():\n\tglobal a\n\ta = math.factorial(5)",
     state_change_nodes=[a_state_change_id],
     import_nodes=[line_1_id],
+    lineno=3,
+    col_offset=0,
+    end_lineno=5,
+    end_col_offset=22,
 )
 
 func_call_id = get_new_id()
 my_function_call = CallNode(
     id=func_call_id,
     session_id=session.id,
-    code="my_function()",
     function_name="my_function",
     locally_defined_function_id=fun_id,
     arguments=[],
+    lineno=6,
+    col_offset=0,
+    end_lineno=6,
+    end_col_offset=13,
 )
 
 graph_with_function_definition = Graph(

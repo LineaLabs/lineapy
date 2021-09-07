@@ -40,7 +40,6 @@ session = get_new_session(libraries=[pandas_lib])
 import_pandas = ImportNode(
     id=get_new_id(),
     session_id=session.id,
-    code="import pandas as pd",
     library=pandas_lib,
     alias="pd",
 )
@@ -63,7 +62,6 @@ literal_node = ArgumentNode(
 read_csv_call = CallNode(
     id=UUID("e01d7a89-0d6d-474b-8119-b5f087cbd66e"),
     session_id=session.id,
-    code="df = pd.read_csv('ames_train_cleaned.csv')",
     function_name="read_csv",
     function_module=import_pandas.id,
     assigned_variable_name="df",
@@ -80,7 +78,6 @@ col_name_literal = ArgumentNode(
 access_a_column = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    code="df['a']",
     function_name="__getitem__",  # @dhruv this is a built in method, not sure if we need to add a module here
     function_module=read_csv_call.id,
     arguments=[col_name_literal.id],
@@ -89,7 +86,6 @@ access_a_column = CallNode(
 sum_call = CallNode(
     id=UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"),
     session_id=session.id,
-    code="s = df['a'].sum()",
     arguments=[],
     function_name="sum",
     function_module=access_a_column.id,

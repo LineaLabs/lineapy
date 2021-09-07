@@ -3,6 +3,7 @@ import importlib.util
 import io
 import subprocess
 import sys
+import ast
 from typing import Any, Tuple, Optional, Dict, cast
 
 import lineapy.lineabuiltins as lineabuiltins
