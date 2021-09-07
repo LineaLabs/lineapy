@@ -12,10 +12,8 @@ from lineapy.data.types import (
     SessionContext,
     SessionType,
 )
+from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
-from lineapy.instrumentation.instrumentation_util import (
-    get_linea_db_config_from_execution_mode,
-)
 from lineapy.instrumentation.records_manager import RecordsManager
 from lineapy.utils import info_log, internal_warning_log, get_new_id
 
@@ -35,7 +33,7 @@ class Tracer:
         self.file_name = file_name
         self.execution_pool: List[Node] = []
         # TODO: we should probably poll from the local linea config file what this configuration should be
-        config = get_linea_db_config_from_execution_mode(execution_mode)
+        config = get_default_config_by_environment(execution_mode)
         self.records_manager = RecordsManager(config)
         self.session_id = get_new_id()
         self.executor = Executor()

@@ -1,18 +1,16 @@
 from tempfile import NamedTemporaryFile
-from click.testing import CliRunner
 
-from tests.util import reset_test_db
-from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
+from click.testing import CliRunner
 
 from lineapy.cli.cli import linea_cli
 from lineapy.data.types import NodeType
+from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.graph_reader.graph_util import are_nodes_content_equal
-from lineapy.instrumentation.instrumentation_util import (
-    get_linea_db_config_from_execution_mode,
-)
 from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import info_log
+from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
+from tests.util import reset_test_db
 
 
 class TestCli:
@@ -34,7 +32,7 @@ class TestCli:
         self.runner = CliRunner()
         # FIXME: test harness cli, extract out magic string
         # FIXME: add methods instead of accessing session
-        config = get_linea_db_config_from_execution_mode(ExecutionMode.TEST)
+        config = get_default_config_by_environment(ExecutionMode.DEV)
         # also reset the file
         reset_test_db(config.database_uri)
         self.db = RelationalLineaDB()
@@ -48,7 +46,7 @@ class TestCli:
             # might also need os.path.dirname() in addition to file name
             tmp_file_name = tmp.name
             # FIXME: make into constants
-            result = self.runner.invoke(linea_cli, ["--mode", "test", tmp_file_name])
+            result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp_file_name])
             assert result.exit_code == 0
             info_log("testing file:", tmp_file_name)
             nodes = self.db.get_nodes_by_file_name(tmp_file_name)
