@@ -1,25 +1,25 @@
 from flask import Flask
 from flask_cors import CORS
 
-from lineapy import constants
+from lineapy import constants, ExecutionMode
 from lineapy.app.app_db import init_db
 
 
-def create_app(mode):
+def create_app(mode: ExecutionMode):
     app = Flask(__name__)
     CORS(app)
 
-    if mode == "DEV":
+    if mode == ExecutionMode.DEV:
         app.config["ENV"] = constants.DEV_ENV
         app.config["DEBUG"] = constants.DEV_DEBUG
         app.config["TESTING"] = constants.DEV_TESTING
         app.config["DATABASE_URI"] = constants.DEV_DATABASE_URI
-    elif mode == "TEST":
+    elif mode == ExecutionMode.TEST:
         app.config["ENV"] = constants.TEST_ENV
         app.config["DEBUG"] = constants.TEST_DEBUG
         app.config["TESTING"] = constants.TEST_TESTING
         app.config["DATABASE_URI"] = constants.TEST_DATABASE_URI
-    elif mode == "PROD":
+    elif mode == ExecutionMode.PROD:
         app.config["ENV"] = constants.PROD_ENV
         app.config["DEBUG"] = constants.PROD_DEBUG
         app.config["TESTING"] = constants.PROD_TESTING
@@ -35,5 +35,5 @@ def create_app(mode):
 
 
 if __name__ == "__main__":
-    app = create_app("DEV")
+    app = create_app(ExecutionMode.DEV)
     app.run(port=4000)
