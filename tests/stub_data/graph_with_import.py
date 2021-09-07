@@ -8,7 +8,7 @@ from lineapy.data.types import (
 
 from tests.util import get_new_id, get_new_session
 
-import_code = "from math import pow as power, sqrt as root"
+import_code = "from math import pow, sqrt"
 import_body_code = "a = power(5, 2)\nb = root(a)"
 
 code = """from math import pow as power, sqrt as root

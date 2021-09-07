@@ -17,7 +17,7 @@ if len(bs) > 4:
     print("True")
 else:
     bs.append(3)
-    print("False)    
+    print("False")    
 ```
 """
 
@@ -26,7 +26,7 @@ if len(bs) > 4:
     print("True")
 else:
     bs.append(3)
-    print("False)
+    print("False")
 """
 
 session = get_new_session(code)
@@ -88,7 +88,7 @@ condition_line = ConditionNode(
     lineno=2,
     col_offset=0,
     end_lineno=6,
-    end_col_offset=15,
+    end_col_offset=18,
 )
 
 graph_with_conditionals = Graph(

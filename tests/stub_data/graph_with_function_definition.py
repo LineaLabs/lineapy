@@ -80,7 +80,7 @@ fun_def_node = FunctionDefinitionNode(
     lineno=3,
     col_offset=0,
     end_lineno=5,
-    end_col_offset=22,
+    end_col_offset=25,
 )
 
 func_call_id = get_new_id()

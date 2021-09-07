@@ -32,7 +32,7 @@ pandas_lib = Library(
     path="/Users/yifanwu/miniforge3/lib/python3.9/site-packages/pandas",
 )
 
-session = get_new_session(libraries=[pandas_lib])
+session = get_new_session(code, libraries=[pandas_lib])
 
 # Note that this python path is EXPLICTLY tracking Yifan's own version
 #   We should be able to handle these edge cases, and if not, we need to

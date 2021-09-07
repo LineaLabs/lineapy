@@ -121,7 +121,7 @@ le = LoopNode(
     lineno=3,
     col_offset=0,
     end_lineno=5,
-    end_col_offset=5,
+    end_col_offset=8,
 )
 
 x_id = get_new_id()

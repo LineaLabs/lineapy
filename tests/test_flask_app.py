@@ -56,7 +56,7 @@ def setup_db(mode: ExecutionMode):
     executor = Executor()
 
     # execute stub graph and write to database
-    executor.execute_program(stub_graph)
+    executor.execute_program(stub_graph, context)
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
 
