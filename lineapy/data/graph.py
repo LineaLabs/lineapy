@@ -3,6 +3,8 @@ from typing import cast
 import networkx as nx
 
 from lineapy.data.types import *
+from lineapy.graph_reader.graph_helper import get_arg_position
+from lineapy.utils import NullValueError
 
 
 class Graph(object):
@@ -48,9 +50,14 @@ class Graph(object):
         return list(nx.descendants(self.nx_graph, node))
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
-        if node_id in self.ids:
+        if node_id is not None and node_id in self.ids:
             return self.ids[node_id]
         return None
+
+    def get_node_else_raise(self, node_id: LineaID) -> Node:
+        if node_id is None or node_id not in self.ids:
+            raise NullValueError("Did not expect node to be None")
+        return self.ids[node_id]
 
     def get_node_value(self, node: Optional[Node]) -> Optional[NodeValue]:
         if node is None:
@@ -74,7 +81,7 @@ class Graph(object):
                     source = cast(VariableAliasNode, source)
                     source = self.get_node(source.source_variable_id)
 
-            return source.value
+            return source.value  # type: ignore
 
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
@@ -89,19 +96,24 @@ class Graph(object):
             return node.access_path
 
         else:
-            return node.value
+            return node.value  # type: ignore
 
     def get_node_value_from_id(self, node_id: Optional[LineaID]) -> Optional[Any]:
         node = self.get_node(node_id)
         return self.get_node_value(node)
 
     def get_arguments_from_call_node(self, node: CallNode) -> List[NodeValue]:
-        args = [self.get_node(a) for a in node.arguments]
+        if node.arguments and len(node.arguments) > 0:
+            args = [
+                cast(ArgumentNode, self.get_node_else_raise(a)) for a in node.arguments
+            ]
 
-        # NOTE: for cases where a large list is being instantiated using the list constructor, this may add unwanted overhead
-        # can use operator.attrgetter instead of x.positional_order to speed up this process
-        args.sort(key=lambda x: x.positional_order)
-        return [self.get_node_value(a) for a in args]
+            # NOTE: for cases where a large list is being instantiated using the list constructor, this may add unwanted overhead
+            # can use operator.attrgetter instead of x.positional_order to speed up this process
+
+            args.sort(key=get_arg_position)
+            return [self.get_node_value(a) for a in args]
+        return []
 
     # getting a node's parents before the graph has been constructed
     @staticmethod
@@ -129,11 +141,10 @@ class Graph(object):
                 source_nodes.extend(node.state_change_nodes)
             if node.import_nodes is not None:
                 source_nodes.extend(node.import_nodes)
-            if (
-                node.node_type is NodeType.ConditionNode
-                and node.dependent_variables_in_predicate is not None
-            ):
-                source_nodes.extend(node.dependent_variables_in_predicate)
+            if node.node_type is NodeType.ConditionNode:
+                node = cast(ConditionNode, node)
+                if node.dependent_variables_in_predicate is not None:
+                    source_nodes.extend(node.dependent_variables_in_predicate)
         elif node.node_type is StateChangeNode:
             node = cast(StateChangeNode, node)
             source_nodes.append(node.associated_node_id)
