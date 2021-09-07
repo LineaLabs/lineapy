@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     LiteralAssignNode,
     CallNode,
@@ -28,6 +28,15 @@ Graph method notes:
   - Given that the nodes are NOT unrolled, the re-execution will simply do `exec` on the code provided at the loop enter.
   - The loops will have side-effects, these variables deemed to be affected by the side effect will have a new ID from "StateChangeNode". The re-exec need to look up the value of the variable_name in StateChangeNode and give it a value at run time, for later nodes to reference.
 
+"""
+
+code = """a = []
+b = 0
+for x in range(9):
+    a.append(x)
+    b+=x
+x = sum(a)
+y = x + b
 """
 
 operator_lib = Library(id=get_new_id(), name="operator", version="1", path="")

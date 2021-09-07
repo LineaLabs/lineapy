@@ -1,29 +1,29 @@
 from flask import Flask
 from flask_cors import CORS
 
+from lineapy import constants, ExecutionMode
 from lineapy.app.app_db import init_db
-import config
 
 
-def create_app(mode):
+def create_app(mode: ExecutionMode):
     app = Flask(__name__)
     CORS(app)
 
-    if mode == "DEV":
-        app.config["ENV"] = config.DEV_ENV
-        app.config["DEBUG"] = config.DEV_DEBUG
-        app.config["TESTING"] = config.DEV_TESTING
-        app.config["DATABASE_URI"] = config.DEV_DATABASE_URI
-    elif mode == "TEST":
-        app.config["ENV"] = config.TEST_ENV
-        app.config["DEBUG"] = config.TEST_DEBUG
-        app.config["TESTING"] = config.TEST_TESTING
-        app.config["DATABASE_URI"] = config.TEST_DATABASE_URI
-    elif mode == "PROD":
-        app.config["ENV"] = config.PROD_ENV
-        app.config["DEBUG"] = config.PROD_DEBUG
-        app.config["TESTING"] = config.PROD_TESTING
-        app.config["DATABASE_URI"] = config.PROD_DATABASE_URI
+    if mode == ExecutionMode.DEV:
+        app.config["ENV"] = constants.DEV_ENV
+        app.config["DEBUG"] = constants.DEV_DEBUG
+        app.config["TESTING"] = constants.DEV_TESTING
+        app.config["DATABASE_URI"] = constants.DEV_DATABASE_URI
+    elif mode == ExecutionMode.TEST:
+        app.config["ENV"] = constants.TEST_ENV
+        app.config["DEBUG"] = constants.TEST_DEBUG
+        app.config["TESTING"] = constants.TEST_TESTING
+        app.config["DATABASE_URI"] = constants.TEST_DATABASE_URI
+    elif mode == ExecutionMode.PROD:
+        app.config["ENV"] = constants.PROD_ENV
+        app.config["DEBUG"] = constants.PROD_DEBUG
+        app.config["TESTING"] = constants.PROD_TESTING
+        app.config["DATABASE_URI"] = constants.PROD_DATABASE_URI
 
     with app.app_context():
         init_db(app)
@@ -35,5 +35,5 @@ def create_app(mode):
 
 
 if __name__ == "__main__":
-    app = create_app("DEV")
+    app = create_app(ExecutionMode.DEV)
     app.run(port=4000)

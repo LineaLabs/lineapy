@@ -1,39 +1,40 @@
 # set up the database with stub data for testing/debugging
-import pytest
-from uuid import UUID
 import os.path as path
+from uuid import UUID
 
+import pytest
+
+from lineapy import ExecutionMode
 import lineapy.app.app_db
-
-from lineapy.db.base import LineaDBConfig
+from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 
 
 @pytest.fixture(autouse=True)
 def test_db_mock(monkeypatch):
-    test_db = setup_db("TEST")
+    test_db = setup_db(ExecutionMode.TEST)
     monkeypatch.setattr(lineapy.app.app_db, "lineadb", test_db)
 
 
 def test_executor_and_db_apis(test_db_mock):
     from lineapy.app.app_db import lineadb
 
-    data_asset_manager = lineadb.data_asset_manager()
-    s = data_asset_manager.read_node_value(
+    s = lineadb.data_asset_manager.read_node_value(
         UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"), 1
     )
     assert s == 25
 
 
-def setup_db(mode):
+def setup_db(mode: ExecutionMode):
     test_db = RelationalLineaDB()
-    test_db.init_db(LineaDBConfig(mode=mode))
+    db_config = get_default_config_by_environment(mode)
+    test_db.init_db(db_config)
+
     setup_value_test(test_db, mode)
     setup_image_test(test_db, mode)
-    return test_db
 
 
-def setup_value_test(test_db, mode):
+def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import (
         ExecutionORM,
@@ -53,7 +54,7 @@ def setup_value_test(test_db, mode):
 
     from tests.util import get_new_id
 
-    if mode == "DEV":
+    if mode == ExecutionMode.DEV:
         simple_data_node.access_path = (
             path.abspath(path.join(__file__, "../.."))
             + "/tests/stub_data/simple_data.csv"
@@ -105,7 +106,7 @@ def setup_value_test(test_db, mode):
     test_db.session.commit()
 
 
-def setup_image_test(test_db, mode):
+def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import (
         ExecutionORM,
@@ -125,7 +126,7 @@ def setup_image_test(test_db, mode):
 
     from tests.util import get_new_id
 
-    if mode == "DEV":
+    if mode == ExecutionMode.DEV:
         simple_data_node.access_path = (
             path.abspath(path.join(__file__, "../.."))
             + "/tests/stub_data/simple_data.csv"

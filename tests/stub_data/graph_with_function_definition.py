@@ -1,4 +1,3 @@
-from lineapy.data.graph import DirectedEdge
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ImportNode,
@@ -22,6 +21,14 @@ def my_function():
 my_function()
 ```
 
+"""
+
+code = """import math
+a = 0
+def my_function():
+    global a
+    a = math.factorial(5)
+my_function()
 """
 
 math_lib = Library(id=get_new_id(), name="math", version="1", path="home")

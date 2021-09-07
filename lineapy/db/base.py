@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from enum import Enum
 from typing import List
 
+from lineapy.constants import *
 from lineapy.data.graph import Graph
 from lineapy.data.types import DataSourceNode, Node
 from lineapy.data.types import LineaID, SessionContext
 from lineapy.db.asset_manager.base import DataAssetManager
-import config
 
 
 class DatabaseOption(Enum):
@@ -29,13 +28,14 @@ class LineaDBConfig:
     file_system: FileSystemOption = FileSystemOption.Local
     database_uri: str = None
 
-    def __init__(self, mode: str):
-        if mode == "TEST":
-            self.database_uri = config.TEST_DATABASE_URI
-        elif mode == "DEV":
-            self.database_uri = config.DEV_DATABASE_URI
-        elif mode == "PROD":
-            self.database_uri = config.PROD_DATABASE_URI
+
+def get_default_config_by_environment(mode: ExecutionMode) -> LineaDBConfig:
+    if mode == ExecutionMode.DEV:
+        return LineaDBConfig(database_uri=DEV_DATABASE_URI)
+    if mode == ExecutionMode.TEST:
+        return LineaDBConfig(database_uri=TEST_DATABASE_URI)
+    if mode == ExecutionMode.PROD:
+        return LineaDBConfig(database_uri=PROD_DATABASE_URI)
 
 
 class LineaDBReader(ABC):
@@ -81,4 +81,6 @@ class LineaDBWriter(ABC):
 
 
 class LineaDB(LineaDBReader, LineaDBWriter, ABC):
-    pass
+    @abstractmethod
+    def init_db(self, db_config: LineaDBConfig):
+        ...

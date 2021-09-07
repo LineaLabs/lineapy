@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     LiteralAssignNode,
 )
@@ -18,6 +18,11 @@ TODO: in our slicing test, we should make sure that getting the slice for b retu
 a = 0
 b = a
 ```
+"""
+
+code = """a = 0
+b = a
+a = 2
 """
 
 a_assign = LiteralAssignNode(

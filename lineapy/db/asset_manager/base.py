@@ -1,19 +1,22 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from lineapy.data.types import Node, NodeValue, NodeType, LineaID
 
 
 class DataAssetManager(ABC):
     @abstractmethod
-    def write_node_value(self, node: Node) -> str:
+    def write_node_value(self, node: Node, version: int) -> Optional[str]:
         """
         :param node: node whose value is to be materialized.
-        :return: URN for the location the node value is written to.
+        :return: if the value is written, return
+          - URN for the location the node value is written to,
+          - or DB_DATA_ASSET_MANAGER (from contants)
         """
         ...
 
     @abstractmethod
-    def read_node_value(self, id: LineaID) -> NodeValue:
+    def read_node_value(self, id: LineaID, version: int) -> NodeValue:
         """
         This methods needs to be able to look up a mapping between
         the uuids and the URNs for the serialized results.
