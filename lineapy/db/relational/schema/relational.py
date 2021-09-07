@@ -42,6 +42,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     Column,
+    Float,
     UniqueConstraint,
     Integer,
     String,
@@ -153,7 +154,7 @@ class ArtifactORM(Base):  # type: ignore
     __tablename__ = "artifact"
     id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
     description = Column(String, nullable=True)
-    date_created = Column(String)
+    date_created = Column(Float, nullable=False)
 
 
 artifact_project_association_table = Table(

@@ -11,7 +11,12 @@ from lineapy.data.types import *
 from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
-from lineapy.utils import CaseNotHandledError, NullValueError
+from lineapy.utils import (
+    CaseNotHandledError,
+    EntryNotFoundError,
+    NullValueError,
+    info_log,
+)
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
 
@@ -232,6 +237,7 @@ class RelationalLineaDB(LineaDB):
 
         node_orm = RelationalLineaDB.get_orm(node)(**args)
 
+        info_log("Writing node", node.id)
         self.session.add(node_orm)
         self.session.commit()
 
@@ -320,8 +326,11 @@ class RelationalLineaDB(LineaDB):
         SQLAlchemy is able to translate between the two types on demand
         """
         # linea_id_orm = LineaIDORM().process_bind_param(linea_id)
-        node = self.session.query(NodeORM).filter(NodeORM.id == linea_id).one()
-        return self.map_orm_to_pydantic(node)
+        try:
+            node = self.session.query(NodeORM).filter(NodeORM.id == linea_id).one()
+            return self.map_orm_to_pydantic(node)
+        except:
+            raise EntryNotFoundError(f"Did not find ID {linea_id}")
 
     def map_orm_to_pydantic(self, node: NodeORM) -> Node:
         # cast string serialized values to their appropriate types
@@ -419,7 +428,8 @@ class RelationalLineaDB(LineaDB):
         )
 
     def get_all_artifact_ids(self) -> List[LineaID]:
-        return [artifact.id for artifact in ArtifactORM.query.all()]
+        artifact_orms = self.session.query(ArtifactORM).all()
+        return [artifact.id for artifact in artifact_orms]
 
     def get_all_artifacts(self) -> List[Artifact]:
         """

@@ -132,9 +132,8 @@ class Execution(BaseModel):
 
 class Artifact(BaseModel):
     id: LineaID
-    context: LineaID
-    description: Optional[str]
-    date_created: str
+    date_created: float
+    description: Optional[str] = None
 
     class Config:
         orm_mode = True

@@ -1,6 +1,5 @@
-from lineapy.constants import LINEAPY_IMPORT_LIB_NAME, LINEAPY_PUBLISH_FUNCTION_NAME
 from tempfile import NamedTemporaryFile
-
+from datetime import datetime
 from click.testing import CliRunner
 
 from lineapy.cli.cli import linea_cli
@@ -10,6 +9,7 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.graph_reader.graph_util import are_nodes_content_equal
 from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import info_log
+from lineapy.constants import LINEAPY_IMPORT_LIB_NAME, LINEAPY_PUBLISH_FUNCTION_NAME
 from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
 from tests.util import reset_test_db
 
@@ -62,8 +62,10 @@ class TestCli:
         """
         testing something super simple
         """
+        description = "testing artifact publish"
         with NamedTemporaryFile() as tmp:
-            publish_code = f"import {LINEAPY_IMPORT_LIB_NAME}\na = abs(-11)\n{LINEAPY_IMPORT_LIB_NAME}.{LINEAPY_PUBLISH_FUNCTION_NAME}(a)\n"
+            publish_code = f"import {LINEAPY_IMPORT_LIB_NAME}\na = abs(-11)\n{LINEAPY_IMPORT_LIB_NAME}.{LINEAPY_PUBLISH_FUNCTION_NAME}(a, '{description}')\n"
+            info_log("publish code", publish_code)
             tmp.write(str.encode(publish_code))
             tmp.flush()
             result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp.name])
@@ -72,8 +74,8 @@ class TestCli:
             assert len(artifacts) == 1
             artifact = artifacts[0]
             info_log("logged artifact", artifact)
-            # assert artifact.date_created
-            # TODO:
+            assert artifact.description == description
+            assert datetime.fromtimestamp(artifact.date_created)
 
         pass
 

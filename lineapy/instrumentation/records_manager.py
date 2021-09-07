@@ -1,4 +1,4 @@
-from lineapy.db.db_utils import get_current_time_in_str
+from lineapy.db.db_utils import get_current_time
 from typing import List, Optional
 
 from lineapy.data.types import LineaID, Node, SessionContext
@@ -48,5 +48,7 @@ class RecordsManager:
     def add_node_id_to_artifact_table(
         self, node_id: LineaID, description: Optional[str] = None
     ):
-        date_created = get_current_time_in_str()
-        self.db.add_node_id_to_artifact_table(node_id, date_created)
+        # need to flush all to DB since it's accessing its values at runtime
+        self.flush_records()
+        date_created = get_current_time()
+        self.db.add_node_id_to_artifact_table(node_id, date_created, description)

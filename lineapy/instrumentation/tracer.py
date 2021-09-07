@@ -1,5 +1,5 @@
 from datetime import datetime
-from lineapy.db.db_utils import get_current_time_in_str
+from lineapy.db.db_utils import get_current_time
 from typing import Dict, Any, Optional, List, cast
 
 from lineapy.constants import ExecutionMode
@@ -81,6 +81,8 @@ class Tracer:
         # we'd have to do some introspection here to know what the ID is
         # then we can create a new ORM node (not our IR node, which is a little confusing)
         # TODO: look up node_id base on variable_name
+        # need to force an eval
+        self.evaluate_records_so_far()
         node_id = self._look_up_node_id_by_variable_name(variable_name)
         self.records_manager.add_node_id_to_artifact_table(node_id, description)
 

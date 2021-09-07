@@ -116,9 +116,9 @@ class NodeTransformer(ast.NodeTransformer):
                 )
             var_node = cast(ast.Name, node.args[0])
             if len(node.args) == 2:
-                if type(node.args[1] is not ast.Constant):
+                if type(node.args[1]) is not ast.Constant:
                     raise UserError(
-                        f"Please pass a string for the description as the second argument to `{LINEAPY_PUBLISH_FUNCTION_NAME}`"
+                        f"Please pass a string for the description as the second argument to `{LINEAPY_PUBLISH_FUNCTION_NAME}`, you gave {type(node.args[1])}"
                     )
                 description_node = cast(ast.Constant, node.args[1])
                 return synthesize_linea_publish_call_ast(
