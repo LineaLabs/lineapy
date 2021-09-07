@@ -31,6 +31,11 @@ class WrongTypeError(Exception):
         super().__init__(message)
 
 
+class CaseNotHandledError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class UserError(Exception):
     def __init__(self, message):
         super().__init__(message)

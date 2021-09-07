@@ -21,8 +21,8 @@ pip install -e . --user
 ## Tests
 Note: these should be run in root (``graph_with_csv_import`` does a relative file access)
 ```bash
-mypy -p linea
-black linea/ --check
+mypy -p lineapy
+black lineapy/ --check
 pytest
 ```
 
