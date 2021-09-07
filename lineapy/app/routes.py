@@ -1,9 +1,7 @@
-from flask import Blueprint, jsonify, send_file, make_response
+from flask import Blueprint, jsonify, send_file, make_response, request
 from sqlalchemy import func
 import io
 from PIL import Image
-import numpy as np
-from flask import request
 
 from lineapy.app.app_db import lineadb
 from lineapy.data.types import *
