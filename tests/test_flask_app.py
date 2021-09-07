@@ -4,9 +4,10 @@ from uuid import UUID
 
 import pytest
 
-from lineapy import ExecutionMode
+import lineapy
 import lineapy.app.app_db
-from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
+from lineapy import ExecutionMode
+from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 
 
@@ -48,9 +49,8 @@ def setup_db(mode: ExecutionMode):
     from tests.util import get_new_id
 
     if mode == "DEV":
-        simple_data_node.access_path = (
-            path.abspath(path.join(__file__, "../.."))
-            + "/tests/stub_data/simple_data.csv"
+        simple_data_node.access_path = path.join(
+            path.abspath(lineapy.__file__), "/tests/stub_data/simple_data.csv"
         )
 
     executor = Executor()

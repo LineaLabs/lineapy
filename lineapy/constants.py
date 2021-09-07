@@ -1,4 +1,7 @@
 from enum import Enum
+import os.path as path
+
+_base = path.dirname(__file__)
 
 PROD_ENV = "production"
 PROD_DEBUG = False
