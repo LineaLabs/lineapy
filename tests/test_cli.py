@@ -40,7 +40,6 @@ class TestCli:
 
     def test_end_to_end_simple_graph(self):
         with NamedTemporaryFile() as tmp:
-            info_log("simple graph code", simple_graph_code)
             tmp.write(str.encode(simple_graph_code))
             tmp.flush()
             # might also need os.path.dirname() in addition to file name
@@ -48,7 +47,6 @@ class TestCli:
             # FIXME: make into constants
             result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp_file_name])
             assert result.exit_code == 0
-            info_log("testing file:", tmp_file_name)
             nodes = self.db.get_nodes_by_file_name(tmp_file_name)
             # there should just be two
             info_log("nodes", len(nodes), nodes)
@@ -58,7 +56,25 @@ class TestCli:
                     assert are_nodes_content_equal(c, line_1)
                 if c.node_type == NodeType.ArgumentNode:
                     assert are_nodes_content_equal(c, arg_literal)
-                info_log("found_call_node", c)
+
+    def test_publish(self):
+        """
+        testing something super simple
+        """
+        with NamedTemporaryFile() as tmp:
+            publish_code = """import lineapy\na = abs(-11)\nlineapy.publish(a)\n"""
+            tmp.write(str.encode(publish_code))
+            tmp.flush()
+            result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp.name])
+            assert result.exit_code == 0
+            artifacts = self.db.get_all_artifacts()
+            assert len(artifacts) == 1
+            artifact = artifacts[0]
+            info_log("logged artifact", artifact)
+            # assert artifact.date_created
+            # TODO:
+
+        pass
 
     def test_no_script_error(self):
         # TODO

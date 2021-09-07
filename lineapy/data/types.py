@@ -117,7 +117,7 @@ class Execution(BaseModel):
 class Artifact(BaseModel):
     id: LineaID
     context: LineaID
-    value_type: str
+    value_type: str  # @dhruv since this is not an enum please write down the possible string values?
     name: Optional[str]
     project: Optional[str]
     description: Optional[str]

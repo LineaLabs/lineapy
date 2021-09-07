@@ -424,6 +424,21 @@ class RelationalLineaDB(LineaDB):
             .first()
         )
 
+    def get_all_artifact_ids(self) -> List[LineaID]:
+        return [artifact.id for artifact in ArtifactORM.query.all()]
+
+    def get_all_artifacts(self) -> List[Artifact]:
+        """
+        Note that `from_orm` only works with a single record now.
+        """
+        ids = self.get_all_artifact_ids()
+        artifacts = []
+        for id in ids:
+            a = self.get_artifact(id)
+            if a is not None:
+                artifacts.append(a)
+        return artifacts
+
     def jsonify_artifact(self, artifact: Artifact) -> Dict:
         json_artifact = artifact.dict()
 
