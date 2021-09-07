@@ -3,7 +3,7 @@ import sys
 from enum import Enum
 
 lineapy_module = sys.modules[__name__]
-_base = path.split(path.dirname(lineapy_module.__file__))[0]
+_base = path.split(path.abspath(path.dirname(lineapy_module.__file__)))[0]
 
 PROD_ENV = "production"
 PROD_DEBUG = False
