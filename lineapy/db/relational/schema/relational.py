@@ -150,14 +150,14 @@ class ArtifactORM(Base):
     project = Column(String, nullable=True)
     description = Column(String, nullable=True)
     date_created = Column(String)
-    code = Column(LineaID, nullable=True)
+    # code = Column(LineaID, nullable=True)
 
 
 # one to many
 code_token_association_table = Table(
     "code_token_association",
     Base.metadata,
-    Column("code", ForeignKey("code.id"), primary_key=True),
+    Column("artifact", ForeignKey("artifact.id"), primary_key=True),
     Column("token", ForeignKey("token.id"), primary_key=True),
 )
 
@@ -165,10 +165,10 @@ code_token_association_table = Table(
 
 # CodeORM is derived from an Artifact, and used for the frontend Code objects that hold
 # intermediate values (Tokens)
-class CodeORM(Base):
-    __tablename__ = "code"
-    id = Column(LineaID, primary_key=True)
-    text = Column(String)
+# class CodeORM(Base):
+#     __tablename__ = "code"
+#     id = Column(LineaID, primary_key=True)
+#     text = Column(String)
 
 
 # TokenORMs should be derived from existing NodeValueORMs, representing intermediates

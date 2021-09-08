@@ -123,18 +123,18 @@ class Artifact(BaseModel):
     project: Optional[str]
     description: Optional[str]
     date_created: str
-    code: Optional[LineaID]
+    # code: Optional[LineaID]
 
     class Config:
         orm_mode = True
 
 
-class Code(BaseModel):
-    id: LineaID
-    text: str
+# class Code(BaseModel):
+#     id: LineaID
+#     text: str
 
-    class Config:
-        orm_mode = True
+#     class Config:
+#         orm_mode = True
 
 
 class Token(BaseModel):

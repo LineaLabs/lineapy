@@ -11,6 +11,7 @@ from lineapy.data.types import *
 from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
+from lineapy.execution.executor import Executor
 
 
 class RelationalLineaDB(LineaDB):
@@ -248,7 +249,6 @@ class RelationalLineaDB(LineaDB):
         context_id: LineaID,
         name: str = "",
         date_created: str = "",
-        code: LineaID = "",
         value_type: str = "",
     ) -> None:
         """
@@ -266,7 +266,6 @@ class RelationalLineaDB(LineaDB):
                 value_type=value_type,
                 name=name,
                 date_created=date_created,
-                code=code,
             )
             self.session.add(artifact)
             self.session.commit()
@@ -435,14 +434,15 @@ class RelationalLineaDB(LineaDB):
 
         json_artifact["file"] = ""
 
-        code = Code.from_orm(
-            self.session.query(CodeORM).filter(CodeORM.id == artifact.code).first()
-        )
-        json_artifact["code"] = code.dict()
+        # code = Code.from_orm(
+        #     self.session.query(CodeORM).filter(CodeORM.id == artifact.code).first()
+        # )
+        json_artifact["code"] = {}
+        json_artifact["code"]["text"] = self.get_code_from_artifact_id(artifact.id)
 
         token_associations = (
             self.session.query(code_token_association_table)
-            .filter(code_token_association_table.c.code == code.id)
+            .filter(code_token_association_table.c.artifact == artifact.id)
             .all()
         )
         # NOTE/TODO: currently only supports DataFrames and values as tokens
@@ -506,6 +506,53 @@ class RelationalLineaDB(LineaDB):
             ancestors.update(new_ancestors)
 
         return ancestors
+
+    def filter_subsumed_nodes(self, nodes: List[Node]) -> List[Node]:
+        """
+        Filters out nodes that are contained by other nodes
+        e.g. removes an ArgumentNode subsumed by a CallNode's code
+        """
+        current_node = nodes[0]
+        nodes_filtered = [current_node]
+
+        for node in nodes:
+            if node.lineno > current_node.end_lineno or (
+                node.lineno == current_node.end_lineno
+                and node.col_offset >= current_node.end_col_offset
+            ):
+                current_node = node
+                nodes_filtered.append(current_node)
+
+        return nodes_filtered
+
+    def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
+        graph = self.get_graph_from_artifact_id(artifact_id)
+        session_code = self.get_context(
+            self.get_node_by_id(artifact_id).session_id
+        ).code
+
+        nodes = [
+            node
+            for node in graph.nodes
+            if node.lineno is not None and node.col_offset is not None
+        ]
+
+        # sort first by line number, then by column number
+        nodes = sorted(nodes, key=lambda node: (node.lineno, node.col_offset))
+        nodes = self.filter_subsumed_nodes(nodes)
+
+        code = ""
+        for node in nodes:
+            node_code = Executor.get_segment_from_code(
+                session_code,
+                node.lineno,
+                node.col_offset,
+                node.end_lineno,
+                node.end_col_offset,
+            )
+            code += node_code + "\n"
+
+        return code
 
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode

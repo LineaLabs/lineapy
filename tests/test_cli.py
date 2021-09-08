@@ -53,7 +53,7 @@ class TestCli:
             # there should just be two
             info_log("nodes", len(nodes), nodes)
             assert len(nodes) == 2
-            # NOTE: assertions commented out until transformer writes line and column numbers to db
+            # NOTE: @yifan assertions commented out until transformer writes line and column numbers to db
             # for c in nodes:
             #     if c.node_type == NodeType.CallNode:
             #         assert are_nodes_content_equal(c, line_1)
