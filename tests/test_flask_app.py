@@ -33,8 +33,6 @@ def setup_db(mode: ExecutionMode):
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import (
         ExecutionORM,
-        TokenORM,
-        code_token_association_table,
     )
     from lineapy.data.types import VALUE_TYPE
 
@@ -59,25 +57,6 @@ def setup_db(mode: ExecutionMode):
     executor.execute_program(stub_graph, context)
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
-
-    code_token = TokenORM(
-        id=get_new_id(),
-        line=2,
-        start=1,
-        end=3,
-        intermediate=read_csv_call.id,
-    )
-
-    test_db.session.execute(
-        code_token_association_table.insert(),
-        params={
-            "artifact": artifact.id,
-            "token": code_token.id,
-        },
-    )
-
-    test_db.session.add(code_token)
-    test_db.session.commit()
 
     test_db.add_node_id_to_artifact_table(
         artifact.id,

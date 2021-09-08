@@ -148,9 +148,14 @@ def get_artifact(artifact_id):
 def get_node_value(node_id):
     node_id = UUID(node_id)
     node_value = lineadb.get_node_value(node_id, latest_version())
+    node_value_type = RelationalLineaDB.get_node_value_type(node_value)
+    if node_value_type == DATASET_TYPE:
+        node_value = RelationalLineaDB.cast_dataset(node_value)
+    elif node_value_type == VALUE_TYPE:
+        node_value = RelationalLineaDB.cast_serialized(
+            node_value, RelationalLineaDB.get_type(node_value)
+        )
 
-    node_value = RelationalLineaDB.cast_dataset(node_value)
-
-    response = jsonify({"node_value": node_value})
+    response = jsonify({"node_value": node_value, "node_value_type": node_value_type})
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response

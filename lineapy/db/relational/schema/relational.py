@@ -76,7 +76,7 @@ Base = declarative_base()
 # from https://stackoverflow.com/questions/183042/how-can-i-use-uuids-in-sqlalchemy
 class LineaID(types.TypeDecorator):
     impl = MSBinary
-    cache_ok = True  # this surppress an error from SQLAlchemy
+    cache_ok = True  # this suppresses an error from SQLAlchemy
 
     def __init__(self):
         self.impl.length = 16
@@ -150,28 +150,6 @@ class ArtifactORM(Base):
     project = Column(String, nullable=True)
     description = Column(String, nullable=True)
     date_created = Column(String)
-    # code = Column(LineaID, nullable=True)
-
-
-# one to many
-code_token_association_table = Table(
-    "code_token_association",
-    Base.metadata,
-    Column("artifact", ForeignKey("artifact.id"), primary_key=True),
-    Column("token", ForeignKey("token.id"), primary_key=True),
-)
-
-# TokenORM is temporary, to be used for integration testing of intermediates
-
-# TokenORMs should be derived from existing NodeValueORMs, representing intermediates
-# for the CodeView to handle
-class TokenORM(Base):
-    __tablename__ = "token"
-    id = Column(LineaID, primary_key=True)
-    line = Column(Integer)
-    start = Column(Integer)
-    end = Column(Integer)
-    intermediate = Column(LineaID)  # points to a NodeValueORM
 
 
 class ExecutionORM(Base):

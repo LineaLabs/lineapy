@@ -423,6 +423,13 @@ class RelationalLineaDB(LineaDB):
             .first()
         )
 
+    @staticmethod
+    def get_node_value_type(node_value):
+        # check object type (for now this only supports DataFrames and values)
+        if hasattr(node_value, "to_csv"):
+            return DATASET_TYPE
+        return VALUE_TYPE
+
     def jsonify_artifact(self, artifact: Artifact) -> Dict:
         json_artifact = artifact.dict()
 
@@ -437,41 +444,50 @@ class RelationalLineaDB(LineaDB):
         json_artifact["code"] = {}
         json_artifact["code"]["text"] = self.get_code_from_artifact_id(artifact.id)
 
-        token_associations = (
-            self.session.query(code_token_association_table)
-            .filter(code_token_association_table.c.artifact == artifact.id)
-            .all()
-        )
-        # NOTE/TODO: currently only supports DataFrames and values as tokens
         tokens_json = []
-        if token_associations is not None:
-            for association in token_associations:
-                token_orm = (
-                    self.session.query(TokenORM)
-                    .filter(TokenORM.id == association.token)
-                    .first()
-                )
-                token_json = Token.from_orm(token_orm).dict()
 
-                intermediate_value = (
-                    self.session.query(NodeValueORM)
-                    .filter(NodeValueORM.node_id == token_json["intermediate"])
-                    .first()
-                    .value
-                )
+        for node in self.get_graph_from_artifact_id(artifact.id).nodes:
+            if node.node_type is not NodeType.CallNode:
+                continue
 
-                # check object type (for now this only supports DataFrames and values)
+            start_col = node.col_offset + 1
+            end_col = node.end_col_offset + 1
+            if node.assigned_variable_name is not None:
+                end_col = len(node.assigned_variable_name) + start_col
+
+            token_json = {
+                "id": node.id,
+                "line": node.lineno,
+                "start": start_col,
+                "end": end_col,
+            }
+            intermediate_value = (
+                self.session.query(NodeValueORM)
+                .filter(NodeValueORM.node_id == node.id)
+                .first()
+                .value
+            )
+
+            intermediate_value_type = RelationalLineaDB.get_node_value_type(
+                intermediate_value
+            )
+            if intermediate_value_type == DATASET_TYPE:
                 intermediate_value = RelationalLineaDB.cast_dataset(intermediate_value)
-                intermediate = {
-                    "file": "",
-                    "id": token_json["intermediate"],
-                    "name": "",
-                    "type": DATASET_TYPE,
-                    "date": "1372944000",
-                    "text": intermediate_value,
-                }
-                token_json["intermediate"] = intermediate
-                tokens_json.append(token_json)
+            elif intermediate_value_type == VALUE_TYPE:
+                intermediate_value = RelationalLineaDB.cast_serialized(
+                    intermediate_value, RelationalLineaDB.get_type(intermediate_value)
+                )
+
+            intermediate = {
+                "file": "",
+                "id": node.id,
+                "name": "",
+                "type": intermediate_value_type,
+                "date": "1372944000",
+                "text": intermediate_value,
+            }
+            token_json["intermediate"] = intermediate
+            tokens_json.append(token_json)
 
         json_artifact["code"]["tokens"] = tokens_json
 

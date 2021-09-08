@@ -128,17 +128,6 @@ class Artifact(BaseModel):
         orm_mode = True
 
 
-class Token(BaseModel):
-    id: LineaID
-    line: int
-    start: int
-    end: int
-    intermediate: LineaID  # this is a reference to a NodeValue
-
-    class Config:
-        orm_mode = True
-
-
 class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.id
