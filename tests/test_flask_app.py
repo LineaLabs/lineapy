@@ -16,7 +16,7 @@ def test_db_mock(monkeypatch):
     monkeypatch.setattr(lineapy.app.app_db, "lineadb", test_db)
 
 
-# NOTE: @Yifan uncomment this when you've implemented line and column numbers in transformer
+# NOTE: @Yifan please uncomment this test when you've implemented line and column numbers in transformer
 # def test_executor_and_db_apis(test_db_mock):
 #     from lineapy.app.app_db import lineadb
 
@@ -60,11 +60,6 @@ def setup_db(mode: ExecutionMode):
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
 
-    # artifact_code = CodeORM(
-    #     id=get_new_id(),
-    #     text=test_db.get_code_from_artifact_id(artifact.id),
-    # )
-
     code_token = TokenORM(
         id=get_new_id(),
         line=2,
@@ -81,7 +76,6 @@ def setup_db(mode: ExecutionMode):
         },
     )
 
-    # test_db.session.add(artifact_code)
     test_db.session.add(code_token)
     test_db.session.commit()
 

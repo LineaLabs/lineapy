@@ -161,15 +161,7 @@ code_token_association_table = Table(
     Column("token", ForeignKey("token.id"), primary_key=True),
 )
 
-# CodeORM and TokenORM are temporary, to be used for integration testing of intermediates
-
-# CodeORM is derived from an Artifact, and used for the frontend Code objects that hold
-# intermediate values (Tokens)
-# class CodeORM(Base):
-#     __tablename__ = "code"
-#     id = Column(LineaID, primary_key=True)
-#     text = Column(String)
-
+# TokenORM is temporary, to be used for integration testing of intermediates
 
 # TokenORMs should be derived from existing NodeValueORMs, representing intermediates
 # for the CodeView to handle

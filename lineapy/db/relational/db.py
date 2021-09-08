@@ -434,9 +434,6 @@ class RelationalLineaDB(LineaDB):
 
         json_artifact["file"] = ""
 
-        # code = Code.from_orm(
-        #     self.session.query(CodeORM).filter(CodeORM.id == artifact.code).first()
-        # )
         json_artifact["code"] = {}
         json_artifact["code"]["text"] = self.get_code_from_artifact_id(artifact.id)
 
