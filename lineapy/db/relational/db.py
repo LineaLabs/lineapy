@@ -11,6 +11,7 @@ from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManag
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 from lineapy.execution.executor import Executor
+from lineapy.execution.execution_util import get_segment_from_code
 from lineapy.utils import CaseNotHandledError, NullValueError
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
@@ -569,7 +570,7 @@ class RelationalLineaDB(LineaDB):
 
         code = ""
         for node in nodes:
-            node_code = Executor.get_segment_from_code(session_code, node)
+            node_code = get_segment_from_code(session_code, node)
             code += node_code + "\n"
 
         return code
