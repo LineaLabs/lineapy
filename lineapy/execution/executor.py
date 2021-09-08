@@ -3,7 +3,6 @@ import importlib.util
 import io
 import subprocess
 import sys
-import ast
 from typing import Any, Tuple, Optional, Dict, cast
 
 import lineapy.lineabuiltins as lineabuiltins
@@ -21,6 +20,7 @@ from lineapy.data.types import (
     LineaID,
 )
 from lineapy.graph_reader.base import GraphReader
+from lineapy.execution.execution_util import get_segment_from_code
 
 
 class Executor(GraphReader):
@@ -81,13 +81,6 @@ class Executor(GraphReader):
 
     def get_value_by_variable_name(self, name: str) -> Any:
         return self._variable_values[name]
-
-    @staticmethod
-    def get_segment_from_code(code: str, node: Node) -> str:
-        lines = code.split("\n")[node.lineno - 1 : node.end_lineno]
-        lines[0] = lines[0][node.col_offset :]
-        lines[len(lines) - 1] = lines[len(lines) - 1][: node.end_col_offset]
-        return "\n".join(lines)
 
     def execute_program_with_inputs(
         self, program: Graph, inputs: Dict[LineaID, Any]
@@ -240,14 +233,14 @@ class Executor(GraphReader):
                 node = cast(SideEffectsNode, node)
                 # set up vars and imports
                 self.setup_context_for_node(node, program, scoped_locals)
-                exec(Executor.get_segment_from_code(code, node))
+                exec(get_segment_from_code(code, node))
                 self.update_node_side_effects(node, program, scoped_locals)
 
             elif node.node_type == NodeType.FunctionDefinitionNode:
                 node = cast(FunctionDefinitionNode, node)
                 self.setup_context_for_node(node, program, scoped_locals)
                 exec(
-                    Executor.get_segment_from_code(code, node),
+                    get_segment_from_code(code, node),
                     scoped_locals,
                 )
 

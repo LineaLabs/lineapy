@@ -6,6 +6,7 @@ from lineapy.data.types import *
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import *
 from lineapy.execution.executor import Executor
+from lineapy.execution.execution_util import get_segment_from_code
 
 # from decouple import config
 
@@ -161,7 +162,7 @@ def get_node_value(node_id):
     if node.node_type is NodeType.CallNode and node.assigned_variable_name is not None:
         node_name = node.assigned_variable_name
     else:
-        node_name = Executor.get_segment_from_code(
+        node_name = get_segment_from_code(
             lineadb.get_context(node.session_id).code, node
         )
 

@@ -11,6 +11,7 @@ from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManag
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 from lineapy.execution.executor import Executor
+from lineapy.execution.execution_util import add_node_to_code, max_col_of_code
 from lineapy.utils import CaseNotHandledError, NullValueError
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
@@ -467,12 +468,14 @@ class RelationalLineaDB(LineaDB):
                 "start": start_col,
                 "end": end_col,
             }
-            intermediate_value = (
+
+            intermediate = (
                 self.session.query(NodeValueORM)
                 .filter(NodeValueORM.node_id == node.id)
                 .first()
-                .value
             )
+
+            intermediate_value = intermediate.value
 
             intermediate_value_type = RelationalLineaDB.get_node_value_type(
                 intermediate_value
@@ -489,7 +492,7 @@ class RelationalLineaDB(LineaDB):
                 "id": node.id,
                 "name": "",
                 "type": intermediate_value_type,
-                "date": "1372944000",
+                "date": intermediate.timestamp,
                 "text": intermediate_value,
             }
             token_json["intermediate"] = intermediate
@@ -526,24 +529,6 @@ class RelationalLineaDB(LineaDB):
 
         return ancestors
 
-    def filter_subsumed_nodes(self, nodes: List[Node]) -> List[Node]:
-        """
-        Filters out nodes that are contained by other nodes
-        e.g. removes an ArgumentNode subsumed by a CallNode's code
-        """
-        current_node = nodes[0]
-        nodes_filtered = [current_node]
-
-        for node in nodes:
-            if node.lineno > current_node.end_lineno or (
-                node.lineno == current_node.end_lineno
-                and node.col_offset >= current_node.end_col_offset
-            ):
-                current_node = node
-                nodes_filtered.append(current_node)
-
-        return nodes_filtered
-
     def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
         graph = self.get_graph_from_artifact_id(artifact_id)
         session_code = self.get_context(
@@ -556,15 +541,25 @@ class RelationalLineaDB(LineaDB):
             if node.lineno is not None and node.col_offset is not None
         ]
 
-        # sort first by line number, then by column number
-        nodes = sorted(nodes, key=lambda node: (node.lineno, node.col_offset))
-        nodes = self.filter_subsumed_nodes(nodes)
+        num_lines = len(session_code.split("\n"))
+        code: str = "\n".join([" " * max_col_of_code(session_code)] * num_lines)
 
-        code = ""
         for node in nodes:
-            node_code = Executor.get_segment_from_code(session_code, node)
-            code += node_code + "\n"
+            code = add_node_to_code(code, session_code, node)
 
+        # replace groups of empty lines with single empty line
+        # TODO: this is messy, could be done cleaner maybe with some regex?
+        lines = code.split("\n")
+        result: List[str] = []
+        for l in range(len(lines)):
+            if not (
+                l < len(lines) - 1
+                and lines[l].strip() == ""
+                and lines[l + 1].strip() == ""
+            ):
+                result.append(lines[l])
+
+        code = "\n".join(result)
         return code
 
     def find_all_artifacts_derived_from_data_source(
@@ -573,11 +568,13 @@ class RelationalLineaDB(LineaDB):
         descendants = program.get_descendants(data_source_node.id)
         artifacts = []
         for d_id in descendants:
-            artifact = (
+            descendant_is_artifact = (
                 self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
+                is not None
             )
-            if artifact is not None:
-                artifacts.append(program.get_node(d_id))
+            descendant = program.get_node(d_id)
+            if descendant_is_artifact and descendant is not None:
+                artifacts.append(descendant)
         return artifacts
 
     def gather_artifact_intermediate_nodes(self, program: Graph):
