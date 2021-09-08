@@ -20,7 +20,6 @@ from lineapy.data.types import (
     FunctionDefinitionNode,
     LineaID,
 )
-from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.graph_reader.base import GraphReader
 
 
@@ -32,9 +31,10 @@ class Executor(GraphReader):
         self._old_stdout = sys.stdout
         self._stdout = io.StringIO()
 
-    @property
-    def data_asset_manager(self) -> DataAssetManager:
-        pass
+    # TODO when we implement caching
+    # @property
+    # def data_asset_manager(self) -> DataAssetManager:
+    #     pass
 
     @staticmethod
     def install(package):
@@ -51,7 +51,7 @@ class Executor(GraphReader):
         if module_node.node_type == NodeType.ImportNode:
             module_node = cast(ImportNode, module_node)
             if module_node.module is None:
-                module_node.module = importlib.import_module(module_node.library.name)
+                module_node.module = importlib.import_module(module_node.library.name)  # type: ignore
             return module_node.module
 
         return None
@@ -63,7 +63,7 @@ class Executor(GraphReader):
                     if importlib.util.find_spec(library.name) is None:
                         Executor.install(library.name)
                 except ModuleNotFoundError:
-                    # TODO: handle imports with multiple levels of parent packages (e.g. from x.y.z import a)
+                    # Note: look out for errors when handling imports with multiple levels of parent packages (e.g. from x.y.z import a)
                     Executor.install(library.name.split(".")[0])
 
     def get_stdout(self) -> str:
@@ -127,13 +127,12 @@ class Executor(GraphReader):
                     NodeType.LiteralAssignNode,
                     NodeType.StateChangeNode,
                 ]:
-                    initial_state = initial_state.value
-                    scoped_locals[state_var.variable_name] = initial_state
+                    scoped_locals[state_var.variable_name] = initial_state.value  # type: ignore
 
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
                 import_node = cast(ImportNode, program.get_node(import_node_id))
-                import_node.module = importlib.import_module(import_node.library.name)
+                import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
                 scoped_locals[import_node.library.name] = import_node.module
 
         if (

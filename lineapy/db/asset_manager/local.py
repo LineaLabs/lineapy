@@ -1,6 +1,7 @@
+from typing import Optional, cast
+
 from sqlalchemy import and_
 from sqlalchemy.orm import scoped_session
-from typing import Optional, cast
 
 from lineapy.constants import DB_DATA_ASSET_MANAGER
 from lineapy.data.types import CallNode, NodeType, NodeValue, Node, LineaID

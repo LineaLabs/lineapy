@@ -156,10 +156,17 @@ class SideEffectsNode(Node):
 
 
 class ImportNode(Node):
+    """
+    Example 1: import pandas as pd---library: pandas
+    Example 2: from math import ceil
+
+    """
+
     node_type: NodeType = NodeType.ImportNode
-    library: Optional[Library]
+    library: Library
     attributes: Optional[Dict[str, str]] = None  # key is alias, value is full name
     alias: Optional[str] = None
+    # run time value
     module: Any = None
 
 
