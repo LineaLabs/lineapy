@@ -22,8 +22,17 @@ plt.imsave('simple_data.png', df)
 img = open('simple_data.png')
 
 ```
-This test also has method chaining, which is a good case
 """
+
+code = """import pandas as pd
+import matplotlib.pyplot as plt
+from PIL.Image import open
+
+df = pd.read_csv('simple_data.csv')
+plt.imsave('simple_data.png', df)
+img = open('simple_data.png')
+"""
+
 pandas_lib = Library(
     id=get_new_id(),
     name="pandas",
@@ -35,7 +44,7 @@ plt_lib = Library(id=get_new_id(), name="matplotlib.pyplot", version="", path=""
 
 img_lib = Library(id=get_new_id(), name="PIL.Image", version="", path="")
 
-session = get_new_session(libraries=[pandas_lib, plt_lib, img_lib])
+session = get_new_session(code, libraries=[pandas_lib, plt_lib, img_lib])
 
 # Note that this python path is EXPLICTLY tracking Yifan's own version
 #   We should be able to handle these edge cases, and if not, we need to
@@ -43,28 +52,34 @@ session = get_new_session(libraries=[pandas_lib, plt_lib, img_lib])
 import_pandas = ImportNode(
     id=get_new_id(),
     session_id=session.id,
-    code="import pandas as pd",
     library=pandas_lib,
     alias="pd",
-    line=0,
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=19,
 )
 
 import_pyplot = ImportNode(
     id=get_new_id(),
     session_id=session.id,
-    code="import matplotlib.pyplot as plt",
     library=plt_lib,
     alias="plt",
-    line=1,
+    lineno=2,
+    col_offset=0,
+    end_lineno=2,
+    end_col_offset=31,
 )
 
 import_pil = ImportNode(
     id=get_new_id(),
     session_id=session.id,
-    code="from PIL.Image import open",
     library=img_lib,
     attributes={"open": "open"},
-    line=2,
+    lineno=3,
+    col_offset=0,
+    end_lineno=3,
+    end_col_offset=26,
 )
 
 
@@ -82,18 +97,23 @@ literal_node = ArgumentNode(
     session_id=session.id,
     positional_order=0,
     value_node_id=simple_data_node.id,
-    line=3,
+    lineno=4,
+    col_offset=17,
+    end_lineno=4,
+    end_col_offset=34,
 )
 
 read_csv_call = CallNode(
     id=UUID("73e1d1eb-fb9c-4fd4-b2c5-760829917361"),
     session_id=session.id,
-    code="df = pd.read_csv('simple_data.csv')",
     function_name="read_csv",
     function_module=import_pandas.id,
     assigned_variable_name="df",
     arguments=[literal_node.id],
-    line=3,
+    lineno=4,
+    col_offset=0,
+    end_lineno=4,
+    end_col_offset=35,
 )
 
 img_data_node = DataSourceNode(
@@ -110,7 +130,10 @@ savefig_arg = ArgumentNode(
     session_id=session.id,
     positional_order=1,
     value_node_id=img_data_node.id,
-    line=4,
+    lineno=5,
+    col_offset=11,
+    end_lineno=5,
+    end_col_offset=28,
 )
 
 df_arg = ArgumentNode(
@@ -118,17 +141,22 @@ df_arg = ArgumentNode(
     session_id=session.id,
     positional_order=2,
     value_node_id=read_csv_call.id,
-    line=4,
+    lineno=5,
+    col_offset=30,
+    end_lineno=5,
+    end_col_offset=32,
 )
 
 savefig_call = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    code="plt.imsave('simple_data.png', df)",
     function_name="imsave",
     function_module=import_pyplot.id,
     arguments=[savefig_arg.id, df_arg.id],
-    line=4,
+    lineno=5,
+    col_offset=0,
+    end_lineno=5,
+    end_col_offset=33,
 )
 
 savefig_arg2 = ArgumentNode(
@@ -136,7 +164,10 @@ savefig_arg2 = ArgumentNode(
     session_id=session.id,
     positional_order=1,
     value_node_id=img_data_node.id,
-    line=5,
+    lineno=6,
+    col_offset=11,
+    end_lineno=6,
+    end_col_offset=28,
 )
 
 read_call = CallNode(
@@ -147,7 +178,10 @@ read_call = CallNode(
     function_module=import_pil.id,
     assigned_variable_name="img",
     arguments=[savefig_arg2.id],
-    line=5,
+    lineno=6,
+    col_offset=0,
+    end_lineno=6,
+    end_col_offset=29,
 )
 
 

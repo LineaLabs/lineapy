@@ -438,9 +438,12 @@ class RelationalLineaDB(LineaDB):
 
     @staticmethod
     def get_node_value_type(node_value):
-        # check object type (for now this only supports DataFrames and values)
+        # check object type (for now this only supports DataFrames, PIL images, and values)
+        # TODO: need more robust type checking
         if hasattr(node_value, "to_csv"):
             return DATASET_TYPE
+        elif hasattr(node_value, "show"):
+            return CHART_TYPE
         return VALUE_TYPE
 
     def jsonify_artifact(self, artifact: Artifact) -> Dict:
@@ -474,12 +477,16 @@ class RelationalLineaDB(LineaDB):
                 "start": start_col,
                 "end": end_col,
             }
+
             intermediate_value = (
                 self.session.query(NodeValueORM)
                 .filter(NodeValueORM.node_id == node.id)
                 .first()
                 .value
             )
+
+            if intermediate_value is None:
+                continue
 
             intermediate_value_type = RelationalLineaDB.get_node_value_type(
                 intermediate_value
@@ -490,6 +497,8 @@ class RelationalLineaDB(LineaDB):
                 intermediate_value = RelationalLineaDB.cast_serialized(
                     intermediate_value, RelationalLineaDB.get_type(intermediate_value)
                 )
+            elif intermediate_value_type == CHART_TYPE:
+                ...
 
             intermediate = {
                 "file": "",
@@ -506,9 +515,7 @@ class RelationalLineaDB(LineaDB):
 
         return json_artifact
 
-    def get_graph_from_artifact_id(
-        self, artifact_id: LineaIDAlias, session_context: LineaIDAlias
-    ) -> Graph:
+    def get_graph_from_artifact_id(self, artifact_id: LineaIDAlias) -> Graph:
         """
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation

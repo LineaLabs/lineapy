@@ -194,7 +194,7 @@ class Graph(object):
                 ]
 
                 # sort data source nodes children
-                descendants.sort(key=lambda n: self.get_node(n).line)
+                descendants.sort(key=lambda n: self.get_node(n).lineno)
                 # add edges between children
                 for d in range(len(descendants) - 1):
                     if self.nx_graph.has_edge(

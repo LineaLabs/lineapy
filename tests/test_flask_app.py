@@ -79,12 +79,7 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 
 def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.execution.executor import Executor
-    from lineapy.db.relational.schema.relational import (
-        ExecutionORM,
-        CodeORM,
-        TokenORM,
-        code_token_association_table,
-    )
+    from lineapy.db.relational.schema.relational import ExecutionORM
     from lineapy.data.types import CHART_TYPE
 
     from tests.stub_data.graph_with_basic_image import (
@@ -110,17 +105,9 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     executor = Executor()
 
     # execute stub graph and write to database
-    executor.execute_program(stub_graph)
+    executor.execute_program(stub_graph, context)
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
-
-    artifact_code = CodeORM(
-        id=get_new_id(),
-        text="",
-    )
-
-    test_db.session.add(artifact_code)
-    test_db.session.commit()
 
     test_db.add_node_id_to_artifact_table(
         read_call.id,
@@ -128,7 +115,6 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         value_type=CHART_TYPE,
         name="Graph With Image",
         date_created="1372944000",
-        code=artifact_code.id,
     )
 
     exec_orm = ExecutionORM(artifact_id=read_call.id, version=1)
