@@ -54,7 +54,6 @@ simple_data_node = DataSourceNode(
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
     # access_path="./tests/stub_data/simple_data.csv",
     access_path="tests/stub_data/simple_data.csv",
-    line=1,
 )
 
 literal_node = ArgumentNode(

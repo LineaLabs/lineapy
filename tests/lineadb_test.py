@@ -221,9 +221,7 @@ class TestLineaDB(unittest.TestCase):
             f_assign.id,
             graph_with_messy_nodes_session.id,
         )
-        result = self.lineadb.get_graph_from_artifact_id(
-            f_assign.id, graph_with_messy_nodes_session.id
-        )
+        result = self.lineadb.get_graph_from_artifact_id(f_assign.id)
         self.lineadb.remove_node_id_from_artifact_table(f_assign.id)
         e = Executor()
         e.execute_program(result, graph_with_messy_nodes_session)

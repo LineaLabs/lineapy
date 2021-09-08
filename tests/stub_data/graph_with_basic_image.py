@@ -27,7 +27,6 @@ img = open('simple_data.png')
 code = """import pandas as pd
 import matplotlib.pyplot as plt
 from PIL.Image import open
-
 df = pd.read_csv('simple_data.csv')
 plt.imsave('simple_data.png', df)
 img = open('simple_data.png')
@@ -173,7 +172,6 @@ savefig_arg2 = ArgumentNode(
 read_call = CallNode(
     id=UUID("87620b97-c86b-4931-ab89-9f36898caa57"),
     session_id=session.id,
-    code="img = open('simple_data.png')",
     function_name="open",
     function_module=import_pil.id,
     assigned_variable_name="img",

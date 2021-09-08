@@ -498,7 +498,7 @@ class RelationalLineaDB(LineaDB):
                     intermediate_value, RelationalLineaDB.get_type(intermediate_value)
                 )
             elif intermediate_value_type == CHART_TYPE:
-                ...
+                continue
 
             intermediate = {
                 "file": "",

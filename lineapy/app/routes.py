@@ -81,7 +81,7 @@ def execute(artifact_id):
 
     # get graph and re-execute
     executor = Executor()
-    program = lineadb.get_graph_from_artifact_id(artifact_id, artifact.context)
+    program = lineadb.get_graph_from_artifact_id(artifact_id)
     context = lineadb.get_context(artifact.context)
     executor.execute_program(program, context)
 
