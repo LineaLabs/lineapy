@@ -52,7 +52,10 @@ class Tracer:
             internal_warning_log(
                 "The method `evaluate_records_so_far` will not evaluate correctly"
             )
-        self.executor.execute_program(Graph(self.execution_pool))
+        self.executor.execute_program(
+            Graph(self.execution_pool),
+            self.records_manager.db.get_context(self.session_id),
+        )
         self.records_manager.add_evaluated_nodes(self.execution_pool)
         # reset
         self.execution_pool = []
@@ -76,6 +79,7 @@ class Tracer:
             environment_type=session_type,
             creation_time=datetime.now(),
             file_name=file_name,
+            code="",
         )
         self.records_manager.write_session_context(session_context)
 
@@ -99,7 +103,6 @@ class Tracer:
         node = ImportNode(
             id=get_new_id(),
             session_id=self.session_id,
-            code=code,
             alias=alias,
             library=library,
             attributes=attributes,
@@ -181,7 +184,6 @@ class Tracer:
         node = CallNode(
             id=get_new_id(),
             session_id=self.session_id,
-            code=code,
             function_name=function_name,
             arguments=argument_nodes,
             function_module=function_module,
@@ -202,7 +204,7 @@ class Tracer:
             call_node = cast(CallNode, value_node)
             call_node.assigned_variable_name = variable_name
             # the assignment subsumes the original call code
-            call_node.code = code
+            # call_node.code = code
         else:
             internal_warning_log("got type", type(value_node), value_node)
             raise NotImplementedError

@@ -32,7 +32,7 @@ pandas_lib = Library(
     path="/Users/yifanwu/miniforge3/lib/python3.9/site-packages/pandas",
 )
 
-session = get_new_session(libraries=[pandas_lib])
+session = get_new_session(code, libraries=[pandas_lib])
 
 # Note that this python path is EXPLICTLY tracking Yifan's own version
 #   We should be able to handle these edge cases, and if not, we need to
@@ -40,10 +40,12 @@ session = get_new_session(libraries=[pandas_lib])
 import_pandas = ImportNode(
     id=get_new_id(),
     session_id=session.id,
-    code="import pandas as pd",
     library=pandas_lib,
     alias="pd",
-    line=0,
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=19,
 )
 
 simple_data_node = DataSourceNode(
@@ -60,18 +62,23 @@ literal_node = ArgumentNode(
     session_id=session.id,
     positional_order=0,
     value_node_id=simple_data_node.id,
-    line=1,
+    lineno=2,
+    col_offset=17,
+    end_lineno=2,
+    end_col_offset=34,
 )
 
 read_csv_call = CallNode(
     id=UUID("e01d7a89-0d6d-474b-8119-b5f087cbd66e"),
     session_id=session.id,
-    code="df = pd.read_csv('simple_data.csv')",
     function_name="read_csv",
     function_module=import_pandas.id,
     assigned_variable_name="df",
     arguments=[literal_node.id],
-    line=1,
+    lineno=2,
+    col_offset=0,
+    end_lineno=2,
+    end_col_offset=35,
 )
 
 col_name_literal = ArgumentNode(
@@ -79,28 +86,35 @@ col_name_literal = ArgumentNode(
     session_id=session.id,
     positional_order=0,
     value_literal="a",
-    line=2,
+    lineno=3,
+    col_offset=7,
+    end_lineno=3,
+    end_col_offset=10,
 )
 
 access_a_column = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    code="df['a']",
     function_name="__getitem__",  # @dhruv this is a built in method, not sure if we need to add a module here
     function_module=read_csv_call.id,
     arguments=[col_name_literal.id],
-    line=2,
+    lineno=3,
+    col_offset=4,
+    end_lineno=3,
+    end_col_offset=11,
 )
 
 sum_call = CallNode(
     id=UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"),
     session_id=session.id,
-    code="s = df['a'].sum()",
     arguments=[],
     function_name="sum",
     function_module=access_a_column.id,
     assigned_variable_name="s",
-    line=2,
+    lineno=3,
+    col_offset=0,
+    end_lineno=3,
+    end_col_offset=17,
 )
 
 graph_with_csv_import = Graph(

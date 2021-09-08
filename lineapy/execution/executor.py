@@ -3,6 +3,7 @@ import importlib.util
 import io
 import subprocess
 import sys
+import ast
 from typing import Any, Tuple, Optional, Dict, cast
 
 import lineapy.lineabuiltins as lineabuiltins
@@ -19,7 +20,6 @@ from lineapy.data.types import (
     FunctionDefinitionNode,
     LineaID,
 )
-from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.graph_reader.base import GraphReader
 
 
@@ -31,9 +31,10 @@ class Executor(GraphReader):
         self._old_stdout = sys.stdout
         self._stdout = io.StringIO()
 
-    @property
-    def data_asset_manager(self) -> DataAssetManager:
-        pass
+    # TODO when we implement caching
+    # @property
+    # def data_asset_manager(self) -> DataAssetManager:
+    #     pass
 
     @staticmethod
     def install(package):
@@ -50,7 +51,7 @@ class Executor(GraphReader):
         if module_node.node_type == NodeType.ImportNode:
             module_node = cast(ImportNode, module_node)
             if module_node.module is None:
-                module_node.module = importlib.import_module(module_node.library.name)
+                module_node.module = importlib.import_module(module_node.library.name)  # type: ignore
             return module_node.module
 
         return None
@@ -62,7 +63,7 @@ class Executor(GraphReader):
                     if importlib.util.find_spec(library.name) is None:
                         Executor.install(library.name)
                 except ModuleNotFoundError:
-                    # TODO: handle imports with multiple levels of parent packages (e.g. from x.y.z import a)
+                    # Note: look out for errors when handling imports with multiple levels of parent packages (e.g. from x.y.z import a)
                     Executor.install(library.name.split(".")[0])
 
     def get_stdout(self) -> str:
@@ -81,6 +82,13 @@ class Executor(GraphReader):
     def get_value_by_variable_name(self, name: str) -> Any:
         return self._variable_values[name]
 
+    @staticmethod
+    def get_segment_from_code(code: str, node: Node) -> str:
+        lines = code.split("\n")[node.lineno - 1 : node.end_lineno]
+        lines[0] = lines[0][node.col_offset :]
+        lines[len(lines) - 1] = lines[len(lines) - 1][: node.end_col_offset]
+        return "\n".join(lines)
+
     def execute_program_with_inputs(
         self, program: Graph, inputs: Dict[LineaID, Any]
     ) -> Any:
@@ -97,10 +105,10 @@ class Executor(GraphReader):
         """
         ...
 
-    def execute_program(self, program: Graph, context: SessionContext = None) -> Any:
+    def execute_program(self, program: Graph, context: SessionContext) -> Any:
         if context is not None:
             self.setup(context)
-        self.walk(program)
+        self.walk(program, context.code)
 
     def setup_context_for_node(
         self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]
@@ -117,13 +125,12 @@ class Executor(GraphReader):
                     NodeType.LiteralAssignNode,
                     NodeType.StateChangeNode,
                 ]:
-                    initial_state = initial_state.value
-                    scoped_locals[state_var.variable_name] = initial_state
+                    scoped_locals[state_var.variable_name] = initial_state.value  # type: ignore
 
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
                 import_node = cast(ImportNode, program.get_node(import_node_id))
-                import_node.module = importlib.import_module(import_node.library.name)
+                import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
                 scoped_locals[import_node.library.name] = import_node.module
 
         if (
@@ -183,7 +190,7 @@ class Executor(GraphReader):
 
         return fn, fn_name
 
-    def walk(self, program: Graph) -> None:
+    def walk(self, program: Graph, code: str) -> None:
         sys.stdout = self._stdout
 
         for node_id in program.visit_order():
@@ -232,13 +239,16 @@ class Executor(GraphReader):
                 node = cast(SideEffectsNode, node)
                 # set up vars and imports
                 self.setup_context_for_node(node, program, scoped_locals)
-                exec(node.code)
+                exec(Executor.get_segment_from_code(code, node))
                 self.update_node_side_effects(node, program, scoped_locals)
 
             elif node.node_type == NodeType.FunctionDefinitionNode:
                 node = cast(FunctionDefinitionNode, node)
                 self.setup_context_for_node(node, program, scoped_locals)
-                exec(node.code, scoped_locals)
+                exec(
+                    Executor.get_segment_from_code(code, node),
+                    scoped_locals,
+                )
 
             elif node.node_type == NodeType.LiteralAssignNode:
                 node = cast(LiteralAssignNode, node)

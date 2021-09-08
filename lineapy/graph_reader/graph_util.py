@@ -37,8 +37,13 @@ def are_nodes_content_equal(n1: Node, n2: Node) -> bool:
     if n1.node_type is NodeType.CallNode:
         n1 = cast(CallNode, n1)
         n2 = cast(CallNode, n2)
-        if n1.code != n2.code:
-            internal_warning_log("Nodes have different code", n1.code, n2.code)
+        if (
+            n1.lineno != n2.lineno
+            or n1.end_lineno != n2.end_lineno
+            or n1.col_offset != n2.col_offset
+            or n1.end_col_offset != n2.end_col_offset
+        ):
+            internal_warning_log("Nodes have different locations")
             return False
         if n1.function_name != n2.function_name:
             internal_warning_log(

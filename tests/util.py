@@ -12,7 +12,7 @@ from lineapy.data.types import (
 from lineapy.utils import get_new_id
 
 
-def get_new_session(libraries: Optional[List] = None) -> SessionContext:
+def get_new_session(code: str, libraries: Optional[List] = None) -> SessionContext:
     if libraries is None:
         libraries = []
     return SessionContext(
@@ -21,6 +21,7 @@ def get_new_session(libraries: Optional[List] = None) -> SessionContext:
         environment_type=SessionType.SCRIPT,
         creation_time=datetime.now(),
         libraries=libraries,
+        code=code,
     )
 
 

@@ -41,23 +41,33 @@ y = x + b
 
 operator_lib = Library(id=get_new_id(), name="operator", version="1", path="")
 
-session = get_new_session(libraries=[operator_lib])
+session = get_new_session(code, libraries=[operator_lib])
 
 a_id = get_new_id()
 
 line_1 = CallNode(
     id=a_id,
     session_id=session.id,
-    code="a = []",
     function_name="list",
     assigned_variable_name="a",
     arguments=[],
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=6,
 )
 
 b_id = get_new_id()
 
 line_2 = LiteralAssignNode(
-    id=b_id, session_id=session.id, code="b = 0", assigned_variable_name="b", value=0
+    id=b_id,
+    session_id=session.id,
+    assigned_variable_name="b",
+    value=0,
+    lineno=2,
+    col_offset=0,
+    end_lineno=2,
+    end_col_offset=5,
 )
 
 le_id = get_new_id()
@@ -77,6 +87,10 @@ a_argument_node = ArgumentNode(
     session_id=session.id,
     positional_order=0,
     value_node_id=a_state_change_id,
+    lineno=6,
+    col_offset=8,
+    end_lineno=6,
+    end_col_offset=9,
 )
 
 b_state_change_id = get_new_id()
@@ -94,14 +108,20 @@ b_argument_node = ArgumentNode(
     session_id=session.id,
     positional_order=1,
     value_node_id=b_state_change_id,
+    lineno=7,
+    col_offset=8,
+    end_lineno=7,
+    end_col_offset=9,
 )
 
 le = LoopNode(
     id=le_id,
     session_id=session.id,
-    # @Dhruv, please watch out for indentation oddities when you run into errors
-    code="for x in range(9):\n\ta.append(x)\n\tb+=x",
     state_change_nodes=[a_state_change_id, b_state_change_id],
+    lineno=3,
+    col_offset=0,
+    end_lineno=5,
+    end_col_offset=8,
 )
 
 x_id = get_new_id()
@@ -109,7 +129,6 @@ x_id = get_new_id()
 line_6 = CallNode(
     id=x_id,
     session_id=session.id,
-    code="x = sum(a)",
     function_name="sum",
     assigned_variable_name="x",
     arguments=[a_argument_id],
@@ -120,24 +139,33 @@ operator_module_id = get_new_id()
 operator_module = ImportNode(
     id=operator_module_id,
     session_id=session.id,
-    code="import operator",
     library=operator_lib,
 )
 
 x_argument_id = get_new_id()
 x_argument_node = ArgumentNode(
-    id=x_argument_id, session_id=session.id, positional_order=0, value_node_id=x_id
+    id=x_argument_id,
+    session_id=session.id,
+    positional_order=0,
+    value_node_id=x_id,
+    lineno=7,
+    col_offset=4,
+    end_lineno=7,
+    end_col_offset=5,
 )
 
 y_id = get_new_id()
 line_7 = CallNode(
     id=y_id,
     session_id=session.id,
-    code="y = x + b",
     function_name="add",
     function_module=operator_module_id,  # built in
     assigned_variable_name="y",
     arguments=[x_argument_id, b_argument_id],
+    lineno=7,
+    col_offset=0,
+    end_lineno=7,
+    end_col_offset=9,
 )
 
 graph_with_loops = Graph(

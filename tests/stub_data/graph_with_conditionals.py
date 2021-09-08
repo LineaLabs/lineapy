@@ -17,7 +17,7 @@ if len(bs) > 4:
     print("True")
 else:
     bs.append(3)
-    print("False)    
+    print("False")    
 ```
 """
 
@@ -26,16 +26,20 @@ if len(bs) > 4:
     print("True")
 else:
     bs.append(3)
-    print("False)
+    print("False")
 """
 
-session = get_new_session()
+session = get_new_session(code)
 
 arg_1 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=0,
     value_literal=1,
+    lineno=1,
+    col_offset=6,
+    end_lineno=1,
+    end_col_offset=7,
 )
 
 arg_2 = ArgumentNode(
@@ -43,6 +47,10 @@ arg_2 = ArgumentNode(
     session_id=session.id,
     positional_order=1,
     value_literal=2,
+    lineno=1,
+    col_offset=8,
+    end_lineno=1,
+    end_col_offset=9,
 )
 
 bs_line_id = get_new_id()
@@ -50,10 +58,13 @@ bs_line_id = get_new_id()
 bs_line = CallNode(
     id=bs_line_id,
     session_id=session.id,
-    code="bs = [1,2]",
     function_name="__build_list__",
     assigned_variable_name="bs",
     arguments=[arg_1.id, arg_2.id],
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=10,
 )
 
 # line 1
@@ -72,9 +83,12 @@ state_change = StateChangeNode(
 condition_line = ConditionNode(
     id=condition_line_id,
     session_id=session.id,
-    code="""if len(bs) > 4:\n\tprint("True")\nelse:\n\tbs.append(3)\n\tprint("False")""",
     dependent_variables_in_predicate=[bs_line_id],
     state_change_nodes=[state_change_id],
+    lineno=2,
+    col_offset=0,
+    end_lineno=6,
+    end_col_offset=18,
 )
 
 graph_with_conditionals = Graph(

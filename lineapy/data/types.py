@@ -50,6 +50,7 @@ class SessionContext(BaseModel):
     user_name: Optional[str] = None
     hardware_spec: Optional[HardwareSpec] = None
     libraries: Optional[List[Library]] = None
+    code: str
 
     class Config:
         orm_mode = True
@@ -121,26 +122,6 @@ class Artifact(BaseModel):
     project: Optional[str]
     description: Optional[str]
     date_created: str
-    code: Optional[LineaID]
-
-    class Config:
-        orm_mode = True
-
-
-class Code(BaseModel):
-    id: LineaID
-    text: str
-
-    class Config:
-        orm_mode = True
-
-
-class Token(BaseModel):
-    id: LineaID
-    line: int
-    start: int
-    end: int
-    intermediate: LineaID  # this is a reference to a NodeValue
 
     class Config:
         orm_mode = True
@@ -150,11 +131,12 @@ class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.id
     node_type: NodeType = NodeType.Node
-
-    line: Optional[int]
-    line_end: Optional[int]
-    col_start: Optional[int]
-    col_end: Optional[int]
+    # these identifiers are Optional because there are some kinds of nodes which are implicitly defined,
+    # including ImportNodes where the import is the operator module
+    lineno: Optional[int]
+    col_offset: Optional[int]
+    end_lineno: Optional[int]
+    end_col_offset: Optional[int]
     # context: Optional[NodeContext] = None
 
     # note: this is specific to Pydantic
@@ -164,7 +146,6 @@ class Node(BaseModel):
 
 
 class SideEffectsNode(Node):
-    code: str
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     # will deprecate when storing graph in a relational db
     state_change_nodes: Optional[List[LineaID]]
@@ -174,11 +155,17 @@ class SideEffectsNode(Node):
 
 
 class ImportNode(Node):
+    """
+    Example 1: import pandas as pd---library: pandas
+    Example 2: from math import ceil
+
+    """
+
     node_type: NodeType = NodeType.ImportNode
-    code: str
-    library: Optional[Library]
+    library: Library
     attributes: Optional[Dict[str, str]] = None  # key is alias, value is full name
     alias: Optional[str] = None
+    # run time value
     module: Any = None
 
 
@@ -196,7 +183,6 @@ class CallNode(Node):
     """
 
     node_type: NodeType = NodeType.CallNode
-    code: str
     arguments: List[LineaID]
     function_name: str
     function_module: Optional[
@@ -212,7 +198,6 @@ class CallNode(Node):
 
 class LiteralAssignNode(Node):
     node_type: NodeType = NodeType.LiteralAssignNode
-    code: str
     assigned_variable_name: str
     value: NodeValue
     value_node_id: Optional[LineaID]
@@ -224,7 +209,6 @@ class VariableAliasNode(Node):
     """
 
     node_type: NodeType = NodeType.VariableAliasNode
-    code: str
     source_variable_id: LineaID
 
 
@@ -287,7 +271,6 @@ class DataSourceNode(Node):
 
 class WithNode(Node):
     node_type: NodeType = NodeType.WithNode
-    code: str
     # TODO
 
 

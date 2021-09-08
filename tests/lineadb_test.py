@@ -9,9 +9,19 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.graph_util import are_graphs_identical
 from lineapy.graph_reader.graph_util import are_nodes_equal
-from tests.stub_data.graph_with_alias_by_reference import graph_with_alias_by_reference
-from tests.stub_data.graph_with_alias_by_value import graph_with_alias_by_value
-from tests.stub_data.graph_with_conditionals import graph_with_conditionals
+
+from tests.stub_data.graph_with_alias_by_reference import (
+    graph_with_alias_by_reference,
+    session as graph_with_alias_by_reference_session,
+)
+from tests.stub_data.graph_with_alias_by_value import (
+    graph_with_alias_by_value,
+    session as graph_with_alias_by_value_session,
+)
+from tests.stub_data.graph_with_conditionals import (
+    graph_with_conditionals,
+    session as graph_with_conditionals_session,
+)
 from tests.stub_data.graph_with_csv_import import (
     graph_with_csv_import,
     session as graph_with_file_access_session,
@@ -28,6 +38,15 @@ from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
 )
+from tests.stub_data.nested_call_graph import (
+    nested_call_graph,
+    session as nested_call_graph_session,
+)
+from tests.stub_data.simple_graph import simple_graph, session as simple_graph_session
+from tests.stub_data.simple_with_variable_argument_and_print import (
+    simple_with_variable_argument_and_print,
+    session as simple_with_variable_argument_and_print_session,
+)
 from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
     graph_sliced_by_var_f,
@@ -35,11 +54,6 @@ from tests.stub_data.graph_with_messy_nodes import (
     f_assign,
     e_assign,
     a_assign,
-)
-from tests.stub_data.nested_call_graph import nested_call_graph
-from tests.stub_data.simple_graph import simple_graph
-from tests.stub_data.simple_with_variable_argument_and_print import (
-    simple_with_variable_argument_and_print,
 )
 from tests.util import reset_test_db
 
@@ -89,25 +103,30 @@ class TestLineaDB(unittest.TestCase):
         return db_graph
 
     def test_simple_graph(self):
-        graph = self.write_and_read_graph(simple_graph)
+        graph, context = self.write_and_read_graph(simple_graph, simple_graph_session)
         e = Executor()
-        e.execute_program(graph)
+        e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
         assert a == 11
         assert are_graphs_identical(graph, simple_graph)
 
     def test_nested_call_graph(self):
-        graph = self.write_and_read_graph(nested_call_graph)
+        graph, context = self.write_and_read_graph(
+            nested_call_graph, nested_call_graph_session
+        )
         e = Executor()
-        e.execute_program(graph)
+        e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
         assert a == 10
         assert are_graphs_identical(graph, nested_call_graph)
 
     def test_graph_with_print(self):
-        graph = self.write_and_read_graph(simple_with_variable_argument_and_print)
+        graph, context = self.write_and_read_graph(
+            simple_with_variable_argument_and_print,
+            simple_with_variable_argument_and_print_session,
+        )
         e = Executor()
-        e.execute_program(graph)
+        e.execute_program(graph, context)
         stdout = e.get_stdout()
         assert stdout == "10\n"
         assert are_graphs_identical(graph, simple_with_variable_argument_and_print)
@@ -151,9 +170,11 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(graph, graph_with_loops)
 
     def test_program_with_conditionals(self):
-        graph = self.write_and_read_graph(graph_with_conditionals)
+        graph, context = self.write_and_read_graph(
+            graph_with_conditionals, graph_with_conditionals_session
+        )
         e = Executor()
-        e.execute_program(graph)
+        e.execute_program(graph, context)
         bs = e.get_value_by_variable_name("bs")
         stdout = e.get_stdout()
         assert bs == [1, 2, 3]
@@ -171,9 +192,11 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(graph, graph_with_csv_import)
 
     def test_variable_alias_by_value(self):
-        graph = self.write_and_read_graph(graph_with_alias_by_value)
+        graph, context = self.write_and_read_graph(
+            graph_with_alias_by_value, graph_with_alias_by_value_session
+        )
         e = Executor()
-        e.execute_program(graph)
+        e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
         b = e.get_value_by_variable_name("b")
         assert a == 2
@@ -181,9 +204,11 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(graph, graph_with_alias_by_value)
 
     def test_variable_alias_by_reference(self):
-        graph = self.write_and_read_graph(graph_with_alias_by_reference)
+        graph, context = self.write_and_read_graph(
+            graph_with_alias_by_reference, graph_with_alias_by_reference_session
+        )
         e = Executor()
-        e.execute_program(graph)
+        e.execute_program(graph, context)
         s = e.get_value_by_variable_name("s")
         assert s == 10
         assert are_graphs_identical(graph, graph_with_alias_by_reference)
@@ -201,7 +226,7 @@ class TestLineaDB(unittest.TestCase):
         )
         self.lineadb.remove_node_id_from_artifact_table(f_assign.id)
         e = Executor()
-        e.execute_program(result)
+        e.execute_program(result, graph_with_messy_nodes_session)
         f = e.get_value_by_variable_name("f")
         assert f == 6
         assert are_graphs_identical(result, graph_sliced_by_var_f)
