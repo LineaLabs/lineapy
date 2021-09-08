@@ -1,3 +1,5 @@
+import re
+
 from typing import Set, Union, cast
 
 from sqlalchemy import create_engine
@@ -548,18 +550,9 @@ class RelationalLineaDB(LineaDB):
             code = add_node_to_code(code, session_code, node)
 
         # replace groups of empty lines with single empty line
-        # TODO: this is messy, could be done cleaner maybe with some regex?
-        lines = code.split("\n")
-        result: List[str] = []
-        for l in range(len(lines)):
-            if not (
-                l < len(lines) - 1
-                and lines[l].strip() == ""
-                and lines[l + 1].strip() == ""
-            ):
-                result.append(lines[l])
+        # https://stackoverflow.com/questions/28901452/reduce-multiple-blank-lines-to-single-pythonically
+        code = re.sub(r"\n\s*\n", "\n\n", code)
 
-        code = "\n".join(result)
         return code
 
     def find_all_artifacts_derived_from_data_source(
