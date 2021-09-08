@@ -562,13 +562,7 @@ class RelationalLineaDB(LineaDB):
 
         code = ""
         for node in nodes:
-            node_code = Executor.get_segment_from_code(
-                session_code,
-                node.lineno,
-                node.col_offset,
-                node.end_lineno,
-                node.end_col_offset,
-            )
+            node_code = Executor.get_segment_from_code(session_code, node)
             code += node_code + "\n"
 
         return code

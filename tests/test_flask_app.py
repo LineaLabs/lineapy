@@ -40,7 +40,6 @@ def setup_db(mode: ExecutionMode):
         graph_with_csv_import as stub_graph,
         session as context,
         sum_call as artifact,
-        read_csv_call,
         simple_data_node,
     )
     from tests.util import get_new_id
