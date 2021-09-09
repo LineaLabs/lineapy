@@ -1,6 +1,6 @@
-import re
 import logging
-from typing import Set, Union, cast
+import re
+from typing import Union, cast
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
