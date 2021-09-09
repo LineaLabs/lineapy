@@ -3,13 +3,11 @@ from tempfile import NamedTemporaryFile
 from click.testing import CliRunner
 
 from lineapy.cli.cli import linea_cli
-from lineapy.data.types import NodeType
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.graph_reader.graph_util import are_nodes_content_equal
 from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import info_log
-from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
+from tests.stub_data.simple_graph import simple_graph_code
 from tests.util import reset_test_db
 
 

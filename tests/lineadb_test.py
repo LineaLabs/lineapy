@@ -9,7 +9,6 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.graph_util import are_graphs_identical
 from lineapy.graph_reader.graph_util import are_nodes_equal
-
 from tests.stub_data.graph_with_alias_by_reference import (
     graph_with_alias_by_reference,
     session as graph_with_alias_by_reference_session,
@@ -40,15 +39,6 @@ from tests.stub_data.graph_with_loops import (
     y_id,
     code as loops_code,
 )
-from tests.stub_data.nested_call_graph import (
-    nested_call_graph,
-    session as nested_call_graph_session,
-)
-from tests.stub_data.simple_graph import simple_graph, session as simple_graph_session
-from tests.stub_data.simple_with_variable_argument_and_print import (
-    simple_with_variable_argument_and_print,
-    session as simple_with_variable_argument_and_print_session,
-)
 from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
     graph_sliced_by_var_f,
@@ -57,6 +47,15 @@ from tests.stub_data.graph_with_messy_nodes import (
     e_assign,
     a_assign,
     sliced_code,
+)
+from tests.stub_data.nested_call_graph import (
+    nested_call_graph,
+    session as nested_call_graph_session,
+)
+from tests.stub_data.simple_graph import simple_graph, session as simple_graph_session
+from tests.stub_data.simple_with_variable_argument_and_print import (
+    simple_with_variable_argument_and_print,
+    session as simple_with_variable_argument_and_print_session,
 )
 from tests.util import reset_test_db
 
@@ -259,9 +258,7 @@ class TestLineaDB(unittest.TestCase):
         assert len(derived) == 2
 
     def test_code_reconstruction_with_multilined_node(self):
-        _ = self.write_and_read_graph(
-            graph_with_loops, graph_with_loops_session
-        )
+        _ = self.write_and_read_graph(graph_with_loops, graph_with_loops_session)
 
         self.lineadb.add_node_id_to_artifact_table(y_id, graph_with_loops_session.id)
         reconstructed = self.lineadb.get_code_from_artifact_id(y_id)

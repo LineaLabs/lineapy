@@ -21,7 +21,6 @@ simple_graph_code = "a = abs(-11)"
 
 session = get_new_session(simple_graph_code)
 
-
 arg_literal = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
