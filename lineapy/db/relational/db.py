@@ -1,6 +1,5 @@
 import re
-
-from typing import Set, Union, cast
+from typing import Union, cast
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -12,7 +11,6 @@ from lineapy.data.types import *
 from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
-from lineapy.execution.executor import Executor
 from lineapy.execution.code_util import add_node_to_code, max_col_of_code
 from lineapy.utils import CaseNotHandledError, NullValueError
 
@@ -295,7 +293,8 @@ class RelationalLineaDB(LineaDB):
         Note:
         - This is currently used for testing purposes
         - TODO: finish enumerating over all the tables (just a subset for now)
-        - FIXME: I wonder if there is a way to write this in a single query, I would refer for the database to optimize this instead of relying on the ORM.
+        - FIXME: I wonder if there is a way to write this in a single query, I would refer for the database to optimize
+           this instead of relying on the ORM.
         """
         session_context = (
             self.session.query(SessionContextORM)
@@ -317,7 +316,7 @@ class RelationalLineaDB(LineaDB):
         nodes = [self.map_orm_to_pydantic(node) for node in call_nodes]
         return nodes
 
-    def get_context(self, linea_id: LineaIDORM) -> SessionContext:
+    def get_context(self, linea_id: LineaIDAlias) -> SessionContext:
         query_obj = (
             self.session.query(SessionContextORM)
             .filter(SessionContextORM.id == linea_id)
@@ -504,12 +503,11 @@ class RelationalLineaDB(LineaDB):
 
         return json_artifact
 
-    def get_nodes_from_db(self) -> List[Node]:
-        node_orms = self.session.query(NodeORM).all()
-        nodes = []
-        for orm in node_orms:
-            nodes.append(self.get_node_by_id(orm.id))
-        return nodes
+    def get_nodes_for_session(self, session_id: LineaIDAlias) -> List[Node]:
+        node_orms = (
+            self.session.query(NodeORM).filter(NodeORM.session_id == session_id).all()
+        )
+        return [self.map_orm_to_pydantic(node) for node in node_orms]
 
     def get_graph_from_artifact_id(self, artifact_id: LineaIDAlias) -> Graph:
         """
@@ -522,9 +520,9 @@ class RelationalLineaDB(LineaDB):
             - simple heuristics that may create false positives (include things not necessary)
             - but definitely NOT false negatives (then the program CANNOT be executed)
         """
-        nodes = self.get_nodes_from_db()
+        artifact = self.get_artifact(artifact_id)
+        nodes = self.get_nodes_for_session(artifact.context)
         full_graph = Graph(nodes)
-        artifact = full_graph.get_node(artifact_id)
         ancestors = full_graph.get_ancestors(artifact_id)
         ancestors.append(artifact_id)
         return Graph([full_graph.get_node(a) for a in ancestors])
