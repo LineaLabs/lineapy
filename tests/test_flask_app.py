@@ -1,17 +1,13 @@
-# set up the database with stub data for testing/debugging
-import os.path as path
-
 import pytest
 
 import lineapy.app.app_db
 from lineapy import ExecutionMode
-from lineapy.db.base import get_default_config_by_environment
-from lineapy.db.relational.db import RelationalLineaDB
+from tests.util import setup_db
 
 
 @pytest.fixture(autouse=True)
 def test_db_mock(monkeypatch):
-    test_db = setup_db(ExecutionMode.TEST)
+    test_db = setup_db(ExecutionMode.TEST, reset=True)
     monkeypatch.setattr(lineapy.app.app_db, "lineadb", test_db)
 
 
@@ -23,47 +19,3 @@ def test_db_mock(monkeypatch):
 #         UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"), 1
 #     )
 #     assert s == 25
-
-
-def setup_db(mode: ExecutionMode):
-    test_db = RelationalLineaDB()
-    db_config = get_default_config_by_environment(mode)
-    test_db.init_db(db_config)
-    from lineapy.execution.executor import Executor
-    from lineapy.db.relational.schema.relational import (
-        ExecutionORM,
-    )
-    from lineapy.data.types import VALUE_TYPE
-
-    from tests.stub_data.api_stub_graph import (
-        graph_with_csv_import as stub_graph,
-        session as context,
-        sum_call as artifact,
-        simple_data_node,
-    )
-
-    if mode == ExecutionMode.DEV:
-        simple_data_node.access_path = (
-            path.abspath(path.join(__file__, "../.."))
-            + "/tests/stub_data/simple_data.csv"
-        )
-
-    executor = Executor()
-
-    # execute stub graph and write to database
-    executor.execute_program(stub_graph, context)
-    test_db.write_context(context)
-    test_db.write_nodes(stub_graph.nodes)
-
-    test_db.add_node_id_to_artifact_table(
-        artifact.id,
-        context_id=context.id,
-        value_type=VALUE_TYPE,
-        name="Graph With CSV Import",
-        date_created="1372944000",
-    )
-
-    exec_orm = ExecutionORM(artifact_id=artifact.id, version=1)
-    test_db.session.add(exec_orm)
-    test_db.session.commit()
-    return test_db
