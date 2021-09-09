@@ -36,7 +36,7 @@ e = d + a
 f = a * b * c
 """
 
-reconstructed_slice = """a = 1
+sliced_code = """a = 1
 b = a + 2
 c = 2
 

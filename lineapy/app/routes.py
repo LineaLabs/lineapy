@@ -7,8 +7,8 @@ from lineapy.app.app_db import lineadb
 from lineapy.data.types import *
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import *
-from lineapy.execution.executor import Executor
 from lineapy.execution.code_util import get_segment_from_code
+from lineapy.execution.executor import Executor
 
 # from decouple import config
 

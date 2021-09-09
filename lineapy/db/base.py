@@ -37,6 +37,8 @@ def get_default_config_by_environment(mode: ExecutionMode) -> LineaDBConfig:
         return LineaDBConfig(database_uri=TEST_DATABASE_URI)
     if mode == ExecutionMode.PROD:
         return LineaDBConfig(database_uri=PROD_DATABASE_URI)
+    if mode == ExecutionMode.MEMORY:
+        return LineaDBConfig(database_uri=MEMORY_DATABASE_URI)
     raise CaseNotHandledError("Unknown Execution mode")
 
 

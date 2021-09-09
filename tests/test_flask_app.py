@@ -1,12 +1,11 @@
 # set up the database with stub data for testing/debugging
 import os.path as path
-from uuid import UUID
 
 import pytest
 
-from lineapy import ExecutionMode
 import lineapy.app.app_db
-from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
+from lineapy import ExecutionMode
+from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 
 
@@ -49,8 +48,6 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         simple_data_node,
     )
 
-    from tests.util import get_new_id
-
     if mode == ExecutionMode.DEV:
         simple_data_node.access_path = (
             path.abspath(path.join(__file__, "../.."))
@@ -90,8 +87,6 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         img_data_node,
     )
 
-    from tests.util import get_new_id
-
     if mode == ExecutionMode.DEV:
         simple_data_node.access_path = (
             path.abspath(path.join(__file__, "../.."))
@@ -99,7 +94,8 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         )
 
         img_data_node.access_path = (
-            path.abspath(path.join(__file__, "../..")) + "/lineapy/app/simple_data.png"
+            path.abspath(path.join(__file__, "../.."))
+            + "/lineapy/app/simple_data.png"
         )
 
     executor = Executor()

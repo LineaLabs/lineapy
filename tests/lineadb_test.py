@@ -9,7 +9,6 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.graph_util import are_graphs_identical
 from lineapy.graph_reader.graph_util import are_nodes_equal
-
 from tests.stub_data.graph_with_alias_by_reference import (
     graph_with_alias_by_reference,
     session as graph_with_alias_by_reference_session,
@@ -40,6 +39,15 @@ from tests.stub_data.graph_with_loops import (
     y_id,
     code as loops_code,
 )
+from tests.stub_data.graph_with_messy_nodes import (
+    graph_with_messy_nodes,
+    graph_sliced_by_var_f,
+    session as graph_with_messy_nodes_session,
+    f_assign,
+    e_assign,
+    a_assign,
+    sliced_code,
+)
 from tests.stub_data.nested_call_graph import (
     nested_call_graph,
     session as nested_call_graph_session,
@@ -48,15 +56,6 @@ from tests.stub_data.simple_graph import simple_graph, session as simple_graph_s
 from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
     session as simple_with_variable_argument_and_print_session,
-)
-from tests.stub_data.graph_with_messy_nodes import (
-    graph_with_messy_nodes,
-    graph_sliced_by_var_f,
-    session as graph_with_messy_nodes_session,
-    f_assign,
-    e_assign,
-    a_assign,
-    reconstructed_slice,
 )
 from tests.util import reset_test_db
 
@@ -68,7 +67,7 @@ class TestLineaDB(unittest.TestCase):
 
     @property
     def db_config(self):
-        return get_default_config_by_environment(ExecutionMode.TEST)
+        return get_default_config_by_environment(ExecutionMode.MEMORY)
 
     def setUp(self):
         # just use the default config
@@ -241,7 +240,8 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(result, graph)
 
     def test_search_artifacts_by_data_source(self):
-        # @dhruv we should create at least one more stub_graph with the same csv file ("sample_data.csv")---it's currently not in this branch but we can merge master in here later.
+        # @dhruv we should create at least one more stub_graph with the same csv file ("sample_data.csv")---it's
+        # currently not in this branch but we can merge master in here later.
         # using an existing stub for now
         graph, context = self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
@@ -258,9 +258,7 @@ class TestLineaDB(unittest.TestCase):
         assert len(derived) == 2
 
     def test_code_reconstruction_with_multilined_node(self):
-        graph, context = self.write_and_read_graph(
-            graph_with_loops, graph_with_loops_session
-        )
+        _ = self.write_and_read_graph(graph_with_loops, graph_with_loops_session)
 
         self.lineadb.add_node_id_to_artifact_table(y_id, graph_with_loops_session.id)
         reconstructed = self.lineadb.get_code_from_artifact_id(y_id)
@@ -268,7 +266,7 @@ class TestLineaDB(unittest.TestCase):
         assert loops_code == reconstructed
 
     def test_code_reconstruction_with_slice(self):
-        graph, context = self.write_and_read_graph(
+        _ = self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
         )
 
@@ -277,4 +275,4 @@ class TestLineaDB(unittest.TestCase):
         )
         reconstructed = self.lineadb.get_code_from_artifact_id(f_assign.id)
 
-        assert reconstructed_slice == reconstructed
+        assert sliced_code == reconstructed
