@@ -37,6 +37,8 @@ from tests.stub_data.graph_with_import import (
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
+    y_id,
+    code as loops_code,
 )
 from tests.stub_data.nested_call_graph import (
     nested_call_graph,
@@ -54,6 +56,7 @@ from tests.stub_data.graph_with_messy_nodes import (
     f_assign,
     e_assign,
     a_assign,
+    reconstructed_slice,
 )
 from tests.util import reset_test_db
 
@@ -229,6 +232,14 @@ class TestLineaDB(unittest.TestCase):
         assert f == 6
         assert are_graphs_identical(result, graph_sliced_by_var_f)
 
+    def test_slicing_loops(self):
+        graph, context = self.write_and_read_graph(
+            graph_with_loops, graph_with_loops_session
+        )
+        self.lineadb.add_node_id_to_artifact_table(y_id, graph_with_loops_session.id)
+        result = self.lineadb.get_graph_from_artifact_id(y_id)
+        assert are_graphs_identical(result, graph)
+
     def test_search_artifacts_by_data_source(self):
         # @dhruv we should create at least one more stub_graph with the same csv file ("sample_data.csv")---it's currently not in this branch but we can merge master in here later.
         # using an existing stub for now
@@ -245,3 +256,25 @@ class TestLineaDB(unittest.TestCase):
             graph, a_assign
         )
         assert len(derived) == 2
+
+    def test_code_reconstruction_with_multilined_node(self):
+        graph, context = self.write_and_read_graph(
+            graph_with_loops, graph_with_loops_session
+        )
+
+        self.lineadb.add_node_id_to_artifact_table(y_id, graph_with_loops_session.id)
+        reconstructed = self.lineadb.get_code_from_artifact_id(y_id)
+
+        assert loops_code == reconstructed
+
+    def test_code_reconstruction_with_slice(self):
+        graph, context = self.write_and_read_graph(
+            graph_with_messy_nodes, graph_with_messy_nodes_session
+        )
+
+        self.lineadb.add_node_id_to_artifact_table(
+            f_assign.id, graph_with_messy_nodes_session.id
+        )
+        reconstructed = self.lineadb.get_code_from_artifact_id(f_assign.id)
+
+        assert reconstructed_slice == reconstructed

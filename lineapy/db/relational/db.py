@@ -13,7 +13,7 @@ from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManag
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 from lineapy.execution.executor import Executor
-from lineapy.execution.execution_util import add_node_to_code, max_col_of_code
+from lineapy.execution.code_util import add_node_to_code, max_col_of_code
 from lineapy.utils import CaseNotHandledError, NullValueError
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
@@ -504,6 +504,13 @@ class RelationalLineaDB(LineaDB):
 
         return json_artifact
 
+    def get_nodes_from_db(self) -> List[Node]:
+        node_orms = self.session.query(NodeORM).all()
+        nodes = []
+        for orm in node_orms:
+            nodes.append(self.get_node_by_id(orm.id))
+        return nodes
+
     def get_graph_from_artifact_id(self, artifact_id: LineaIDAlias) -> Graph:
         """
         - This is program slicing over database data.
@@ -515,21 +522,12 @@ class RelationalLineaDB(LineaDB):
             - simple heuristics that may create false positives (include things not necessary)
             - but definitely NOT false negatives (then the program CANNOT be executed)
         """
-        node_ids = list(self.get_ancestors_from_node(artifact_id))
-        node_ids.append(artifact_id)
-        nodes = [self.get_node_by_id(node_id) for node_id in node_ids]
-        return Graph(nodes)
-
-    def get_ancestors_from_node(self, node_id: LineaIDAlias) -> Set[LineaIDAlias]:
-        node = self.get_node_by_id(node_id)
-        parents = Graph.get_parents_from_node(node)
-        ancestors = set(parents)
-
-        for parent in parents:
-            new_ancestors = self.get_ancestors_from_node(parent)
-            ancestors.update(new_ancestors)
-
-        return ancestors
+        nodes = self.get_nodes_from_db()
+        full_graph = Graph(nodes)
+        artifact = full_graph.get_node(artifact_id)
+        ancestors = full_graph.get_ancestors(artifact_id)
+        ancestors.append(artifact_id)
+        return Graph([full_graph.get_node(a) for a in ancestors])
 
     def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
         graph = self.get_graph_from_artifact_id(artifact_id)
@@ -552,6 +550,12 @@ class RelationalLineaDB(LineaDB):
         # replace groups of empty lines with single empty line
         # https://stackoverflow.com/questions/28901452/reduce-multiple-blank-lines-to-single-pythonically
         code = re.sub(r"\n\s*\n", "\n\n", code)
+
+        # remove extra white spaces from end of each line
+        lines = code.split("\n")
+        for i in range(len(lines)):
+            lines[i] = lines[i].rstrip()
+        code = "\n".join(lines)
 
         return code
 

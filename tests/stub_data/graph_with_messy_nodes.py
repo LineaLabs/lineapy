@@ -36,6 +36,13 @@ e = d + a
 f = a * b * c
 """
 
+reconstructed_slice = """a = 1
+b = a + 2
+c = 2
+
+f = a * b * c
+"""
+
 operator_lib = Library(id=get_new_id(), name="operator", version="1", path="")
 
 session = get_new_session(code, libraries=[operator_lib])
@@ -46,7 +53,7 @@ a_assign = LiteralAssignNode(
     assigned_variable_name="a",
     value=1,
     lineno=1,
-    col_offset=4,
+    col_offset=0,
     end_lineno=1,
     end_col_offset=5,
 )
