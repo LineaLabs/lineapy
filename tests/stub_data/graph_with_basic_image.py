@@ -41,9 +41,7 @@ pandas_lib = Library(
     path="/Users/yifanwu/miniforge3/lib/python3.9/site-packages/pandas",
 )
 
-plt_lib = Library(
-    id=get_new_id(), name="matplotlib.pyplot", version="", path=""
-)
+plt_lib = Library(id=get_new_id(), name="matplotlib.pyplot", version="", path="")
 
 img_lib = Library(id=get_new_id(), name="PIL.Image", version="", path="")
 
