@@ -288,9 +288,7 @@ class RelationalLineaDB(LineaDB):
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
         """
-        self.session.query(ArtifactORM).filter(
-            ArtifactORM.id == node_id
-        ).delete()
+        self.session.query(ArtifactORM).filter(ArtifactORM.id == node_id).delete()
         self.session.commit()
 
     """
@@ -336,11 +334,6 @@ class RelationalLineaDB(LineaDB):
         obj = SessionContext.from_orm(query_obj)
         return obj
 
-    def get_nodes_from_db(self) -> List[Node]:
-        node_orms = self.session.query(NodeORM).all()
-        nodes = [self.map_orm_to_pydantic(n) for n in node_orms]
-        return nodes
-
     def get_node_by_id(self, linea_id: LineaIDAlias) -> Node:
         """
         Returns the node by looking up the database by ID
@@ -354,9 +347,7 @@ class RelationalLineaDB(LineaDB):
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNodeORM, node)
-            node.value = RelationalLineaDB.cast_serialized(
-                node.value, node.value_type
-            )
+            node.value = RelationalLineaDB.cast_serialized(node.value, node.value_type)
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNodeORM, node)
             if node.value_literal is not None:
@@ -417,17 +408,13 @@ class RelationalLineaDB(LineaDB):
                 node = cast(ConditionNodeORM, node)
                 dependent_variables_in_predicate = (
                     self.session.query(condition_association_table)
-                    .filter(
-                        condition_association_table.c.condition_node_id
-                        == node.id
-                    )
+                    .filter(condition_association_table.c.condition_node_id == node.id)
                     .all()
                 )
 
                 if dependent_variables_in_predicate is not None:
                     node.dependent_variables_in_predicate = [
-                        a.dependent_node_id
-                        for a in dependent_variables_in_predicate
+                        a.dependent_node_id for a in dependent_variables_in_predicate
                     ]
 
         return RelationalLineaDB.get_pydantic(node).from_orm(node)
@@ -481,9 +468,7 @@ class RelationalLineaDB(LineaDB):
         json_artifact["file"] = ""
 
         json_artifact["code"] = {}
-        json_artifact["code"]["text"] = self.get_code_from_artifact_id(
-            artifact.id
-        )
+        json_artifact["code"]["text"] = self.get_code_from_artifact_id(artifact.id)
 
         tokens_json = []
 
@@ -518,9 +503,7 @@ class RelationalLineaDB(LineaDB):
                 intermediate_value
             )
             if intermediate_value_type == DATASET_TYPE:
-                intermediate_value = RelationalLineaDB.cast_dataset(
-                    intermediate_value
-                )
+                intermediate_value = RelationalLineaDB.cast_dataset(intermediate_value)
             elif intermediate_value_type == VALUE_TYPE:
                 intermediate_value = RelationalLineaDB.cast_serialized(
                     intermediate_value,
@@ -548,9 +531,7 @@ class RelationalLineaDB(LineaDB):
 
     def get_nodes_for_session(self, session_id: LineaIDAlias) -> List[Node]:
         node_orms = (
-            self.session.query(NodeORM)
-            .filter(NodeORM.session_id == session_id)
-            .all()
+            self.session.query(NodeORM).filter(NodeORM.session_id == session_id).all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
@@ -609,9 +590,7 @@ class RelationalLineaDB(LineaDB):
         artifacts = []
         for d_id in descendants:
             descendant_is_artifact = (
-                self.session.query(ArtifactORM)
-                .filter(ArtifactORM.id == d_id)
-                .first()
+                self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
                 is not None
             )
             descendant = program.get_node(d_id)
