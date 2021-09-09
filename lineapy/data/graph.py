@@ -37,16 +37,16 @@ class Graph(object):
     def visit_order(self) -> List[LineaID]:
         return list(nx.topological_sort(self.nx_graph))
 
-    def get_parents(self, node: Node) -> List[LineaID]:
+    def get_parents(self, node: LineaID) -> List[LineaID]:
         return list(self.nx_graph.predecessors(node))
 
-    def get_ancestors(self, node: Node) -> List[LineaID]:
+    def get_ancestors(self, node: LineaID) -> List[LineaID]:
         return list(nx.ancestors(self.nx_graph, node))
 
-    def get_children(self, node: Node) -> List[LineaID]:
+    def get_children(self, node: LineaID) -> List[LineaID]:
         return list(self.nx_graph.successors(node))
 
-    def get_descendants(self, node: Node) -> List[LineaID]:
+    def get_descendants(self, node: LineaID) -> List[LineaID]:
         return list(nx.descendants(self.nx_graph, node))
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
@@ -137,15 +137,16 @@ class Graph(object):
             NodeType.FunctionDefinitionNode,
         ]:
             node = cast(SideEffectsNode, node)
-            if node.state_change_nodes is not None:
-                source_nodes.extend(node.state_change_nodes)
+            # we aren't adding the state_change_nodes as parents because state_change_nodes are affected by the SideEffectsNode.
+            # this way, we ensure that the nodes that depend on a StateChangeNode will not be executed before the StateChangeNode's
+            # SideEffectsNode (e.g. LoopNode) is executed
             if node.import_nodes is not None:
                 source_nodes.extend(node.import_nodes)
             if node.node_type is NodeType.ConditionNode:
                 node = cast(ConditionNode, node)
                 if node.dependent_variables_in_predicate is not None:
                     source_nodes.extend(node.dependent_variables_in_predicate)
-        elif node.node_type is StateChangeNode:
+        elif node.node_type is NodeType.StateChangeNode:
             node = cast(StateChangeNode, node)
             source_nodes.append(node.associated_node_id)
             source_nodes.append(node.initial_value_node_id)

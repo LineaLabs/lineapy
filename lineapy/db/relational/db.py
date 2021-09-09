@@ -1,3 +1,4 @@
+import re
 import logging
 from typing import Set, Union, cast
 
@@ -11,6 +12,7 @@ from lineapy.data.types import *
 from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManager
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
+from lineapy.execution.code_util import add_node_to_code, max_col_of_code
 from lineapy.utils import CaseNotHandledError, NullValueError
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
@@ -254,7 +256,6 @@ class RelationalLineaDB(LineaDB):
         context_id: LineaIDORM,
         name: str = "",
         date_created: str = "",
-        code: Any = "",  # FIXME: this should NOT be passed in
         value_type: str = "",
     ) -> None:
         """
@@ -272,7 +273,6 @@ class RelationalLineaDB(LineaDB):
                 value_type=value_type,
                 name=name,
                 date_created=date_created,
-                code=code,
             )
             self.session.add(artifact)
             self.session.commit()
@@ -296,7 +296,8 @@ class RelationalLineaDB(LineaDB):
         Note:
         - This is currently used for testing purposes
         - TODO: finish enumerating over all the tables (just a subset for now)
-        - FIXME: I wonder if there is a way to write this in a single query, I would refer for the database to optimize this instead of relying on the ORM.
+        - FIXME: I wonder if there is a way to write this in a single query, I would refer for the database to optimize
+           this instead of relying on the ORM.
         """
         session_context = (
             self.session.query(SessionContextORM)
@@ -318,7 +319,7 @@ class RelationalLineaDB(LineaDB):
         nodes = [self.map_orm_to_pydantic(node) for node in call_nodes]
         return nodes
 
-    def get_context(self, linea_id: LineaIDORM) -> SessionContext:
+    def get_context(self, linea_id: LineaIDAlias) -> SessionContext:
         query_obj = (
             self.session.query(SessionContextORM)
             .filter(SessionContextORM.id == linea_id)
@@ -433,6 +434,13 @@ class RelationalLineaDB(LineaDB):
             .first()
         )
 
+    @staticmethod
+    def get_node_value_type(node_value):
+        # check object type (for now this only supports DataFrames and values)
+        if hasattr(node_value, "to_csv"):
+            return DATASET_TYPE
+        return VALUE_TYPE
+
     def jsonify_artifact(self, artifact: Artifact) -> Dict:
         json_artifact = artifact.dict()
 
@@ -444,50 +452,65 @@ class RelationalLineaDB(LineaDB):
 
         json_artifact["file"] = ""
 
-        code = Code.from_orm(
-            self.session.query(CodeORM).filter(CodeORM.id == artifact.code).first()
-        )
-        json_artifact["code"] = code.dict()
+        json_artifact["code"] = {}
+        json_artifact["code"]["text"] = self.get_code_from_artifact_id(artifact.id)
 
-        token_associations = (
-            self.session.query(code_token_association_table)
-            .filter(code_token_association_table.c.code == code.id)
-            .all()
-        )
-        # NOTE/TODO: currently only supports DataFrames and values as tokens
         tokens_json = []
-        if token_associations is not None:
-            for association in token_associations:
-                token_orm = (
-                    self.session.query(TokenORM)
-                    .filter(TokenORM.id == association.token)
-                    .first()
-                )
-                token_json = Token.from_orm(token_orm).dict()
 
-                intermediate_value = (
-                    self.session.query(NodeValueORM)
-                    .filter(NodeValueORM.node_id == token_json["intermediate"])
-                    .first()
-                    .value
-                )
+        for node in self.get_graph_from_artifact_id(artifact.id).nodes:
+            if node.node_type is not NodeType.CallNode:
+                continue
 
-                # check object type (for now this only supports DataFrames and values)
+            start_col = node.col_offset + 1
+            end_col = node.end_col_offset + 1
+            if node.assigned_variable_name is not None:
+                end_col = len(node.assigned_variable_name) + start_col
+
+            token_json = {
+                "id": node.id,
+                "line": node.lineno,
+                "start": start_col,
+                "end": end_col,
+            }
+
+            intermediate = (
+                self.session.query(NodeValueORM)
+                .filter(NodeValueORM.node_id == node.id)
+                .first()
+            )
+
+            intermediate_value = intermediate.value
+
+            intermediate_value_type = RelationalLineaDB.get_node_value_type(
+                intermediate_value
+            )
+            if intermediate_value_type == DATASET_TYPE:
                 intermediate_value = RelationalLineaDB.cast_dataset(intermediate_value)
-                intermediate = {
-                    "file": "",
-                    "id": token_json["intermediate"],
-                    "name": "",
-                    "type": DATASET_TYPE,
-                    "date": "1372944000",
-                    "text": intermediate_value,
-                }
-                token_json["intermediate"] = intermediate
-                tokens_json.append(token_json)
+            elif intermediate_value_type == VALUE_TYPE:
+                intermediate_value = RelationalLineaDB.cast_serialized(
+                    intermediate_value, RelationalLineaDB.get_type(intermediate_value)
+                )
+
+            intermediate = {
+                "file": "",
+                "id": node.id,
+                "name": "",
+                "type": intermediate_value_type,
+                "date": intermediate.timestamp,
+                "text": intermediate_value,
+            }
+            token_json["intermediate"] = intermediate
+            tokens_json.append(token_json)
 
         json_artifact["code"]["tokens"] = tokens_json
 
         return json_artifact
+
+    def get_nodes_for_session(self, session_id: LineaIDAlias) -> List[Node]:
+        node_orms = (
+            self.session.query(NodeORM).filter(NodeORM.session_id == session_id).all()
+        )
+        return [self.map_orm_to_pydantic(node) for node in node_orms]
 
     def get_graph_from_artifact_id(self, artifact_id: LineaIDAlias) -> Graph:
         """
@@ -500,21 +523,42 @@ class RelationalLineaDB(LineaDB):
             - simple heuristics that may create false positives (include things not necessary)
             - but definitely NOT false negatives (then the program CANNOT be executed)
         """
-        node_ids = list(self.get_ancestors_from_node(artifact_id))
-        node_ids.append(artifact_id)
-        nodes = [self.get_node_by_id(node_id) for node_id in node_ids]
-        return Graph(nodes)
+        artifact = self.get_artifact(artifact_id)
+        nodes = self.get_nodes_for_session(artifact.context)
+        full_graph = Graph(nodes)
+        ancestors = full_graph.get_ancestors(artifact_id)
+        ancestors.append(artifact_id)
+        return Graph([full_graph.get_node(a) for a in ancestors])
 
-    def get_ancestors_from_node(self, node_id: LineaIDAlias) -> Set[LineaIDAlias]:
-        node = self.get_node_by_id(node_id)
-        parents = Graph.get_parents_from_node(node)
-        ancestors = set(parents)
+    def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
+        graph = self.get_graph_from_artifact_id(artifact_id)
+        session_code = self.get_context(
+            self.get_node_by_id(artifact_id).session_id
+        ).code
 
-        for parent in parents:
-            new_ancestors = self.get_ancestors_from_node(parent)
-            ancestors.update(new_ancestors)
+        nodes = [
+            node
+            for node in graph.nodes
+            if node.lineno is not None and node.col_offset is not None
+        ]
 
-        return ancestors
+        num_lines = len(session_code.split("\n"))
+        code: str = "\n".join([" " * max_col_of_code(session_code)] * num_lines)
+
+        for node in nodes:
+            code = add_node_to_code(code, session_code, node)
+
+        # replace groups of empty lines with single empty line
+        # https://stackoverflow.com/questions/28901452/reduce-multiple-blank-lines-to-single-pythonically
+        code = re.sub(r"\n\s*\n", "\n\n", code)
+
+        # remove extra white spaces from end of each line
+        lines = code.split("\n")
+        for i in range(len(lines)):
+            lines[i] = lines[i].rstrip()
+        code = "\n".join(lines)
+
+        return code
 
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode
@@ -522,11 +566,13 @@ class RelationalLineaDB(LineaDB):
         descendants = program.get_descendants(data_source_node.id)
         artifacts = []
         for d_id in descendants:
-            artifact = (
+            descendant_is_artifact = (
                 self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
+                is not None
             )
-            if artifact is not None:
-                artifacts.append(program.get_node(d_id))
+            descendant = program.get_node(d_id)
+            if descendant_is_artifact and descendant is not None:
+                artifacts.append(descendant)
         return artifacts
 
     def gather_artifact_intermediate_nodes(self, program: Graph):

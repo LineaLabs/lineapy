@@ -4,6 +4,7 @@ import networkx as nx
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import ArgumentNode, CallNode, Node, NodeType
+from lineapy.execution.code_util import get_segment_from_code
 from lineapy.utils import internal_warning_log
 
 
@@ -23,7 +24,7 @@ def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
     return True
 
 
-def are_nodes_content_equal(n1: Node, n2: Node) -> bool:
+def are_nodes_content_equal(n1: Node, n2: Node, session_code: str) -> bool:
     """
     TODO:
     - we should probably make use of PyDantic's built in comparison, not possible right now since we have the extra ID field.
@@ -37,8 +38,11 @@ def are_nodes_content_equal(n1: Node, n2: Node) -> bool:
     if n1.node_type is NodeType.CallNode:
         n1 = cast(CallNode, n1)
         n2 = cast(CallNode, n2)
-        if n1.code != n2.code:
-            internal_warning_log("Nodes have different code", n1.code, n2.code)
+
+        if get_segment_from_code(session_code, n1) != get_segment_from_code(
+            session_code, n2
+        ):
+            internal_warning_log("Nodes point to different code")
             return False
         if n1.function_name != n2.function_name:
             internal_warning_log(
