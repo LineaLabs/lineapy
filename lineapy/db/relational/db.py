@@ -570,7 +570,7 @@ class RelationalLineaDB(LineaDB):
         artifact = self.get_artifact(artifact_id)
         nodes = self.get_nodes_for_session(artifact.context)
         full_graph = Graph(nodes)
-        ancestors = full_graph.get_ancestors(artifact_id)
+        ancestors = full_graph.get_ancestors(artifact)
         ancestors.append(artifact_id)
         return Graph([full_graph.get_node(a) for a in ancestors])
 
