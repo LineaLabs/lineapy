@@ -1,4 +1,4 @@
-from lineapy.data.graph import Graph, DirectedEdge
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
@@ -41,13 +41,15 @@ pandas_lib = Library(
     path="/Users/yifanwu/miniforge3/lib/python3.9/site-packages/pandas",
 )
 
-plt_lib = Library(id=get_new_id(), name="matplotlib.pyplot", version="", path="")
+plt_lib = Library(
+    id=get_new_id(), name="matplotlib.pyplot", version="", path=""
+)
 
 img_lib = Library(id=get_new_id(), name="PIL.Image", version="", path="")
 
 session = get_new_session(code, libraries=[pandas_lib, plt_lib, img_lib])
 
-# Note that this python path is EXPLICTLY tracking Yifan's own version
+# Note that this python path is EXPLICITLY tracking Yifan's own version
 #   We should be able to handle these edge cases, and if not, we need to
 #     specify what the requirement implications are for the node gen API
 import_pandas = ImportNode(
