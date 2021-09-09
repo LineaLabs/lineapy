@@ -194,7 +194,6 @@ class Executor(GraphReader):
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
-
                 fn, fn_name = Executor.get_function(node, program, scoped_locals)
 
                 args = program.get_arguments_from_call_node(node)

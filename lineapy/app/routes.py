@@ -1,5 +1,7 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, send_file, make_response, request
 from sqlalchemy import func
+import io
+from PIL import Image
 
 from lineapy.app.app_db import lineadb
 from lineapy.data.types import *
@@ -12,28 +14,44 @@ from lineapy.execution.executor import Executor
 
 
 # IS_DEV = config("FLASK_ENV") == "development"
-HTTP_REQUEST_HOST = "http://localhost:4000"
+BACKEND_REQUEST_HOST = "http://localhost:4000"
 
 routes_blueprint = Blueprint("routes", __name__)
 
 
-def latest_version():
-    return lineadb.session.query(func.max(NodeValueORM.version)).scalar()
+def latest_version_of_node(node_id):
+    subqry = lineadb.session.query(func.max(NodeValueORM.version)).filter(
+        NodeValueORM.node_id == node_id
+    )
+    qry = (
+        lineadb.session.query(NodeValueORM)
+        .filter(NodeValueORM.node_id == node_id, NodeValueORM.version == subqry)
+        .first()
+    )
+    return qry.version
 
 
 def parse_artifact_orm(artifact_orm):
     artifact = Artifact.from_orm(artifact_orm)
     artifact_json = lineadb.jsonify_artifact(artifact)
 
-    artifact_value = lineadb.get_node_value(artifact.id, latest_version())
+    latest_version = latest_version_of_node(artifact_orm.id)
+
+    artifact_value = lineadb.get_node_value(artifact.id, latest_version)
     if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
         result = RelationalLineaDB.cast_serialized(
             artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         artifact_json["text"] = result
-    elif artifact.value_type is CHART:
-        ...
-    elif artifact.value_type is DATASET:
+    elif artifact.value_type == CHART_TYPE:
+        artifact_json["image"] = (
+            BACKEND_REQUEST_HOST
+            + "/api/v1/images/"
+            + str(artifact.id)
+            + "/"
+            + str(latest_version)
+        )
+    elif artifact.value_type == DATASET_TYPE:
         result = LineaDB.cast_dataset(artifact_value)
         artifact_json["text"] = result
     return artifact_json
@@ -50,7 +68,7 @@ def execute(artifact_id):
     artifact = lineadb.get_artifact(artifact_id)
 
     # find version
-    version = latest_version()
+    version = latest_version_of_node(artifact.id)
 
     # increment version
     if version is None:
@@ -86,9 +104,15 @@ def execute(artifact_id):
             artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         asset["text"] = result
-    elif artifact.value_type is CHART:
-        ...
-    elif artifact.value_type is DATASET:
+    elif artifact.value_type == CHART_TYPE:
+        asset["image"] = (
+            BACKEND_REQUEST_HOST
+            + "/api/v1/images/"
+            + str(artifact_id)
+            + "/"
+            + str(version)
+        )
+    elif artifact.value_type == DATASET_TYPE:
         result = RelationalLineaDB.cast_dataset(artifact_value)
         asset["text"] = result
 
@@ -143,13 +167,39 @@ def get_artifact(artifact_id):
     return response
 
 
+# assuming binaries are in PNG format
+@routes_blueprint.route("/api/v1/images/<value_id>/<version>", methods=["GET"])
+def get_image(value_id, version):
+    value_id = UUID(value_id)
+    version = int(version)
+    img = lineadb.get_node_value(value_id, version)
+
+    # create file-object in memory
+    file_object = io.BytesIO()
+
+    # write PNG in file-object
+    img.save(file_object, "PNG")
+
+    # move to beginning of file so `send_file()` it will read from start
+    file_object.seek(0)
+
+    response = make_response(
+        send_file(
+            file_object,
+            mimetype="image/PNG",
+        )
+    )
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
+
 # right now we only support Dataset and Value intermediates, because we don't have a way of automatically demarking what type
 # each intermediate is
 @routes_blueprint.route("/api/v1/node/value/<node_id>", methods=["GET"])
 def get_node_value(node_id):
     node_id = UUID(node_id)
     node = lineadb.get_node_by_id(node_id)
-    node_value = lineadb.get_node_value(node_id, latest_version())
+    node_value = lineadb.get_node_value(node_id, latest_version_of_node(node_id))
     node_value_type = RelationalLineaDB.get_node_value_type(node_value)
     if node_value_type == DATASET_TYPE:
         node_value = RelationalLineaDB.cast_dataset(node_value)

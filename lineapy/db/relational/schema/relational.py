@@ -187,6 +187,11 @@ class NodeORM(Base):  # type: ignore
     end_lineno = Column(Integer, nullable=True)
     end_col_offset = Column(Integer, nullable=True)
 
+    line = Column(Integer, nullable=True)
+    line_end = Column(Integer, nullable=True)
+    col_start = Column(Integer, nullable=True)
+    col_end = Column(Integer, nullable=True)
+
     __mapper_args__ = {
         "polymorphic_on": node_type,
         "polymorphic_identity": NodeType.Node,

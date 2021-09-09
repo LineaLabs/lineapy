@@ -138,8 +138,9 @@ class Node(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     session_id: LineaID  # refers to SessionContext.id
     node_type: NodeType = NodeType.Node
-    # these identifiers are Optional because there are some kinds of nodes which are implicitly defined,
-    # including ImportNodes where the import is the operator module
+    # these identifiers are Optional because there are some
+    #   kinds of nodes which are implicitly defined,
+    #   including ImportNodes where the import is the operator module
     lineno: Optional[int]
     col_offset: Optional[int]
     end_lineno: Optional[int]
@@ -148,13 +149,15 @@ class Node(BaseModel):
     # context: Optional[NodeContext] = None
 
     # note: this is specific to Pydantic
-    # orm_mode allows us to use from_orm to convert ORM objects to pydantic objects
+    #   orm_mode allows us to use from_orm to convert ORM objects to
+    #   pydantic objects
     class Config:
         orm_mode = True
 
 
 class SideEffectsNode(Node):
-    # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
+    # keeping a list of state_change_nodes that we probably have to
+    #   re-construct from th›e sql db.
     # will deprecate when storing graph in a relational db
     output_state_change_nodes: Optional[List[LineaID]]
     input_state_change_nodes: Optional[List[LineaID]]
@@ -172,7 +175,8 @@ class ImportNode(Node):
 
     node_type: NodeType = NodeType.ImportNode
     library: Library
-    attributes: Optional[Dict[str, str]] = None  # key is alias, value is full name
+    # dict key is alias, value is full name
+    attributes: Optional[Dict[str, str]] = None
     alias: Optional[str] = None
     # run time value
     module: Any = None
@@ -188,15 +192,16 @@ class ArgumentNode(Node):
 
 class CallNode(Node):
     """
-    The locally_defined_function_id helps with slicing and the lineapy transformer and corresponding APIs would need to capture these info.
+    The locally_defined_function_id helps with slicing and the lineapy
+    transformer and corresponding APIs would need to capture these info.
+    NOTE: could reference an Import Node, or a class,
+      which would be the result of a CallNode.
     """
 
     node_type: NodeType = NodeType.CallNode
     arguments: List[LineaID]
     function_name: str
-    function_module: Optional[
-        LineaID
-    ] = None  # could reference an Import Node, or a class (which would be the result of a CallNode)
+    function_module: Optional[LineaID] = None
     locally_defined_function_id: Optional[LineaID] = None
     assigned_variable_name: Optional[str] = None
     # value of the result, filled at runtime
@@ -213,9 +218,6 @@ class LiteralAssignNode(Node):
 
 
 class VariableAliasNode(Node):
-    """
-    Y: We could in theory merge LiteralAssignNode and VariableAliasNode, but I'm not sure what the pro/con are and we can always refactor?
-    """
 
     node_type: NodeType = NodeType.VariableAliasNode
     source_variable_id: LineaID
@@ -223,7 +225,8 @@ class VariableAliasNode(Node):
 
 class FunctionDefinitionNode(SideEffectsNode):
     """
-    Note that like loops, FunctionDefinitionNode will also treat the function as a black box.
+    Note that like loops, FunctionDefinitionNode will also treat the
+      function as a black box.
     See tests/stub_data for examples.
     """
 
@@ -256,7 +259,10 @@ class StateChangeNode(Node):
 
 class LoopNode(SideEffectsNode):
     """
-    We do not care about the intermeidate states, but rather just what state has changed. It's conceptually similar to representing loops in a more functional way (such as map and reduce).  We do this by treating the LoopNode as a node similar to "CallNode".
+    We do not care about the intermeidate states, but rather just what state has
+      changed. It's conceptually similar to representing loops in a more
+      functional way (such as map and reduce).  We do this by treating
+      the LoopNode as a node similar to "CallNode".
     """
 
     node_type: NodeType = NodeType.LoopNode
@@ -264,17 +270,25 @@ class LoopNode(SideEffectsNode):
 
 class DataSourceNode(Node):
     """
-    - The goal of identifying data source node is that we can start associating them even if they are accessed in slightly different ways.
+    NOTE:
+    - The goal of identifying data source node is that we can start associating
+      them even if they are accessed in slightly different ways.
     - Possible data sources:
         - CSV/S3
         - DB
-    - For now we are just going to deal with local file systems and not support DB. Will add in the future.
-    - Also the access_path should be assumed to be unrolled, but it can be a LOCAL access path, which means that it alone is not re-produceable.
+    - For now we are just going to deal with local file systems and not
+      support DB. Will add in the future.
+    - Also the access_path should be assumed to be unrolled,
+      but it can be a LOCAL access path, which means that it
+      alone is not re-produceable.
+
+    FIXME: this is currently conflated with all file paths, including
+      generated files
     """
 
     node_type: NodeType = NodeType.DataSourceNode
     storage_type: StorageType
-    access_path: str  # e.g., "/Users/yifanwu/miniforge3/lib/python3.9/site-packages/pandas"
+    access_path: str
     name: Optional[str]  # user defined
 
 
