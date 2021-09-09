@@ -85,7 +85,7 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from tests.stub_data.graph_with_basic_image import (
         graph_with_basic_image as stub_graph,
         session as context,
-        read_call,
+        resize_call,
         simple_data_node,
         img_data_node,
     )
@@ -110,13 +110,13 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     test_db.write_nodes(stub_graph.nodes)
 
     test_db.add_node_id_to_artifact_table(
-        read_call.id,
+        resize_call.id,
         context_id=context.id,
         value_type=CHART_TYPE,
         name="Graph With Image",
         date_created="1372944000",
     )
 
-    exec_orm = ExecutionORM(artifact_id=read_call.id, version=1)
+    exec_orm = ExecutionORM(artifact_id=resize_call.id, version=1)
     test_db.session.add(exec_orm)
     test_db.session.commit()

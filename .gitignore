@@ -146,3 +146,4 @@ temp.py
 ## Linea specific
 *.sqlite
 *.db
+*.png

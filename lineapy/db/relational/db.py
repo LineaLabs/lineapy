@@ -443,10 +443,13 @@ class RelationalLineaDB(LineaDB):
     def get_node_value_type(node_value):
         # check object type (for now this only supports DataFrames, PIL images, and values)
         # TODO: need more robust type checking
+        print(node_value)
         if hasattr(node_value, "to_csv"):
             return DATASET_TYPE
         elif hasattr(node_value, "show"):
             return CHART_TYPE
+        elif type(node_value) == list:
+            return ARRAY_TYPE
         return VALUE_TYPE
 
     def jsonify_artifact(self, artifact: Artifact) -> Dict:
@@ -498,11 +501,12 @@ class RelationalLineaDB(LineaDB):
             if intermediate_value_type == DATASET_TYPE:
                 intermediate_value = RelationalLineaDB.cast_dataset(intermediate_value)
             elif intermediate_value_type == VALUE_TYPE:
-                print(intermediate)
                 intermediate_value = RelationalLineaDB.cast_serialized(
                     intermediate_value, RelationalLineaDB.get_type(intermediate_value)
                 )
             elif intermediate_value_type == CHART_TYPE:
+                continue
+            elif intermediate_value_type == ARRAY_TYPE:
                 continue
 
             intermediate = {

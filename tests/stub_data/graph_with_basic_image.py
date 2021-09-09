@@ -20,6 +20,7 @@ from PIL.Image import open
 df = pd.read_csv('simple_data.csv')
 plt.imsave('simple_data.png', df)
 img = open('simple_data.png')
+img = img.resize([200, 200])
 
 ```
 """
@@ -30,6 +31,7 @@ from PIL.Image import open
 df = pd.read_csv('simple_data.csv')
 plt.imsave('simple_data.png', df)
 img = open('simple_data.png')
+img = img.resize([200, 200])
 """
 
 pandas_lib = Library(
@@ -86,7 +88,6 @@ simple_data_node = DataSourceNode(
     id=get_new_id(),
     session_id=session.id,
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
-    # access_path="./tests/stub_data/simple_data.csv",
     access_path="tests/stub_data/simple_data.csv",
     line=3,
 )
@@ -119,7 +120,6 @@ img_data_node = DataSourceNode(
     id=get_new_id(),
     session_id=session.id,
     storage_type=StorageType.LOCAL_FILE_SYSTEM,
-    # access_path="./tests/stub_data/simple_data.csv",
     access_path="simple_data.png",
     line=4,
 )
@@ -170,7 +170,7 @@ savefig_arg2 = ArgumentNode(
 )
 
 read_call = CallNode(
-    id=UUID("87620b97-c86b-4931-ab89-9f36898caa57"),
+    id=get_new_id(),
     session_id=session.id,
     function_name="open",
     function_module=import_pil.id,
@@ -180,6 +180,63 @@ read_call = CallNode(
     col_offset=0,
     end_lineno=6,
     end_col_offset=29,
+)
+
+list_arg1 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=1,
+    value_literal=200,
+    lineno=7,
+    col_offset=18,
+    end_lineno=7,
+    end_col_offset=21,
+)
+
+list_arg2 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=2,
+    value_literal=200,
+    lineno=7,
+    col_offset=23,
+    end_lineno=7,
+    end_col_offset=26,
+)
+
+resize_list = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    function_name="__build_list__",
+    arguments=[list_arg1.id, list_arg2.id],
+    lineno=7,
+    col_offset=17,
+    end_lineno=7,
+    end_col_offset=27,
+)
+
+resize_arg = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=1,
+    value_node_id=resize_list.id,
+    lineno=7,
+    col_offset=17,
+    end_lineno=7,
+    end_col_offset=27,
+)
+
+resize_call = CallNode(
+    id=UUID("87620b97-c86b-4931-ab89-9f36898caa57"),
+    session_id=session.id,
+    function_name="resize",
+    function_module=read_call.id,
+    assigned_variable_name="img",
+    arguments=[resize_arg.id],
+    lineno=7,
+    col_offset=0,
+    end_lineno=7,
+    end_col_offset=28,
 )
 
 
@@ -197,5 +254,10 @@ graph_with_basic_image = Graph(
         savefig_arg2,
         img_data_node,
         read_call,
+        list_arg1,
+        list_arg2,
+        resize_list,
+        resize_arg,
+        resize_call,
     ],
 )
