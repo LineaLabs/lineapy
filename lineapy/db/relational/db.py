@@ -487,7 +487,7 @@ class RelationalLineaDB(LineaDB):
                 .first()
             )
 
-            if intermediate is None:
+            if intermediate is None or intermediate.value is None:
                 continue
 
             intermediate_value = intermediate.value

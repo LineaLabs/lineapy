@@ -33,7 +33,6 @@ def latest_version_of_node(node_id):
 
 def parse_artifact_orm(artifact_orm):
     artifact = Artifact.from_orm(artifact_orm)
-    print(artifact)
     artifact_json = lineadb.jsonify_artifact(artifact)
 
     latest_version = latest_version_of_node(artifact_orm.id)
