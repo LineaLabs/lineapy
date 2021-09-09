@@ -19,23 +19,29 @@ Notes:
 
 simple_graph_code = "a = abs(-11)"
 
-session = get_new_session()
-
+session = get_new_session(simple_graph_code)
 
 arg_literal = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=0,
     value_literal=-11,
+    lineno=1,
+    col_offset=8,
+    end_lineno=1,
+    end_col_offset=11,
 )
 
 line_1 = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    code="a = abs(-11)",
     function_name="abs",
     assigned_variable_name="a",
     arguments=[arg_literal.id],
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=12,
 )
 
 simple_graph = Graph([arg_literal, line_1])

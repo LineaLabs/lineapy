@@ -4,7 +4,6 @@ from lineapy.data.types import ArgumentNode
 Different from graph_utl to avoid circular dep
 """
 
-
 # this is used for sorting positional args
 MAX_ARG_POSITION = 1000
 

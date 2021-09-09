@@ -136,6 +136,7 @@ class SessionContextORM(Base):  # type: ignore
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)
     libraries = relationship("LibraryORM", backref="session")
+    code = Column(String)
 
 
 class LibraryORM(Base):  # type: ignore
@@ -157,37 +158,6 @@ class ArtifactORM(Base):  # type: ignore
     project = Column(String, nullable=True)
     description = Column(String, nullable=True)
     date_created = Column(String)
-    code = Column(LineaIDORM, nullable=True)
-
-
-# one to many
-code_token_association_table = Table(
-    "code_token_association",
-    Base.metadata,
-    Column("code", ForeignKey("code.id"), primary_key=True),
-    Column("token", ForeignKey("token.id"), primary_key=True),
-)
-
-
-# CodeORM and TokenORM are temporary, to be used for integration testing of intermediates
-
-# CodeORM is derived from an Artifact, and used for the frontend Code objects that hold
-# intermediate values (Tokens)
-class CodeORM(Base):  # type: ignore
-    __tablename__ = "code"
-    id = Column(LineaIDORM, primary_key=True)
-    text = Column(String)
-
-
-# TokenORMs should be derived from existing NodeValueORMs, representing intermediates
-# for the CodeView to handle
-class TokenORM(Base):  # type: ignore
-    __tablename__ = "token"
-    id = Column(LineaIDORM, primary_key=True)
-    line = Column(Integer)
-    start = Column(Integer)
-    end = Column(Integer)
-    intermediate = Column(LineaIDORM)  # points to a NodeValueORM
 
 
 class ExecutionORM(Base):  # type: ignore
@@ -203,15 +173,18 @@ class NodeValueORM(Base):  # type: ignore
     version = Column(Integer, primary_key=True)
     value = Column(PickleType, nullable=True)
     virtual = Column(Boolean)  # if True, value is not materialized in cache
+    timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 
 
 class NodeORM(Base):  # type: ignore
     __tablename__ = "node"
-
     id = Column(LineaIDORM, primary_key=True)
-    code = Column(String, nullable=True)
     session_id = Column(LineaIDORM)
     node_type = Column(Enum(NodeType))
+    lineno = Column(Integer, nullable=True)  # line numbers are 1-indexed
+    col_offset = Column(Integer, nullable=True)  # col numbers are 0-indexed
+    end_lineno = Column(Integer, nullable=True)
+    end_col_offset = Column(Integer, nullable=True)
 
     __mapper_args__ = {
         "polymorphic_on": node_type,

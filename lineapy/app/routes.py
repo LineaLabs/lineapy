@@ -5,6 +5,7 @@ from lineapy.app.app_db import lineadb
 from lineapy.data.types import *
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import *
+from lineapy.execution.code_util import get_segment_from_code
 from lineapy.execution.executor import Executor
 
 # from decouple import config
@@ -142,15 +143,35 @@ def get_artifact(artifact_id):
     return response
 
 
-# right now we only support Dataset intermediates, because we don't have a way of automatically demarking what type
+# right now we only support Dataset and Value intermediates, because we don't have a way of automatically demarking what type
 # each intermediate is
 @routes_blueprint.route("/api/v1/node/value/<node_id>", methods=["GET"])
 def get_node_value(node_id):
     node_id = UUID(node_id)
+    node = lineadb.get_node_by_id(node_id)
     node_value = lineadb.get_node_value(node_id, latest_version())
+    node_value_type = RelationalLineaDB.get_node_value_type(node_value)
+    if node_value_type == DATASET_TYPE:
+        node_value = RelationalLineaDB.cast_dataset(node_value)
+    elif node_value_type == VALUE_TYPE:
+        node_value = RelationalLineaDB.cast_serialized(
+            node_value, RelationalLineaDB.get_type(node_value)
+        )
 
-    node_value = RelationalLineaDB.cast_dataset(node_value)
+    node_name = None
+    if node.node_type is NodeType.CallNode and node.assigned_variable_name is not None:
+        node_name = node.assigned_variable_name
+    else:
+        node_name = get_segment_from_code(
+            lineadb.get_context(node.session_id).code, node
+        )
 
-    response = jsonify({"node_value": node_value})
+    response = jsonify(
+        {
+            "node_value": node_value,
+            "node_value_type": node_value_type,
+            "node_name": node_name,
+        }
+    )
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
