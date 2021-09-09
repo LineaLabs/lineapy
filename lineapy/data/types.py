@@ -138,6 +138,7 @@ class Node(BaseModel):
     col_offset: Optional[int]
     end_lineno: Optional[int]
     end_col_offset: Optional[int]
+
     # context: Optional[NodeContext] = None
 
     # note: this is specific to Pydantic

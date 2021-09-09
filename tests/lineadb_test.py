@@ -241,7 +241,8 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(result, graph)
 
     def test_search_artifacts_by_data_source(self):
-        # @dhruv we should create at least one more stub_graph with the same csv file ("sample_data.csv")---it's currently not in this branch but we can merge master in here later.
+        # @dhruv we should create at least one more stub_graph with the same csv file ("sample_data.csv")---it's
+        # currently not in this branch but we can merge master in here later.
         # using an existing stub for now
         graph, context = self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
@@ -258,7 +259,7 @@ class TestLineaDB(unittest.TestCase):
         assert len(derived) == 2
 
     def test_code_reconstruction_with_multilined_node(self):
-        graph, context = self.write_and_read_graph(
+        _ = self.write_and_read_graph(
             graph_with_loops, graph_with_loops_session
         )
 
@@ -268,7 +269,7 @@ class TestLineaDB(unittest.TestCase):
         assert loops_code == reconstructed
 
     def test_code_reconstruction_with_slice(self):
-        graph, context = self.write_and_read_graph(
+        _ = self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
         )
 
