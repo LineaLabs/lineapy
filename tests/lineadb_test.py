@@ -56,7 +56,7 @@ from tests.stub_data.graph_with_messy_nodes import (
     f_assign,
     e_assign,
     a_assign,
-    reconstructed_slice,
+    sliced_code,
 )
 from tests.util import reset_test_db
 
@@ -277,4 +277,4 @@ class TestLineaDB(unittest.TestCase):
         )
         reconstructed = self.lineadb.get_code_from_artifact_id(f_assign.id)
 
-        assert reconstructed_slice == reconstructed
+        assert sliced_code == reconstructed
