@@ -132,6 +132,10 @@ line_6 = CallNode(
     function_name="sum",
     assigned_variable_name="x",
     arguments=[a_argument_id],
+    lineno=6,
+    col_offset=0,
+    end_lineno=6,
+    end_col_offset=10,
 )
 
 operator_module_id = get_new_id()

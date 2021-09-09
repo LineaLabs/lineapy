@@ -204,7 +204,7 @@ class Tracer:
             call_node = cast(CallNode, value_node)
             call_node.assigned_variable_name = variable_name
             # the assignment subsumes the original call code
-            # call_node.code = code
+            # TODO: set the call_node's line and col numbers instead of its code here
         else:
             internal_warning_log("got type", type(value_node), value_node)
             raise NotImplementedError

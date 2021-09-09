@@ -173,6 +173,7 @@ class NodeValueORM(Base):  # type: ignore
     version = Column(Integer, primary_key=True)
     value = Column(PickleType, nullable=True)
     virtual = Column(Boolean)  # if True, value is not materialized in cache
+    timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 
 
 class NodeORM(Base):  # type: ignore
@@ -180,8 +181,8 @@ class NodeORM(Base):  # type: ignore
     id = Column(LineaIDORM, primary_key=True)
     session_id = Column(LineaIDORM)
     node_type = Column(Enum(NodeType))
-    lineno = Column(Integer, nullable=True)
-    col_offset = Column(Integer, nullable=True)
+    lineno = Column(Integer, nullable=True)  # line numbers are 1-indexed
+    col_offset = Column(Integer, nullable=True)  # col numbers are 0-indexed
     end_lineno = Column(Integer, nullable=True)
     end_col_offset = Column(Integer, nullable=True)
 

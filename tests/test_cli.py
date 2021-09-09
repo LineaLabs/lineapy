@@ -56,9 +56,9 @@ class TestCli:
             # NOTE: @yifan assertions commented out until transformer writes line and column numbers to db
             # for c in nodes:
             #     if c.node_type == NodeType.CallNode:
-            #         assert are_nodes_content_equal(c, line_1)
+            #         assert are_nodes_content_equal(c, line_1, self.db.get_context(nodes[0].session_id).code)
             #     if c.node_type == NodeType.ArgumentNode:
-            #         assert are_nodes_content_equal(c, arg_literal)
+            #         assert are_nodes_content_equal(c, arg_literal, self.db.get_context(nodes[0].session_id).code)
             #     info_log("found_call_node", c)
 
     def test_no_script_error(self):

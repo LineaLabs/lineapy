@@ -8,7 +8,7 @@ from lineapy.data.types import *
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import *
 from lineapy.execution.executor import Executor
-from lineapy.execution.execution_util import get_segment_from_code
+from lineapy.execution.code_util import get_segment_from_code
 
 # from decouple import config
 
@@ -33,6 +33,7 @@ def latest_version_of_node(node_id):
 
 def parse_artifact_orm(artifact_orm):
     artifact = Artifact.from_orm(artifact_orm)
+    print(artifact)
     artifact_json = lineadb.jsonify_artifact(artifact)
 
     latest_version = latest_version_of_node(artifact_orm.id)

@@ -1,3 +1,5 @@
+import re
+
 from typing import Set, Union, cast
 
 from sqlalchemy import create_engine
@@ -11,7 +13,7 @@ from lineapy.db.asset_manager.local import LocalDataAssetManager, DataAssetManag
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 from lineapy.execution.executor import Executor
-from lineapy.execution.execution_util import get_segment_from_code
+from lineapy.execution.code_util import add_node_to_code, max_col_of_code
 from lineapy.utils import CaseNotHandledError, NullValueError
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
@@ -479,15 +481,16 @@ class RelationalLineaDB(LineaDB):
                 "end": end_col,
             }
 
-            intermediate_value = (
+            intermediate = (
                 self.session.query(NodeValueORM)
                 .filter(NodeValueORM.node_id == node.id)
                 .first()
-                .value
             )
 
-            if intermediate_value is None:
+            if intermediate is None:
                 continue
+
+            intermediate_value = intermediate.value
 
             intermediate_value_type = RelationalLineaDB.get_node_value_type(
                 intermediate_value
@@ -495,6 +498,7 @@ class RelationalLineaDB(LineaDB):
             if intermediate_value_type == DATASET_TYPE:
                 intermediate_value = RelationalLineaDB.cast_dataset(intermediate_value)
             elif intermediate_value_type == VALUE_TYPE:
+                print(intermediate)
                 intermediate_value = RelationalLineaDB.cast_serialized(
                     intermediate_value, RelationalLineaDB.get_type(intermediate_value)
                 )
@@ -506,7 +510,7 @@ class RelationalLineaDB(LineaDB):
                 "id": node.id,
                 "name": "",
                 "type": intermediate_value_type,
-                "date": "1372944000",
+                "date": intermediate.timestamp,
                 "text": intermediate_value,
             }
             token_json["intermediate"] = intermediate
@@ -515,6 +519,13 @@ class RelationalLineaDB(LineaDB):
         json_artifact["code"]["tokens"] = tokens_json
 
         return json_artifact
+
+    def get_nodes_from_db(self) -> List[Node]:
+        node_orms = self.session.query(NodeORM).all()
+        nodes = []
+        for orm in node_orms:
+            nodes.append(self.get_node_by_id(orm.id))
+        return nodes
 
     def get_graph_from_artifact_id(self, artifact_id: LineaIDAlias) -> Graph:
         """
@@ -534,24 +545,6 @@ class RelationalLineaDB(LineaDB):
         ancestors.append(artifact_id)
         return Graph([full_graph.get_node(a) for a in ancestors])
 
-    def filter_subsumed_nodes(self, nodes: List[Node]) -> List[Node]:
-        """
-        Filters out nodes that are contained by other nodes
-        e.g. removes an ArgumentNode subsumed by a CallNode's code
-        """
-        current_node = nodes[0]
-        nodes_filtered = [current_node]
-
-        for node in nodes:
-            if node.lineno > current_node.end_lineno or (
-                node.lineno == current_node.end_lineno
-                and node.col_offset >= current_node.end_col_offset
-            ):
-                current_node = node
-                nodes_filtered.append(current_node)
-
-        return nodes_filtered
-
     def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
         graph = self.get_graph_from_artifact_id(artifact_id)
         session_code = self.get_context(
@@ -564,14 +557,21 @@ class RelationalLineaDB(LineaDB):
             if node.lineno is not None and node.col_offset is not None
         ]
 
-        # sort first by line number, then by column number
-        nodes = sorted(nodes, key=lambda node: (node.lineno, node.col_offset))
-        nodes = self.filter_subsumed_nodes(nodes)
+        num_lines = len(session_code.split("\n"))
+        code: str = "\n".join([" " * max_col_of_code(session_code)] * num_lines)
 
-        code = ""
         for node in nodes:
-            node_code = get_segment_from_code(session_code, node)
-            code += node_code + "\n"
+            code = add_node_to_code(code, session_code, node)
+
+        # replace groups of empty lines with single empty line
+        # https://stackoverflow.com/questions/28901452/reduce-multiple-blank-lines-to-single-pythonically
+        code = re.sub(r"\n\s*\n", "\n\n", code)
+
+        # remove extra white spaces from end of each line
+        lines = code.split("\n")
+        for i in range(len(lines)):
+            lines[i] = lines[i].rstrip()
+        code = "\n".join(lines)
 
         return code
 
@@ -581,11 +581,13 @@ class RelationalLineaDB(LineaDB):
         descendants = program.get_descendants(data_source_node)
         artifacts = []
         for d_id in descendants:
-            artifact = (
+            descendant_is_artifact = (
                 self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
+                is not None
             )
-            if artifact is not None:
-                artifacts.append(program.get_node(d_id))
+            descendant = program.get_node(d_id)
+            if descendant_is_artifact and descendant is not None:
+                artifacts.append(descendant)
         return artifacts
 
     def gather_artifact_intermediate_nodes(self, program: Graph):

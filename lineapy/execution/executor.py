@@ -20,7 +20,7 @@ from lineapy.data.types import (
     LineaID,
 )
 from lineapy.graph_reader.base import GraphReader
-from lineapy.execution.execution_util import get_segment_from_code
+from lineapy.execution.code_util import get_segment_from_code
 
 
 class Executor(GraphReader):
