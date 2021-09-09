@@ -63,6 +63,7 @@ from sqlalchemy.sql.sqltypes import Boolean, Text
 from lineapy.data.types import (
     SessionType,
     NodeType,
+    IOType,
     StorageType,
     LiteralType,
 )
@@ -192,14 +193,29 @@ class NodeORM(Base):  # type: ignore
     }
 
 
-side_effects_state_change_association_table = Table(
-    "side_effects_state_change_association",
+side_effects_output_state_change_association_table = Table(
+    "side_effects_output_state_change_association",
     Base.metadata,
     Column(
         "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
     ),
     Column(
-        "state_change_node_id", ForeignKey("state_change_node.id"), primary_key=True
+        "output_state_change_node_id",
+        ForeignKey("state_change_node.id"),
+        primary_key=True,
+    ),
+)
+
+side_effects_input_state_change_association_table = Table(
+    "side_effects_input_state_change_association",
+    Base.metadata,
+    Column(
+        "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
+    ),
+    Column(
+        "input_state_change_node_id",
+        ForeignKey("state_change_node.id"),
+        primary_key=True,
     ),
 )
 
@@ -240,6 +256,7 @@ class StateChangeNodeORM(NodeORM):
     variable_name = Column(String)
     associated_node_id = Column(LineaIDORM)
     initial_value_node_id = Column(LineaIDORM)
+    io_type = Column(Enum(IOType))
 
 
 call_node_association_table = Table(
@@ -339,14 +356,6 @@ class LoopNodeORM(SideEffectsNodeORM):
     __mapper_args__ = {"polymorphic_identity": NodeType.LoopNode}
 
     id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
-
-
-condition_association_table = Table(
-    "condition_association",
-    Base.metadata,
-    Column("condition_node_id", ForeignKey("condition_node.id"), primary_key=True),
-    Column("dependent_node_id", ForeignKey("node.id"), primary_key=True),
-)
 
 
 class ConditionNodeORM(SideEffectsNodeORM):

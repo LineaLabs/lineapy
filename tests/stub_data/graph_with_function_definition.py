@@ -6,6 +6,7 @@ from lineapy.data.types import (
     LiteralAssignNode,
     FunctionDefinitionNode,
     StateChangeNode,
+    IOType,
 )
 from tests.util import get_new_id, get_new_session
 
@@ -62,20 +63,32 @@ line_2 = LiteralAssignNode(
 
 fun_id = get_new_id()
 
-a_state_change_id = get_new_id()
-a_state_change = StateChangeNode(
-    id=a_state_change_id,
+a_input_state_change_id = get_new_id()
+a_input_state_change = StateChangeNode(
+    id=a_input_state_change_id,
     session_id=session.id,
     variable_name="a",
     associated_node_id=fun_id,
     initial_value_node_id=a_id,
+    io_type=IOType.Input,
+)
+
+a_output_state_change_id = get_new_id()
+a_output_state_change = StateChangeNode(
+    id=a_output_state_change_id,
+    session_id=session.id,
+    variable_name="a",
+    associated_node_id=fun_id,
+    initial_value_node_id=a_id,
+    io_type=IOType.Output,
 )
 
 fun_def_node = FunctionDefinitionNode(
     id=fun_id,
     session_id=session.id,
     function_name="my_function",
-    state_change_nodes=[a_state_change_id],
+    input_state_change_nodes=[a_input_state_change_id],
+    output_state_change_nodes=[a_output_state_change_id],
     import_nodes=[line_1_id],
     lineno=3,
     col_offset=0,
@@ -97,5 +110,12 @@ my_function_call = CallNode(
 )
 
 graph_with_function_definition = Graph(
-    [my_function_call, fun_def_node, line_1_import, line_2, a_state_change],
+    [
+        my_function_call,
+        fun_def_node,
+        line_1_import,
+        line_2,
+        a_input_state_change,
+        a_output_state_change,
+    ],
 )

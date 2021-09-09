@@ -22,6 +22,8 @@ class Graph(object):
             [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
         )
 
+        assert nx.is_directed_acyclic_graph(self._nx_graph)
+
     @property
     def nx_graph(self) -> nx.DiGraph:
         return self._nx_graph
@@ -137,19 +139,16 @@ class Graph(object):
             NodeType.FunctionDefinitionNode,
         ]:
             node = cast(SideEffectsNode, node)
-            # we aren't adding the state_change_nodes as parents because state_change_nodes are affected by the SideEffectsNode.
-            # this way, we ensure that the nodes that depend on a StateChangeNode will not be executed before the StateChangeNode's
-            # SideEffectsNode (e.g. LoopNode) is executed
             if node.import_nodes is not None:
                 source_nodes.extend(node.import_nodes)
-            if node.node_type is NodeType.ConditionNode:
-                node = cast(ConditionNode, node)
-                if node.dependent_variables_in_predicate is not None:
-                    source_nodes.extend(node.dependent_variables_in_predicate)
+            if node.input_state_change_nodes is not None:
+                source_nodes.extend(node.input_state_change_nodes)
         elif node.node_type is NodeType.StateChangeNode:
             node = cast(StateChangeNode, node)
-            source_nodes.append(node.associated_node_id)
-            source_nodes.append(node.initial_value_node_id)
+            if node.io_type is IOType.Output:
+                source_nodes.append(node.associated_node_id)
+            elif node.io_type is IOType.Input:
+                source_nodes.append(node.initial_value_node_id)
         elif node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNode, node)
             if node.value_node_id is not None:

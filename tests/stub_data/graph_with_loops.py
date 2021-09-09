@@ -7,6 +7,7 @@ from lineapy.data.types import (
     ArgumentNode,
     ImportNode,
     Library,
+    IOType,
 )
 from tests.util import get_new_id, get_new_session
 
@@ -72,42 +73,64 @@ line_2 = LiteralAssignNode(
 
 le_id = get_new_id()
 
-a_state_change_id = get_new_id()
+a_state_change_output_id = get_new_id()
+a_state_change_input_id = get_new_id()
 a_argument_id = get_new_id()
 
-a_state_change = StateChangeNode(
-    id=a_state_change_id,
+a_state_change_input = StateChangeNode(
+    id=a_state_change_input_id,
     session_id=session.id,
     variable_name="a",
     associated_node_id=le_id,
     initial_value_node_id=a_id,
+    io_type=IOType.Input,
 )
+a_state_change_output = StateChangeNode(
+    id=a_state_change_output_id,
+    session_id=session.id,
+    variable_name="a",
+    associated_node_id=le_id,
+    initial_value_node_id=a_id,
+    io_type=IOType.Output,
+)
+
 a_argument_node = ArgumentNode(
     id=a_argument_id,
     session_id=session.id,
     positional_order=0,
-    value_node_id=a_state_change_id,
+    value_node_id=a_state_change_output_id,
     lineno=6,
     col_offset=8,
     end_lineno=6,
     end_col_offset=9,
 )
 
-b_state_change_id = get_new_id()
+b_state_change_input_id = get_new_id()
+b_state_change_output_id = get_new_id()
 b_argument_id = get_new_id()
 
-b_state_change = StateChangeNode(
-    id=b_state_change_id,
+b_state_change_input = StateChangeNode(
+    id=b_state_change_input_id,
     session_id=session.id,
     variable_name="b",
     associated_node_id=le_id,
     initial_value_node_id=b_id,
+    io_type=IOType.Input,
 )
+b_state_change_output = StateChangeNode(
+    id=b_state_change_output_id,
+    session_id=session.id,
+    variable_name="b",
+    associated_node_id=le_id,
+    initial_value_node_id=b_id,
+    io_type=IOType.Output,
+)
+
 b_argument_node = ArgumentNode(
     id=b_argument_id,
     session_id=session.id,
     positional_order=1,
-    value_node_id=b_state_change_id,
+    value_node_id=b_state_change_output_id,
     lineno=7,
     col_offset=8,
     end_lineno=7,
@@ -117,7 +140,8 @@ b_argument_node = ArgumentNode(
 le = LoopNode(
     id=le_id,
     session_id=session.id,
-    state_change_nodes=[a_state_change_id, b_state_change_id],
+    input_state_change_nodes=[a_state_change_input_id, b_state_change_input_id],
+    output_state_change_nodes=[a_state_change_output_id, b_state_change_output_id],
     lineno=3,
     col_offset=0,
     end_lineno=5,
@@ -180,8 +204,10 @@ graph_with_loops = Graph(
         line_1,
         line_2,
         le,
-        a_state_change,
-        b_state_change,
+        a_state_change_input,
+        a_state_change_output,
+        b_state_change_input,
+        b_state_change_output,
         line_6,
         operator_module,
         line_7,

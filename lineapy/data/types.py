@@ -98,6 +98,12 @@ class LiteralType(Enum):
     Boolean = 4
 
 
+# used for StateChangeNodes
+class IOType(Enum):
+    Input = 1
+    Output = 2
+
+
 # class DataAssetType(Enum):
 CHART_TYPE = "chart"
 ARRAY_TYPE = "array"
@@ -150,7 +156,8 @@ class Node(BaseModel):
 class SideEffectsNode(Node):
     # keeping a list of state_change_nodes that we probably have to re-construct from the sql db.
     # will deprecate when storing graph in a relational db
-    state_change_nodes: Optional[List[LineaID]]
+    output_state_change_nodes: Optional[List[LineaID]]
+    input_state_change_nodes: Optional[List[LineaID]]
 
     # modules required to run node code (ids point to ImportNode instances)
     import_nodes: Optional[List[LineaID]]
@@ -230,21 +237,21 @@ class FunctionDefinitionNode(SideEffectsNode):
 class ConditionNode(SideEffectsNode):
     node_type: NodeType = NodeType.ConditionNode
 
-    dependent_variables_in_predicate: Optional[List[LineaID]]
-
 
 class StateChangeNode(Node):
     """
     This type of node is to capture the state changes caused by "black boxes" such as loops.
     Later code need to reference the NEW id now modified.
+    Each "black box" SideEffectsNode will have 2 StateChangeNodes for each variable.
+    One for the input value of the variable, and one for capturing its output from the black box.
     """
 
     node_type: NodeType = NodeType.StateChangeNode
     variable_name: str
-    # this could be call id or loop id, or any code blocks
-    associated_node_id: LineaID
+    associated_node_id: LineaID  # this could be call id or loop id, or any code blocks
     initial_value_node_id: LineaID  # points to a node that represents the value of the node before the change (can be another state change node)
     value: Optional[NodeValue]
+    io_type: IOType
 
 
 class LoopNode(SideEffectsNode):

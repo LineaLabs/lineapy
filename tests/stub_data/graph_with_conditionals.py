@@ -4,6 +4,7 @@ from lineapy.data.types import (
     CallNode,
     ConditionNode,
     StateChangeNode,
+    IOType,
 )
 
 from tests.util import get_new_id, get_new_session
@@ -70,21 +71,32 @@ bs_line = CallNode(
 # line 1
 
 condition_line_id = get_new_id()
-state_change_id = get_new_id()
+state_change_input_id = get_new_id()
+state_change_output_id = get_new_id()
 
-state_change = StateChangeNode(
-    id=state_change_id,
+state_change_input = StateChangeNode(
+    id=state_change_input_id,
     session_id=session.id,
     variable_name="bs",
     associated_node_id=condition_line_id,
     initial_value_node_id=bs_line_id,
+    io_type=IOType.Input,
+)
+
+state_change_output = StateChangeNode(
+    id=state_change_output_id,
+    session_id=session.id,
+    variable_name="bs",
+    associated_node_id=condition_line_id,
+    initial_value_node_id=bs_line_id,
+    io_type=IOType.Output,
 )
 
 condition_line = ConditionNode(
     id=condition_line_id,
     session_id=session.id,
-    dependent_variables_in_predicate=[bs_line_id],
-    state_change_nodes=[state_change_id],
+    input_state_change_nodes=[state_change_input_id],
+    output_state_change_nodes=[state_change_output_id],
     lineno=2,
     col_offset=0,
     end_lineno=6,
@@ -92,5 +104,12 @@ condition_line = ConditionNode(
 )
 
 graph_with_conditionals = Graph(
-    nodes=[condition_line, state_change, arg_1, arg_2, bs_line]
+    nodes=[
+        condition_line,
+        state_change_input,
+        state_change_output,
+        arg_1,
+        arg_2,
+        bs_line,
+    ]
 )

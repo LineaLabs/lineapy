@@ -10,6 +10,7 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import (
     SessionContext,
     NodeType,
+    IOType,
     Node,
     CallNode,
     ImportNode,
@@ -109,33 +110,23 @@ class Executor(GraphReader):
         if node is None:
             return
         node = cast(SideEffectsNode, node)
-        if node.state_change_nodes is not None:
-            for state_var_id in node.state_change_nodes:
+        if node.input_state_change_nodes is not None:
+            for state_var_id in node.input_state_change_nodes:
                 state_var = cast(StateChangeNode, program.get_node(state_var_id))
-                initial_state = program.get_node(state_var.initial_value_node_id)
-                if initial_state is not None and initial_state.node_type in [
-                    NodeType.CallNode,
-                    NodeType.LiteralAssignNode,
-                    NodeType.StateChangeNode,
-                ]:
-                    scoped_locals[state_var.variable_name] = initial_state.value  # type: ignore
+                if state_var.io_type is IOType.Input:
+                    initial_state = program.get_node(state_var.initial_value_node_id)
+                    if initial_state is not None and initial_state.node_type in [
+                        NodeType.CallNode,
+                        NodeType.LiteralAssignNode,
+                        NodeType.StateChangeNode,
+                    ]:
+                        scoped_locals[state_var.variable_name] = initial_state.value  # type: ignore
 
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
                 import_node = cast(ImportNode, program.get_node(import_node_id))
                 import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
                 scoped_locals[import_node.library.name] = import_node.module
-
-        if (
-            node.node_type is NodeType.ConditionNode
-            and node.dependent_variables_in_predicate is not None
-        ):
-            for dependent_var_id in node.dependent_variables_in_predicate:
-                dependent_var = program.get_node(dependent_var_id)
-                dependent_var_value = program.get_node_value(dependent_var)
-                scoped_locals[
-                    dependent_var.assigned_variable_name
-                ] = dependent_var_value
 
     def update_node_side_effects(
         self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]
@@ -145,14 +136,15 @@ class Executor(GraphReader):
 
         local_vars = scoped_locals
         node = cast(SideEffectsNode, node)
-        if node.state_change_nodes is not None:
-            for state_var_id in node.state_change_nodes:
+        if node.output_state_change_nodes is not None:
+            for state_var_id in node.output_state_change_nodes:
                 state_var = cast(StateChangeNode, program.get_node(state_var_id))
 
-                state_var.value = local_vars[state_var.variable_name]
+                if state_var.io_type is IOType.Output:
+                    state_var.value = local_vars[state_var.variable_name]
 
-                if state_var.variable_name is not None:
-                    self._variable_values[state_var.variable_name] = state_var.value
+                    if state_var.variable_name is not None:
+                        self._variable_values[state_var.variable_name] = state_var.value
 
     @staticmethod
     def get_function(
