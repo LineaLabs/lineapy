@@ -105,18 +105,22 @@ class Graph(object):
         else:
             return node.value  # type: ignore
 
-    def get_node_value_from_id(self, node_id: Optional[LineaID]) -> Optional[Any]:
+    def get_node_value_from_id(
+        self, node_id: Optional[LineaID]
+    ) -> Optional[Any]:
         node = self.get_node(node_id)
         return self.get_node_value(node)
 
     def get_arguments_from_call_node(self, node: CallNode) -> List[NodeValue]:
+        """
+        FIXME: rather than using our loop comprehension, we should rely
+          on database joins
+        """
         if node.arguments and len(node.arguments) > 0:
             args = [
-                cast(ArgumentNode, self.get_node_else_raise(a)) for a in node.arguments
+                cast(ArgumentNode, self.get_node_else_raise(a))
+                for a in node.arguments
             ]
-
-            # NOTE: for cases where a large list is being instantiated using the list constructor, this may add unwanted overhead
-            # can use operator.attrgetter instead of x.positional_order to speed up this process
 
             args.sort(key=get_arg_position)
             return [self.get_node_value(a) for a in args]
@@ -144,9 +148,11 @@ class Graph(object):
             NodeType.FunctionDefinitionNode,
         ]:
             node = cast(SideEffectsNode, node)
-            # we aren't adding the state_change_nodes as parents because state_change_nodes are affected by the SideEffectsNode.
-            # this way, we ensure that the nodes that depend on a StateChangeNode will not be executed before the StateChangeNode's
-            # SideEffectsNode (e.g. LoopNode) is executed
+            # we aren't adding the state_change_nodes as parents because
+            #   state_change_nodes are affected by the SideEffectsNode.
+            #   this way, we ensure that the nodes that depend on a
+            #   StateChangeNode will not be executed before the
+            #   StateChangeNode's SideEffectsNode (e.g. LoopNode) is executed
             if node.import_nodes is not None:
                 source_nodes.extend(node.import_nodes)
             if node.node_type is NodeType.ConditionNode:
@@ -190,16 +196,20 @@ class Graph(object):
                 descendants = [
                     n
                     for n in self.get_descendants(node)
-                    if self.get_node(n).node_type is NodeType.CallNode
+                    if n is not None
+                    and self.get_node_else_raise(n).node_type
+                    is NodeType.CallNode
                 ]
 
                 # sort data source nodes children
-                descendants.sort(key=lambda n: self.get_node(n).lineno)
+                descendants.sort(key=lambda n: self.get_node_else_raise(n).lineno)
                 # add edges between children
                 for d in range(len(descendants) - 1):
                     if self.nx_graph.has_edge(
                         descendants[d], descendants[d + 1]
-                    ) or self.nx_graph.has_edge(descendants[d + 1], descendants[d]):
+                    ) or self.nx_graph.has_edge(
+                        descendants[d + 1], descendants[d]
+                    ):
                         continue
                     edges.append(
                         DirectedEdge(
