@@ -17,21 +17,21 @@ arg_1 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=0,
-    value_literal=1,
+    value=1,
 )
 
 arg_2 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=1,
-    value_literal=2,
+    value=2,
 )
 
 arg_3 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=2,
-    value_literal=3,
+    value=3,
 )
 
 a_assign = CallNode(
@@ -54,7 +54,7 @@ arg_4 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=0,
-    value_literal=4,
+    value=4,
 )
 
 a_append = CallNode(
@@ -83,5 +83,15 @@ b_sum = CallNode(
 )
 
 graph_with_alias_by_reference = Graph(
-    nodes=[arg_1, arg_2, arg_3, arg_4, b_arg, a_assign, b_assign, a_append, b_sum],
+    nodes=[
+        arg_1,
+        arg_2,
+        arg_3,
+        arg_4,
+        b_arg,
+        a_assign,
+        b_assign,
+        a_append,
+        b_sum,
+    ],
 )

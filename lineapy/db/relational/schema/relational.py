@@ -142,7 +142,9 @@ class SessionContextORM(Base):  # type: ignore
 
 class LibraryORM(Base):  # type: ignore
     __tablename__ = "library"
-    __table_args__ = (UniqueConstraint("session_id", "name", "version", "path"),)
+    __table_args__ = (
+        UniqueConstraint("session_id", "name", "version", "path"),
+    )
     id = Column(LineaIDORM, primary_key=True)
     session_id = Column(LineaIDORM, ForeignKey("session_context.id"))
     name = Column(String)
@@ -203,7 +205,9 @@ class TokenORM(Base):  # type: ignore
 
 class ExecutionORM(Base):  # type: ignore
     __tablename__ = "execution"
-    artifact_id = Column(LineaIDORM, ForeignKey("artifact.id"), primary_key=True)
+    artifact_id = Column(
+        LineaIDORM, ForeignKey("artifact.id"), primary_key=True
+    )
     version = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 
@@ -235,10 +239,14 @@ side_effects_state_change_association_table = Table(
     "side_effects_state_change_association",
     Base.metadata,
     Column(
-        "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
+        "side_effects_node_id",
+        ForeignKey("side_effects_node.id"),
+        primary_key=True,
     ),
     Column(
-        "state_change_node_id", ForeignKey("state_change_node.id"), primary_key=True
+        "state_change_node_id",
+        ForeignKey("state_change_node.id"),
+        primary_key=True,
     ),
 )
 
@@ -246,7 +254,9 @@ side_effects_import_association_table = Table(
     "side_effects_import_association",
     Base.metadata,
     Column(
-        "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
+        "side_effects_node_id",
+        ForeignKey("side_effects_node.id"),
+        primary_key=True,
     ),
     Column("import_node_id", ForeignKey("import_node.id"), primary_key=True),
 )
@@ -285,7 +295,9 @@ call_node_association_table = Table(
     "call_node_association",
     Base.metadata,
     Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
-    Column("argument_node_id", ForeignKey("argument_node.id"), primary_key=True),
+    Column(
+        "argument_node_id", ForeignKey("argument_node.id"), primary_key=True
+    ),
 )
 
 
@@ -318,8 +330,8 @@ class ArgumentNodeORM(NodeORM):
 
     keyword = Column(String, nullable=True)
     positional_order = Column(Integer, nullable=True)
-    value_literal = Column(String, nullable=True)
-    value_literal_type = Column(Enum(LiteralType), nullable=True)
+    value = Column(String, nullable=True)
+    value_type = Column(Enum(LiteralType), nullable=True)
 
     @declared_attr
     def value_node_id(cls):
@@ -353,7 +365,9 @@ class FunctionDefinitionNodeORM(SideEffectsNodeORM):
     __tablename__ = "function_definition_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.FunctionDefinitionNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(
+        LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True
+    )
 
     @declared_attr
     def value(cls):
@@ -377,13 +391,17 @@ class LoopNodeORM(SideEffectsNodeORM):
     __tablename__ = "loop_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.LoopNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(
+        LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True
+    )
 
 
 condition_association_table = Table(
     "condition_association",
     Base.metadata,
-    Column("condition_node_id", ForeignKey("condition_node.id"), primary_key=True),
+    Column(
+        "condition_node_id", ForeignKey("condition_node.id"), primary_key=True
+    ),
     Column("dependent_node_id", ForeignKey("node.id"), primary_key=True),
 )
 
@@ -392,7 +410,9 @@ class ConditionNodeORM(SideEffectsNodeORM):
     __tablename__ = "condition_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.ConditionNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(
+        LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True
+    )
 
 
 class DataSourceNodeORM(NodeORM):

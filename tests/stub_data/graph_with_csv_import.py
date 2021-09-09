@@ -33,7 +33,7 @@ pandas_lib = Library(
 
 session = get_new_session(libraries=[pandas_lib])
 
-# Note that this python path is EXPLICTLY tracking Yifan's own version
+# Note that this python path is EXPLICITLY tracking Yifan's own version
 #   We should be able to handle these edge cases, and if not, we need to
 #     specify what the requirement implications are for the node gen API
 import_pandas = ImportNode(
@@ -72,7 +72,7 @@ col_name_literal = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=0,
-    value_literal="a",
+    value="a",
 )
 
 access_a_column = CallNode(

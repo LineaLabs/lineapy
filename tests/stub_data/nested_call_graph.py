@@ -18,7 +18,7 @@ session = get_new_session()
 arg_literal_id = get_new_id()
 
 arg_literal = ArgumentNode(
-    id=arg_literal_id, session_id=session.id, positional_order=1, value_literal=-11
+    id=arg_literal_id, session_id=session.id, positional_order=1, value=-11
 )
 
 line_1a_id = get_new_id()
@@ -36,11 +36,14 @@ arg_1_id = get_new_id()
 arg_10_id = get_new_id()
 
 arg_1 = ArgumentNode(
-    id=arg_1_id, session_id=session.id, positional_order=1, value_node_id=line_1a_id
+    id=arg_1_id,
+    session_id=session.id,
+    positional_order=1,
+    value_node_id=line_1a_id,
 )
 
 arg_10 = ArgumentNode(
-    id=arg_10_id, session_id=session.id, positional_order=2, value_literal=10
+    id=arg_10_id, session_id=session.id, positional_order=2, value=10
 )
 
 line_1b_id = get_new_id()

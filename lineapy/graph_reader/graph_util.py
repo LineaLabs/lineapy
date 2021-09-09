@@ -60,12 +60,14 @@ def are_nodes_content_equal(n1: Node, n2: Node) -> bool:
             return False
         if n1.value_node_id != n2.value_node_id:
             internal_warning_log(
-                "Nodes have different value_node_id", n1.value_node_id, n2.value_node_id
+                "Nodes have different value_node_id",
+                n1.value_node_id,
+                n2.value_node_id,
             )
             return False
-        if n2.value_literal != n2.value_literal:
+        if n2.value != n2.value:
             internal_warning_log(
-                "Nodes have different value_literal", n1.value_literal, n2.value_literal
+                "Nodes have different value", n1.value, n2.value
             )
             return False
         return True

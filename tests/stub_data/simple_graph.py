@@ -26,7 +26,7 @@ arg_literal = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=0,
-    value_literal=-11,
+    value=-11,
 )
 
 line_1 = CallNode(

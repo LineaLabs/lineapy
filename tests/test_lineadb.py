@@ -1,8 +1,8 @@
-from lineapy.db.db_utils import get_current_time
 import unittest
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 from lineapy import ExecutionMode
+from lineapy.db.db_utils import get_current_time
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionContext
 from lineapy.db.base import get_default_config_by_environment
@@ -10,12 +10,16 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.graph_util import are_graphs_identical
 from lineapy.graph_reader.graph_util import are_nodes_equal
-from tests.stub_data.graph_with_alias_by_reference import graph_with_alias_by_reference
+from tests.stub_data.graph_with_alias_by_reference import (
+    graph_with_alias_by_reference,
+)
 from tests.stub_data.graph_with_alias_by_value import graph_with_alias_by_value
 from tests.stub_data.graph_with_conditionals import graph_with_conditionals
 from tests.stub_data.graph_with_csv_import import (
     graph_with_csv_import,
     session as graph_with_file_access_session,
+    simple_data_node,
+    sum_call,
 )
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
@@ -67,8 +71,8 @@ class TestLineaDB(unittest.TestCase):
     def write_and_read_graph(
         self,
         graph: Graph,
-        context: SessionContext = None,
-    ) -> Union[Tuple[Graph, SessionContext], Graph]:
+        context: Optional[SessionContext] = None,
+    ) -> Tuple[Graph, Optional[SessionContext]]:
         # let's write the in memory graph in (with all the nodes)
         self.lineadb.write_nodes(graph.nodes)
 
@@ -76,8 +80,10 @@ class TestLineaDB(unittest.TestCase):
             self.lineadb.write_context(context)
 
         if context is not None:
-            return self.reconstruct_graph(graph), self.lineadb.get_context(context.id)
-        return self.reconstruct_graph(graph)
+            return self.reconstruct_graph(graph), self.lineadb.get_context(
+                context.id
+            )
+        return self.reconstruct_graph(graph), None
 
     def reconstruct_graph(self, original_graph: Graph) -> Graph:
         # let's then read some nodes back
@@ -92,7 +98,7 @@ class TestLineaDB(unittest.TestCase):
         return db_graph
 
     def test_simple_graph(self):
-        graph = self.write_and_read_graph(simple_graph)
+        graph, context = self.write_and_read_graph(simple_graph)
         e = Executor()
         e.execute_program(graph)
         a = e.get_value_by_variable_name("a")
@@ -100,7 +106,7 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(graph, simple_graph)
 
     def test_nested_call_graph(self):
-        graph = self.write_and_read_graph(nested_call_graph)
+        graph, context = self.write_and_read_graph(nested_call_graph)
         e = Executor()
         e.execute_program(graph)
         a = e.get_value_by_variable_name("a")
@@ -108,12 +114,16 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(graph, nested_call_graph)
 
     def test_graph_with_print(self):
-        graph = self.write_and_read_graph(simple_with_variable_argument_and_print)
+        graph, context = self.write_and_read_graph(
+            simple_with_variable_argument_and_print
+        )
         e = Executor()
         e.execute_program(graph)
         stdout = e.get_stdout()
         assert stdout == "10\n"
-        assert are_graphs_identical(graph, simple_with_variable_argument_and_print)
+        assert are_graphs_identical(
+            graph, simple_with_variable_argument_and_print
+        )
 
     def test_basic_import(self):
         """
@@ -131,7 +141,8 @@ class TestLineaDB(unittest.TestCase):
     def test_graph_with_function_definition(self):
         """ """
         graph, context = self.write_and_read_graph(
-            graph_with_function_definition, graph_with_function_definition_session
+            graph_with_function_definition,
+            graph_with_function_definition_session,
         )
         e = Executor()
         e.execute_program(graph, context)
@@ -154,7 +165,7 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(graph, graph_with_loops)
 
     def test_program_with_conditionals(self):
-        graph = self.write_and_read_graph(graph_with_conditionals)
+        graph, context = self.write_and_read_graph(graph_with_conditionals)
         e = Executor()
         e.execute_program(graph)
         bs = e.get_value_by_variable_name("bs")
@@ -173,8 +184,20 @@ class TestLineaDB(unittest.TestCase):
         assert s == 25
         assert are_graphs_identical(graph, graph_with_csv_import)
 
+        # test search_artifacts_by_data_source
+        time = get_current_time()
+        self.lineadb.add_node_id_to_artifact_table(
+            sum_call.id,
+            time,
+        )
+        derived = self.lineadb.find_all_artifacts_derived_from_data_source(
+            graph, simple_data_node
+        )
+        assert len(derived) == 1
+        assert derived
+
     def test_variable_alias_by_value(self):
-        graph = self.write_and_read_graph(graph_with_alias_by_value)
+        graph, context = self.write_and_read_graph(graph_with_alias_by_value)
         e = Executor()
         e.execute_program(graph)
         a = e.get_value_by_variable_name("a")
@@ -184,7 +207,9 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(graph, graph_with_alias_by_value)
 
     def test_variable_alias_by_reference(self):
-        graph = self.write_and_read_graph(graph_with_alias_by_reference)
+        graph, context = self.write_and_read_graph(
+            graph_with_alias_by_reference
+        )
         e = Executor()
         e.execute_program(graph)
         s = e.get_value_by_variable_name("s")
@@ -206,21 +231,3 @@ class TestLineaDB(unittest.TestCase):
         f = e.get_value_by_variable_name("f")
         assert f == 6
         assert are_graphs_identical(result, graph_sliced_by_var_f)
-
-    def test_search_artifacts_by_data_source(self):
-        # @dhruv we should create at least one more stub_graph with the same csv file ("sample_data.csv")---it's currently not in this branch but we can merge master in here later.
-        # using an existing stub for now
-        time = get_current_time()
-        graph, context = self.write_and_read_graph(
-            graph_with_messy_nodes,
-            graph_with_messy_nodes_session,
-        )
-        self.lineadb.add_node_id_to_artifact_table(
-            f_assign.id,
-            time,
-        )
-        self.lineadb.add_node_id_to_artifact_table(e_assign.id, time)
-        derived = self.lineadb.find_all_artifacts_derived_from_data_source(
-            graph, a_assign
-        )
-        assert len(derived) == 2

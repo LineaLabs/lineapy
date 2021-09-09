@@ -35,14 +35,14 @@ arg_1 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=0,
-    value_literal=1,
+    value=1,
 )
 
 arg_2 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
     positional_order=1,
-    value_literal=2,
+    value=2,
 )
 
 bs_line_id = get_new_id()

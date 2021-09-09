@@ -29,12 +29,12 @@ import_math_node = ImportNode(
 
 arg_literal_id_1 = get_new_id()
 arg_literal1 = ArgumentNode(
-    id=arg_literal_id_1, session_id=session.id, positional_order=1, value_literal=5
+    id=arg_literal_id_1, session_id=session.id, positional_order=1, value=5
 )
 
 arg_literal_id_2 = get_new_id()
 arg_literal2 = ArgumentNode(
-    id=arg_literal_id_2, session_id=session.id, positional_order=2, value_literal=2
+    id=arg_literal_id_2, session_id=session.id, positional_order=2, value=2
 )
 
 line_2_id = get_new_id()
@@ -50,7 +50,10 @@ line_2 = CallNode(
 )
 
 arg_a = ArgumentNode(
-    id=get_new_id(), session_id=session.id, positional_order=1, value_node_id=line_2_id
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=1,
+    value_node_id=line_2_id,
 )
 
 line_3_id = get_new_id()

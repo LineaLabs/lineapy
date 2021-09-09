@@ -11,14 +11,19 @@ from typing import Any, Optional
 
 def linea_publish(variable: Any, description: Optional[str] = None) -> None:
     """
-    Publishes artifact, notifies the user through printing, and this would be compatible with either scriptingor the notebook: again
-    Note:
-    - The name of this function must match the constant `LINEAPY_PUBLISH_FUNCTION_NAME` in `contants.py`.
-    TODO
-    - [] Note that we need to instrument this at runtime to pass in the tracer and change the function call
+    Publishes artifact to the linea repo
+    """
+    """
+    DEV NOTEs:
+    - If you are going to change he name of this function, it must match the
+      constant `LINEAPY_PUBLISH_FUNCTION_NAME` in `constants.py`.
+    - This method is instrumented by transformer to be called by the tracer
     """
 
-    raise FunctionShouldNotBeCalled("`publish` should have been re-written")
+    raise FunctionShouldNotBeCalled(
+        """This method must be used along with a custom Linea Kernel,
+          or the Linea Cli."""
+    )
 
 
 def publish_with_tracer(

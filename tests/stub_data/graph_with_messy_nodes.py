@@ -63,7 +63,7 @@ a_argument_node = ArgumentNode(
 )
 
 argument_node_2 = ArgumentNode(
-    id=get_new_id(), session_id=session.id, positional_order=2, value_literal=2
+    id=get_new_id(), session_id=session.id, positional_order=2, value=2
 )
 
 b_assign = CallNode(

@@ -85,8 +85,8 @@ class Graph(object):
 
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
-            if node.value_literal is not None:
-                return node.value_literal
+            if node.value is not None:
+                return node.value
             elif node.value_node_id is not None:
                 return self.get_node_value(self.get_node(node.value_node_id))
             return None
@@ -98,14 +98,19 @@ class Graph(object):
         else:
             return node.value  # type: ignore
 
-    def get_node_value_from_id(self, node_id: Optional[LineaID]) -> Optional[Any]:
+    def get_node_value_from_id(
+        self, node_id: Optional[LineaID]
+    ) -> Optional[Any]:
         node = self.get_node(node_id)
         return self.get_node_value(node)
 
-    def get_arguments_from_call_node(self, node: CallNode) -> List[NodeValueType]:
+    def get_arguments_from_call_node(
+        self, node: CallNode
+    ) -> List[NodeValueType]:
         if node.arguments and len(node.arguments) > 0:
             args = [
-                cast(ArgumentNode, self.get_node_else_raise(a)) for a in node.arguments
+                cast(ArgumentNode, self.get_node_else_raise(a))
+                for a in node.arguments
             ]
 
             # NOTE: for cases where a large list is being instantiated using the list constructor, this may add unwanted overhead

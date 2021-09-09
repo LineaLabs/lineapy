@@ -1,6 +1,6 @@
 from lineapy.db.db_utils import is_integer
 from lineapy.utils import CaseNotHandledError
-from typing import Any
+from typing import Any, Optional
 import sys
 
 from lineapy.data.types import DataAssetType
@@ -8,8 +8,12 @@ from lineapy.data.types import DataAssetType
 
 def get_data_asset_type(val: Any) -> DataAssetType:
     """
-    A little hacky. Trying to avoid building an dependency on the external libraries.
-    Just going to cehck if they are already imported, if they are, then we can reference them. Though it might get really weird with our execution scoping.
+    Got a little hacky so as to avoid dependency on external libraries.
+    Current method is to check if the dependent library is already imported,
+      if they are, then we can reference them.
+
+    Note:
+    - Watch out for error here if the Executor tests fail.
     TODO
     - We need to more gracefully handle cases that we do not recognize
     """
@@ -39,4 +43,6 @@ def get_data_asset_type(val: Any) -> DataAssetType:
         if isinstance(val, pandas.Series):
             return DataAssetType.PandasSeries
 
-    raise CaseNotHandledError(f"Do not know the type of {val}, type {type(val)}")
+    raise CaseNotHandledError(
+        f"Do not know the type of {val}, type {type(val)}"
+    )

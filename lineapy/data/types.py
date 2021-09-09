@@ -68,9 +68,6 @@ class NodeContext(BaseModel):
 NodeValueType = Any
 
 
-# Yifan note: something weird here about optional and NewType... https://github.com/python/mypy/issues/4580; tried to use TypeVar but also kinda weird. Seems hairy https://stackoverflow.com/questions/59360567/define-a-custom-type-that-behaves-like-typing-any
-
-
 class NodeType(Enum):
     Node = 1
     ArgumentNode = 2
@@ -89,6 +86,12 @@ class NodeType(Enum):
 
 
 class LiteralType(Enum):
+    """
+    These are different from DataAssetType because they are used for
+      nodes where the values are clearly literals
+    FIXME: we should probably refactor and clean up the logic overlap
+    """
+
     String = 1
     Integer = 2
     Float = 3
@@ -214,7 +217,7 @@ class ArgumentNode(Node):
     keyword: Optional[str] = None
     positional_order: Optional[int] = None
     value_node_id: Optional[LineaID] = None
-    value_literal: Optional[Any] = None
+    value: Optional[Any] = None  # literal value
 
 
 class CallNode(Node):

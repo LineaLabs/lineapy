@@ -61,7 +61,10 @@ def setup_db(mode: ExecutionMode):
 
     artifact_code = CodeORM(
         id=get_new_id(),
-        text="import pandas as pd\ndf = pd.read_csv('simple_data.csv')\ns = df['a'].sum()",
+        text=(
+            "import pandas as pd\ndf = pd.read_csv('simple_data.csv')\ns ="
+            " df['a'].sum()"
+        ),
     )
 
     code_token = TokenORM(
@@ -87,7 +90,7 @@ def setup_db(mode: ExecutionMode):
     test_db.add_node_id_to_artifact_table(
         sum_call.id,
         description="Graph With CSV Import",
-        date_created="1372944000",
+        date_created=1372944000,
     )
 
     exec_orm = ExecutionORM(artifact_id=sum_call.id, version=1)

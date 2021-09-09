@@ -20,11 +20,14 @@ arg_a_id = get_new_id()
 arg_10_id = get_new_id()
 
 arg_a = ArgumentNode(
-    id=arg_a_id, session_id=session.id, positional_order=1, value_node_id=line_1.id
+    id=arg_a_id,
+    session_id=session.id,
+    positional_order=1,
+    value_node_id=line_1.id,
 )
 
 arg_10 = ArgumentNode(
-    id=arg_10_id, session_id=session.id, positional_order=2, value_literal=10
+    id=arg_10_id, session_id=session.id, positional_order=2, value=10
 )
 
 line_2_id = get_new_id()
@@ -40,7 +43,10 @@ line_2 = CallNode(
 arg_b_id = get_new_id()
 
 arg_b = ArgumentNode(
-    id=arg_b_id, session_id=session.id, positional_order=1, value_node_id=line_2_id
+    id=arg_b_id,
+    session_id=session.id,
+    positional_order=1,
+    value_node_id=line_2_id,
 )
 
 line_3_id = get_new_id()

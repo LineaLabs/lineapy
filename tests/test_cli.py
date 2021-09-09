@@ -9,14 +9,17 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.graph_reader.graph_util import are_nodes_content_equal
 from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import info_log
-from lineapy.constants import LINEAPY_IMPORT_LIB_NAME, LINEAPY_PUBLISH_FUNCTION_NAME
+from lineapy.constants import (
+    LINEAPY_IMPORT_LIB_NAME,
+    LINEAPY_PUBLISH_FUNCTION_NAME,
+)
 from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
 from tests.util import reset_test_db
 
 
 class TestCli:
     """
-    This Cli test serves as one end to end test and covers the following components:
+    End to end test and covers the following components:
     - LineaCli
     - transformer
     - tracer
@@ -46,7 +49,9 @@ class TestCli:
             # might also need os.path.dirname() in addition to file name
             tmp_file_name = tmp.name
             # FIXME: make into constants
-            result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp_file_name])
+            result = self.runner.invoke(
+                linea_cli, ["--mode", "dev", tmp_file_name]
+            )
             assert result.exit_code == 0
             nodes = self.db.get_nodes_by_file_name(tmp_file_name)
             # there should just be two
@@ -64,7 +69,12 @@ class TestCli:
         """
         description = "testing artifact publish"
         with NamedTemporaryFile() as tmp:
-            publish_code = f"import {LINEAPY_IMPORT_LIB_NAME}\na = abs(-11)\n{LINEAPY_IMPORT_LIB_NAME}.{LINEAPY_PUBLISH_FUNCTION_NAME}(a, '{description}')\n"
+            publish_code = (
+                f"import {LINEAPY_IMPORT_LIB_NAME}\n"
+                + "a = abs(-11)\n"
+                + "{LINEAPY_IMPORT_LIB_NAME}.{LINEAPY_PUBLISH_FUNCTION_NAME}"
+                + "(a, '{description}')\n"
+            )
             info_log("publish code", publish_code)
             tmp.write(str.encode(publish_code))
             tmp.flush()

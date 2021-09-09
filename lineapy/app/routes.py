@@ -1,6 +1,5 @@
 from uuid import UUID
 from flask import Blueprint, jsonify
-from sqlalchemy import func
 
 from lineapy.db.relational.schema.relational import (
     ArtifactORM,
@@ -8,7 +7,11 @@ from lineapy.db.relational.schema.relational import (
     NodeValueORM,
 )
 from lineapy.data.types import Artifact, DataAssetType, Execution
-from lineapy.utils import EntryNotFoundError
+from lineapy.utils import (
+    CaseNotHandledError,
+    EntryNotFoundError,
+    NullValueError,
+)
 from lineapy.app.app_db import lineadb
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.utils import EntryNotFoundError
@@ -23,31 +26,12 @@ HTTP_REQUEST_HOST = "http://localhost:4000"
 routes_blueprint = Blueprint("routes", __name__)
 
 
-def latest_version():
-    return lineadb.session.query(func.max(NodeValueORM.version)).scalar()
-
-
 def parse_artifact_orm(artifact_orm):
     artifact = Artifact.from_orm(artifact_orm)
-    artifact_json = lineadb.jsonify_artifact(artifact)
+    artifact_json = lineadb.jsonify_base_artifact(artifact)
 
-    node_value = lineadb.get_node_value(artifact.id, latest_version())
-    if artifact_value:
-        if (
-            artifact.value_type is DataAssetType.BlobValue
-            or artifact.value_type is DataAssetType.NumpyArray
-        ):
-            result = RelationalLineaDB.cast_serialized(
-                artifact_value, RelationalLineaDB.get_type(artifact_value)
-            )
-            artifact_json["text"] = result
-        elif artifact.value_type is DataAssetType.MatplotlibFig:
-            ...
-        elif artifact.value_type is DataAssetType.PandasDataFrame:
-            result = RelationalLineaDB.cast_dataset(artifact_value)
-            artifact_json["text"] = result
-        return artifact_json
-    raise EntryNotFoundError(f"Value for {artifact.id} is not found")
+    #     return artifact_json
+    # raise EntryNotFoundError(f"Value for {artifact.id} is not found")
 
 
 @routes_blueprint.route("/")
@@ -55,14 +39,17 @@ def home():
     return "ok"
 
 
-@routes_blueprint.route("/api/v1/executor/execute/<artifact_id>", methods=["GET"])
+@routes_blueprint.route(
+    "/api/v1/executor/execute/<artifact_id>", methods=["GET"]
+)
 def execute(artifact_id):
+    # FIXME: we shouldn't mutate the same variable name's type
     artifact_id = UUID(artifact_id)
     artifact = lineadb.get_artifact(artifact_id)
     if artifact is None:
         raise EntryNotFoundError(f"Artifact with {artifact_id} is not found")
     # find version
-    version = latest_version()
+    version = lineadb.get_latest_node_version(artifact_id)
 
     # increment version
     if version is None:
@@ -77,7 +64,8 @@ def execute(artifact_id):
     # get graph and re-execute
     executor = Executor()
     program = lineadb.get_graph_from_artifact_id(artifact_id)
-    context = lineadb.get_context(artifact.context)
+    artifact_node = lineadb.get_node_by_id(artifact_id)
+    context = lineadb.get_context(artifact_node.session_id)
     executor.execute_program(program, context)
 
     # run through Graph nodes and write values to NodeValueORM with new version
@@ -90,31 +78,20 @@ def execute(artifact_id):
     # return new Artifact JSON with new NodeValue
     artifact_value = lineadb.get_node_value(artifact_id, version)
     if artifact_value is None:
-        raise EntryNotFoundError(f"Artifact value with {artifact_id} is not found")
-
-    # TODO: add handling for different data asset types
-    asset = lineadb.jsonify_artifact(artifact)
-
-    if (
-        artifact.value_type is DataAssetType.NumpyArray
-        or artifact.value_type is DataAssetType.NumpyArray
-    ):
-        result = RelationalLineaDB.cast_serialized(
-            artifact_value, RelationalLineaDB.get_type(artifact_value)
+        raise EntryNotFoundError(
+            f"Artifact value with {artifact_id} is not found"
         )
-        asset["text"] = result
-    elif artifact.value_type is DataAssetType.MatplotlibFig:
-        ...
-    elif artifact.value_type is DataAssetType.PandasDataFrame:
-        result = RelationalLineaDB.cast_dataset(artifact_value)
-        asset["text"] = result
+
+    asset = lineadb.jsonify_base_artifact(artifact)
 
     response = jsonify({"data_asset": asset})
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
 
-@routes_blueprint.route("/api/v1/executor/executions/<artifact_id>", methods=["GET"])
+@routes_blueprint.route(
+    "/api/v1/executor/executions/<artifact_id>", methods=["GET"]
+)
 def get_executions(artifact_id):
     artifact_id = UUID(artifact_id)
 
@@ -135,7 +112,9 @@ def get_executions(artifact_id):
 def get_artifacts():
     artifact_orms = lineadb.session.query(ArtifactORM).all()
 
-    results = [parse_artifact_orm(artifact_orm) for artifact_orm in artifact_orms]
+    results = [
+        parse_artifact_orm(artifact_orm) for artifact_orm in artifact_orms
+    ]
 
     response = jsonify({"data_assets": results})
     response.headers.add("Access-Control-Allow-Origin", "*")
@@ -146,7 +125,9 @@ def get_artifacts():
 def get_artifact(artifact_id):
     artifact_id = UUID(artifact_id)
     artifact_orm = (
-        lineadb.session.query(ArtifactORM).filter(ArtifactORM.id == artifact_id).first()
+        lineadb.session.query(ArtifactORM)
+        .filter(ArtifactORM.id == artifact_id)
+        .first()
     )
 
     if artifact_orm is not None:
@@ -165,10 +146,14 @@ def get_artifact(artifact_id):
 @routes_blueprint.route("/api/v1/node/value/<node_id>", methods=["GET"])
 def get_node_value(node_id):
     node_id = UUID(node_id)
-    node_value = lineadb.get_node_value(node_id, latest_version())
+    node_value = lineadb.get_node_value(node_id)
 
-    node_value = RelationalLineaDB.cast_dataset(node_value)
+    if node_value is None:
+        raise NullValueError(f"Could not get value for {node_id}")
 
-    response = jsonify({"node_value": node_value})
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
+    if node_value.value_type is DataAssetType.PandasDataFrame:
+        value = RelationalLineaDB.cast_dataset(node_value)
+        response = jsonify({"node_value": value})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
+    raise CaseNotHandledError("Need to handle other data types for the API")
