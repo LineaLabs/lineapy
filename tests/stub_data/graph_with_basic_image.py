@@ -47,9 +47,6 @@ img_lib = Library(id=get_new_id(), name="PIL.Image", version="", path="")
 
 session = get_new_session(code, libraries=[pandas_lib, plt_lib, img_lib])
 
-# Note that this python path is EXPLICITLY tracking Yifan's own version
-#   We should be able to handle these edge cases, and if not, we need to
-#     specify what the requirement implications are for the node gen API
 import_pandas = ImportNode(
     id=get_new_id(),
     session_id=session.id,

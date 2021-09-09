@@ -334,11 +334,6 @@ class RelationalLineaDB(LineaDB):
         obj = SessionContext.from_orm(query_obj)
         return obj
 
-    def get_nodes_from_db(self) -> List[Node]:
-        node_orms = self.session.query(NodeORM).all()
-        nodes = [self.map_orm_to_pydantic(n) for n in node_orms]
-        return nodes
-
     def get_node_by_id(self, linea_id: LineaIDAlias) -> Node:
         """
         Returns the node by looking up the database by ID
