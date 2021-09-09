@@ -28,7 +28,6 @@ class Graph(object):
                 for edge in self.__get_edges_from_line_number()
             ]
         )
-        self.visit_order()
 
     @property
     def nx_graph(self) -> nx.DiGraph:
