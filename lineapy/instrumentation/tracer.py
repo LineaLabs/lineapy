@@ -222,8 +222,22 @@ class Tracer:
                 )
                 self.add_unevaluated_node(new_call_arg)
                 argument_nodes.append(new_call_arg.id)
+            elif type(a) is Variable:
+                info_log("argument is variable", a)
+                var_id = self.variable_name_to_id[a.name]
+                new_call_arg = ArgumentNode(
+                    id=get_new_id(),
+                    session_id=self.session_context.id,
+                    value_node_id=var_id,
+                    positional_order=idx,
+                )
+                self.add_unevaluated_node(new_call_arg)
+                argument_nodes.append(new_call_arg.id)
+
             else:
-                internal_warning_log("haven't seen this argument before!")
+                internal_warning_log(
+                    f"Haven't seen this argument type before: {type(a)}"
+                )
                 raise NotImplementedError(type(a), "not supported!")
 
         node = CallNode(
