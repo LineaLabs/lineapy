@@ -193,13 +193,23 @@ class RelationalLineaDB(LineaDB):
         ]:
             node = cast(SideEffectsNodeORM, node)
 
-            if node.state_change_nodes is not None:
-                for state_change_id in node.state_change_nodes:
+            if node.output_state_change_nodes is not None:
+                for state_change_id in node.output_state_change_nodes:
                     self.session.execute(
-                        side_effects_state_change_association_table.insert(),
+                        side_effects_output_state_change_association_table.insert(),
                         params={
                             "side_effects_node_id": node.id,
-                            "state_change_node_id": state_change_id,
+                            "output_state_change_node_id": state_change_id,
+                        },
+                    )
+
+            if node.input_state_change_nodes is not None:
+                for state_change_id in node.input_state_change_nodes:
+                    self.session.execute(
+                        side_effects_input_state_change_association_table.insert(),
+                        params={
+                            "side_effects_node_id": node.id,
+                            "input_state_change_node_id": state_change_id,
                         },
                     )
 
@@ -213,21 +223,8 @@ class RelationalLineaDB(LineaDB):
                         },
                     )
 
-            if node.node_type is NodeType.ConditionNode:
-                node = cast(ConditionNode, node)
-                if node.dependent_variables_in_predicate is not None:
-
-                    for dependent_id in node.dependent_variables_in_predicate:
-                        self.session.execute(
-                            condition_association_table.insert(),
-                            params={
-                                "condition_node_id": node.id,
-                                "dependent_node_id": dependent_id,
-                            },
-                        )
-                    del args["dependent_variables_in_predicate"]
-
-            del args["state_change_nodes"]
+            del args["input_state_change_nodes"]
+            del args["output_state_change_nodes"]
             del args["import_nodes"]
 
         elif node.node_type is NodeType.ImportNode:
@@ -377,19 +374,33 @@ class RelationalLineaDB(LineaDB):
             NodeType.ConditionNode,
             NodeType.FunctionDefinitionNode,
         ]:
-            node = cast(SideEffectsNodeORM, node)
-            state_change_nodes = (
-                self.session.query(side_effects_state_change_association_table)
+            node = cast(SideEffectsNode, node)
+            output_state_change_nodes = (
+                self.session.query(side_effects_output_state_change_association_table)
                 .filter(
-                    side_effects_state_change_association_table.c.side_effects_node_id
+                    side_effects_output_state_change_association_table.c.side_effects_node_id
                     == node.id
                 )
                 .all()
             )
 
-            if state_change_nodes is not None:
-                node.state_change_nodes = [
-                    a.state_change_node_id for a in state_change_nodes
+            if output_state_change_nodes is not None:
+                node.output_state_change_nodes = [
+                    a.output_state_change_node_id for a in output_state_change_nodes
+                ]
+
+            input_state_change_nodes = (
+                self.session.query(side_effects_input_state_change_association_table)
+                .filter(
+                    side_effects_input_state_change_association_table.c.side_effects_node_id
+                    == node.id
+                )
+                .all()
+            )
+
+            if input_state_change_nodes is not None:
+                node.input_state_change_nodes = [
+                    a.input_state_change_node_id for a in input_state_change_nodes
                 ]
 
             import_nodes = (
@@ -403,19 +414,6 @@ class RelationalLineaDB(LineaDB):
 
             if import_nodes is not None:
                 node.import_nodes = [a.import_node_id for a in import_nodes]
-
-            if node.node_type is NodeType.ConditionNode:
-                node = cast(ConditionNodeORM, node)
-                dependent_variables_in_predicate = (
-                    self.session.query(condition_association_table)
-                    .filter(condition_association_table.c.condition_node_id == node.id)
-                    .all()
-                )
-
-                if dependent_variables_in_predicate is not None:
-                    node.dependent_variables_in_predicate = [
-                        a.dependent_node_id for a in dependent_variables_in_predicate
-                    ]
 
         return RelationalLineaDB.get_pydantic(node).from_orm(node)
 
