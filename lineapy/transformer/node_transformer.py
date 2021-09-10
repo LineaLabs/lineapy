@@ -1,5 +1,5 @@
 import ast
-from typing import Optional
+from typing import Optional, Any
 
 from lineapy.constants import LINEAPY_TRACER_NAME
 from lineapy.instrumentation.tracer import Tracer
@@ -151,3 +151,13 @@ class NodeTransformer(ast.NodeTransformer):
         )
         result = ast.Expr(value=call_ast)
         return result
+
+
+    def visit_BinOp(self, node: ast.BinOp) -> Any:
+        code = self._get_code_from_node(node)
+
+    def visit_List(self, node: ast.List) -> Any:
+        code = self._get_code_from_node(node)
+
+    def visit_Subscript(self, node: ast.Subscript) -> Any:
+        code = self._get_code_from_node(node)

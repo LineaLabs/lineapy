@@ -43,7 +43,8 @@ class TestNodeTransformer:
         self._check_equality(import_code, expected)
 
     def test_visit_call(self):
-        pass
+        simple_call = "foo()"
+
 
     def test_visit_assign(self):
         pass
