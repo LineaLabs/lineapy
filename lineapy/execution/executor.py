@@ -99,7 +99,8 @@ class Executor(GraphReader):
         ...
 
     def execute_program(self, program: Graph, context: SessionContext) -> Any:
-        self.setup(context)
+        if context is not None:
+            self.setup(context)
         self.walk(program, context.code)
 
     def setup_context_for_node(
@@ -172,10 +173,7 @@ class Executor(GraphReader):
             if retrieved_module is None:
                 retrieved_module = program.get_node_value(function_module)
 
-            try:
-                fn = getattr(retrieved_module, fn_name)
-            except:
-                fn = scoped_locals[fn_name]
+            fn = getattr(retrieved_module, fn_name)
 
         return fn, fn_name
 
@@ -223,10 +221,6 @@ class Executor(GraphReader):
             elif node.node_type == NodeType.ImportNode:
                 node = cast(ImportNode, node)
                 node.module = importlib.import_module(node.library.name)
-                # FIXME
-                if node.attributes is not None:
-                    for attribute in node.attributes:
-                        scoped_locals[attribute] = getattr(node.module, attribute)
 
             elif node.node_type in [NodeType.LoopNode, NodeType.ConditionNode]:
                 node = cast(SideEffectsNode, node)
