@@ -1,7 +1,6 @@
 import ast
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, List, Optional, cast
 from dataclasses import dataclass
-from astpretty import pprint
 
 from lineapy.data.types import Node
 from lineapy.utils import CaseNotHandledError
@@ -16,14 +15,6 @@ AST synthesizers used by node_transformers
 SYNTAX_KEY = ["lineno", "col_offset", "end_lineno", "end_col_offset"]
 
 
-# @dataclass
-# class CodeSyntax:
-#     lineno: int
-#     col_offset: int
-#     end_lineno: int
-#     end_col_offset: int
-
-
 def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
     """
     TODO: adding typing
@@ -36,14 +27,6 @@ def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
         ],
     )
 
-    # decided not to use the following to make code synthesis easier...
-    # return CodeSyntax(
-    #     lineno=ast_node.lineno,
-    #     col_offset=ast_node.col_offset,
-    #     end_lineno=ast_node.end_lineno,
-    #     end_col_offset=ast_node.end_col_offset,
-    # )
-
 
 def turn_none_to_empty_str(a: Optional[str]):
     if not a:
@@ -51,7 +34,7 @@ def turn_none_to_empty_str(a: Optional[str]):
     return a
 
 
-def get_call_function_name(node: ast.Call):
+def get_call_function_name(node: ast.Call) -> dict:
     if type(node.func) == ast.Name:
         func_name = cast(ast.Name, node.func)
         return {"function_name": func_name.id}
