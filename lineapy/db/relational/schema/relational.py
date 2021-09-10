@@ -50,6 +50,7 @@ from sqlalchemy import (
     Table,
     DateTime,
     PickleType,
+    Float,
     types,
 )
 from sqlalchemy.dialects.mysql.base import MSBinary
@@ -166,7 +167,7 @@ class ExecutionORM(Base):  # type: ignore
     artifact_id = Column(LineaIDORM, ForeignKey("artifact.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
-    execution_time = Column(Integer, nullable=True)
+    execution_time = Column(Float)
 
 
 class NodeValueORM(Base):  # type: ignore

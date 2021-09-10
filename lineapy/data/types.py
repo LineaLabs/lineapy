@@ -116,7 +116,7 @@ class Execution(BaseModel):
     artifact_id: LineaID
     version: str
     timestamp: Optional[datetime]
-    execution_time: Optional[int]
+    execution_time: float
 
     class Config:
         orm_mode = True

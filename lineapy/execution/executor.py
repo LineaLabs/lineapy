@@ -99,14 +99,14 @@ class Executor(GraphReader):
         """
         ...
 
-    def execute_program(self, program: Graph, context: SessionContext) -> int:
+    def execute_program(self, program: Graph, context: SessionContext) -> float:
         if context is not None:
             self.setup(context)
 
         start = time.time()
         self.walk(program, context.code)
         end = time.time()
-        return int(end - start)
+        return end - start
 
     def setup_context_for_node(
         self,
