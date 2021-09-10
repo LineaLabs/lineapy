@@ -68,7 +68,7 @@ literal_node = ArgumentNode(
 )
 
 read_csv_call = CallNode(
-    id=UUID("e01d7a89-0d6d-474b-8119-b5f087cbd66e"),
+    id=get_new_id(),
     session_id=session.id,
     function_name="read_csv",
     function_module=import_pandas.id,
@@ -104,7 +104,7 @@ access_a_column = CallNode(
 )
 
 sum_call = CallNode(
-    id=UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"),
+    id=get_new_id(),
     session_id=session.id,
     arguments=[],
     function_name="sum",

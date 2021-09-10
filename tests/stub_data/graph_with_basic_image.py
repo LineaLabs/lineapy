@@ -224,7 +224,7 @@ resize_arg = ArgumentNode(
 )
 
 resize_call = CallNode(
-    id=UUID("87620b97-c86b-4931-ab89-9f36898caa57"),
+    id=get_new_id(),
     session_id=session.id,
     function_name="resize",
     function_module=read_call.id,
