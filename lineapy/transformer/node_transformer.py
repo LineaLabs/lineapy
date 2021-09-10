@@ -229,6 +229,10 @@ class NodeTransformer(ast.NodeTransformer):
             node.slice.value, ast.Constant
         ):
             args.append(self.visit(node.slice.value))
+        elif isinstance(node.slice.value, ast.Slice):
+            pass
+        elif isinstance(node.slice.value, ast.Tuple):
+            pass
         else:
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
