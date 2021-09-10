@@ -153,7 +153,7 @@ class NodeTransformer(ast.NodeTransformer):
         if isinstance(node.targets[0], ast.Subscript):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
-            index = subscript_target.slice.value
+            index = subscript_target.slice
             if not isinstance(index, ast.Constant) or isinstance(index, ast.Name):
                 raise NotImplementedError(
                     "Assignment for Subscript supported only for Constant and Name indices."
