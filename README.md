@@ -12,7 +12,7 @@ There are two ways to use `linea`:
 ## First-time Setup
 
 ```bash
-conda create --name lineapy-env python=3.8
+conda create --name lineapy-env python=3.9
 conda activate lineapy-env
 pip install -r requirements.txt
 pip install -r dev-requirements.txt
