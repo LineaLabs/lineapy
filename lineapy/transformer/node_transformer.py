@@ -10,6 +10,7 @@ from lineapy.transformer.transformer_util import (
 )
 from lineapy.utils import UserError
 from lineapy.lineabuiltins import __build_list__
+import operator
 
 
 def turn_none_to_empty_str(a: Optional[str]):
@@ -177,13 +178,31 @@ class NodeTransformer(ast.NodeTransformer):
         result = ast.Expr(value=call_ast)
         return result
 
-    def visit_List(self, node: ast.List) -> Any:
+    def visit_List(self, node: ast.List) -> ast.Call:
         code = self._get_code_from_node(node)
         elem_nodes = [self.visit(elem) for elem in node.elts]
         return synthesize_tracer_call_ast(__build_list__.__name__, elem_nodes, code)
 
-    def visit_BinOp(self, node: ast.BinOp) -> Any:
+    def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
         code = self._get_code_from_node(node)
+        ast_to_op_map = {
+            ast.Add: operator.add,
+            ast.Sub: operator.sub,
+            ast.Mult: operator.mul,
+            ast.Div: operator.truediv,
+            ast.FloorDiv: operator.floordiv,
+            ast.Mod: operator.mod,
+            ast.Pow: operator.pow,
+            ast.LShift: operator.lshift,
+            ast.RShift: operator.rshift,
+            ast.BitOr: operator.or_,
+            ast.BitXor: operator.xor,
+            ast.BitAnd: operator.and_,
+            ast.MatMult: operator.matmul,
+        }
+        op = ast_to_op_map[node.op.__class__]
+        argument_nodes = [self.visit(node.left), self.visit(node.right)]
+        return synthesize_tracer_call_ast(op.__name__, argument_nodes, code)
 
     def visit_Subscript(self, node: ast.Subscript) -> Any:
         code = self._get_code_from_node(node)

@@ -86,6 +86,31 @@ class TestNodeTransformer:
         expected_simple_list = "lineapy_tracer.call(function_name='__build_list__', code='[1, 2]',\n    arguments=[1, 2])\n"
         self._check_equality(simple_list, expected_simple_list)
 
+        variable_list = "[1, a]"
+        expected_variable_list = "lineapy_tracer.call(function_name='__build_list__', code='[1, a]',\n    arguments=[1, a])\n"
+        self._check_equality(variable_list, expected_variable_list)
+
+    def test_visit_binop(self):
+        op_map = {
+            "+": "add",
+            "-": "sub",
+            "*": "mul",
+            "/": "truediv",
+            "//": "floordiv",
+            "%": "mod",
+            "**": "pow",
+            "<<": "lshift",
+            ">>": "rshift",
+            "|": "or_",
+            "^": "xor",
+            "&": "and_",
+            "@": "matmul",
+        }
+        for op in op_map:
+            simple_op = f"a {op} 1"
+            expected_simple_op = f"lineapy_tracer.call(function_name='{op_map[op]}', code='{simple_op}', arguments=[a, 1])\n"
+            self._check_equality(simple_op, expected_simple_op)
+
     def test_lean_publish_visit_call(self):
         publish_code = "lineapy.linea_publish(a)"
         expected = "lineapy_tracer.publish(variable_name='a')\n"
