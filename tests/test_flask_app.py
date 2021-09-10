@@ -1,18 +1,13 @@
-# set up the database with stub data for testing/debugging
-import os.path as path
-
 import pytest
 
 import lineapy.app.app_db
 from lineapy import ExecutionMode
-from lineapy.db.base import get_default_config_by_environment
-from lineapy.db.relational.db import RelationalLineaDB
 from tests.util import setup_db
 
 
 @pytest.fixture(autouse=True)
 def test_db_mock(monkeypatch):
-    test_db = setup_db(ExecutionMode.TEST)
+    test_db = setup_db(ExecutionMode.TEST, reset=True)
     monkeypatch.setattr(lineapy.app.app_db, "lineadb", test_db)
 
 

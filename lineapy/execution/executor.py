@@ -109,14 +109,15 @@ class Executor(GraphReader):
         return int(end - start)
 
     def setup_context_for_node(
-        self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]
+        self,
+        node: SideEffectsNode,
+        program: Graph,
+        scoped_locals: Dict[str, Any],
     ) -> None:
-        if node is None:
-            return
-        node = cast(SideEffectsNode, node)
-        if node.state_change_nodes is not None:
-            for state_var_id in node.state_change_nodes:
+        if node.input_state_change_nodes is not None:
+            for state_var_id in node.input_state_change_nodes:
                 state_var = cast(StateChangeNode, program.get_node(state_var_id))
+                # if state_var.state_dependency_type is StateDependencyType.Read:
                 initial_state = program.get_node(state_var.initial_value_node_id)
                 if initial_state is not None and initial_state.node_type in [
                     NodeType.CallNode,
@@ -131,29 +132,22 @@ class Executor(GraphReader):
                 import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
                 scoped_locals[import_node.library.name] = import_node.module
 
-        if (
-            node.node_type is NodeType.ConditionNode
-            and node.dependent_variables_in_predicate is not None
-        ):
-            for dependent_var_id in node.dependent_variables_in_predicate:
-                dependent_var = program.get_node(dependent_var_id)
-                dependent_var_value = program.get_node_value(dependent_var)
-                scoped_locals[
-                    dependent_var.assigned_variable_name
-                ] = dependent_var_value
-
     def update_node_side_effects(
-        self, node: Optional[Node], program: Graph, scoped_locals: Dict[str, Any]
+        self,
+        node: Optional[Node],
+        program: Graph,
+        scoped_locals: Dict[str, Any],
     ) -> None:
         if node is None:
             return
 
         local_vars = scoped_locals
         node = cast(SideEffectsNode, node)
-        if node.state_change_nodes is not None:
-            for state_var_id in node.state_change_nodes:
+        if node.output_state_change_nodes is not None:
+            for state_var_id in node.output_state_change_nodes:
                 state_var = cast(StateChangeNode, program.get_node(state_var_id))
 
+                # if state_var.state_dependency_type is StateDependencyType.Write:
                 state_var.value = local_vars[state_var.variable_name]
 
                 if state_var.variable_name is not None:
@@ -203,7 +197,7 @@ class Executor(GraphReader):
             scoped_locals = locals()
 
             # all of these have to be in the same scope in order to read
-            # and write to scoped_locals properly (this is just the way Python exec works)
+            # and write to scoped_locals properly using Python exec
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)

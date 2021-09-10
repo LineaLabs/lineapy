@@ -98,6 +98,13 @@ class LiteralType(Enum):
     Boolean = 4
 
 
+# used for StateChangeNodes
+class StateDependencyType(Enum):
+    Read = 1
+    Write = 2
+
+
+# class DataAssetType(Enum):
 CHART_TYPE = "chart"
 ARRAY_TYPE = "array"
 DATASET_TYPE = "dataset"
@@ -153,7 +160,8 @@ class SideEffectsNode(Node):
     # keeping a list of state_change_nodes that we probably have to
     #   re-construct from th›e sql db.
     # will deprecate when storing graph in a relational db
-    state_change_nodes: Optional[List[LineaID]]
+    output_state_change_nodes: Optional[List[LineaID]]
+    input_state_change_nodes: Optional[List[LineaID]]
 
     # modules required to run node code (ids point to ImportNode instances)
     import_nodes: Optional[List[LineaID]]
@@ -233,28 +241,32 @@ class FunctionDefinitionNode(SideEffectsNode):
 class ConditionNode(SideEffectsNode):
     node_type: NodeType = NodeType.ConditionNode
 
-    dependent_variables_in_predicate: Optional[List[LineaID]]
-
 
 class StateChangeNode(Node):
     """
     This type of node is to capture the state changes caused by "black boxes"
-      such as loops. Later code need to reference the NEW id now modified.
+      such as loops.
+    Each "black box" SideEffectsNode will have two types of StateChangeNodes
+      for each variable. One for the variables read, and one variables written
+      to.
+    The `state_dependency_type` is used in the Graph class
+      (`get_parents_from_node`) to identify how to construct the dependencies
     """
 
     node_type: NodeType = NodeType.StateChangeNode
     variable_name: str
     # this could be call id or loop id, or any code blocks
     associated_node_id: LineaID
-    # points to a node that represents the value of the node
-    # before the change (can be another state change node)
+    # points to a node that represents the value of the node before the
+    #   change (can be another state change node)
     initial_value_node_id: LineaID
+    state_dependency_type: StateDependencyType
     value: Optional[NodeValue]
 
 
 class LoopNode(SideEffectsNode):
     """
-    We do not care about the intermeidate states, but rather just what state has
+    We do not care about the intermediate states, but rather just what state has
       changed. It's conceptually similar to representing loops in a more
       functional way (such as map and reduce).  We do this by treating
       the LoopNode as a node similar to "CallNode".
@@ -294,8 +306,7 @@ class WithNode(Node):
 
 class DirectedEdge(BaseModel):
     """
-    When we have `a = foo(), b = bar(a)`, should the edge be between bar and foo, with foo being the source, and bar being the sink.
-    Yifan note: @dorx please review if this is what you had in mind
+    FIXME: add documentation about the directions
     """
 
     source_node_id: LineaID  # refers to Node.uuid
