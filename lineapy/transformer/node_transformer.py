@@ -8,7 +8,7 @@ from lineapy.transformer.transformer_util import (
     synthesize_linea_publish_call_ast,
     synthesize_tracer_call_ast,
 )
-from lineapy.utils import UserError
+from lineapy.utils import UserError, InvalidStateError
 from lineapy.lineabuiltins import __build_list__
 import operator
 
@@ -150,6 +150,14 @@ class NodeTransformer(ast.NodeTransformer):
         https://stackoverflow.com/questions/49646402/function-isnt-added-to-new-line-when-adding-node-to-ast-in-python
         """
         code = self._get_code_from_node(node)
+        if isinstance(node.targets[0], ast.Subscript):
+            # Assigning a specific value to an index
+            subscript_target: ast.Subscript = node.targets[0]
+            index = subscript_target.slice.value
+            if not isinstance(index, ast.Constant) or isinstance(index, ast.Name):
+                raise NotImplementedError("Assignment for Subscript supported only for Constant and Name indices.")
+            argument_nodes = [self.visit(subscript_target.value), self.visit(index.value), self.visit(node.value)]
+            synthesize_tracer_call_ast(operator.setitem.__name__, argument_nodes, code)
         if type(node.targets[0]) is not ast.Name:
             raise NotImplementedError("Other assignment types are not supported")
         variable_name = node.targets[0].id  # type: ignore
@@ -204,5 +212,19 @@ class NodeTransformer(ast.NodeTransformer):
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
         return synthesize_tracer_call_ast(op.__name__, argument_nodes, code)
 
-    def visit_Subscript(self, node: ast.Subscript) -> Any:
+    def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
         code = self._get_code_from_node(node)
+        # Currently only support Constant, Name, Tuples of Constant and Name.
+        # TODO: support slices, e.g., x[1:2]
+        args = []
+        if isinstance(node.slice.value, ast.Name) or isinstance(node.slice.value, ast.Constant):
+            args.append(self.visit(node.slice.value))
+        else:
+            raise NotImplementedError("Subscript for multiple indices not supported.")
+        if isinstance(node.ctx, ast.Load):
+            args.insert(0, self.visit(node.value))
+            return synthesize_tracer_call_ast(operator.getitem.__name__, args, code)
+        elif isinstance(node.ctx, ast.Del):
+            raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
+        else:
+            raise InvalidStateError("Subscript with ctx=ast.Load() should have been handled by visit_Assign.")

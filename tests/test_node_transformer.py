@@ -111,6 +111,20 @@ class TestNodeTransformer:
             expected_simple_op = f"lineapy_tracer.call(function_name='{op_map[op]}', code='{simple_op}', arguments=[a, 1])\n"
             self._check_equality(simple_op, expected_simple_op)
 
+    def test_subscript(self):
+        simple = "ls[0]"
+        expected = "lineapy_tracer.call(function_name='getitem', code='ls[0]', arguments=[ls, 0])\n"
+        self._check_equality(simple, expected)
+
+        simple_var = "ls[a]"
+        expected_var = "lineapy_tracer.call(function_name='getitem', code='ls[a]', arguments=[ls, a])\n"
+        self._check_equality(simple_var, expected_var)
+
+        simple_assign = "ls[0] = 1"
+        expected_simple_assign = \
+            "lineapy_tracer.call(function_name='setitem', code='ls[0] = 1', arguments=[ls, 0, 1])\n"
+        self._check_equality(simple_assign, expected_simple_assign)
+
     def test_lean_publish_visit_call(self):
         publish_code = "lineapy.linea_publish(a)"
         expected = "lineapy_tracer.publish(variable_name='a')\n"
