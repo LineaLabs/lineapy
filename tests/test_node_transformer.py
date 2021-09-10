@@ -121,7 +121,7 @@ class TestNodeTransformer:
         self._check_equality(simple_var, expected_var)
 
         simple_assign = "ls[0] = 1"
-        expected_simple_assign = "lineapy_tracer.call(function_name='setitem', code='ls[0] = 1', arguments=[ls, 0, 1])\n"
+        expected_simple_assign = "lineapy_tracer.call(function_name='setitem', code='ls[0] = 1', arguments=[\n    ls, 0, 1])\n"
         self._check_equality(simple_assign, expected_simple_assign)
 
     def test_lean_publish_visit_call(self):

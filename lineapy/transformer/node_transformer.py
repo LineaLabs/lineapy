@@ -1,5 +1,5 @@
 import ast
-from typing import Optional, cast, Any
+from typing import Optional, cast, Union
 
 from lineapy.constants import LINEAPY_PUBLISH_FUNCTION_NAME, LINEAPY_TRACER_NAME
 from lineapy.instrumentation.tracer import Tracer
@@ -142,7 +142,7 @@ class NodeTransformer(ast.NodeTransformer):
                 name_ref["function_name"], argument_nodes, code
             )
 
-    def visit_Assign(self, node: ast.Assign) -> ast.Expr:
+    def visit_Assign(self, node: ast.Assign) -> Union[ast.Expr, ast.Call]:
         """
         Note
         - some code segments subsume the others
@@ -160,10 +160,12 @@ class NodeTransformer(ast.NodeTransformer):
                 )
             argument_nodes = [
                 self.visit(subscript_target.value),
-                self.visit(index.value),
+                self.visit(index),
                 self.visit(node.value),
             ]
-            synthesize_tracer_call_ast(operator.setitem.__name__, argument_nodes, code)
+            return synthesize_tracer_call_ast(
+                operator.setitem.__name__, argument_nodes, code
+            )
         if type(node.targets[0]) is not ast.Name:
             raise NotImplementedError("Other assignment types are not supported")
         variable_name = node.targets[0].id  # type: ignore
