@@ -1,6 +1,5 @@
 import ast
 from typing import List, Optional
-
 from astor import to_source
 
 from lineapy.constants import (
@@ -13,6 +12,7 @@ from lineapy.constants import (
     LINEAPY_SESSION_TYPE_JUPYTER,
     ExecutionMode,
 )
+from lineapy.instrumentation.tracer import Tracer, Variable
 from lineapy.data.types import SessionType
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import info_log
@@ -120,7 +120,8 @@ class Transformer:
             module=LINEAPY_IMPORT_LIB_NAME,
             names=[
                 ast.alias(name=LINEAPY_SESSION_TYPE, asname=None),
-                ast.alias(name=LINEAPY_TRACER_CLASS, asname=None),
+                ast.alias(name=Tracer.__name__, asname=None),
+                ast.alias(name=Variable.__name__, asname=None),
                 ast.alias(name=LINEAPY_EXECUTION_MODE, asname=None),
             ],
             level=0,

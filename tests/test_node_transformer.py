@@ -59,7 +59,7 @@ class TestNodeTransformer:
         simple_call = "foo()"
         expected_simple_call = (
             "lineapy_tracer.call(function_name='foo',"
-            " syntax_dictionary={'lineno': 1,"
+            " syntax_dictionary={'lineno': 1,\n"
             + "'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 5},"
             " arguments=[])\n"
         )
@@ -95,8 +95,10 @@ class TestNodeTransformer:
         simple_list = "[1, 2]"
         expected_simple_list = (
             "lineapy_tracer.call(function_name='__build_list__',"
-            " syntax_dictionary={" + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 6}," + "arguments=[1, 2])\n"
+            " syntax_dictionary={"
+            + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
+            " 'end_col_offset': 6},"
+            + "arguments=[1, 2])\n"
         )
         self._check_equality(simple_list, expected_simple_list)
 

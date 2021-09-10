@@ -6,7 +6,7 @@ from lineapy import linea_publish
 from lineapy.utils import UserError
 from typing import Optional, cast, Union
 
-from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer import Tracer, Variable
 from lineapy.transformer.transformer_util import (
     extract_concrete_syntax_from_node,
     get_call_function_name,
@@ -114,6 +114,16 @@ class NodeTransformer(ast.NodeTransformer):
             )
         )
         return result
+
+    def visit_Name(self, node) -> ast.Call:
+        return ast.Call(
+            func=ast.Name(
+                id=Variable.__name__,
+                ctx=ast.Load(),
+            ),
+            args=[ast.Constant(value=node.id)],
+            keywords=[],
+        )
 
     def visit_Call(self, node) -> ast.Call:
         """
