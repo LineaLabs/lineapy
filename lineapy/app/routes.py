@@ -81,16 +81,18 @@ def execute(artifact_id):
         version = 0
     version += 1
 
-    # create row in exec table
-    exec_orm = ExecutionORM(artifact_id=artifact_id, version=version)
-    lineadb.session.add(exec_orm)
-    lineadb.session.commit()
-
     # get graph and re-execute
     executor = Executor()
     program = lineadb.get_graph_from_artifact_id(artifact_id)
     context = lineadb.get_context(artifact.context)
-    executor.execute_program(program, context)
+    execution_time = executor.execute_program(program, context)
+
+    # create row in exec table
+    exec_orm = ExecutionORM(
+        artifact_id=artifact_id, version=version, execution_time=execution_time
+    )
+    lineadb.session.add(exec_orm)
+    lineadb.session.commit()
 
     # run through Graph nodes and write values to NodeValueORM with new version
     lineadb.write_node_values(program.nodes, version)

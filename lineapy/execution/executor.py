@@ -4,6 +4,7 @@ import io
 import subprocess
 import sys
 from typing import Any, Tuple, Optional, Dict, cast
+import time
 
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
@@ -98,10 +99,14 @@ class Executor(GraphReader):
         """
         ...
 
-    def execute_program(self, program: Graph, context: SessionContext) -> Any:
+    def execute_program(self, program: Graph, context: SessionContext) -> float:
         if context is not None:
             self.setup(context)
+
+        start = time.time()
         self.walk(program, context.code)
+        end = time.time()
+        return end - start
 
     def setup_context_for_node(
         self,

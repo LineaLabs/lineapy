@@ -84,7 +84,7 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     executor = Executor()
 
     # execute stub graph and write to database
-    executor.execute_program(stub_graph, context)
+    execution_time = executor.execute_program(stub_graph, context)
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
 
@@ -96,7 +96,9 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         date_created="1372944000",
     )
 
-    exec_orm = ExecutionORM(artifact_id=artifact.id, version=1)
+    exec_orm = ExecutionORM(
+        artifact_id=artifact.id, version=1, execution_time=execution_time
+    )
     test_db.session.add(exec_orm)
     test_db.session.commit()
 
@@ -127,7 +129,7 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     executor = Executor()
 
     # execute stub graph and write to database
-    executor.execute_program(stub_graph, context)
+    execution_time = executor.execute_program(stub_graph, context)
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
 
@@ -139,6 +141,8 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         date_created="1372944000",
     )
 
-    exec_orm = ExecutionORM(artifact_id=resize_call.id, version=1)
+    exec_orm = ExecutionORM(
+        artifact_id=resize_call.id, version=1, execution_time=execution_time
+    )
     test_db.session.add(exec_orm)
     test_db.session.commit()
