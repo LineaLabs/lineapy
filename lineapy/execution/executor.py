@@ -172,7 +172,10 @@ class Executor(GraphReader):
             if retrieved_module is None:
                 retrieved_module = program.get_node_value(function_module)
 
-            fn = getattr(retrieved_module, fn_name)
+            try:
+                fn = getattr(retrieved_module, fn_name)
+            except:
+                fn = scoped_locals[fn_name]
 
         return fn, fn_name
 
@@ -220,6 +223,10 @@ class Executor(GraphReader):
             elif node.node_type == NodeType.ImportNode:
                 node = cast(ImportNode, node)
                 node.module = importlib.import_module(node.library.name)
+                # FIXME
+                if node.attributes is not None:
+                    for attribute in node.attributes:
+                        scoped_locals[attribute] = getattr(node.module, attribute)
 
             elif node.node_type in [NodeType.LoopNode, NodeType.ConditionNode]:
                 node = cast(SideEffectsNode, node)
