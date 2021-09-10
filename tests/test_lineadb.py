@@ -39,14 +39,15 @@ from tests.stub_data.graph_with_import import (
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
+    y_id,
+    code as loops_code,
 )
 from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
     graph_sliced_by_var_f,
     session as graph_with_messy_nodes_session,
     f_assign,
-    e_assign,
-    a_assign,
+    sliced_code,
 )
 from tests.stub_data.nested_call_graph import (
     nested_call_graph,
@@ -108,7 +109,9 @@ class TestLineaDB(unittest.TestCase):
         return db_graph
 
     def test_simple_graph(self):
-        graph, context = self.write_and_read_graph(simple_graph, simple_graph_session)
+        graph, context = self.write_and_read_graph(
+            simple_graph, simple_graph_session
+        )
         e = Executor()
         e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
@@ -134,7 +137,9 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         stdout = e.get_stdout()
         assert stdout == "10\n"
-        assert are_graphs_identical(graph, simple_with_variable_argument_and_print)
+        assert are_graphs_identical(
+            graph, simple_with_variable_argument_and_print
+        )
 
     def test_basic_import(self):
         """
@@ -247,3 +252,40 @@ class TestLineaDB(unittest.TestCase):
         f = e.get_value_by_variable_name("f")
         assert f == 6
         assert are_graphs_identical(result, graph_sliced_by_var_f)
+
+    def test_slicing_loops(self):
+        graph, context = self.write_and_read_graph(
+            graph_with_loops, graph_with_loops_session
+        )
+        self.lineadb.add_node_id_to_artifact_table(
+            y_id,
+            get_current_time(),
+        )
+        result = self.lineadb.get_graph_from_artifact_id(y_id)
+        assert are_graphs_identical(result, graph)
+
+    def test_code_reconstruction_with_multilined_node(self):
+        _ = self.write_and_read_graph(
+            graph_with_loops, graph_with_loops_session
+        )
+
+        self.lineadb.add_node_id_to_artifact_table(
+            y_id,
+            get_current_time(),
+        )
+        reconstructed = self.lineadb.get_code_from_artifact_id(y_id)
+
+        assert loops_code == reconstructed
+
+    def test_code_reconstruction_with_slice(self):
+        _ = self.write_and_read_graph(
+            graph_with_messy_nodes, graph_with_messy_nodes_session
+        )
+
+        self.lineadb.add_node_id_to_artifact_table(
+            f_assign.id,
+            get_current_time(),
+        )
+        reconstructed = self.lineadb.get_code_from_artifact_id(f_assign.id)
+
+        assert sliced_code == reconstructed
