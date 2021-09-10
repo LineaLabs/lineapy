@@ -42,7 +42,7 @@ python lineapy/app/application.py
 `setup_integrated_tests.py` creates the stub data that the flask application then serves.
 
 Then head over to [linea-server](https://github.com/LineaLabs/linea-server) and 
-run the usual commands there (`python app/application.py` and `yarn start` in 
+run the usual commands there (`python application.py` and `yarn start` in 
 the `/server` and `/frontend` folders respectively)
 
 Note that if you are running these on EC2, you need to do tunneling on **three**
