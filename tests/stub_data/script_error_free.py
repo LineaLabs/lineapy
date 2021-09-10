@@ -1,1 +1,4 @@
-assets["is_new"] = is_new(assets["Year_Built"])
+import lineapy
+
+a = abs(1)
+lineapy.linea_publish(a, "test artifact")
