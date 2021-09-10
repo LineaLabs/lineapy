@@ -7,7 +7,7 @@ from lineapy.data.types import (
     ArgumentNode,
     ImportNode,
     Library,
-    IOType,
+    StateDependencyType,
 )
 from tests.util import get_new_id, get_new_session
 
@@ -83,7 +83,7 @@ a_state_change_input = StateChangeNode(
     variable_name="a",
     associated_node_id=le_id,
     initial_value_node_id=a_id,
-    io_type=IOType.Input,
+    state_dependency_type=StateDependencyType.Read,
 )
 a_state_change_output = StateChangeNode(
     id=a_state_change_output_id,
@@ -91,7 +91,7 @@ a_state_change_output = StateChangeNode(
     variable_name="a",
     associated_node_id=le_id,
     initial_value_node_id=a_id,
-    io_type=IOType.Output,
+    state_dependency_type=StateDependencyType.Write,
 )
 
 a_argument_node = ArgumentNode(
@@ -115,7 +115,7 @@ b_state_change_input = StateChangeNode(
     variable_name="b",
     associated_node_id=le_id,
     initial_value_node_id=b_id,
-    io_type=IOType.Input,
+    state_dependency_type=StateDependencyType.Read,
 )
 b_state_change_output = StateChangeNode(
     id=b_state_change_output_id,
@@ -123,7 +123,7 @@ b_state_change_output = StateChangeNode(
     variable_name="b",
     associated_node_id=le_id,
     initial_value_node_id=b_id,
-    io_type=IOType.Output,
+    state_dependency_type=StateDependencyType.Write,
 )
 
 b_argument_node = ArgumentNode(
@@ -141,7 +141,10 @@ le = LoopNode(
     id=le_id,
     session_id=session.id,
     input_state_change_nodes=[a_state_change_input_id, b_state_change_input_id],
-    output_state_change_nodes=[a_state_change_output_id, b_state_change_output_id],
+    output_state_change_nodes=[
+        a_state_change_output_id,
+        b_state_change_output_id,
+    ],
     lineno=3,
     col_offset=0,
     end_lineno=5,

@@ -21,6 +21,11 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
+class InternalLogicError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class FunctionShouldNotBeCalled(Exception):
     def __init__(self, message):
         super().__init__(message)

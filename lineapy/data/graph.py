@@ -4,7 +4,7 @@ import networkx as nx
 
 from lineapy.data.types import *
 from lineapy.graph_reader.graph_helper import get_arg_position
-from lineapy.utils import NullValueError
+from lineapy.utils import InternalLogicError, NullValueError
 
 
 class Graph(object):
@@ -29,7 +29,8 @@ class Graph(object):
             ]
         )
 
-        assert nx.is_directed_acyclic_graph(self._nx_graph)
+        if not nx.is_directed_acyclic_graph(self._nx_graph):
+            raise InternalLogicError("Graph should not be cyclic")
 
     @property
     def nx_graph(self) -> nx.DiGraph:
@@ -107,7 +108,9 @@ class Graph(object):
         else:
             return node.value  # type: ignore
 
-    def get_node_value_from_id(self, node_id: Optional[LineaID]) -> Optional[Any]:
+    def get_node_value_from_id(
+        self, node_id: Optional[LineaID]
+    ) -> Optional[Any]:
         node = self.get_node(node_id)
         return self.get_node_value(node)
 
@@ -118,7 +121,8 @@ class Graph(object):
         """
         if node.arguments and len(node.arguments) > 0:
             args = [
-                cast(ArgumentNode, self.get_node_else_raise(a)) for a in node.arguments
+                cast(ArgumentNode, self.get_node_else_raise(a))
+                for a in node.arguments
             ]
 
             args.sort(key=get_arg_position)
@@ -153,9 +157,9 @@ class Graph(object):
                 source_nodes.extend(node.input_state_change_nodes)
         elif node.node_type is NodeType.StateChangeNode:
             node = cast(StateChangeNode, node)
-            if node.io_type is IOType.Output:
+            if node.state_dependency_type is StateDependencyType.Write:
                 source_nodes.append(node.associated_node_id)
-            elif node.io_type is IOType.Input:
+            elif node.state_dependency_type is StateDependencyType.Read:
                 source_nodes.append(node.initial_value_node_id)
         elif node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNode, node)
@@ -191,16 +195,21 @@ class Graph(object):
                     n
                     for n in self.get_descendants(node)
                     if n is not None
-                    and self.get_node_else_raise(n).node_type is NodeType.CallNode
+                    and self.get_node_else_raise(n).node_type
+                    is NodeType.CallNode
                 ]
 
                 # sort data source nodes children
-                descendants.sort(key=lambda n: self.get_node_else_raise(n).lineno)
+                descendants.sort(
+                    key=lambda n: self.get_node_else_raise(n).lineno
+                )
                 # add edges between children
                 for d in range(len(descendants) - 1):
                     if self.nx_graph.has_edge(
                         descendants[d], descendants[d + 1]
-                    ) or self.nx_graph.has_edge(descendants[d + 1], descendants[d]):
+                    ) or self.nx_graph.has_edge(
+                        descendants[d + 1], descendants[d]
+                    ):
                         continue
                     edges.append(
                         DirectedEdge(

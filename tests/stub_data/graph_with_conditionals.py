@@ -4,7 +4,7 @@ from lineapy.data.types import (
     CallNode,
     ConditionNode,
     StateChangeNode,
-    IOType,
+    StateDependencyType,
 )
 
 from tests.util import get_new_id, get_new_session
@@ -80,7 +80,7 @@ state_change_input = StateChangeNode(
     variable_name="bs",
     associated_node_id=condition_line_id,
     initial_value_node_id=bs_line_id,
-    io_type=IOType.Input,
+    state_dependency_type=StateDependencyType.Read,
 )
 
 state_change_output = StateChangeNode(
@@ -89,7 +89,7 @@ state_change_output = StateChangeNode(
     variable_name="bs",
     associated_node_id=condition_line_id,
     initial_value_node_id=bs_line_id,
-    io_type=IOType.Output,
+    state_dependency_type=StateDependencyType.Write,
 )
 
 condition_line = ConditionNode(

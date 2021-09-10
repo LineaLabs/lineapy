@@ -6,7 +6,7 @@ from lineapy.data.types import (
     LiteralAssignNode,
     FunctionDefinitionNode,
     StateChangeNode,
-    IOType,
+    StateDependencyType,
 )
 from tests.util import get_new_id, get_new_session
 
@@ -70,7 +70,7 @@ a_input_state_change = StateChangeNode(
     variable_name="a",
     associated_node_id=fun_id,
     initial_value_node_id=a_id,
-    io_type=IOType.Input,
+    state_dependency_type=StateDependencyType.Read,
 )
 
 a_output_state_change_id = get_new_id()
@@ -80,7 +80,7 @@ a_output_state_change = StateChangeNode(
     variable_name="a",
     associated_node_id=fun_id,
     initial_value_node_id=a_id,
-    io_type=IOType.Output,
+    state_dependency_type=StateDependencyType.Write,
 )
 
 fun_def_node = FunctionDefinitionNode(

@@ -63,7 +63,7 @@ from sqlalchemy.sql.sqltypes import Boolean, Text
 from lineapy.data.types import (
     SessionType,
     NodeType,
-    IOType,
+    StateDependencyType,
     StorageType,
     LiteralType,
 )
@@ -142,7 +142,9 @@ class SessionContextORM(Base):  # type: ignore
 
 class LibraryORM(Base):  # type: ignore
     __tablename__ = "library"
-    __table_args__ = (UniqueConstraint("session_id", "name", "version", "path"),)
+    __table_args__ = (
+        UniqueConstraint("session_id", "name", "version", "path"),
+    )
     id = Column(LineaIDORM, primary_key=True)
     session_id = Column(LineaIDORM, ForeignKey("session_context.id"))
     name = Column(String)
@@ -163,7 +165,9 @@ class ArtifactORM(Base):  # type: ignore
 
 class ExecutionORM(Base):  # type: ignore
     __tablename__ = "execution"
-    artifact_id = Column(LineaIDORM, ForeignKey("artifact.id"), primary_key=True)
+    artifact_id = Column(
+        LineaIDORM, ForeignKey("artifact.id"), primary_key=True
+    )
     version = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 
@@ -202,7 +206,9 @@ side_effects_output_state_change_association_table = Table(
     "side_effects_output_state_change_association",
     Base.metadata,
     Column(
-        "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
+        "side_effects_node_id",
+        ForeignKey("side_effects_node.id"),
+        primary_key=True,
     ),
     Column(
         "output_state_change_node_id",
@@ -215,7 +221,9 @@ side_effects_input_state_change_association_table = Table(
     "side_effects_input_state_change_association",
     Base.metadata,
     Column(
-        "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
+        "side_effects_node_id",
+        ForeignKey("side_effects_node.id"),
+        primary_key=True,
     ),
     Column(
         "input_state_change_node_id",
@@ -228,7 +236,9 @@ side_effects_import_association_table = Table(
     "side_effects_import_association",
     Base.metadata,
     Column(
-        "side_effects_node_id", ForeignKey("side_effects_node.id"), primary_key=True
+        "side_effects_node_id",
+        ForeignKey("side_effects_node.id"),
+        primary_key=True,
     ),
     Column("import_node_id", ForeignKey("import_node.id"), primary_key=True),
 )
@@ -261,14 +271,16 @@ class StateChangeNodeORM(NodeORM):
     variable_name = Column(String)
     associated_node_id = Column(LineaIDORM)
     initial_value_node_id = Column(LineaIDORM)
-    io_type = Column(Enum(IOType))
+    state_dependency_type = Column(Enum(StateDependencyType))
 
 
 call_node_association_table = Table(
     "call_node_association",
     Base.metadata,
     Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
-    Column("argument_node_id", ForeignKey("argument_node.id"), primary_key=True),
+    Column(
+        "argument_node_id", ForeignKey("argument_node.id"), primary_key=True
+    ),
 )
 
 
@@ -336,7 +348,9 @@ class FunctionDefinitionNodeORM(SideEffectsNodeORM):
     __tablename__ = "function_definition_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.FunctionDefinitionNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(
+        LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True
+    )
 
     @declared_attr
     def value(cls):
@@ -360,14 +374,18 @@ class LoopNodeORM(SideEffectsNodeORM):
     __tablename__ = "loop_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.LoopNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(
+        LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True
+    )
 
 
 class ConditionNodeORM(SideEffectsNodeORM):
     __tablename__ = "condition_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.ConditionNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(
+        LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True
+    )
 
 
 class DataSourceNodeORM(NodeORM):
