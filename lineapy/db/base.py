@@ -21,13 +21,10 @@ class FileSystemOption(Enum):
 
 @dataclass
 class LineaDBConfig:
-    """
-    @dorx please review this config, maybe this is NOT what you had in mind
-    """
 
+    database_uri: str
     database: DatabaseOption = DatabaseOption.SQLite
     file_system: FileSystemOption = FileSystemOption.Local
-    database_uri: Optional[str] = None
 
 
 def get_default_config_by_environment(mode: ExecutionMode) -> LineaDBConfig:

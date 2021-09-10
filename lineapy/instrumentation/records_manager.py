@@ -1,8 +1,9 @@
-from typing import List
+from typing import List, Optional
 
-from lineapy.data.types import Node, SessionContext
+from lineapy.data.types import LineaID, Node, SessionContext
 from lineapy.db.base import LineaDBConfig
 from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.utils import get_current_time
 
 
 # TODO: add another ORM type where it's just the ID and the table.
@@ -13,13 +14,6 @@ class RecordsManager:
         self.records_pool: List[Node] = []
         self.db = RelationalLineaDB()
         self.db.init_db(config)
-
-    def write_session_context(self, context: SessionContext) -> None:
-        """
-        Special casing this since its done once at the beginning
-        """
-        self.db.write_context(context)
-        return
 
     def add_evaluated_nodes(self, nodes: List[Node]) -> None:
         self.records_pool += nodes
@@ -39,3 +33,25 @@ class RecordsManager:
         self.flush_records()
         # TODO: do we need some DB cleanup code?
         return
+
+    def add_node_id_to_artifact_table(
+        self,
+        node_id: LineaID,
+        name: Optional[str] = None,
+    ):
+        # need to flush all to DB since it's accessing its values at runtime
+        self.flush_records()
+        date_created = get_current_time()
+        self.db.add_node_id_to_artifact_table(node_id, date_created, name)
+
+    """
+    Pass through functions to the db
+    Maybe we can just expose the db instead,
+      but having a layer of indirection just in cas?
+    """
+
+    def write_session_context(self, context: SessionContext) -> None:
+        """
+        Special casing this since its done once at the beginning
+        """
+        self.db.write_context(context)

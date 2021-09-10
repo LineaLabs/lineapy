@@ -8,6 +8,7 @@ from lineapy.data.types import (
     CallNode,
     ImportNode,
     Library,
+    LineaID,
     Node,
     SessionContext,
     SessionType,
@@ -15,12 +16,31 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.records_manager import RecordsManager
-from lineapy.utils import info_log, internal_warning_log, get_new_id
+from lineapy.utils import (
+    UserError,
+    info_log,
+    internal_warning_log,
+    get_new_id,
+)
+
+
+# helper functions
+def augment_node_with_syntax(node: Node, syntax_dictionary: Dict):
+    node.lineno = syntax_dictionary["lineno"]
+    node.col_offset = syntax_dictionary["col_offset"]
+    node.end_lineno = syntax_dictionary["end_lineno"]
+    node.end_col_offset = syntax_dictionary["end_col_offset"]
+
+
+class Variable:
+    def __init__(self, name: str) -> None:
+        self.name = name
 
 
 class Tracer:
     """
-    Tracer is internal to Linea and it implements the "hidden APIs" that are setup by the transformer.
+    Tracer is internal to Linea and it implements the "hidden APIs"
+    that are setup by the transformer.
     """
 
     def __init__(
@@ -31,16 +51,21 @@ class Tracer:
     ):
         self.session_type = session_type
         self.file_name = file_name
-        self.execution_pool: List[Node] = []
-        # TODO: we should probably poll from the local linea config file what this configuration should be
+        self.nodes_to_be_evaluated: List[Node] = []
+        # TODO: we should probably poll from the local linea config file
+        #   what this configuration should be
         config = get_default_config_by_environment(execution_mode)
         self.records_manager = RecordsManager(config)
-        self.session_id = get_new_id()
+        self.session_context = self.create_session_context(session_type, file_name)
         self.executor = Executor()
-        self.create_session_context(session_type, file_name)
+        self.variable_name_to_id: Dict[str, LineaID] = {}
 
-    def add_unevaluated_node(self, record: Node):
-        self.execution_pool.append(record)
+    def add_unevaluated_node(
+        self, record: Node, syntax_dictionary: Optional[Dict] = None
+    ):
+        if syntax_dictionary:
+            augment_node_with_syntax(record, syntax_dictionary)
+        self.nodes_to_be_evaluated.append(record)
 
     def evaluate_records_so_far(self):
         # going to evaluate everything in the execution_pool
@@ -53,12 +78,12 @@ class Tracer:
                 "The method `evaluate_records_so_far` will not evaluate" " correctly"
             )
         self.executor.execute_program(
-            Graph(self.execution_pool),
-            self.records_manager.db.get_context(self.session_id),
+            Graph(self.nodes_to_be_evaluated),
+            self.session_context,
         )
-        self.records_manager.add_evaluated_nodes(self.execution_pool)
+        self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
         # reset
-        self.execution_pool = []
+        self.nodes_to_be_evaluated = []
         return
 
     def exit(self):
@@ -67,50 +92,64 @@ class Tracer:
         info_log("Tracer", "exit")
         pass
 
-    TRACE_PUBLISH = "publish"
+    def _look_up_node_id_by_variable_name(self, variable_name: str):
+        if variable_name in self.variable_name_to_id:
+            return self.variable_name_to_id[variable_name]
+
+        # Note that this could also be because we didn't track
+        #   variables ourselves.
+        raise UserError(
+            f"Trying to publish variable {variable_name}, which is not found"
+        )
 
     def publish(self, variable_name: str, description: Optional[str] = None) -> None:
         # we'd have to do some introspection here to know what the ID is
-        # then we can create a new ORM node (not our IR node, which is a little confusing)
-        pass
+        # then we can create a new ORM node (not our IR node, which is a
+        #   little confusing)
+        # TODO: look up node_id base on variable_name
+        # need to force an eval
+        self.evaluate_records_so_far()
+        node_id = self._look_up_node_id_by_variable_name(variable_name)
+        self.records_manager.add_node_id_to_artifact_table(node_id, description)
 
     def create_session_context(self, session_type: SessionType, file_name: str):
+        """
+        Decided to read the code instead because it's more readable than passing
+          through the transformer
+        """
+        original_code = open(file_name, "r").read()
         session_context = SessionContext(
-            id=self.session_id,
+            id=get_new_id(),
             # TODO: hm, we should prob refactor the name, kinda confusing here
             environment_type=session_type,
             creation_time=datetime.now(),
             file_name=file_name,
-            code="",
+            code=original_code,
         )
         self.records_manager.write_session_context(session_context)
-
-    TRACE_IMPORT = "trace_import"
+        return session_context
 
     def trace_import(
         self,
         name: str,
-        code: str,
+        syntax_dictionary: Dict[str, int],
         alias: Optional[str] = None,
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
         """
         didn't call it import because I think that's a protected name
+        note that version and path will be introspected at runtime
         """
-        library = Library(
-            id=get_new_id(),
-            name=name
-            # note that version and path will be instrospected at runtime
-        )
+        library = Library(id=get_new_id(), name=name)
         node = ImportNode(
             id=get_new_id(),
-            session_id=self.session_id,
+            session_id=self.session_context.id,
             alias=alias,
             library=library,
             attributes=attributes,
         )
-        info_log("creating", name, code, alias, attributes)
-        self.add_unevaluated_node(node)
+        info_log("creating", name, alias, attributes, syntax_dictionary)
+        self.add_unevaluated_node(node, syntax_dictionary)
         return
 
     def literal(self) -> None:
@@ -127,23 +166,11 @@ class Tracer:
         """
         pass
 
-    def variable(self) -> None:
-        """
-        For the following cases
-        ```
-        a
-        b=a
-        ```
-        Corresponds to the `VariableNode`
-        """
-
-    TRACE_CALL = "call"
-
     def call(
         self,
         function_name: str,
         arguments: Any,
-        code: str,
+        syntax_dictionary: Dict,
         function_module: Optional[str] = None,
     ) -> CallNode:
         """
@@ -163,7 +190,7 @@ class Tracer:
                 info_log("argument is literal", a)
                 new_literal_arg = ArgumentNode(
                     id=get_new_id(),
-                    session_id=self.session_id,
+                    session_id=self.session_context.id,
                     value_literal=a,
                     positional_order=idx,
                 )
@@ -173,47 +200,66 @@ class Tracer:
                 info_log("argument is call", a)
                 new_call_arg = ArgumentNode(
                     id=get_new_id(),
-                    session_id=self.session_id,
+                    session_id=self.session_context.id,
                     value_node_id=a.id,
                     positional_order=idx,
                 )
                 self.add_unevaluated_node(new_call_arg)
                 argument_nodes.append(new_call_arg.id)
+            elif type(a) is Variable:
+                info_log("argument is variable", a)
+                var_id = self.variable_name_to_id[a.name]
+                new_call_arg = ArgumentNode(
+                    id=get_new_id(),
+                    session_id=self.session_context.id,
+                    value_node_id=var_id,
+                    positional_order=idx,
+                )
+                self.add_unevaluated_node(new_call_arg)
+                argument_nodes.append(new_call_arg.id)
+
             else:
-                internal_warning_log("haven't seen this argument before!")
+                internal_warning_log(
+                    f"Haven't seen this argument type before: {type(a)}"
+                )
                 raise NotImplementedError(type(a), "not supported!")
 
         node = CallNode(
             id=get_new_id(),
-            session_id=self.session_id,
+            session_id=self.session_context.id,
             function_name=function_name,
             arguments=argument_nodes,
             function_module=function_module,
         )
-
-        self.add_unevaluated_node(node)
+        self.add_unevaluated_node(node, syntax_dictionary)
         # info_log("call invoked from tracer", function_name, function_module, arguments)
         return node
 
-    TRACE_ASSIGN = "assign"
-
-    def assign(self, variable_name: str, value_node: Any, code: str):
+    def assign(
+        self,
+        variable_name: str,
+        value_node: Any,
+        syntax_dictionary: Dict,
+    ):
         """
-        Assign modifies the call node. This is not the most functional but it gets the job done.
+        Assign modifies the call node. This is not the most functional/pure
+          but it gets the job done.
         TODO: add support for other types of assignment
         """
         if type(value_node) is CallNode:
             call_node = cast(CallNode, value_node)
             call_node.assigned_variable_name = variable_name
             # the assignment subsumes the original call code
-            # TODO: set the call_node's line and col numbers instead of its code here
+            augment_node_with_syntax(call_node, syntax_dictionary)
+            self.variable_name_to_id[variable_name] = call_node.id
         else:
             internal_warning_log("got type", type(value_node), value_node)
             raise NotImplementedError
 
     def loop(self) -> None:
         """
-        Handles both for and while loops. Since we are trating it like a black box, we don't really need to know mucha bout it at this point
+        Handles both for and while loops. Since we are treating it like a black
+          box, we don't really need to know much about it at this point
 
         TODO: define input arguments
 

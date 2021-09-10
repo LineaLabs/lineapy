@@ -43,14 +43,13 @@ class SessionContext(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     environment_type: SessionType
     creation_time: datetime
-    file_name: str  # making file name required since every thing runs from some file
-    session_name: Optional[
-        str
-    ]  # obtained from name in with tracking(session_name=...):
+    # making file name required since every thing runs from some file
+    file_name: str
+    code: str
+    session_name: Optional[str]  # TODO: add API for user
     user_name: Optional[str] = None
     hardware_spec: Optional[HardwareSpec] = None
     libraries: Optional[List[Library]] = None
-    code: str
 
     class Config:
         orm_mode = True
@@ -124,12 +123,8 @@ class Execution(BaseModel):
 
 class Artifact(BaseModel):
     id: LineaID
-    context: LineaID
-    value_type: str
+    date_created: float
     name: Optional[str]
-    project: Optional[str]
-    description: Optional[str]
-    date_created: str
 
     class Config:
         orm_mode = True

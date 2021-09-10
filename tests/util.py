@@ -3,10 +3,9 @@ from ast import AST
 from datetime import datetime
 from os import remove
 from typing import Optional, List
-
+from re import sub
 from astpretty import pformat
 
-import lineapy
 import lineapy.app.app_db
 from lineapy import ExecutionMode
 from lineapy.data.types import (
@@ -16,6 +15,10 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.utils import get_new_id
+
+
+def strip_non_letter_num(s: str):
+    return sub("[\\s+]", "", s)
 
 
 def get_new_session(code: str, libraries: Optional[List] = None) -> SessionContext:

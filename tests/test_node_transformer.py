@@ -1,11 +1,10 @@
 from ast import parse
-
 from astor import to_source
 
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import internal_warning_log
 from tests.stub_data.graph_with_import import import_code
-from tests.util import compare_ast
+from tests.util import compare_ast, strip_non_letter_num
 
 
 class TestNodeTransformer:
@@ -26,22 +25,28 @@ class TestNodeTransformer:
         tree = parse(original_code)
         new_tree = node_transformer.visit(tree)
         new_code = to_source(new_tree)
-        if new_code != expected_transformed:
-            internal_warning_log(new_code)
-            internal_warning_log(expected_transformed)
+        new_code_stripped = strip_non_letter_num(new_code)
+        expected_transformed_stripped = strip_non_letter_num(expected_transformed)
+        if new_code_stripped != expected_transformed_stripped:
+            internal_warning_log(new_code_stripped)
+            internal_warning_log(expected_transformed_stripped)
             assert False
 
     def test_visit_import(self):
         simple_import = "import pandas"
         simple_expected = (
-            "lineapy_tracer.trace_import(name='pandas', code='import pandas',"
+            "lineapy_tracer.trace_import(name='pandas', "
+            "syntax_dictionary={'lineno': 1,"
+            "'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 13},"
             " alias=None)\n"
         )
         self._check_equality(simple_import, simple_expected)
         alias_import = "import pandas as pd"
         alias_expected = (
-            "lineapy_tracer.trace_import(name='pandas', code='import pandas as"
-            " pd',\n    alias='pd')\n"
+            "lineapy_tracer.trace_import(name='pandas',"
+            " syntax_dictionary={'lineno':1,"
+            " 'col_offset':0,'end_lineno':1,'end_col_offset':19},\n   "
+            " alias='pd')\n"
         )
         self._check_equality(alias_import, alias_expected)
         # multiple_imports = "import os, time"
@@ -50,20 +55,29 @@ class TestNodeTransformer:
 
     def test_visit_importfrom(self):
         expected = (
-            "lineapy_tracer.trace_import(name='math', code='from math import"
-            " pow, sqrt',\n    attributes={'pow': '', 'sqrt': ''})\n"
+            "lineapy_tracer.trace_import(name='math', "
+            " syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
+            " 'end_col_offset': 43},\n    attributes={'pow': 'power', 'sqrt':"
+            " 'root'})\n"
         )
         self._check_equality(import_code, expected)
 
     def test_visit_call(self):
         simple_call = "foo()"
         expected_simple_call = (
-            "lineapy_tracer.call(function_name='foo', code='foo()', arguments=[])\n"
+            "lineapy_tracer.call(function_name='foo',"
+            " syntax_dictionary={'lineno': 1,\n"
+            + "'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 5},"
+            " arguments=[])\n"
         )
         self._check_equality(simple_call, expected_simple_call)
 
         call_with_args = "foo(a, b)"
-        expected_call_with_args = "lineapy_tracer.call(function_name='foo', code='foo(a, b)', arguments=[a, b])\n"
+        expected_call_with_args = (
+            "lineapy_tracer.call(function_name='foo',"
+            " syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
+            " 'end_col_offset': 9}, arguments=[Variable('a'), Variable('b')])\n"
+        )
         self._check_equality(call_with_args, expected_call_with_args)
 
         call_with_keyword_args = "foo(b=1)"  # FIXME currently unsupported
@@ -71,23 +85,36 @@ class TestNodeTransformer:
     def test_visit_assign(self):
         simple_assign = "a = 1"
         expected_simple_assign = (
-            "lineapy_tracer.assign(variable_name='a', value_node=1, code='a = 1')\n"
+            "lineapy_tracer.assign(variable_name='a', value_node=1, "
+            + "syntax_dictionary={\n"
+            + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
+            " 'end_col_offset': 5})\n"
         )
         self._check_equality(simple_assign, expected_simple_assign)
 
         assign_variable = "a = foo"
         expected_assign_variable = (
-            "lineapy_tracer.assign(variable_name='a', value_node=foo, code='a = foo')\n"
+            "lineapy_tracer.assign(variable_name='a',"
+            " value_node=Variable('foo'),"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':7})\n"
         )
         self._check_equality(assign_variable, expected_assign_variable)
 
     def test_visit_list(self):
         simple_list = "[1, 2]"
-        expected_simple_list = "lineapy_tracer.call(function_name='__build_list__', code='[1, 2]',\n    arguments=[1, 2])\n"
+        expected_simple_list = (
+            "lineapy_tracer.call(function_name='__build_list__',"
+            " syntax_dictionary={" + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
+            " 'end_col_offset': 6}," + "arguments=[1, 2])\n"
+        )
         self._check_equality(simple_list, expected_simple_list)
 
         variable_list = "[1, a]"
-        expected_variable_list = "lineapy_tracer.call(function_name='__build_list__', code='[1, a]',\n    arguments=[1, a])\n"
+        expected_variable_list = (
+            "lineapy_tracer.call(function_name='__build_list__',"
+            "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
+            "'end_col_offset': 6}, arguments=[1, Variable('a')])\n"
+        )
         self._check_equality(variable_list, expected_variable_list)
 
     def test_visit_binop(self):
@@ -108,20 +135,34 @@ class TestNodeTransformer:
         }
         for op in op_map:
             simple_op = f"a {op} 1"
-            expected_simple_op = f"lineapy_tracer.call(function_name='{op_map[op]}', code='{simple_op}', arguments=[a, 1])\n"
+            expected_simple_op = (
+                f"lineapy_tracer.call(function_name='{op_map[op]}',syntax_dictionary={{'lineno':"
+                " 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset':"
+                f" {len(op) + 4}}},  arguments=[Variable('a'), 1])\n"
+            )
             self._check_equality(simple_op, expected_simple_op)
 
     def test_subscript(self):
         simple = "ls[0]"
-        expected = "lineapy_tracer.call(function_name='__getitem__', code='ls[0]', arguments=[ls, 0])\n"
+        expected = (
+            "lineapy_tracer.call(function_name='getitem', syntax_dictionary={  "
+            "              'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
+            " 'end_col_offset': 5},  arguments=[Variable('ls'), 0])\n"
+        )
         self._check_equality(simple, expected)
 
         simple_var = "ls[a]"
-        expected_var = "lineapy_tracer.call(function_name='__getitem__', code='ls[a]', arguments=[ls, a])\n"
+        expected_var = (
+            "lineapy_tracer.call(function_name='getitem',syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':5},arguments=[Variable('ls'),"
+            " Variable('a')])\n"
+        )
         self._check_equality(simple_var, expected_var)
 
         simple_assign = "ls[0] = 1"
-        expected_simple_assign = "lineapy_tracer.call(function_name='__setitem__', code='ls[0] = 1', arguments=[\n    ls, 0, 1])\n"
+        expected_simple_assign = (
+            "lineapy_tracer.call(function_name='setitem',syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':9},arguments=[Variable('ls'),"
+            " 0, 1])\n"
+        )
         self._check_equality(simple_assign, expected_simple_assign)
 
     def test_lean_publish_visit_call(self):
