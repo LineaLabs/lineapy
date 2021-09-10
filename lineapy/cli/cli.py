@@ -24,7 +24,8 @@ def linea_cli(mode, file_name):
             session_name=file_name,
             execution_mode=execution_mode,
         )
-        info_log("new_code", new_code)
+        info_log("new_code")
+        print(new_code)
         exec(new_code)
     except IOError:
         report_error_to_user("Error: File does not appear to exist.")

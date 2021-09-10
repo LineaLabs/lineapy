@@ -1,12 +1,25 @@
 from typing import Any, Optional
 from uuid import uuid4
+from time import time
 
 
 def get_new_id():
     return uuid4()
 
 
+def get_current_time():
+    return time()
+
+
 IS_DEBUG = True
+
+
+def is_integer(val):
+    try:
+        int(val)
+    except Exception as e:
+        return False
+    return True
 
 
 class bcolors:
@@ -72,7 +85,7 @@ def report_error_to_user(msg: str):
 
 
 def internal_warning_log(*args):
-    print(bcolors.WARNING + "🔥 ", *args, " 🔥", bcolors.ENDC)
+    print(bcolors.WARNING + "🔥", *args, "🔥", bcolors.ENDC)
 
 
 def info_log(*args):

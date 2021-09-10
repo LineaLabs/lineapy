@@ -1,16 +1,24 @@
 import ast
+from typing import cast
+import operator
+
+from lineapy import linea_publish
+from lineapy.utils import UserError
 from typing import Optional, cast, Union
 
-from lineapy.constants import LINEAPY_PUBLISH_FUNCTION_NAME, LINEAPY_TRACER_NAME
-from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer import Tracer, Variable
 from lineapy.transformer.transformer_util import (
+    extract_concrete_syntax_from_node,
     get_call_function_name,
     synthesize_linea_publish_call_ast,
     synthesize_tracer_call_ast,
+    turn_none_to_empty_str,
 )
+
+from lineapy.instrumentation.tracer import Tracer
+from lineapy.constants import LINEAPY_TRACER_NAME
 from lineapy.utils import UserError, InvalidStateError
 from lineapy.lineabuiltins import __build_list__
-import operator
 
 
 def turn_none_to_empty_str(a: Optional[str]):
@@ -38,20 +46,29 @@ class NodeTransformer(ast.NodeTransformer):
         Similar to `visit_ImportFrom`, slightly different class syntax
         """
         result = []
-        code = self._get_code_from_node(node)
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
         for lib in node.names:
             result.append(
                 ast.Expr(
                     ast.Call(
                         func=ast.Attribute(
-                            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                            value=ast.Name(
+                                id=LINEAPY_TRACER_NAME,
+                                ctx=ast.Load(),
+                            ),
                             attr="trace_import",
                             ctx=ast.Load(),
                         ),
                         args=[],
                         keywords=[
-                            ast.keyword(arg="name", value=ast.Constant(value=lib.name)),
-                            ast.keyword(arg="code", value=ast.Constant(value=code)),
+                            ast.keyword(
+                                arg="name",
+                                value=ast.Constant(value=lib.name),
+                            ),
+                            ast.keyword(
+                                arg="syntax_dictionary",
+                                value=syntax_dictionary,
+                            ),
                             ast.keyword(
                                 arg="alias",
                                 value=ast.Constant(value=lib.asname),
@@ -64,6 +81,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_ImportFrom(self, node):
         """ """
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
         keys = []
         values = []
         for alias in node.names:
@@ -71,18 +89,17 @@ class NodeTransformer(ast.NodeTransformer):
             # needed turn_none_to_empty_str because of some issue with pydantic
             values.append(ast.Constant(value=turn_none_to_empty_str(alias.asname)))
 
-        code = self._get_code_from_node(node)
         result = ast.Expr(
             ast.Call(
                 func=ast.Attribute(
                     value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                    attr=Tracer.TRACE_IMPORT,
+                    attr=Tracer.trace_import.__name__,
                     ctx=ast.Load(),
                 ),
                 args=[],
                 keywords=[
                     ast.keyword(arg="name", value=ast.Constant(value=node.module)),
-                    ast.keyword(arg="code", value=ast.Constant(value=code)),
+                    ast.keyword(arg="syntax_dictionary", value=syntax_dictionary),
                     ast.keyword(
                         arg="attributes",
                         value=ast.Dict(keys=keys, values=values),
@@ -91,6 +108,16 @@ class NodeTransformer(ast.NodeTransformer):
             )
         )
         return result
+
+    def visit_Name(self, node) -> ast.Call:
+        return ast.Call(
+            func=ast.Name(
+                id=Variable.__name__,
+                ctx=ast.Load(),
+            ),
+            args=[ast.Constant(value=node.id)],
+            keywords=[],
+        )
 
     def visit_Call(self, node) -> ast.Call:
         """
@@ -101,7 +128,7 @@ class NodeTransformer(ast.NodeTransformer):
         # a little hacky, assume no one else would have a function name
         #   called linea_publish
 
-        if name_ref["function_name"] == LINEAPY_PUBLISH_FUNCTION_NAME:
+        if name_ref["function_name"] == linea_publish.__name__:
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:
                 raise UserError(
@@ -117,7 +144,7 @@ class NodeTransformer(ast.NodeTransformer):
             if type(node.args[0]) is not ast.Name:
                 raise UserError(
                     "Please pass a variable as the first argument to"
-                    f" `{LINEAPY_PUBLISH_FUNCTION_NAME}`"
+                    f" `{linea_publish.__name__}`"
                 )
             var_node = cast(ast.Name, node.args[0])
             if len(node.args) == 2:
@@ -125,7 +152,7 @@ class NodeTransformer(ast.NodeTransformer):
                     raise UserError(
                         "Please pass a string for the description as the"
                         " second argument to"
-                        f" `{LINEAPY_PUBLISH_FUNCTION_NAME}`, you gave"
+                        f" `{linea_publish.__name__}`, you gave"
                         f" {type(node.args[1])}"
                     )
                 description_node = cast(ast.Constant, node.args[1])
@@ -136,10 +163,10 @@ class NodeTransformer(ast.NodeTransformer):
                 return synthesize_linea_publish_call_ast(var_node.id)
         else:
             # this is the normal case
-            code = self._get_code_from_node(node)
+            # code = self._get_code_from_node(node)
             argument_nodes = [self.visit(arg) for arg in node.args]
             return synthesize_tracer_call_ast(
-                name_ref["function_name"], argument_nodes, code
+                name_ref["function_name"], argument_nodes, node
             )
 
     def visit_Assign(self, node: ast.Assign) -> Union[ast.Expr, ast.Call]:
@@ -149,14 +176,16 @@ class NodeTransformer(ast.NodeTransformer):
         - need to pad with expr to make astor happy
         https://stackoverflow.com/questions/49646402/function-isnt-added-to-new-line-when-adding-node-to-ast-in-python
         """
-        code = self._get_code_from_node(node)
+
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
         if isinstance(node.targets[0], ast.Subscript):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
             index = subscript_target.slice
             if not isinstance(index, ast.Constant) or isinstance(index, ast.Name):
                 raise NotImplementedError(
-                    "Assignment for Subscript supported only for Constant and Name indices."
+                    "Assignment for Subscript supported only for Constant and"
+                    " Name indices."
                 )
             argument_nodes = [
                 self.visit(subscript_target.value),
@@ -164,15 +193,17 @@ class NodeTransformer(ast.NodeTransformer):
                 self.visit(node.value),
             ]
             return synthesize_tracer_call_ast(
-                operator.setitem.__name__, argument_nodes, code
+                operator.setitem.__name__, argument_nodes, node
             )
+
         if type(node.targets[0]) is not ast.Name:
             raise NotImplementedError("Other assignment types are not supported")
+
         variable_name = node.targets[0].id  # type: ignore
         call_ast = ast.Call(
             func=ast.Attribute(
                 value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.TRACE_ASSIGN,
+                attr=Tracer.assign.__name__,
                 ctx=ast.Load(),
             ),
             args=[],
@@ -186,8 +217,8 @@ class NodeTransformer(ast.NodeTransformer):
                     value=self.visit(node.value),
                 ),
                 ast.keyword(
-                    arg="code",
-                    value=ast.Constant(value=code),
+                    arg="syntax_dictionary",
+                    value=syntax_dictionary,
                 ),
             ],
         )
@@ -195,12 +226,10 @@ class NodeTransformer(ast.NodeTransformer):
         return result
 
     def visit_List(self, node: ast.List) -> ast.Call:
-        code = self._get_code_from_node(node)
         elem_nodes = [self.visit(elem) for elem in node.elts]
-        return synthesize_tracer_call_ast(__build_list__.__name__, elem_nodes, code)
+        return synthesize_tracer_call_ast(__build_list__.__name__, elem_nodes, node)
 
     def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
-        code = self._get_code_from_node(node)
         ast_to_op_map = {
             ast.Add: operator.add,
             ast.Sub: operator.sub,
@@ -218,10 +247,9 @@ class NodeTransformer(ast.NodeTransformer):
         }
         op = ast_to_op_map[node.op.__class__]
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
-        return synthesize_tracer_call_ast(op.__name__, argument_nodes, code)
+        return synthesize_tracer_call_ast(op.__name__, argument_nodes, node)
 
     def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
-        code = self._get_code_from_node(node)
         # Currently only support Constant, Name, Tuples of Constant and Name.
         # TODO: support slices, e.g., x[1:2]
         args = []
@@ -232,10 +260,11 @@ class NodeTransformer(ast.NodeTransformer):
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
             args.insert(0, self.visit(node.value))
-            return synthesize_tracer_call_ast(operator.getitem.__name__, args, code)
+            return synthesize_tracer_call_ast(operator.getitem.__name__, args, node)
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
         else:
             raise InvalidStateError(
-                "Subscript with ctx=ast.Load() should have been handled by visit_Assign."
+                "Subscript with ctx=ast.Load() should have been handled by"
+                " visit_Assign."
             )

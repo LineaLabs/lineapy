@@ -59,7 +59,7 @@ from sqlalchemy.orm import (
     relationship,
     declared_attr,  # type: ignore
 )
-from sqlalchemy.sql.sqltypes import Boolean, Text
+from sqlalchemy.sql.sqltypes import Boolean, Float, Text
 
 from lineapy.data.types import (
     SessionType,
@@ -154,12 +154,22 @@ class LibraryORM(Base):  # type: ignore
 class ArtifactORM(Base):  # type: ignore
     __tablename__ = "artifact"
     id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
-    context = Column(LineaIDORM, ForeignKey("session_context.id"))
-    value_type = Column(String, nullable=True)
     name = Column(String, nullable=True)
-    project = Column(String, nullable=True)
-    description = Column(String, nullable=True)
-    date_created = Column(String)
+    date_created = Column(Float, nullable=False)
+
+
+artifact_project_association_table = Table(
+    "artifact_project_association",
+    Base.metadata,
+    Column("artifact", ForeignKey("artifact.id"), primary_key=True),
+    Column("project", ForeignKey("project.id"), primary_key=True),
+)
+
+
+class ProjectORM(Base):
+    __tablename__ = "project"
+    id = Column(LineaIDORM, primary_key=True)
+    name = Column(String, nullable=False)
 
 
 class ExecutionORM(Base):  # type: ignore
