@@ -50,7 +50,8 @@ class Tracer:
         if self.session_type == SessionType.JUPYTER:
             # 🔥 FIXME 🔥
             internal_warning_log(
-                "The method `evaluate_records_so_far` will not evaluate correctly"
+                "The method `evaluate_records_so_far` will not evaluate"
+                " correctly"
             )
         self.executor.execute_program(
             Graph(self.execution_pool),
@@ -67,7 +68,11 @@ class Tracer:
         info_log("Tracer", "exit")
         pass
 
-    def publish(self, variable_name: str, description: Optional[str]) -> None:
+    TRACE_PUBLISH = "publish"
+
+    def publish(
+        self, variable_name: str, description: Optional[str] = None
+    ) -> None:
         # we'd have to do some introspection here to know what the ID is
         # then we can create a new ORM node (not our IR node, which is a little confusing)
         pass
