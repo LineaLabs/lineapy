@@ -1,16 +1,16 @@
 import ast
-from typing import Optional, cast, Union
+import operator
+from typing import Optional, cast, Union, Any
 
 from lineapy.constants import LINEAPY_PUBLISH_FUNCTION_NAME, LINEAPY_TRACER_NAME
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.lineabuiltins import __build_list__
 from lineapy.transformer.transformer_util import (
     get_call_function_name,
     synthesize_linea_publish_call_ast,
     synthesize_tracer_call_ast,
 )
 from lineapy.utils import UserError, InvalidStateError
-from lineapy.lineabuiltins import __build_list__
-import operator
 
 
 def turn_none_to_empty_str(a: Optional[str]):
@@ -32,6 +32,12 @@ class NodeTransformer(ast.NodeTransformer):
     def _get_code_from_node(self, node):
         code = """{}""".format(ast.get_source_segment(self.source, node))
         return code
+
+    @staticmethod
+    def _get_index(subscript: ast.Subscript) -> Any:
+        if hasattr(subscript.slice, "value"):
+            return subscript.slice.value
+        return subscript.slice
 
     def visit_Import(self, node):
         """
@@ -153,18 +159,25 @@ class NodeTransformer(ast.NodeTransformer):
         if isinstance(node.targets[0], ast.Subscript):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
-            index = subscript_target.slice
-            if not isinstance(index, ast.Constant) or isinstance(index, ast.Name):
-                raise NotImplementedError(
-                    "Assignment for Subscript supported only for Constant and Name indices."
+            index = self._get_index(subscript_target)
+            # note: isinstance(index, ast.List) only works for pandas, not Python lists
+            if (
+                isinstance(index, ast.Constant)
+                or isinstance(index, ast.Name)
+                or isinstance(index, ast.List)
+                or isinstance(index, ast.Slice)
+            ):
+                argument_nodes = [
+                    self.visit(subscript_target.value),
+                    self.visit(index),
+                    self.visit(node.value),
+                ]
+                return synthesize_tracer_call_ast(
+                    list.__setitem__.__name__, argument_nodes, code
                 )
-            argument_nodes = [
-                self.visit(subscript_target.value),
-                self.visit(index),
-                self.visit(node.value),
-            ]
-            return synthesize_tracer_call_ast(
-                operator.setitem.__name__, argument_nodes, code
+
+            raise NotImplementedError(
+                "Assignment for Subscript supported only for Constant and Name indices."
             )
         if type(node.targets[0]) is not ast.Name:
             raise NotImplementedError("Other assignment types are not supported")
@@ -220,20 +233,31 @@ class NodeTransformer(ast.NodeTransformer):
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
         return synthesize_tracer_call_ast(op.__name__, argument_nodes, code)
 
+    def visit_Slice(self, node: ast.Slice) -> ast.Call:
+        code = self._get_code_from_node(node)
+        slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
+        if node.step is not None:
+            slice_arguments.append(self.visit(node.step))
+        slice_call = synthesize_tracer_call_ast(slice.__name__, slice_arguments, code)
+        getitem_arguments = [slice_call]
+        return synthesize_tracer_call_ast(
+            list.__getitem__.__name__, getitem_arguments, code
+        )
+
     def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
         code = self._get_code_from_node(node)
-        # Currently only support Constant, Name, Tuples of Constant and Name.
-        # TODO: support slices, e.g., x[1:2]
         args = []
-        index = node.slice
-        if isinstance(index, ast.Name) or isinstance(
-            index, ast.Constant
+        index = self._get_index(node)
+        if (
+            isinstance(index, ast.Name)
+            or isinstance(index, ast.Constant)
+            or isinstance(index, ast.List)
         ):
             args.append(self.visit(index))
         elif isinstance(index, ast.Slice):
-            pass
-        elif isinstance(index, ast.List):
-            pass
+            return synthesize_tracer_call_ast(
+                list.__getitem__.__name__, [self.visit_Slice(index)], code
+            )
         else:
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
