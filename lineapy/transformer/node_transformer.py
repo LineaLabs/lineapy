@@ -181,7 +181,7 @@ class NodeTransformer(ast.NodeTransformer):
         if isinstance(node.targets[0], ast.Subscript):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
-            index = subscript_target.slice.value
+            index = subscript_target.slice
             if not isinstance(index, ast.Constant) or isinstance(index, ast.Name):
                 raise NotImplementedError(
                     "Assignment for Subscript supported only for Constant and"
@@ -253,10 +253,9 @@ class NodeTransformer(ast.NodeTransformer):
         # Currently only support Constant, Name, Tuples of Constant and Name.
         # TODO: support slices, e.g., x[1:2]
         args = []
-        if isinstance(node.slice.value, ast.Name) or isinstance(
-            node.slice.value, ast.Constant
-        ):
-            args.append(self.visit(node.slice.value))
+        index = node.slice
+        if isinstance(index, ast.Name) or isinstance(index, ast.Constant):
+            args.append(self.visit(index))
         else:
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):

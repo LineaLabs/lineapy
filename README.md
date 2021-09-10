@@ -12,7 +12,7 @@ There are two ways to use `linea`:
 ## First-time Setup
 
 ```bash
-conda create --name lineapy-env python=3.8
+conda create --name lineapy-env python=3.9
 conda activate lineapy-env
 pip install -r requirements.txt
 pip install -r dev-requirements.txt
@@ -42,7 +42,7 @@ python lineapy/app/application.py
 `setup_integrated_tests.py` creates the stub data that the flask application then serves.
 
 Then head over to [linea-server](https://github.com/LineaLabs/linea-server) and 
-run the usual commands there (`python app/application.py` and `yarn start` in 
+run the usual commands there (`python application.py` and `yarn start` in 
 the `/server` and `/frontend` folders respectively)
 
 Note that if you are running these on EC2, you need to do tunneling on **three**
