@@ -1,9 +1,9 @@
 from ast import parse
-from lineapy.utils import internal_warning_log
 
 from astor import to_source
 
 from lineapy.transformer.node_transformer import NodeTransformer
+from lineapy.utils import internal_warning_log
 from tests.stub_data.graph_with_import import import_code
 from tests.util import compare_ast
 
@@ -56,12 +56,35 @@ class TestNodeTransformer:
         self._check_equality(import_code, expected)
 
     def test_visit_call(self):
-        # FIXME
-        pass
+        simple_call = "foo()"
+        expected_simple_call = (
+            "lineapy_tracer.call(function_name='foo', code='foo()', arguments=[])\n"
+        )
+        self._check_equality(simple_call, expected_simple_call)
+
+        call_with_args = "foo(a, b)"
+        expected_call_with_args = "lineapy_tracer.call(function_name='foo', code='foo(a, b)', arguments=[a, b])\n"
+        self._check_equality(call_with_args, expected_call_with_args)
+
+        call_with_keyword_args = "foo(b=1)"  # FIXME currently unsupported
 
     def test_visit_assign(self):
-        # FIXME
-        pass
+        simple_assign = "a = 1"
+        expected_simple_assign = (
+            "lineapy_tracer.assign(variable_name='a', value_node=1, code='a = 1')\n"
+        )
+        self._check_equality(simple_assign, expected_simple_assign)
+
+        assign_variable = "a = foo"
+        expected_assign_variable = (
+            "lineapy_tracer.assign(variable_name='a', value_node=foo, code='a = foo')\n"
+        )
+        self._check_equality(assign_variable, expected_assign_variable)
+
+    def test_visit_list(self):
+        simple_list = "[1, 2]"
+        expected_simple_list = "lineapy_tracer.call(function_name='__build_list__', code='[1, 2]',\n    arguments=[1, 2])\n"
+        self._check_equality(simple_list, expected_simple_list)
 
     def test_lean_publish_visit_call(self):
         publish_code = "lineapy.linea_publish(a)"

@@ -10,7 +10,7 @@ AST synthesizers used by node_transformers
 """
 
 
-def get_call_function_name(node: ast.Call):
+def get_call_function_name(node: ast.Call) -> dict:
     if type(node.func) == ast.Name:
         func_name = cast(ast.Name, node.func)
         return {"function_name": func_name.id}

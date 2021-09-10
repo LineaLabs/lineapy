@@ -1,14 +1,15 @@
 import ast
-from lineapy.utils import UserError
+from typing import Optional, cast, Any
+
+from lineapy.constants import LINEAPY_PUBLISH_FUNCTION_NAME, LINEAPY_TRACER_NAME
+from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.transformer_util import (
     get_call_function_name,
     synthesize_linea_publish_call_ast,
     synthesize_tracer_call_ast,
 )
-from typing import Optional, cast
-
-from lineapy.instrumentation.tracer import Tracer
-from lineapy.constants import LINEAPY_PUBLISH_FUNCTION_NAME, LINEAPY_TRACER_NAME
+from lineapy.utils import UserError
+from lineapy.lineabuiltins import __build_list__
 
 
 def turn_none_to_empty_str(a: Optional[str]):
@@ -176,11 +177,12 @@ class NodeTransformer(ast.NodeTransformer):
         result = ast.Expr(value=call_ast)
         return result
 
+    def visit_List(self, node: ast.List) -> Any:
+        code = self._get_code_from_node(node)
+        elem_nodes = [self.visit(elem) for elem in node.elts]
+        return synthesize_tracer_call_ast(__build_list__.__name__, elem_nodes, code)
 
     def visit_BinOp(self, node: ast.BinOp) -> Any:
-        code = self._get_code_from_node(node)
-
-    def visit_List(self, node: ast.List) -> Any:
         code = self._get_code_from_node(node)
 
     def visit_Subscript(self, node: ast.Subscript) -> Any:
