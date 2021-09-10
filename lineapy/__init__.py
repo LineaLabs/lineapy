@@ -6,17 +6,24 @@ from lineapy.utils import FunctionShouldNotBeCalled
 
 __version__ = "0.0.1"
 
-from typing import Optional
+from typing import Any, Optional
 
 
-def publish(variable_name: str, description: Optional[str]) -> None:
+def linea_publish(variable: Any, description: Optional[str] = None) -> None:
     """
-    Publishes artifact, notifies the user through printing, and this would be compatible with either scriptingor the notebook: again
-    TODO
-    - [] Note that we need to instrument this at runtime to pass in the tracer and change the function call
+    Publishes artifact to the linea repo
+    """
+    """
+    DEV NOTEs:
+    - If you are going to change he name of this function, it must match the
+      constant `LINEAPY_PUBLISH_FUNCTION_NAME` in `constants.py`.
+    - This method is instrumented by transformer to be called by the tracer
     """
 
-    raise FunctionShouldNotBeCalled("`publish` should have been re-written")
+    raise FunctionShouldNotBeCalled(
+        """This method must be used along with a custom Linea Kernel,
+          or the Linea Cli."""
+    )
 
 
 def publish_with_tracer(
@@ -28,7 +35,7 @@ def publish_with_tracer(
 __all__ = [
     "Graph",
     "Tracer",
-    "publish",
+    "linea_publish",
     "publish_with_tracer",
     "SessionType",
     "ExecutionMode",
