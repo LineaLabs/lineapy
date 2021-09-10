@@ -1,20 +1,18 @@
 import ast
+from typing import cast
+
+from lineapy import linea_publish
 from lineapy.utils import UserError
 from lineapy.transformer.transformer_util import (
+    extract_concrete_syntax_from_node,
     get_call_function_name,
     synthesize_linea_publish_call_ast,
     synthesize_tracer_call_ast,
+    turn_none_to_empty_str,
 )
-from typing import Optional, cast
 
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.constants import LINEAPY_PUBLISH_FUNCTION_NAME, LINEAPY_TRACER_NAME
-
-
-def turn_none_to_empty_str(a: Optional[str]):
-    if not a:
-        return ""
-    return a
+from lineapy.constants import LINEAPY_TRACER_NAME
 
 
 class NodeTransformer(ast.NodeTransformer):
@@ -42,14 +40,23 @@ class NodeTransformer(ast.NodeTransformer):
                 ast.Expr(
                     ast.Call(
                         func=ast.Attribute(
-                            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                            value=ast.Name(
+                                id=LINEAPY_TRACER_NAME,
+                                ctx=ast.Load(),
+                            ),
                             attr="trace_import",
                             ctx=ast.Load(),
                         ),
                         args=[],
                         keywords=[
-                            ast.keyword(arg="name", value=ast.Constant(value=lib.name)),
-                            ast.keyword(arg="code", value=ast.Constant(value=code)),
+                            ast.keyword(
+                                arg="name",
+                                value=ast.Constant(value=lib.name),
+                            ),
+                            ast.keyword(
+                                arg="code",
+                                value=ast.Constant(value=code),
+                            ),
                             ast.keyword(
                                 arg="alias",
                                 value=ast.Constant(value=lib.asname),
@@ -67,19 +74,23 @@ class NodeTransformer(ast.NodeTransformer):
         for alias in node.names:
             keys.append(ast.Constant(value=alias.name))
             # needed turn_none_to_empty_str because of some issue with pydantic
-            values.append(ast.Constant(value=turn_none_to_empty_str(alias.asname)))
+            values.append(
+                ast.Constant(value=turn_none_to_empty_str(alias.asname))
+            )
 
         code = self._get_code_from_node(node)
         result = ast.Expr(
             ast.Call(
                 func=ast.Attribute(
                     value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                    attr=Tracer.TRACE_IMPORT,
+                    attr=Tracer.trace_import.__name__,
                     ctx=ast.Load(),
                 ),
                 args=[],
                 keywords=[
-                    ast.keyword(arg="name", value=ast.Constant(value=node.module)),
+                    ast.keyword(
+                        arg="name", value=ast.Constant(value=node.module)
+                    ),
                     ast.keyword(arg="code", value=ast.Constant(value=code)),
                     ast.keyword(
                         arg="attributes",
@@ -99,7 +110,7 @@ class NodeTransformer(ast.NodeTransformer):
         # a little hacky, assume no one else would have a function name
         #   called linea_publish
 
-        if name_ref["function_name"] == LINEAPY_PUBLISH_FUNCTION_NAME:
+        if name_ref["function_name"] == linea_publish.__name__:
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:
                 raise UserError(
@@ -115,7 +126,7 @@ class NodeTransformer(ast.NodeTransformer):
             if type(node.args[0]) is not ast.Name:
                 raise UserError(
                     "Please pass a variable as the first argument to"
-                    f" `{LINEAPY_PUBLISH_FUNCTION_NAME}`"
+                    f" `{linea_publish.__name__}`"
                 )
             var_node = cast(ast.Name, node.args[0])
             if len(node.args) == 2:
@@ -123,7 +134,7 @@ class NodeTransformer(ast.NodeTransformer):
                     raise UserError(
                         "Please pass a string for the description as the"
                         " second argument to"
-                        f" `{LINEAPY_PUBLISH_FUNCTION_NAME}`, you gave"
+                        f" `{linea_publish.__name__}`, you gave"
                         f" {type(node.args[1])}"
                     )
                 description_node = cast(ast.Constant, node.args[1])
@@ -134,10 +145,11 @@ class NodeTransformer(ast.NodeTransformer):
                 return synthesize_linea_publish_call_ast(var_node.id)
         else:
             # this is the normal case
-            code = self._get_code_from_node(node)
+            # code = self._get_code_from_node(node)
             argument_nodes = [self.visit(arg) for arg in node.args]
+            syntax_dictionary = extract_concrete_syntax_from_node(node)
             return synthesize_tracer_call_ast(
-                name_ref["function_name"], argument_nodes, code
+                name_ref["function_name"], argument_nodes, syntax_dictionary
             )
 
     def visit_Assign(self, node: ast.Assign) -> ast.Expr:
@@ -147,14 +159,16 @@ class NodeTransformer(ast.NodeTransformer):
         - need to pad with expr to make astor happy
         https://stackoverflow.com/questions/49646402/function-isnt-added-to-new-line-when-adding-node-to-ast-in-python
         """
-        code = self._get_code_from_node(node)
         if type(node.targets[0]) is not ast.Name:
-            raise NotImplementedError("Other assignment types are not supported")
+            raise NotImplementedError(
+                "Other assignment types are not supported"
+            )
         variable_name = node.targets[0].id  # type: ignore
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
         call_ast = ast.Call(
             func=ast.Attribute(
                 value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.TRACE_ASSIGN,
+                attr=Tracer.assign.__name__,
                 ctx=ast.Load(),
             ),
             args=[],
@@ -168,8 +182,8 @@ class NodeTransformer(ast.NodeTransformer):
                     value=self.visit(node.value),
                 ),
                 ast.keyword(
-                    arg="code",
-                    value=ast.Constant(value=code),
+                    arg="syntax_dictionary",
+                    value=syntax_dictionary,
                 ),
             ],
         )

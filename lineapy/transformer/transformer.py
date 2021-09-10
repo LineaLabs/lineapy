@@ -23,7 +23,9 @@ TreeNodeType = ast.AST
 
 # FIXME: add typing
 def append_code_to_tree(
-    source: ast.Module, to_append: List[TreeNodeType], is_beginning: bool = False
+    source: ast.Module,
+    to_append: List[TreeNodeType],
+    is_beginning: bool = False,
 ) -> ast.Module:
     if is_beginning:
         source.body = to_append + source.body
@@ -34,9 +36,10 @@ def append_code_to_tree(
 
 class Transformer:
     """
-    The reason why we have the transformer and the instrumentation separate is that we need runtime information when
-    creating the nodes.
-    If we created the instrumentation statically, then the node level information would be lost.
+    The reason why we have the transformer and the instrumentation
+      separate is that we need runtime information when creating the nodes.
+    If we created the instrumentation statically, then the node-level
+      information would be lost.
     """
 
     def __init__(self):
@@ -52,7 +55,11 @@ class Transformer:
         info_log("transform", code)
         transformed_tree = self.transform_user_code(code)
         if not self.has_initiated:
-            enter_tree = self.create_enter(session_type, session_name, execution_mode)
+            enter_tree = self.create_enter(
+                session_type,
+                session_name,
+                execution_mode,
+            )
             append_code_to_tree(transformed_tree, enter_tree, is_beginning=True)
             self.has_initiated = True
 
@@ -76,8 +83,9 @@ class Transformer:
 
     def create_exit(self) -> List[TreeNodeType]:
         """
-        Hack: just returning raw string for now... We can invest in nodes if there is a feature that requires such.
-        note maybe we could move this to a standalone function
+        Hack: just returning raw string for now... We can invest in nodes
+          if there is a feature that requires such.
+        NOTE: maybe we could move this to a standalone function
         """
         return [
             ast.Expr(

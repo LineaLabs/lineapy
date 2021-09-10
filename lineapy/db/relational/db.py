@@ -16,7 +16,7 @@ from lineapy.db.asset_manager.local import (
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 from lineapy.execution.code_util import add_node_to_code, max_col_of_code
-from lineapy.utils import CaseNotHandledError, NullValueError
+from lineapy.utils import CaseNotHandledError, NullValueError, is_integer
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
 
@@ -96,13 +96,7 @@ class RelationalLineaDB(LineaDB):
         return orm_to_pydantic[node.node_type]  # type: ignore
 
     @staticmethod
-    def get_type(val: Any) -> LiteralType:
-        def is_integer(val):
-            try:
-                int(val)
-            except Exception as e:
-                return False
-            return True
+    def get_type_of_literal_value(val: Any) -> LiteralType:
 
         if isinstance(val, str):
             return LiteralType.String
@@ -110,7 +104,7 @@ class RelationalLineaDB(LineaDB):
             return LiteralType.Integer
         elif isinstance(val, bool):
             return LiteralType.Boolean
-        raise CaseNotHandledError("Literal is not string, int, or boolean")
+        raise CaseNotHandledError(f"Literal {val} is of type {type(val)}.")
 
     @staticmethod
     def cast_serialized(val: str, literal_type: LiteralType) -> Any:
@@ -172,7 +166,9 @@ class RelationalLineaDB(LineaDB):
         if node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
             if args["value_literal"] is not None:
-                args["value_literal_type"] = RelationalLineaDB.get_type(
+                args[
+                    "value_literal_type"
+                ] = RelationalLineaDB.get_type_of_literal_value(
                     args["value_literal"]
                 )
 
@@ -238,7 +234,10 @@ class RelationalLineaDB(LineaDB):
 
         elif node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNodeORM, node)
-            args["value_type"] = RelationalLineaDB.get_type(node.value)
+            if node.value is not None:
+                args[
+                    "value_type"
+                ] = RelationalLineaDB.get_type_of_literal_value(node.value)
 
         node_orm = RelationalLineaDB.get_orm(node)(**args)
 
@@ -252,11 +251,9 @@ class RelationalLineaDB(LineaDB):
 
     def add_node_id_to_artifact_table(
         self,
-        node_id: LineaIDORM,
-        context_id: LineaIDORM,
-        name: str = "",
-        date_created: str = "",
-        value_type: str = "",
+        node_id: LineaIDAlias,
+        date_created: float,
+        name: Optional[str] = None,
     ) -> None:
         """
         Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
@@ -272,20 +269,20 @@ class RelationalLineaDB(LineaDB):
         ]:
             artifact = ArtifactORM(
                 id=node_id,
-                context=context_id,
-                value_type=value_type,
                 name=name,
                 date_created=date_created,
             )
             self.session.add(artifact)
             self.session.commit()
 
-    def remove_node_id_from_artifact_table(self, node_id: LineaIDORM) -> None:
+    def remove_node_id_from_artifact_table(self, node_id: LineaIDAlias) -> None:
         """
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
         """
-        self.session.query(ArtifactORM).filter(ArtifactORM.id == node_id).delete()
+        self.session.query(ArtifactORM).filter(
+            ArtifactORM.id == node_id
+        ).delete()
         self.session.commit()
 
     """
@@ -344,7 +341,9 @@ class RelationalLineaDB(LineaDB):
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNodeORM, node)
-            node.value = RelationalLineaDB.cast_serialized(node.value, node.value_type)
+            node.value = RelationalLineaDB.cast_serialized(
+                node.value, node.value_type
+            )
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNodeORM, node)
             if node.value_literal is not None:
@@ -376,7 +375,9 @@ class RelationalLineaDB(LineaDB):
         ]:
             node = cast(SideEffectsNode, node)
             output_state_change_nodes = (
-                self.session.query(side_effects_output_state_change_association_table)
+                self.session.query(
+                    side_effects_output_state_change_association_table
+                )
                 .filter(
                     side_effects_output_state_change_association_table.c.side_effects_node_id
                     == node.id
@@ -386,11 +387,14 @@ class RelationalLineaDB(LineaDB):
 
             if output_state_change_nodes is not None:
                 node.output_state_change_nodes = [
-                    a.output_state_change_node_id for a in output_state_change_nodes
+                    a.output_state_change_node_id
+                    for a in output_state_change_nodes
                 ]
 
             input_state_change_nodes = (
-                self.session.query(side_effects_input_state_change_association_table)
+                self.session.query(
+                    side_effects_input_state_change_association_table
+                )
                 .filter(
                     side_effects_input_state_change_association_table.c.side_effects_node_id
                     == node.id
@@ -400,7 +404,8 @@ class RelationalLineaDB(LineaDB):
 
             if input_state_change_nodes is not None:
                 node.input_state_change_nodes = [
-                    a.input_state_change_node_id for a in input_state_change_nodes
+                    a.input_state_change_node_id
+                    for a in input_state_change_nodes
                 ]
 
             import_nodes = (
@@ -466,7 +471,9 @@ class RelationalLineaDB(LineaDB):
         json_artifact["file"] = ""
 
         json_artifact["code"] = {}
-        json_artifact["code"]["text"] = self.get_code_from_artifact_id(artifact.id)
+        json_artifact["code"]["text"] = self.get_code_from_artifact_id(
+            artifact.id
+        )
 
         tokens_json = []
 
@@ -501,7 +508,9 @@ class RelationalLineaDB(LineaDB):
                 intermediate_value
             )
             if intermediate_value_type == DATASET_TYPE:
-                intermediate_value = RelationalLineaDB.cast_dataset(intermediate_value)
+                intermediate_value = RelationalLineaDB.cast_dataset(
+                    intermediate_value
+                )
             elif intermediate_value_type == VALUE_TYPE:
                 intermediate_value = RelationalLineaDB.cast_serialized(
                     intermediate_value,
@@ -529,7 +538,9 @@ class RelationalLineaDB(LineaDB):
 
     def get_nodes_for_session(self, session_id: LineaIDAlias) -> List[Node]:
         node_orms = (
-            self.session.query(NodeORM).filter(NodeORM.session_id == session_id).all()
+            self.session.query(NodeORM)
+            .filter(NodeORM.session_id == session_id)
+            .all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
@@ -544,12 +555,12 @@ class RelationalLineaDB(LineaDB):
             - simple heuristics that may create false positives (include things not necessary)
             - but definitely NOT false negatives (then the program CANNOT be executed)
         """
-        artifact = self.get_artifact(artifact_id)
-        nodes = self.get_nodes_for_session(artifact.context)
+        node = self.get_node_by_id(artifact_id)
+        nodes = self.get_nodes_for_session(node.session_id)
         full_graph = Graph(nodes)
-        ancestors = full_graph.get_ancestors(artifact)
-        ancestors.append(artifact_id)
-        return Graph([full_graph.get_node(a) for a in ancestors])
+        ancestors = full_graph.get_ancestors(node)
+        ancestors.append(node.id)
+        return Graph([full_graph.get_node_else_raise(a) for a in ancestors])
 
     def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
         graph = self.get_graph_from_artifact_id(artifact_id)
@@ -588,7 +599,9 @@ class RelationalLineaDB(LineaDB):
         artifacts = []
         for d_id in descendants:
             descendant_is_artifact = (
-                self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
+                self.session.query(ArtifactORM)
+                .filter(ArtifactORM.id == d_id)
+                .first()
                 is not None
             )
             descendant = program.get_node(d_id)

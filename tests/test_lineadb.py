@@ -1,7 +1,8 @@
 import unittest
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 from lineapy import ExecutionMode
+from lineapy.utils import get_current_time
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionContext
 from lineapy.db.base import get_default_config_by_environment
@@ -24,6 +25,8 @@ from tests.stub_data.graph_with_conditionals import (
 from tests.stub_data.graph_with_csv_import import (
     graph_with_csv_import,
     session as graph_with_file_access_session,
+    simple_data_node,
+    sum_call,
 )
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
@@ -36,8 +39,6 @@ from tests.stub_data.graph_with_import import (
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
-    y_id,
-    code as loops_code,
 )
 from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
@@ -46,16 +47,18 @@ from tests.stub_data.graph_with_messy_nodes import (
     f_assign,
     e_assign,
     a_assign,
-    sliced_code,
 )
 from tests.stub_data.nested_call_graph import (
     nested_call_graph,
     session as nested_call_graph_session,
 )
-from tests.stub_data.simple_graph import simple_graph, session as simple_graph_session
+from tests.stub_data.simple_graph import (
+    simple_graph,
+    session as simple_graph_session,
+)
 from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
-    session as simple_with_variable_argument_and_print_session,
+    session as print_session,
 )
 from tests.util import reset_test_db
 
@@ -67,7 +70,7 @@ class TestLineaDB(unittest.TestCase):
 
     @property
     def db_config(self):
-        return get_default_config_by_environment(ExecutionMode.MEMORY)
+        return get_default_config_by_environment(ExecutionMode.TEST)
 
     def setUp(self):
         # just use the default config
@@ -80,17 +83,17 @@ class TestLineaDB(unittest.TestCase):
         pass
 
     def write_and_read_graph(
-        self, graph: Graph, context: SessionContext = None
-    ) -> Union[Tuple[Graph, SessionContext], Graph]:
+        self,
+        graph: Graph,
+        context: SessionContext,
+    ) -> Tuple[Graph, SessionContext]:
         # let's write the in memory graph in (with all the nodes)
         self.lineadb.write_nodes(graph.nodes)
+        self.lineadb.write_context(context)
 
-        if context is not None:
-            self.lineadb.write_context(context)
-
-        if context is not None:
-            return self.reconstruct_graph(graph), self.lineadb.get_context(context.id)
-        return self.reconstruct_graph(graph)
+        graph_from_db = self.reconstruct_graph(graph)
+        session_from_db = self.lineadb.get_context(context.id)
+        return graph_from_db, session_from_db
 
     def reconstruct_graph(self, original_graph: Graph) -> Graph:
         # let's then read some nodes back
@@ -105,7 +108,9 @@ class TestLineaDB(unittest.TestCase):
         return db_graph
 
     def test_simple_graph(self):
-        graph, context = self.write_and_read_graph(simple_graph, simple_graph_session)
+        graph, context = self.write_and_read_graph(
+            simple_graph, simple_graph_session
+        )
         e = Executor()
         e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
@@ -114,7 +119,8 @@ class TestLineaDB(unittest.TestCase):
 
     def test_nested_call_graph(self):
         graph, context = self.write_and_read_graph(
-            nested_call_graph, nested_call_graph_session
+            nested_call_graph,
+            nested_call_graph_session,
         )
         e = Executor()
         e.execute_program(graph, context)
@@ -124,14 +130,15 @@ class TestLineaDB(unittest.TestCase):
 
     def test_graph_with_print(self):
         graph, context = self.write_and_read_graph(
-            simple_with_variable_argument_and_print,
-            simple_with_variable_argument_and_print_session,
+            simple_with_variable_argument_and_print, print_session
         )
         e = Executor()
         e.execute_program(graph, context)
         stdout = e.get_stdout()
         assert stdout == "10\n"
-        assert are_graphs_identical(graph, simple_with_variable_argument_and_print)
+        assert are_graphs_identical(
+            graph, simple_with_variable_argument_and_print
+        )
 
     def test_basic_import(self):
         """
@@ -149,7 +156,8 @@ class TestLineaDB(unittest.TestCase):
     def test_graph_with_function_definition(self):
         """ """
         graph, context = self.write_and_read_graph(
-            graph_with_function_definition, graph_with_function_definition_session
+            graph_with_function_definition,
+            graph_with_function_definition_session,
         )
         e = Executor()
         e.execute_program(graph, context)
@@ -173,7 +181,8 @@ class TestLineaDB(unittest.TestCase):
 
     def test_program_with_conditionals(self):
         graph, context = self.write_and_read_graph(
-            graph_with_conditionals, graph_with_conditionals_session
+            graph_with_conditionals,
+            graph_with_conditionals_session,
         )
         e = Executor()
         e.execute_program(graph, context)
@@ -192,6 +201,18 @@ class TestLineaDB(unittest.TestCase):
         s = e.get_value_by_variable_name("s")
         assert s == 25
         assert are_graphs_identical(graph, graph_with_csv_import)
+
+        # test search_artifacts_by_data_source
+        time = get_current_time()
+        self.lineadb.add_node_id_to_artifact_table(
+            sum_call.id,
+            time,
+        )
+        derived = self.lineadb.find_all_artifacts_derived_from_data_source(
+            graph, simple_data_node
+        )
+        assert len(derived) == 1
+        assert derived
 
     def test_variable_alias_by_value(self):
         graph, context = self.write_and_read_graph(
@@ -216,63 +237,17 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(graph, graph_with_alias_by_reference)
 
     def test_slicing(self):
-        self.write_and_read_graph(
+        graph, context = self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
         )
         self.lineadb.add_node_id_to_artifact_table(
             f_assign.id,
-            graph_with_messy_nodes_session.id,
+            get_current_time(),
         )
         result = self.lineadb.get_graph_from_artifact_id(f_assign.id)
         self.lineadb.remove_node_id_from_artifact_table(f_assign.id)
         e = Executor()
-        e.execute_program(result, graph_with_messy_nodes_session)
+        e.execute_program(result, context)
         f = e.get_value_by_variable_name("f")
         assert f == 6
         assert are_graphs_identical(result, graph_sliced_by_var_f)
-
-    def test_slicing_loops(self):
-        graph, context = self.write_and_read_graph(
-            graph_with_loops, graph_with_loops_session
-        )
-        self.lineadb.add_node_id_to_artifact_table(y_id, graph_with_loops_session.id)
-        result = self.lineadb.get_graph_from_artifact_id(y_id)
-        assert are_graphs_identical(result, graph)
-
-    def test_search_artifacts_by_data_source(self):
-        # @dhruv we should create at least one more stub_graph with the same csv file ("sample_data.csv")---it's
-        # currently not in this branch but we can merge master in here later.
-        # using an existing stub for now
-        graph, context = self.write_and_read_graph(
-            graph_with_messy_nodes, graph_with_messy_nodes_session
-        )
-        self.lineadb.add_node_id_to_artifact_table(
-            f_assign.id, graph_with_messy_nodes_session.id
-        )
-        self.lineadb.add_node_id_to_artifact_table(
-            e_assign.id, graph_with_messy_nodes_session.id
-        )
-        derived = self.lineadb.find_all_artifacts_derived_from_data_source(
-            graph, a_assign
-        )
-        assert len(derived) == 2
-
-    def test_code_reconstruction_with_multilined_node(self):
-        _ = self.write_and_read_graph(graph_with_loops, graph_with_loops_session)
-
-        self.lineadb.add_node_id_to_artifact_table(y_id, graph_with_loops_session.id)
-        reconstructed = self.lineadb.get_code_from_artifact_id(y_id)
-
-        assert loops_code == reconstructed
-
-    def test_code_reconstruction_with_slice(self):
-        _ = self.write_and_read_graph(
-            graph_with_messy_nodes, graph_with_messy_nodes_session
-        )
-
-        self.lineadb.add_node_id_to_artifact_table(
-            f_assign.id, graph_with_messy_nodes_session.id
-        )
-        reconstructed = self.lineadb.get_code_from_artifact_id(f_assign.id)
-
-        assert sliced_code == reconstructed

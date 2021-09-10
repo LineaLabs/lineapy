@@ -10,7 +10,9 @@ We are using click because our package will likely already have a dependency on 
 
 
 @click.command()
-@click.option("--mode", default="dev", help="Either `dev`, `test`, or `prod` mode")
+@click.option(
+    "--mode", default="dev", help="Either `dev`, `test`, or `prod` mode"
+)
 @click.argument("file_name")
 def linea_cli(mode, file_name):
     execution_mode = ExecutionMode.__getitem__(str.upper(mode))
@@ -24,7 +26,8 @@ def linea_cli(mode, file_name):
             session_name=file_name,
             execution_mode=execution_mode,
         )
-        info_log("new_code", new_code)
+        info_log("new_code")
+        print(new_code)
         exec(new_code)
     except IOError:
         report_error_to_user("Error: File does not appear to exist.")

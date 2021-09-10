@@ -1,6 +1,9 @@
 import ast
-from typing import Any, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
+from dataclasses import dataclass
+from astpretty import pprint
 
+from lineapy.data.types import Node
 from lineapy.utils import CaseNotHandledError
 from lineapy.constants import LINEAPY_TRACER_NAME
 from lineapy.instrumentation.tracer import Tracer
@@ -8,6 +11,45 @@ from lineapy.instrumentation.tracer import Tracer
 """
 AST synthesizers used by node_transformers
 """
+
+
+SYNTAX_KEY = ["lineno", "col_offset", "end_lineno", "end_col_offset"]
+
+
+# @dataclass
+# class CodeSyntax:
+#     lineno: int
+#     col_offset: int
+#     end_lineno: int
+#     end_col_offset: int
+
+
+def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
+    """
+    TODO: adding typing
+    """
+    # pprint(ast_node)
+    return ast.Dict(
+        keys=[ast.Constant(value=key) for key in SYNTAX_KEY],
+        values=[
+            ast.Constant(value=ast_node.__getattribute__(key))
+            for key in SYNTAX_KEY
+        ],
+    )
+
+    # decided not to use the following to make code synthesis easier...
+    # return CodeSyntax(
+    #     lineno=ast_node.lineno,
+    #     col_offset=ast_node.col_offset,
+    #     end_lineno=ast_node.end_lineno,
+    #     end_col_offset=ast_node.end_col_offset,
+    # )
+
+
+def turn_none_to_empty_str(a: Optional[str]):
+    if not a:
+        return ""
+    return a
 
 
 def get_call_function_name(node: ast.Call):
@@ -26,12 +68,12 @@ def get_call_function_name(node: ast.Call):
 def synthesize_tracer_call_ast(
     function_name: str,
     argument_nodes: List[Any],
-    code: str,
+    syntax_dictionary: ast.Dict,  # FIXME
 ):
     return ast.Call(
         func=ast.Attribute(
             value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-            attr=Tracer.TRACE_CALL,
+            attr=Tracer.call.__name__,
             ctx=ast.Load(),
         ),
         args=[],
@@ -41,8 +83,8 @@ def synthesize_tracer_call_ast(
                 value=ast.Constant(value=function_name),
             ),
             ast.keyword(
-                arg="code",
-                value=ast.Constant(value=code),
+                arg="syntax_dictionary",
+                value=syntax_dictionary,
             ),
             ast.keyword(
                 arg="arguments",
@@ -75,7 +117,7 @@ def synthesize_linea_publish_call_ast(
     return ast.Call(
         func=ast.Attribute(
             value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-            attr=Tracer.TRACE_PUBLISH,
+            attr=Tracer.publish.__name__,
             ctx=ast.Load(),
         ),
         args=[],

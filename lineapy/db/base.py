@@ -27,7 +27,7 @@ class LineaDBConfig:
 
     database: DatabaseOption = DatabaseOption.SQLite
     file_system: FileSystemOption = FileSystemOption.Local
-    database_uri: Optional[str] = None
+    database_uri: str = None
 
 
 def get_default_config_by_environment(mode: ExecutionMode) -> LineaDBConfig:
