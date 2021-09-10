@@ -117,8 +117,7 @@ class Tracer:
         Decided to read the code instead because it's more readable than passing
           through the transformer
         """
-        lines = open(file_name, "r").readlines()
-        original_code = "".join(lines)
+        original_code = open(file_name, "r").read()
         session_context = SessionContext(
             id=get_new_id(),
             # TODO: hm, we should prob refactor the name, kinda confusing here
@@ -133,7 +132,7 @@ class Tracer:
     def trace_import(
         self,
         name: str,
-        syntax_dictionary: Dict,
+        syntax_dictionary: Dict[str, int],
         alias: Optional[str] = None,
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
@@ -166,16 +165,6 @@ class Tracer:
         = [ ] make sure that all the
         """
         pass
-
-    def variable(self) -> None:
-        """
-        For the following cases
-        ```
-        a
-        b=a
-        ```
-        Corresponds to the `VariableNode`
-        """
 
     def call(
         self,

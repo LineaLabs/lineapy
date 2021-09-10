@@ -50,8 +50,14 @@ def get_call_function_name(node: ast.Call) -> dict:
 def synthesize_tracer_call_ast(
     function_name: str,
     argument_nodes: List[Any],
-    syntax_dictionary: ast.Dict,  # FIXME
+    node: Any,  # NOTE: not sure if the ast Nodes have a union type
 ):
+    """
+    Node is passed to synthesize the `syntax_dictionary`
+      this reduces duplicate logic across the visit_* functions
+    """
+
+    syntax_dictionary = extract_concrete_syntax_from_node(node)
     return ast.Call(
         func=ast.Attribute(
             value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),

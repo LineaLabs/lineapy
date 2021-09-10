@@ -165,9 +165,8 @@ class NodeTransformer(ast.NodeTransformer):
             # this is the normal case
             # code = self._get_code_from_node(node)
             argument_nodes = [self.visit(arg) for arg in node.args]
-            syntax_dictionary = extract_concrete_syntax_from_node(node)
             return synthesize_tracer_call_ast(
-                name_ref["function_name"], argument_nodes, syntax_dictionary
+                name_ref["function_name"], argument_nodes, node
             )
 
     def visit_Assign(self, node: ast.Assign) -> Union[ast.Expr, ast.Call]:
@@ -177,8 +176,8 @@ class NodeTransformer(ast.NodeTransformer):
         - need to pad with expr to make astor happy
         https://stackoverflow.com/questions/49646402/function-isnt-added-to-new-line-when-adding-node-to-ast-in-python
         """
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
 
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
         if isinstance(node.targets[0], ast.Subscript):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
@@ -194,7 +193,7 @@ class NodeTransformer(ast.NodeTransformer):
                 self.visit(node.value),
             ]
             return synthesize_tracer_call_ast(
-                operator.setitem.__name__, argument_nodes, syntax_dictionary
+                operator.setitem.__name__, argument_nodes, node
             )
 
         if type(node.targets[0]) is not ast.Name:
@@ -227,14 +226,10 @@ class NodeTransformer(ast.NodeTransformer):
         return result
 
     def visit_List(self, node: ast.List) -> ast.Call:
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
         elem_nodes = [self.visit(elem) for elem in node.elts]
-        return synthesize_tracer_call_ast(
-            __build_list__.__name__, elem_nodes, syntax_dictionary
-        )
+        return synthesize_tracer_call_ast(__build_list__.__name__, elem_nodes, node)
 
     def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
-        code = self._get_code_from_node(node)
         ast_to_op_map = {
             ast.Add: operator.add,
             ast.Sub: operator.sub,
@@ -252,10 +247,9 @@ class NodeTransformer(ast.NodeTransformer):
         }
         op = ast_to_op_map[node.op.__class__]
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
-        return synthesize_tracer_call_ast(op.__name__, argument_nodes, code)
+        return synthesize_tracer_call_ast(op.__name__, argument_nodes, node)
 
     def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
         # Currently only support Constant, Name, Tuples of Constant and Name.
         # TODO: support slices, e.g., x[1:2]
         args = []
@@ -267,9 +261,7 @@ class NodeTransformer(ast.NodeTransformer):
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
             args.insert(0, self.visit(node.value))
-            return synthesize_tracer_call_ast(
-                operator.getitem.__name__, args, syntax_dictionary
-            )
+            return synthesize_tracer_call_ast(operator.getitem.__name__, args, node)
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
         else:

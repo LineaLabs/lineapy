@@ -2,7 +2,6 @@ from tempfile import NamedTemporaryFile
 from click.testing import CliRunner
 
 import lineapy
-from lineapy.constants import LINEAPY_IMPORT_LIB_NAME
 from lineapy.cli.cli import linea_cli
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB

@@ -119,10 +119,10 @@ class Transformer:
         import_node = ast.ImportFrom(
             module=LINEAPY_IMPORT_LIB_NAME,
             names=[
-                ast.alias(name=LINEAPY_SESSION_TYPE, asname=None),
+                ast.alias(name=SessionType.__name__, asname=None),
                 ast.alias(name=Tracer.__name__, asname=None),
                 ast.alias(name=Variable.__name__, asname=None),
-                ast.alias(name=LINEAPY_EXECUTION_MODE, asname=None),
+                ast.alias(name=ExecutionMode.__name__, asname=None),
             ],
             level=0,
         )
@@ -133,7 +133,7 @@ class Transformer:
         )
         session_type_node = ast.Attribute(
             value=ast.Name(
-                id=LINEAPY_SESSION_TYPE,
+                id=SessionType.__name__,
                 ctx=ast.Load(),
             ),
             attr=session_type_node_attr,

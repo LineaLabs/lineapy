@@ -65,13 +65,9 @@ from tests.util import reset_test_db
 
 
 class TestLineaDB(unittest.TestCase):
-    """
-    Maybe we should wrap this in the unit test class?
-    """
-
     @property
     def db_config(self):
-        return get_default_config_by_environment(ExecutionMode.TEST)
+        return get_default_config_by_environment(ExecutionMode.MEMORY)
 
     def setUp(self):
         # just use the default config
@@ -81,7 +77,6 @@ class TestLineaDB(unittest.TestCase):
     def tearDown(self):
         # remove the test db
         reset_test_db(self.db_config.database_uri)
-        pass
 
     def write_and_read_graph(
         self,
