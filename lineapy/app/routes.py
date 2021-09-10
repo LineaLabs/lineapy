@@ -42,8 +42,6 @@ def parse_artifact_orm(artifact_orm, version):
     artifact = Artifact.from_orm(artifact_orm)
     artifact_json = lineadb.jsonify_artifact(artifact)
 
-    artifact_json["version"] = version
-
     artifact_value = lineadb.get_node_value(artifact.id, version)
     if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
         result = RelationalLineaDB.cast_serialized(
