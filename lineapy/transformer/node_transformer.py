@@ -225,13 +225,14 @@ class NodeTransformer(ast.NodeTransformer):
         # Currently only support Constant, Name, Tuples of Constant and Name.
         # TODO: support slices, e.g., x[1:2]
         args = []
-        if isinstance(node.slice.value, ast.Name) or isinstance(
-            node.slice.value, ast.Constant
+        index = node.slice
+        if isinstance(index, ast.Name) or isinstance(
+            index, ast.Constant
         ):
-            args.append(self.visit(node.slice.value))
-        elif isinstance(node.slice.value, ast.Slice):
+            args.append(self.visit(index))
+        elif isinstance(index, ast.Slice):
             pass
-        elif isinstance(node.slice.value, ast.Tuple):
+        elif isinstance(index, ast.List):
             pass
         else:
             raise NotImplementedError("Subscript for multiple indices not supported.")
