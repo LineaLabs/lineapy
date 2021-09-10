@@ -165,6 +165,7 @@ class ExecutionORM(Base):  # type: ignore
     artifact_id = Column(LineaIDORM, ForeignKey("artifact.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
+    execution_time = Column(Integer, nullable=True)
 
 
 class NodeValueORM(Base):  # type: ignore
