@@ -45,9 +45,7 @@ class TestCli:
             # might also need os.path.dirname() in addition to file name
             tmp_file_name = tmp.name
             # FIXME: make into constants
-            result = self.runner.invoke(
-                linea_cli, ["--mode", "dev", tmp_file_name]
-            )
+            result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp_file_name])
             assert result.exit_code == 0
             info_log("testing file:", tmp_file_name)
             nodes = self.db.get_nodes_by_file_name(tmp_file_name)
@@ -76,9 +74,7 @@ class TestCli:
                 info_log("publish code", publish_code)
                 tmp.write(str.encode(publish_code))
                 tmp.flush()
-                result = self.runner.invoke(
-                    linea_cli, ["--mode", "dev", tmp.name]
-                )
+                result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp.name])
                 assert result.exit_code == 0
                 artifacts = self.db.get_all_artifacts()
                 assert len(artifacts) == 1

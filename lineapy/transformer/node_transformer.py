@@ -74,9 +74,7 @@ class NodeTransformer(ast.NodeTransformer):
         for alias in node.names:
             keys.append(ast.Constant(value=alias.name))
             # needed turn_none_to_empty_str because of some issue with pydantic
-            values.append(
-                ast.Constant(value=turn_none_to_empty_str(alias.asname))
-            )
+            values.append(ast.Constant(value=turn_none_to_empty_str(alias.asname)))
 
         code = self._get_code_from_node(node)
         result = ast.Expr(
@@ -88,9 +86,7 @@ class NodeTransformer(ast.NodeTransformer):
                 ),
                 args=[],
                 keywords=[
-                    ast.keyword(
-                        arg="name", value=ast.Constant(value=node.module)
-                    ),
+                    ast.keyword(arg="name", value=ast.Constant(value=node.module)),
                     ast.keyword(arg="code", value=ast.Constant(value=code)),
                     ast.keyword(
                         arg="attributes",
@@ -160,9 +156,7 @@ class NodeTransformer(ast.NodeTransformer):
         https://stackoverflow.com/questions/49646402/function-isnt-added-to-new-line-when-adding-node-to-ast-in-python
         """
         if type(node.targets[0]) is not ast.Name:
-            raise NotImplementedError(
-                "Other assignment types are not supported"
-            )
+            raise NotImplementedError("Other assignment types are not supported")
         variable_name = node.targets[0].id  # type: ignore
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         call_ast = ast.Call(

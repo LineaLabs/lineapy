@@ -10,9 +10,7 @@ We are using click because our package will likely already have a dependency on 
 
 
 @click.command()
-@click.option(
-    "--mode", default="dev", help="Either `dev`, `test`, or `prod` mode"
-)
+@click.option("--mode", default="dev", help="Either `dev`, `test`, or `prod` mode")
 @click.argument("file_name")
 def linea_cli(mode, file_name):
     execution_mode = ExecutionMode.__getitem__(str.upper(mode))
