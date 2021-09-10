@@ -155,8 +155,14 @@ class NodeTransformer(ast.NodeTransformer):
             subscript_target: ast.Subscript = node.targets[0]
             index = subscript_target.slice.value
             if not isinstance(index, ast.Constant) or isinstance(index, ast.Name):
-                raise NotImplementedError("Assignment for Subscript supported only for Constant and Name indices.")
-            argument_nodes = [self.visit(subscript_target.value), self.visit(index.value), self.visit(node.value)]
+                raise NotImplementedError(
+                    "Assignment for Subscript supported only for Constant and Name indices."
+                )
+            argument_nodes = [
+                self.visit(subscript_target.value),
+                self.visit(index.value),
+                self.visit(node.value),
+            ]
             synthesize_tracer_call_ast(operator.setitem.__name__, argument_nodes, code)
         if type(node.targets[0]) is not ast.Name:
             raise NotImplementedError("Other assignment types are not supported")
@@ -217,7 +223,9 @@ class NodeTransformer(ast.NodeTransformer):
         # Currently only support Constant, Name, Tuples of Constant and Name.
         # TODO: support slices, e.g., x[1:2]
         args = []
-        if isinstance(node.slice.value, ast.Name) or isinstance(node.slice.value, ast.Constant):
+        if isinstance(node.slice.value, ast.Name) or isinstance(
+            node.slice.value, ast.Constant
+        ):
             args.append(self.visit(node.slice.value))
         else:
             raise NotImplementedError("Subscript for multiple indices not supported.")
@@ -227,4 +235,6 @@ class NodeTransformer(ast.NodeTransformer):
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
         else:
-            raise InvalidStateError("Subscript with ctx=ast.Load() should have been handled by visit_Assign.")
+            raise InvalidStateError(
+                "Subscript with ctx=ast.Load() should have been handled by visit_Assign."
+            )
