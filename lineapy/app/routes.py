@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, send_file, make_response, request
 from sqlalchemy import func
 import io
 from PIL import Image
-from types import Union
+from typing import Union
 
 from lineapy.app.app_db import lineadb
 from lineapy.data.types import *
