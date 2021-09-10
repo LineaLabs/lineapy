@@ -113,15 +113,15 @@ class TestNodeTransformer:
 
     def test_subscript(self):
         simple = "ls[0]"
-        expected = "lineapy_tracer.call(function_name='getitem', code='ls[0]', arguments=[ls, 0])\n"
+        expected = "lineapy_tracer.call(function_name='__getitem__', code='ls[0]', arguments=[ls, 0])\n"
         self._check_equality(simple, expected)
 
         simple_var = "ls[a]"
-        expected_var = "lineapy_tracer.call(function_name='getitem', code='ls[a]', arguments=[ls, a])\n"
+        expected_var = "lineapy_tracer.call(function_name='__getitem__', code='ls[a]', arguments=[ls, a])\n"
         self._check_equality(simple_var, expected_var)
 
         simple_assign = "ls[0] = 1"
-        expected_simple_assign = "lineapy_tracer.call(function_name='setitem', code='ls[0] = 1', arguments=[\n    ls, 0, 1])\n"
+        expected_simple_assign = "lineapy_tracer.call(function_name='__setitem__', code='ls[0] = 1', arguments=[\n    ls, 0, 1])\n"
         self._check_equality(simple_assign, expected_simple_assign)
 
     def test_lean_publish_visit_call(self):

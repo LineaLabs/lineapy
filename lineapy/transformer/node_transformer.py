@@ -35,7 +35,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     @staticmethod
     def _get_index(subscript: ast.Subscript) -> Any:
-        if hasattr(subscript.slice, "value"):
+        if isinstance(subscript.slice, ast.Index):
             return subscript.slice.value
         return subscript.slice
 
@@ -238,11 +238,7 @@ class NodeTransformer(ast.NodeTransformer):
         slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
         if node.step is not None:
             slice_arguments.append(self.visit(node.step))
-        slice_call = synthesize_tracer_call_ast(slice.__name__, slice_arguments, code)
-        getitem_arguments = [slice_call]
-        return synthesize_tracer_call_ast(
-            list.__getitem__.__name__, getitem_arguments, code
-        )
+        return synthesize_tracer_call_ast(slice.__name__, slice_arguments, code)
 
     def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
         code = self._get_code_from_node(node)
@@ -255,9 +251,7 @@ class NodeTransformer(ast.NodeTransformer):
         ):
             args.append(self.visit(index))
         elif isinstance(index, ast.Slice):
-            return synthesize_tracer_call_ast(
-                list.__getitem__.__name__, [self.visit_Slice(index)], code
-            )
+            args.append(self.visit_Slice(index))
         else:
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
