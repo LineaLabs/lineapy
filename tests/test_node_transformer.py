@@ -1,4 +1,5 @@
 from ast import parse
+from lineapy.utils import internal_warning_log
 
 from astor import to_source
 
@@ -25,25 +26,50 @@ class TestNodeTransformer:
         tree = parse(original_code)
         new_tree = node_transformer.visit(tree)
         new_code = to_source(new_tree)
-        assert new_code == expected_transformed
+        if new_code != expected_transformed:
+            internal_warning_log(new_code)
+            internal_warning_log(expected_transformed)
+            assert False
 
     def test_visit_import(self):
         simple_import = "import pandas"
-        simple_expected = "lineapy_tracer.trace_import(name='pandas', code='import pandas', alias=None)\n"
+        simple_expected = (
+            "lineapy_tracer.trace_import(name='pandas', code='import pandas',"
+            " alias=None)\n"
+        )
         self._check_equality(simple_import, simple_expected)
         alias_import = "import pandas as pd"
-        alias_expected = "lineapy_tracer.trace_import(name='pandas', code='import pandas as pd',\n    alias='pd')\n"
+        alias_expected = (
+            "lineapy_tracer.trace_import(name='pandas', code='import pandas as"
+            " pd',\n    alias='pd')\n"
+        )
         self._check_equality(alias_import, alias_expected)
         # multiple_imports = "import os, time"
         # multiple_expected = ""
         # self._check_equality(multiple_imports, multiple_expected)
 
     def test_visit_importfrom(self):
-        expected = "lineapy_tracer.trace_import(name='math', code='from math import pow, sqrt',\n    attributes={'pow': '', 'sqrt': ''})\n"
+        expected = (
+            "lineapy_tracer.trace_import(name='math', code='from math import"
+            " pow, sqrt',\n    attributes={'pow': '', 'sqrt': ''})\n"
+        )
         self._check_equality(import_code, expected)
 
     def test_visit_call(self):
+        # FIXME
         pass
 
     def test_visit_assign(self):
+        # FIXME
         pass
+
+    def test_lean_publish_visit_call(self):
+        publish_code = "lineapy.linea_publish(a)"
+        expected = "lineapy_tracer.publish(variable_name='a')\n"
+        self._check_equality(publish_code, expected)
+        publish_code_with_comment = "lineapy.linea_publish(a, 'test artifact')"
+        expected_with_comment = (
+            "lineapy_tracer.publish(variable_name='a', description='test"
+            " artifact')\n"
+        )
+        self._check_equality(publish_code_with_comment, expected_with_comment)
