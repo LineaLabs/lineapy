@@ -1,5 +1,5 @@
 import os.path as path
-from ast import AST
+from ast import AST, dump
 from datetime import datetime
 from os import remove
 from typing import Optional, List
@@ -48,8 +48,8 @@ def compare_ast(node1: AST, node2: AST):
     """
     Compare two AST trees, ignoring offset information.
     """
-    s1 = pformat(node1, show_offsets=False)
-    s2 = pformat(node2, show_offsets=False)
+    s1 = dump(node1)
+    s2 = dump(node2)
     return s1 == s2
 
 

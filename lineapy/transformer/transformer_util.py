@@ -76,7 +76,7 @@ def synthesize_tracer_call_ast(
             ),
             ast.keyword(
                 arg="arguments",
-                value=ast.List(elts=argument_nodes),
+                value=ast.List(elts=argument_nodes, ctx=ast.Load()),
             ),
         ],
     )

@@ -186,19 +186,20 @@ class NodeTransformer(ast.NodeTransformer):
             index = self._get_index(subscript_target)
             # note: isinstance(index, ast.List) only works for pandas, not Python lists
             if (
-                    isinstance(index, ast.Constant)
-                    or isinstance(index, ast.Name)
-                    or isinstance(index, ast.List)
-                    or isinstance(index, ast.Slice)
+                isinstance(index, ast.Constant)
+                or isinstance(index, ast.Name)
+                or isinstance(index, ast.List)
+                or isinstance(index, ast.Slice)
             ):
                 argument_nodes = [
                     self.visit(subscript_target.value),
                     self.visit(index),
                     self.visit(node.value),
                 ]
-                return synthesize_tracer_call_ast(
+                call = synthesize_tracer_call_ast(
                     list.__setitem__.__name__, argument_nodes, node
                 )
+                return ast.Expr(value=call)
 
             raise NotImplementedError(
                 "Assignment for Subscript supported only for Constant and Name indices."
@@ -257,6 +258,9 @@ class NodeTransformer(ast.NodeTransformer):
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
         return synthesize_tracer_call_ast(op.__name__, argument_nodes, node)
 
+    def visit_Compare(self, node: ast.Compare) -> ast.Call:
+        pass
+
     def visit_Slice(self, node: ast.Slice) -> ast.Call:
         slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
         if node.step is not None:
@@ -267,9 +271,9 @@ class NodeTransformer(ast.NodeTransformer):
         args = []
         index = self._get_index(node)
         if (
-                isinstance(index, ast.Name)
-                or isinstance(index, ast.Constant)
-                or isinstance(index, ast.List)
+            isinstance(index, ast.Name)
+            or isinstance(index, ast.Constant)
+            or isinstance(index, ast.List)
         ):
             args.append(self.visit(index))
         elif isinstance(index, ast.Slice):

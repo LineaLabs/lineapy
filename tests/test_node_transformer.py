@@ -1,10 +1,9 @@
-from ast import parse
-from astor import to_source
+from ast import parse, dump
 
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import internal_warning_log
 from tests.stub_data.graph_with_import import import_code
-from tests.util import compare_ast, strip_non_letter_num
+from tests.util import compare_ast
 
 
 class TestNodeTransformer:
@@ -20,16 +19,16 @@ class TestNodeTransformer:
         assert compare_ast(tree1, tree3)
 
     @staticmethod
-    def _check_equality(original_code: str, expected_transformed: str) -> None:
+    def _check_equality(original_code: str, expected_transformed: str):
         node_transformer = NodeTransformer(original_code)
         tree = parse(original_code)
         new_tree = node_transformer.visit(tree)
-        new_code = to_source(new_tree)
-        new_code_stripped = strip_non_letter_num(new_code)
-        expected_transformed_stripped = strip_non_letter_num(expected_transformed)
-        if new_code_stripped != expected_transformed_stripped:
-            internal_warning_log(new_code_stripped)
-            internal_warning_log(expected_transformed_stripped)
+        expected_tree = parse(expected_transformed)
+        print("Transformed:", dump(new_tree, indent=2))
+        print("Expected:", dump(expected_tree, indent=2))
+        if not compare_ast(new_tree, expected_tree):
+            internal_warning_log("Transformed:\t" + dump(new_tree))
+            internal_warning_log("Expected:\t" + dump(expected_tree))
             assert False
 
     def test_visit_import(self):
