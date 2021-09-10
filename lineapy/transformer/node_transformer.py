@@ -1,12 +1,12 @@
 import ast
-from typing import cast
 import operator
-
-from lineapy import linea_publish
-from lineapy.utils import UserError
 from typing import Optional, cast, Union
 
-from lineapy.instrumentation.tracer import Tracer, Variable
+from lineapy import linea_publish
+from lineapy.constants import LINEAPY_TRACER_NAME
+from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer import Variable
+from lineapy.lineabuiltins import __build_list__
 from lineapy.transformer.transformer_util import (
     extract_concrete_syntax_from_node,
     get_call_function_name,
@@ -14,11 +14,7 @@ from lineapy.transformer.transformer_util import (
     synthesize_tracer_call_ast,
     turn_none_to_empty_str,
 )
-
-from lineapy.instrumentation.tracer import Tracer
-from lineapy.constants import LINEAPY_TRACER_NAME
 from lineapy.utils import UserError, InvalidStateError
-from lineapy.lineabuiltins import __build_list__
 
 
 def turn_none_to_empty_str(a: Optional[str]):
@@ -42,7 +38,7 @@ class NodeTransformer(ast.NodeTransformer):
         return code
 
     @staticmethod
-    def _get_index(subscript: ast.Subscript) -> Any:
+    def _get_index(subscript: ast.Subscript) -> ast.AST:
         if isinstance(subscript.slice, ast.Index):
             return subscript.slice.value
         return subscript.slice
@@ -190,10 +186,10 @@ class NodeTransformer(ast.NodeTransformer):
             index = self._get_index(subscript_target)
             # note: isinstance(index, ast.List) only works for pandas, not Python lists
             if (
-                isinstance(index, ast.Constant)
-                or isinstance(index, ast.Name)
-                or isinstance(index, ast.List)
-                or isinstance(index, ast.Slice)
+                    isinstance(index, ast.Constant)
+                    or isinstance(index, ast.Name)
+                    or isinstance(index, ast.List)
+                    or isinstance(index, ast.Slice)
             ):
                 argument_nodes = [
                     self.visit(subscript_target.value),
@@ -201,7 +197,7 @@ class NodeTransformer(ast.NodeTransformer):
                     self.visit(node.value),
                 ]
                 return synthesize_tracer_call_ast(
-                    list.__setitem__.__name__, argument_nodes, code
+                    list.__setitem__.__name__, argument_nodes, node
                 )
 
             raise NotImplementedError(
@@ -262,21 +258,18 @@ class NodeTransformer(ast.NodeTransformer):
         return synthesize_tracer_call_ast(op.__name__, argument_nodes, node)
 
     def visit_Slice(self, node: ast.Slice) -> ast.Call:
-        code = self._get_code_from_node(node)
         slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
         if node.step is not None:
             slice_arguments.append(self.visit(node.step))
-        return synthesize_tracer_call_ast(slice.__name__, slice_arguments, code)
+        return synthesize_tracer_call_ast(slice.__name__, slice_arguments, node)
 
     def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
-        # Currently only support Constant, Name, Tuples of Constant and Name.
-        # TODO: support slices, e.g., x[1:2]
         args = []
         index = self._get_index(node)
         if (
-            isinstance(index, ast.Name)
-            or isinstance(index, ast.Constant)
-            or isinstance(index, ast.List)
+                isinstance(index, ast.Name)
+                or isinstance(index, ast.Constant)
+                or isinstance(index, ast.List)
         ):
             args.append(self.visit(index))
         elif isinstance(index, ast.Slice):
@@ -285,7 +278,7 @@ class NodeTransformer(ast.NodeTransformer):
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
             args.insert(0, self.visit(node.value))
-            return synthesize_tracer_call_ast(operator.getitem.__name__, args, node)
+            return synthesize_tracer_call_ast(list.__getitem__.__name__, args, node)
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
         else:

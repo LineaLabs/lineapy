@@ -142,10 +142,10 @@ class TestNodeTransformer:
             )
             self._check_equality(simple_op, expected_simple_op)
 
-    def test_subscript(self):
+    def test_visit_subscript(self):
         simple = "ls[0]"
         expected = (
-            "lineapy_tracer.call(function_name='getitem', syntax_dictionary={  "
+            "lineapy_tracer.call(function_name='__getitem__', syntax_dictionary={  "
             "              'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
             " 'end_col_offset': 5},  arguments=[Variable('ls'), 0])\n"
         )
@@ -153,17 +153,113 @@ class TestNodeTransformer:
 
         simple_var = "ls[a]"
         expected_var = (
-            "lineapy_tracer.call(function_name='getitem',syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':5},arguments=[Variable('ls'),"
+            "lineapy_tracer.call(function_name='__getitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':5},"
+            "arguments=[Variable('ls'),"
             " Variable('a')])\n"
         )
         self._check_equality(simple_var, expected_var)
 
+        simple_slice = "ls[1:2]"
+        expected_simple_slice = (
+            "lineapy_tracer.call(function_name='__getitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':7},"
+            "arguments=[Variable('ls'),"
+            "lineapy_tracer.call(function_name='slice',"
+            "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':6},arguments=[1,2])])"
+        )
+        self._check_equality(simple_slice, expected_simple_slice)
+
+        variable_slice = "ls[1:a]"
+        expected_variable_slice = (
+            "lineapy_tracer.call(function_name='__getitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':7},"
+            "arguments=[Variable('ls'),"
+            "lineapy_tracer.call(function_name='slice',"
+            "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':6},"
+            "arguments=[1,Variable('a')])])"
+        )
+        self._check_equality(variable_slice, expected_variable_slice)
+
+        simple_list = "ls[[1,2]]"
+        expected_simple_list = (
+            "lineapy_tracer.call(function_name='__getitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':9},"
+            "arguments=[Variable('ls'),"
+            "lineapy_tracer.call(function_name='__build_list__',"
+            "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':8},"
+            "arguments=[1,2])])"
+        )
+        self._check_equality(simple_list, expected_simple_list)
+
+        variable_list = "ls[[1,a]]"
+        expected_variable_list = (
+            "lineapy_tracer.call(function_name='__getitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':9},"
+            "arguments=[Variable('ls'),"
+            "lineapy_tracer.call(function_name='__build_list__',"
+            "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':8},"
+            "arguments=[1,Variable('a')])])"
+        )
+        self._check_equality(variable_list, expected_variable_list)
+
+    def test_visit_assign_subscript(self):
         simple_assign = "ls[0] = 1"
         expected_simple_assign = (
-            "lineapy_tracer.call(function_name='setitem',syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':9},arguments=[Variable('ls'),"
+            "lineapy_tracer.call(function_name='__setitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':9},"
+            "arguments=[Variable('ls'),"
             " 0, 1])\n"
         )
         self._check_equality(simple_assign, expected_simple_assign)
+
+        simple_variable_assign = "ls[a] = b"
+        expected_variable_assign = (
+            "lineapy_tracer.call(function_name='__setitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':9},"
+            "arguments=[Variable('ls'),"
+            " Variable('a'), Variable('b')])\n"
+        )
+        self._check_equality(simple_variable_assign, expected_variable_assign)
+
+        simple_slice_assign = "ls[1:2] = [1]"
+        expected_simple_slice_assign = (
+            "lineapy_tracer.call(function_name='__setitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':13},"
+            "arguments=[Variable('ls'),"
+            "lineapy_tracer.call(function_name='slice',"
+            "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':6},"
+            "arguments=[1,2]),"
+            "lineapy_tracer.call(function_name='__build_list__',"
+            "syntax_dictionary={'lineno':1,'col_offset':10,'end_lineno':1,'end_col_offset':13},arguments=[1])])\n"
+        )
+        self._check_equality(simple_slice_assign, expected_simple_slice_assign)
+
+        variable_slice_assign = "ls[1:a] = [b]"
+        expected_variable_slice_assign = (
+            "lineapy_tracer.call(function_name='__setitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':13},"
+            "arguments=[Variable('ls'),"
+            "lineapy_tracer.call(function_name='slice',"
+            "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':6},"
+            "arguments=[1,Variable('a')]),"
+            "lineapy_tracer.call(function_name='__build_list__',"
+            "syntax_dictionary={'lineno':1,'col_offset':10,'end_lineno':1,'end_col_offset':13},"
+            "arguments=[Variable('b')])])\n"
+        )
+        self._check_equality(variable_slice_assign, expected_variable_slice_assign)
+
+        simple_list_assign = "ls[[1,2]] = [1,2]"
+        expected_simple_list_assign = (
+            "lineapy_tracer.call(function_name='__setitem__',"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':17},"
+            "arguments=[Variable('ls'),"
+            "lineapy_tracer.call(function_name='__build_list__',"
+            "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':8},"
+            "arguments=[1,2]),lineapy_tracer.call(function_name='__build_list__',"
+            "syntax_dictionary={'lineno':1,'col_offset':12,'end_lineno':1,'end_col_offset':17},arguments=[1,2])])\n"
+        )
+        self._check_equality(simple_list_assign, expected_simple_list_assign)
 
     def test_lean_publish_visit_call(self):
         publish_code = "lineapy.linea_publish(a)"
