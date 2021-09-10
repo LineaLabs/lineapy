@@ -46,7 +46,7 @@ class NodeTransformer(ast.NodeTransformer):
         Similar to `visit_ImportFrom`, slightly different class syntax
         """
         result = []
-        code = self._get_code_from_node(node)
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
         for lib in node.names:
             result.append(
                 ast.Expr(
@@ -66,8 +66,8 @@ class NodeTransformer(ast.NodeTransformer):
                                 value=ast.Constant(value=lib.name),
                             ),
                             ast.keyword(
-                                arg="code",
-                                value=ast.Constant(value=code),
+                                arg="syntax_dictionary",
+                                value=syntax_dictionary,
                             ),
                             ast.keyword(
                                 arg="alias",
@@ -81,14 +81,16 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_ImportFrom(self, node):
         """ """
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
         keys = []
         values = []
         for alias in node.names:
             keys.append(ast.Constant(value=alias.name))
             # needed turn_none_to_empty_str because of some issue with pydantic
-            values.append(ast.Constant(value=turn_none_to_empty_str(alias.asname)))
+            values.append(
+                ast.Constant(value=turn_none_to_empty_str(alias.asname))
+            )
 
-        code = self._get_code_from_node(node)
         result = ast.Expr(
             ast.Call(
                 func=ast.Attribute(
@@ -98,8 +100,12 @@ class NodeTransformer(ast.NodeTransformer):
                 ),
                 args=[],
                 keywords=[
-                    ast.keyword(arg="name", value=ast.Constant(value=node.module)),
-                    ast.keyword(arg="code", value=ast.Constant(value=code)),
+                    ast.keyword(
+                        arg="name", value=ast.Constant(value=node.module)
+                    ),
+                    ast.keyword(
+                        arg="syntax_dictionary", value=syntax_dictionary
+                    ),
                     ast.keyword(
                         arg="attributes",
                         value=ast.Dict(keys=keys, values=values),
@@ -173,7 +179,9 @@ class NodeTransformer(ast.NodeTransformer):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
             index = subscript_target.slice.value
-            if not isinstance(index, ast.Constant) or isinstance(index, ast.Name):
+            if not isinstance(index, ast.Constant) or isinstance(
+                index, ast.Name
+            ):
                 raise NotImplementedError(
                     "Assignment for Subscript supported only for Constant and"
                     " Name indices."
@@ -188,7 +196,9 @@ class NodeTransformer(ast.NodeTransformer):
             )
 
         if type(node.targets[0]) is not ast.Name:
-            raise NotImplementedError("Other assignment types are not supported")
+            raise NotImplementedError(
+                "Other assignment types are not supported"
+            )
 
         variable_name = node.targets[0].id  # type: ignore
         call_ast = ast.Call(
@@ -254,14 +264,18 @@ class NodeTransformer(ast.NodeTransformer):
         ):
             args.append(self.visit(node.slice.value))
         else:
-            raise NotImplementedError("Subscript for multiple indices not supported.")
+            raise NotImplementedError(
+                "Subscript for multiple indices not supported."
+            )
         if isinstance(node.ctx, ast.Load):
             args.insert(0, self.visit(node.value))
             return synthesize_tracer_call_ast(
                 operator.getitem.__name__, args, syntax_dictionary
             )
         elif isinstance(node.ctx, ast.Del):
-            raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
+            raise NotImplementedError(
+                "Subscript with ctx=ast.Del() not supported."
+            )
         else:
             raise InvalidStateError(
                 "Subscript with ctx=ast.Load() should have been handled by"
