@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, send_file, make_response, request
 from sqlalchemy import func
 import io
 from PIL import Image
+from types import Union
 
 from lineapy.app.app_db import lineadb
 from lineapy.data.types import *
@@ -32,7 +33,7 @@ def latest_version_of_node(node_id):
     return qry.version
 
 
-def parse_version(version, node_id):
+def parse_version(version: Union[str, int], node_id: UUID) -> int:
     if version == LATEST_NODE_VERSION:
         return latest_version_of_node(node_id)
     return int(version)
