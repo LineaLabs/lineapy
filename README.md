@@ -30,12 +30,16 @@ black lineapy/ --check
 pytest
 ```
 
-For end to end test along with [linea-server](https://github.com/LineaLabs/linea-server)
+
+### Static end to end test/demo
+For a static end to end test along with [linea-server](https://github.com/LineaLabs/linea-server)
 
 ```bash
 python tests/setup_integrated_tests.py
 python lineapy/app/application.py 
 ```
+
+`setup_integrated_tests.py` creates the stub data that the flask application then serves.
 
 Then head over to [linea-server](https://github.com/LineaLabs/linea-server) and 
 run the usual commands there (`python app/application.py` and `yarn start` in 
@@ -54,6 +58,10 @@ ssh -N -f -L localhost:3000:0.0.0.0:3000 ubuntu@3.18.79.230
 ssh -N -f -L localhost:5000:0.0.0.0:5000 ubuntu@3.18.79.230
 ssh -N -f -L localhost:4000:0.0.0.0:4000 ubuntu@3.18.79.230
 ```
+
+## Running the servers live
+
+Coming soon!
 
 ## Jupyter
 
