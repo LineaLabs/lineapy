@@ -1,5 +1,4 @@
 import ast
-import operator
 from typing import Optional, cast, Union
 
 from lineapy import linea_publish
@@ -192,12 +191,14 @@ class NodeTransformer(ast.NodeTransformer):
                 or isinstance(index, ast.Slice)
             ):
                 argument_nodes = [
-                    self.visit(subscript_target.value),
                     self.visit(index),
                     self.visit(node.value),
                 ]
                 call = synthesize_tracer_call_ast(
-                    list.__setitem__.__name__, argument_nodes, node
+                    list.__setitem__.__name__,
+                    argument_nodes,
+                    node,
+                    self.visit(subscript_target.value),
                 )
                 return ast.Expr(value=call)
 
@@ -240,26 +241,32 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
         ast_to_op_map = {
-            ast.Add: operator.add,
-            ast.Sub: operator.sub,
-            ast.Mult: operator.mul,
-            ast.Div: operator.truediv,
-            ast.FloorDiv: operator.floordiv,
-            ast.Mod: operator.mod,
-            ast.Pow: operator.pow,
-            ast.LShift: operator.lshift,
-            ast.RShift: operator.rshift,
-            ast.BitOr: operator.or_,
-            ast.BitXor: operator.xor,
-            ast.BitAnd: operator.and_,
-            ast.MatMult: operator.matmul,
+            ast.Add: int.__add__.__name__,
+            ast.Sub: int.__sub__.__name__,
+            ast.Mult: int.__mul__.__name__,
+            ast.Div: int.__truediv__.__name__,
+            ast.FloorDiv: int.__floordiv__.__name__,
+            ast.Mod: int.__mod__.__name__,
+            ast.Pow: int.__pow__.__name__,
+            ast.LShift: bool.__lshift__.__name__,
+            ast.RShift: bool.__rshift__.__name__,
+            ast.BitOr: bool.__or__.__name__,
+            ast.BitXor: bool.__xor__.__name__,
+            ast.BitAnd: bool.__and__.__name__,
+            ast.MatMult: "__matmul__",  # hardcoding since ? type has it. operator.__matmul__.__name__ = "matmul"
         }
         op = ast_to_op_map[node.op.__class__]
-        argument_nodes = [self.visit(node.left), self.visit(node.right)]
-        return synthesize_tracer_call_ast(op.__name__, argument_nodes, node)
+        argument_nodes = [self.visit(node.right)]
+        return synthesize_tracer_call_ast(
+            op, argument_nodes, node, function_module=self.visit(node.left)
+        )
 
-    def visit_Compare(self, node: ast.Compare) -> ast.Call:
-        pass
+    # def visit_Compare(self, node: ast.Compare) -> ast.Call:
+    #     # ast_to_op_map = {
+    #     #     ast.Eq:
+    #     # }
+    #     synthesize_tracer_call_ast(node.ops[0], [node.left, node.comparators[0]], node)
+    #     pass
 
     def visit_Slice(self, node: ast.Slice) -> ast.Call:
         slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
@@ -281,8 +288,9 @@ class NodeTransformer(ast.NodeTransformer):
         else:
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
-            args.insert(0, self.visit(node.value))
-            return synthesize_tracer_call_ast(list.__getitem__.__name__, args, node)
+            return synthesize_tracer_call_ast(
+                list.__getitem__.__name__, args, node, self.visit(node.value)
+            )
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
         else:
