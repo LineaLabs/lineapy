@@ -1,4 +1,4 @@
-from lineapy.data.types import NodeValue, Node
+from lineapy.data.types import NodeValueType, Node
 from lineapy.db.asset_manager.base import DataAssetManager
 
 
@@ -11,6 +11,6 @@ class S3DataAssetManager(DataAssetManager):
         # TODO
         ...
 
-    def read_node_value(self, uuid: str) -> NodeValue:
+    def read_node_value(self, uuid: str) -> NodeValueType:
         # TODO
         ...

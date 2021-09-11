@@ -1,3 +1,4 @@
+from uuid import UUID
 import pytest
 
 import lineapy.app.app_db
@@ -12,10 +13,10 @@ def test_db_mock(monkeypatch):
 
 
 # NOTE: @Yifan please uncomment this test when you've implemented line and column numbers in transformer
-# def test_executor_and_db_apis(test_db_mock):
-#     from lineapy.app.app_db import lineadb
+def test_executor_and_db_apis(test_db_mock):
+    from lineapy.app.app_db import lineadb
 
-#     s = lineadb.data_asset_manager.read_node_value(
-#         UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"), 1
-#     )
-#     assert s == 25
+    s = lineadb.data_asset_manager.read_node_value(
+        UUID("ccebc2e9-d710-4943-8bae-947fa1492d7f"), 1
+    )
+    assert s == 25

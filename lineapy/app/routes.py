@@ -44,12 +44,12 @@ def parse_artifact_orm(artifact_orm, version):
     artifact_json = lineadb.jsonify_artifact(artifact)
 
     artifact_value = lineadb.get_node_value(artifact.id, version)
-    if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
-        result = RelationalLineaDB.cast_serialized(
+    if artifact.value_type in [ValueType.value, ValueType.array]:
+        result = RelationalLineaDB.get_literal_value_from_string(
             artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         artifact_json["text"] = result
-    elif artifact.value_type == CHART_TYPE:
+    elif artifact.value_type == ValueType.chart:
         artifact_json["image"] = (
             BACKEND_REQUEST_HOST
             + "/api/v1/images/"
@@ -57,7 +57,7 @@ def parse_artifact_orm(artifact_orm, version):
             + "/"
             + str(version)
         )
-    elif artifact.value_type == DATASET_TYPE:
+    elif artifact.value_type == ValueType.dataset:
         result = LineaDB.cast_dataset(artifact_value)
         artifact_json["text"] = result
     return artifact_json
@@ -68,7 +68,9 @@ def home():
     return "ok"
 
 
-@routes_blueprint.route("/api/v1/executor/execute/<artifact_id>", methods=["GET"])
+@routes_blueprint.route(
+    "/api/v1/executor/execute/<artifact_id>", methods=["GET"]
+)
 def execute(artifact_id):
     artifact_id = UUID(artifact_id)
     artifact = lineadb.get_artifact(artifact_id)
@@ -109,12 +111,12 @@ def execute(artifact_id):
 
     asset["version"] = version
 
-    if artifact.value_type in [VALUE_TYPE, ARRAY_TYPE]:
-        result = RelationalLineaDB.cast_serialized(
+    if artifact.value_type in [ValueType.value, ValueType.array]:
+        result = RelationalLineaDB.get_literal_value_from_string(
             artifact_value, RelationalLineaDB.get_type(artifact_value)
         )
         asset["text"] = result
-    elif artifact.value_type == CHART_TYPE:
+    elif artifact.value_type == ValueType.chart:
         asset["image"] = (
             BACKEND_REQUEST_HOST
             + "/api/v1/images/"
@@ -122,7 +124,7 @@ def execute(artifact_id):
             + "/"
             + str(version)
         )
-    elif artifact.value_type == DATASET_TYPE:
+    elif artifact.value_type == ValueType.dataset:
         result = RelationalLineaDB.cast_dataset(artifact_value)
         asset["text"] = result
 
@@ -131,7 +133,9 @@ def execute(artifact_id):
     return response
 
 
-@routes_blueprint.route("/api/v1/executor/executions/<artifact_id>", methods=["GET"])
+@routes_blueprint.route(
+    "/api/v1/executor/executions/<artifact_id>", methods=["GET"]
+)
 def get_executions(artifact_id):
     artifact_id = UUID(artifact_id)
 
@@ -152,7 +156,9 @@ def get_executions(artifact_id):
 def get_artifacts():
     artifact_orms = lineadb.session.query(ArtifactORM).all()
     results = [
-        parse_artifact_orm(artifact_orm, latest_version_of_node(artifact_orm.id))
+        parse_artifact_orm(
+            artifact_orm, latest_version_of_node(artifact_orm.id)
+        )
         for artifact_orm in artifact_orms
     ]
 
@@ -166,7 +172,9 @@ def get_artifacts():
 def get_artifact(artifact_id):
     artifact_id = UUID(artifact_id)
     artifact_orm = (
-        lineadb.session.query(ArtifactORM).filter(ArtifactORM.id == artifact_id).first()
+        lineadb.session.query(ArtifactORM)
+        .filter(ArtifactORM.id == artifact_id)
+        .first()
     )
 
     if artifact_orm is not None:
@@ -219,15 +227,18 @@ def get_node_value(node_id):
     node = lineadb.get_node_by_id(node_id)
     node_value = lineadb.get_node_value(node_id, version)
     node_value_type = RelationalLineaDB.get_node_value_type(node_value)
-    if node_value_type == DATASET_TYPE:
+    if node_value_type == ValueType.dataset:
         node_value = RelationalLineaDB.cast_dataset(node_value)
-    elif node_value_type == VALUE_TYPE:
-        node_value = RelationalLineaDB.cast_serialized(
+    elif node_value_type == ValueType.value:
+        node_value = RelationalLineaDB.get_literal_value_from_string(
             node_value, RelationalLineaDB.get_type(node_value)
         )
 
     node_name = None
-    if node.node_type is NodeType.CallNode and node.assigned_variable_name is not None:
+    if (
+        node.node_type is NodeType.CallNode
+        and node.assigned_variable_name is not None
+    ):
         node_name = node.assigned_variable_name
     else:
         node_name = get_segment_from_code(

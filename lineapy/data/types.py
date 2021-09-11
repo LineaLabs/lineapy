@@ -65,12 +65,7 @@ class NodeContext(BaseModel):
         orm_mode = True
 
 
-# NodeValue = TypeVar("NodeValue")
-# NodeValue = NewType('NodeValue', Optional[Any])
-NodeValue = Any
-
-
-# Yifan note: something weird here about optional and NewType... https://github.com/python/mypy/issues/4580; tried to use TypeVar but also kinda weird. Seems hairy https://stackoverflow.com/questions/59360567/define-a-custom-type-that-behaves-like-typing-any
+NodeValueType = Any
 
 
 class NodeType(Enum):
@@ -103,12 +98,39 @@ class StateDependencyType(Enum):
     Write = 2
 
 
-# class DataAssetType(Enum):
-CHART_TYPE = "chart"
-ARRAY_TYPE = "array"
-DATASET_TYPE = "dataset"
-CODE_TYPE = "code"
-VALUE_TYPE = "value"
+class ValueType(Enum):
+    """
+    Lower case because the API with the frontend assume the characters "chart"
+      exactly as is.
+    FIXME---rename (need coordination with linea-server):
+    - really `dataset` is a table
+    - `value` means its a literal  (e.g., int/str)
+    """
+
+    chart = 1
+    array = 2
+    dataset = 3
+    code = 4
+    value = 5  # includes int, string, bool
+
+
+class NodeValue(BaseModel):
+    node_id: LineaID
+    version: int
+    value: NodeValueType
+    value_type: ValueType
+    virtual: bool
+    timestamp: datetime
+
+    class Config:
+        orm_mode = True
+
+
+# CHART_TYPE = "chart"
+# ARRAY_TYPE = "array"
+# DATASET_TYPE = "dataset"
+# CODE_TYPE = "code"
+# VALUE_TYPE = "value"
 
 
 class Execution(BaseModel):
@@ -203,13 +225,13 @@ class CallNode(Node):
     # value of the result, filled at runtime
     # TODO: maybe we should create a new class to differentiate?
     #       this run time value also applies to StateChange.
-    value: Optional[NodeValue] = None
+    value: Optional[NodeValueType] = None
 
 
 class LiteralAssignNode(Node):
     node_type: NodeType = NodeType.LiteralAssignNode
     assigned_variable_name: str
-    value: NodeValue
+    value: NodeValueType
     value_node_id: Optional[LineaID]
 
 
@@ -256,7 +278,7 @@ class StateChangeNode(Node):
     #   change (can be another state change node)
     initial_value_node_id: LineaID
     state_dependency_type: StateDependencyType
-    value: Optional[NodeValue]
+    value: Optional[NodeValueType]
 
 
 class LoopNode(SideEffectsNode):

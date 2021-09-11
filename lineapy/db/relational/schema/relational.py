@@ -1,4 +1,41 @@
+import json
+from datetime import datetime
+from uuid import UUID
+
+from sqlalchemy import (
+    Column,
+    UniqueConstraint,
+    Integer,
+    String,
+    Enum,
+    ForeignKey,
+    Table,
+    DateTime,
+    PickleType,
+    Float,
+    types,
+)
+from sqlalchemy.dialects.mysql.base import MSBinary
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import (
+    relationship,
+    declared_attr,  # type: ignore
+)
+from sqlalchemy.sql.sqltypes import Boolean, Float, Text
+
+from lineapy.data.types import (
+    SessionType,
+    ValueType,
+    NodeType,
+    StateDependencyType,
+    StorageType,
+    LiteralType,
+)
+
 """ Relationships
+
+Warning: non exhaustive.
+
 SessionContext
 - Library (One to Many)
 - HardwareSpec (Many to One)
@@ -27,47 +64,10 @@ LiteralAssignNode
 VariableAliasNode
 - VariableAliasNode/CallNode (Many to One)
 
-ConditionNode
-- Node (Many to Many)
-
 StateChangeNode
 - SideEffectsNode (One to One)
 - Node (Many to One)
-
 """
-
-import json
-from datetime import datetime
-from uuid import UUID
-
-from sqlalchemy import (
-    Column,
-    UniqueConstraint,
-    Integer,
-    String,
-    Enum,
-    ForeignKey,
-    Table,
-    DateTime,
-    PickleType,
-    Float,
-    types,
-)
-from sqlalchemy.dialects.mysql.base import MSBinary
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import (
-    relationship,
-    declared_attr,  # type: ignore
-)
-from sqlalchemy.sql.sqltypes import Boolean, Float, Text
-
-from lineapy.data.types import (
-    SessionType,
-    NodeType,
-    StateDependencyType,
-    StorageType,
-    LiteralType,
-)
 
 Base = declarative_base()
 
@@ -143,7 +143,9 @@ class SessionContextORM(Base):  # type: ignore
 
 class LibraryORM(Base):  # type: ignore
     __tablename__ = "library"
-    __table_args__ = (UniqueConstraint("session_id", "name", "version", "path"),)
+    __table_args__ = (
+        UniqueConstraint("session_id", "name", "version", "path"),
+    )
     id = Column(LineaIDORM, primary_key=True)
     session_id = Column(LineaIDORM, ForeignKey("session_context.id"))
     name = Column(String)
@@ -166,7 +168,7 @@ artifact_project_association_table = Table(
 )
 
 
-class ProjectORM(Base):
+class ProjectORM(Base):  # type: ignore
     __tablename__ = "project"
     id = Column(LineaIDORM, primary_key=True)
     name = Column(String, nullable=False)
@@ -174,7 +176,9 @@ class ProjectORM(Base):
 
 class ExecutionORM(Base):  # type: ignore
     __tablename__ = "execution"
-    artifact_id = Column(LineaIDORM, ForeignKey("artifact.id"), primary_key=True)
+    artifact_id = Column(
+        LineaIDORM, ForeignKey("artifact.id"), primary_key=True
+    )
     version = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
     execution_time = Column(Float)
@@ -185,6 +189,7 @@ class NodeValueORM(Base):  # type: ignore
     node_id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
     value = Column(PickleType, nullable=True)
+    value_type = Column(Enum(ValueType))
     virtual = Column(Boolean)  # if True, value is not materialized in cache
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 
@@ -286,7 +291,9 @@ call_node_association_table = Table(
     "call_node_association",
     Base.metadata,
     Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
-    Column("argument_node_id", ForeignKey("argument_node.id"), primary_key=True),
+    Column(
+        "argument_node_id", ForeignKey("argument_node.id"), primary_key=True
+    ),
 )
 
 
@@ -354,7 +361,9 @@ class FunctionDefinitionNodeORM(SideEffectsNodeORM):
     __tablename__ = "function_definition_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.FunctionDefinitionNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(
+        LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True
+    )
 
     @declared_attr
     def value(cls):
@@ -378,14 +387,18 @@ class LoopNodeORM(SideEffectsNodeORM):
     __tablename__ = "loop_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.LoopNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(
+        LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True
+    )
 
 
 class ConditionNodeORM(SideEffectsNodeORM):
     __tablename__ = "condition_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.ConditionNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(
+        LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True
+    )
 
 
 class DataSourceNodeORM(NodeORM):

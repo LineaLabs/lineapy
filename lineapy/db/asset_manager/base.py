@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from lineapy.data.types import Node, NodeValue, NodeType, LineaID
+from lineapy.data.types import Node, NodeValueType, NodeType, LineaID
 
 
 class DataAssetManager(ABC):
@@ -16,7 +16,7 @@ class DataAssetManager(ABC):
         ...
 
     @abstractmethod
-    def read_node_value(self, id: LineaID, version: int) -> NodeValue:
+    def read_node_value(self, id: LineaID, version: int) -> NodeValueType:
         """
         This methods needs to be able to look up a mapping between
         the uuids and the URNs for the serialized results.

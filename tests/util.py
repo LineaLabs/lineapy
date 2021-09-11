@@ -11,6 +11,7 @@ from lineapy import ExecutionMode
 from lineapy.data.types import (
     SessionContext,
     SessionType,
+    ValueType,
 )
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
@@ -21,7 +22,9 @@ def strip_non_letter_num(s: str):
     return sub("[\\s+]", "", s)
 
 
-def get_new_session(code: str, libraries: Optional[List] = None) -> SessionContext:
+def get_new_session(
+    code: str, libraries: Optional[List] = None
+) -> SessionContext:
     if libraries is None:
         libraries = []
     return SessionContext(
@@ -94,7 +97,7 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     test_db.add_node_id_to_artifact_table(
         artifact.id,
         context_id=context.id,
-        value_type=VALUE_TYPE,
+        value_type=ValueType.value,
         name="Graph With CSV Import",
         date_created="1372944000",
     )
@@ -109,7 +112,6 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import ExecutionORM
-    from lineapy.data.types import CHART_TYPE
 
     from tests.stub_data.graph_with_basic_image import (
         graph_with_basic_image as stub_graph,
@@ -126,7 +128,8 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         )
 
         img_data_node.access_path = (
-            path.abspath(path.join(__file__, "../..")) + "/lineapy/app/simple_data.png"
+            path.abspath(path.join(__file__, "../.."))
+            + "/lineapy/app/simple_data.png"
         )
 
     executor = Executor()
@@ -139,7 +142,7 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     test_db.add_node_id_to_artifact_table(
         resize_call.id,
         context_id=context.id,
-        value_type=CHART_TYPE,
+        value_type=ValueType.chart,
         name="Graph With Image",
         date_created="1372944000",
     )
