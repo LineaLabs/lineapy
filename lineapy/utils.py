@@ -1,9 +1,18 @@
 import sys
-from typing import Any, Optional
+from typing import Any, Optional, List
 from uuid import uuid4
 from time import time
 
-from lineapy.data.types import LiteralType, ValueType
+from lineapy.data.types import (
+    LiteralType,
+    ValueType,
+    Artifact,
+    Node,
+    NodeType,
+    NodeValue,
+    NodeValueType,
+)
+from lineapy.db.relational.schema.relational import NodeValueORM
 
 
 """
@@ -136,9 +145,7 @@ def jsonify_value(value: Any, value_type: ValueType) -> str:
     if value_type == ValueType.value:
         return str(value)
 
-    raise CaseNotHandledError(
-        f"Was not able to jsonify value of type {value_type}"
-    )
+    raise CaseNotHandledError(f"Was not able to jsonify value of type {value_type}")
 
 
 # get_node_value_type
@@ -174,14 +181,20 @@ def get_value_type(val: Any) -> ValueType:
     if "pandas" in sys.modules:
         import pandas  # this import should be a no-op
 
-        if isinstance(val, pandas.DataFrame):
+        if isinstance(val, pandas.core.frame.DataFrame):
             return ValueType.dataset  # FIXME
-        if isinstance(val, pandas.Series):
+        if isinstance(val, pandas.core.series.Series):
             return ValueType.dataset  # FIXME
 
-    raise CaseNotHandledError(
-        f"Do not know the type of {val}, type {type(val)}"
-    )
+    if "PIL" in sys.modules:
+        import PIL
+
+        if isinstance(val, PIL.PngImagePlugin.PngImageFile):
+            return ValueType.chart
+        if isinstance(val, PIL.Image.Image):
+            return ValueType.chart
+
+    raise CaseNotHandledError(f"Do not know the type of {val}, type {type(val)}")
 
 
 # def get_node_value_type(node_value):

@@ -35,7 +35,12 @@ from lineapy.db.asset_manager.local import (
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 from lineapy.execution.code_util import add_node_to_code, max_col_of_code
-from lineapy.utils import CaseNotHandledError, NullValueError, is_integer
+from lineapy.utils import (
+    CaseNotHandledError,
+    NullValueError,
+    is_integer,
+    get_literal_value_from_string,
+)
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
 
@@ -173,9 +178,7 @@ class RelationalLineaDB(LineaDB):
             if args["value_literal"] is not None:
                 args[
                     "value_literal_type"
-                ] = RelationalLineaDB.get_type_of_literal_value(
-                    args["value_literal"]
-                )
+                ] = RelationalLineaDB.get_type_of_literal_value(args["value_literal"])
 
         elif node.node_type is NodeType.CallNode:
             node = cast(CallNodeORM, node)
@@ -240,9 +243,9 @@ class RelationalLineaDB(LineaDB):
         elif node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNodeORM, node)
             if node.value is not None:
-                args[
-                    "value_type"
-                ] = RelationalLineaDB.get_type_of_literal_value(node.value)
+                args["value_type"] = RelationalLineaDB.get_type_of_literal_value(
+                    node.value
+                )
 
         node_orm = RelationalLineaDB.get_orm(node)(**args)
 
@@ -285,9 +288,7 @@ class RelationalLineaDB(LineaDB):
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
         """
-        self.session.query(ArtifactORM).filter(
-            ArtifactORM.id == node_id
-        ).delete()
+        self.session.query(ArtifactORM).filter(ArtifactORM.id == node_id).delete()
         self.session.commit()
 
     """
@@ -346,16 +347,12 @@ class RelationalLineaDB(LineaDB):
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNodeORM, node)
-            node.value = RelationalLineaDB.get_literal_value_from_string(
-                node.value, node.value_type
-            )
+            node.value = get_literal_value_from_string(node.value, node.value_type)
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNodeORM, node)
             if node.value_literal is not None:
-                node.value_literal = (
-                    RelationalLineaDB.get_literal_value_from_string(
-                        node.value_literal, node.value_literal_type
-                    )
+                node.value_literal = get_literal_value_from_string(
+                    node.value_literal, node.value_literal_type
                 )
         elif node.node_type is NodeType.ImportNode:
             node = cast(ImportNodeORM, node)
@@ -382,9 +379,7 @@ class RelationalLineaDB(LineaDB):
         ]:
             node = cast(SideEffectsNode, node)
             output_state_change_nodes = (
-                self.session.query(
-                    side_effects_output_state_change_association_table
-                )
+                self.session.query(side_effects_output_state_change_association_table)
                 .filter(
                     side_effects_output_state_change_association_table.c.side_effects_node_id
                     == node.id
@@ -394,14 +389,11 @@ class RelationalLineaDB(LineaDB):
 
             if output_state_change_nodes is not None:
                 node.output_state_change_nodes = [
-                    a.output_state_change_node_id
-                    for a in output_state_change_nodes
+                    a.output_state_change_node_id for a in output_state_change_nodes
                 ]
 
             input_state_change_nodes = (
-                self.session.query(
-                    side_effects_input_state_change_association_table
-                )
+                self.session.query(side_effects_input_state_change_association_table)
                 .filter(
                     side_effects_input_state_change_association_table.c.side_effects_node_id
                     == node.id
@@ -411,8 +403,7 @@ class RelationalLineaDB(LineaDB):
 
             if input_state_change_nodes is not None:
                 node.input_state_change_nodes = [
-                    a.input_state_change_node_id
-                    for a in input_state_change_nodes
+                    a.input_state_change_node_id for a in input_state_change_nodes
                 ]
 
             import_nodes = (
@@ -429,7 +420,7 @@ class RelationalLineaDB(LineaDB):
 
         return RelationalLineaDB.get_pydantic(node).from_orm(node)
 
-    def get_node_value(
+    def get_node_value_from_db(
         self, node_id: LineaIDAlias, version: int
     ) -> Optional[NodeValue]:
         value_orm = (
@@ -442,9 +433,7 @@ class RelationalLineaDB(LineaDB):
             )
             .first()
         )
-        if value_orm is not None:
-            return value_orm.value
-        return None
+        return value_orm
 
     def get_artifact(self, artifact_id: LineaIDAlias) -> Optional[Artifact]:
         return Artifact.from_orm(
@@ -453,98 +442,9 @@ class RelationalLineaDB(LineaDB):
             .first()
         )
 
-    def jsonify_artifact(self, artifact: Artifact) -> dict:
-        """
-        This function is called to create intermediates
-
-        NOTE/TODO:
-        - we skip some values whose type we don't currently handle
-        """
-        json_artifact = artifact.dict()
-
-        json_artifact["type"] = json_artifact["value_type"]
-        del json_artifact["value_type"]
-
-        json_artifact["date"] = json_artifact["date_created"]
-        del json_artifact["date_created"]
-
-        json_artifact["file"] = ""
-
-        json_artifact["code"] = {}
-        json_artifact["code"]["text"] = self.get_code_from_artifact_id(
-            artifact.id
-        )
-
-        tokens_json = []
-
-        for node in self.get_graph_from_artifact_id(artifact.id).nodes:
-            if node.node_type is not NodeType.CallNode:
-                continue
-
-            start_col = node.col_offset + 1
-            end_col = node.end_col_offset + 1
-            if node.assigned_variable_name is not None:
-                end_col = len(node.assigned_variable_name) + start_col
-
-            token_json = {
-                "id": node.id,
-                "line": node.lineno,
-                "start": start_col,
-                "end": end_col,
-            }
-
-            intermediate = (
-                self.session.query(NodeValueORM)
-                .filter(NodeValueORM.node_id == node.id)
-                .first()
-            )
-
-            if intermediate is None or intermediate.value is None:
-                continue
-
-            intermediate_value = intermediate.value
-
-            intermediate_value_type = RelationalLineaDB.get_node_value_type(
-                intermediate_value
-            )
-            if intermediate_value_type == ValueType.dataset:
-                intermediate_value = RelationalLineaDB.cast_dataset(
-                    intermediate_value
-                )
-            elif intermediate_value_type == ValueType.value:
-                intermediate_value = (
-                    RelationalLineaDB.get_literal_value_from_string(
-                        intermediate_value,
-                        RelationalLineaDB.get_type(intermediate_value),
-                    )
-                )
-            elif intermediate_value_type == ValueType.chart:
-                # FIXME
-                continue
-            elif intermediate_value_type == ValueType.array:
-                # FIXME
-                continue
-
-            intermediate = {
-                "file": "",
-                "id": node.id,
-                "name": "",
-                "type": intermediate_value_type,
-                "date": intermediate.timestamp,
-                "text": intermediate_value,
-            }
-            token_json["intermediate"] = intermediate
-            tokens_json.append(token_json)
-
-        json_artifact["code"]["tokens"] = tokens_json
-
-        return json_artifact
-
     def get_nodes_for_session(self, session_id: LineaIDAlias) -> List[Node]:
         node_orms = (
-            self.session.query(NodeORM)
-            .filter(NodeORM.session_id == session_id)
-            .all()
+            self.session.query(NodeORM).filter(NodeORM.session_id == session_id).all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
@@ -603,9 +503,7 @@ class RelationalLineaDB(LineaDB):
         artifacts = []
         for d_id in descendants:
             descendant_is_artifact = (
-                self.session.query(ArtifactORM)
-                .filter(ArtifactORM.id == d_id)
-                .first()
+                self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
                 is not None
             )
             descendant = program.get_node(d_id)

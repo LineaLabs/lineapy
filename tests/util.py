@@ -22,9 +22,7 @@ def strip_non_letter_num(s: str):
     return sub("[\\s+]", "", s)
 
 
-def get_new_session(
-    code: str, libraries: Optional[List] = None
-) -> SessionContext:
+def get_new_session(code: str, libraries: Optional[List] = None) -> SessionContext:
     if libraries is None:
         libraries = []
     return SessionContext(
@@ -72,7 +70,6 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.db.relational.schema.relational import (
         ExecutionORM,
     )
-    from lineapy.data.types import VALUE_TYPE
 
     from tests.stub_data.api_stub_graph import (
         graph_with_csv_import as stub_graph,
@@ -96,8 +93,6 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 
     test_db.add_node_id_to_artifact_table(
         artifact.id,
-        context_id=context.id,
-        value_type=ValueType.value,
         name="Graph With CSV Import",
         date_created="1372944000",
     )
@@ -128,8 +123,7 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         )
 
         img_data_node.access_path = (
-            path.abspath(path.join(__file__, "../.."))
-            + "/lineapy/app/simple_data.png"
+            path.abspath(path.join(__file__, "../..")) + "/lineapy/app/simple_data.png"
         )
 
     executor = Executor()
@@ -141,8 +135,6 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 
     test_db.add_node_id_to_artifact_table(
         resize_call.id,
-        context_id=context.id,
-        value_type=ValueType.chart,
         name="Graph With Image",
         date_created="1372944000",
     )

@@ -34,7 +34,6 @@ class DataAssetManager(ABC):
     # right now it's just a simple function that returns true if the callnode has an assignment, but in the future we should definitely add more logic
     @staticmethod
     def caching_decider(node: Node):
-        if node.node_type == NodeType.CallNode:
-            if hasattr(node, "assigned_variable_name"):
-                return True
+        if node.node_type == NodeType.CallNode and node.value is not None:
+            return True
         return False

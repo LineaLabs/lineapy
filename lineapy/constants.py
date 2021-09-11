@@ -34,6 +34,11 @@ LINEAPY_EXECUTION_MODE = "ExecutionMode"
 # no addressable file location
 DB_DATA_ASSET_MANAGER = "virtual"
 
+# HTTP constants
+BACKEND_REQUEST_HOST = "http://localhost:4000"
+
+LATEST_NODE_VERSION = "LATEST"
+
 
 class ExecutionMode(Enum):
     """
