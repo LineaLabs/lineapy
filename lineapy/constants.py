@@ -23,6 +23,8 @@ TEST_DATABASE_URI = f"sqlite:///{path.join(_base, 'test.sqlite')}"
 
 MEMORY_DATABASE_URI = "sqlite:///:memory:"
 
+SQLALCHEMY_ECHO = "SQLALCHEMY_ECHO"
+
 LINEAPY_TRACER_CLASS = "Tracer"
 LINEAPY_TRACER_NAME = "lineapy_tracer"
 LINEAPY_IMPORT_LIB_NAME = "lineapy"

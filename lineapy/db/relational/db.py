@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from typing import Union, cast
 
@@ -7,6 +8,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
+from lineapy.constants import SQLALCHEMY_ECHO
 from lineapy.data.graph import Graph
 from lineapy.data.types import *
 from lineapy.db.asset_manager.local import (
@@ -53,7 +55,7 @@ class RelationalLineaDB(LineaDB):
             config.database_uri,
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
-            echo=True,
+            echo=os.getenv(SQLALCHEMY_ECHO, default=True),
         )
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
