@@ -1,5 +1,4 @@
-from ast import parse, dump
-
+import ast
 import astor
 
 from lineapy.transformer.node_transformer import NodeTransformer
@@ -14,20 +13,18 @@ class TestNodeTransformer:
         code1 = "import math\na = 1"
         code2 = "import math\na =    1"
         code3 = "import math\na = 1"
-        tree1 = parse(code1)
-        tree2 = parse(code2)
-        tree3 = parse(code3)
+        tree1 = ast.parse(code1)
+        tree2 = ast.parse(code2)
+        tree3 = ast.parse(code3)
         assert compare_ast(tree1, tree2)
         assert compare_ast(tree1, tree3)
 
     @staticmethod
     def _check_equality(original_code: str, expected_transformed: str):
         node_transformer = NodeTransformer(original_code)
-        tree = parse(original_code)
+        tree = ast.parse(original_code)
         new_tree = node_transformer.visit(tree)
-        expected_tree = parse(expected_transformed)
-        print("Transformed:", dump(new_tree, indent=2))
-        print("Expected:", dump(expected_tree, indent=2))
+        expected_tree = ast.parse(expected_transformed)
         if not compare_ast(new_tree, expected_tree):
             internal_warning_log("Original code:\t" + original_code)
             internal_warning_log("Transformed code:\t" + astor.to_source(new_tree))
@@ -145,6 +142,55 @@ class TestNodeTransformer:
             )
             self._check_equality(simple_op, expected_simple_op)
 
+    def test_visit_compare(self):
+        op_map = {
+            "==": "__eq__",
+            "!=": "__ne__",
+            "<": "__lt__",
+            "<= ": "__le__",
+            ">": "__gt__",
+            ">=": "__ge__",
+            "is": "is_",
+            "is not": "is_not",
+        }
+        for op in op_map:
+            simple_comp = f"a {op} b"
+            expected_simple_comp = (
+                f"lineapy_tracer.call(function_name='{op_map[op]}', "
+                f"syntax_dictionary={{'lineno': 1,'col_offset': 0, 'end_lineno': 1, "
+                f"'end_col_offset': {len(op) + 4}}}, "
+                "arguments=[Variable('b')],function_module=Variable('a'))\n"
+            )
+            self._check_equality(simple_comp, expected_simple_comp)
+
+        simple_in = "a in b"
+        expected_simple_in = (
+            "lineapy_tracer.call(function_name='__contains__', "
+            "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 6},"
+            "arguments=[Variable('a')], function_module=Variable('b'))"
+        )
+        self._check_equality(simple_in, expected_simple_in)
+
+        simple_not_in = "a not in b"
+        expected_simple_not_in = (
+            "lineapy_tracer.call(function_name='not_', "
+            "syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10}, "
+            "arguments=[lineapy_tracer.call(function_name='__contains__', "
+            "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10},"
+            "arguments=[Variable('b')], function_module=Variable('a'))],function_module=operator)"
+        )
+        self._check_equality(simple_not_in, expected_simple_not_in)
+
+        chain_op = "a <= b < c"
+        expected_chain_op = (
+            "lineapy_tracer.call(function_name='__lt__', "
+            "syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10}, "
+            "arguments=[Variable('c')], function_module=lineapy_tracer.call(function_name='__le__', "
+            "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno':1, 'end_col_offset': 10}, "
+            "arguments=[Variable('b')], function_module=Variable('a')))"
+        )
+        self._check_equality(chain_op, expected_chain_op)
+
     def test_visit_subscript(self):
         simple = "ls[0]"
         expected = (
@@ -258,6 +304,7 @@ class TestNodeTransformer:
         self._check_equality(simple_list_assign, expected_simple_list_assign)
 
     def test_lean_publish_visit_call(self):
+        # FIXME: `lean_publish` = `linea_publish`? @yifanwu
         publish_code = "lineapy.linea_publish(a)"
         expected = "lineapy_tracer.publish(variable_name='a')\n"
         self._check_equality(publish_code, expected)

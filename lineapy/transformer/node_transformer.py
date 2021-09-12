@@ -1,4 +1,5 @@
 import ast
+import operator
 from typing import Optional, cast, Union
 
 from lineapy import linea_publish
@@ -261,12 +262,52 @@ class NodeTransformer(ast.NodeTransformer):
             op, argument_nodes, node, function_module=self.visit(node.left)
         )
 
-    # def visit_Compare(self, node: ast.Compare) -> ast.Call:
-    #     # ast_to_op_map = {
-    #     #     ast.Eq:
-    #     # }
-    #     synthesize_tracer_call_ast(node.ops[0], [node.left, node.comparators[0]], node)
-    #     pass
+    def visit_Compare(self, node: ast.Compare) -> ast.Call:
+        ast_to_op_map = {
+            ast.Eq: int.__eq__.__name__,
+            ast.NotEq: int.__ne__.__name__,
+            ast.Lt: int.__lt__.__name__,
+            ast.LtE: int.__le__.__name__,
+            ast.Gt: int.__gt__.__name__,
+            ast.GtE: int.__ge__.__name__,
+            ast.Is: operator.is_.__name__,
+            ast.IsNot: operator.is_not.__name__,
+            ast.In: list.__contains__.__name__,
+        }
+
+        from copy import deepcopy
+
+        # ast.Compare can have an arbitrary number of operators
+        # e.g., a < b <= c
+        left = node.left
+        for i in range(len(node.ops)):
+            op = node.ops[i]
+            right = node.comparators[i]
+            tmp = deepcopy(left)
+            if isinstance(op, ast.In) or isinstance(op, ast.NotIn):
+                # flip left and right since in(a, b) = b.contains(a)
+                left = right
+                right = tmp
+            if op.__class__ in ast_to_op_map:
+                module = self.visit(left) if isinstance(left, ast.Name) else left
+                left = synthesize_tracer_call_ast(
+                    ast_to_op_map[op.__class__],
+                    [self.visit(right)],
+                    node,
+                    module,
+                )
+            if isinstance(op, ast.NotIn):
+                # need to call operator.not_ on __contains___
+                inside = synthesize_tracer_call_ast(
+                    ast_to_op_map[ast.In], [self.visit(left)], node, self.visit(right)
+                )
+                left = synthesize_tracer_call_ast(
+                    operator.not_.__name__,
+                    [inside],
+                    node,
+                    function_module=ast.Name(id="operator", ctx=ast.Load()),
+                )
+        return left
 
     def visit_Slice(self, node: ast.Slice) -> ast.Call:
         slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
