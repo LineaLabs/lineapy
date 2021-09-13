@@ -511,7 +511,13 @@ class RelationalLineaDB(LineaDB):
                 artifacts.append(descendant)
         return artifacts
 
-    def gather_artifact_intermediate_nodes(self, program: Graph):
+    def find_artifact_by_name(self, artifact_name: str) -> Optional[List[Artifact]]:
         """
-        While this is on a single graph, it actually requires talking to the data asset manager, so didn't get put into the MetadataExtractor.
+        Return the list of relevant artifacts
         """
+        query_result = (
+            self.session.query(ArtifactORM)
+            .filter(ArtifactORM.name == artifact_name)
+            .all()
+        )
+        return [Artifact.from_orm(query_row) for query_row in query_result]
