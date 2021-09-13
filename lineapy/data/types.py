@@ -80,7 +80,7 @@ class NodeType(Enum):
     ImportNode = 9
     StateChangeNode = 10
     DataSourceNode = 11
-    VariableAliasNode = 12
+    VariableNode = 12
     ClassDefinitionNode = 13
     SideEffectsNode = 14
 
@@ -225,13 +225,24 @@ class LiteralNode(Node):
     node_type: NodeType = NodeType.LiteralNode
     value: NodeValueType
     assigned_variable_name: Optional[str]
-    value_node_id: Optional[LineaID]  # FIXME: this should be removed.
+    # value_node_id: Optional[LineaID]  # FIXME: this should be removed.
 
 
-class VariableAliasNode(Node):
+class VariableNode(Node):
+    """
+    Supports the following cases
+    ```
+    > b
+    > a = b
+    ```
+    `b` would be the `source_variable_id` in both cases,
+    and `a` is the `assigned_variable_id` in the second case.
+    """
 
-    node_type: NodeType = NodeType.VariableAliasNode
+    node_type: NodeType = NodeType.VariableNode
     source_variable_id: LineaID
+    assigned_variable_name: Optional[str]
+    value: Optional[Any]  # loaded at run time
 
 
 class FunctionDefinitionNode(SideEffectsNode):
@@ -239,13 +250,13 @@ class FunctionDefinitionNode(SideEffectsNode):
     Note that like loops, FunctionDefinitionNode will also treat the
       function as a black box.
     See tests/stub_data for examples.
+    TODO: should we track if its an recursive function?
+
     """
 
     node_type: NodeType = NodeType.FunctionDefinitionNode
     function_name: str
     value: Optional[Any]  # loaded at run time
-
-    # TODO: should we track if its an recursive function?
 
 
 class ConditionNode(SideEffectsNode):

@@ -26,7 +26,7 @@ from lineapy.data.types import (
     LoopNode,
     DataSourceNode,
     StateChangeNode,
-    VariableAliasNode,
+    VariableNode,
     Node,
 )
 from lineapy.db.asset_manager.local import (
@@ -104,7 +104,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.LoopNode: LoopNodeORM,
             NodeType.DataSourceNode: DataSourceNodeORM,
             NodeType.StateChangeNode: StateChangeNodeORM,
-            NodeType.VariableAliasNode: VariableAliasNodeORM,
+            NodeType.VariableNode: VariableNodeORM,
         }
 
         return pydantic_to_orm[node.node_type]  # type: ignore
@@ -121,7 +121,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.LoopNode: LoopNode,
             NodeType.DataSourceNode: DataSourceNode,
             NodeType.StateChangeNode: StateChangeNode,
-            NodeType.VariableAliasNode: VariableAliasNode,
+            NodeType.VariableNode: VariableNode,
         }
 
         return orm_to_pydantic[node.node_type]  # type: ignore
@@ -173,10 +173,6 @@ class RelationalLineaDB(LineaDB):
     def write_nodes(self, nodes: List[Node]) -> None:
         for n in nodes:
             self.write_single_node(n)
-
-    def write_node_values(self, nodes: List[Node], version: int) -> None:
-        for n in nodes:
-            self.write_single_node_value(n, version)
 
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
@@ -256,12 +252,22 @@ class RelationalLineaDB(LineaDB):
                     "value_type"
                 ] = RelationalLineaDB.get_type_of_literal_value(node.value)
 
+        elif node.node_type is NodeType.VariableNode:
+            """
+            The value is just for run time information
+            """
+            del args["value"]
+
         node_orm = RelationalLineaDB.get_orm(node)(**args)
 
         self.session.add(node_orm)
         self.session.commit()
 
         self.write_single_node_value(node, version=1)
+
+    def write_node_values(self, nodes: List[Node], version: int) -> None:
+        for n in nodes:
+            self.write_single_node_value(n, version)
 
     def write_single_node_value(self, node: Node, version: int) -> None:
         self.data_asset_manager.write_node_value(node, version)
@@ -345,12 +351,11 @@ class RelationalLineaDB(LineaDB):
         obj = SessionContext.from_orm(query_obj)
         return obj
 
-    def get_node_by_id(self, linea_id: str) -> Node:
+    def get_node_by_id(self, linea_id: LineaID) -> Node:
         """
         Returns the node by looking up the database by ID
         SQLAlchemy is able to translate between the two types on demand
         """
-        # linea_id_orm = LineaIDORM().process_bind_param(linea_id)
         node = self.session.query(NodeORM).filter(NodeORM.id == linea_id).one()
         return self.map_orm_to_pydantic(node)
 
@@ -461,6 +466,10 @@ class RelationalLineaDB(LineaDB):
             .first()
         )
 
+    def get_all_artifacts(self) -> List[Artifact]:
+        results = self.session.query(ArtifactORM).all()
+        return [Artifact.from_orm(r) for r in results]
+
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         node_orms = (
             self.session.query(NodeORM)
@@ -476,7 +485,7 @@ class RelationalLineaDB(LineaDB):
           - Examples:
             - Third party libraries have functions that mutate some global or variable state.
           - Strategy for now
-            - definitely take care of the simple cases, like `VariableAliasNode`
+            - definitely take care of the simple cases, like `VariableNode`
             - simple heuristics that may create false positives (include things not necessary)
             - but definitely NOT false negatives (then the program CANNOT be executed)
         """

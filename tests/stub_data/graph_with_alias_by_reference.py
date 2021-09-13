@@ -1,6 +1,6 @@
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    VariableAliasNode,
+    VariableNode,
     ArgumentNode,
     CallNode,
 )
@@ -59,7 +59,7 @@ a_assign = CallNode(
     end_col_offset=11,
 )
 
-b_assign = VariableAliasNode(
+b_assign = VariableNode(
     id=get_new_id(),
     session_id=session.id,
     source_variable_id=a_assign.id,
@@ -116,5 +116,15 @@ b_sum = CallNode(
 )
 
 graph_with_alias_by_reference = Graph(
-    nodes=[arg_1, arg_2, arg_3, arg_4, b_arg, a_assign, b_assign, a_append, b_sum],
+    nodes=[
+        arg_1,
+        arg_2,
+        arg_3,
+        arg_4,
+        b_arg,
+        a_assign,
+        b_assign,
+        a_append,
+        b_sum,
+    ],
 )

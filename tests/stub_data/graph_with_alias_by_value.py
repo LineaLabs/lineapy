@@ -1,6 +1,7 @@
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     LiteralNode,
+    VariableNode,
 )
 from tests.util import get_new_id, get_new_session
 
@@ -37,19 +38,17 @@ a_assign = LiteralNode(
     end_col_offset=5,
 )
 
-b_assign = LiteralNode(
+b_assign = VariableNode(
     id=get_new_id(),
     session_id=session.id,
     assigned_variable_name="b",
-    value_node_id=a_assign.id,
+    source_variable_id=a_assign.id,
     lineno=2,
     col_offset=0,
     end_lineno=2,
     end_col_offset=5,
 )
 
-# I don't think we need to link this to the previous one?
-# @dorx can you think of a case when this would be?
 a_mutate = LiteralNode(
     id=get_new_id(),
     session_id=session.id,

@@ -1,6 +1,7 @@
 import builtins
 import importlib.util
 import io
+from lineapy.utils import CaseNotHandledError, InternalLogicError
 import subprocess
 import sys
 from typing import Any, Tuple, Optional, Dict, cast
@@ -19,6 +20,7 @@ from lineapy.data.types import (
     StateChangeNode,
     FunctionDefinitionNode,
     LineaID,
+    VariableNode,
 )
 from lineapy.execution.code_util import get_segment_from_code
 from lineapy.graph_reader.base import GraphReader
@@ -83,7 +85,12 @@ class Executor(GraphReader):
         return val
 
     def get_value_by_variable_name(self, name: str) -> Any:
-        return self._variable_values[name]
+        if name in self._variable_values:
+            return self._variable_values[name]
+        else:
+            # throwing internal logic error because this is only called
+            #   for testing right now
+            raise InternalLogicError(f"Cannot find variable {name}")
 
     def execute_program_with_inputs(
         self, program: Graph, inputs: Dict[LineaID, Any]
@@ -94,7 +101,7 @@ class Executor(GraphReader):
         dependencies. For example `a = foo(), b = a + 1`, if `a` is passed in as an input with value `2`, we should
         skip `foo()`.
 
-        TODO: @dhruvm
+        TODO:
         :param program: program to be run.
         :param inputs: mapping for node id to values for a set of input nodes.
         :return: result of the program run with specified inputs.
@@ -198,10 +205,7 @@ class Executor(GraphReader):
         for node_id in program.visit_order():
             node = program.get_node(node_id)
             if node is None:
-                print(
-                    "WARNING: Could not find node with ID %s in program %s"
-                    % (node_id, program)
-                )
+                print(f"WARNING: Could not find node with ID {node_id}")
                 continue
 
             scoped_locals = locals()
@@ -258,13 +262,32 @@ class Executor(GraphReader):
 
             elif node.node_type == NodeType.LiteralNode:
                 node = cast(LiteralNode, node)
-                if node.value is None and node.value_node_id is not None:
+                # no-op if it's headless
+                if node.assigned_variable_name is not None:
+                    # if node.value is None and node.value_node_id is not None:
+                    #     node.value = program.get_node_value_from_id(
+                    #         node.value_node_id
+                    #     )
+                    # else:
+                    self._variable_values[
+                        node.assigned_variable_name
+                    ] = node.value
+
+            elif node.node_type == NodeType.VariableNode:
+                node = cast(VariableNode, node)
+                if node.assigned_variable_name is not None:
                     node.value = program.get_node_value_from_id(
-                        node.value_node_id
+                        node.source_variable_id
                     )
-                self._variable_values[node.assigned_variable_name] = node.value
+                    self._variable_values[
+                        node.assigned_variable_name
+                    ] = node.value
+
+            # not all node cases are handled, including
+            # - DataSourceNode
+            # - ArgumentNode
 
         sys.stdout = self._old_stdout
 
     def validate(self, program: Graph) -> None:
-        pass
+        raise NotImplementedError("validate is not implemented!")

@@ -5,6 +5,7 @@ from lineapy.data.types import (
     ImportNode,
     ArgumentNode,
     CallNode,
+    VariableNode,
 )
 from tests.util import get_new_id, get_new_session
 
@@ -28,7 +29,7 @@ f = a * b * c
 ```
 """
 
-# including also a headless integer
+# including also a headless integer & variable
 code = """a = 1
 b = a + 2
 c = 2
@@ -36,6 +37,8 @@ d = 4
 e = d + a
 f = a * b * c
 10
+e
+g = e
 """
 
 sliced_code = """a = 1
@@ -236,7 +239,28 @@ headless_literal = LiteralNode(
     lineno=7,
     col_offset=0,
     end_lineno=7,
+    end_col_offset=2,
+)
+
+headless_variable = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_variable_id=1,
+    lineno=8,
+    col_offset=0,
+    end_lineno=8,
     end_col_offset=1,
+)
+
+variable_alias = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_variable_id=e_assign.id,
+    assigned_variable_name="g",
+    lineno=9,
+    col_offset=0,
+    end_lineno=9,
+    end_col_offset=5,
 )
 
 graph_with_messy_nodes = Graph(
@@ -258,6 +282,8 @@ graph_with_messy_nodes = Graph(
         c_argument_node,
         f_assign,
         headless_literal,
+        headless_variable,
+        variable_alias,
     ]
 )
 
