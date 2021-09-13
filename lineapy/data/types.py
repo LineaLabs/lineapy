@@ -126,13 +126,6 @@ class NodeValue(BaseModel):
         orm_mode = True
 
 
-# CHART_TYPE = "chart"
-# ARRAY_TYPE = "array"
-# DATASET_TYPE = "dataset"
-# CODE_TYPE = "code"
-# VALUE_TYPE = "value"
-
-
 class Execution(BaseModel):
     artifact_id: LineaID
     version: str

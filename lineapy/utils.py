@@ -148,7 +148,6 @@ def jsonify_value(value: Any, value_type: ValueType) -> str:
     raise CaseNotHandledError(f"Was not able to jsonify value of type {value_type}")
 
 
-# get_node_value_type
 def get_value_type(val: Any) -> ValueType:
     """
     Got a little hacky so as to avoid dependency on external libraries.
@@ -195,18 +194,3 @@ def get_value_type(val: Any) -> ValueType:
             return ValueType.chart
 
     raise CaseNotHandledError(f"Do not know the type of {val}, type {type(val)}")
-
-
-# def get_node_value_type(node_value):
-#     # check object type (for now this only supports DataFrames, PIL images, and values)
-#     # TODO: need more robust type checking
-#     print(node_value)
-#     if is_integer(node_value) or type(node_value) is str:
-#         return ValueType.value
-#     elif hasattr(node_value, "to_csv"):
-#         return ValueType.dataset
-#     elif hasattr(node_value, "show"):
-#         return ValueType.chart
-#     elif type(node_value) == list:
-#         return ValueType.array
-#     raise CaseNotHandledError(f"Got type {type(node_value)} for {node_value}")
