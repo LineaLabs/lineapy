@@ -6,7 +6,6 @@ from typing import Optional, List
 from re import sub
 from astpretty import pformat
 
-import lineapy.app.app_db
 from lineapy import ExecutionMode
 from lineapy.data.types import (
     SessionContext,
@@ -15,6 +14,8 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.utils import get_new_id
+
+TEST_ARTIFACT_NAME = "Graph With CSV Import"
 
 
 def strip_non_letter_num(s: str):
@@ -62,6 +63,7 @@ def setup_db(mode: ExecutionMode, reset: bool):
 
     setup_value_test(test_db, mode)
     setup_image_test(test_db, mode)
+    return test_db
 
 
 def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
@@ -69,7 +71,6 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.db.relational.schema.relational import (
         ExecutionORM,
     )
-    from lineapy.data.types import VALUE_TYPE
 
     from tests.stub_data.api_stub_graph import (
         graph_with_csv_import as stub_graph,
@@ -93,7 +94,7 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 
     test_db.add_node_id_to_artifact_table(
         artifact.id,
-        name="Graph With CSV Import",
+        name=TEST_ARTIFACT_NAME,
         date_created=1372944000.0,
     )
 
@@ -107,7 +108,6 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import ExecutionORM
-    from lineapy.data.types import CHART_TYPE
 
     from tests.stub_data.graph_with_basic_image import (
         graph_with_basic_image as stub_graph,

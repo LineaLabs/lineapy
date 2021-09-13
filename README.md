@@ -32,6 +32,7 @@ pytest
 
 
 ### Static end to end test/demo
+
 For a static end to end test along with [linea-server](https://github.com/LineaLabs/linea-server)
 
 ```bash
@@ -65,7 +66,7 @@ Coming soon!
 
 ## Jupyter
 
-To make use of our virtual env, you need to do these steps (referece: https://medium.com/@nrk25693/how-to-add-your-conda-environment-to-your-jupyter-notebook-in-just-4-steps-abeab8b8d084)
+To make use of our virtual env, you need to do these steps (reference: https://medium.com/@nrk25693/how-to-add-your-conda-environment-to-your-jupyter-notebook-in-just-4-steps-abeab8b8d084)
 
 ```bash
 conda install -c anaconda ipykernel 
@@ -75,3 +76,8 @@ python -m ipykernel install --user --name=lineapy-env
 
 For any Jupyter Notebooks that you think your reviewer might directly comment on,
 please run `jupyter nbconvert --to script` and commit the corresponding .py script to make comments easier.
+
+
+## Dev notes
+
+Something weird about the `tests/test_flask_app.py`; please double check even if pytest is passing.

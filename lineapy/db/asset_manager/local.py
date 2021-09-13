@@ -4,9 +4,10 @@ from sqlalchemy import and_
 from sqlalchemy.orm import scoped_session
 
 from lineapy.constants import DB_DATA_ASSET_MANAGER
-from lineapy.data.types import CallNode, NodeType, NodeValue, Node, LineaID
+from lineapy.data.types import CallNode, NodeType, NodeValueType, Node, LineaID
 from lineapy.db.asset_manager.base import DataAssetManager
 from lineapy.db.relational.schema.relational import NodeValueORM
+from lineapy.utils import get_value_type
 
 
 class LocalDataAssetManager(DataAssetManager):
@@ -27,6 +28,7 @@ class LocalDataAssetManager(DataAssetManager):
                 value_orm = NodeValueORM(
                     node_id=node.id,
                     value=value,
+                    value_type=get_value_type(value),
                     version=version,
                     virtual=not materialize,
                 )
@@ -35,7 +37,7 @@ class LocalDataAssetManager(DataAssetManager):
                 return DB_DATA_ASSET_MANAGER
         return None
 
-    def read_node_value(self, id: LineaID, version: int) -> NodeValue:
+    def read_node_value(self, id: LineaID, version: int) -> NodeValueType:
         value_orm = (
             self.session.query(NodeValueORM)
             .filter(and_(NodeValueORM.node_id == id, NodeValueORM.version == version))
@@ -47,7 +49,10 @@ class LocalDataAssetManager(DataAssetManager):
         return (
             self.session.query(NodeValueORM)
             .filter(
-                and_(NodeValueORM.node_id == node.id, NodeValueORM.version == version)
+                and_(
+                    NodeValueORM.node_id == node.id,
+                    NodeValueORM.version == version,
+                )
             )
             .first()
             is not None
