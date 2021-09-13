@@ -58,7 +58,7 @@ CallNode
 - ImportNode/CallNode (function_module) (One to One)
 - FunctionDefinitionNode (One to One)
 
-LiteralAssignNode
+LiteralNode
 - ValueNode (One to One)
 
 VariableAliasNode
@@ -143,7 +143,9 @@ class SessionContextORM(Base):  # type: ignore
 
 class LibraryORM(Base):  # type: ignore
     __tablename__ = "library"
-    __table_args__ = (UniqueConstraint("session_id", "name", "version", "path"),)
+    __table_args__ = (
+        UniqueConstraint("session_id", "name", "version", "path"),
+    )
     id = Column(String, primary_key=True)
     session_id = Column(String, ForeignKey("session_context.id"))
     name = Column(String)
@@ -287,7 +289,9 @@ call_node_association_table = Table(
     "call_node_association",
     Base.metadata,
     Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
-    Column("argument_node_id", ForeignKey("argument_node.id"), primary_key=True),
+    Column(
+        "argument_node_id", ForeignKey("argument_node.id"), primary_key=True
+    ),
 )
 
 
@@ -328,9 +332,9 @@ class ArgumentNodeORM(NodeORM):
         return NodeORM.__table__.c.get("value_node_id", Column(String))
 
 
-class LiteralAssignNodeORM(NodeORM):
+class LiteralNodeORM(NodeORM):
     __tablename__ = "literal_assign_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.LiteralAssignNode}
+    __mapper_args__ = {"polymorphic_identity": NodeType.LiteralNode}
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 

@@ -1,5 +1,5 @@
 import unittest
-from typing import Optional, Tuple, Union
+from typing import Tuple
 
 from lineapy import ExecutionMode
 from lineapy.utils import get_current_time
@@ -61,7 +61,7 @@ from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
     session as print_session,
 )
-from tests.util import reset_test_db
+from tests.util import are_str_equal, reset_test_db
 
 
 class TestLineaDB(unittest.TestCase):
@@ -104,7 +104,9 @@ class TestLineaDB(unittest.TestCase):
         return db_graph
 
     def test_simple_graph(self):
-        graph, context = self.write_and_read_graph(simple_graph, simple_graph_session)
+        graph, context = self.write_and_read_graph(
+            simple_graph, simple_graph_session
+        )
         e = Executor()
         e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
@@ -130,7 +132,9 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         stdout = e.get_stdout()
         assert stdout == "10\n"
-        assert are_graphs_identical(graph, simple_with_variable_argument_and_print)
+        assert are_graphs_identical(
+            graph, simple_with_variable_argument_and_print
+        )
 
     def test_basic_import(self):
         """
@@ -256,7 +260,9 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(result, graph)
 
     def test_code_reconstruction_with_multilined_node(self):
-        _ = self.write_and_read_graph(graph_with_loops, graph_with_loops_session)
+        _ = self.write_and_read_graph(
+            graph_with_loops, graph_with_loops_session
+        )
 
         self.lineadb.add_node_id_to_artifact_table(
             y_id,
@@ -264,7 +270,7 @@ class TestLineaDB(unittest.TestCase):
         )
         reconstructed = self.lineadb.get_code_from_artifact_id(y_id)
 
-        assert loops_code == reconstructed
+        assert are_str_equal(loops_code, reconstructed)
 
     def test_code_reconstruction_with_slice(self):
         _ = self.write_and_read_graph(
@@ -276,5 +282,4 @@ class TestLineaDB(unittest.TestCase):
             get_current_time(),
         )
         reconstructed = self.lineadb.get_code_from_artifact_id(f_assign.id)
-
-        assert sliced_code == reconstructed
+        assert are_str_equal(sliced_code, reconstructed)

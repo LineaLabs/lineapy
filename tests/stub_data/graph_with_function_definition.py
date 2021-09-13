@@ -3,7 +3,7 @@ from lineapy.data.types import (
     ImportNode,
     CallNode,
     Library,
-    LiteralAssignNode,
+    LiteralNode,
     FunctionDefinitionNode,
     StateChangeNode,
     StateDependencyType,
@@ -50,7 +50,7 @@ line_1_import = ImportNode(
 
 a_id = get_new_id()
 
-line_2 = LiteralAssignNode(
+line_2 = LiteralNode(
     id=a_id,
     session_id=session.id,
     assigned_variable_name="a",

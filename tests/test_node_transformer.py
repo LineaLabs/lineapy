@@ -4,7 +4,7 @@ from astor import to_source
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import internal_warning_log
 from tests.stub_data.graph_with_import import import_code
-from tests.util import compare_ast, strip_non_letter_num
+from tests.util import are_str_equal, compare_ast, strip_non_letter_num
 
 
 class TestNodeTransformer:
@@ -25,12 +25,7 @@ class TestNodeTransformer:
         tree = parse(original_code)
         new_tree = node_transformer.visit(tree)
         new_code = to_source(new_tree)
-        new_code_stripped = strip_non_letter_num(new_code)
-        expected_transformed_stripped = strip_non_letter_num(expected_transformed)
-        if new_code_stripped != expected_transformed_stripped:
-            internal_warning_log(new_code_stripped)
-            internal_warning_log(expected_transformed_stripped)
-            assert False
+        assert are_str_equal(new_code, expected_transformed, True)
 
     def test_visit_import(self):
         simple_import = "import pandas"
@@ -104,8 +99,10 @@ class TestNodeTransformer:
         simple_list = "[1, 2]"
         expected_simple_list = (
             "lineapy_tracer.call(function_name='__build_list__',"
-            " syntax_dictionary={" + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 6}," + "arguments=[1, 2])\n"
+            " syntax_dictionary={"
+            + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
+            " 'end_col_offset': 6},"
+            + "arguments=[1, 2])\n"
         )
         self._check_equality(simple_list, expected_simple_list)
 

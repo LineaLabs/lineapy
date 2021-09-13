@@ -20,7 +20,7 @@ from lineapy.data.types import (
     SideEffectsNode,
     CallNode,
     ImportNode,
-    LiteralAssignNode,
+    LiteralNode,
     FunctionDefinitionNode,
     ConditionNode,
     LoopNode,
@@ -98,7 +98,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.ArgumentNode: ArgumentNodeORM,
             NodeType.CallNode: CallNodeORM,
             NodeType.ImportNode: ImportNodeORM,
-            NodeType.LiteralAssignNode: LiteralAssignNodeORM,
+            NodeType.LiteralNode: LiteralNodeORM,
             NodeType.FunctionDefinitionNode: FunctionDefinitionNodeORM,
             NodeType.ConditionNode: ConditionNodeORM,
             NodeType.LoopNode: LoopNodeORM,
@@ -115,7 +115,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.ArgumentNode: ArgumentNode,
             NodeType.CallNode: CallNode,
             NodeType.ImportNode: ImportNode,
-            NodeType.LiteralAssignNode: LiteralAssignNode,
+            NodeType.LiteralNode: LiteralNode,
             NodeType.FunctionDefinitionNode: FunctionDefinitionNode,
             NodeType.ConditionNode: ConditionNode,
             NodeType.LoopNode: LoopNode,
@@ -185,7 +185,9 @@ class RelationalLineaDB(LineaDB):
             if args["value_literal"] is not None:
                 args[
                     "value_literal_type"
-                ] = RelationalLineaDB.get_type_of_literal_value(args["value_literal"])
+                ] = RelationalLineaDB.get_type_of_literal_value(
+                    args["value_literal"]
+                )
 
         elif node.node_type is NodeType.CallNode:
             node = cast(CallNodeORM, node)
@@ -247,12 +249,12 @@ class RelationalLineaDB(LineaDB):
         elif node.node_type is NodeType.StateChangeNode:
             del args["value"]
 
-        elif node.node_type is NodeType.LiteralAssignNode:
-            node = cast(LiteralAssignNodeORM, node)
+        elif node.node_type is NodeType.LiteralNode:
+            node = cast(LiteralNodeORM, node)
             if node.value is not None:
-                args["value_type"] = RelationalLineaDB.get_type_of_literal_value(
-                    node.value
-                )
+                args[
+                    "value_type"
+                ] = RelationalLineaDB.get_type_of_literal_value(node.value)
 
         node_orm = RelationalLineaDB.get_orm(node)(**args)
 
@@ -295,7 +297,9 @@ class RelationalLineaDB(LineaDB):
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
         """
-        self.session.query(ArtifactORM).filter(ArtifactORM.id == node_id).delete()
+        self.session.query(ArtifactORM).filter(
+            ArtifactORM.id == node_id
+        ).delete()
         self.session.commit()
 
     """
@@ -352,9 +356,11 @@ class RelationalLineaDB(LineaDB):
 
     def map_orm_to_pydantic(self, node: NodeORM) -> Node:
         # cast string serialized values to their appropriate types
-        if node.node_type is NodeType.LiteralAssignNode:
-            node = cast(LiteralAssignNodeORM, node)
-            node.value = get_literal_value_from_string(node.value, node.value_type)
+        if node.node_type is NodeType.LiteralNode:
+            node = cast(LiteralNodeORM, node)
+            node.value = get_literal_value_from_string(
+                node.value, node.value_type
+            )
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNodeORM, node)
             if node.value_literal is not None:
@@ -386,7 +392,9 @@ class RelationalLineaDB(LineaDB):
         ]:
             node = cast(SideEffectsNode, node)
             output_state_change_nodes = (
-                self.session.query(side_effects_output_state_change_association_table)
+                self.session.query(
+                    side_effects_output_state_change_association_table
+                )
                 .filter(
                     side_effects_output_state_change_association_table.c.side_effects_node_id
                     == node.id
@@ -396,11 +404,14 @@ class RelationalLineaDB(LineaDB):
 
             if output_state_change_nodes is not None:
                 node.output_state_change_nodes = [
-                    a.output_state_change_node_id for a in output_state_change_nodes
+                    a.output_state_change_node_id
+                    for a in output_state_change_nodes
                 ]
 
             input_state_change_nodes = (
-                self.session.query(side_effects_input_state_change_association_table)
+                self.session.query(
+                    side_effects_input_state_change_association_table
+                )
                 .filter(
                     side_effects_input_state_change_association_table.c.side_effects_node_id
                     == node.id
@@ -410,7 +421,8 @@ class RelationalLineaDB(LineaDB):
 
             if input_state_change_nodes is not None:
                 node.input_state_change_nodes = [
-                    a.input_state_change_node_id for a in input_state_change_nodes
+                    a.input_state_change_node_id
+                    for a in input_state_change_nodes
                 ]
 
             import_nodes = (
@@ -451,7 +463,9 @@ class RelationalLineaDB(LineaDB):
 
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         node_orms = (
-            self.session.query(NodeORM).filter(NodeORM.session_id == session_id).all()
+            self.session.query(NodeORM)
+            .filter(NodeORM.session_id == session_id)
+            .all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
@@ -510,7 +524,9 @@ class RelationalLineaDB(LineaDB):
         artifacts = []
         for d_id in descendants:
             descendant_is_artifact = (
-                self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
+                self.session.query(ArtifactORM)
+                .filter(ArtifactORM.id == d_id)
+                .first()
                 is not None
             )
             descendant = program.get_node(d_id)
@@ -518,7 +534,9 @@ class RelationalLineaDB(LineaDB):
                 artifacts.append(descendant)
         return artifacts
 
-    def find_artifact_by_name(self, artifact_name: str) -> Optional[List[Artifact]]:
+    def find_artifact_by_name(
+        self, artifact_name: str
+    ) -> Optional[List[Artifact]]:
         """
         Return the list of relevant artifacts
         """

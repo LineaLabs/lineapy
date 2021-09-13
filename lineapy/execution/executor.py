@@ -14,7 +14,7 @@ from lineapy.data.types import (
     Node,
     CallNode,
     ImportNode,
-    LiteralAssignNode,
+    LiteralNode,
     SideEffectsNode,
     StateChangeNode,
     FunctionDefinitionNode,
@@ -42,7 +42,9 @@ class Executor(GraphReader):
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
     @staticmethod
-    def lookup_module(module_node: Optional[Node], fn_name: str) -> Optional[Any]:
+    def lookup_module(
+        module_node: Optional[Node], fn_name: str
+    ) -> Optional[Any]:
         if hasattr(lineabuiltins, fn_name):
             return lineabuiltins
 
@@ -116,12 +118,16 @@ class Executor(GraphReader):
     ) -> None:
         if node.input_state_change_nodes is not None:
             for state_var_id in node.input_state_change_nodes:
-                state_var = cast(StateChangeNode, program.get_node(state_var_id))
+                state_var = cast(
+                    StateChangeNode, program.get_node(state_var_id)
+                )
                 # if state_var.state_dependency_type is StateDependencyType.Read:
-                initial_state = program.get_node(state_var.initial_value_node_id)
+                initial_state = program.get_node(
+                    state_var.initial_value_node_id
+                )
                 if initial_state is not None and initial_state.node_type in [
                     NodeType.CallNode,
-                    NodeType.LiteralAssignNode,
+                    NodeType.LiteralNode,
                     NodeType.StateChangeNode,
                 ]:
                     scoped_locals[state_var.variable_name] = initial_state.value  # type: ignore
@@ -145,13 +151,17 @@ class Executor(GraphReader):
         node = cast(SideEffectsNode, node)
         if node.output_state_change_nodes is not None:
             for state_var_id in node.output_state_change_nodes:
-                state_var = cast(StateChangeNode, program.get_node(state_var_id))
+                state_var = cast(
+                    StateChangeNode, program.get_node(state_var_id)
+                )
 
                 # if state_var.state_dependency_type is StateDependencyType.Write:
                 state_var.value = local_vars[state_var.variable_name]
 
                 if state_var.variable_name is not None:
-                    self._variable_values[state_var.variable_name] = state_var.value
+                    self._variable_values[
+                        state_var.variable_name
+                    ] = state_var.value
 
     @staticmethod
     def get_function(
@@ -201,7 +211,9 @@ class Executor(GraphReader):
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
-                fn, fn_name = Executor.get_function(node, program, scoped_locals)
+                fn, fn_name = Executor.get_function(
+                    node, program, scoped_locals
+                )
 
                 args = program.get_arguments_from_call_node(node)
 
@@ -210,7 +222,9 @@ class Executor(GraphReader):
 
                 # update the assigned variable
                 if node.assigned_variable_name is not None:
-                    self._variable_values[node.assigned_variable_name] = node.value
+                    self._variable_values[
+                        node.assigned_variable_name
+                    ] = node.value
 
                 # if we are calling a locally defined function
                 if node.locally_defined_function_id is not None:
@@ -242,10 +256,12 @@ class Executor(GraphReader):
                     scoped_locals,
                 )
 
-            elif node.node_type == NodeType.LiteralAssignNode:
-                node = cast(LiteralAssignNode, node)
+            elif node.node_type == NodeType.LiteralNode:
+                node = cast(LiteralNode, node)
                 if node.value is None and node.value_node_id is not None:
-                    node.value = program.get_node_value_from_id(node.value_node_id)
+                    node.value = program.get_node_value_from_id(
+                        node.value_node_id
+                    )
                 self._variable_values[node.assigned_variable_name] = node.value
 
         sys.stdout = self._old_stdout

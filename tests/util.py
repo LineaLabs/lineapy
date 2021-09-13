@@ -22,7 +22,15 @@ def strip_non_letter_num(s: str):
     return sub("[\\s+]", "", s)
 
 
-def get_new_session(code: str, libraries: Optional[List] = None) -> SessionContext:
+def are_str_equal(s1: str, s2: str, remove_all_non_letter=False):
+    if remove_all_non_letter:
+        return strip_non_letter_num(s1) == strip_non_letter_num(s2)
+    return s1.strip() == s2.strip()
+
+
+def get_new_session(
+    code: str, libraries: Optional[List] = None
+) -> SessionContext:
     if libraries is None:
         libraries = []
     return SessionContext(
@@ -124,7 +132,8 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         )
 
         img_data_node.access_path = (
-            path.abspath(path.join(__file__, "../..")) + "/lineapy/app/simple_data.png"
+            path.abspath(path.join(__file__, "../.."))
+            + "/lineapy/app/simple_data.png"
         )
 
     executor = Executor()

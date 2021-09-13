@@ -72,7 +72,7 @@ class NodeType(Enum):
     Node = 1
     ArgumentNode = 2
     CallNode = 3
-    LiteralAssignNode = 4
+    LiteralNode = 4
     FunctionDefinitionNode = 5
     ConditionNode = 6
     LoopNode = 7
@@ -221,11 +221,11 @@ class CallNode(Node):
     value: Optional[NodeValueType] = None
 
 
-class LiteralAssignNode(Node):
-    node_type: NodeType = NodeType.LiteralAssignNode
-    assigned_variable_name: str
+class LiteralNode(Node):
+    node_type: NodeType = NodeType.LiteralNode
     value: NodeValueType
-    value_node_id: Optional[LineaID]
+    assigned_variable_name: Optional[str]
+    value_node_id: Optional[LineaID]  # FIXME: this should be removed.
 
 
 class VariableAliasNode(Node):
