@@ -43,8 +43,6 @@ from lineapy.utils import (
     get_literal_value_from_string,
 )
 
-LineaIDAlias = Union[LineaID, LineaIDORM]
-
 
 class RelationalLineaDB(LineaDB):
     """
@@ -268,7 +266,7 @@ class RelationalLineaDB(LineaDB):
 
     def add_node_id_to_artifact_table(
         self,
-        node_id: LineaIDAlias,
+        node_id: LineaID,
         date_created: float,
         name: Optional[str] = None,
     ) -> None:
@@ -292,7 +290,7 @@ class RelationalLineaDB(LineaDB):
             self.session.add(artifact)
             self.session.commit()
 
-    def remove_node_id_from_artifact_table(self, node_id: LineaIDAlias) -> None:
+    def remove_node_id_from_artifact_table(self, node_id: LineaID) -> None:
         """
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
@@ -334,7 +332,7 @@ class RelationalLineaDB(LineaDB):
         nodes = [self.map_orm_to_pydantic(node) for node in call_nodes]
         return nodes
 
-    def get_context(self, linea_id: LineaIDAlias) -> SessionContext:
+    def get_context(self, linea_id: str) -> SessionContext:
         query_obj = (
             self.session.query(SessionContextORM)
             .filter(SessionContextORM.id == linea_id)
@@ -343,7 +341,7 @@ class RelationalLineaDB(LineaDB):
         obj = SessionContext.from_orm(query_obj)
         return obj
 
-    def get_node_by_id(self, linea_id: LineaIDAlias) -> Node:
+    def get_node_by_id(self, linea_id: str) -> Node:
         """
         Returns the node by looking up the database by ID
         SQLAlchemy is able to translate between the two types on demand
@@ -430,7 +428,7 @@ class RelationalLineaDB(LineaDB):
         return RelationalLineaDB.get_pydantic(node).from_orm(node)
 
     def get_node_value_from_db(
-        self, node_id: LineaIDAlias, version: int
+        self, node_id: LineaID, version: int
     ) -> Optional[NodeValue]:
         value_orm = (
             self.session.query(NodeValueORM)
@@ -444,20 +442,20 @@ class RelationalLineaDB(LineaDB):
         )
         return value_orm
 
-    def get_artifact(self, artifact_id: LineaIDAlias) -> Optional[Artifact]:
+    def get_artifact(self, artifact_id: LineaID) -> Optional[Artifact]:
         return Artifact.from_orm(
             self.session.query(ArtifactORM)
             .filter(ArtifactORM.id == artifact_id)
             .first()
         )
 
-    def get_nodes_for_session(self, session_id: LineaIDAlias) -> List[Node]:
+    def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         node_orms = (
             self.session.query(NodeORM).filter(NodeORM.session_id == session_id).all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
-    def get_graph_from_artifact_id(self, artifact_id: LineaIDAlias) -> Graph:
+    def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
         """
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation

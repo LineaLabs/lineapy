@@ -6,7 +6,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 # aliasing the ID type in case we change it later
-LineaID = UUID
+LineaID = str
 
 
 class SessionType(Enum):
