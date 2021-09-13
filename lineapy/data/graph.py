@@ -108,23 +108,18 @@ class Graph(object):
         else:
             return node.value  # type: ignore
 
-    def get_node_value_from_id(
-        self, node_id: Optional[LineaID]
-    ) -> Optional[Any]:
+    def get_node_value_from_id(self, node_id: Optional[LineaID]) -> Optional[Any]:
         node = self.get_node(node_id)
         return self.get_node_value(node)
 
-    def get_arguments_from_call_node(
-        self, node: CallNode
-    ) -> List[NodeValueType]:
+    def get_arguments_from_call_node(self, node: CallNode) -> List[NodeValueType]:
         """
         FIXME: rather than using our loop comprehension, we should rely
           on database joins
         """
         if node.arguments and len(node.arguments) > 0:
             args = [
-                cast(ArgumentNode, self.get_node_else_raise(a))
-                for a in node.arguments
+                cast(ArgumentNode, self.get_node_else_raise(a)) for a in node.arguments
             ]
 
             args.sort(key=get_arg_position)
@@ -197,21 +192,16 @@ class Graph(object):
                     n
                     for n in self.get_descendants(node)
                     if n is not None
-                    and self.get_node_else_raise(n).node_type
-                    is NodeType.CallNode
+                    and self.get_node_else_raise(n).node_type is NodeType.CallNode
                 ]
 
                 # sort data source nodes children
-                descendants.sort(
-                    key=lambda n: self.get_node_else_raise(n).lineno
-                )
+                descendants.sort(key=lambda n: self.get_node_else_raise(n).lineno)
                 # add edges between children
                 for d in range(len(descendants) - 1):
                     if self.nx_graph.has_edge(
                         descendants[d], descendants[d + 1]
-                    ) or self.nx_graph.has_edge(
-                        descendants[d + 1], descendants[d]
-                    ):
+                    ) or self.nx_graph.has_edge(descendants[d + 1], descendants[d]):
                         continue
                     edges.append(
                         DirectedEdge(
