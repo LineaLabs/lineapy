@@ -107,9 +107,7 @@ class TestBasicExecutor:
 
     def test_program_with_conditionals(self):
         e = Executor()
-        e.execute_program(
-            graph_with_conditionals, graph_with_conditionals_session
-        )
+        e.execute_program(graph_with_conditionals, graph_with_conditionals_session)
         bs = e.get_value_by_variable_name("bs")
         stdout = e.get_stdout()
         assert bs == [1, 2, 3]
@@ -123,9 +121,7 @@ class TestBasicExecutor:
 
     def test_variable_alias_by_value(self):
         e = Executor()
-        e.execute_program(
-            graph_with_alias_by_value, graph_with_alias_by_value_session
-        )
+        e.execute_program(graph_with_alias_by_value, graph_with_alias_by_value_session)
         a = e.get_value_by_variable_name("a")
         b = e.get_value_by_variable_name("b")
         assert a == 2
@@ -141,9 +137,7 @@ class TestBasicExecutor:
 
     def test_headless_variable_and_literals(self):
         e = Executor()
-        e.execute_program(
-            graph_with_messy_nodes, graph_with_messy_nodes_session
-        )
+        e.execute_program(graph_with_messy_nodes, graph_with_messy_nodes_session)
         g = e.get_value_by_variable_name("g")
         assert g == 5
 

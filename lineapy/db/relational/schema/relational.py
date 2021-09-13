@@ -143,9 +143,7 @@ class SessionContextORM(Base):  # type: ignore
 
 class LibraryORM(Base):  # type: ignore
     __tablename__ = "library"
-    __table_args__ = (
-        UniqueConstraint("session_id", "name", "version", "path"),
-    )
+    __table_args__ = (UniqueConstraint("session_id", "name", "version", "path"),)
     id = Column(String, primary_key=True)
     session_id = Column(String, ForeignKey("session_context.id"))
     name = Column(String)
@@ -289,9 +287,7 @@ call_node_association_table = Table(
     "call_node_association",
     Base.metadata,
     Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
-    Column(
-        "argument_node_id", ForeignKey("argument_node.id"), primary_key=True
-    ),
+    Column("argument_node_id", ForeignKey("argument_node.id"), primary_key=True),
 )
 
 
