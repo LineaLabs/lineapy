@@ -171,7 +171,7 @@ class Tracer:
         function_name: str,
         arguments: Any,
         syntax_dictionary: Dict,
-        function_module: Optional[str] = None,
+        function_module: Optional[Any] = None,
     ) -> CallNode:
         """
         Note that it's important for the call to return the call node so that we can programmatically chain the the nodes together, e.g., for the assignment call to modify the previous call node.

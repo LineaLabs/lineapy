@@ -1,23 +1,20 @@
+import logging
+import os
 from tempfile import NamedTemporaryFile
 
 from lineapy import SessionType, ExecutionMode
-
-from lineapy.transformer.transformer import Transformer
-
-import logging
 from lineapy.constants import SQLALCHEMY_ECHO
-import os
+from lineapy.transformer.transformer import Transformer
 
 logging.basicConfig()
 
 
-
 class TestTransformedCodeExecution:
     def test_chained_ops(self):
-        logging.getLogger('sqlalchemy').setLevel(logging.ERROR)
+        logging.getLogger("sqlalchemy").setLevel(logging.ERROR)
         code = "b = 1 < 2 < 3"
         execution_mode = ExecutionMode.MEMORY
-        os.environ[SQLALCHEMY_ECHO] = False
+        os.environ[SQLALCHEMY_ECHO] = "False"
         transformer = Transformer()
         with NamedTemporaryFile() as tmp:
             tmp.write(str.encode(code))

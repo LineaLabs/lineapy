@@ -18,7 +18,6 @@ from lineapy.data.types import (
     NodeValue,
     SessionContext,
     SideEffectsNode,
-    ValueType,
     CallNode,
     ImportNode,
     LiteralAssignNode,
@@ -79,7 +78,7 @@ class RelationalLineaDB(LineaDB):
             config.database_uri,
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
-            echo=os.getenv(SQLALCHEMY_ECHO, default=True),
+            echo=(str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"),
         )
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
