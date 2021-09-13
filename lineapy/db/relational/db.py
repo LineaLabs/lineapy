@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from typing import List, Optional, Union, cast, Any
 
@@ -7,6 +8,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
+from lineapy.constants import SQLALCHEMY_ECHO
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
@@ -16,7 +18,6 @@ from lineapy.data.types import (
     NodeValue,
     SessionContext,
     SideEffectsNode,
-    ValueType,
     CallNode,
     ImportNode,
     LiteralAssignNode,
@@ -48,10 +49,12 @@ LineaIDAlias = Union[LineaID, LineaIDORM]
 class RelationalLineaDB(LineaDB):
     """
     - Note that LineaDB coordinates with assset manager and relational db.
-      - The asset manager deals with binaries (e.g., cached values) - the relational db deals with more structured data,
-      such as the Nodes and edges.
-    - Also, at some point we might have a "cache" such that the readers don't have to go to the database if it's already
-    ready, but that's lower priority.
+      - The asset manager deals with binaries (e.g., cached values)
+        The relational db deals with more structured data,
+        such as the Nodes and edges.
+    - Also, at some point we might have a "cache" such that the readers
+        don't have to go to the database if it's already
+        loaded, but that's low priority.
     """
 
     def __init__(self):
@@ -72,12 +75,18 @@ class RelationalLineaDB(LineaDB):
         # TODO: we eventually need some configurations
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
+        echo = os.getenv(SQLALCHEMY_ECHO, default=False)
+        echo = (
+            echo
+            if isinstance(echo, bool)
+            else (str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true")
+        )
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
-            echo=True,
+            echo=echo,
         )
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
