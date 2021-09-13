@@ -76,7 +76,11 @@ class RelationalLineaDB(LineaDB):
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default=False)
-        echo = echo if isinstance(echo, bool) else (str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true")
+        echo = (
+            echo
+            if isinstance(echo, bool)
+            else (str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true")
+        )
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
