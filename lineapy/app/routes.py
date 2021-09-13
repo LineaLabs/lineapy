@@ -1,29 +1,27 @@
 from flask import Blueprint, jsonify, send_file, make_response, request
 from sqlalchemy import func
 import io
-from PIL import Image
-from typing import Union
+from typing import Union, Optional
 
 from lineapy.app.app_db import lineadb
-from lineapy.data.types import *
-from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.db.relational.schema.relational import *
+from lineapy.data.types import Artifact, Execution, LineaID, NodeType, ValueType
+from lineapy.db.relational.schema.relational import (
+    NodeValueORM,
+    ArtifactORM,
+    ExecutionORM,
+)
 from lineapy.execution.code_util import get_segment_from_code
 from lineapy.execution.executor import Executor
 from lineapy.app.app_util import jsonify_artifact
-from lineapy.utils import jsonify_value
+from lineapy.utils import InternalLogicError, jsonify_value
 
-from lineapy.constants import LATEST_NODE_VERSION, BACKEND_REQUEST_HOST
+from lineapy.constants import LATEST_NODE_VERSION
 
-# from decouple import config
-
-
-# IS_DEV = config("FLASK_ENV") == "development"
 
 routes_blueprint = Blueprint("routes", __name__)
 
 
-def latest_version_of_node(node_id):
+def latest_version_of_node(node_id: LineaID) -> Optional[int]:
     subqry = lineadb.session.query(func.max(NodeValueORM.version)).filter(
         NodeValueORM.node_id == node_id
     )
@@ -32,10 +30,12 @@ def latest_version_of_node(node_id):
         .filter(NodeValueORM.node_id == node_id, NodeValueORM.version == subqry)
         .first()
     )
-    return qry.version
+    if qry is not None:
+        return qry.version
+    return None
 
 
-def parse_version(version: Union[str, int], node_id: UUID) -> int:
+def parse_version(version: Union[str, int], node_id: LineaID) -> Optional[int]:
     if version == LATEST_NODE_VERSION:
         return latest_version_of_node(node_id)
     return int(version)
@@ -49,6 +49,8 @@ def home():
 def access_db_and_jsonify_artifact(artifact: Artifact, version: int):
     # return new Artifact JSON with new NodeValue
     artifact_value = lineadb.get_node_value_from_db(artifact.id, version)
+    if artifact_value is None:
+        raise InternalLogicError("Cannot find artifact")
     code = lineadb.get_code_from_artifact_id(artifact.id)
     graph_nodes = lineadb.get_graph_from_artifact_id(artifact.id).nodes
 
@@ -65,48 +67,51 @@ def access_db_and_jsonify_artifact(artifact: Artifact, version: int):
 
 @routes_blueprint.route("/api/v1/executor/execute/<artifact_id>", methods=["GET"])
 def execute(artifact_id):
-    artifact_id = UUID(artifact_id)
     artifact = lineadb.get_artifact(artifact_id)
+    if artifact is not None:
+        # find version
+        version = latest_version_of_node(artifact.id)
 
-    # find version
-    version = latest_version_of_node(artifact.id)
+        # increment version
+        if version is None:
+            version = 0
+        version += 1
 
-    # increment version
-    if version is None:
-        version = 0
-    version += 1
+        # get graph and re-execute
+        executor = Executor()
+        program = lineadb.get_graph_from_artifact_id(artifact_id)
+        artifact_node = lineadb.get_node_by_id(artifact_id)
+        context = lineadb.get_context(artifact_node.session_id)
+        execution_time = executor.execute_program(program, context)
 
-    # get graph and re-execute
-    executor = Executor()
-    program = lineadb.get_graph_from_artifact_id(artifact_id)
-    artifact_node = lineadb.get_node_by_id(artifact_id)
-    context = lineadb.get_context(artifact_node.session_id)
-    execution_time = executor.execute_program(program, context)
+        # create row in exec table
+        exec_orm = ExecutionORM(
+            artifact_id=artifact_id,
+            version=version,
+            execution_time=execution_time,
+        )
+        lineadb.session.add(exec_orm)
+        lineadb.session.commit()
 
-    # create row in exec table
-    exec_orm = ExecutionORM(
-        artifact_id=artifact_id, version=version, execution_time=execution_time
-    )
-    lineadb.session.add(exec_orm)
-    lineadb.session.commit()
+        # run through Graph nodes and write values to NodeValueORM with new version
+        lineadb.write_node_values(program.nodes, version)
 
-    # run through Graph nodes and write values to NodeValueORM with new version
-    lineadb.write_node_values(program.nodes, version)
+        # NOTE: we can hold off on the following comment because
+        # the version property of both classes implicitly creates the relationship for us.
+        # create relationships between Execution row and NodeValue objects
 
-    # NOTE: we can hold off on the following comment because
-    # the version property of both classes implicitly creates the relationship for us.
-    # create relationships between Execution row and NodeValue objects
+        asset = access_db_and_jsonify_artifact(artifact, version)
 
-    asset = access_db_and_jsonify_artifact(artifact, version)
-
-    response = jsonify({"data_asset": asset})
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
+        response = jsonify({"data_asset": asset})
+        # FIXME: this following is fishy
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
+    else:
+        return {}
 
 
 @routes_blueprint.route("/api/v1/executor/executions/<artifact_id>", methods=["GET"])
 def get_executions(artifact_id):
-    artifact_id = UUID(artifact_id)
 
     execution_orms = (
         lineadb.session.query(ExecutionORM)
@@ -126,7 +131,8 @@ def get_artifacts():
     artifact_orms = lineadb.session.query(ArtifactORM).all()
     results = [
         access_db_and_jsonify_artifact(
-            Artifact.from_orm(artifact_orm), latest_version_of_node(artifact_orm.id)
+            Artifact.from_orm(artifact_orm),
+            latest_version_of_node(artifact_orm.id),
         )
         for artifact_orm in artifact_orms
     ]
@@ -139,7 +145,6 @@ def get_artifacts():
 # query param "?version=some_int"
 @routes_blueprint.route("/api/v1/artifacts/<artifact_id>", methods=["GET"])
 def get_artifact(artifact_id):
-    artifact_id = UUID(artifact_id)
     artifact_orm = (
         lineadb.session.query(ArtifactORM).filter(ArtifactORM.id == artifact_id).first()
     )
@@ -161,7 +166,6 @@ def get_artifact(artifact_id):
 # assuming binaries are in PNG format
 @routes_blueprint.route("/api/v1/images/<value_id>/<version>", methods=["GET"])
 def get_image(value_id, version):
-    value_id = UUID(value_id)
     img = lineadb.get_node_value_from_db(value_id, version).value
 
     # create file-object in memory
@@ -190,7 +194,6 @@ def get_node_value(node_id):
     right now we only support Dataset and Value intermediates, because we don't have a way of automatically demarking what type
     each intermediate is
     """
-    node_id = UUID(node_id)
 
     version = parse_version(request.args.get("version"), node_id)
 

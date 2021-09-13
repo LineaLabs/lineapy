@@ -1,12 +1,10 @@
 from typing import Any, Optional, List
 from lineapy.data.types import (
-    LiteralType,
     ValueType,
     Artifact,
     Node,
     NodeType,
     NodeValue,
-    NodeValueType,
 )
 from lineapy.constants import BACKEND_REQUEST_HOST
 from lineapy.db.relational.schema.relational import NodeValueORM
@@ -84,9 +82,9 @@ def jsonify_artifact(
     artifact: Artifact,
     version: int,
     code: str,
-    artifact_value: NodeValueORM,
+    artifact_value: NodeValue,
     graph_nodes: List[Node],
-    graph_node_values: List[NodeValueORM],
+    graph_node_values: List[NodeValue],
 ) -> dict:
     """
     This function is called to create intermediates

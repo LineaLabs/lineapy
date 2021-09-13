@@ -77,34 +77,34 @@ Base = declarative_base()
 ###############
 
 # from https://stackoverflow.com/questions/183042/how-can-i-use-uuids-in-sqlalchemy
-class LineaIDORM(types.TypeDecorator):
-    # FIXME: missing two inherited abstract methods that need to be implemented:
-    #  `process_literal_param` from  `TypeDecorator` and
-    #  `python_type` from `TypeEngine`.
+# class LineaIDORM(types.TypeDecorator):
+#     # FIXME: missing two inherited abstract methods that need to be implemented:
+#     #  `process_literal_param` from  `TypeDecorator` and
+#     #  `python_type` from `TypeEngine`.
 
-    impl = MSBinary
-    cache_ok = True  # this suppresses an error from SQLAlchemy
+#     impl = MSBinary
+#     cache_ok = True  # this suppresses an error from SQLAlchemy
 
-    def __init__(self):
-        self.impl.length = 16
-        types.TypeDecorator.__init__(self, length=self.impl.length)
+#     def __init__(self):
+#         self.impl.length = 16
+#         types.TypeDecorator.__init__(self, length=self.impl.length)
 
-    def process_bind_param(self, value, dialect=None):
-        if value and isinstance(value, UUID):
-            return value.bytes
-        elif value and not isinstance(value, UUID):
-            raise ValueError("value %s is not a valid UUID" % value)
-        else:
-            return None
+#     def process_bind_param(self, value, dialect=None):
+#         if value and isinstance(value, UUID):
+#             return value.bytes
+#         elif value and not isinstance(value, UUID):
+#             raise ValueError("value %s is not a valid UUID" % value)
+#         else:
+#             return None
 
-    def process_result_value(self, value, dialect=None):
-        if value:
-            return UUID(bytes=value)
-        else:
-            return None
+#     def process_result_value(self, value, dialect=None):
+#         if value:
+#             return UUID(bytes=value)
+#         else:
+#             return None
 
-    def is_mutable(self):
-        return False
+#     def is_mutable(self):
+#         return False
 
 
 class AttributesDict(types.TypeDecorator):
@@ -130,7 +130,7 @@ class AttributesDict(types.TypeDecorator):
 
 class SessionContextORM(Base):  # type: ignore
     __tablename__ = "session_context"
-    id = Column(LineaIDORM, primary_key=True)
+    id = Column(String, primary_key=True)
     environment_type = Column(Enum(SessionType))
     creation_time = Column(DateTime)
     file_name = Column(String)
@@ -144,8 +144,8 @@ class SessionContextORM(Base):  # type: ignore
 class LibraryORM(Base):  # type: ignore
     __tablename__ = "library"
     __table_args__ = (UniqueConstraint("session_id", "name", "version", "path"),)
-    id = Column(LineaIDORM, primary_key=True)
-    session_id = Column(LineaIDORM, ForeignKey("session_context.id"))
+    id = Column(String, primary_key=True)
+    session_id = Column(String, ForeignKey("session_context.id"))
     name = Column(String)
     version = Column(String)
     path = Column(String)
@@ -153,7 +153,7 @@ class LibraryORM(Base):  # type: ignore
 
 class ArtifactORM(Base):  # type: ignore
     __tablename__ = "artifact"
-    id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
     name = Column(String, nullable=True)
     date_created = Column(Float, nullable=False)
 
@@ -168,13 +168,13 @@ artifact_project_association_table = Table(
 
 class ProjectORM(Base):  # type: ignore
     __tablename__ = "project"
-    id = Column(LineaIDORM, primary_key=True)
+    id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
 
 
 class ExecutionORM(Base):  # type: ignore
     __tablename__ = "execution"
-    artifact_id = Column(LineaIDORM, ForeignKey("artifact.id"), primary_key=True)
+    artifact_id = Column(String, ForeignKey("artifact.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
     execution_time = Column(Float)
@@ -182,7 +182,7 @@ class ExecutionORM(Base):  # type: ignore
 
 class NodeValueORM(Base):  # type: ignore
     __tablename__ = "node_value"
-    node_id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    node_id = Column(String, ForeignKey("node.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
     value = Column(PickleType, nullable=True)
     value_type = Column(Enum(ValueType))
@@ -192,8 +192,8 @@ class NodeValueORM(Base):  # type: ignore
 
 class NodeORM(Base):  # type: ignore
     __tablename__ = "node"
-    id = Column(LineaIDORM, primary_key=True)
-    session_id = Column(LineaIDORM)
+    id = Column(String, primary_key=True)
+    session_id = Column(String)
     node_type = Column(Enum(NodeType))
     lineno = Column(Integer, nullable=True)  # line numbers are 1-indexed
     col_offset = Column(Integer, nullable=True)  # col numbers are 0-indexed
@@ -257,16 +257,16 @@ class SideEffectsNodeORM(NodeORM):
     __tablename__ = "side_effects_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.SideEffectsNode}
 
-    id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
 
 
 class ImportNodeORM(NodeORM):
     __tablename__ = "import_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.ImportNode}
 
-    id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
 
-    library_id = Column(LineaIDORM, ForeignKey("library.id"))
+    library_id = Column(String, ForeignKey("library.id"))
     attributes = Column(AttributesDict(), nullable=True)
     alias = Column(String, nullable=True)
 
@@ -275,11 +275,11 @@ class StateChangeNodeORM(NodeORM):
     __tablename__ = "state_change_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.StateChangeNode}
 
-    id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     variable_name = Column(String)
-    associated_node_id = Column(LineaIDORM)
-    initial_value_node_id = Column(LineaIDORM)
+    associated_node_id = Column(String)
+    initial_value_node_id = Column(String)
     state_dependency_type = Column(Enum(StateDependencyType))
 
 
@@ -295,10 +295,10 @@ class CallNodeORM(NodeORM):
     __tablename__ = "call_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.CallNode}
 
-    id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
 
-    function_module = Column(LineaIDORM, nullable=True)
-    locally_defined_function_id = Column(LineaIDORM, nullable=True)
+    function_module = Column(String, nullable=True)
+    locally_defined_function_id = Column(String, nullable=True)
 
     # this pattern is used when multiple sibling classes have the same column
     @declared_attr
@@ -316,7 +316,7 @@ class ArgumentNodeORM(NodeORM):
     __tablename__ = "argument_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.ArgumentNode}
 
-    id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     keyword = Column(String, nullable=True)
     positional_order = Column(Integer, nullable=True)
@@ -325,14 +325,14 @@ class ArgumentNodeORM(NodeORM):
 
     @declared_attr
     def value_node_id(cls):
-        return NodeORM.__table__.c.get("value_node_id", Column(LineaIDORM))
+        return NodeORM.__table__.c.get("value_node_id", Column(String))
 
 
 class LiteralAssignNodeORM(NodeORM):
     __tablename__ = "literal_assign_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.LiteralAssignNode}
 
-    id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     value_type = Column(Enum(LiteralType))
 
@@ -348,14 +348,14 @@ class LiteralAssignNodeORM(NodeORM):
 
     @declared_attr
     def value_node_id(cls):
-        return NodeORM.__table__.c.get("value_node_id", Column(LineaIDORM))
+        return NodeORM.__table__.c.get("value_node_id", Column(String))
 
 
 class FunctionDefinitionNodeORM(SideEffectsNodeORM):
     __tablename__ = "function_definition_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.FunctionDefinitionNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(String, ForeignKey("side_effects_node.id"), primary_key=True)
 
     @declared_attr
     def value(cls):
@@ -370,30 +370,30 @@ class VariableAliasNodeORM(NodeORM):
     __tablename__ = "variable_alias_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.VariableAliasNode}
 
-    id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
 
-    source_variable_id = Column(LineaIDORM)
+    source_variable_id = Column(String)
 
 
 class LoopNodeORM(SideEffectsNodeORM):
     __tablename__ = "loop_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.LoopNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(String, ForeignKey("side_effects_node.id"), primary_key=True)
 
 
 class ConditionNodeORM(SideEffectsNodeORM):
     __tablename__ = "condition_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.ConditionNode}
 
-    id = Column(LineaIDORM, ForeignKey("side_effects_node.id"), primary_key=True)
+    id = Column(String, ForeignKey("side_effects_node.id"), primary_key=True)
 
 
 class DataSourceNodeORM(NodeORM):
     __tablename__ = "data_source_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.DataSourceNode}
 
-    id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     storage_type = Column(Enum(StorageType))
     access_path = Column(String)
