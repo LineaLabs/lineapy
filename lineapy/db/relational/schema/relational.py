@@ -1,4 +1,41 @@
+import json
+from datetime import datetime
+from uuid import UUID
+
+from sqlalchemy import (
+    Column,
+    UniqueConstraint,
+    Integer,
+    String,
+    Enum,
+    ForeignKey,
+    Table,
+    DateTime,
+    PickleType,
+    Float,
+    types,
+)
+from sqlalchemy.dialects.mysql.base import MSBinary
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import (
+    relationship,
+    declared_attr,  # type: ignore
+)
+from sqlalchemy.sql.sqltypes import Boolean, Float, Text
+
+from lineapy.data.types import (
+    SessionType,
+    ValueType,
+    NodeType,
+    StateDependencyType,
+    StorageType,
+    LiteralType,
+)
+
 """ Relationships
+
+Warning: non exhaustive.
+
 SessionContext
 - Library (One to Many)
 - HardwareSpec (Many to One)
@@ -27,47 +64,10 @@ LiteralAssignNode
 VariableAliasNode
 - VariableAliasNode/CallNode (Many to One)
 
-ConditionNode
-- Node (Many to Many)
-
 StateChangeNode
 - SideEffectsNode (One to One)
 - Node (Many to One)
-
 """
-
-import json
-from datetime import datetime
-from uuid import UUID
-
-from sqlalchemy import (
-    Column,
-    UniqueConstraint,
-    Integer,
-    String,
-    Enum,
-    ForeignKey,
-    Table,
-    DateTime,
-    PickleType,
-    Float,
-    types,
-)
-from sqlalchemy.dialects.mysql.base import MSBinary
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import (
-    relationship,
-    declared_attr,  # type: ignore
-)
-from sqlalchemy.sql.sqltypes import Boolean, Float, Text
-
-from lineapy.data.types import (
-    SessionType,
-    NodeType,
-    StateDependencyType,
-    StorageType,
-    LiteralType,
-)
 
 Base = declarative_base()
 
@@ -166,7 +166,7 @@ artifact_project_association_table = Table(
 )
 
 
-class ProjectORM(Base):
+class ProjectORM(Base):  # type: ignore
     __tablename__ = "project"
     id = Column(LineaIDORM, primary_key=True)
     name = Column(String, nullable=False)
@@ -185,6 +185,7 @@ class NodeValueORM(Base):  # type: ignore
     node_id = Column(LineaIDORM, ForeignKey("node.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
     value = Column(PickleType, nullable=True)
+    value_type = Column(Enum(ValueType))
     virtual = Column(Boolean)  # if True, value is not materialized in cache
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 

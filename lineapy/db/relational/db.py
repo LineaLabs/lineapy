@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-from typing import Union, cast
+from typing import List, Optional, Union, cast, Any
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -10,7 +10,26 @@ from sqlalchemy.sql.expression import and_
 
 from lineapy.constants import SQLALCHEMY_ECHO
 from lineapy.data.graph import Graph
-from lineapy.data.types import *
+from lineapy.data.types import (
+    ArgumentNode,
+    Artifact,
+    Library,
+    LineaID,
+    NodeValue,
+    SessionContext,
+    SideEffectsNode,
+    ValueType,
+    CallNode,
+    ImportNode,
+    LiteralAssignNode,
+    FunctionDefinitionNode,
+    ConditionNode,
+    LoopNode,
+    DataSourceNode,
+    StateChangeNode,
+    VariableAliasNode,
+    Node,
+)
 from lineapy.db.asset_manager.local import (
     LocalDataAssetManager,
     DataAssetManager,
@@ -18,7 +37,12 @@ from lineapy.db.asset_manager.local import (
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
 from lineapy.execution.code_util import add_node_to_code, max_col_of_code
-from lineapy.utils import CaseNotHandledError, NullValueError, is_integer
+from lineapy.utils import (
+    CaseNotHandledError,
+    NullValueError,
+    is_integer,
+    get_literal_value_from_string,
+)
 
 LineaIDAlias = Union[LineaID, LineaIDORM]
 
@@ -107,20 +131,6 @@ class RelationalLineaDB(LineaDB):
         elif isinstance(val, bool):
             return LiteralType.Boolean
         raise CaseNotHandledError(f"Literal {val} is of type {type(val)}.")
-
-    @staticmethod
-    def cast_serialized(val: str, literal_type: LiteralType) -> Any:
-        if literal_type is LiteralType.Integer:
-            return int(val)
-        elif literal_type is LiteralType.Boolean:
-            return val == "True"
-        return val
-
-    @staticmethod
-    def cast_dataset(val: Any) -> Optional[str]:
-        if hasattr(val, "to_csv"):
-            return val.to_csv(index=False)
-        return None
 
     """
     Writers
@@ -339,11 +349,11 @@ class RelationalLineaDB(LineaDB):
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralAssignNode:
             node = cast(LiteralAssignNodeORM, node)
-            node.value = RelationalLineaDB.cast_serialized(node.value, node.value_type)
+            node.value = get_literal_value_from_string(node.value, node.value_type)
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNodeORM, node)
             if node.value_literal is not None:
-                node.value_literal = RelationalLineaDB.cast_serialized(
+                node.value_literal = get_literal_value_from_string(
                     node.value_literal, node.value_literal_type
                 )
         elif node.node_type is NodeType.ImportNode:
@@ -412,7 +422,7 @@ class RelationalLineaDB(LineaDB):
 
         return RelationalLineaDB.get_pydantic(node).from_orm(node)
 
-    def get_node_value(
+    def get_node_value_from_db(
         self, node_id: LineaIDAlias, version: int
     ) -> Optional[NodeValue]:
         value_orm = (
@@ -425,9 +435,7 @@ class RelationalLineaDB(LineaDB):
             )
             .first()
         )
-        if value_orm is not None:
-            return value_orm.value
-        return None
+        return value_orm
 
     def get_artifact(self, artifact_id: LineaIDAlias) -> Optional[Artifact]:
         return Artifact.from_orm(
@@ -435,92 +443,6 @@ class RelationalLineaDB(LineaDB):
             .filter(ArtifactORM.id == artifact_id)
             .first()
         )
-
-    @staticmethod
-    def get_node_value_type(node_value):
-        # check object type (for now this only supports DataFrames, PIL images, and values)
-        # TODO: need more robust type checking
-        print(node_value)
-        if hasattr(node_value, "to_csv"):
-            return DATASET_TYPE
-        elif hasattr(node_value, "show"):
-            return CHART_TYPE
-        elif type(node_value) == list:
-            return ARRAY_TYPE
-        return VALUE_TYPE
-
-    def jsonify_artifact(self, artifact: Artifact) -> Dict:
-        json_artifact = artifact.dict()
-
-        json_artifact["type"] = json_artifact["value_type"]
-        del json_artifact["value_type"]
-
-        json_artifact["date"] = json_artifact["date_created"]
-        del json_artifact["date_created"]
-
-        json_artifact["file"] = ""
-
-        json_artifact["code"] = {}
-        json_artifact["code"]["text"] = self.get_code_from_artifact_id(artifact.id)
-
-        tokens_json = []
-
-        for node in self.get_graph_from_artifact_id(artifact.id).nodes:
-            if node.node_type is not NodeType.CallNode:
-                continue
-
-            start_col = node.col_offset + 1
-            end_col = node.end_col_offset + 1
-            if node.assigned_variable_name is not None:
-                end_col = len(node.assigned_variable_name) + start_col
-
-            token_json = {
-                "id": node.id,
-                "line": node.lineno,
-                "start": start_col,
-                "end": end_col,
-            }
-
-            intermediate = (
-                self.session.query(NodeValueORM)
-                .filter(NodeValueORM.node_id == node.id)
-                .first()
-            )
-
-            if intermediate is None or intermediate.value is None:
-                continue
-
-            intermediate_value = intermediate.value
-
-            intermediate_value_type = RelationalLineaDB.get_node_value_type(
-                intermediate_value
-            )
-            if intermediate_value_type == DATASET_TYPE:
-                intermediate_value = RelationalLineaDB.cast_dataset(intermediate_value)
-            elif intermediate_value_type == VALUE_TYPE:
-                intermediate_value = RelationalLineaDB.cast_serialized(
-                    intermediate_value,
-                    RelationalLineaDB.get_type(intermediate_value),
-                )
-            elif intermediate_value_type == CHART_TYPE:
-                continue
-            elif intermediate_value_type == ARRAY_TYPE:
-                continue
-
-            intermediate = {
-                "file": "",
-                "id": node.id,
-                "name": "",
-                "type": intermediate_value_type,
-                "date": intermediate.timestamp,
-                "text": intermediate_value,
-            }
-            token_json["intermediate"] = intermediate
-            tokens_json.append(token_json)
-
-        json_artifact["code"]["tokens"] = tokens_json
-
-        return json_artifact
 
     def get_nodes_for_session(self, session_id: LineaIDAlias) -> List[Node]:
         node_orms = (
@@ -591,7 +513,13 @@ class RelationalLineaDB(LineaDB):
                 artifacts.append(descendant)
         return artifacts
 
-    def gather_artifact_intermediate_nodes(self, program: Graph):
+    def find_artifact_by_name(self, artifact_name: str) -> Optional[List[Artifact]]:
         """
-        While this is on a single graph, it actually requires talking to the data asset manager, so didn't get put into the MetadataExtractor.
+        Return the list of relevant artifacts
         """
+        query_result = (
+            self.session.query(ArtifactORM)
+            .filter(ArtifactORM.name == artifact_name)
+            .all()
+        )
+        return [Artifact.from_orm(query_row) for query_row in query_result]

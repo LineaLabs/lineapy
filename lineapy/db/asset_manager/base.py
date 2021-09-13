@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from lineapy.data.types import Node, NodeValue, NodeType, LineaID
+from lineapy.data.types import Node, NodeValueType, NodeType, LineaID
 
 
 class DataAssetManager(ABC):
@@ -16,7 +16,7 @@ class DataAssetManager(ABC):
         ...
 
     @abstractmethod
-    def read_node_value(self, id: LineaID, version: int) -> NodeValue:
+    def read_node_value(self, id: LineaID, version: int) -> NodeValueType:
         """
         This methods needs to be able to look up a mapping between
         the uuids and the URNs for the serialized results.
@@ -34,7 +34,6 @@ class DataAssetManager(ABC):
     # right now it's just a simple function that returns true if the callnode has an assignment, but in the future we should definitely add more logic
     @staticmethod
     def caching_decider(node: Node):
-        if node.node_type == NodeType.CallNode:
-            if hasattr(node, "assigned_variable_name"):
-                return True
+        if node.node_type == NodeType.CallNode and node.value is not None:
+            return True
         return False

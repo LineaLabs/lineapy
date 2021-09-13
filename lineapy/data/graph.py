@@ -69,7 +69,7 @@ class Graph(object):
             raise NullValueError("Did not expect node to be None")
         return self.ids[node_id]
 
-    def get_node_value(self, node: Optional[Node]) -> Optional[NodeValue]:
+    def get_node_value(self, node: Optional[Node]) -> Optional[NodeValueType]:
         if node is None:
             return None
 
@@ -112,7 +112,7 @@ class Graph(object):
         node = self.get_node(node_id)
         return self.get_node_value(node)
 
-    def get_arguments_from_call_node(self, node: CallNode) -> List[NodeValue]:
+    def get_arguments_from_call_node(self, node: CallNode) -> List[NodeValueType]:
         """
         FIXME: rather than using our loop comprehension, we should rely
           on database joins
