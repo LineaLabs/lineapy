@@ -101,7 +101,7 @@ literal_node = ArgumentNode(
 )
 
 read_csv_call = CallNode(
-    id=UUID("73e1d1eb-fb9c-4fd4-b2c5-760829917361"),
+    id=get_new_id(),
     session_id=session.id,
     function_name="read_csv",
     function_module=import_pandas.id,

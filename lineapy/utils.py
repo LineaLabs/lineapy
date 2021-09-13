@@ -67,6 +67,11 @@ class InvalidStateError(Exception):
         super().__init__(message)
 
 
+class ValueNotFoundError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 def check_not_null(val: Any, err_msg: Optional[str] = None):
     if val == None:
         raise NullValueError(err_msg)
@@ -101,8 +106,10 @@ Data gen utils
 """
 
 
-def get_new_id():
-    return uuid4()
+def get_new_id() -> str:
+    # https://docs.python.org/3/library/uuid.html#module-uuid seems to use str
+    #   instead of hex, so that's why
+    return str(uuid4())
 
 
 def get_current_time():
