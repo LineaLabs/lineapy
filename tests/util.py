@@ -93,10 +93,8 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 
     test_db.add_node_id_to_artifact_table(
         artifact.id,
-        context_id=context.id,
-        value_type=VALUE_TYPE,
         name="Graph With CSV Import",
-        date_created="1372944000",
+        date_created=1372944000.0,
     )
 
     exec_orm = ExecutionORM(
@@ -138,10 +136,8 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 
     test_db.add_node_id_to_artifact_table(
         resize_call.id,
-        context_id=context.id,
-        value_type=CHART_TYPE,
         name="Graph With Image",
-        date_created="1372944000",
+        date_created=1372944000.0,
     )
 
     exec_orm = ExecutionORM(
