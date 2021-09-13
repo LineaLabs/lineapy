@@ -250,11 +250,6 @@ class Executor(GraphReader):
                 node = cast(LiteralNode, node)
                 # no-op if it's headless
                 if node.assigned_variable_name is not None:
-                    # if node.value is None and node.value_node_id is not None:
-                    #     node.value = program.get_node_value_from_id(
-                    #         node.value_node_id
-                    #     )
-                    # else:
                     self._variable_values[node.assigned_variable_name] = node.value
 
             elif node.node_type == NodeType.VariableNode:
