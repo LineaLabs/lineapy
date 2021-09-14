@@ -9,14 +9,18 @@ from lineapy.data.types import (
     ImportNode,
     Library,
     LineaID,
+    LiteralNode,
     Node,
     SessionContext,
     SessionType,
+    VariableNode,
 )
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.records_manager import RecordsManager
 from lineapy.utils import (
+    CaseNotHandledError,
+    InternalLogicError,
     UserError,
     info_log,
     internal_warning_log,
@@ -99,7 +103,9 @@ class Tracer:
         # Note that this could also be because we didn't track
         #   variables ourselves.
         raise UserError(
-            f"Trying to publish variable {variable_name}, which is not found"
+            f"Trying to lookup variable {variable_name}, which is not"
+            " found. Note that this could be that you are trying to publish a"
+            " variable assigned to a literal value."
         )
 
     def publish(self, variable_name: str, description: Optional[str] = None) -> None:
@@ -152,25 +158,44 @@ class Tracer:
         self.add_unevaluated_node(node, syntax_dictionary)
         return
 
-    def literal(self) -> None:
-        """
-        For the following cases
-        ```
-        1
-        a = 1
-        ```
-        Corresponds to the `LiteralNode`
-        TODO:
-        - [ ] define input arguments
-        = [ ] make sure that all the
-        """
-        pass
+    def headless_variable(
+        self, variable_name: str, syntax_dictionary: Dict[str, int]
+    ) -> None:
+        source_node_id = self._look_up_node_id_by_variable_name(variable_name)
+        if source_node_id is not None:
+            node = VariableNode(
+                id=get_new_id(),
+                session_id=self.session_context.id,
+                source_variable_id=source_node_id,
+            )
+            # FIXME: this node doesn't even need to be evaluated
+            #   we should prob decouple the evaluation with the insertion of new nodes
+            self.add_unevaluated_node(node, syntax_dictionary)
+        else:
+            raise InternalLogicError(f"Variable {variable_name} not found")
+
+    def headless_literal(self, value: Any, syntax_dictionary: Dict[str, int]) -> None:
+        """ """
+        node = LiteralNode(
+            id=get_new_id(),
+            session_id=self.session_context.id,
+            value=value,
+        )
+        self.add_unevaluated_node(node, syntax_dictionary)
+
+    def literal(self, value: Any, syntax_dictionary: Dict[str, int]):
+        # this literal should be assigned or used later
+        return LiteralNode(
+            id=get_new_id(),
+            session_id=self.session_context.id,
+            value=value,
+        )
 
     def call(
         self,
         function_name: str,
         arguments: Any,
-        syntax_dictionary: Dict,
+        syntax_dictionary: Dict[str, int],
         function_module: Optional[Any] = None,
     ) -> CallNode:
         """
@@ -246,15 +271,33 @@ class Tracer:
           but it gets the job done.
         TODO: add support for other types of assignment
         """
+        # shared logic
+        self.variable_name_to_id[variable_name] = value_node.id
+        augment_node_with_syntax(value_node, syntax_dictionary)
         if type(value_node) is CallNode:
             call_node = cast(CallNode, value_node)
             call_node.assigned_variable_name = variable_name
             # the assignment subsumes the original call code
-            augment_node_with_syntax(call_node, syntax_dictionary)
-            self.variable_name_to_id[variable_name] = call_node.id
+            # augment_node_with_syntax(call_node, syntax_dictionary)
+            # self.variable_name_to_id[variable_name] = call_node.id
+        elif type(value_node) in [VariableNode, LiteralNode]:
+            pass  # go to shared logic
+            # variable_node = cast(VariableNode, value_node)
+            # variable_node.assigned_variable_name = variable_name
+            # augment_node_with_syntax(variable_node, syntax_dictionary)
+        elif type(value_node) in [int, str]:
+            # hack: we should have consistent Literal handling...
+            new_node = LiteralNode(
+                id=get_new_id(),
+                session_id=self.session_context.id,
+                assigned_variable_name=variable_name,
+                value=value_node,
+            )
+            self.add_unevaluated_node(new_node)
+            self.variable_name_to_id[variable_name] = new_node.id
+            return
         else:
-            internal_warning_log("got type", type(value_node), value_node)
-            raise NotImplementedError
+            raise CaseNotHandledError(f"got type {type(value_node)} for {value_node}")
 
     def loop(self) -> None:
         """
