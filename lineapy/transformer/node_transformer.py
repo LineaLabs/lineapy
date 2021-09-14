@@ -98,9 +98,7 @@ class NodeTransformer(ast.NodeTransformer):
         for alias in node.names:
             keys.append(ast.Constant(value=alias.name))
             # needed turn_none_to_empty_str because of some issue with pydantic
-            values.append(
-                ast.Constant(value=turn_none_to_empty_str(alias.asname))
-            )
+            values.append(ast.Constant(value=turn_none_to_empty_str(alias.asname)))
 
         result = ast.Expr(
             ast.Call(
@@ -111,12 +109,8 @@ class NodeTransformer(ast.NodeTransformer):
                 ),
                 args=[],
                 keywords=[
-                    ast.keyword(
-                        arg="name", value=ast.Constant(value=node.module)
-                    ),
-                    ast.keyword(
-                        arg="syntax_dictionary", value=syntax_dictionary
-                    ),
+                    ast.keyword(arg="name", value=ast.Constant(value=node.module)),
+                    ast.keyword(arg="syntax_dictionary", value=syntax_dictionary),
                     ast.keyword(
                         arg="attributes",
                         value=ast.Dict(keys=keys, values=values),
@@ -199,9 +193,7 @@ class NodeTransformer(ast.NodeTransformer):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
             index = subscript_target.slice
-            if not isinstance(index, ast.Constant) or isinstance(
-                index, ast.Name
-            ):
+            if not isinstance(index, ast.Constant) or isinstance(index, ast.Name):
                 raise NotImplementedError(
                     "Assignment for Subscript supported only for Constant and"
                     " Name indices."
@@ -216,9 +208,7 @@ class NodeTransformer(ast.NodeTransformer):
             )
 
         if type(node.targets[0]) is not ast.Name:
-            raise NotImplementedError(
-                "Other assignment types are not supported"
-            )
+            raise NotImplementedError("Other assignment types are not supported")
 
         variable_name = node.targets[0].id  # type: ignore
         call_ast = ast.Call(
@@ -248,9 +238,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_List(self, node: ast.List) -> ast.Call:
         elem_nodes = [self.visit(elem) for elem in node.elts]
-        return synthesize_tracer_call_ast(
-            __build_list__.__name__, elem_nodes, node
-        )
+        return synthesize_tracer_call_ast(__build_list__.__name__, elem_nodes, node)
 
     def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
         ast_to_op_map = {
@@ -280,18 +268,12 @@ class NodeTransformer(ast.NodeTransformer):
         if isinstance(index, ast.Name) or isinstance(index, ast.Constant):
             args.append(self.visit(index))
         else:
-            raise NotImplementedError(
-                "Subscript for multiple indices not supported."
-            )
+            raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
             args.insert(0, self.visit(node.value))
-            return synthesize_tracer_call_ast(
-                operator.getitem.__name__, args, node
-            )
+            return synthesize_tracer_call_ast(operator.getitem.__name__, args, node)
         elif isinstance(node.ctx, ast.Del):
-            raise NotImplementedError(
-                "Subscript with ctx=ast.Del() not supported."
-            )
+            raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
         else:
             raise InvalidStateError(
                 "Subscript with ctx=ast.Load() should have been handled by"

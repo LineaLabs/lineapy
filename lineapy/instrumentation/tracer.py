@@ -60,9 +60,7 @@ class Tracer:
         #   what this configuration should be
         config = get_default_config_by_environment(execution_mode)
         self.records_manager = RecordsManager(config)
-        self.session_context = self.create_session_context(
-            session_type, file_name
-        )
+        self.session_context = self.create_session_context(session_type, file_name)
         self.executor = Executor()
         self.variable_name_to_id: Dict[str, LineaID] = {}
 
@@ -81,8 +79,7 @@ class Tracer:
         if self.session_type == SessionType.JUPYTER:
             # 🔥 FIXME 🔥
             internal_warning_log(
-                "The method `evaluate_records_so_far` will not evaluate"
-                " correctly"
+                "The method `evaluate_records_so_far` will not evaluate" " correctly"
             )
         self.executor.execute_program(
             Graph(self.nodes_to_be_evaluated),
@@ -111,9 +108,7 @@ class Tracer:
             " variable assigned to a literal value."
         )
 
-    def publish(
-        self, variable_name: str, description: Optional[str] = None
-    ) -> None:
+    def publish(self, variable_name: str, description: Optional[str] = None) -> None:
         # we'd have to do some introspection here to know what the ID is
         # then we can create a new ORM node (not our IR node, which is a
         #   little confusing)
@@ -179,9 +174,7 @@ class Tracer:
         else:
             raise InternalLogicError(f"Variable {variable_name} not found")
 
-    def headless_literal(
-        self, value: Any, syntax_dictionary: Dict[str, int]
-    ) -> None:
+    def headless_literal(self, value: Any, syntax_dictionary: Dict[str, int]) -> None:
         """ """
         node = LiteralNode(
             id=get_new_id(),
@@ -301,9 +294,7 @@ class Tracer:
             self.variable_name_to_id[variable_name] = new_node.id
             return
         else:
-            raise CaseNotHandledError(
-                f"got type {type(value_node)} for {value_node}"
-            )
+            raise CaseNotHandledError(f"got type {type(value_node)} for {value_node}")
         # shared logic
         self.variable_name_to_id[variable_name] = value_node.id
         augment_node_with_syntax(value_node, syntax_dictionary)
