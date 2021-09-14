@@ -4,7 +4,7 @@ import astor
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import internal_warning_log
 from tests.stub_data.graph_with_import import import_code
-from tests.util import compare_ast
+from tests.util import are_str_equal, compare_ast, strip_non_letter_num
 
 
 class TestNodeTransformer:

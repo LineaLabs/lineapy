@@ -1,5 +1,5 @@
 import unittest
-from typing import Optional, Tuple, Union
+from typing import Tuple
 
 from lineapy import ExecutionMode
 from lineapy.utils import get_current_time
@@ -61,7 +61,7 @@ from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
     session as print_session,
 )
-from tests.util import reset_test_db
+from tests.util import are_str_equal, reset_test_db
 
 
 class TestLineaDB(unittest.TestCase):
@@ -264,7 +264,7 @@ class TestLineaDB(unittest.TestCase):
         )
         reconstructed = self.lineadb.get_code_from_artifact_id(y_id)
 
-        assert loops_code == reconstructed
+        assert are_str_equal(loops_code, reconstructed)
 
     def test_code_reconstruction_with_slice(self):
         _ = self.write_and_read_graph(
@@ -276,5 +276,4 @@ class TestLineaDB(unittest.TestCase):
             get_current_time(),
         )
         reconstructed = self.lineadb.get_code_from_artifact_id(f_assign.id)
-
-        assert sliced_code == reconstructed
+        assert are_str_equal(sliced_code, reconstructed)

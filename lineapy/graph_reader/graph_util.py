@@ -19,7 +19,7 @@ def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
     if deep_check:
         if n1.node_type != n2.node_type:
             return False
-        # @dhruv TODO: then based on each node type do some custom testing
+        # TODO: then based on each node type do some custom testing
         # Maybe there is an easier way to just implement their __str__ and check that?
     return True
 
@@ -64,12 +64,16 @@ def are_nodes_content_equal(n1: Node, n2: Node, session_code: str) -> bool:
             return False
         if n1.value_node_id != n2.value_node_id:
             internal_warning_log(
-                "Nodes have different value_node_id", n1.value_node_id, n2.value_node_id
+                "Nodes have different value_node_id",
+                n1.value_node_id,
+                n2.value_node_id,
             )
             return False
         if n2.value_literal != n2.value_literal:
             internal_warning_log(
-                "Nodes have different value_literal", n1.value_literal, n2.value_literal
+                "Nodes have different value_literal",
+                n1.value_literal,
+                n2.value_literal,
             )
             return False
         return True

@@ -58,11 +58,11 @@ CallNode
 - ImportNode/CallNode (function_module) (One to One)
 - FunctionDefinitionNode (One to One)
 
-LiteralAssignNode
+LiteralNode
 - ValueNode (One to One)
 
-VariableAliasNode
-- VariableAliasNode/CallNode (Many to One)
+VariableNode
+- VariableNode/CallNode (Many to One)
 
 StateChangeNode
 - SideEffectsNode (One to One)
@@ -328,9 +328,9 @@ class ArgumentNodeORM(NodeORM):
         return NodeORM.__table__.c.get("value_node_id", Column(String))
 
 
-class LiteralAssignNodeORM(NodeORM):
+class LiteralNodeORM(NodeORM):
     __tablename__ = "literal_assign_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.LiteralAssignNode}
+    __mapper_args__ = {"polymorphic_identity": NodeType.LiteralNode}
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 
@@ -346,9 +346,9 @@ class LiteralAssignNodeORM(NodeORM):
     def value(cls):
         return NodeORM.__table__.c.get("value", Column(String))
 
-    @declared_attr
-    def value_node_id(cls):
-        return NodeORM.__table__.c.get("value_node_id", Column(String))
+    # @declared_attr
+    # def value_node_id(cls):
+    #     return NodeORM.__table__.c.get("value_node_id", Column(String))
 
 
 class FunctionDefinitionNodeORM(SideEffectsNodeORM):
@@ -366,13 +366,14 @@ class FunctionDefinitionNodeORM(SideEffectsNodeORM):
         return NodeORM.__table__.c.get("function_name", Column(String))
 
 
-class VariableAliasNodeORM(NodeORM):
+class VariableNodeORM(NodeORM):
     __tablename__ = "variable_alias_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.VariableAliasNode}
+    __mapper_args__ = {"polymorphic_identity": NodeType.VariableNode}
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     source_variable_id = Column(String)
+    assigned_variable_name = Column(String, nullable=True)
 
 
 class LoopNodeORM(SideEffectsNodeORM):

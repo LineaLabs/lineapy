@@ -16,7 +16,7 @@ class DatabaseOption(Enum):
 
 class FileSystemOption(Enum):
     Local = 1
-    S3 = 2  # #dhruv don't worry about S3 for now.
+    S3 = 2  # Net yet implemented
 
 
 @dataclass
@@ -53,7 +53,6 @@ class LineaDBReader(ABC):
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode
     ) -> List[Node]:  # type: ignore
-        # @dhruv: high priority implmenetation once you have the asset manager and relational done.
         pass
 
     def gather_artifact_intermediate_nodes(self, program: Graph):

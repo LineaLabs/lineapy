@@ -1,6 +1,6 @@
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    LiteralAssignNode,
+    LiteralNode,
     CallNode,
     LoopNode,
     StateChangeNode,
@@ -60,7 +60,7 @@ line_1 = CallNode(
 
 b_id = get_new_id()
 
-line_2 = LiteralAssignNode(
+line_2 = LiteralNode(
     id=b_id,
     session_id=session.id,
     assigned_variable_name="b",

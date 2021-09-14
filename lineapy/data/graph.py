@@ -74,21 +74,18 @@ class Graph(object):
             return None
 
         # find the original source node in a chain of aliases
-        if node.node_type is NodeType.VariableAliasNode:
-            node = cast(VariableAliasNode, node)
+        if node.node_type is NodeType.VariableNode:
+            node = cast(VariableNode, node)
             source = self.get_node(node.source_variable_id)
             if source is None:
                 print("WARNING: Could not find source node from id.")
                 return None
 
-            if source.node_type is NodeType.VariableAliasNode:
-                source = cast(VariableAliasNode, source)
+            if source.node_type is NodeType.VariableNode:
+                source = cast(VariableNode, source)
 
-                while (
-                    source is not None
-                    and source.node_type is NodeType.VariableAliasNode
-                ):
-                    source = cast(VariableAliasNode, source)
+                while source is not None and source.node_type is NodeType.VariableNode:
+                    source = cast(VariableNode, source)
                     source = self.get_node(source.source_variable_id)
 
             return source.value  # type: ignore
@@ -158,12 +155,8 @@ class Graph(object):
                 source_nodes.append(node.associated_node_id)
             elif node.state_dependency_type is StateDependencyType.Read:
                 source_nodes.append(node.initial_value_node_id)
-        elif node.node_type is NodeType.LiteralAssignNode:
-            node = cast(LiteralAssignNode, node)
-            if node.value_node_id is not None:
-                source_nodes.append(node.value_node_id)
-        elif node.node_type is NodeType.VariableAliasNode:
-            node = cast(VariableAliasNode, node)
+        elif node.node_type is NodeType.VariableNode:
+            node = cast(VariableNode, node)
             source_nodes.append(node.source_variable_id)
 
         return source_nodes
