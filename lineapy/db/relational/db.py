@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-from typing import List, Optional, Union, cast, Any
+from typing import List, Optional, cast, Any
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -74,11 +74,8 @@ class RelationalLineaDB(LineaDB):
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default=False)
-        echo = (
-            echo
-            if isinstance(echo, bool)
-            else (str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true")
-        )
+        if not isinstance(echo, bool):
+            echo = str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
