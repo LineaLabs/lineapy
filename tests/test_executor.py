@@ -31,10 +31,18 @@ from tests.stub_data.nested_call_graph import (
     nested_call_graph,
     session as nested_call_graph_session,
 )
-from tests.stub_data.simple_graph import simple_graph, session as simple_graph_session
+from tests.stub_data.simple_graph import (
+    simple_graph,
+    session as simple_graph_session,
+)
 from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
     session as simple_with_variable_argument_and_print_session,
+)
+
+from tests.stub_data.graph_with_messy_nodes import (
+    graph_with_messy_nodes,
+    session as graph_with_messy_nodes_session,
 )
 
 
@@ -75,7 +83,8 @@ class TestBasicExecutor:
         """ """
         e = Executor()
         e.execute_program(
-            graph_with_function_definition, graph_with_function_definition_session
+            graph_with_function_definition,
+            graph_with_function_definition_session,
         )
         a = e.get_value_by_variable_name("a")
         assert a == 120
@@ -125,6 +134,12 @@ class TestBasicExecutor:
         )
         s = e.get_value_by_variable_name("s")
         assert s == 10
+
+    def test_headless_variable_and_literals(self):
+        e = Executor()
+        e.execute_program(graph_with_messy_nodes, graph_with_messy_nodes_session)
+        g = e.get_value_by_variable_name("g")
+        assert g == 5
 
     def test_execute_program_with_inputs_graph_with_loops(self):
         # e = Executor()

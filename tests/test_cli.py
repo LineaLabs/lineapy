@@ -67,29 +67,29 @@ class TestCli:
                     )
                 info_log("found_call_node", c)
 
-        def test_publish(self):
-            """
-            testing something super simple
-            """
-            description = "testing artifact publish"
-            with NamedTemporaryFile() as tmp:
-                publish_code = (
-                    f"import {lineapy.__name__}\na ="
-                    f" abs(-11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
-                    f" '{description}')\n"
-                )
-                info_log("publish code", publish_code)
-                tmp.write(str.encode(publish_code))
-                tmp.flush()
-                result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp.name])
-                assert result.exit_code == 0
-                artifacts = self.db.get_all_artifacts()
-                assert len(artifacts) == 1
-                artifact = artifacts[0]
-                info_log("logged artifact", artifact)
-                assert artifact.description == description
-                time_diff = get_current_time() - artifact.date_created
-                assert time_diff < 1000
+    def test_publish(self):
+        """
+        testing something super simple
+        """
+        name = "testing artifact publish"
+        with NamedTemporaryFile() as tmp:
+            publish_code = (
+                f"import {lineapy.__name__}\na ="
+                f" abs(-11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
+                f" '{name}')\n"
+            )
+            info_log("publish code", publish_code)
+            tmp.write(str.encode(publish_code))
+            tmp.flush()
+            result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp.name])
+            assert result.exit_code == 0
+            artifacts = self.db.get_all_artifacts()
+            assert len(artifacts) == 1
+            artifact = artifacts[0]
+            info_log("logged artifact", artifact)
+            assert artifact.name == name
+            time_diff = get_current_time() - artifact.date_created
+            assert time_diff < 1000
 
     def test_no_script_error(self):
         # TODO

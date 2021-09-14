@@ -1,10 +1,11 @@
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    LiteralAssignNode,
+    LiteralNode,
     Library,
     ImportNode,
     ArgumentNode,
     CallNode,
+    VariableNode,
 )
 from tests.util import get_new_id, get_new_session
 
@@ -28,12 +29,16 @@ f = a * b * c
 ```
 """
 
+# including also a headless integer & variable
 code = """a = 1
 b = a + 2
 c = 2
 d = 4
 e = d + a
 f = a * b * c
+10
+e
+g = e
 """
 
 sliced_code = """a = 1
@@ -47,7 +52,7 @@ operator_lib = Library(id=get_new_id(), name="operator", version="1", path="")
 
 session = get_new_session(code, libraries=[operator_lib])
 
-a_assign = LiteralAssignNode(
+a_assign = LiteralNode(
     id=get_new_id(),
     session_id=session.id,
     assigned_variable_name="a",
@@ -58,7 +63,7 @@ a_assign = LiteralAssignNode(
     end_col_offset=5,
 )
 
-# NOTE: this doesn't have line/col nums because it's implicit
+# NOTE: this doesn't have line/col numbers because it's implicit
 operator_module = ImportNode(
     id=get_new_id(),
     session_id=session.id,
@@ -100,7 +105,7 @@ b_assign = CallNode(
     end_col_offset=9,
 )
 
-c_assign = LiteralAssignNode(
+c_assign = LiteralNode(
     id=get_new_id(),
     session_id=session.id,
     assigned_variable_name="c",
@@ -111,7 +116,7 @@ c_assign = LiteralAssignNode(
     end_col_offset=5,
 )
 
-d_assign = LiteralAssignNode(
+d_assign = LiteralNode(
     id=get_new_id(),
     session_id=session.id,
     assigned_variable_name="d",
@@ -227,6 +232,37 @@ f_assign = CallNode(
     end_col_offset=13,
 )
 
+headless_literal = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    value=1,
+    lineno=7,
+    col_offset=0,
+    end_lineno=7,
+    end_col_offset=2,
+)
+
+headless_variable = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_variable_id=1,
+    lineno=8,
+    col_offset=0,
+    end_lineno=8,
+    end_col_offset=1,
+)
+
+variable_alias = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_variable_id=e_assign.id,
+    assigned_variable_name="g",
+    lineno=9,
+    col_offset=0,
+    end_lineno=9,
+    end_col_offset=5,
+)
+
 graph_with_messy_nodes = Graph(
     [
         a_assign,
@@ -245,6 +281,9 @@ graph_with_messy_nodes = Graph(
         f_argument_node,
         c_argument_node,
         f_assign,
+        headless_literal,
+        headless_variable,
+        variable_alias,
     ]
 )
 
