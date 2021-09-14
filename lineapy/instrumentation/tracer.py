@@ -271,6 +271,9 @@ class Tracer:
           but it gets the job done.
         TODO: add support for other types of assignment
         """
+        # shared logic
+        self.variable_name_to_id[variable_name] = value_node.id
+        augment_node_with_syntax(value_node, syntax_dictionary)
         if type(value_node) is CallNode:
             call_node = cast(CallNode, value_node)
             call_node.assigned_variable_name = variable_name
@@ -295,9 +298,6 @@ class Tracer:
             return
         else:
             raise CaseNotHandledError(f"got type {type(value_node)} for {value_node}")
-        # shared logic
-        self.variable_name_to_id[variable_name] = value_node.id
-        augment_node_with_syntax(value_node, syntax_dictionary)
 
     def loop(self) -> None:
         """
