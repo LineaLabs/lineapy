@@ -23,7 +23,8 @@ def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
     return ast.Dict(
         keys=[ast.Constant(value=key) for key in SYNTAX_KEY],
         values=[
-            ast.Constant(value=ast_node.__getattribute__(key)) for key in SYNTAX_KEY
+            ast.Constant(value=ast_node.__getattribute__(key))
+            for key in SYNTAX_KEY
         ],
     )
 
@@ -58,27 +59,62 @@ def synthesize_tracer_call_ast(
     """
 
     syntax_dictionary = extract_concrete_syntax_from_node(node)
-    return ast.Call(
-        func=ast.Attribute(
-            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-            attr=Tracer.call.__name__,
-            ctx=ast.Load(),
-        ),
-        args=[],
-        keywords=[
-            ast.keyword(
-                arg="function_name",
-                value=ast.Constant(value=function_name),
+    return ast.Expr(
+        value=ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.call.__name__,
+                ctx=ast.Load(),
             ),
-            ast.keyword(
-                arg="syntax_dictionary",
-                value=syntax_dictionary,
+            args=[],
+            keywords=[
+                ast.keyword(
+                    arg="function_name",
+                    value=ast.Constant(value=function_name),
+                ),
+                ast.keyword(
+                    arg="syntax_dictionary",
+                    value=syntax_dictionary,
+                ),
+                ast.keyword(
+                    arg="arguments",
+                    value=ast.List(elts=argument_nodes),
+                ),
+            ],
+        )
+    )
+
+
+def synthesize_tracer_headless_literal_ast(node: ast.Constant):
+    syntax_dictionary = extract_concrete_syntax_from_node(node)
+    return ast.Expr(
+        value=ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.headless_literal.__name__,
+                ctx=ast.Load(),
             ),
-            ast.keyword(
-                arg="arguments",
-                value=ast.List(elts=argument_nodes),
+            args=[node, syntax_dictionary],
+            keywords=[],
+        )
+    )
+
+
+def synthesize_tracer_headless_variable_ast(node: ast.Name):
+    """
+    Either literal or a variable.
+    """
+    syntax_dictionary = extract_concrete_syntax_from_node(node)
+    return ast.Expr(
+        value=ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.headless_variable.__name__,
+                ctx=ast.Load(),
             ),
-        ],
+            args=[ast.Constant(value=node.id), syntax_dictionary],
+            keywords=[],
+        )
     )
 
 
@@ -102,12 +138,14 @@ def synthesize_linea_publish_call_ast(
                 value=ast.Constant(value=description),
             )
         )
-    return ast.Call(
-        func=ast.Attribute(
-            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-            attr=Tracer.publish.__name__,
-            ctx=ast.Load(),
-        ),
-        args=[],
-        keywords=keywords,
+    return ast.Expr(
+        value=ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.publish.__name__,
+                ctx=ast.Load(),
+            ),
+            args=[],
+            keywords=keywords,
+        )
     )

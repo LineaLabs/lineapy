@@ -225,7 +225,6 @@ class LiteralNode(Node):
     node_type: NodeType = NodeType.LiteralNode
     value: NodeValueType
     assigned_variable_name: Optional[str]
-    # value_node_id: Optional[LineaID]  # FIXME: this should be removed.
 
 
 class VariableNode(Node):
