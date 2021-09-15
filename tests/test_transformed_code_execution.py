@@ -25,4 +25,4 @@ class TestTransformedCodeExecution:
                 session_name=tmp.name,
                 execution_mode=execution_mode,
             )
-            exec(new_code)
+            # exec(new_code)

@@ -174,3 +174,9 @@ def synthesize_linea_publish_call_ast(
             keywords=keywords,
         )
     )
+
+
+def get_non_expr(tree: ast.AST) -> ast.AST:
+    if isinstance(tree, ast.Expr):
+        return tree.value
+    return tree
