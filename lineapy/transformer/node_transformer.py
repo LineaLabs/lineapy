@@ -16,7 +16,7 @@ from lineapy.transformer.transformer_util import (
     synthesize_tracer_headless_variable_ast,
     turn_none_to_empty_str,
 )
-from lineapy.utils import UserError
+from lineapy.utils import UserError, InvalidStateError
 
 
 def turn_none_to_empty_str(a: Optional[str]):

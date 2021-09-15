@@ -2,6 +2,7 @@ pip
 mypy
 black
 pep8
+flake8
 pylint
 pytest
 pytest-mock
