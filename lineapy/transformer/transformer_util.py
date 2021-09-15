@@ -1,5 +1,4 @@
 import ast
-from optparse import Option
 from typing import Any, List, Optional, cast
 
 from lineapy.utils import CaseNotHandledError
