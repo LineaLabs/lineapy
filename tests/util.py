@@ -57,6 +57,9 @@ def compare_ast(node1: AST, node2: AST):
     """
     s1 = dump(node1)
     s2 = dump(node2)
+    if s1 != s2:
+        print(dump(node1, indent=2))
+        print(dump(node2, indent=2))
     return s1 == s2
 
 
