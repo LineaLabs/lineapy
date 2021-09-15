@@ -2,4 +2,6 @@
 
 # a = abs(1)
 # lineapy.linea_publish(a, "test artifact")
-b = 1
+1
+b = 2
+b

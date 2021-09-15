@@ -51,6 +51,7 @@ def synthesize_tracer_call_ast(
     function_name: str,
     argument_nodes: List[Any],
     node: Any,  # NOTE: not sure if the ast Nodes have a union type
+    new_line=True,
 ):
     """
     Node is passed to synthesize the `syntax_dictionary`
@@ -58,7 +59,7 @@ def synthesize_tracer_call_ast(
     """
 
     syntax_dictionary = extract_concrete_syntax_from_node(node)
-    return ast.Call(
+    call = ast.Call(
         func=ast.Attribute(
             value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
             attr=Tracer.call.__name__,
@@ -80,6 +81,49 @@ def synthesize_tracer_call_ast(
             ),
         ],
     )
+    if new_line:
+        return ast.Expr(value=call)
+    else:
+        return call
+
+
+def synthesize_tracer_headless_literal_ast(node: ast.Constant):
+    """
+    NOTE:
+    - this is definitely a new line, so including the Expr
+    """
+    syntax_dictionary = extract_concrete_syntax_from_node(node)
+    return ast.Expr(
+        value=ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.headless_literal.__name__,
+                ctx=ast.Load(),
+            ),
+            args=[node, syntax_dictionary],
+            keywords=[],
+        )
+    )
+
+
+def synthesize_tracer_headless_variable_ast(node: ast.Name):
+    """
+    Either literal or a variable.
+    NOTE:
+    - definitely new line, including Expr
+    """
+    syntax_dictionary = extract_concrete_syntax_from_node(node)
+    return ast.Expr(
+        value=ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.headless_variable.__name__,
+                ctx=ast.Load(),
+            ),
+            args=[ast.Constant(value=node.id), syntax_dictionary],
+            keywords=[],
+        )
+    )
 
 
 def synthesize_linea_publish_call_ast(
@@ -87,7 +131,8 @@ def synthesize_linea_publish_call_ast(
     description: Optional[str] = None,
 ):
     """
-    TODO: add modules
+    NOTE:
+    - assume new line
     """
     keywords = [
         ast.keyword(
@@ -102,12 +147,14 @@ def synthesize_linea_publish_call_ast(
                 value=ast.Constant(value=description),
             )
         )
-    return ast.Call(
-        func=ast.Attribute(
-            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-            attr=Tracer.publish.__name__,
-            ctx=ast.Load(),
-        ),
-        args=[],
-        keywords=keywords,
+    return ast.Expr(
+        value=ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.publish.__name__,
+                ctx=ast.Load(),
+            ),
+            args=[],
+            keywords=keywords,
+        )
     )

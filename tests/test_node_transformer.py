@@ -170,3 +170,30 @@ class TestNodeTransformer:
             " artifact')\n"
         )
         self._check_equality(publish_code_with_comment, expected_with_comment)
+
+    def test_headless_literal(self):
+        expected = (
+            "lineapy_tracer.headless_literal(1, "
+            + "{'lineno': 1, 'col_offset': 0,"
+            + "'end_lineno': 1, 'end_col_offset': 1})"
+        )
+        headless_code = "1"
+        self._check_equality(headless_code, expected)
+
+    def test_headless_variable(self):
+        expected = (
+            "lineapy_tracer.headless_variable"
+            + "('b', {'lineno': 1, 'col_offset': 0,"
+            + "'end_lineno': 1, 'end_col_offset': 1})"
+        )
+        headless_code = "b"
+        self._check_equality(headless_code, expected)
+
+    def test_literal_assignment(self):
+        expected = (
+            "lineapy_tracer.assign(variable_name='b', value_node=2,"
+            "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1, "
+            "'end_col_offset': 3})"
+        )
+        assignment_code = "b=2"
+        self._check_equality(assignment_code, expected)
