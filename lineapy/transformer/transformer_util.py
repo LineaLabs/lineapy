@@ -1,8 +1,6 @@
 import ast
 from typing import Any, List, Optional, cast
-from dataclasses import dataclass
 
-from lineapy.data.types import Node
 from lineapy.utils import CaseNotHandledError
 from lineapy.constants import LINEAPY_TRACER_NAME
 from lineapy.instrumentation.tracer import Tracer
@@ -51,7 +49,6 @@ def synthesize_tracer_call_ast(
     function_name: str,
     argument_nodes: List[Any],
     node: Any,  # NOTE: not sure if the ast Nodes have a union type
-    new_line=True,
 ):
     """
     Node is passed to synthesize the `syntax_dictionary`
@@ -81,10 +78,7 @@ def synthesize_tracer_call_ast(
             ),
         ],
     )
-    if new_line:
-        return ast.Expr(value=call)
-    else:
-        return call
+    return call
 
 
 def synthesize_tracer_headless_literal_ast(node: ast.Constant):
