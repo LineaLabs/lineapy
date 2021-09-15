@@ -75,10 +75,19 @@ def synthesize_tracer_call_ast(
             ),
             ast.keyword(
                 arg="arguments",
-                value=ast.List(elts=argument_nodes),
+                value=ast.List(elts=argument_nodes, ctx=ast.Load()),
             ),
         ],
     )
+
+    if function_module is not None:
+        call.keywords.append(
+            ast.keyword(
+                arg="function_module",
+                value=function_module,
+            )
+        )
+
     if new_line:
         return ast.Expr(value=call)
     else:
