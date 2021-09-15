@@ -1,10 +1,12 @@
 import ast
-from typing import List, cast, Any, Union, Optional
 import operator
+from typing import cast, Any, Union, Optional
 
 from lineapy import linea_publish
-from lineapy.utils import UserError
-from lineapy.instrumentation.tracer import Tracer, Variable
+from lineapy.constants import LINEAPY_TRACER_NAME
+from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer import Variable
+from lineapy.lineabuiltins import __build_list__
 from lineapy.transformer.transformer_util import (
     extract_concrete_syntax_from_node,
     get_call_function_name,
@@ -14,11 +16,7 @@ from lineapy.transformer.transformer_util import (
     synthesize_tracer_headless_variable_ast,
     turn_none_to_empty_str,
 )
-
-from lineapy.instrumentation.tracer import Tracer
-from lineapy.constants import LINEAPY_TRACER_NAME
 from lineapy.utils import UserError, InvalidStateError
-from lineapy.lineabuiltins import __build_list__
 
 
 def turn_none_to_empty_str(a: Optional[str]):
@@ -46,9 +44,9 @@ class NodeTransformer(ast.NodeTransformer):
         Exprs are indications that it's a new line
         """
         v = node.value
-        if type(v) == ast.Name:
+        if isinstance(v, ast.Name):
             return synthesize_tracer_headless_variable_ast(v)  # type: ignore
-        elif type(v) == ast.Constant:
+        elif isinstance(v, ast.Constant):
             return synthesize_tracer_headless_literal_ast(v)  # type: ignore
         return self.visit(node.value)
 
@@ -152,14 +150,14 @@ class NodeTransformer(ast.NodeTransformer):
                     " description"
                 )
             # TODO: support keyword arguments as well
-            if type(node.args[0]) is not ast.Name:
+            if not isinstance(node.args[0], ast.Name):
                 raise UserError(
                     "Please pass a variable as the first argument to"
                     f" `{linea_publish.__name__}`"
                 )
             var_node = cast(ast.Name, node.args[0])
             if len(node.args) == 2:
-                if type(node.args[1]) is not ast.Constant:
+                if not isinstance(node.args[1], ast.Constant):
                     raise UserError(
                         "Please pass a string for the description as the"
                         " second argument to"
@@ -207,7 +205,7 @@ class NodeTransformer(ast.NodeTransformer):
                 operator.setitem.__name__, argument_nodes, node
             )
 
-        if type(node.targets[0]) is not ast.Name:
+        if not isinstance(node.targets[0], ast.Name):
             raise NotImplementedError("Other assignment types are not supported")
 
         variable_name = node.targets[0].id  # type: ignore
