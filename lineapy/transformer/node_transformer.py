@@ -55,7 +55,7 @@ class NodeTransformer(ast.NodeTransformer):
             return synthesize_tracer_headless_variable_ast(v)  # type: ignore
         elif isinstance(v, ast.Constant):
             return synthesize_tracer_headless_literal_ast(v)  # type: ignore
-        return self.visit(node.value)
+        return ast.Expr(value=self.visit(node.value))
 
     def visit_Import(self, node):
         """
@@ -135,7 +135,7 @@ class NodeTransformer(ast.NodeTransformer):
             keywords=[],
         )
 
-    def visit_Call(self, node) -> ast.Expr:
+    def visit_Call(self, node) -> ast.Call:
         """
         TODO: support key word
         TODO: find function_module

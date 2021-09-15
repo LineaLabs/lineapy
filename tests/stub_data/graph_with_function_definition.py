@@ -13,15 +13,6 @@ from tests.util import get_new_id, get_new_session
 """
 This also doubles to test scope of the variable, as well as functions with mutation
 
-```
-import math
-a = 0
-def my_function():
-    global a
-    a = math.factorial(5)
-my_function()
-```
-
 """
 
 code = """import math
