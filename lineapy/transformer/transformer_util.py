@@ -51,6 +51,7 @@ def synthesize_tracer_call_ast(
     function_name: str,
     argument_nodes: List[Any],
     node: Any,  # NOTE: not sure if the ast Nodes have a union type
+    new_line=True,
 ):
     """
     Node is passed to synthesize the `syntax_dictionary`
@@ -58,33 +59,39 @@ def synthesize_tracer_call_ast(
     """
 
     syntax_dictionary = extract_concrete_syntax_from_node(node)
-    return ast.Expr(
-        value=ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.call.__name__,
-                ctx=ast.Load(),
+    call = ast.Call(
+        func=ast.Attribute(
+            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+            attr=Tracer.call.__name__,
+            ctx=ast.Load(),
+        ),
+        args=[],
+        keywords=[
+            ast.keyword(
+                arg="function_name",
+                value=ast.Constant(value=function_name),
             ),
-            args=[],
-            keywords=[
-                ast.keyword(
-                    arg="function_name",
-                    value=ast.Constant(value=function_name),
-                ),
-                ast.keyword(
-                    arg="syntax_dictionary",
-                    value=syntax_dictionary,
-                ),
-                ast.keyword(
-                    arg="arguments",
-                    value=ast.List(elts=argument_nodes),
-                ),
-            ],
-        )
+            ast.keyword(
+                arg="syntax_dictionary",
+                value=syntax_dictionary,
+            ),
+            ast.keyword(
+                arg="arguments",
+                value=ast.List(elts=argument_nodes),
+            ),
+        ],
     )
+    if new_line:
+        return ast.Expr(value=call)
+    else:
+        return call
 
 
 def synthesize_tracer_headless_literal_ast(node: ast.Constant):
+    """
+    NOTE:
+    - this is definitely a new line, so including the Expr
+    """
     syntax_dictionary = extract_concrete_syntax_from_node(node)
     return ast.Expr(
         value=ast.Call(
@@ -102,6 +109,8 @@ def synthesize_tracer_headless_literal_ast(node: ast.Constant):
 def synthesize_tracer_headless_variable_ast(node: ast.Name):
     """
     Either literal or a variable.
+    NOTE:
+    - definitely new line, including Expr
     """
     syntax_dictionary = extract_concrete_syntax_from_node(node)
     return ast.Expr(
@@ -122,7 +131,8 @@ def synthesize_linea_publish_call_ast(
     description: Optional[str] = None,
 ):
     """
-    TODO: add modules
+    NOTE:
+    - assume new line
     """
     keywords = [
         ast.keyword(
