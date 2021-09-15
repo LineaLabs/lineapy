@@ -82,15 +82,6 @@ def synthesize_tracer_call_ast(
     return call
 
 
-# def synthesize_tracer_call_ast_new_line(
-#     function_name: str,
-#     argument_nodes: List[Any],
-#     node: Any,  # NOTE: not sure if the ast Nodes have a union type):
-# ):
-#     call = synthesize_tracer_call_ast(function_name, argument_nodes, node)
-#     return ast.Expr(value=call)
-
-
 def synthesize_tracer_headless_literal_ast(node: ast.Constant):
     """
     NOTE:
