@@ -172,18 +172,3 @@ class TestBasicExecutor:
         # stdout = e.get_stdout()
         # assert stdout == "True\n"
         pass
-
-
-if __name__ == "__main__":
-    tester = TestBasicExecutor()
-    tester.test_simple_graph()
-    tester.test_nested_call_graph()
-    tester.test_graph_with_print()
-    tester.test_basic_import()
-    tester.test_graph_with_function_definition()
-    tester.test_program_with_mutations()
-    tester.test_program_with_loops()
-    tester.test_program_with_conditionals()
-    tester.test_program_with_file_access()
-    tester.test_variable_alias_by_value()
-    tester.test_variable_alias_by_reference()

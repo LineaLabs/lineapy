@@ -147,9 +147,3 @@ class TestCli:
     def test_subscript(self):
         code = "ls = [1,2]\nassert ls[0] == 1"
         self._run_code(code, "subscript")
-
-
-if __name__ == "__main__":
-    tester = TestCli()
-    tester.setup()
-    tester.test_end_to_end_simple_graph()
