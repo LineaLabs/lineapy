@@ -140,7 +140,7 @@ class TestNodeTransformer:
                 f"lineapy_tracer.call(function_name='{op_map[op]}', "
                 f"syntax_dictionary={{'lineno': 1,'col_offset': 0, 'end_lineno': 1, "
                 f"'end_col_offset': {len(op) + 4}}}, "
-                "arguments=[Variable('a'), 1],function_module=" + BUILTIN_OPERATOR + ")"
+                "arguments=[Variable('a'), 1])"
             )
             self._check_equality(simple_op, expected_simple_op)
 
@@ -161,9 +161,7 @@ class TestNodeTransformer:
                 f"lineapy_tracer.call(function_name='{op_map[op]}', "
                 f"syntax_dictionary={{'lineno': 1,'col_offset': 0, 'end_lineno': 1, "
                 f"'end_col_offset': {len(op) + 4}}}, "
-                "arguments=[Variable('a'), Variable('b')],function_module="
-                + BUILTIN_OPERATOR
-                + ")"
+                "arguments=[Variable('a'), Variable('b')])"
             )
             self._check_equality(simple_comp, expected_simple_comp)
 
@@ -171,9 +169,7 @@ class TestNodeTransformer:
         expected_simple_in = (
             "lineapy_tracer.call(function_name='" + IN + "', "
             "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 6},"
-            "arguments=[Variable('b'), Variable('a')], function_module="
-            + BUILTIN_OPERATOR
-            + ")"
+            "arguments=[Variable('b'), Variable('a')])"
         )
         self._check_equality(simple_in, expected_simple_in)
 
@@ -183,11 +179,7 @@ class TestNodeTransformer:
             "syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10}, "
             "arguments=[lineapy_tracer.call(function_name='" + IN + "', "
             "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10},"
-            "arguments=[Variable('b'), Variable('a')], function_module="
-            + BUILTIN_OPERATOR
-            + ")],function_module="
-            + BUILTIN_OPERATOR
-            + ")"
+            "arguments=[Variable('b'), Variable('a')])])"
         )
         self._check_equality(simple_not_in, expected_simple_not_in)
 
@@ -197,10 +189,7 @@ class TestNodeTransformer:
             "syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10}, "
             "arguments=[lineapy_tracer.call(function_name='" + LTE + "', "
             "syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10}, "
-            "arguments=[Variable('a'), Variable('b')], function_module="
-            + BUILTIN_OPERATOR
-            + "), Variable('c')], "
-            "function_module=" + BUILTIN_OPERATOR + ")"
+            "arguments=[Variable('a'), Variable('b')]), Variable('c')])"
         )
         self._check_equality(chain_op, expected_chain_op)
 
@@ -210,9 +199,7 @@ class TestNodeTransformer:
             "lineapy_tracer.call(function_name='"
             + GET_ITEM
             + "', syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 5},  arguments=[Variable('ls'), 0], function_module="
-            + BUILTIN_OPERATOR
-            + ")"
+            " 'end_col_offset': 5},  arguments=[Variable('ls'), 0])"
         )
         self._check_equality(simple, expected)
 
@@ -220,9 +207,7 @@ class TestNodeTransformer:
         expected_var = (
             "lineapy_tracer.call(function_name='" + GET_ITEM + "',"
             "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':5},"
-            "arguments=[Variable('ls'), Variable('a')], function_module="
-            + BUILTIN_OPERATOR
-            + ")"
+            "arguments=[Variable('ls'), Variable('a')])"
         )
         self._check_equality(simple_var, expected_var)
 
@@ -231,8 +216,7 @@ class TestNodeTransformer:
             "lineapy_tracer.call(function_name='" + GET_ITEM + "',"
             "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':7},"
             "arguments=[Variable('ls'), lineapy_tracer.call(function_name='slice',"
-            "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':6},arguments=[1,2])], "
-            "function_module=" + BUILTIN_OPERATOR + ")"
+            "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':6},arguments=[1,2])])"
         )
         self._check_equality(simple_slice, expected_simple_slice)
 
@@ -242,7 +226,7 @@ class TestNodeTransformer:
             "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':7},"
             "arguments=[Variable('ls'), lineapy_tracer.call(function_name='slice',"
             "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':6},"
-            "arguments=[1,Variable('a')])], function_module=" + BUILTIN_OPERATOR + ")"
+            "arguments=[1,Variable('a')])])"
         )
         self._check_equality(variable_slice, expected_variable_slice)
 
@@ -252,7 +236,7 @@ class TestNodeTransformer:
             "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':9},"
             "arguments=[Variable('ls'), lineapy_tracer.call(function_name='__build_list__',"
             "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':8},"
-            "arguments=[1,2])], function_module=" + BUILTIN_OPERATOR + ")"
+            "arguments=[1,2])])"
         )
         self._check_equality(simple_list, expected_simple_list)
 
@@ -262,7 +246,7 @@ class TestNodeTransformer:
             "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':9},"
             "arguments=[Variable('ls'), lineapy_tracer.call(function_name='__build_list__',"
             "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':8},"
-            "arguments=[1,Variable('a')])], function_module=" + BUILTIN_OPERATOR + ")"
+            "arguments=[1,Variable('a')])])"
         )
         self._check_equality(variable_list, expected_variable_list)
 
@@ -271,9 +255,7 @@ class TestNodeTransformer:
         expected_simple_assign = (
             "lineapy_tracer.call(function_name='" + SET_ITEM + "', "
             "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 9},"
-            "arguments=[Variable('ls'), 0, 1], function_module="
-            + BUILTIN_OPERATOR
-            + ")"
+            "arguments=[Variable('ls'), 0, 1])"
         )
         self._check_equality(simple_assign, expected_simple_assign)
 
@@ -281,9 +263,7 @@ class TestNodeTransformer:
         expected_variable_assign = (
             "lineapy_tracer.call(function_name='" + SET_ITEM + "',"
             "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':9},"
-            "arguments=[Variable('ls'), Variable('a'), Variable('b')], function_module="
-            + BUILTIN_OPERATOR
-            + ")"
+            "arguments=[Variable('ls'), Variable('a'), Variable('b')])"
         )
         self._check_equality(simple_variable_assign, expected_variable_assign)
 
@@ -295,8 +275,7 @@ class TestNodeTransformer:
             "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':6},"
             "arguments=[1,2]),"
             "lineapy_tracer.call(function_name='__build_list__',"
-            "syntax_dictionary={'lineno':1,'col_offset':10,'end_lineno':1,'end_col_offset':13},arguments=[1])],"
-            "function_module=" + BUILTIN_OPERATOR + ")"
+            "syntax_dictionary={'lineno':1,'col_offset':10,'end_lineno':1,'end_col_offset':13},arguments=[1])])"
         )
         self._check_equality(simple_slice_assign, expected_simple_slice_assign)
 
@@ -309,7 +288,7 @@ class TestNodeTransformer:
             "arguments=[1,Variable('a')]),"
             "lineapy_tracer.call(function_name='__build_list__',"
             "syntax_dictionary={'lineno':1,'col_offset':10,'end_lineno':1,'end_col_offset':13},"
-            "arguments=[Variable('b')])], function_module=" + BUILTIN_OPERATOR + ")"
+            "arguments=[Variable('b')])],)"
         )
         self._check_equality(variable_slice_assign, expected_variable_slice_assign)
 
@@ -321,7 +300,7 @@ class TestNodeTransformer:
             "syntax_dictionary={'lineno':1,'col_offset':3,'end_lineno':1,'end_col_offset':8},"
             "arguments=[1,2]),lineapy_tracer.call(function_name='__build_list__',"
             "syntax_dictionary={'lineno':1,'col_offset':12,'end_lineno':1,'end_col_offset':17},"
-            "arguments=[1,2])],function_module=" + BUILTIN_OPERATOR + ")"
+            "arguments=[1,2])])"
         )
         self._check_equality(simple_list_assign, expected_simple_list_assign)
 

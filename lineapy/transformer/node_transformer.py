@@ -214,7 +214,6 @@ class NodeTransformer(ast.NodeTransformer):
                     SET_ITEM,
                     argument_nodes,
                     node,
-                    function_module=ast.Name(id=BUILTIN_OPERATOR, ctx=ast.Load()),
                 )
                 return ast.Expr(value=call)
 
@@ -274,7 +273,9 @@ class NodeTransformer(ast.NodeTransformer):
         op = ast_to_op_map[node.op.__class__]
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
         return synthesize_tracer_call_ast(
-            op, argument_nodes, node, function_module=OPERATOR_MODULE
+            op,
+            argument_nodes,
+            node,
         )
 
     def visit_Compare(self, node: ast.Compare) -> ast.Call:
@@ -311,7 +312,6 @@ class NodeTransformer(ast.NodeTransformer):
                         self.visit(right),
                     ],
                     node,
-                    function_module=OPERATOR_MODULE,
                 )
             elif isinstance(op, ast.NotIn):
                 # need to call operator.not_ on __contains___
@@ -319,13 +319,11 @@ class NodeTransformer(ast.NodeTransformer):
                     ast_to_op_map[ast.In],
                     [self.visit(left), self.visit(right)],
                     node,
-                    function_module=OPERATOR_MODULE,
                 )
                 left = synthesize_tracer_call_ast(
                     NOT,
                     [inside],
                     node,
-                    function_module=OPERATOR_MODULE,
                 )
 
         return left
@@ -358,7 +356,6 @@ class NodeTransformer(ast.NodeTransformer):
                 GET_ITEM,
                 args,
                 node,
-                function_module=OPERATOR_MODULE,
             )
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")

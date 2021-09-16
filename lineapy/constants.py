@@ -58,8 +58,6 @@ class ExecutionMode(Enum):
 # Transformer related
 GET_ITEM = operator.__getitem__.__name__
 SET_ITEM = operator.__setitem__.__name__
-BUILTIN_OPERATOR = operator.__name__
-OPERATOR_MODULE = Name(id=BUILTIN_OPERATOR, ctx=Load())
 
 # BinOPs
 ADD = operator.__add__.__name__
