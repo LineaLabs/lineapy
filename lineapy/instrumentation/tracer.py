@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Dict, Any, Optional, List, cast
 
+from lineapy.transformer.tracer_util import create_argument_nodes
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    ArgumentNode,
     CallNode,
+    FunctionDefinitionNode,
     ImportNode,
     Library,
     LineaID,
@@ -36,11 +37,6 @@ def augment_node_with_syntax(node: Node, syntax_dictionary: Dict):
     node.end_col_offset = syntax_dictionary["end_col_offset"]
 
 
-class Variable:
-    def __init__(self, name: str) -> None:
-        self.name = name
-
-
 class Tracer:
     """
     Tracer is internal to Linea and it implements the "hidden APIs"
@@ -62,7 +58,9 @@ class Tracer:
         self.records_manager = RecordsManager(config)
         self.session_context = self.create_session_context(session_type, file_name)
         self.executor = Executor()
+        # below are internal ID lookups
         self.variable_name_to_id: Dict[str, LineaID] = {}
+        self.function_name_to_id: Dict[str, LineaID] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -96,7 +94,10 @@ class Tracer:
         info_log("Tracer", "exit")
         pass
 
-    def _look_up_node_id_by_variable_name(self, variable_name: str):
+    def look_up_node_id_by_variable_name(
+        self,
+        variable_name: str,
+    ) -> LineaID:
         if variable_name in self.variable_name_to_id:
             return self.variable_name_to_id[variable_name]
 
@@ -115,7 +116,7 @@ class Tracer:
         # TODO: look up node_id base on variable_name
         # need to force an eval
         self.evaluate_records_so_far()
-        node_id = self._look_up_node_id_by_variable_name(variable_name)
+        node_id = self.look_up_node_id_by_variable_name(variable_name)
         self.records_manager.add_node_id_to_artifact_table(node_id, description)
 
     def create_session_context(self, session_type: SessionType, file_name: str):
@@ -161,7 +162,7 @@ class Tracer:
     def headless_variable(
         self, variable_name: str, syntax_dictionary: Dict[str, int]
     ) -> None:
-        source_node_id = self._look_up_node_id_by_variable_name(variable_name)
+        source_node_id = self.look_up_node_id_by_variable_name(variable_name)
         if source_node_id is not None:
             node = VariableNode(
                 id=get_new_id(),
@@ -189,6 +190,7 @@ class Tracer:
             id=get_new_id(),
             session_id=self.session_context.id,
             value=value,
+            syntax_dictionary=syntax_dictionary,
         )
 
     def call(
@@ -199,65 +201,41 @@ class Tracer:
         function_module: Optional[Any] = None,
     ) -> CallNode:
         """
-        Note that it's important for the call to return the call node so that we can programmatically chain the the nodes together, e.g., for the assignment call to modify the previous call node.
+        NOTE
+        - It's important for the call to return the call node
+          so that we can programmatically chain the the nodes together,
+          e.g., for the assignment call to modify the previous call node.
+        - The call looks up if it's a locally defined function. We decided
+          that this is better for program slicing.
 
         TODO:
-        - code: str
         - need to look up the function module live to get the ID
-
         """
 
-        info_log("arguments", arguments)
-        argument_nodes = []
-        for idx, a in enumerate(arguments):
-            info_log("type of arg", type(a))
-            if type(a) is int or type(a) is str:
-                info_log("argument is literal", a)
-                new_literal_arg = ArgumentNode(
-                    id=get_new_id(),
-                    session_id=self.session_context.id,
-                    value_literal=a,
-                    positional_order=idx,
-                )
-                self.add_unevaluated_node(new_literal_arg)
-                argument_nodes.append(new_literal_arg.id)
-            elif type(a) is CallNode:
-                info_log("argument is call", a)
-                new_call_arg = ArgumentNode(
-                    id=get_new_id(),
-                    session_id=self.session_context.id,
-                    value_node_id=a.id,
-                    positional_order=idx,
-                )
-                self.add_unevaluated_node(new_call_arg)
-                argument_nodes.append(new_call_arg.id)
-            elif type(a) is Variable:
-                info_log("argument is variable", a)
-                var_id = self.variable_name_to_id[a.name]
-                new_call_arg = ArgumentNode(
-                    id=get_new_id(),
-                    session_id=self.session_context.id,
-                    value_node_id=var_id,
-                    positional_order=idx,
-                )
-                self.add_unevaluated_node(new_call_arg)
-                argument_nodes.append(new_call_arg.id)
+        argument_nodes = create_argument_nodes(
+            arguments,
+            self.session_context.id,
+            self.look_up_node_id_by_variable_name,
+        )
+        argument_node_ids = [n.id for n in argument_nodes]
+        [self.add_unevaluated_node(n) for n in argument_nodes]
 
-            else:
-                internal_warning_log(
-                    f"Haven't seen this argument type before: {type(a)}"
-                )
-                raise NotImplementedError(type(a), "not supported!")
+        locally_defined_function_id: Optional[LineaID] = None
+        # now see if we need to add a locally_defined_function_id
+        if function_name in self.function_name_to_id:
+            locally_defined_function_id = self.function_name_to_id[function_name]
 
         node = CallNode(
             id=get_new_id(),
             session_id=self.session_context.id,
             function_name=function_name,
-            arguments=argument_nodes,
+            locally_defined_function_id=locally_defined_function_id,
+            arguments=argument_node_ids,
             function_module=function_module,
         )
         self.add_unevaluated_node(node, syntax_dictionary)
-        # info_log("call invoked from tracer", function_name, function_module, arguments)
+        # info_log("call invoked from tracer", function_name,
+        #   function_module, arguments)
         return node
 
     def assign(
@@ -299,6 +277,18 @@ class Tracer:
         else:
             raise CaseNotHandledError(f"got type {type(value_node)} for {value_node}")
 
+    def define_function(self, function_name: str, syntax_dictionary: Dict) -> None:
+        """
+        TODO: see limitations in `visit_FunctionDef` about function being pure
+        """
+        node = FunctionDefinitionNode(
+            id=get_new_id(),
+            session_id=self.session_context.id,
+            function_name=function_name,
+        )
+        self.function_name_to_id[function_name] = node.id
+        self.add_unevaluated_node(node, syntax_dictionary)
+
     def loop(self) -> None:
         """
         Handles both for and while loops. Since we are treating it like a black
@@ -311,14 +301,6 @@ class Tracer:
         pass
 
     def cond(self) -> None:
-        """
-        TODO: define input arguments
-
-        TODO: append records (Node and DirectedEdge) to records_pool
-        """
-        pass
-
-    def func(self) -> None:
         """
         TODO: define input arguments
 

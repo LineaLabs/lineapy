@@ -1,18 +1,12 @@
 import sys
-from typing import Any, Optional, List
+from typing import Any, Optional
 from uuid import uuid4
 from time import time
 
 from lineapy.data.types import (
     LiteralType,
     ValueType,
-    Artifact,
-    Node,
-    NodeType,
-    NodeValue,
-    NodeValueType,
 )
-from lineapy.db.relational.schema.relational import NodeValueORM
 
 
 """

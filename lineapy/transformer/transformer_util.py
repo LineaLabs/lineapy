@@ -44,6 +44,14 @@ def get_call_function_name(node: ast.Call) -> dict:
     raise CaseNotHandledError("Other types of function calls!")
 
 
+def get_tracer_ast_call_func(tracer_func: str):
+    return ast.Attribute(
+        value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+        attr=tracer_func,
+        ctx=ast.Load(),
+    )
+
+
 def synthesize_tracer_call_ast(
     function_name: str,
     argument_nodes: List[Any],
@@ -56,12 +64,8 @@ def synthesize_tracer_call_ast(
     """
 
     syntax_dictionary = extract_concrete_syntax_from_node(node)
-    call: ast.Call = ast.Call(
-        func=ast.Attribute(
-            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-            attr=Tracer.call.__name__,
-            ctx=ast.Load(),
-        ),
+    call = ast.Call(
+        func=get_tracer_ast_call_func(Tracer.call.__name__),
         args=[],
         keywords=[
             ast.keyword(

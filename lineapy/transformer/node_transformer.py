@@ -4,11 +4,12 @@ from typing import cast, Any, Optional
 from lineapy import linea_publish
 from lineapy.constants import *
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.instrumentation.tracer import Variable
+from lineapy.instrumentation.variable import Variable
 from lineapy.lineabuiltins import __build_list__
 from lineapy.transformer.transformer_util import (
     extract_concrete_syntax_from_node,
     get_call_function_name,
+    get_tracer_ast_call_func,
     synthesize_linea_publish_call_ast,
     synthesize_tracer_call_ast,
     synthesize_tracer_headless_literal_ast,
@@ -16,12 +17,6 @@ from lineapy.transformer.transformer_util import (
     turn_none_to_empty_str,
 )
 from lineapy.utils import UserError, InvalidStateError
-
-
-def turn_none_to_empty_str(a: Optional[str]):
-    if not a:
-        return ""
-    return a
 
 
 class NodeTransformer(ast.NodeTransformer):
@@ -361,3 +356,30 @@ class NodeTransformer(ast.NodeTransformer):
                 "Subscript with ctx=ast.Load() should have been handled by"
                 " visit_Assign."
             )
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
+        """
+        For now, assume the function is pure, i.e.:
+        - no globals
+        - no writing to variables defined outside the scope
+        TODO: remove these limitations in future PRs
+        """
+        # apparently FunctionDef is not inside Expr so for the new call we need to create new line
+        function_name = node.name
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
+        return ast.Expr(
+            value=ast.Call(
+                func=get_tracer_ast_call_func(Tracer.define_function.__name__),
+                args=[],
+                keywords=[
+                    ast.keyword(
+                        arg="function_name",
+                        value=ast.Constant(value=function_name),
+                    ),
+                    ast.keyword(
+                        arg="syntax_dictionary",
+                        value=syntax_dictionary,
+                    ),
+                ],
+            ),
+        )

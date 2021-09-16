@@ -1,7 +1,8 @@
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType
-from lineapy.instrumentation.tracer import Tracer, Variable
+from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.variable import Variable
 from lineapy.utils import FunctionShouldNotBeCalled
 
 __version__ = "0.0.1"
