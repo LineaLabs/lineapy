@@ -310,8 +310,7 @@ class TestNodeTransformer:
         self._check_equality(publish_code, expected)
         publish_code_with_comment = "lineapy.linea_publish(a, 'test artifact')"
         expected_with_comment = (
-            "lineapy_tracer.publish(variable_name='a', description='test"
-            " artifact')"
+            "lineapy_tracer.publish(variable_name='a', description='test" " artifact')"
         )
         self._check_equality(publish_code_with_comment, expected_with_comment)
 
