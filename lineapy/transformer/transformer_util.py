@@ -127,14 +127,6 @@ def synthesize_tracer_headless_variable_ast(node: ast.Name):
             keywords=[],
         )
     )
-
-    if function_module is not None:
-        call.keywords.append(
-            ast.keyword(
-                arg="function_module",
-                value=function_module,
-            )
-        )
     return call
 
 
