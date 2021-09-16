@@ -127,8 +127,6 @@ def synthesize_tracer_headless_variable_ast(node: ast.Name):
             keywords=[],
         )
     )
-    return call
-
 
 def synthesize_linea_publish_call_ast(
     variable_name: str,
