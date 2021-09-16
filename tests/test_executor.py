@@ -15,6 +15,11 @@ from tests.stub_data.graph_with_csv_import import (
     graph_with_csv_import,
     session as graph_with_file_access_session,
 )
+from tests.stub_data.graph_with_simple_function_definition import (
+    simple_function_definition_graph,
+    session as simple_function_definition_graph_session,
+)
+
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
     session as graph_with_function_definition_session,
@@ -78,6 +83,15 @@ class TestBasicExecutor:
         e.execute_program(graph_with_import, graph_with_import_session)
         b = e.get_value_by_variable_name("b")
         assert b == 5
+
+    def test_simple_function_definition_graph(self):
+        e = Executor()
+        e.execute_program(
+            simple_function_definition_graph,
+            simple_function_definition_graph_session,
+        )
+        a = e.get_value_by_variable_name("a")
+        assert a == 1
 
     def test_graph_with_function_definition(self):
         """ """

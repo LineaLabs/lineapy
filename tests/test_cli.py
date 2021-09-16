@@ -10,6 +10,12 @@ from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import get_current_time, info_log
 from lineapy.graph_reader.graph_util import are_nodes_content_equal
 from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
+
+from tests.stub_data.graph_with_simple_function_definition import (
+    definition_node,
+    assignment_node,
+    code as function_definition_code,
+)
 from tests.util import reset_test_db
 
 
@@ -25,7 +31,8 @@ class TestCli:
 
     def setup(self):
         """
-        Reference https://github.com/pallets/flask/blob/afc13b9390ae2e40f4731e815b49edc9ef52ed4b/tests/test_cli.py
+        Reference https://github.com/pallets/flask/blob/
+        afc13b9390ae2e40f4731e815b49edc9ef52ed4b/tests/test_cli.py
 
         TODO
         - More testing of error cases and error messages
@@ -41,7 +48,6 @@ class TestCli:
 
     def test_end_to_end_simple_graph(self):
         with NamedTemporaryFile() as tmp:
-            info_log("simple graph code", simple_graph_code)
             tmp.write(str.encode(simple_graph_code))
             tmp.flush()
             # might also need os.path.dirname() in addition to file name
@@ -57,7 +63,9 @@ class TestCli:
             for c in nodes:
                 if c.node_type == NodeType.CallNode:
                     assert are_nodes_content_equal(
-                        c, line_1, self.db.get_context(nodes[0].session_id).code
+                        c,
+                        line_1,
+                        self.db.get_context(nodes[0].session_id).code,
                     )
                 if c.node_type == NodeType.ArgumentNode:
                     assert are_nodes_content_equal(
@@ -75,7 +83,8 @@ class TestCli:
         with NamedTemporaryFile() as tmp:
             publish_code = (
                 f"import {lineapy.__name__}\na ="
-                f" abs(-11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
+                f" abs(-11)\n{lineapy.__name__}"
+                f".{lineapy.linea_publish.__name__}(a,"
                 f" '{name}')\n"
             )
             info_log("publish code", publish_code)
@@ -84,12 +93,43 @@ class TestCli:
             result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp.name])
             assert result.exit_code == 0
             artifacts = self.db.get_all_artifacts()
+            # this assumes that this is the only
+            #   artifact publish function in this test file
             assert len(artifacts) == 1
             artifact = artifacts[0]
             info_log("logged artifact", artifact)
             assert artifact.name == name
             time_diff = get_current_time() - artifact.date_created
             assert time_diff < 1000
+
+    def test_function_definition_without_side_effect(self):
+        with NamedTemporaryFile() as tmp:
+            tmp.write(str.encode(function_definition_code))
+            tmp.flush()
+            # might also need os.path.dirname() in addition to file name
+            tmp_file_name = tmp.name
+            # FIXME: make into constants
+            result = self.runner.invoke(
+                linea_cli,
+                ["--mode", "dev", tmp_file_name],
+            )
+            assert result.exit_code == 0
+            nodes = self.db.get_nodes_by_file_name(tmp_file_name)
+            assert len(nodes) == 2
+            for c in nodes:
+                if c.node_type == NodeType.FunctionDefinitionNode:
+                    assert are_nodes_content_equal(
+                        c,
+                        definition_node,
+                        function_definition_code,
+                    )
+                if c.node_type == NodeType.CallNode:
+                    assert are_nodes_content_equal(
+                        c,
+                        assignment_node,
+                        function_definition_code,
+                    )
+            return
 
     def test_no_script_error(self):
         # TODO

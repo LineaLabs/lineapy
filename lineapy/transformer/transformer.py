@@ -3,16 +3,13 @@ from typing import List, Optional
 from astor import to_source
 
 from lineapy.constants import (
-    LINEAPY_EXECUTION_MODE,
     LINEAPY_IMPORT_LIB_NAME,
-    LINEAPY_SESSION_TYPE,
     LINEAPY_TRACER_CLASS,
     LINEAPY_TRACER_NAME,
-    LINEAPY_SESSION_TYPE_SCRIPT,
-    LINEAPY_SESSION_TYPE_JUPYTER,
     ExecutionMode,
 )
-from lineapy.instrumentation.tracer import Tracer, Variable
+from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.variable import Variable
 from lineapy.data.types import SessionType
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import info_log
@@ -107,15 +104,6 @@ class Transformer:
         session_name: Optional[str] = None,
         execution_mode: ExecutionMode = ExecutionMode.TEST,
     ) -> List[TreeNodeType]:
-        """
-        Also a hack for now...
-        """
-        # import_node = ast.Import(
-        #     names=[
-        #         ast.alias(name=LINEAPY_IMPORT_LIB_NAME, asname=None),
-        #         ast.alias(name=LINEAPY_SESSION_TYPE, asname=None),
-        #     ],
-        # )
         import_node = ast.ImportFrom(
             module=LINEAPY_IMPORT_LIB_NAME,
             names=[
@@ -126,24 +114,19 @@ class Transformer:
             ],
             level=0,
         )
-        session_type_node_attr = (
-            LINEAPY_SESSION_TYPE_SCRIPT
-            if session_type == SessionType.SCRIPT
-            else LINEAPY_SESSION_TYPE_JUPYTER
-        )
         session_type_node = ast.Attribute(
             value=ast.Name(
                 id=SessionType.__name__,
                 ctx=ast.Load(),
             ),
-            attr=session_type_node_attr,
+            attr=session_type.name,
             ctx=ast.Load(),
         )
 
         execution_mode_node_attr = execution_mode.name
         execution_mode_node = ast.Attribute(
             value=ast.Name(
-                id=LINEAPY_EXECUTION_MODE,
+                id=ExecutionMode.__name__,
                 ctx=ast.Load(),
             ),
             attr=execution_mode_node_attr,
