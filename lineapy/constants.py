@@ -75,3 +75,15 @@ BITOR = operator.__or__.__name__
 BITXOR = operator.__xor__.__name__
 BITAND = operator.__and__.__name__
 MATMUL = operator.__matmul__.__name__
+
+# CompareOps
+EQ = operator.__eq__.__name__
+NOTEQ = operator.__ne__.__name__
+LT = operator.__lt__.__name__
+LTE = operator.__le__.__name__
+GT = operator.__gt__.__name__
+GTE = operator.__ge__.__name__
+IS = operator.is_.__name__
+ISNOT = operator.is_not.__name__
+IN = operator.__contains__.__name__
+NOT = operator.not_.__name__

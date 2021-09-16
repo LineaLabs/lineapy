@@ -146,14 +146,14 @@ class TestNodeTransformer:
 
     def test_visit_compare(self):
         op_map = {
-            "==": "__eq__",
-            "!=": "__ne__",
-            "<": "__lt__",
-            "<= ": "__le__",
-            ">": "__gt__",
-            ">=": "__ge__",
-            "is": "is_",
-            "is not": "is_not",
+            "==": EQ,
+            "!=": NOTEQ,
+            "<": LT,
+            "<= ": LTE,
+            ">": GT,
+            ">=": GTE,
+            "is": IS,
+            "is not": ISNOT,
         }
         for op in op_map:
             simple_comp = f"a {op} b"
@@ -161,35 +161,46 @@ class TestNodeTransformer:
                 f"lineapy_tracer.call(function_name='{op_map[op]}', "
                 f"syntax_dictionary={{'lineno': 1,'col_offset': 0, 'end_lineno': 1, "
                 f"'end_col_offset': {len(op) + 4}}}, "
-                "arguments=[Variable('b')],function_module=Variable('a'))\n"
+                "arguments=[Variable('a'), Variable('b')],function_module="
+                + BUILTIN_OPERATOR
+                + ")"
             )
             self._check_equality(simple_comp, expected_simple_comp)
 
         simple_in = "a in b"
         expected_simple_in = (
-            "lineapy_tracer.call(function_name='__contains__', "
+            "lineapy_tracer.call(function_name='" + IN + "', "
             "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 6},"
-            "arguments=[Variable('a')], function_module=Variable('b'))"
+            "arguments=[Variable('b'), Variable('a')], function_module="
+            + BUILTIN_OPERATOR
+            + ")"
         )
         self._check_equality(simple_in, expected_simple_in)
 
         simple_not_in = "a not in b"
         expected_simple_not_in = (
-            "lineapy_tracer.call(function_name='not_', "
+            "lineapy_tracer.call(function_name='" + NOT + "', "
             "syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10}, "
-            "arguments=[lineapy_tracer.call(function_name='__contains__', "
+            "arguments=[lineapy_tracer.call(function_name='" + IN + "', "
             "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10},"
-            "arguments=[Variable('b')], function_module=Variable('a'))],function_module=operator)"
+            "arguments=[Variable('b'), Variable('a')], function_module="
+            + BUILTIN_OPERATOR
+            + ")],function_module="
+            + BUILTIN_OPERATOR
+            + ")"
         )
         self._check_equality(simple_not_in, expected_simple_not_in)
 
         chain_op = "a <= b < c"
         expected_chain_op = (
-            "lineapy_tracer.call(function_name='__lt__', "
+            "lineapy_tracer.call(function_name='" + LT + "', "
             "syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10}, "
-            "arguments=[Variable('c')], function_module=lineapy_tracer.call(function_name='__le__', "
-            "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno':1, 'end_col_offset': 10}, "
-            "arguments=[Variable('b')], function_module=Variable('a')))"
+            "arguments=[lineapy_tracer.call(function_name='" + LTE + "', "
+            "syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 10}, "
+            "arguments=[Variable('a'), Variable('b')], function_module="
+            + BUILTIN_OPERATOR
+            + "), Variable('c')], "
+            "function_module=" + BUILTIN_OPERATOR + ")"
         )
         self._check_equality(chain_op, expected_chain_op)
 
@@ -198,8 +209,7 @@ class TestNodeTransformer:
         expected = (
             "lineapy_tracer.call(function_name='"
             + GET_ITEM
-            + "', syntax_dictionary={  "
-            "              'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
+            + "', syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
             " 'end_col_offset': 5},  arguments=[Variable('ls'), 0], function_module="
             + BUILTIN_OPERATOR
             + ")"

@@ -279,15 +279,15 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Compare(self, node: ast.Compare) -> ast.Call:
         ast_to_op_map = {
-            ast.Eq: int.__eq__.__name__,
-            ast.NotEq: int.__ne__.__name__,
-            ast.Lt: int.__lt__.__name__,
-            ast.LtE: int.__le__.__name__,
-            ast.Gt: int.__gt__.__name__,
-            ast.GtE: int.__ge__.__name__,
-            ast.Is: operator.is_.__name__,
-            ast.IsNot: operator.is_not.__name__,
-            ast.In: list.__contains__.__name__,
+            ast.Eq: EQ,
+            ast.NotEq: NOTEQ,
+            ast.Lt: LT,
+            ast.LtE: LTE,
+            ast.Gt: GT,
+            ast.GtE: GTE,
+            ast.Is: IS,
+            ast.IsNot: ISNOT,
+            ast.In: IN,
         }
 
         from copy import deepcopy
@@ -304,23 +304,25 @@ class NodeTransformer(ast.NodeTransformer):
                 left = right
                 right = tmp
             if op.__class__ in ast_to_op_map:
-                module = self.visit(left) if isinstance(left, ast.Name) else left
                 left = synthesize_tracer_call_ast(
                     ast_to_op_map[op.__class__],
-                    [self.visit(right)],
+                    [
+                        self.visit(left) if isinstance(left, ast.Name) else left,
+                        self.visit(right),
+                    ],
                     node,
-                    module,
+                    function_module=OPERATOR_MODULE,
                 )
-            if isinstance(op, ast.NotIn):
+            elif isinstance(op, ast.NotIn):
                 # need to call operator.not_ on __contains___
                 inside = synthesize_tracer_call_ast(
                     ast_to_op_map[ast.In],
-                    [self.visit(left)],
+                    [self.visit(left), self.visit(right)],
                     node,
-                    self.visit(right),
+                    function_module=OPERATOR_MODULE,
                 )
                 left = synthesize_tracer_call_ast(
-                    operator.not_.__name__,
+                    NOT,
                     [inside],
                     node,
                     function_module=OPERATOR_MODULE,
