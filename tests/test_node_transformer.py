@@ -39,15 +39,15 @@ class TestNodeTransformer:
             "lineapy_tracer.trace_import(name='pandas', "
             "syntax_dictionary={'lineno': 1,"
             "'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 13},"
-            " alias=None)\n"
+            " alias=None)"
         )
         self._check_equality(simple_import, simple_expected)
         alias_import = "import pandas as pd"
         alias_expected = (
             "lineapy_tracer.trace_import(name='pandas',"
             " syntax_dictionary={'lineno':1,"
-            " 'col_offset':0,'end_lineno':1,'end_col_offset':19},\n   "
-            " alias='pd')\n"
+            " 'col_offset':0,'end_lineno':1,'end_col_offset':19},   "
+            " alias='pd')"
         )
         self._check_equality(alias_import, alias_expected)
         # multiple_imports = "import os, time"
@@ -58,8 +58,8 @@ class TestNodeTransformer:
         expected = (
             "lineapy_tracer.trace_import(name='math', "
             " syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 43},\n    attributes={'pow': 'power', 'sqrt':"
-            " 'root'})\n"
+            " 'end_col_offset': 43},    attributes={'pow': 'power', 'sqrt':"
+            " 'root'})"
         )
         self._check_equality(import_code, expected)
 
@@ -67,9 +67,9 @@ class TestNodeTransformer:
         simple_call = "foo()"
         expected_simple_call = (
             "lineapy_tracer.call(function_name='foo',"
-            " syntax_dictionary={'lineno': 1,\n"
+            " syntax_dictionary={'lineno': 1,"
             + "'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 5},"
-            " arguments=[])\n"
+            " arguments=[])"
         )
         self._check_equality(simple_call, expected_simple_call)
 
@@ -77,7 +77,7 @@ class TestNodeTransformer:
         expected_call_with_args = (
             "lineapy_tracer.call(function_name='foo',"
             " syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 9}, arguments=[Variable('a'), Variable('b')])\n"
+            " 'end_col_offset': 9}, arguments=[Variable('a'), Variable('b')])"
         )
         self._check_equality(call_with_args, expected_call_with_args)
 
@@ -87,9 +87,9 @@ class TestNodeTransformer:
         simple_assign = "a = 1"
         expected_simple_assign = (
             "lineapy_tracer.assign(variable_name='a', value_node=1, "
-            + "syntax_dictionary={\n"
+            + "syntax_dictionary={"
             + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 5})\n"
+            " 'end_col_offset': 5})"
         )
         self._check_equality(simple_assign, expected_simple_assign)
 
@@ -97,7 +97,7 @@ class TestNodeTransformer:
         expected_assign_variable = (
             "lineapy_tracer.assign(variable_name='a',"
             " value_node=Variable('foo'),"
-            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':7})\n"
+            "syntax_dictionary={'lineno':1,'col_offset':0,'end_lineno':1,'end_col_offset':7})"
         )
         self._check_equality(assign_variable, expected_assign_variable)
 
@@ -106,7 +106,7 @@ class TestNodeTransformer:
         expected_simple_list = (
             "lineapy_tracer.call(function_name='__build_list__',"
             " syntax_dictionary={" + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 6}," + "arguments=[1, 2])\n"
+            " 'end_col_offset': 6}," + "arguments=[1, 2])"
         )
         self._check_equality(simple_list, expected_simple_list)
 
@@ -114,7 +114,7 @@ class TestNodeTransformer:
         expected_variable_list = (
             "lineapy_tracer.call(function_name='__build_list__',"
             "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
-            "'end_col_offset': 6}, arguments=[1, Variable('a')])\n"
+            "'end_col_offset': 6}, arguments=[1, Variable('a')])"
         )
         self._check_equality(variable_list, expected_variable_list)
 
@@ -325,15 +325,14 @@ class TestNodeTransformer:
         )
         self._check_equality(simple_list_assign, expected_simple_list_assign)
 
-    def test_lean_publish_visit_call(self):
-        # FIXME: `lean_publish` = `linea_publish`? @yifanwu
+    def test_linea_publish_visit_call(self):
         publish_code = "lineapy.linea_publish(a)"
-        expected = "lineapy_tracer.publish(variable_name='a')\n"
+        expected = "lineapy_tracer.publish(variable_name='a')"
         self._check_equality(publish_code, expected)
         publish_code_with_comment = "lineapy.linea_publish(a, 'test artifact')"
         expected_with_comment = (
             "lineapy_tracer.publish(variable_name='a', description='test"
-            " artifact')\n"
+            " artifact')"
         )
         self._check_equality(publish_code_with_comment, expected_with_comment)
 
