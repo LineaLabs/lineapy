@@ -64,16 +64,9 @@ class Graph(object):
             return self.ids[node_id]
         return None
 
-    def get_node_else_raise(
-        self,
-        node_id: LineaID,
-        caller_name: Optional[str] = None,
-    ) -> Node:
-        """
-        Caller is a debugging mechanism for dealing with exec
-        """
+    def get_node_else_raise(self, node_id: LineaID) -> Node:
         if node_id is None or node_id not in self.ids:
-            raise NullValueError(f"Could not find {node_id}, called by {caller_name}")
+            raise NullValueError(f"Could not find {node_id}")
         return self.ids[node_id]
 
     def get_node_value(self, node: Optional[Node]) -> Optional[NodeValueType]:
@@ -123,8 +116,7 @@ class Graph(object):
         """
         if node.arguments and len(node.arguments) > 0:
             args = [
-                cast(ArgumentNode, self.get_node_else_raise(a, "arguments"))
-                for a in node.arguments
+                cast(ArgumentNode, self.get_node_else_raise(a)) for a in node.arguments
             ]
 
             args.sort(key=get_arg_position)
@@ -193,8 +185,7 @@ class Graph(object):
                     n
                     for n in self.get_descendants(node)
                     if n is not None
-                    and self.get_node_else_raise(n, "decendants edge").node_type
-                    is NodeType.CallNode
+                    and self.get_node_else_raise(n).node_type is NodeType.CallNode
                 ]
 
                 # sort data source nodes children

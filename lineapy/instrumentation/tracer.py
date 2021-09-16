@@ -1,9 +1,7 @@
 from datetime import datetime
-
-from click import argument
-from lineapy.transformer.tracer_util import create_argument_nodes
 from typing import Dict, Any, Optional, List, cast
 
+from lineapy.transformer.tracer_util import create_argument_nodes
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
