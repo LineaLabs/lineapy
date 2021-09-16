@@ -295,10 +295,10 @@ class NodeTransformer(ast.NodeTransformer):
 
         # ast.Compare can have an arbitrary number of operators
         # e.g., a < b <= c
-        left = node.left
+        left = self.visit(node.left)
         for i in range(len(node.ops)):
             op = node.ops[i]
-            right = node.comparators[i]
+            right = self.visit(node.comparators[i])
             tmp = deepcopy(left)
             if isinstance(op, ast.In) or isinstance(op, ast.NotIn):
                 # flip left and right since in(a, b) = b.contains(a)
@@ -307,10 +307,7 @@ class NodeTransformer(ast.NodeTransformer):
             if op.__class__ in ast_to_op_map:
                 left = synthesize_tracer_call_ast(
                     ast_to_op_map[op.__class__],
-                    [
-                        self.visit(left) if isinstance(left, ast.Name) else left,
-                        self.visit(right),
-                    ],
+                    [left, right],
                     node,
                 )
             elif isinstance(op, ast.NotIn):
