@@ -314,7 +314,7 @@ class NodeTransformer(ast.NodeTransformer):
                 # need to call operator.not_ on __contains___
                 inside = synthesize_tracer_call_ast(
                     ast_to_op_map[ast.In],
-                    [self.visit(left), self.visit(right)],
+                    [left, right],
                     node,
                 )
                 left = synthesize_tracer_call_ast(
