@@ -1,6 +1,7 @@
 import operator
 import os.path as path
 import sys
+from ast import Name, Load
 from enum import Enum
 
 lineapy_module = sys.modules[__name__]
@@ -58,3 +59,19 @@ class ExecutionMode(Enum):
 GET_ITEM = operator.__getitem__.__name__
 SET_ITEM = operator.__setitem__.__name__
 BUILTIN_OPERATOR = operator.__name__
+OPERATOR_MODULE = Name(id=BUILTIN_OPERATOR, ctx=Load())
+
+# BinOPs
+ADD = operator.__add__.__name__
+SUB = operator.__sub__.__name__
+MULT = operator.__mul__.__name__
+DIV = operator.__truediv__.__name__
+FLOORDIV = operator.__floordiv__.__name__
+MOD = operator.__mod__.__name__
+POW = operator.__pow__.__name__
+LSHIFT = operator.__lshift__.__name__
+RSHIFT = operator.__rshift__.__name__
+BITOR = operator.__or__.__name__
+BITXOR = operator.__xor__.__name__
+BITAND = operator.__and__.__name__
+MATMUL = operator.__matmul__.__name__

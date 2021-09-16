@@ -1,9 +1,8 @@
 import ast
-import operator
 from typing import cast, Any, Optional
 
 from lineapy import linea_publish
-from lineapy.constants import LINEAPY_TRACER_NAME, GET_ITEM, SET_ITEM, BUILTIN_OPERATOR
+from lineapy.constants import *
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.instrumentation.tracer import Variable
 from lineapy.lineabuiltins import __build_list__
@@ -258,24 +257,24 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
         ast_to_op_map = {
-            ast.Add: int.__add__.__name__,
-            ast.Sub: int.__sub__.__name__,
-            ast.Mult: int.__mul__.__name__,
-            ast.Div: int.__truediv__.__name__,
-            ast.FloorDiv: int.__floordiv__.__name__,
-            ast.Mod: int.__mod__.__name__,
-            ast.Pow: int.__pow__.__name__,
-            ast.LShift: bool.__lshift__.__name__,
-            ast.RShift: bool.__rshift__.__name__,
-            ast.BitOr: bool.__or__.__name__,
-            ast.BitXor: bool.__xor__.__name__,
-            ast.BitAnd: bool.__and__.__name__,
-            ast.MatMult: "__matmul__",  # hardcoding since ? type has it. operator.__matmul__.__name__ = "matmul"
+            ast.Add: ADD,
+            ast.Sub: SUB,
+            ast.Mult: MULT,
+            ast.Div: DIV,
+            ast.FloorDiv: FLOORDIV,
+            ast.Mod: MOD,
+            ast.Pow: POW,
+            ast.LShift: LSHIFT,
+            ast.RShift: RSHIFT,
+            ast.BitOr: BITOR,
+            ast.BitXor: BITXOR,
+            ast.BitAnd: BITAND,
+            ast.MatMult: MATMUL,
         }
         op = ast_to_op_map[node.op.__class__]
-        argument_nodes = [self.visit(node.right)]
+        argument_nodes = [self.visit(node.left), self.visit(node.right)]
         return synthesize_tracer_call_ast(
-            op, argument_nodes, node, function_module=self.visit(node.left)
+            op, argument_nodes, node, function_module=OPERATOR_MODULE
         )
 
     def visit_Compare(self, node: ast.Compare) -> ast.Call:
@@ -324,7 +323,7 @@ class NodeTransformer(ast.NodeTransformer):
                     operator.not_.__name__,
                     [inside],
                     node,
-                    function_module=ast.Name(id=BUILTIN_OPERATOR, ctx=ast.Load()),
+                    function_module=OPERATOR_MODULE,
                 )
 
         return left
@@ -357,7 +356,7 @@ class NodeTransformer(ast.NodeTransformer):
                 GET_ITEM,
                 args,
                 node,
-                function_module=ast.Name(id=BUILTIN_OPERATOR, ctx=ast.Load()),
+                function_module=OPERATOR_MODULE,
             )
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")

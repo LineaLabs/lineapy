@@ -2,7 +2,7 @@ import ast
 
 import astor
 
-from lineapy.constants import GET_ITEM, SET_ITEM, BUILTIN_OPERATOR
+from lineapy.constants import *
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import internal_warning_log
 from tests.stub_data.graph_with_import import import_code
@@ -120,19 +120,19 @@ class TestNodeTransformer:
 
     def test_visit_binop(self):
         op_map = {
-            "+": "__add__",
-            "-": "__sub__",
-            "*": "__mul__",
-            "/": "__truediv__",
-            "//": "__floordiv__",
-            "%": "__mod__",
-            "**": "__pow__",
-            "<<": "__lshift__",
-            ">>": "__rshift__",
-            "|": "__or__",
-            "^": "__xor__",
-            "&": "__and__",
-            "@": "__matmul__",
+            "+": ADD,
+            "-": SUB,
+            "*": MULT,
+            "/": DIV,
+            "//": FLOORDIV,
+            "%": MOD,
+            "**": POW,
+            "<<": LSHIFT,
+            ">>": RSHIFT,
+            "|": BITOR,
+            "^": BITXOR,
+            "&": BITAND,
+            "@": MATMUL,
         }
         for op in op_map:
             simple_op = f"a {op} 1"
@@ -140,7 +140,7 @@ class TestNodeTransformer:
                 f"lineapy_tracer.call(function_name='{op_map[op]}', "
                 f"syntax_dictionary={{'lineno': 1,'col_offset': 0, 'end_lineno': 1, "
                 f"'end_col_offset': {len(op) + 4}}}, "
-                "arguments=[1],function_module=Variable('a'))\n"
+                "arguments=[Variable('a'), 1],function_module=" + BUILTIN_OPERATOR + ")"
             )
             self._check_equality(simple_op, expected_simple_op)
 
