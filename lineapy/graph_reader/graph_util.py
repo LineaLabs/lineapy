@@ -3,14 +3,21 @@ from typing import cast
 import networkx as nx
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import ArgumentNode, CallNode, Node, NodeType
+from lineapy.data.types import (
+    ArgumentNode,
+    CallNode,
+    FunctionDefinitionNode,
+    Node,
+    NodeType,
+)
 from lineapy.execution.code_util import get_segment_from_code
-from lineapy.utils import internal_warning_log
+from lineapy.utils import CaseNotHandledError, internal_warning_log
 
 
 def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
     """
-    - If deep_check is True, check each field of the nodes, otherwise, just check the ID.
+    - If deep_check is True, check each field of the nodes, otherwise,
+      just check the ID.
     - deep_check is useful for testing
     """
     # first check if they are the same type
@@ -20,14 +27,17 @@ def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
         if n1.node_type != n2.node_type:
             return False
         # TODO: then based on each node type do some custom testing
-        # Maybe there is an easier way to just implement their __str__ and check that?
+        # Maybe there is an easier way to just implement their __str__
+        #   and check that?
     return True
 
 
 def are_nodes_content_equal(n1: Node, n2: Node, session_code: str) -> bool:
     """
     TODO:
-    - we should probably make use of PyDantic's built in comparison, not possible right now since we have the extra ID field.
+    - we should add the syntax for comparison maybe?
+    - we should probably make use of PyDantic's built in comparison,
+      not possible right now since we have the extra ID field.
     - this test is not complete yet
     """
     # this one skips the ID checking
@@ -77,13 +87,26 @@ def are_nodes_content_equal(n1: Node, n2: Node, session_code: str) -> bool:
             )
             return False
         return True
+    if n1.node_type is NodeType.FunctionDefinitionNode:
+        n1 = cast(FunctionDefinitionNode, n1)
+        n2 = cast(FunctionDefinitionNode, n2)
+        if n1.function_name != n2.function_name:
+            internal_warning_log(
+                "FunctionDefinitionNode different",
+                n1.function_name,
+                n2.function_name,
+            )
+            return False
+        # TODO: add state variable checks!!!
+        return True
 
-    raise NotImplementedError("check other nodes")
+    raise CaseNotHandledError(f"{n1.node_type } is not supported")
 
 
 def are_graphs_identical(g1: Graph, g2: Graph, deep_check=False) -> bool:
     """
     This is simple util to traverse the graph for direct comparisons.
-    In the future, for caching, we will have to do more advanced entity resolution
+    In the future, for caching, we will have to do more advanced
+      entity resolution
     """
     return nx.is_isomorphic(g1.nx_graph, g2.nx_graph)

@@ -277,11 +277,10 @@ class RelationalLineaDB(LineaDB):
         name: Optional[str] = None,
     ) -> None:
         """
-        Given that whether something is an artifact is just a human annotation, we are going to _exclude_ the information from the Graph Node types and just have a table that tracks what Node IDs are deemed as artifacts.
+        Given that whether something is an artifact is just a human annotation,
+        we are going to _exclude_ the information from the Graph Node types and
+        just have a table that tracks what Node IDs are deemed as artifacts.
         """
-        # - check node type: should just be CallNode and FunctionDefinitionNode
-        #
-        # - then insert into a table that's literally just the NodeID and maybe a timestamp for when it was registered as artifact
 
         node = self.get_node_by_id(node_id)
         if node.node_type in [
@@ -315,7 +314,8 @@ class RelationalLineaDB(LineaDB):
         Note:
         - This is currently used for testing purposes
         - TODO: finish enumerating over all the tables (just a subset for now)
-        - FIXME: I wonder if there is a way to write this in a single query, I would refer for the database to optimize
+        - FIXME: I wonder if there is a way to write this in a single query,
+           I would refer for the database to optimize
            this instead of relying on the ORM.
         """
         session_context = (
@@ -323,19 +323,14 @@ class RelationalLineaDB(LineaDB):
             .filter(SessionContextORM.file_name == file_name)
             .one()
         )
-        # enumerating over all the tables...
-        call_nodes = (
-            self.session.query(CallNodeORM)
-            .filter(CallNodeORM.session_id == session_context.id)
+
+        nodes = (
+            self.session.query(NodeORM)
+            .filter(NodeORM.session_id == session_context.id)
             .all()
         )
-        argument_nodes = (
-            self.session.query(ArgumentNodeORM)
-            .filter(ArgumentNodeORM.session_id == session_context.id)
-            .all()
-        )
-        call_nodes.extend(argument_nodes)
-        nodes = [self.map_orm_to_pydantic(node) for node in call_nodes]
+
+        nodes = [self.map_orm_to_pydantic(node) for node in nodes]
         return nodes
 
     def get_context(self, linea_id: str) -> SessionContext:
