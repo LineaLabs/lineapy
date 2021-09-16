@@ -10,9 +10,9 @@ logging.basicConfig()
 
 
 class TestTransformedCodeExecution:
-    def test_chained_ops(self):
+    @staticmethod
+    def _run_program(code):
         logging.getLogger("sqlalchemy").setLevel(logging.ERROR)
-        code = "b = 1 < 2 < 3"
         execution_mode = ExecutionMode.MEMORY
         os.environ[SQLALCHEMY_ECHO] = "False"
         transformer = Transformer()
@@ -25,4 +25,12 @@ class TestTransformedCodeExecution:
                 session_name=tmp.name,
                 execution_mode=execution_mode,
             )
-            # exec(new_code)
+            exec(new_code)
+
+    def test_chained_ops(self):
+        code = "b = 1 < 2 < 3\nassert b"
+        self._run_program(code)
+
+    def test_binop(self):
+        code = "b = 1 + 2\nassert b == 3"
+        self._run_program(code)
