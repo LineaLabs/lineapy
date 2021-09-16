@@ -1,9 +1,9 @@
 import ast
 import operator
-from typing import cast, Any, Union, Optional
+from typing import cast, Any, Optional
 
 from lineapy import linea_publish
-from lineapy.constants import LINEAPY_TRACER_NAME
+from lineapy.constants import LINEAPY_TRACER_NAME, GET_ITEM, SET_ITEM, BUILTIN_OPERATOR
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.instrumentation.tracer import Variable
 from lineapy.lineabuiltins import __build_list__
@@ -15,7 +15,6 @@ from lineapy.transformer.transformer_util import (
     synthesize_tracer_headless_literal_ast,
     synthesize_tracer_headless_variable_ast,
     turn_none_to_empty_str,
-    get_non_expr,
 )
 from lineapy.utils import UserError, InvalidStateError
 
@@ -172,11 +171,13 @@ class NodeTransformer(ast.NodeTransformer):
                         f" {type(node.args[1])}"
                     )
                 description_node = cast(ast.Constant, node.args[1])
-                return synthesize_linea_publish_call_ast(
+                call: ast.Call = synthesize_linea_publish_call_ast(
                     var_node.id, description_node.value
                 )
+                return call
             else:
-                return synthesize_linea_publish_call_ast(var_node.id)
+                call: ast.Call = synthesize_linea_publish_call_ast(var_node.id)
+                return call
         else:
             # this is the normal case
             # code = self._get_code_from_node(node)
@@ -185,7 +186,7 @@ class NodeTransformer(ast.NodeTransformer):
                 name_ref["function_name"], argument_nodes, node
             )
 
-    def visit_Assign(self, node: ast.Assign) -> Union[ast.Expr, ast.Call]:
+    def visit_Assign(self, node: ast.Assign) -> ast.Expr:
         """
         Note
         - some code segments subsume the others
@@ -206,15 +207,17 @@ class NodeTransformer(ast.NodeTransformer):
                 or isinstance(index, ast.Slice)
             ):
                 argument_nodes = [
-                    get_non_expr(self.visit(index)),
-                    get_non_expr(self.visit(node.value)),
+                    self.visit(subscript_target.value),
+                    self.visit(index),
+                    self.visit(node.value),
                 ]
-                return synthesize_tracer_call_ast(
-                    list.__setitem__.__name__,
+                call: ast.Call = synthesize_tracer_call_ast(
+                    SET_ITEM,
                     argument_nodes,
                     node,
-                    get_non_expr(self.visit(subscript_target.value)),
+                    function_module=ast.Name(id=BUILTIN_OPERATOR, ctx=ast.Load()),
                 )
+                return ast.Expr(value=call)
 
             raise NotImplementedError(
                 "Assignment for Subscript supported only for Constant and Name indices."
@@ -249,11 +252,11 @@ class NodeTransformer(ast.NodeTransformer):
         result = ast.Expr(value=call_ast)
         return result
 
-    def visit_List(self, node: ast.List) -> ast.Expr:
+    def visit_List(self, node: ast.List) -> ast.Call:
         elem_nodes = [self.visit(elem) for elem in node.elts]
         return synthesize_tracer_call_ast(__build_list__.__name__, elem_nodes, node)
 
-    def visit_BinOp(self, node: ast.BinOp) -> ast.Expr:
+    def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
         ast_to_op_map = {
             ast.Add: int.__add__.__name__,
             ast.Sub: int.__sub__.__name__,
@@ -275,7 +278,7 @@ class NodeTransformer(ast.NodeTransformer):
             op, argument_nodes, node, function_module=self.visit(node.left)
         )
 
-    def visit_Compare(self, node: ast.Compare) -> ast.Expr:
+    def visit_Compare(self, node: ast.Compare) -> ast.Call:
         ast_to_op_map = {
             ast.Eq: int.__eq__.__name__,
             ast.NotEq: int.__ne__.__name__,
@@ -305,30 +308,25 @@ class NodeTransformer(ast.NodeTransformer):
                 module = self.visit(left) if isinstance(left, ast.Name) else left
                 left = synthesize_tracer_call_ast(
                     ast_to_op_map[op.__class__],
-                    [get_non_expr(self.visit(right))],
+                    [self.visit(right)],
                     node,
-                    get_non_expr(module),
-                    new_line=False,
+                    module,
                 )
             if isinstance(op, ast.NotIn):
                 # need to call operator.not_ on __contains___
                 inside = synthesize_tracer_call_ast(
                     ast_to_op_map[ast.In],
-                    [get_non_expr(self.visit(left))],
+                    [self.visit(left)],
                     node,
-                    get_non_expr(self.visit(right)),
-                    new_line=False,
+                    self.visit(right),
                 )
                 left = synthesize_tracer_call_ast(
                     operator.not_.__name__,
-                    [get_non_expr(inside)],
+                    [inside],
                     node,
-                    function_module=ast.Name(id="operator", ctx=ast.Load()),
-                    new_line=False,
+                    function_module=ast.Name(id=BUILTIN_OPERATOR, ctx=ast.Load()),
                 )
 
-        if not isinstance(left, ast.Expr):
-            return ast.Expr(value=left)
         return left
 
     def visit_Slice(self, node: ast.Slice) -> ast.Call:
@@ -336,11 +334,13 @@ class NodeTransformer(ast.NodeTransformer):
         if node.step is not None:
             slice_arguments.append(self.visit(node.step))
         return synthesize_tracer_call_ast(
-            slice.__name__, slice_arguments, node, new_line=False
+            slice.__name__,
+            slice_arguments,
+            node,
         )
 
-    def visit_Subscript(self, node: ast.Subscript) -> ast.Expr:
-        args = []
+    def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
+        args = [self.visit(node.value)]
         index = self._get_index(node)
         if (
             isinstance(index, ast.Name)
@@ -354,7 +354,10 @@ class NodeTransformer(ast.NodeTransformer):
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
             return synthesize_tracer_call_ast(
-                list.__getitem__.__name__, args, node, self.visit(node.value)
+                GET_ITEM,
+                args,
+                node,
+                function_module=ast.Name(id=BUILTIN_OPERATOR, ctx=ast.Load()),
             )
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")

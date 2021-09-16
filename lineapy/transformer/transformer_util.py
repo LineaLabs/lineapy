@@ -1,7 +1,6 @@
 import ast
 from typing import Any, List, Optional, cast
 
-from lineapy.utils import CaseNotHandledError
 from lineapy.constants import LINEAPY_TRACER_NAME
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils import CaseNotHandledError
@@ -160,20 +159,12 @@ def synthesize_linea_publish_call_ast(
                 value=ast.Constant(value=description),
             )
         )
-    return ast.Expr(
-        value=ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.publish.__name__,
-                ctx=ast.Load(),
-            ),
-            args=[],
-            keywords=keywords,
-        )
+    return ast.Call(
+        func=ast.Attribute(
+            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+            attr=Tracer.publish.__name__,
+            ctx=ast.Load(),
+        ),
+        args=[],
+        keywords=keywords,
     )
-
-
-def get_non_expr(tree: ast.AST) -> ast.AST:
-    if isinstance(tree, ast.Expr):
-        return tree.value
-    return tree

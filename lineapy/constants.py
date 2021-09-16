@@ -1,3 +1,4 @@
+import operator
 import os.path as path
 import sys
 from enum import Enum
@@ -51,3 +52,9 @@ class ExecutionMode(Enum):
     DEV = 1
     PROD = 2
     MEMORY = 3
+
+
+# Transformer related
+GET_ITEM = operator.__getitem__.__name__
+SET_ITEM = operator.__setitem__.__name__
+BUILTIN_OPERATOR = operator.__name__
