@@ -113,10 +113,6 @@ class TestCli:
         code = "ls = [1,2]\nassert ls[0] == 1"
         self._run_code(code, "subscript")
 
-    def test_import(self):
-        code = "import pandas as pd\nassert pd.__name__ == 'pandas'"
-        _ = self._run_code(code, "import")
-
 
 if __name__ == "__main__":
     tester = TestCli()
