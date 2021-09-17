@@ -299,3 +299,6 @@ class NodeTransformer(ast.NodeTransformer):
                 ],
             ),
         )
+
+    def visit_Attribute(self, node: ast.Attribute) -> ast.Call:
+        return synthesize_tracer_call_ast()
