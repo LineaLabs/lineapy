@@ -478,6 +478,16 @@ class RelationalLineaDB(LineaDB):
         return Graph([full_graph.get_node_else_raise(a) for a in ancestors])
 
     def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
+        """
+        Get all the code associated with an artifact by retrieving the Graph
+        associated with the artifact from the database and piecing together the
+        code from the nodes. Note: The code is the program slice for the
+        artifact, not all code associated with the session in which the
+        artifact was generated.
+
+        :param artifact_id: UUID for the artifact
+        :return: string containing the code for generating the artifact.
+        """
         graph = self.get_graph_from_artifact_id(artifact_id)
         session_code = self.get_context(
             self.get_node_by_id(artifact_id).session_id
@@ -510,6 +520,14 @@ class RelationalLineaDB(LineaDB):
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode
     ) -> List[Node]:
+        """
+        Gets all of the artifacts contained in the input program graph that are
+        descendents of data_source_node.
+
+        :param program: a Graph object representing the program
+        :param data_source_node: a node in program
+        :return: nodes in program that are descendents of data_source_node.
+        """
         descendants = program.get_descendants(data_source_node)
         artifacts = []
         for d_id in descendants:
@@ -524,7 +542,13 @@ class RelationalLineaDB(LineaDB):
 
     def find_artifact_by_name(self, artifact_name: str) -> Optional[List[Artifact]]:
         """
-        Return the list of relevant artifacts
+        Find artifacts from the database with `artifact_name` as specified by
+        the user via `linea_publish`. Note: multiple artifacts can have the
+        same name, hence the result can be a list instead of a single artifact.
+
+        :param artifact_name: string containing the name of the artifact
+        given by the user via `linea_publish`
+        :return: a list of Artifact objects with artifact_name as its name.
         """
         query_result = (
             self.session.query(ArtifactORM)

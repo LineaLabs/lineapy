@@ -60,6 +60,11 @@ class Executor(GraphReader):
         return None
 
     def setup(self, context: SessionContext) -> None:
+        """
+        Set up the execution environment by installing the necessary libraries.
+        
+        :param context: `SessionContext` including the necessary libraries.
+        """
         if context.libraries is not None:
             for library in context.libraries:
                 try:
