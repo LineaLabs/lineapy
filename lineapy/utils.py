@@ -67,7 +67,7 @@ class ValueNotFoundError(Exception):
 
 
 def check_not_null(val: Any, err_msg: Optional[str] = None):
-    if val == None:
+    if val is None:
         raise NullValueError(err_msg)
 
 
@@ -121,7 +121,7 @@ Type checking utils
 def is_integer(val):
     try:
         int(val)
-    except Exception as e:
+    except Exception:
         return False
     return True
 
@@ -132,12 +132,6 @@ def get_literal_value_from_string(val: str, literal_type: LiteralType) -> Any:
     elif literal_type is LiteralType.Boolean:
         return val == "True"
     return val
-
-
-# def cast_dataset(val: Any) -> Optional[str]:
-#     if hasattr(val, "to_csv"):
-#         return val.to_csv(index=False)
-#     return None
 
 
 def jsonify_value(value: Any, value_type: ValueType) -> str:

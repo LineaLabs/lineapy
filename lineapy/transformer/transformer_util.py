@@ -1,14 +1,13 @@
 import ast
 from typing import Any, List, Optional, cast
 
-from lineapy.utils import CaseNotHandledError
 from lineapy.constants import LINEAPY_TRACER_NAME
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils import CaseNotHandledError
 
 """
 AST synthesizers used by node_transformers
 """
-
 
 SYNTAX_KEY = ["lineno", "col_offset", "end_lineno", "end_col_offset"]
 
@@ -57,6 +56,7 @@ def synthesize_tracer_call_ast(
     function_name: str,
     argument_nodes: List[Any],
     node: Any,  # NOTE: not sure if the ast Nodes have a union type
+    function_module: Optional[Any] = None,
 ):
     """
     Node is passed to synthesize the `syntax_dictionary`
@@ -78,10 +78,19 @@ def synthesize_tracer_call_ast(
             ),
             ast.keyword(
                 arg="arguments",
-                value=ast.List(elts=argument_nodes),
+                value=ast.List(elts=argument_nodes, ctx=ast.Load()),
             ),
         ],
     )
+
+    if function_module is not None:
+        call.keywords.append(
+            ast.keyword(
+                arg="function_module",
+                value=function_module,
+            )
+        )
+
     return call
 
 
@@ -145,14 +154,12 @@ def synthesize_linea_publish_call_ast(
                 value=ast.Constant(value=description),
             )
         )
-    return ast.Expr(
-        value=ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.publish.__name__,
-                ctx=ast.Load(),
-            ),
-            args=[],
-            keywords=keywords,
-        )
+    return ast.Call(
+        func=ast.Attribute(
+            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+            attr=Tracer.publish.__name__,
+            ctx=ast.Load(),
+        ),
+        args=[],
+        keywords=keywords,
     )

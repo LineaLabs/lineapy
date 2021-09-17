@@ -5,7 +5,8 @@ from lineapy.transformer.transformer import ExecutionMode, Transformer
 from lineapy.utils import info_log, report_error_to_user
 
 """
-We are using click because our package will likely already have a dependency on flask and it's fairly well-starred.
+We are using click because our package will likely already have a dependency on
+  flask and it's fairly well-starred.
 """
 
 

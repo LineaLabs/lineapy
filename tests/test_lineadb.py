@@ -104,7 +104,10 @@ class TestLineaDB(unittest.TestCase):
         return db_graph
 
     def test_simple_graph(self):
-        graph, context = self.write_and_read_graph(simple_graph, simple_graph_session)
+        graph, context = self.write_and_read_graph(
+            simple_graph,
+            simple_graph_session,
+        )
         e = Executor()
         e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
@@ -220,7 +223,8 @@ class TestLineaDB(unittest.TestCase):
 
     def test_variable_alias_by_reference(self):
         graph, context = self.write_and_read_graph(
-            graph_with_alias_by_reference, graph_with_alias_by_reference_session
+            graph_with_alias_by_reference,
+            graph_with_alias_by_reference_session,
         )
         e = Executor()
         e.execute_program(graph, context)
@@ -256,7 +260,10 @@ class TestLineaDB(unittest.TestCase):
         assert are_graphs_identical(result, graph)
 
     def test_code_reconstruction_with_multilined_node(self):
-        _ = self.write_and_read_graph(graph_with_loops, graph_with_loops_session)
+        _ = self.write_and_read_graph(
+            graph_with_loops,
+            graph_with_loops_session,
+        )
 
         self.lineadb.add_node_id_to_artifact_table(
             y_id,

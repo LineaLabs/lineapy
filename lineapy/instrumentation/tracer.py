@@ -56,7 +56,10 @@ class Tracer:
         #   what this configuration should be
         config = get_default_config_by_environment(execution_mode)
         self.records_manager = RecordsManager(config)
-        self.session_context = self.create_session_context(session_type, file_name)
+        self.session_context = self.create_session_context(
+            session_type,
+            file_name,
+        )
         self.executor = Executor()
         # below are internal ID lookups
         self.variable_name_to_id: Dict[str, LineaID] = {}
@@ -117,12 +120,19 @@ class Tracer:
         # need to force an eval
         self.evaluate_records_so_far()
         node_id = self.look_up_node_id_by_variable_name(variable_name)
-        self.records_manager.add_node_id_to_artifact_table(node_id, description)
+        self.records_manager.add_node_id_to_artifact_table(
+            node_id,
+            description,
+        )
 
-    def create_session_context(self, session_type: SessionType, file_name: str):
+    def create_session_context(
+        self,
+        session_type: SessionType,
+        file_name: str,
+    ):
         """
-        Decided to read the code instead because it's more readable than passing
-          through the transformer
+        Decided to read the code instead because it's more readable
+          than passing through the transformer
         """
         original_code = open(file_name, "r").read()
         session_context = SessionContext(
@@ -170,7 +180,8 @@ class Tracer:
                 source_variable_id=source_node_id,
             )
             # FIXME: this node doesn't even need to be evaluated
-            #   we should prob decouple the evaluation with the insertion of new nodes
+            #   we should prob decouple the evaluation with the insertion
+            #   of new nodes
             self.add_unevaluated_node(node, syntax_dictionary)
         else:
             raise InternalLogicError(f"Variable {variable_name} not found")
@@ -198,7 +209,7 @@ class Tracer:
         function_name: str,
         arguments: Any,
         syntax_dictionary: Dict[str, int],
-        function_module: Optional[str] = None,
+        function_module: Optional[Any] = None,
     ) -> CallNode:
         """
         NOTE
