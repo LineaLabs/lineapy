@@ -1,9 +1,36 @@
 import ast
-import operator
-from typing import cast, Any, Union, Optional
+from typing import cast, Any
+import pdb
 
 from lineapy import linea_publish
-from lineapy.constants import LINEAPY_TRACER_NAME
+from lineapy.constants import (
+    LINEAPY_TRACER_NAME,
+    ADD,
+    SUB,
+    MULT,
+    DIV,
+    FLOORDIV,
+    MOD,
+    POW,
+    LSHIFT,
+    RSHIFT,
+    BITOR,
+    BITXOR,
+    BITAND,
+    MATMUL,
+    EQ,
+    NOTEQ,
+    LT,
+    LTE,
+    GT,
+    GTE,
+    IS,
+    NOT,
+    ISNOT,
+    IN,
+    GET_ITEM,
+    SET_ITEM,
+)
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.instrumentation.variable import Variable
 from lineapy.lineabuiltins import __build_list__
@@ -17,7 +44,7 @@ from lineapy.transformer.transformer_util import (
     synthesize_tracer_headless_variable_ast,
     turn_none_to_empty_str,
 )
-from lineapy.utils import UserError, InvalidStateError
+from lineapy.utils import UserError, InvalidStateError, info_log
 
 
 class NodeTransformer(ast.NodeTransformer):
@@ -33,6 +60,12 @@ class NodeTransformer(ast.NodeTransformer):
     def _get_code_from_node(self, node):
         code = """{}""".format(ast.get_source_segment(self.source, node))
         return code
+
+    @staticmethod
+    def _get_index(subscript: ast.Subscript) -> ast.AST:
+        if isinstance(subscript.slice, ast.Index):
+            return subscript.slice.value
+        return subscript.slice
 
     def visit_Expr(self, node: ast.Expr) -> Any:
         """
@@ -123,7 +156,7 @@ class NodeTransformer(ast.NodeTransformer):
             keywords=[],
         )
 
-    def visit_Call(self, node) -> Union[ast.Call, ast.Expr]:
+    def visit_Call(self, node) -> ast.Call:
         """
         TODO: support key word
         TODO: find function_module
@@ -131,7 +164,7 @@ class NodeTransformer(ast.NodeTransformer):
         name_ref = get_call_function_name(node)
         # a little hacky, assume no one else would have a function name
         #   called linea_publish
-
+        info_log("AAAAA", name_ref, node.args)
         if name_ref["function_name"] == linea_publish.__name__:
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:
@@ -173,7 +206,7 @@ class NodeTransformer(ast.NodeTransformer):
                 name_ref["function_name"], argument_nodes, node
             )
 
-    def visit_Assign(self, node: ast.Assign) -> Union[ast.Expr, ast.Call]:
+    def visit_Assign(self, node: ast.Assign) -> ast.Expr:
         """
         Note
         - some code segments subsume the others
@@ -185,19 +218,30 @@ class NodeTransformer(ast.NodeTransformer):
         if isinstance(node.targets[0], ast.Subscript):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
-            index = subscript_target.slice
-            if not isinstance(index, ast.Constant) or isinstance(index, ast.Name):
-                raise NotImplementedError(
-                    "Assignment for Subscript supported only for Constant and"
-                    " Name indices."
+            index = self._get_index(subscript_target)
+            # note: isinstance(index, ast.List) only works for pandas,
+            #  not Python lists
+            if (
+                isinstance(index, ast.Constant)
+                or isinstance(index, ast.Name)
+                or isinstance(index, ast.List)
+                or isinstance(index, ast.Slice)
+            ):
+                argument_nodes = [
+                    self.visit(subscript_target.value),
+                    self.visit(index),
+                    self.visit(node.value),
+                ]
+                call: ast.Call = synthesize_tracer_call_ast(
+                    SET_ITEM,
+                    argument_nodes,
+                    node,
                 )
-            argument_nodes = [
-                self.visit(subscript_target.value),
-                self.visit(index),
-                self.visit(node.value),
-            ]
-            return synthesize_tracer_call_ast(
-                operator.setitem.__name__, argument_nodes, node
+                return ast.Expr(value=call)
+
+            raise NotImplementedError(
+                "Assignment for Subscript supported only for Constant and Name"
+                " indices."
             )
 
         if not isinstance(node.targets[0], ast.Name):
@@ -235,36 +279,104 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
         ast_to_op_map = {
-            ast.Add: operator.add,
-            ast.Sub: operator.sub,
-            ast.Mult: operator.mul,
-            ast.Div: operator.truediv,
-            ast.FloorDiv: operator.floordiv,
-            ast.Mod: operator.mod,
-            ast.Pow: operator.pow,
-            ast.LShift: operator.lshift,
-            ast.RShift: operator.rshift,
-            ast.BitOr: operator.or_,
-            ast.BitXor: operator.xor,
-            ast.BitAnd: operator.and_,
-            ast.MatMult: operator.matmul,
+            ast.Add: ADD,
+            ast.Sub: SUB,
+            ast.Mult: MULT,
+            ast.Div: DIV,
+            ast.FloorDiv: FLOORDIV,
+            ast.Mod: MOD,
+            ast.Pow: POW,
+            ast.LShift: LSHIFT,
+            ast.RShift: RSHIFT,
+            ast.BitOr: BITOR,
+            ast.BitXor: BITXOR,
+            ast.BitAnd: BITAND,
+            ast.MatMult: MATMUL,
         }
         op = ast_to_op_map[node.op.__class__]
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
-        return synthesize_tracer_call_ast(op.__name__, argument_nodes, node)
+        return synthesize_tracer_call_ast(
+            op,
+            argument_nodes,
+            node,
+        )
+
+    def visit_Compare(self, node: ast.Compare) -> ast.Call:
+        ast_to_op_map = {
+            ast.Eq: EQ,
+            ast.NotEq: NOTEQ,
+            ast.Lt: LT,
+            ast.LtE: LTE,
+            ast.Gt: GT,
+            ast.GtE: GTE,
+            ast.Is: IS,
+            ast.IsNot: ISNOT,
+            ast.In: IN,
+        }
+
+        from copy import deepcopy
+
+        # ast.Compare can have an arbitrary number of operators
+        # e.g., a < b <= c
+        left = self.visit(node.left)
+        for i in range(len(node.ops)):
+            op = node.ops[i]
+            right = self.visit(node.comparators[i])
+            tmp = deepcopy(left)
+            if isinstance(op, ast.In) or isinstance(op, ast.NotIn):
+                # flip left and right since in(a, b) = b.contains(a)
+                left = right
+                right = tmp
+            if op.__class__ in ast_to_op_map:
+                left = synthesize_tracer_call_ast(
+                    ast_to_op_map[op.__class__],
+                    [left, right],
+                    node,
+                )
+            elif isinstance(op, ast.NotIn):
+                # need to call operator.not_ on __contains___
+                inside = synthesize_tracer_call_ast(
+                    ast_to_op_map[ast.In],
+                    [left, right],
+                    node,
+                )
+                left = synthesize_tracer_call_ast(
+                    NOT,
+                    [inside],
+                    node,
+                )
+
+        return left
+
+    def visit_Slice(self, node: ast.Slice) -> ast.Call:
+        slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
+        if node.step is not None:
+            slice_arguments.append(self.visit(node.step))
+        return synthesize_tracer_call_ast(
+            slice.__name__,
+            slice_arguments,
+            node,
+        )
 
     def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
-        # Currently only support Constant, Name, Tuples of Constant and Name.
-        # TODO: support slices, e.g., x[1:2]
-        args = []
-        index = node.slice
-        if isinstance(index, ast.Name) or isinstance(index, ast.Constant):
+        args = [self.visit(node.value)]
+        index = self._get_index(node)
+        if (
+            isinstance(index, ast.Name)
+            or isinstance(index, ast.Constant)
+            or isinstance(index, ast.List)
+        ):
             args.append(self.visit(index))
+        elif isinstance(index, ast.Slice):
+            args.append(self.visit_Slice(index))
         else:
             raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
-            args.insert(0, self.visit(node.value))
-            return synthesize_tracer_call_ast(operator.getitem.__name__, args, node)
+            return synthesize_tracer_call_ast(
+                GET_ITEM,
+                args,
+                node,
+            )
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
         else:

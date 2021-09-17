@@ -18,7 +18,7 @@ if len(bs) > 4:
     print("True")
 else:
     bs.append(3)
-    print("False")    
+    print("False")
 ```
 """
 
