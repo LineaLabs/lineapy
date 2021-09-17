@@ -28,7 +28,10 @@ def are_str_equal(s1: str, s2: str, remove_all_non_letter=False):
     return s1.strip() == s2.strip()
 
 
-def get_new_session(code: str, libraries: Optional[List] = None) -> SessionContext:
+def get_new_session(
+    code: str,
+    libraries: Optional[List] = None,
+) -> SessionContext:
     if libraries is None:
         libraries = []
     return SessionContext(

@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from uuid import UUID
 
 from sqlalchemy import (
     Column,
@@ -15,7 +14,6 @@ from sqlalchemy import (
     Float,
     types,
 )
-from sqlalchemy.dialects.mysql.base import MSBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import (
     relationship,
@@ -76,41 +74,12 @@ Base = declarative_base()
 # base tables #
 ###############
 
-# from https://stackoverflow.com/questions/183042/how-can-i-use-uuids-in-sqlalchemy
-# class LineaIDORM(types.TypeDecorator):
-#     # FIXME: missing two inherited abstract methods that need to be implemented:
-#     #  `process_literal_param` from  `TypeDecorator` and
-#     #  `python_type` from `TypeEngine`.
-
-#     impl = MSBinary
-#     cache_ok = True  # this suppresses an error from SQLAlchemy
-
-#     def __init__(self):
-#         self.impl.length = 16
-#         types.TypeDecorator.__init__(self, length=self.impl.length)
-
-#     def process_bind_param(self, value, dialect=None):
-#         if value and isinstance(value, UUID):
-#             return value.bytes
-#         elif value and not isinstance(value, UUID):
-#             raise ValueError("value %s is not a valid UUID" % value)
-#         else:
-#             return None
-
-#     def process_result_value(self, value, dialect=None):
-#         if value:
-#             return UUID(bytes=value)
-#         else:
-#             return None
-
-#     def is_mutable(self):
-#         return False
-
 
 class AttributesDict(types.TypeDecorator):
-    # FIXME: missing two inherited abstract methods that need to be implemented:
-    #  `process_literal_param` from  `TypeDecorator` and
-    #  `python_type` from `TypeEngine`.
+    # FIXME: missing two inherited abstract methods that
+    #        need to be implemented:
+    #  - `process_literal_param` from  `TypeDecorator`
+    #  - `python_type` from `TypeEngine`.
 
     impl = Text()
     cache_ok = True
@@ -143,7 +112,14 @@ class SessionContextORM(Base):  # type: ignore
 
 class LibraryORM(Base):  # type: ignore
     __tablename__ = "library"
-    __table_args__ = (UniqueConstraint("session_id", "name", "version", "path"),)
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id",
+            "name",
+            "version",
+            "path",
+        ),
+    )
     id = Column(String, primary_key=True)
     session_id = Column(String, ForeignKey("session_context.id"))
     name = Column(String)

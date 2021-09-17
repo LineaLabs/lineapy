@@ -121,7 +121,10 @@ class TestBasicExecutor:
 
     def test_program_with_conditionals(self):
         e = Executor()
-        e.execute_program(graph_with_conditionals, graph_with_conditionals_session)
+        e.execute_program(
+            graph_with_conditionals,
+            graph_with_conditionals_session,
+        )
         bs = e.get_value_by_variable_name("bs")
         stdout = e.get_stdout()
         assert bs == [1, 2, 3]
@@ -129,7 +132,10 @@ class TestBasicExecutor:
 
     def test_program_with_file_access(self):
         e = Executor()
-        e.execute_program(graph_with_csv_import, graph_with_file_access_session)
+        e.execute_program(
+            graph_with_csv_import,
+            graph_with_file_access_session,
+        )
         s = e.get_value_by_variable_name("s")
         assert s == 25
 
@@ -144,21 +150,26 @@ class TestBasicExecutor:
     def test_variable_alias_by_reference(self):
         e = Executor()
         e.execute_program(
-            graph_with_alias_by_reference, graph_with_alias_by_reference_session
+            graph_with_alias_by_reference,
+            graph_with_alias_by_reference_session,
         )
         s = e.get_value_by_variable_name("s")
         assert s == 10
 
     def test_headless_variable_and_literals(self):
         e = Executor()
-        e.execute_program(graph_with_messy_nodes, graph_with_messy_nodes_session)
+        e.execute_program(
+            graph_with_messy_nodes,
+            graph_with_messy_nodes_session,
+        )
         g = e.get_value_by_variable_name("g")
         assert g == 5
 
     def test_execute_program_with_inputs_graph_with_loops(self):
         # e = Executor()
         # from tests.stub_data.graph_with_loops import a_argument_id
-        # e.execute_program_with_inputs(graph_with_loops, {a_argument_id: [1, 2, 3]})
+        # e.execute_program_with_inputs(graph_with_loops,
+        #  {a_argument_id: [1, 2, 3]})
         # x = e.get_value_by_variable_name('x')
         # assert x == 6
         # y = e.get_value_by_variable_name('y')
@@ -168,7 +179,8 @@ class TestBasicExecutor:
     def test_execute_program_with_inputs_graph_with_conditionals(self):
         # e = Executor()
         # from tests.stub_data.graph_with_conditionals import bs_line_id
-        # e.execute_program_with_inputs(graph_with_loops, {bs_line_id: [1, 2, 3, 4, 5]})
+        # e.execute_program_with_inputs(graph_with_loops,
+        # {bs_line_id: [1, 2, 3, 4, 5]})
         # stdout = e.get_stdout()
         # assert stdout == "True\n"
         pass

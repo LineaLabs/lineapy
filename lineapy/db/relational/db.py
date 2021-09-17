@@ -381,11 +381,13 @@ class RelationalLineaDB(LineaDB):
             NodeType.ConditionNode,
             NodeType.FunctionDefinitionNode,
         ]:
-            node = cast(SideEffectsNode, node)
+            node = cast(SideEffectsNodeORM, node)
             output_state_change_nodes = (
                 self.session.query(side_effects_output_state_change_association_table)
                 .filter(
-                    side_effects_output_state_change_association_table.c.side_effects_node_id
+                    (
+                        side_effects_output_state_change_association_table.c.side_effects_node_id
+                    )
                     == node.id
                 )
                 .all()
@@ -399,7 +401,9 @@ class RelationalLineaDB(LineaDB):
             input_state_change_nodes = (
                 self.session.query(side_effects_input_state_change_association_table)
                 .filter(
-                    side_effects_input_state_change_association_table.c.side_effects_node_id
+                    (
+                        side_effects_input_state_change_association_table.c.side_effects_node_id
+                    )
                     == node.id
                 )
                 .all()
@@ -461,11 +465,14 @@ class RelationalLineaDB(LineaDB):
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation
           - Examples:
-            - Third party libraries have functions that mutate some global or variable state.
+            - Third party libraries have functions that mutate some global or
+              variable state.
           - Strategy for now
             - definitely take care of the simple cases, like `VariableNode`
-            - simple heuristics that may create false positives (include things not necessary)
-            - but definitely NOT false negatives (then the program CANNOT be executed)
+            - simple heuristics that may create false positives
+              (include things not necessary)
+            - but definitely NOT false negatives (then the program
+              CANNOT be executed)
         """
         node = self.get_node_by_id(artifact_id)
         nodes = self.get_nodes_for_session(node.session_id)
@@ -487,7 +494,7 @@ class RelationalLineaDB(LineaDB):
         ]
 
         num_lines = len(session_code.split("\n"))
-        code: str = "\n".join([" " * max_col_of_code(session_code)] * num_lines)
+        code = "\n".join([" " * max_col_of_code(session_code)] * num_lines)
 
         for node in nodes:
             code = add_node_to_code(code, session_code, node)
@@ -512,8 +519,7 @@ class RelationalLineaDB(LineaDB):
         for d_id in descendants:
             descendant_is_artifact = (
                 self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
-                is not None
-            )
+            ) is not None
             descendant = program.get_node(d_id)
             if descendant_is_artifact and descendant is not None:
                 artifacts.append(descendant)

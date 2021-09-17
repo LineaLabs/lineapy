@@ -1,8 +1,36 @@
 import ast
-from typing import cast, Any, Optional
+from typing import cast, Any
+import pdb
 
 from lineapy import linea_publish
-from lineapy.constants import *
+from lineapy.constants import (
+    LINEAPY_TRACER_NAME,
+    ADD,
+    SUB,
+    MULT,
+    DIV,
+    FLOORDIV,
+    MOD,
+    POW,
+    LSHIFT,
+    RSHIFT,
+    BITOR,
+    BITXOR,
+    BITAND,
+    MATMUL,
+    EQ,
+    NOTEQ,
+    LT,
+    LTE,
+    GT,
+    GTE,
+    IS,
+    NOT,
+    ISNOT,
+    IN,
+    GET_ITEM,
+    SET_ITEM,
+)
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.instrumentation.variable import Variable
 from lineapy.lineabuiltins import __build_list__
@@ -16,7 +44,7 @@ from lineapy.transformer.transformer_util import (
     synthesize_tracer_headless_variable_ast,
     turn_none_to_empty_str,
 )
-from lineapy.utils import UserError, InvalidStateError
+from lineapy.utils import UserError, InvalidStateError, info_log
 
 
 class NodeTransformer(ast.NodeTransformer):
@@ -136,7 +164,7 @@ class NodeTransformer(ast.NodeTransformer):
         name_ref = get_call_function_name(node)
         # a little hacky, assume no one else would have a function name
         #   called linea_publish
-
+        info_log("AAAAA", name_ref, node.args)
         if name_ref["function_name"] == linea_publish.__name__:
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:
@@ -165,13 +193,11 @@ class NodeTransformer(ast.NodeTransformer):
                         f" {type(node.args[1])}"
                     )
                 description_node = cast(ast.Constant, node.args[1])
-                call: ast.Call = synthesize_linea_publish_call_ast(
+                return synthesize_linea_publish_call_ast(
                     var_node.id, description_node.value
                 )
-                return call
             else:
-                call: ast.Call = synthesize_linea_publish_call_ast(var_node.id)
-                return call
+                return synthesize_linea_publish_call_ast(var_node.id)
         else:
             # this is the normal case
             # code = self._get_code_from_node(node)
@@ -193,7 +219,8 @@ class NodeTransformer(ast.NodeTransformer):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
             index = self._get_index(subscript_target)
-            # note: isinstance(index, ast.List) only works for pandas, not Python lists
+            # note: isinstance(index, ast.List) only works for pandas,
+            #  not Python lists
             if (
                 isinstance(index, ast.Constant)
                 or isinstance(index, ast.Name)
@@ -213,7 +240,8 @@ class NodeTransformer(ast.NodeTransformer):
                 return ast.Expr(value=call)
 
             raise NotImplementedError(
-                "Assignment for Subscript supported only for Constant and Name indices."
+                "Assignment for Subscript supported only for Constant and Name"
+                " indices."
             )
 
         if not isinstance(node.targets[0], ast.Name):

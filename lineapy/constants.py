@@ -1,7 +1,6 @@
 import operator
 import os.path as path
 import sys
-from ast import Name, Load
 from enum import Enum
 
 lineapy_module = sys.modules[__name__]
