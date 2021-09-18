@@ -63,7 +63,6 @@ class Tracer:
         self.executor = Executor()
         # below are internal ID lookups
         self.variable_name_to_id: Dict[str, LineaID] = {}
-        self.function_name_to_id: Dict[str, LineaID] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -166,6 +165,10 @@ class Tracer:
             attributes=attributes,
         )
         info_log("creating", name, alias, attributes, syntax_dictionary)
+        if alias is not None:
+            self.variable_name_to_id[alias] = node.id
+        else:
+            self.variable_name_to_id[name] = node.id
         self.add_unevaluated_node(node, syntax_dictionary)
         return
 
@@ -233,8 +236,8 @@ class Tracer:
 
         locally_defined_function_id: Optional[LineaID] = None
         # now see if we need to add a locally_defined_function_id
-        if function_name in self.function_name_to_id:
-            locally_defined_function_id = self.function_name_to_id[function_name]
+        if function_name in self.variable_name_to_id:
+            locally_defined_function_id = self.variable_name_to_id[function_name]
 
         node = CallNode(
             id=get_new_id(),
@@ -297,7 +300,7 @@ class Tracer:
             session_id=self.session_context.id,
             function_name=function_name,
         )
-        self.function_name_to_id[function_name] = node.id
+        self.variable_name_to_id[function_name] = node.id
         self.add_unevaluated_node(node, syntax_dictionary)
 
     def loop(self) -> None:
