@@ -55,6 +55,12 @@ GET_ITEM = operator.__getitem__.__name__
 SET_ITEM = operator.__setitem__.__name__
 GETATTR = getattr.__name__
 
+FUNCTION_NAME = "function_name"
+FUNCTION_MODULE = "function_module"
+SYNTAX_DICTIONARY = "syntax_dictionary"
+ARGUMENTS = "arguments"
+VARIABLE_NAME = "variable_name"
+
 # BinOPs
 ADD = operator.__add__.__name__
 SUB = operator.__sub__.__name__

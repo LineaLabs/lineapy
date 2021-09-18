@@ -14,7 +14,8 @@ from lineapy.data.types import (
     StateChangeNode,
     VariableNode,
     StateDependencyType,
-    DataSourceNode, ImportNode,
+    DataSourceNode,
+    ImportNode,
 )
 from lineapy.graph_reader.graph_helper import get_arg_position
 from lineapy.utils import InternalLogicError, NullValueError
