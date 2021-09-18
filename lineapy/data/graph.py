@@ -14,7 +14,7 @@ from lineapy.data.types import (
     StateChangeNode,
     VariableNode,
     StateDependencyType,
-    DataSourceNode,
+    DataSourceNode, ImportNode,
 )
 from lineapy.graph_reader.graph_helper import get_arg_position
 from lineapy.utils import InternalLogicError, NullValueError
@@ -115,6 +115,9 @@ class Graph(object):
             node = cast(DataSourceNode, node)
             return node.access_path
 
+        elif node.node_type is NodeType.ImportNode:
+            node = cast(ImportNode, node)
+            return node.module
         else:
             return node.value  # type: ignore
 
