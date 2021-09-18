@@ -247,6 +247,10 @@ class Tracer:
         if function_name in self.variable_name_to_id:
             locally_defined_function_id = self.variable_name_to_id[function_name]
 
+        # Get node id for function module
+        if function_module is not None:
+            function_module = self.variable_name_to_id[function_module]
+
         node = CallNode(
             id=get_new_id(),
             session_id=self.session_context.id,
