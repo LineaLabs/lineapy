@@ -11,7 +11,6 @@ logging.basicConfig()
 
 
 class TestTransformedCodeExecution:
-
     @staticmethod
     def _run_program(code):
         logging.getLogger("sqlalchemy").setLevel(logging.ERROR)
@@ -38,10 +37,20 @@ class TestTransformedCodeExecution:
         self._run_program(code)
 
     def test_import(self):
-        # TODO: make this work by implementing visit_Attribute
-        # code = "import pandas as pd\nassert pd.__name__ == 'pandas'"
-        # self._run_program(code)
-        pass
+        code = "import pandas as pd\nassert pd.__name__ == 'pandas'"
+        self._run_program(code)
+
+    def test_import_methods(self):
+        code = (
+            "import pandas as pd\n" 
+            "df = pd.DataFrame([1,2])\n" 
+            "assert df.size == 2"
+        )
+        self._run_program(code)
+
+    def test_attribute(self):
+        code = "a = 1\na.imag == 1"
+        self._run_program(code)
 
     def test_linea_publish(self):
         name = "testing artifact publish"
