@@ -1,6 +1,5 @@
 import ast
 from typing import cast, Any
-import pdb
 
 from lineapy import linea_publish
 from lineapy.constants import (
@@ -30,6 +29,7 @@ from lineapy.constants import (
     IN,
     GET_ITEM,
     SET_ITEM,
+    GETATTR,
 )
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.instrumentation.variable import Variable
@@ -413,4 +413,7 @@ class NodeTransformer(ast.NodeTransformer):
         )
 
     def visit_Attribute(self, node: ast.Attribute) -> ast.Call:
-        return synthesize_tracer_call_ast()
+
+        return synthesize_tracer_call_ast(
+            GETATTR, [self.visit(node.value), ast.Constant(value=node.attr)], node
+        )

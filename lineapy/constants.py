@@ -53,6 +53,7 @@ class ExecutionMode(Enum):
 # Transformer related
 GET_ITEM = operator.__getitem__.__name__
 SET_ITEM = operator.__setitem__.__name__
+GETATTR = getattr.__name__
 
 # BinOPs
 ADD = operator.__add__.__name__
