@@ -42,9 +42,7 @@ class TestTransformedCodeExecution:
 
     def test_import_methods(self):
         code = (
-            "import pandas as pd\n" 
-            "df = pd.DataFrame([1,2])\n" 
-            "assert df.size == 2"
+            "import pandas as pd\n" "df = pd.DataFrame([1,2])\n" "assert df.size == 2"
         )
         self._run_program(code)
 

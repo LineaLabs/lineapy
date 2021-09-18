@@ -206,11 +206,16 @@ class NodeTransformer(ast.NodeTransformer):
             # this is the normal case
             # code = self._get_code_from_node(node)
             argument_nodes = [self.visit(arg) for arg in node.args]
+            function_module = (
+                ast.Constant(value=name_ref[FUNCTION_MODULE])
+                if FUNCTION_MODULE in name_ref
+                else None
+            )
             return synthesize_tracer_call_ast(
                 name_ref[FUNCTION_NAME],
                 argument_nodes,
                 node,
-                function_module=ast.Constant(name_ref[FUNCTION_MODULE]),
+                function_module=function_module,
             )
 
     def visit_Assign(self, node: ast.Assign) -> ast.Expr:

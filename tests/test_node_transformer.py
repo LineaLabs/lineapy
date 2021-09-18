@@ -112,10 +112,9 @@ class TestNodeTransformer:
     def test_visit_assign(self):
         simple_assign = "a = 1"
         expected_simple_assign = (
-            "lineapy_tracer.assign(variable_name='a', value_node=1, "
-            + "syntax_dictionary={"
-            + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 5})"
+            "lineapy_tracer.literal(assigned_variable_name='a', value=1, "
+            "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
+            "'end_col_offset': 5})"
         )
         self._check_equality(simple_assign, expected_simple_assign)
 
@@ -384,9 +383,9 @@ class TestNodeTransformer:
 
     def test_literal_assignment(self):
         expected = (
-            "lineapy_tracer.assign(variable_name='b', value_node=2,"
+            "lineapy_tracer.literal(assigned_variable_name='b', value=2,"
             "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
-            "'end_col_offset': 3})"
+            "'end_col_offset': 5})"
         )
-        assignment_code = "b=2"
+        assignment_code = "b = 2"
         self._check_equality(assignment_code, expected)
