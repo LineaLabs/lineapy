@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Dict, Any, Optional, List, cast
 
-from lineapy.transformer.tracer_util import create_argument_nodes
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -19,6 +18,7 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.records_manager import RecordsManager
+from lineapy.transformer.tracer_util import create_argument_nodes
 from lineapy.utils import (
     CaseNotHandledError,
     InternalLogicError,
@@ -198,14 +198,22 @@ class Tracer:
         )
         self.add_unevaluated_node(node, syntax_dictionary)
 
-    def literal(self, value: Any, syntax_dictionary: Dict[str, int]):
+    def literal(
+        self,
+        value: Any,
+        assigned_variable_name: Optional[str],
+        syntax_dictionary: Dict[str, int],
+    ):
         # this literal should be assigned or used later
-        return LiteralNode(
+        node = LiteralNode(
             id=get_new_id(),
             session_id=self.session_context.id,
             value=value,
-            syntax_dictionary=syntax_dictionary,
+            assigned_variable_name=assigned_variable_name,
         )
+        if assigned_variable_name is not None:
+            self.variable_name_to_id[assigned_variable_name] = node.id
+        self.add_unevaluated_node(node, syntax_dictionary)
 
     def call(
         self,

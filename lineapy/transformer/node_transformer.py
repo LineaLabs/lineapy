@@ -244,10 +244,36 @@ class NodeTransformer(ast.NodeTransformer):
                 " indices."
             )
 
+        variable_name = node.targets[0].id  # type: ignore
+        # Literal assign
+        if isinstance(node.value, ast.Constant):
+            call_ast: ast.Call = ast.Call(
+                func=ast.Attribute(
+                    value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                    attr=Tracer.literal.__name__,
+                    ctx=ast.Load(),
+                ),
+                args=[],
+                keywords=[
+                    ast.keyword(
+                        arg="assigned_variable_name",
+                        value=ast.Constant(value=variable_name),
+                    ),
+                    ast.keyword(
+                        arg="value",
+                        value=self.visit(node.value),
+                    ),
+                    ast.keyword(
+                        arg="syntax_dictionary",
+                        value=syntax_dictionary,
+                    ),
+                ],
+            )
+            return ast.Expr(value=call_ast)
+
         if not isinstance(node.targets[0], ast.Name):
             raise NotImplementedError("Other assignment types are not supported")
 
-        variable_name = node.targets[0].id  # type: ignore
         call_ast = ast.Call(
             func=ast.Attribute(
                 value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
