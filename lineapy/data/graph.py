@@ -85,6 +85,10 @@ class Graph(object):
     def get_descendants(self, node: Node) -> List[LineaID]:
         return list(nx.descendants(self.nx_graph, node.id))
 
+    def get_leaf_nodes(self) -> List[LineaID]:
+        return [node for node in self.nx_graph.nodes
+                if self.nx_graph.out_degree(node) == 0]
+
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
         if node_id is not None and node_id in self.ids:
             return self.ids[node_id]

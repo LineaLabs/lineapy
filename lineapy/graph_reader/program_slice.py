@@ -1,7 +1,8 @@
 import re
+from typing import List, Set, Optional
 
 from lineapy import Graph
-from lineapy.data.types import Node
+from lineapy.data.types import Node, LineaID
 from lineapy.graph_reader.base import GraphReader
 from lineapy.graph_reader.graph_util import get_segment_from_code
 
@@ -20,11 +21,15 @@ class ProgramSlicer(GraphReader):
         return max_col
 
     @staticmethod
-    def replace_slice_of_code(code: str, new_code: str, start: int, end: int) -> str:
+    def replace_slice_of_code(
+        code: str, new_code: str, start: int, end: int
+    ) -> str:
         return code[:start] + new_code + code[end:]
 
     @staticmethod
-    def add_node_to_code(current_code: str, session_code: str, node: Node) -> str:
+    def add_node_to_code(
+        current_code: str, session_code: str, node: Node
+    ) -> str:
         segment = get_segment_from_code(session_code, node)
         segment_lines = segment.split("\n")
         lines = current_code.split("\n")
@@ -61,6 +66,21 @@ class ProgramSlicer(GraphReader):
 
     def validate(self, graph: Graph) -> None:
         pass
+
+    def get_slice(
+        self, program: Graph, sinks: Optional[List[Node]] = None
+    ) -> str:
+        if sinks is None:
+            sinks = [
+                program.get_node(node) for node in program.get_leaf_nodes()
+            ]
+        ancestors: Set[LineaID] = set([node.id for node in sinks])
+
+        for sink in sinks:
+            ancestors.update(program.get_ancestors(sink))
+        subgraph = Graph([program.get_node(node) for node in ancestors])
+        subgraph.code = program.code
+        return self.walk(subgraph)
 
     def walk(self, program: Graph) -> str:
         session_code = program.code

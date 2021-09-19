@@ -487,7 +487,7 @@ class RelationalLineaDB(LineaDB):
         graph.code = session_code
 
         program_slicer = ProgramSlicer()
-        return program_slicer.walk(graph)
+        return program_slicer.get_slice(graph)
 
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode

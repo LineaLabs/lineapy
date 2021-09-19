@@ -1,7 +1,7 @@
 import builtins
 import importlib.util
 import io
-from lineapy.utils import CaseNotHandledError, InternalLogicError
+from lineapy.utils import InternalLogicError
 import subprocess
 import sys
 from typing import Any, Tuple, Optional, Dict, cast
