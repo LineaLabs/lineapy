@@ -20,15 +20,11 @@ class ProgramSlicer(GraphReader):
         return max_col
 
     @staticmethod
-    def replace_slice_of_code(
-        code: str, new_code: str, start: int, end: int
-    ) -> str:
+    def replace_slice_of_code(code: str, new_code: str, start: int, end: int) -> str:
         return code[:start] + new_code + code[end:]
 
     @staticmethod
-    def add_node_to_code(
-        current_code: str, session_code: str, node: Node
-    ) -> str:
+    def add_node_to_code(current_code: str, session_code: str, node: Node) -> str:
         segment = get_segment_from_code(session_code, node)
         segment_lines = segment.split("\n")
         lines = current_code.split("\n")
@@ -36,9 +32,7 @@ class ProgramSlicer(GraphReader):
         # replace empty space
         if node.lineno == node.end_lineno:
             # if it's only a single line to be inserted
-            lines[
-                node.lineno - 1
-            ] = ProgramSlicer.replace_slice_of_code(
+            lines[node.lineno - 1] = ProgramSlicer.replace_slice_of_code(
                 lines[node.lineno - 1],
                 segment,
                 node.col_offset,
@@ -46,18 +40,14 @@ class ProgramSlicer(GraphReader):
             )
         else:
             # if multiple lines need insertion
-            lines[
-                node.lineno - 1
-            ] = ProgramSlicer.replace_slice_of_code(
+            lines[node.lineno - 1] = ProgramSlicer.replace_slice_of_code(
                 lines[node.lineno - 1],
                 segment_lines[0],
                 node.col_offset,
                 len(lines[node.lineno - 1]),
             )
 
-            lines[
-                node.end_lineno - 1
-            ] = ProgramSlicer.replace_slice_of_code(
+            lines[node.end_lineno - 1] = ProgramSlicer.replace_slice_of_code(
                 lines[node.end_lineno - 1],
                 segment_lines[-1],
                 0,
@@ -83,14 +73,11 @@ class ProgramSlicer(GraphReader):
 
         num_lines = len(session_code.split("\n"))
         code = "\n".join(
-            [" " * ProgramSlicer.max_col_of_code(session_code)]
-            * num_lines
+            [" " * ProgramSlicer.max_col_of_code(session_code)] * num_lines
         )
 
         for node in nodes:
-            code = ProgramSlicer.add_node_to_code(
-                code, session_code, node
-            )
+            code = ProgramSlicer.add_node_to_code(code, session_code, node)
 
         code = re.sub(r"\n\s*\n", "\n\n", code)
 

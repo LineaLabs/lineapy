@@ -145,7 +145,7 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         b = e.get_value_by_variable_name("b")
         assert b == 5
-        assert  graph == graph_with_import
+        assert graph == graph_with_import
 
     def test_graph_with_function_definition(self):
         """ """
