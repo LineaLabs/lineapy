@@ -22,7 +22,7 @@ from lineapy.data.types import (
     LineaID,
     VariableNode,
 )
-from lineapy.execution.code_util import get_segment_from_code
+from lineapy.graph_reader.graph_util import get_segment_from_code
 from lineapy.graph_reader.base import GraphReader
 
 

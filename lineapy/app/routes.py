@@ -10,7 +10,7 @@ from lineapy.db.relational.schema.relational import (
     ArtifactORM,
     ExecutionORM,
 )
-from lineapy.execution.code_util import get_segment_from_code
+from lineapy.graph_reader.graph_util import get_segment_from_code
 from lineapy.execution.executor import Executor
 from lineapy.app.app_util import jsonify_artifact
 from lineapy.utils import InternalLogicError, jsonify_value

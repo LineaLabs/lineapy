@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 from typing import List, Optional, cast, Any
 
 from sqlalchemy import create_engine
@@ -17,7 +16,6 @@ from lineapy.data.types import (
     LineaID,
     NodeValue,
     SessionContext,
-    SideEffectsNode,
     CallNode,
     ImportNode,
     LiteralNode,
@@ -35,7 +33,7 @@ from lineapy.db.asset_manager.local import (
 )
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
-from lineapy.execution.code_util import add_node_to_code, max_col_of_code
+from lineapy.graph_reader.program_slice import ProgramSlicer
 from lineapy.utils import (
     CaseNotHandledError,
     NullValueError,
@@ -75,7 +73,9 @@ class RelationalLineaDB(LineaDB):
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default=False)
         if not isinstance(echo, bool):
-            echo = str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
+            echo = (
+                str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
+            )
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
@@ -178,7 +178,9 @@ class RelationalLineaDB(LineaDB):
             if args["value_literal"] is not None:
                 args[
                     "value_literal_type"
-                ] = RelationalLineaDB.get_type_of_literal_value(args["value_literal"])
+                ] = RelationalLineaDB.get_type_of_literal_value(
+                    args["value_literal"]
+                )
 
         elif node.node_type is NodeType.CallNode:
             node = cast(CallNodeORM, node)
@@ -243,9 +245,9 @@ class RelationalLineaDB(LineaDB):
         elif node.node_type is NodeType.LiteralNode:
             node = cast(LiteralNodeORM, node)
             if node.value is not None:
-                args["value_type"] = RelationalLineaDB.get_type_of_literal_value(
-                    node.value
-                )
+                args[
+                    "value_type"
+                ] = RelationalLineaDB.get_type_of_literal_value(node.value)
 
         elif node.node_type is NodeType.VariableNode:
             """
@@ -297,7 +299,9 @@ class RelationalLineaDB(LineaDB):
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
         """
-        self.session.query(ArtifactORM).filter(ArtifactORM.id == node_id).delete()
+        self.session.query(ArtifactORM).filter(
+            ArtifactORM.id == node_id
+        ).delete()
         self.session.commit()
 
     """
@@ -351,7 +355,9 @@ class RelationalLineaDB(LineaDB):
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralNode:
             node = cast(LiteralNodeORM, node)
-            node.value = get_literal_value_from_string(node.value, node.value_type)
+            node.value = get_literal_value_from_string(
+                node.value, node.value_type
+            )
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNodeORM, node)
             if node.value_literal is not None:
@@ -383,7 +389,9 @@ class RelationalLineaDB(LineaDB):
         ]:
             node = cast(SideEffectsNodeORM, node)
             output_state_change_nodes = (
-                self.session.query(side_effects_output_state_change_association_table)
+                self.session.query(
+                    side_effects_output_state_change_association_table
+                )
                 .filter(
                     (
                         side_effects_output_state_change_association_table.c.side_effects_node_id
@@ -395,11 +403,14 @@ class RelationalLineaDB(LineaDB):
 
             if output_state_change_nodes is not None:
                 node.output_state_change_nodes = [
-                    a.output_state_change_node_id for a in output_state_change_nodes
+                    a.output_state_change_node_id
+                    for a in output_state_change_nodes
                 ]
 
             input_state_change_nodes = (
-                self.session.query(side_effects_input_state_change_association_table)
+                self.session.query(
+                    side_effects_input_state_change_association_table
+                )
                 .filter(
                     (
                         side_effects_input_state_change_association_table.c.side_effects_node_id
@@ -411,7 +422,8 @@ class RelationalLineaDB(LineaDB):
 
             if input_state_change_nodes is not None:
                 node.input_state_change_nodes = [
-                    a.input_state_change_node_id for a in input_state_change_nodes
+                    a.input_state_change_node_id
+                    for a in input_state_change_nodes
                 ]
 
             import_nodes = (
@@ -456,7 +468,9 @@ class RelationalLineaDB(LineaDB):
 
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         node_orms = (
-            self.session.query(NodeORM).filter(NodeORM.session_id == session_id).all()
+            self.session.query(NodeORM)
+            .filter(NodeORM.session_id == session_id)
+            .all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
@@ -486,30 +500,10 @@ class RelationalLineaDB(LineaDB):
         session_code = self.get_context(
             self.get_node_by_id(artifact_id).session_id
         ).code
+        graph.code = session_code
 
-        nodes = [
-            node
-            for node in graph.nodes
-            if node.lineno is not None and node.col_offset is not None
-        ]
-
-        num_lines = len(session_code.split("\n"))
-        code = "\n".join([" " * max_col_of_code(session_code)] * num_lines)
-
-        for node in nodes:
-            code = add_node_to_code(code, session_code, node)
-
-        # replace groups of empty lines with single empty line
-        # https://stackoverflow.com/questions/28901452/reduce-multiple-blank-lines-to-single-pythonically
-        code = re.sub(r"\n\s*\n", "\n\n", code)
-
-        # remove extra white spaces from end of each line
-        lines = code.split("\n")
-        for i in range(len(lines)):
-            lines[i] = lines[i].rstrip()
-        code = "\n".join(lines)
-
-        return code
+        program_slicer = ProgramSlicer()
+        return program_slicer.walk(graph)
 
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode
@@ -518,14 +512,18 @@ class RelationalLineaDB(LineaDB):
         artifacts = []
         for d_id in descendants:
             descendant_is_artifact = (
-                self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
+                self.session.query(ArtifactORM)
+                .filter(ArtifactORM.id == d_id)
+                .first()
             ) is not None
             descendant = program.get_node(d_id)
             if descendant_is_artifact and descendant is not None:
                 artifacts.append(descendant)
         return artifacts
 
-    def find_artifact_by_name(self, artifact_name: str) -> Optional[List[Artifact]]:
+    def find_artifact_by_name(
+        self, artifact_name: str
+    ) -> Optional[List[Artifact]]:
         """
         Return the list of relevant artifacts
         """
