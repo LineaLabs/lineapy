@@ -1,12 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Any, Tuple, Optional, List, Dict
-from uuid import UUID
-
 from pydantic import BaseModel
-
-# aliasing the ID type in case we change it later
-LineaID = str
 
 
 class SessionType(Enum):
@@ -20,11 +15,24 @@ class StorageType(Enum):
     DATABASE = 3
 
 
+"""
+Following are the types used to construct the Linea IR. These should be fairly
+  stable as changing them will likely result in major refactor.
+
+You can find extensive examples in tests/stub_data.
+
+The orm_mode allows us to use from_orm to convert ORM 
+  objects to pydantic objects
+"""
+
+
+# aliasing the ID type in case we change it later, and to be more descriptive
+#   than str
+LineaID = str
+
+
 class HardwareSpec(BaseModel):
     # TODO: information about the machine the code is run on.
-
-    # note: this is specific to Pydantic
-    # orm_mode allows us to use from_orm to convert ORM objects to pydantic objects
     class Config:
         orm_mode = True
 
@@ -40,6 +48,13 @@ class Library(BaseModel):
 
 
 class SessionContext(BaseModel):
+    """
+    Each execution of a script/notebook is a "Session".
+    The session context object provides important metadata used by
+    - executor to get the code from the syntax_dictionary
+    - route to supply the frontend, e.g., user_name and creation_time
+    """
+
     id: LineaID  # populated on creation by uuid.uuid4()
     environment_type: SessionType
     creation_time: datetime
@@ -92,12 +107,6 @@ class LiteralType(Enum):
     Boolean = 4
 
 
-# used for StateChangeNodes
-class StateDependencyType(Enum):
-    Read = 1
-    Write = 2
-
-
 class ValueType(Enum):
     """
     Lower case because the API with the frontend assume the characters "chart"
@@ -137,6 +146,11 @@ class Execution(BaseModel):
 
 
 class Artifact(BaseModel):
+    """
+    An artifact is simply an annotation on some existing graph node---the ID
+      simply points to an existing ID.
+    """
+
     id: LineaID
     date_created: float
     name: Optional[str]
@@ -146,34 +160,50 @@ class Artifact(BaseModel):
 
 
 class Node(BaseModel):
-    id: LineaID  # populated on creation by uuid.uuid4()
+    """
+    - id: string version of UUID, which we chose because
+        we do not need to coordinate to make it unique
+    - lineno, col_offset, end_lino, end_col_offsets: these record the position
+      of the calls. They are optional because it's not required some nodes,
+      such as side-effects nodes, which do not correspond to a line of code.
+
+    - `class Config`'s orm_mode allows us to use from_orm to convert ORM
+    objects to pydantic objects
+    """
+
+    id: LineaID
     session_id: LineaID  # refers to SessionContext.id
     node_type: NodeType = NodeType.Node
-    # these identifiers are Optional because there are some
-    #   kinds of nodes which are implicitly defined,
-    #   including ImportNodes where the import is the operator module
     lineno: Optional[int]
     col_offset: Optional[int]
     end_lineno: Optional[int]
     end_col_offset: Optional[int]
 
-    # context: Optional[NodeContext] = None
-
-    # note: this is specific to Pydantic
-    #   orm_mode allows us to use from_orm to convert ORM objects to
-    #   pydantic objects
     class Config:
         orm_mode = True
 
 
 class SideEffectsNode(Node):
-    # keeping a list of state_change_nodes that we probably have to
-    #   re-construct from th›e sql db.
-    # will deprecate when storing graph in a relational db
+    """
+    This is a class of nodes, and the following nodes inherits from it:
+    - LoopNode
+    - ConditionNode
+    - FunctionDefinitionNode
+
+    All side effect nodes are handled currently as a black box
+      The tracer would look into the definition to construct the input/output
+      changes.
+
+    Entries
+    - `output_state_change_nodes`: IDs of the nodes that are modified, e.g.,
+       `def foo:\n    global a\n    a = 1`
+    - `input_state_change_nodes`: the nodes that reads, e.g.,
+       `a = 1\ndef foo:\n    print(a)`
+    - `import_nodes`: modules required to run node code
+    """
+
     output_state_change_nodes: Optional[List[LineaID]]
     input_state_change_nodes: Optional[List[LineaID]]
-
-    # modules required to run node code (ids point to ImportNode instances)
     import_nodes: Optional[List[LineaID]]
 
 
@@ -194,6 +224,13 @@ class ImportNode(Node):
 
 
 class ArgumentNode(Node):
+    """
+    Each call may have arguments, and the arguments are stored in ArgumentNode
+    Each argument could be
+    - keyword or positional (hence the optional)
+    - value_literal or a reference to an existing variable (via the ID)
+    """
+
     node_type: NodeType = NodeType.ArgumentNode
     keyword: Optional[str] = None
     positional_order: Optional[int] = None
@@ -203,10 +240,10 @@ class ArgumentNode(Node):
 
 class CallNode(Node):
     """
-    The locally_defined_function_id helps with slicing and the lineapy
+    - `locally_defined_function_id`: helps with slicing and the lineapy
     transformer and corresponding APIs would need to capture these info.
-    NOTE: could reference an Import Node, or a class,
-      which would be the result of a CallNode.
+    - `value`: value of the call result, filled at runtime. It may be cached
+      by the data asset manager
     """
 
     node_type: NodeType = NodeType.CallNode
@@ -215,9 +252,6 @@ class CallNode(Node):
     function_module: Optional[LineaID] = None
     locally_defined_function_id: Optional[LineaID] = None
     assigned_variable_name: Optional[str] = None
-    # value of the result, filled at runtime
-    # TODO: maybe we should create a new class to differentiate?
-    #       this run time value also applies to StateChange.
     value: Optional[NodeValueType] = None
 
 
@@ -246,11 +280,7 @@ class VariableNode(Node):
 
 class FunctionDefinitionNode(SideEffectsNode):
     """
-    Note that like loops, FunctionDefinitionNode will also treat the
-      function as a black box.
-    See tests/stub_data for examples.
     TODO: should we track if its an recursive function?
-
     """
 
     node_type: NodeType = NodeType.FunctionDefinitionNode
@@ -260,6 +290,11 @@ class FunctionDefinitionNode(SideEffectsNode):
 
 class ConditionNode(SideEffectsNode):
     node_type: NodeType = NodeType.ConditionNode
+
+
+class StateDependencyType(Enum):
+    Read = 1
+    Write = 2
 
 
 class StateChangeNode(Node):
@@ -322,15 +357,3 @@ class DataSourceNode(Node):
 class WithNode(Node):
     node_type: NodeType = NodeType.WithNode
     # TODO
-
-
-class DirectedEdge(BaseModel):
-    """
-    FIXME: add documentation about the directions
-    """
-
-    source_node_id: LineaID  # refers to Node.uuid
-    sink_node_id: LineaID  # refers to Node.uuid
-
-    class Config:
-        orm_mode = True
