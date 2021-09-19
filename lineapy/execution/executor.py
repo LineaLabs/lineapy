@@ -111,7 +111,8 @@ class Executor(GraphReader):
             self.setup(context)
 
         start = time.time()
-        self.walk(program, context.code)
+        program.code = context.code
+        self.walk(program)
         end = time.time()
         return end - start
 
@@ -189,8 +190,9 @@ class Executor(GraphReader):
 
         return fn, fn_name
 
-    def walk(self, program: Graph, code: str) -> None:
+    def walk(self, program: Graph) -> None:
         sys.stdout = self._stdout
+        code = program.code
 
         for node_id in program.visit_order():
             node = program.get_node(node_id)

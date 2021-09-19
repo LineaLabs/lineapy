@@ -41,6 +41,7 @@ class Graph(object):
                 for edge in self.__get_edges_from_line_number()
             ]
         )
+        self._code: str = ""
 
         if not nx.is_directed_acyclic_graph(self._nx_graph):
             raise InternalLogicError("Graph should not be cyclic")
@@ -56,6 +57,14 @@ class Graph(object):
     @property
     def nodes(self) -> List[Node]:
         return self._nodes
+
+    @property
+    def code(self) -> str:
+        return self._code
+
+    @code.setter
+    def code(self, c: str):
+        self._code = c
 
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
