@@ -17,9 +17,7 @@ class TestProgramSlicer:
         graph_with_messy_nodes.code = code
         program_slicer = ProgramSlicer()
         assert (
-            program_slicer.get_slice(
-                graph_with_messy_nodes, [f_assign]
-            ).strip()
+            program_slicer.get_slice(graph_with_messy_nodes, [f_assign]).strip()
             == sliced_code.strip()
         )
 
