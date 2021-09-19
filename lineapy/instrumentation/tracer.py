@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Dict, Any, Optional, List, cast
 
-from lineapy.transformer.tracer_util import create_argument_nodes
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -19,6 +18,7 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.records_manager import RecordsManager
+from lineapy.transformer.tracer_util import create_argument_nodes
 from lineapy.utils import (
     CaseNotHandledError,
     InternalLogicError,
@@ -56,11 +56,13 @@ class Tracer:
         #   what this configuration should be
         config = get_default_config_by_environment(execution_mode)
         self.records_manager = RecordsManager(config)
-        self.session_context = self.create_session_context(session_type, file_name)
+        self.session_context = self.create_session_context(
+            session_type,
+            file_name,
+        )
         self.executor = Executor()
         # below are internal ID lookups
         self.variable_name_to_id: Dict[str, LineaID] = {}
-        self.function_name_to_id: Dict[str, LineaID] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -117,12 +119,19 @@ class Tracer:
         # need to force an eval
         self.evaluate_records_so_far()
         node_id = self.look_up_node_id_by_variable_name(variable_name)
-        self.records_manager.add_node_id_to_artifact_table(node_id, description)
+        self.records_manager.add_node_id_to_artifact_table(
+            node_id,
+            description,
+        )
 
-    def create_session_context(self, session_type: SessionType, file_name: str):
+    def create_session_context(
+        self,
+        session_type: SessionType,
+        file_name: str,
+    ):
         """
-        Decided to read the code instead because it's more readable than passing
-          through the transformer
+        Decided to read the code instead because it's more readable
+          than passing through the transformer
         """
         original_code = open(file_name, "r").read()
         session_context = SessionContext(
@@ -156,6 +165,10 @@ class Tracer:
             attributes=attributes,
         )
         info_log("creating", name, alias, attributes, syntax_dictionary)
+        if alias is not None:
+            self.variable_name_to_id[alias] = node.id
+        else:
+            self.variable_name_to_id[name] = node.id
         self.add_unevaluated_node(node, syntax_dictionary)
         return
 
@@ -170,7 +183,8 @@ class Tracer:
                 source_variable_id=source_node_id,
             )
             # FIXME: this node doesn't even need to be evaluated
-            #   we should prob decouple the evaluation with the insertion of new nodes
+            #   we should prob decouple the evaluation with the insertion
+            #   of new nodes
             self.add_unevaluated_node(node, syntax_dictionary)
         else:
             raise InternalLogicError(f"Variable {variable_name} not found")
@@ -184,21 +198,29 @@ class Tracer:
         )
         self.add_unevaluated_node(node, syntax_dictionary)
 
-    def literal(self, value: Any, syntax_dictionary: Dict[str, int]):
+    def literal(
+        self,
+        value: Any,
+        assigned_variable_name: Optional[str],
+        syntax_dictionary: Dict[str, int],
+    ):
         # this literal should be assigned or used later
-        return LiteralNode(
+        node = LiteralNode(
             id=get_new_id(),
             session_id=self.session_context.id,
             value=value,
-            syntax_dictionary=syntax_dictionary,
+            assigned_variable_name=assigned_variable_name,
         )
+        if assigned_variable_name is not None:
+            self.variable_name_to_id[assigned_variable_name] = node.id
+        self.add_unevaluated_node(node, syntax_dictionary)
 
     def call(
         self,
         function_name: str,
         arguments: Any,
         syntax_dictionary: Dict[str, int],
-        function_module: Optional[str] = None,
+        function_module: Optional[Any] = None,
     ) -> CallNode:
         """
         NOTE
@@ -222,8 +244,12 @@ class Tracer:
 
         locally_defined_function_id: Optional[LineaID] = None
         # now see if we need to add a locally_defined_function_id
-        if function_name in self.function_name_to_id:
-            locally_defined_function_id = self.function_name_to_id[function_name]
+        if function_name in self.variable_name_to_id:
+            locally_defined_function_id = self.variable_name_to_id[function_name]
+
+        # Get node id for function module
+        if function_module is not None:
+            function_module = self.variable_name_to_id[function_module]
 
         node = CallNode(
             id=get_new_id(),
@@ -286,7 +312,7 @@ class Tracer:
             session_id=self.session_context.id,
             function_name=function_name,
         )
-        self.function_name_to_id[function_name] = node.id
+        self.variable_name_to_id[function_name] = node.id
         self.add_unevaluated_node(node, syntax_dictionary)
 
     def loop(self) -> None:

@@ -1,10 +1,24 @@
-from typing import cast
+from typing import cast, List, Dict, Optional, Any
 
 import networkx as nx
 
-from lineapy.data.types import *
+from lineapy.data.types import (
+    LineaID,
+    Node,
+    DirectedEdge,
+    ArgumentNode,
+    NodeValueType,
+    NodeType,
+    CallNode,
+    SideEffectsNode,
+    StateChangeNode,
+    VariableNode,
+    StateDependencyType,
+    DataSourceNode,
+    ImportNode,
+)
 from lineapy.graph_reader.graph_helper import get_arg_position
-from lineapy.utils import InternalLogicError, NullValueError, info_log
+from lineapy.utils import InternalLogicError, NullValueError
 
 
 class Graph(object):
@@ -102,6 +116,9 @@ class Graph(object):
             node = cast(DataSourceNode, node)
             return node.access_path
 
+        elif node.node_type is NodeType.ImportNode:
+            node = cast(ImportNode, node)
+            return node.module
         else:
             return node.value  # type: ignore
 

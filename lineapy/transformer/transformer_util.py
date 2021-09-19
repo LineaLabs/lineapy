@@ -1,14 +1,20 @@
 import ast
 from typing import Any, List, Optional, cast
 
-from lineapy.utils import CaseNotHandledError
-from lineapy.constants import LINEAPY_TRACER_NAME
+from lineapy.constants import (
+    LINEAPY_TRACER_NAME,
+    FUNCTION_NAME,
+    FUNCTION_MODULE,
+    SYNTAX_DICTIONARY,
+    ARGUMENTS,
+    VARIABLE_NAME,
+)
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils import CaseNotHandledError
 
 """
 AST synthesizers used by node_transformers
 """
-
 
 SYNTAX_KEY = ["lineno", "col_offset", "end_lineno", "end_col_offset"]
 
@@ -35,12 +41,12 @@ def turn_none_to_empty_str(a: Optional[str]):
 def get_call_function_name(node: ast.Call) -> dict:
     if type(node.func) == ast.Name:
         func_name = cast(ast.Name, node.func)
-        return {"function_name": func_name.id}
+        return {FUNCTION_NAME: func_name.id}
     if type(node.func) == ast.Attribute:
         func_attribute = cast(ast.Attribute, node.func)
         return {
-            "function_name": func_attribute.attr,
-            "function_module": func_attribute.value.id,
+            FUNCTION_NAME: func_attribute.attr,
+            FUNCTION_MODULE: func_attribute.value.id,
         }
     raise CaseNotHandledError("Other types of function calls!")
 
@@ -57,6 +63,7 @@ def synthesize_tracer_call_ast(
     function_name: str,
     argument_nodes: List[Any],
     node: Any,  # NOTE: not sure if the ast Nodes have a union type
+    function_module: Optional[Any] = None,
 ):
     """
     Node is passed to synthesize the `syntax_dictionary`
@@ -69,19 +76,28 @@ def synthesize_tracer_call_ast(
         args=[],
         keywords=[
             ast.keyword(
-                arg="function_name",
+                arg=FUNCTION_NAME,
                 value=ast.Constant(value=function_name),
             ),
             ast.keyword(
-                arg="syntax_dictionary",
+                arg=SYNTAX_DICTIONARY,
                 value=syntax_dictionary,
             ),
             ast.keyword(
-                arg="arguments",
-                value=ast.List(elts=argument_nodes),
+                arg=ARGUMENTS,
+                value=ast.List(elts=argument_nodes, ctx=ast.Load()),
             ),
         ],
     )
+
+    if function_module is not None:
+        call.keywords.append(
+            ast.keyword(
+                arg=FUNCTION_MODULE,
+                value=function_module,
+            )
+        )
+
     return call
 
 
@@ -126,7 +142,7 @@ def synthesize_tracer_headless_variable_ast(node: ast.Name):
 
 def synthesize_linea_publish_call_ast(
     variable_name: str,
-    description: Optional[str] = None,
+    artifact_name: Optional[str] = None,
 ):
     """
     NOTE:
@@ -134,25 +150,23 @@ def synthesize_linea_publish_call_ast(
     """
     keywords = [
         ast.keyword(
-            arg="variable_name",
+            arg=VARIABLE_NAME,
             value=ast.Constant(value=variable_name),
         )
     ]
-    if description is not None:
+    if artifact_name is not None:
         keywords.append(
             ast.keyword(
                 arg="description",
-                value=ast.Constant(value=description),
+                value=ast.Constant(value=artifact_name),
             )
         )
-    return ast.Expr(
-        value=ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.publish.__name__,
-                ctx=ast.Load(),
-            ),
-            args=[],
-            keywords=keywords,
-        )
+    return ast.Call(
+        func=ast.Attribute(
+            value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+            attr=Tracer.publish.__name__,
+            ctx=ast.Load(),
+        ),
+        args=[],
+        keywords=keywords,
     )

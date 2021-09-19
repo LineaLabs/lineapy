@@ -21,7 +21,7 @@ class LineaKernel(Kernel):
     implementation = "Linea"
     """
     TODO:
-    - [] the installation is still not working properly 
+    - [] the installation is still not working properly
     - [] we might need to support async as well.
     """
 
@@ -43,7 +43,11 @@ class LineaKernel(Kernel):
     ):
         linea_transformed_code = self.transformer.transform(code)
         super().do_execute(
-            linea_transformed_code, silent, store_history, user_expressions, allow_stdin
+            linea_transformed_code,
+            silent,
+            store_history,
+            user_expressions,
+            allow_stdin,
         )
 
 

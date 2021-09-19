@@ -1,5 +1,5 @@
 import os.path as path
-from ast import AST
+from ast import AST, dump
 from datetime import datetime
 from os import remove
 from typing import Optional, List
@@ -28,7 +28,10 @@ def are_str_equal(s1: str, s2: str, remove_all_non_letter=False):
     return s1.strip() == s2.strip()
 
 
-def get_new_session(code: str, libraries: Optional[List] = None) -> SessionContext:
+def get_new_session(
+    code: str,
+    libraries: Optional[List] = None,
+) -> SessionContext:
     if libraries is None:
         libraries = []
     return SessionContext(
@@ -55,8 +58,11 @@ def compare_ast(node1: AST, node2: AST):
     """
     Compare two AST trees, ignoring offset information.
     """
-    s1 = pformat(node1, show_offsets=False)
-    s2 = pformat(node2, show_offsets=False)
+    s1 = dump(node1)
+    s2 = dump(node2)
+    if s1 != s2:
+        print(dump(node1, indent=2))
+        print(dump(node2, indent=2))
     return s1 == s2
 
 

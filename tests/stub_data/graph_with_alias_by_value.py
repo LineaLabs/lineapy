@@ -12,7 +12,8 @@ b = a
 a = 2
 ```
 
-TODO: in our slicing test, we should make sure that getting the slice for b returns.
+TODO: in our slicing test, we should make sure that getting
+      the slice for b returns.
 
 ```
 a = 0

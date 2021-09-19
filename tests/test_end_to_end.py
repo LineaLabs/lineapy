@@ -1,14 +1,14 @@
-from lineapy.data.types import NodeType
 from tempfile import NamedTemporaryFile
 from click.testing import CliRunner
 
 import lineapy
 from lineapy.cli.cli import linea_cli
+from lineapy.data.types import NodeType, SessionType
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.transformer.transformer import ExecutionMode
-from lineapy.utils import get_current_time, info_log
 from lineapy.graph_reader.graph_util import are_nodes_content_equal
+from lineapy.transformer.transformer import ExecutionMode, Transformer
+from lineapy.utils import get_current_time, info_log
 from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
 
 from tests.stub_data.graph_with_simple_function_definition import (
@@ -17,6 +17,14 @@ from tests.stub_data.graph_with_simple_function_definition import (
     code as function_definition_code,
 )
 from tests.util import reset_test_db
+
+
+publish_name = "testing artifact publish"
+publish_code = (
+    f"import {lineapy.__name__}\na ="
+    f" abs(-11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
+    f" '{publish_name}')\n"
+)
 
 
 class TestCli:
@@ -46,61 +54,69 @@ class TestCli:
         self.db = RelationalLineaDB()
         self.db.init_db(config)
 
-    def test_end_to_end_simple_graph(self):
+    def _run_code(self, original_code: str, test_name: str) -> str:
+        """
+        Returns file name
+        """
         with NamedTemporaryFile() as tmp:
-            tmp.write(str.encode(simple_graph_code))
+            tmp.write(str.encode(original_code))
             tmp.flush()
             # might also need os.path.dirname() in addition to file name
-            tmp_file_name = tmp.name
-            # FIXME: make into constants
-            result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp_file_name])
-            assert result.exit_code == 0
-            info_log("testing file:", tmp_file_name)
-            nodes = self.db.get_nodes_by_file_name(tmp_file_name)
-            # there should just be two
-            info_log("nodes", len(nodes), nodes)
-            assert len(nodes) == 2
-            for c in nodes:
-                if c.node_type == NodeType.CallNode:
-                    assert are_nodes_content_equal(
-                        c,
-                        line_1,
-                        self.db.get_context(nodes[0].session_id).code,
-                    )
-                if c.node_type == NodeType.ArgumentNode:
-                    assert are_nodes_content_equal(
-                        c,
-                        arg_literal,
-                        self.db.get_context(nodes[0].session_id).code,
-                    )
-                info_log("found_call_node", c)
+            file_name = tmp.name
+            transformer = Transformer()
+            new_code = transformer.transform(
+                original_code,
+                session_type=SessionType.SCRIPT,
+                session_name=file_name,
+                execution_mode=ExecutionMode.DEV,
+            )
+            exec(new_code)
+        return file_name
+
+    def test_end_to_end_simple_graph(self):
+        tmp_file_name = self._run_code(simple_graph_code, "simple graph code")
+        nodes = self.db.get_nodes_by_file_name(tmp_file_name)
+        # there should just be two
+        info_log("nodes", len(nodes), nodes)
+        assert len(nodes) == 2
+        for c in nodes:
+            if c.node_type == NodeType.CallNode:
+                assert are_nodes_content_equal(
+                    c, line_1, self.db.get_context(nodes[0].session_id).code
+                )
+            if c.node_type == NodeType.ArgumentNode:
+                assert are_nodes_content_equal(
+                    c,
+                    arg_literal,
+                    self.db.get_context(nodes[0].session_id).code,
+                )
+            info_log("found_call_node", c)
 
     def test_publish(self):
         """
         testing something super simple
         """
-        name = "testing artifact publish"
+        _ = self._run_code(publish_code, publish_name)
+        artifacts = self.db.get_all_artifacts()
+        assert len(artifacts) == 1
+        artifact = artifacts[0]
+        info_log("logged artifact", artifact)
+        assert artifact.name == publish_name
+        time_diff = get_current_time() - artifact.date_created
+        assert time_diff < 1000
+
+    def test_publish_via_cli(self):
+        """
+        same test as above but via the CLI
+        """
         with NamedTemporaryFile() as tmp:
-            publish_code = (
-                f"import {lineapy.__name__}\na ="
-                f" abs(-11)\n{lineapy.__name__}"
-                f".{lineapy.linea_publish.__name__}(a,"
-                f" '{name}')\n"
-            )
-            info_log("publish code", publish_code)
             tmp.write(str.encode(publish_code))
             tmp.flush()
-            result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp.name])
+            # might also need os.path.dirname() in addition to file name
+            tmp_file_name = tmp.name
+            result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp_file_name])
             assert result.exit_code == 0
-            artifacts = self.db.get_all_artifacts()
-            # this assumes that this is the only
-            #   artifact publish function in this test file
-            assert len(artifacts) == 1
-            artifact = artifacts[0]
-            info_log("logged artifact", artifact)
-            assert artifact.name == name
-            time_diff = get_current_time() - artifact.date_created
-            assert time_diff < 1000
+            return tmp_file_name
 
     def test_function_definition_without_side_effect(self):
         with NamedTemporaryFile() as tmp:
@@ -141,23 +157,14 @@ class TestCli:
         # assert "Usage:" in result.stderr
         pass
 
-    def test_no_server_error(self):
-        """
-        When linea is running, there should be a database server that is
-          active and receiving the scripts
-        TODO
-        """
-        # from lineapy.cli import cli
+    def test_compareops(self):
+        code = "b = 1 < 2 < 3\nassert b"
+        self._run_code(code, "chained ops")
 
-        # runner = CliRunner(mix_stderr=False)
-        # result = runner.invoke(cli, ["missing"])
-        # assert result.exit_code == 2
-        # assert "FLASK_APP" in result.stderr
-        # assert "Usage:" in result.stderr
-        pass
+    def test_binops(self):
+        code = "b = 1 + 2\nassert b == 3"
+        self._run_code(code, "binop")
 
-
-if __name__ == "__main__":
-    tester = TestCli()
-    tester.setup()
-    tester.test_end_to_end_simple_graph()
+    def test_subscript(self):
+        code = "ls = [1,2]\nassert ls[0] == 1"
+        self._run_code(code, "subscript")

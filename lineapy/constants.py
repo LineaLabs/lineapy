@@ -1,3 +1,4 @@
+import operator
 import os.path as path
 import sys
 from enum import Enum
@@ -47,3 +48,42 @@ class ExecutionMode(Enum):
     DEV = 1
     PROD = 2
     MEMORY = 3
+
+
+# Transformer related
+GET_ITEM = operator.__getitem__.__name__
+SET_ITEM = operator.__setitem__.__name__
+GETATTR = getattr.__name__
+
+FUNCTION_NAME = "function_name"
+FUNCTION_MODULE = "function_module"
+SYNTAX_DICTIONARY = "syntax_dictionary"
+ARGUMENTS = "arguments"
+VARIABLE_NAME = "variable_name"
+
+# BinOPs
+ADD = operator.__add__.__name__
+SUB = operator.__sub__.__name__
+MULT = operator.__mul__.__name__
+DIV = operator.__truediv__.__name__
+FLOORDIV = operator.__floordiv__.__name__
+MOD = operator.__mod__.__name__
+POW = operator.__pow__.__name__
+LSHIFT = operator.__lshift__.__name__
+RSHIFT = operator.__rshift__.__name__
+BITOR = operator.__or__.__name__
+BITXOR = operator.__xor__.__name__
+BITAND = operator.__and__.__name__
+MATMUL = operator.__matmul__.__name__
+
+# CompareOps
+EQ = operator.__eq__.__name__
+NOTEQ = operator.__ne__.__name__
+LT = operator.__lt__.__name__
+LTE = operator.__le__.__name__
+GT = operator.__gt__.__name__
+GTE = operator.__ge__.__name__
+IS = operator.is_.__name__
+ISNOT = operator.is_not.__name__
+IN = operator.__contains__.__name__
+NOT = operator.not_.__name__
