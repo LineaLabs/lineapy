@@ -57,6 +57,9 @@ class Graph(object):
     def nodes(self) -> List[Node]:
         return self._nodes
 
+    def __eq__(self, other) -> bool:
+        return nx.is_isomorphic(self.nx_graph, other.nx_graph)
+
     def visit_order(self) -> List[LineaID]:
         return list(nx.topological_sort(self.nx_graph))
 

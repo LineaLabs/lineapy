@@ -8,7 +8,6 @@ from lineapy.data.types import SessionContext
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
-from lineapy.graph_reader.graph_util import are_graphs_identical
 from lineapy.graph_reader.graph_util import are_nodes_equal
 from tests.stub_data.graph_with_alias_by_reference import (
     graph_with_alias_by_reference,
@@ -112,7 +111,7 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
         assert a == 11
-        assert are_graphs_identical(graph, simple_graph)
+        assert graph == simple_graph
 
     def test_nested_call_graph(self):
         graph, context = self.write_and_read_graph(
@@ -123,7 +122,7 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
         assert a == 10
-        assert are_graphs_identical(graph, nested_call_graph)
+        assert graph == nested_call_graph
 
     def test_graph_with_print(self):
         graph, context = self.write_and_read_graph(
@@ -133,7 +132,7 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         stdout = e.get_stdout()
         assert stdout == "10\n"
-        assert are_graphs_identical(graph, simple_with_variable_argument_and_print)
+        assert graph == simple_with_variable_argument_and_print
 
     def test_basic_import(self):
         """
@@ -146,7 +145,7 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         b = e.get_value_by_variable_name("b")
         assert b == 5
-        assert are_graphs_identical(graph, graph_with_import)
+        assert  graph == graph_with_import
 
     def test_graph_with_function_definition(self):
         """ """
@@ -158,7 +157,7 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         a = e.get_value_by_variable_name("a")
         assert a == 120
-        assert are_graphs_identical(graph, graph_with_function_definition)
+        assert graph == graph_with_function_definition
 
     def test_program_with_loops(self):
         graph, context = self.write_and_read_graph(
@@ -172,7 +171,7 @@ class TestLineaDB(unittest.TestCase):
         assert y == 72
         assert x == 36
         assert len(a) == 9
-        assert are_graphs_identical(graph, graph_with_loops)
+        assert graph == graph_with_loops
 
     def test_program_with_conditionals(self):
         graph, context = self.write_and_read_graph(
@@ -185,7 +184,7 @@ class TestLineaDB(unittest.TestCase):
         stdout = e.get_stdout()
         assert bs == [1, 2, 3]
         assert stdout == "False\n"
-        assert are_graphs_identical(graph, graph_with_conditionals)
+        assert graph == graph_with_conditionals
 
     def test_program_with_file_access(self):
         graph, context = self.write_and_read_graph(
@@ -195,7 +194,7 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         s = e.get_value_by_variable_name("s")
         assert s == 25
-        assert are_graphs_identical(graph, graph_with_csv_import)
+        assert graph == graph_with_csv_import
 
         # test search_artifacts_by_data_source
         time = get_current_time()
@@ -219,7 +218,7 @@ class TestLineaDB(unittest.TestCase):
         b = e.get_value_by_variable_name("b")
         assert a == 2
         assert b == 0
-        assert are_graphs_identical(graph, graph_with_alias_by_value)
+        assert graph == graph_with_alias_by_value
 
     def test_variable_alias_by_reference(self):
         graph, context = self.write_and_read_graph(
@@ -230,7 +229,7 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         s = e.get_value_by_variable_name("s")
         assert s == 10
-        assert are_graphs_identical(graph, graph_with_alias_by_reference)
+        assert graph == graph_with_alias_by_reference
 
     def test_slicing(self):
         graph, context = self.write_and_read_graph(
@@ -246,7 +245,7 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(result, context)
         f = e.get_value_by_variable_name("f")
         assert f == 6
-        assert are_graphs_identical(result, graph_sliced_by_var_f)
+        assert result == graph_sliced_by_var_f
 
     def test_slicing_loops(self):
         graph, context = self.write_and_read_graph(
@@ -257,7 +256,7 @@ class TestLineaDB(unittest.TestCase):
             get_current_time(),
         )
         result = self.lineadb.get_graph_from_artifact_id(y_id)
-        assert are_graphs_identical(result, graph)
+        assert result == graph
 
     def test_code_reconstruction_with_multilined_node(self):
         _ = self.write_and_read_graph(
