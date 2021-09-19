@@ -132,9 +132,7 @@ class NodeTransformer(ast.NodeTransformer):
         for alias in node.names:
             keys.append(ast.Constant(value=alias.name))
             # needed turn_none_to_empty_str because of some issue with pydantic
-            values.append(
-                ast.Constant(value=turn_none_to_empty_str(alias.asname))
-            )
+            values.append(ast.Constant(value=turn_none_to_empty_str(alias.asname)))
 
         result = ast.Expr(
             ast.Call(
@@ -145,9 +143,7 @@ class NodeTransformer(ast.NodeTransformer):
                 ),
                 args=[],
                 keywords=[
-                    ast.keyword(
-                        arg="name", value=ast.Constant(value=node.module)
-                    ),
+                    ast.keyword(arg="name", value=ast.Constant(value=node.module)),
                     ast.keyword(arg=SYNTAX_DICTIONARY, value=syntax_dictionary),
                     ast.keyword(
                         arg="attributes",
@@ -292,9 +288,7 @@ class NodeTransformer(ast.NodeTransformer):
             return ast.Expr(value=call_ast)
 
         if not isinstance(node.targets[0], ast.Name):
-            raise NotImplementedError(
-                "Other assignment types are not supported"
-            )
+            raise NotImplementedError("Other assignment types are not supported")
 
         call_ast = ast.Call(
             func=ast.Attribute(
@@ -323,9 +317,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_List(self, node: ast.List) -> ast.Call:
         elem_nodes = [self.visit(elem) for elem in node.elts]
-        return synthesize_tracer_call_ast(
-            __build_list__.__name__, elem_nodes, node
-        )
+        return synthesize_tracer_call_ast(__build_list__.__name__, elem_nodes, node)
 
     def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
         ast_to_op_map = {
@@ -420,9 +412,7 @@ class NodeTransformer(ast.NodeTransformer):
         elif isinstance(index, ast.Slice):
             args.append(self.visit_Slice(index))
         else:
-            raise NotImplementedError(
-                "Subscript for multiple indices not supported."
-            )
+            raise NotImplementedError("Subscript for multiple indices not supported.")
         if isinstance(node.ctx, ast.Load):
             return synthesize_tracer_call_ast(
                 GET_ITEM,
@@ -430,9 +420,7 @@ class NodeTransformer(ast.NodeTransformer):
                 node,
             )
         elif isinstance(node.ctx, ast.Del):
-            raise NotImplementedError(
-                "Subscript with ctx=ast.Del() not supported."
-            )
+            raise NotImplementedError("Subscript with ctx=ast.Del() not supported.")
         else:
             raise InvalidStateError(
                 "Subscript with ctx=ast.Load() should have been handled by"
