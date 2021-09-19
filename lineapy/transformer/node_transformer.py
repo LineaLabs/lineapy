@@ -1,6 +1,5 @@
 import ast
 from typing import cast, Any
-import pdb
 
 from lineapy import linea_publish
 from lineapy.constants import (
@@ -30,6 +29,11 @@ from lineapy.constants import (
     IN,
     GET_ITEM,
     SET_ITEM,
+    GETATTR,
+    FUNCTION_NAME,
+    FUNCTION_MODULE,
+    SYNTAX_DICTIONARY,
+    VARIABLE_NAME,
 )
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.instrumentation.variable import Variable
@@ -93,7 +97,7 @@ class NodeTransformer(ast.NodeTransformer):
                                 id=LINEAPY_TRACER_NAME,
                                 ctx=ast.Load(),
                             ),
-                            attr="trace_import",
+                            attr=Tracer.trace_import.__name__,
                             ctx=ast.Load(),
                         ),
                         args=[],
@@ -103,7 +107,7 @@ class NodeTransformer(ast.NodeTransformer):
                                 value=ast.Constant(value=lib.name),
                             ),
                             ast.keyword(
-                                arg="syntax_dictionary",
+                                arg=SYNTAX_DICTIONARY,
                                 value=syntax_dictionary,
                             ),
                             ast.keyword(
@@ -136,7 +140,7 @@ class NodeTransformer(ast.NodeTransformer):
                 args=[],
                 keywords=[
                     ast.keyword(arg="name", value=ast.Constant(value=node.module)),
-                    ast.keyword(arg="syntax_dictionary", value=syntax_dictionary),
+                    ast.keyword(arg=SYNTAX_DICTIONARY, value=syntax_dictionary),
                     ast.keyword(
                         arg="attributes",
                         value=ast.Dict(keys=keys, values=values),
@@ -165,7 +169,7 @@ class NodeTransformer(ast.NodeTransformer):
         # a little hacky, assume no one else would have a function name
         #   called linea_publish
         info_log("AAAAA", name_ref, node.args)
-        if name_ref["function_name"] == linea_publish.__name__:
+        if name_ref[FUNCTION_NAME] == linea_publish.__name__:
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:
                 raise UserError(
@@ -202,8 +206,16 @@ class NodeTransformer(ast.NodeTransformer):
             # this is the normal case
             # code = self._get_code_from_node(node)
             argument_nodes = [self.visit(arg) for arg in node.args]
+            function_module = (
+                ast.Constant(value=name_ref[FUNCTION_MODULE])
+                if FUNCTION_MODULE in name_ref
+                else None
+            )
             return synthesize_tracer_call_ast(
-                name_ref["function_name"], argument_nodes, node
+                name_ref[FUNCTION_NAME],
+                argument_nodes,
+                node,
+                function_module=function_module,
             )
 
     def visit_Assign(self, node: ast.Assign) -> ast.Expr:
@@ -244,10 +256,36 @@ class NodeTransformer(ast.NodeTransformer):
                 " indices."
             )
 
+        variable_name = node.targets[0].id  # type: ignore
+        # Literal assign
+        if isinstance(node.value, ast.Constant):
+            call_ast: ast.Call = ast.Call(
+                func=ast.Attribute(
+                    value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                    attr=Tracer.literal.__name__,
+                    ctx=ast.Load(),
+                ),
+                args=[],
+                keywords=[
+                    ast.keyword(
+                        arg="assigned_variable_name",
+                        value=ast.Constant(value=variable_name),
+                    ),
+                    ast.keyword(
+                        arg="value",
+                        value=self.visit(node.value),
+                    ),
+                    ast.keyword(
+                        arg=SYNTAX_DICTIONARY,
+                        value=syntax_dictionary,
+                    ),
+                ],
+            )
+            return ast.Expr(value=call_ast)
+
         if not isinstance(node.targets[0], ast.Name):
             raise NotImplementedError("Other assignment types are not supported")
 
-        variable_name = node.targets[0].id  # type: ignore
         call_ast = ast.Call(
             func=ast.Attribute(
                 value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
@@ -257,7 +295,7 @@ class NodeTransformer(ast.NodeTransformer):
             args=[],
             keywords=[
                 ast.keyword(
-                    arg="variable_name",
+                    arg=VARIABLE_NAME,
                     value=ast.Constant(value=variable_name),
                 ),
                 ast.keyword(
@@ -265,7 +303,7 @@ class NodeTransformer(ast.NodeTransformer):
                     value=self.visit(node.value),
                 ),
                 ast.keyword(
-                    arg="syntax_dictionary",
+                    arg=SYNTAX_DICTIONARY,
                     value=syntax_dictionary,
                 ),
             ],
@@ -401,13 +439,19 @@ class NodeTransformer(ast.NodeTransformer):
                 args=[],
                 keywords=[
                     ast.keyword(
-                        arg="function_name",
+                        arg=FUNCTION_NAME,
                         value=ast.Constant(value=function_name),
                     ),
                     ast.keyword(
-                        arg="syntax_dictionary",
+                        arg=SYNTAX_DICTIONARY,
                         value=syntax_dictionary,
                     ),
                 ],
             ),
+        )
+
+    def visit_Attribute(self, node: ast.Attribute) -> ast.Call:
+
+        return synthesize_tracer_call_ast(
+            GETATTR, [self.visit(node.value), ast.Constant(value=node.attr)], node
         )
