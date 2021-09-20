@@ -38,17 +38,23 @@ def augment_node_with_syntax(node: Node, syntax_dictionary: Dict):
 
 
 class Tracer:
-    """
-    Tracer is internal to Linea and it implements the "hidden APIs"
-    that are setup by the transformer.
-    """
-
     def __init__(
         self,
         session_type: SessionType,
         file_name: str = "",
         execution_mode: ExecutionMode = ExecutionMode.TEST,
     ):
+        """
+        Tracer is internal to Linea and it implements the "hidden APIs"
+          that are setup by the transformer.
+        It performs the following key functionalities:
+        - Creates the graph nodes and inserts into the database.
+        - Maintains data structures to help creating the graph IR
+          that is used later, which includes:
+          - `variable_name_to_id`: for tracking variable/function/module
+            to the ID responsible for its creation
+        - Executes the program, using the `Executor`.
+        """
         self.session_type = session_type
         self.file_name = file_name
         self.nodes_to_be_evaluated: List[Node] = []
@@ -61,7 +67,6 @@ class Tracer:
             file_name,
         )
         self.executor = Executor()
-        # below are internal ID lookups
         self.variable_name_to_id: Dict[str, LineaID] = {}
 
     def add_unevaluated_node(
@@ -271,9 +276,11 @@ class Tracer:
         syntax_dictionary: Dict,
     ):
         """
-        Assign modifies the call node. This is not the most functional/pure
-          but it gets the job done.
-        TODO: add support for other types of assignment
+        Assign modifies the call node, with:
+        - assigned variable name
+        - the code segment for assign subsume the expression it's assigned from
+          that's why we need to update
+        This is not the most functional/pure but it gets the job done for now.
         """
         # shared logic
         self.variable_name_to_id[variable_name] = value_node.id
@@ -281,14 +288,8 @@ class Tracer:
         if type(value_node) is CallNode:
             call_node = cast(CallNode, value_node)
             call_node.assigned_variable_name = variable_name
-            # the assignment subsumes the original call code
-            # augment_node_with_syntax(call_node, syntax_dictionary)
-            # self.variable_name_to_id[variable_name] = call_node.id
         elif type(value_node) in [VariableNode, LiteralNode]:
-            pass  # go to shared logic
-            # variable_node = cast(VariableNode, value_node)
-            # variable_node.assigned_variable_name = variable_name
-            # augment_node_with_syntax(variable_node, syntax_dictionary)
+            pass  # shared logic is sufficient
         elif type(value_node) in [int, str]:
             # hack: we should have consistent Literal handling...
             new_node = LiteralNode(
@@ -303,7 +304,11 @@ class Tracer:
         else:
             raise CaseNotHandledError(f"got type {type(value_node)} for {value_node}")
 
-    def define_function(self, function_name: str, syntax_dictionary: Dict) -> None:
+    def define_function(
+        self,
+        function_name: str,
+        syntax_dictionary: Dict,
+    ) -> None:
         """
         TODO: see limitations in `visit_FunctionDef` about function being pure
         """
@@ -322,7 +327,7 @@ class Tracer:
 
         TODO: define input arguments
 
-        TODO: append records (Node and DirectedEdge) to records_pool
+        TODO: append records
         """
         pass
 
@@ -330,6 +335,6 @@ class Tracer:
         """
         TODO: define input arguments
 
-        TODO: append records (Node and DirectedEdge) to records_pool
+        TODO: append records
         """
         pass

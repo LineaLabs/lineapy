@@ -68,12 +68,17 @@ class NodeTransformer(ast.NodeTransformer):
     @staticmethod
     def _get_index(subscript: ast.Subscript) -> ast.AST:
         if isinstance(subscript.slice, ast.Index):
-            return subscript.slice.value
+            return subscript.slice.value  # type: ignore
         return subscript.slice
 
     def visit_Expr(self, node: ast.Expr) -> Any:
         """
-        Exprs are indications that it's a new line
+        NOTE
+        - Exprs are indications that it's a new line, which allows us to
+          observe headless variables and literals, which is useful for
+          notebook settings.
+        - Some expressions, like Assign, do not come with Expr wrapped
+          and we need to pad with expr to correctly create new lines.
         """
         v = node.value
         if isinstance(v, ast.Name):
@@ -121,7 +126,6 @@ class NodeTransformer(ast.NodeTransformer):
         return result
 
     def visit_ImportFrom(self, node):
-        """ """
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         keys = []
         values = []
@@ -168,7 +172,6 @@ class NodeTransformer(ast.NodeTransformer):
         name_ref = get_call_function_name(node)
         # a little hacky, assume no one else would have a function name
         #   called linea_publish
-        info_log("AAAAA", name_ref, node.args)
         if name_ref[FUNCTION_NAME] == linea_publish.__name__:
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:
@@ -181,7 +184,6 @@ class NodeTransformer(ast.NodeTransformer):
                     "Linea publish can take at most the variable name and the"
                     " description"
                 )
-            # TODO: support keyword arguments as well
             if not isinstance(node.args[0], ast.Name):
                 raise UserError(
                     "Please pass a variable as the first argument to"
@@ -202,10 +204,9 @@ class NodeTransformer(ast.NodeTransformer):
                 )
             else:
                 return synthesize_linea_publish_call_ast(var_node.id)
-        else:
-            # this is the normal case
-            # code = self._get_code_from_node(node)
+        else:  # this is the normal case, non-publish
             argument_nodes = [self.visit(arg) for arg in node.args]
+            # TODO: support keyword arguments as well
             function_module = (
                 ast.Constant(value=name_ref[FUNCTION_MODULE])
                 if FUNCTION_MODULE in name_ref
@@ -220,10 +221,13 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Assign(self, node: ast.Assign) -> ast.Expr:
         """
-        Note
-        - some code segments subsume the others
-        - need to pad with expr to make astor happy
-        https://stackoverflow.com/questions/49646402/function-isnt-added-to-new-line-when-adding-node-to-ast-in-python
+        Assign currently special cases for:
+        - Subscript, e.g., `ls[0] = 1`
+        - Constant, e.g., `a = 1`
+        - Call, e.g., `a = foo()`
+
+        TODO
+        - Name, e.g. `a = b`
         """
 
         syntax_dictionary = extract_concrete_syntax_from_node(node)
@@ -453,5 +457,7 @@ class NodeTransformer(ast.NodeTransformer):
     def visit_Attribute(self, node: ast.Attribute) -> ast.Call:
 
         return synthesize_tracer_call_ast(
-            GETATTR, [self.visit(node.value), ast.Constant(value=node.attr)], node
+            GETATTR,
+            [self.visit(node.value), ast.Constant(value=node.attr)],
+            node,
         )

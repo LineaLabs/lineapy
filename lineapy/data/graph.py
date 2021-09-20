@@ -1,11 +1,10 @@
 from typing import cast, List, Dict, Optional, Any
-
+from dataclasses import dataclass
 import networkx as nx
 
 from lineapy.data.types import (
     LineaID,
     Node,
-    DirectedEdge,
     ArgumentNode,
     NodeValueType,
     NodeType,
@@ -19,6 +18,17 @@ from lineapy.data.types import (
 )
 from lineapy.graph_reader.graph_helper import get_arg_position
 from lineapy.utils import InternalLogicError, NullValueError
+
+
+@dataclass
+class DirectedEdge:
+    """
+    `DirectedEdge` is only used by the Graph to constructure dependencies
+      so that we can use `networkx` directly.
+    """
+
+    source_node_id: LineaID
+    sink_node_id: LineaID
 
 
 class Graph(object):

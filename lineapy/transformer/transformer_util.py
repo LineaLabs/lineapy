@@ -103,8 +103,7 @@ def synthesize_tracer_call_ast(
 
 def synthesize_tracer_headless_literal_ast(node: ast.Constant):
     """
-    NOTE:
-    - this is definitely a new line, so including the Expr
+    Similar to `synthesize_tracer_headless_variable_ast`, but for literals.
     """
     syntax_dictionary = extract_concrete_syntax_from_node(node)
     return ast.Expr(
@@ -122,9 +121,8 @@ def synthesize_tracer_headless_literal_ast(node: ast.Constant):
 
 def synthesize_tracer_headless_variable_ast(node: ast.Name):
     """
-    Either literal or a variable.
-    NOTE:
-    - definitely new line, including Expr
+    Note that this was special cased from visit_Expr, so
+      we need to create new line, including Expr
     """
     syntax_dictionary = extract_concrete_syntax_from_node(node)
     return ast.Expr(
@@ -145,8 +143,9 @@ def synthesize_linea_publish_call_ast(
     artifact_name: Optional[str] = None,
 ):
     """
-    NOTE:
-    - assume new line
+    Helper function for `tracer.publish`.
+    Note that we do not need a new line because the original call would be
+      wrapped in an Expr to begin with.
     """
     keywords = [
         ast.keyword(

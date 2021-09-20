@@ -4,7 +4,13 @@ import io
 from typing import Union, Optional
 
 from lineapy.app.app_db import lineadb
-from lineapy.data.types import Artifact, Execution, LineaID, NodeType, ValueType
+from lineapy.data.types import (
+    Artifact,
+    Execution,
+    LineaID,
+    NodeType,
+    ValueType,
+)
 from lineapy.db.relational.schema.relational import (
     NodeValueORM,
     ArtifactORM,
@@ -13,7 +19,7 @@ from lineapy.db.relational.schema.relational import (
 from lineapy.execution.code_util import get_segment_from_code
 from lineapy.execution.executor import Executor
 from lineapy.app.app_util import jsonify_artifact
-from lineapy.utils import InternalLogicError, jsonify_value
+from lineapy.utils import InternalLogicError, UserError, jsonify_value
 
 from lineapy.constants import LATEST_NODE_VERSION
 
@@ -27,7 +33,10 @@ def latest_version_of_node(node_id: LineaID) -> Optional[int]:
     )
     qry = (
         lineadb.session.query(NodeValueORM)
-        .filter(NodeValueORM.node_id == node_id, NodeValueORM.version == subqry)
+        .filter(
+            NodeValueORM.node_id == node_id,
+            NodeValueORM.version == subqry,
+        )
         .first()
     )
     if qry is not None:
@@ -35,19 +44,28 @@ def latest_version_of_node(node_id: LineaID) -> Optional[int]:
     return None
 
 
-def parse_version(version: Union[str, int], node_id: LineaID) -> Optional[int]:
+def parse_version(version: Optional[Union[str, int]], node_id: LineaID) -> int:
+    """
+    Helper function to either retrieve the latest version, or cast the version
+      specified into string
+    """
+    if version is None:
+        # FIXME: we should not crash the server
+        raise UserError(f"Did not provide version info for node {node_id}")
     if version == LATEST_NODE_VERSION:
-        return latest_version_of_node(node_id)
+        latest = latest_version_of_node(node_id)
+        if latest is None:
+            raise InternalLogicError(
+                f"Was not able to find latest version for {node_id}"
+            )
+        return latest
     return int(version)
 
 
-@routes_blueprint.route("/")
-def home():
-    return "ok"
-
-
 def access_db_and_jsonify_artifact(artifact: Artifact, version: int):
-    # return new Artifact JSON with new NodeValue
+    """
+    This is a helper function that return new Artifact JSON with new NodeValue
+    """
     artifact_value = lineadb.get_node_value_from_db(artifact.id, version)
     if artifact_value is None:
         raise InternalLogicError("Cannot find artifact")
@@ -65,8 +83,20 @@ def access_db_and_jsonify_artifact(artifact: Artifact, version: int):
     )
 
 
+@routes_blueprint.route("/")
+def home():
+    """
+    This is the API server so we don't have a home API, useful for testing.
+    """
+    return "ok"
+
+
 @routes_blueprint.route("/api/v1/executor/execute/<artifact_id>", methods=["GET"])
 def execute(artifact_id):
+    """
+    Executes the graph associated with the artifact and returns the result of
+      the execution.
+    """
     artifact = lineadb.get_artifact(artifact_id)
     if artifact is not None:
         # find version
@@ -93,11 +123,13 @@ def execute(artifact_id):
         lineadb.session.add(exec_orm)
         lineadb.session.commit()
 
-        # run through Graph nodes and write values to NodeValueORM with new version
+        # run through Graph nodes and write values to NodeValueORM with
+        #   new version
         lineadb.write_node_values(program.nodes, version)
 
         # NOTE: we can hold off on the following comment because
-        # the version property of both classes implicitly creates the relationship for us.
+        # the version property of both classes implicitly creates the
+        #   relationship for us.
         # create relationships between Execution row and NodeValue objects
 
         asset = access_db_and_jsonify_artifact(artifact, version)
@@ -128,6 +160,18 @@ def get_executions(artifact_id):
 
 @routes_blueprint.route("/api/v1/artifacts/all", methods=["GET"])
 def get_artifacts():
+    """
+    `get_artifacts` (note the plural) gets the set of all artifacts at their
+      latest versions
+    It includes
+    - LineaID
+    - data type (for rendering & filtering purposes)
+    - date created
+    - (future) user
+
+    TODO
+    - We probably need pagination when the set of artifacts grows large
+    """
     artifact_orms = lineadb.session.query(ArtifactORM).all()
     results = [
         access_db_and_jsonify_artifact(
@@ -145,6 +189,10 @@ def get_artifacts():
 # query param "?version=some_int"
 @routes_blueprint.route("/api/v1/artifacts/<artifact_id>", methods=["GET"])
 def get_artifact(artifact_id):
+    """
+    `get_artifact` is accessed by the ArtifactPage and returns a lot more
+      information than the summary data provided by `get_artifacts`.
+    """
     artifact_orm = (
         lineadb.session.query(ArtifactORM).filter(ArtifactORM.id == artifact_id).first()
     )
@@ -191,11 +239,15 @@ def get_image(value_id, version):
 @routes_blueprint.route("/api/v1/node/value/<node_id>", methods=["GET"])
 def get_node_value(node_id):
     """
-    right now we only support Dataset and Value intermediates, because we don't have a way of automatically demarking what type
-    each intermediate is
+    This is currently used by the code view functionality to inspect
+      intermediate results
+    FIXME:
+    - support more data types
+    - also we should probably merge this with `get_image` because it's not up
+      to the UI to know what the type of the node data is
     """
-
-    version = parse_version(request.args.get("version"), node_id)
+    raw_version = request.args.get("version")
+    version = parse_version(raw_version, node_id)
 
     node = lineadb.get_node_by_id(node_id)
     node_value = lineadb.get_node_value_from_db(node_id, version)
