@@ -27,7 +27,8 @@ def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
     return ast.Dict(
         keys=[ast.Constant(value=key) for key in SYNTAX_KEY],
         values=[
-            ast.Constant(value=ast_node.__getattribute__(key)) for key in SYNTAX_KEY
+            ast.Constant(value=ast_node.__getattribute__(key))
+            for key in SYNTAX_KEY
         ],
     )
 

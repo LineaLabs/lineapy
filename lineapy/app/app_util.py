@@ -27,12 +27,18 @@ def jsonify_intermediate(
         "end": end_col,
     }
 
-    if intermediate_node_value is None or intermediate_node_value.value is None:
+    if (
+        intermediate_node_value is None
+        or intermediate_node_value.value is None
+    ):
         # FIXME
         return None
 
     # currently unsupported intermediate value types
-    if intermediate_node_value.value_type in [ValueType.chart, ValueType.array]:
+    if intermediate_node_value.value_type in [
+        ValueType.chart,
+        ValueType.array,
+    ]:
         # FIXME
         return None
 

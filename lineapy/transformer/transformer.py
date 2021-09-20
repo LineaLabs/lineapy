@@ -57,7 +57,9 @@ class Transformer:
                 session_name,
                 execution_mode,
             )
-            append_code_to_tree(transformed_tree, enter_tree, is_beginning=True)
+            append_code_to_tree(
+                transformed_tree, enter_tree, is_beginning=True
+            )
             self.has_initiated = True
 
         if session_type == SessionType.SCRIPT:

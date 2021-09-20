@@ -114,7 +114,9 @@ class TestCli:
             tmp.flush()
             # might also need os.path.dirname() in addition to file name
             tmp_file_name = tmp.name
-            result = self.runner.invoke(linea_cli, ["--mode", "dev", tmp_file_name])
+            result = self.runner.invoke(
+                linea_cli, ["--mode", "dev", tmp_file_name]
+            )
             assert result.exit_code == 0
             return tmp_file_name
 

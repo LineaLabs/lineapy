@@ -28,7 +28,9 @@ class Scheduler:
         """
         pass
 
-    def set_trigger(self, artifact_id: LineaID, trigger: TriggerCondition) -> None:
+    def set_trigger(
+        self, artifact_id: LineaID, trigger: TriggerCondition
+    ) -> None:
         """
 
         :param artifact_id:

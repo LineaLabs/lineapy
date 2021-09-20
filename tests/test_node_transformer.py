@@ -55,8 +55,12 @@ class TestNodeTransformer:
         expected_tree = ast.parse(expected_transformed)
         if not compare_ast(new_tree, expected_tree):
             internal_warning_log("Original code:\t" + original_code)
-            internal_warning_log("Transformed code:\t", astor.to_source(new_tree))
-            internal_warning_log("Expected code:\t", astor.to_source(expected_tree))
+            internal_warning_log(
+                "Transformed code:\t", astor.to_source(new_tree)
+            )
+            internal_warning_log(
+                "Expected code:\t", astor.to_source(expected_tree)
+            )
             assert False
 
     def test_visit_import(self):
@@ -131,7 +135,8 @@ class TestNodeTransformer:
         simple_list = "[1, 2]"
         expected_simple_list = (
             "lineapy_tracer.call(function_name='__build_list__',"
-            " syntax_dictionary={" + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
+            " syntax_dictionary={"
+            + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
             " 'end_col_offset': 6}," + "arguments=[1, 2])"
         )
         self._check_equality(simple_list, expected_simple_list)
@@ -338,7 +343,9 @@ class TestNodeTransformer:
             "syntax_dictionary={'lineno':1,'col_offset':10,'end_lineno':1,'end_col_offset':13},"
             "arguments=[Variable('b')])],)"
         )
-        self._check_equality(variable_slice_assign, expected_variable_slice_assign)
+        self._check_equality(
+            variable_slice_assign, expected_variable_slice_assign
+        )
 
         simple_list_assign = "ls[[1,2]] = [1,2]"
         expected_simple_list_assign = (
@@ -359,7 +366,8 @@ class TestNodeTransformer:
         self._check_equality(publish_code, expected)
         publish_code_with_comment = "lineapy.linea_publish(a, 'test artifact')"
         expected_with_comment = (
-            "lineapy_tracer.publish(variable_name='a', description='test" " artifact')"
+            "lineapy_tracer.publish(variable_name='a', description='test"
+            " artifact')"
         )
         self._check_equality(publish_code_with_comment, expected_with_comment)
 
