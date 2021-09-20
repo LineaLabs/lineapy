@@ -94,6 +94,7 @@ class Tracer:
             Graph(self.nodes_to_be_evaluated),
             self.session_context,
         )
+        print(self.executor.get_stdout())
         self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
         # reset
         self.nodes_to_be_evaluated = []
