@@ -53,7 +53,9 @@ class Transformer:
         transformed_tree = self.transform_user_code(code)
         if not self.has_initiated:
             enter_tree = self.create_enter(
-                session_type, session_name, execution_mode,
+                session_type,
+                session_name,
+                execution_mode,
             )
             append_code_to_tree(
                 transformed_tree, enter_tree, is_beginning=True
@@ -115,14 +117,20 @@ class Transformer:
             level=0,
         )
         session_type_node = ast.Attribute(
-            value=ast.Name(id=SessionType.__name__, ctx=ast.Load(),),
+            value=ast.Name(
+                id=SessionType.__name__,
+                ctx=ast.Load(),
+            ),
             attr=session_type.name,
             ctx=ast.Load(),
         )
 
         execution_mode_node_attr = execution_mode.name
         execution_mode_node = ast.Attribute(
-            value=ast.Name(id=ExecutionMode.__name__, ctx=ast.Load(),),
+            value=ast.Name(
+                id=ExecutionMode.__name__,
+                ctx=ast.Load(),
+            ),
             attr=execution_mode_node_attr,
             ctx=ast.Load(),
         )

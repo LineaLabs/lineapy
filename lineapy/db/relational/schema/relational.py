@@ -115,7 +115,12 @@ class SessionContextORM(Base):  # type: ignore
 class LibraryORM(Base):  # type: ignore
     __tablename__ = "library"
     __table_args__ = (
-        UniqueConstraint("session_id", "name", "version", "path",),
+        UniqueConstraint(
+            "session_id",
+            "name",
+            "version",
+            "path",
+        ),
     )
     id = Column(String, primary_key=True)
     session_id = Column(String, ForeignKey("session_context.id"))

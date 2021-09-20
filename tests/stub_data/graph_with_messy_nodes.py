@@ -65,7 +65,9 @@ a_assign = LiteralNode(
 
 # NOTE: this doesn't have line/col numbers because it's implicit
 operator_module = ImportNode(
-    id=get_new_id(), session_id=session.id, library=operator_lib,
+    id=get_new_id(),
+    session_id=session.id,
+    library=operator_lib,
 )
 
 a_argument_node = ArgumentNode(

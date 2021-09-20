@@ -128,7 +128,8 @@ class TestCli:
             tmp_file_name = tmp.name
             # FIXME: make into constants
             result = self.runner.invoke(
-                linea_cli, ["--mode", "dev", tmp_file_name],
+                linea_cli,
+                ["--mode", "dev", tmp_file_name],
             )
             assert result.exit_code == 0
             nodes = self.db.get_nodes_by_file_name(tmp_file_name)
@@ -136,11 +137,15 @@ class TestCli:
             for c in nodes:
                 if c.node_type == NodeType.FunctionDefinitionNode:
                     assert are_nodes_content_equal(
-                        c, definition_node, function_definition_code,
+                        c,
+                        definition_node,
+                        function_definition_code,
                     )
                 if c.node_type == NodeType.CallNode:
                     assert are_nodes_content_equal(
-                        c, assignment_node, function_definition_code,
+                        c,
+                        assignment_node,
+                        function_definition_code,
                     )
             return
 

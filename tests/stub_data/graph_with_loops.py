@@ -175,7 +175,9 @@ line_6 = CallNode(
 operator_module_id = get_new_id()
 
 operator_module = ImportNode(
-    id=operator_module_id, session_id=session.id, library=operator_lib,
+    id=operator_module_id,
+    session_id=session.id,
+    library=operator_lib,
 )
 
 x_argument_id = get_new_id()

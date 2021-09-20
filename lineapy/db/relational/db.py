@@ -287,7 +287,9 @@ class RelationalLineaDB(LineaDB):
             NodeType.FunctionDefinitionNode,
         ]:
             artifact = ArtifactORM(
-                id=node_id, name=name, date_created=date_created,
+                id=node_id,
+                name=name,
+                date_created=date_created,
             )
             self.session.add(artifact)
             self.session.commit()

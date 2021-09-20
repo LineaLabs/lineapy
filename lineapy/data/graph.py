@@ -97,9 +97,7 @@ class Graph(object):
 
     def get_leaf_nodes(self) -> List[LineaID]:
         return [
-            node
-            for node in self.nx_graph.nodes
-            if self.nx_graph.out_degree(node) == 0
+            node for node in self.nx_graph.nodes if self.nx_graph.out_degree(node) == 0
         ]
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:

@@ -99,7 +99,8 @@ class NodeTransformer(ast.NodeTransformer):
                     ast.Call(
                         func=ast.Attribute(
                             value=ast.Name(
-                                id=LINEAPY_TRACER_NAME, ctx=ast.Load(),
+                                id=LINEAPY_TRACER_NAME,
+                                ctx=ast.Load(),
                             ),
                             attr=Tracer.trace_import.__name__,
                             ctx=ast.Load(),
@@ -107,10 +108,12 @@ class NodeTransformer(ast.NodeTransformer):
                         args=[],
                         keywords=[
                             ast.keyword(
-                                arg="name", value=ast.Constant(value=lib.name),
+                                arg="name",
+                                value=ast.Constant(value=lib.name),
                             ),
                             ast.keyword(
-                                arg=SYNTAX_DICTIONARY, value=syntax_dictionary,
+                                arg=SYNTAX_DICTIONARY,
+                                value=syntax_dictionary,
                             ),
                             ast.keyword(
                                 arg="alias",
@@ -159,7 +162,10 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Name(self, node) -> ast.Call:
         return ast.Call(
-            func=ast.Name(id=Variable.__name__, ctx=ast.Load(),),
+            func=ast.Name(
+                id=Variable.__name__,
+                ctx=ast.Load(),
+            ),
             args=[ast.Constant(value=node.id)],
             keywords=[],
         )
@@ -249,7 +255,9 @@ class NodeTransformer(ast.NodeTransformer):
                     self.visit(node.value),
                 ]
                 call: ast.Call = synthesize_tracer_call_ast(
-                    SET_ITEM, argument_nodes, node,
+                    SET_ITEM,
+                    argument_nodes,
+                    node,
                 )
                 return ast.Expr(value=call)
 
@@ -273,9 +281,13 @@ class NodeTransformer(ast.NodeTransformer):
                         arg="assigned_variable_name",
                         value=ast.Constant(value=variable_name),
                     ),
-                    ast.keyword(arg="value", value=self.visit(node.value),),
                     ast.keyword(
-                        arg=SYNTAX_DICTIONARY, value=syntax_dictionary,
+                        arg="value",
+                        value=self.visit(node.value),
+                    ),
+                    ast.keyword(
+                        arg=SYNTAX_DICTIONARY,
+                        value=syntax_dictionary,
                     ),
                 ],
             )
@@ -295,10 +307,17 @@ class NodeTransformer(ast.NodeTransformer):
             args=[],
             keywords=[
                 ast.keyword(
-                    arg=VARIABLE_NAME, value=ast.Constant(value=variable_name),
+                    arg=VARIABLE_NAME,
+                    value=ast.Constant(value=variable_name),
                 ),
-                ast.keyword(arg="value_node", value=self.visit(node.value),),
-                ast.keyword(arg=SYNTAX_DICTIONARY, value=syntax_dictionary,),
+                ast.keyword(
+                    arg="value_node",
+                    value=self.visit(node.value),
+                ),
+                ast.keyword(
+                    arg=SYNTAX_DICTIONARY,
+                    value=syntax_dictionary,
+                ),
             ],
         )
         result = ast.Expr(value=call_ast)
@@ -328,7 +347,11 @@ class NodeTransformer(ast.NodeTransformer):
         }
         op = ast_to_op_map[node.op.__class__]
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
-        return synthesize_tracer_call_ast(op, argument_nodes, node,)
+        return synthesize_tracer_call_ast(
+            op,
+            argument_nodes,
+            node,
+        )
 
     def visit_Compare(self, node: ast.Compare) -> ast.Call:
         ast_to_op_map = {
@@ -358,14 +381,22 @@ class NodeTransformer(ast.NodeTransformer):
                 right = tmp
             if op.__class__ in ast_to_op_map:
                 left = synthesize_tracer_call_ast(
-                    ast_to_op_map[op.__class__], [left, right], node,
+                    ast_to_op_map[op.__class__],
+                    [left, right],
+                    node,
                 )
             elif isinstance(op, ast.NotIn):
                 # need to call operator.not_ on __contains___
                 inside = synthesize_tracer_call_ast(
-                    ast_to_op_map[ast.In], [left, right], node,
+                    ast_to_op_map[ast.In],
+                    [left, right],
+                    node,
                 )
-                left = synthesize_tracer_call_ast(NOT, [inside], node,)
+                left = synthesize_tracer_call_ast(
+                    NOT,
+                    [inside],
+                    node,
+                )
 
         return left
 
@@ -374,7 +405,9 @@ class NodeTransformer(ast.NodeTransformer):
         if node.step is not None:
             slice_arguments.append(self.visit(node.step))
         return synthesize_tracer_call_ast(
-            slice.__name__, slice_arguments, node,
+            slice.__name__,
+            slice_arguments,
+            node,
         )
 
     def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
@@ -393,7 +426,11 @@ class NodeTransformer(ast.NodeTransformer):
                 "Subscript for multiple indices not supported."
             )
         if isinstance(node.ctx, ast.Load):
-            return synthesize_tracer_call_ast(GET_ITEM, args, node,)
+            return synthesize_tracer_call_ast(
+                GET_ITEM,
+                args,
+                node,
+            )
         elif isinstance(node.ctx, ast.Del):
             raise NotImplementedError(
                 "Subscript with ctx=ast.Del() not supported."
@@ -424,7 +461,8 @@ class NodeTransformer(ast.NodeTransformer):
                         value=ast.Constant(value=function_name),
                     ),
                     ast.keyword(
-                        arg=SYNTAX_DICTIONARY, value=syntax_dictionary,
+                        arg=SYNTAX_DICTIONARY,
+                        value=syntax_dictionary,
                     ),
                 ],
             ),

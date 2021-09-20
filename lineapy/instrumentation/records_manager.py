@@ -35,7 +35,9 @@ class RecordsManager:
         return
 
     def add_node_id_to_artifact_table(
-        self, node_id: LineaID, name: Optional[str] = None,
+        self,
+        node_id: LineaID,
+        name: Optional[str] = None,
     ):
         # need to flush all to DB since it's accessing its values at runtime
         self.flush_records()
