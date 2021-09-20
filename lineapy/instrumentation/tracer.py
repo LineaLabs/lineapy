@@ -85,7 +85,6 @@ class Tracer:
         For STATIC, same post-fix but without the evaluation
         """
 
-        print("CCCCCC evaluating")
         if self.session_type == SessionType.JUPYTER:
             # 🔥 FIXME 🔥
             internal_warning_log(
@@ -106,7 +105,6 @@ class Tracer:
             # Same flow as SCRIPT but without the executor
             # In the future, we can potentially do something fancy with
             #   importing and doing analysis there
-            print("BBBBB", "adding nodes", len(self.nodes_to_be_evaluated))
             self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
