@@ -198,7 +198,9 @@ class Executor(GraphReader):
             ):
                 function_module = cast(ImportNode, function_module)
                 if function_module.attributes is not None:
-                    fn_name = function_module.attributes[node.function_name]
+                    alias = function_module.attributes[node.function_name]
+                    if alias is not None and alias != "":
+                        fn_name = alias
 
             retrieved_module = Executor.lookup_module(function_module, fn_name)
 

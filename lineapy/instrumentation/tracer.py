@@ -68,6 +68,9 @@ class Tracer:
         )
         self.executor = Executor()
         self.variable_name_to_id: Dict[str, LineaID] = {}
+        self.function_name_to_function_module_import_id: Dict[
+            str, LineaID
+        ] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -179,6 +182,19 @@ class Tracer:
         else:
             self.variable_name_to_id[name] = node.id
 
+        # for the attributes imported, we need to add them to the local lookup
+        #  that yields the importnode's id for the `function_module` field,
+        #  see `graph_with_basic_image`.
+        if attributes is not None:
+            for a in attributes:
+                if attributes[a] is not None and attributes[a] != "":
+                    self.function_name_to_function_module_import_id[
+                        attributes[a]
+                    ] = node.id
+                else:
+                    self.function_name_to_function_module_import_id[
+                        a
+                    ] = node.id
         # also need to modify the session_context because of weird executor
         #   requirement; should prob refactor later
         self.session_context.libraries.append(library)
@@ -246,7 +262,8 @@ class Tracer:
           that this is better for program slicing.
 
         TODO:
-        - need to look up the function module live to get the ID
+        - the way we look up the function module is a little confusing, maybe
+          decouple it from variable_name_to_id?
         """
 
         argument_nodes = create_argument_nodes(
@@ -267,6 +284,11 @@ class Tracer:
         # Get node id for function module
         if function_module is not None:
             function_module = self.variable_name_to_id[function_module]
+
+        if function_name in self.function_name_to_function_module_import_id:
+            function_module = self.function_name_to_function_module_import_id[
+                function_name
+            ]
 
         node = CallNode(
             id=get_new_id(),
