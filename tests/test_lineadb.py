@@ -78,9 +78,7 @@ class TestLineaDB(unittest.TestCase):
         reset_test_db(self.db_config.database_uri)
 
     def write_and_read_graph(
-        self,
-        graph: Graph,
-        context: SessionContext,
+        self, graph: Graph, context: SessionContext,
     ) -> Tuple[Graph, SessionContext]:
         # let's write the in memory graph in (with all the nodes)
         self.lineadb.write_nodes(graph.nodes)
@@ -104,8 +102,7 @@ class TestLineaDB(unittest.TestCase):
 
     def test_simple_graph(self):
         graph, context = self.write_and_read_graph(
-            simple_graph,
-            simple_graph_session,
+            simple_graph, simple_graph_session,
         )
         e = Executor()
         e.execute_program(graph, context)
@@ -115,8 +112,7 @@ class TestLineaDB(unittest.TestCase):
 
     def test_nested_call_graph(self):
         graph, context = self.write_and_read_graph(
-            nested_call_graph,
-            nested_call_graph_session,
+            nested_call_graph, nested_call_graph_session,
         )
         e = Executor()
         e.execute_program(graph, context)
@@ -175,8 +171,7 @@ class TestLineaDB(unittest.TestCase):
 
     def test_program_with_conditionals(self):
         graph, context = self.write_and_read_graph(
-            graph_with_conditionals,
-            graph_with_conditionals_session,
+            graph_with_conditionals, graph_with_conditionals_session,
         )
         e = Executor()
         e.execute_program(graph, context)
@@ -199,8 +194,7 @@ class TestLineaDB(unittest.TestCase):
         # test search_artifacts_by_data_source
         time = get_current_time()
         self.lineadb.add_node_id_to_artifact_table(
-            sum_call.id,
-            time,
+            sum_call.id, time,
         )
         derived = self.lineadb.find_all_artifacts_derived_from_data_source(
             graph, simple_data_node
@@ -236,8 +230,7 @@ class TestLineaDB(unittest.TestCase):
             graph_with_messy_nodes, graph_with_messy_nodes_session
         )
         self.lineadb.add_node_id_to_artifact_table(
-            f_assign.id,
-            get_current_time(),
+            f_assign.id, get_current_time(),
         )
         result = self.lineadb.get_graph_from_artifact_id(f_assign.id)
         self.lineadb.remove_node_id_from_artifact_table(f_assign.id)
@@ -252,21 +245,18 @@ class TestLineaDB(unittest.TestCase):
             graph_with_loops, graph_with_loops_session
         )
         self.lineadb.add_node_id_to_artifact_table(
-            y_id,
-            get_current_time(),
+            y_id, get_current_time(),
         )
         result = self.lineadb.get_graph_from_artifact_id(y_id)
         assert result == graph
 
     def test_code_reconstruction_with_multilined_node(self):
         _ = self.write_and_read_graph(
-            graph_with_loops,
-            graph_with_loops_session,
+            graph_with_loops, graph_with_loops_session,
         )
 
         self.lineadb.add_node_id_to_artifact_table(
-            y_id,
-            get_current_time(),
+            y_id, get_current_time(),
         )
         reconstructed = self.lineadb.get_code_from_artifact_id(y_id)
 
@@ -278,8 +268,7 @@ class TestLineaDB(unittest.TestCase):
         )
 
         self.lineadb.add_node_id_to_artifact_table(
-            f_assign.id,
-            get_current_time(),
+            f_assign.id, get_current_time(),
         )
         reconstructed = self.lineadb.get_code_from_artifact_id(f_assign.id)
         assert are_str_equal(sliced_code, reconstructed)

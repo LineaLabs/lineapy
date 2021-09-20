@@ -21,11 +21,15 @@ class ProgramSlicer(GraphReader):
         return max_col
 
     @staticmethod
-    def replace_slice_of_code(code: str, new_code: str, start: int, end: int) -> str:
+    def replace_slice_of_code(
+        code: str, new_code: str, start: int, end: int
+    ) -> str:
         return code[:start] + new_code + code[end:]
 
     @staticmethod
-    def add_node_to_code(current_code: str, session_code: str, node: Node) -> str:
+    def add_node_to_code(
+        current_code: str, session_code: str, node: Node
+    ) -> str:
         segment = get_segment_from_code(session_code, node)
         segment_lines = segment.split("\n")
         lines = current_code.split("\n")
@@ -63,7 +67,9 @@ class ProgramSlicer(GraphReader):
     def validate(self, graph: Graph) -> None:
         pass
 
-    def get_slice(self, program: Graph, sinks: Optional[List[Node]] = None) -> str:
+    def get_slice(
+        self, program: Graph, sinks: Optional[List[Node]] = None
+    ) -> str:
         """
         Find the necessary and sufficient code for computing the sink nodes.
         If sinks are None, use the leaf nodes in the program Graph as sinks.
@@ -74,7 +80,9 @@ class ProgramSlicer(GraphReader):
         computing sinks.
         """
         if sinks is None:
-            sinks = [program.get_node(node) for node in program.get_leaf_nodes()]
+            sinks = [
+                program.get_node(node) for node in program.get_leaf_nodes()
+            ]
         ancestors: Set[LineaID] = set([node.id for node in sinks])
 
         for sink in sinks:

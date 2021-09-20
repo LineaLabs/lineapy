@@ -77,13 +77,9 @@ def synthesize_tracer_call_ast(
         args=[],
         keywords=[
             ast.keyword(
-                arg=FUNCTION_NAME,
-                value=ast.Constant(value=function_name),
+                arg=FUNCTION_NAME, value=ast.Constant(value=function_name),
             ),
-            ast.keyword(
-                arg=SYNTAX_DICTIONARY,
-                value=syntax_dictionary,
-            ),
+            ast.keyword(arg=SYNTAX_DICTIONARY, value=syntax_dictionary,),
             ast.keyword(
                 arg=ARGUMENTS,
                 value=ast.List(elts=argument_nodes, ctx=ast.Load()),
@@ -93,10 +89,7 @@ def synthesize_tracer_call_ast(
 
     if function_module is not None:
         call.keywords.append(
-            ast.keyword(
-                arg=FUNCTION_MODULE,
-                value=function_module,
-            )
+            ast.keyword(arg=FUNCTION_MODULE, value=function_module,)
         )
 
     return call
@@ -140,8 +133,7 @@ def synthesize_tracer_headless_variable_ast(node: ast.Name):
 
 
 def synthesize_linea_publish_call_ast(
-    variable_name: str,
-    artifact_name: Optional[str] = None,
+    variable_name: str, artifact_name: Optional[str] = None,
 ):
     """
     Helper function for `tracer.publish`.
@@ -150,15 +142,13 @@ def synthesize_linea_publish_call_ast(
     """
     keywords = [
         ast.keyword(
-            arg=VARIABLE_NAME,
-            value=ast.Constant(value=variable_name),
+            arg=VARIABLE_NAME, value=ast.Constant(value=variable_name),
         )
     ]
     if artifact_name is not None:
         keywords.append(
             ast.keyword(
-                arg="description",
-                value=ast.Constant(value=artifact_name),
+                arg="description", value=ast.Constant(value=artifact_name),
             )
         )
     return ast.Call(

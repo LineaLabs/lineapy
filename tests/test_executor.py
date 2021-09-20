@@ -122,8 +122,7 @@ class TestBasicExecutor:
     def test_program_with_conditionals(self):
         e = Executor()
         e.execute_program(
-            graph_with_conditionals,
-            graph_with_conditionals_session,
+            graph_with_conditionals, graph_with_conditionals_session,
         )
         bs = e.get_value_by_variable_name("bs")
         stdout = e.get_stdout()
@@ -133,8 +132,7 @@ class TestBasicExecutor:
     def test_program_with_file_access(self):
         e = Executor()
         e.execute_program(
-            graph_with_csv_import,
-            graph_with_file_access_session,
+            graph_with_csv_import, graph_with_file_access_session,
         )
         s = e.get_value_by_variable_name("s")
         assert s == 25
@@ -161,8 +159,7 @@ class TestBasicExecutor:
     def test_headless_variable_and_literals(self):
         e = Executor()
         e.execute_program(
-            graph_with_messy_nodes,
-            graph_with_messy_nodes_session,
+            graph_with_messy_nodes, graph_with_messy_nodes_session,
         )
         g = e.get_value_by_variable_name("g")
         assert g == 5

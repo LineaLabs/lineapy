@@ -29,8 +29,7 @@ def are_str_equal(s1: str, s2: str, remove_all_non_letter=False):
 
 
 def get_new_session(
-    code: str,
-    libraries: Optional[List] = None,
+    code: str, libraries: Optional[List] = None,
 ) -> SessionContext:
     if libraries is None:
         libraries = []
@@ -86,9 +85,7 @@ def setup_db(mode: ExecutionMode, reset: bool):
 
 def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.execution.executor import Executor
-    from lineapy.db.relational.schema.relational import (
-        ExecutionORM,
-    )
+    from lineapy.db.relational.schema.relational import ExecutionORM
 
     from tests.stub_data.api_stub_graph import (
         graph_with_csv_import as stub_graph,
@@ -111,9 +108,7 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     test_db.write_nodes(stub_graph.nodes)
 
     test_db.add_node_id_to_artifact_table(
-        artifact.id,
-        name=TEST_ARTIFACT_NAME,
-        date_created=1372944000.0,
+        artifact.id, name=TEST_ARTIFACT_NAME, date_created=1372944000.0,
     )
 
     exec_orm = ExecutionORM(
@@ -154,9 +149,7 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     test_db.write_nodes(stub_graph.nodes)
 
     test_db.add_node_id_to_artifact_table(
-        resize_call.id,
-        name="Graph With Image",
-        date_created=1372944000.0,
+        resize_call.id, name="Graph With Image", date_created=1372944000.0,
     )
 
     exec_orm = ExecutionORM(

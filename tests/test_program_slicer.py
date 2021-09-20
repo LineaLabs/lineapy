@@ -18,7 +18,9 @@ class TestProgramSlicer:
     def test_simple_assignment(self):
         graph_with_messy_nodes.code = code
         program_slicer = ProgramSlicer()
-        code_slice = program_slicer.get_slice(graph_with_messy_nodes, [f_assign])
+        code_slice = program_slicer.get_slice(
+            graph_with_messy_nodes, [f_assign]
+        )
         assert compare_code_via_ast(code_slice, sliced_code)
 
     def test_calls(self):

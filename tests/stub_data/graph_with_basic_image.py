@@ -41,10 +41,7 @@ pandas_lib = Library(
 )
 
 plt_lib = Library(
-    id=get_new_id(),
-    name="matplotlib.pyplot",
-    version="",
-    path="",
+    id=get_new_id(), name="matplotlib.pyplot", version="", path="",
 )
 
 img_lib = Library(id=get_new_id(), name="PIL.Image", version="", path="")

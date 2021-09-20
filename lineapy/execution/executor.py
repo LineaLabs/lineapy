@@ -249,9 +249,7 @@ class Executor(GraphReader):
                         node.locally_defined_function_id
                     )
                     self.update_node_side_effects(
-                        locally_defined_func,
-                        program,
-                        scoped_locals,
+                        locally_defined_func, program, scoped_locals,
                     )
 
             elif node.node_type == NodeType.ImportNode:
@@ -269,8 +267,7 @@ class Executor(GraphReader):
                 node = cast(FunctionDefinitionNode, node)
                 self.setup_context_for_node(node, program, scoped_locals)
                 exec(
-                    get_segment_from_code(code, node),
-                    scoped_locals,
+                    get_segment_from_code(code, node), scoped_locals,
                 )
 
             elif node.node_type == NodeType.LiteralNode:

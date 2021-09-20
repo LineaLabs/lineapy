@@ -34,8 +34,7 @@ def latest_version_of_node(node_id: LineaID) -> Optional[int]:
     qry = (
         lineadb.session.query(NodeValueORM)
         .filter(
-            NodeValueORM.node_id == node_id,
-            NodeValueORM.version == subqry,
+            NodeValueORM.node_id == node_id, NodeValueORM.version == subqry,
         )
         .first()
     )
@@ -234,12 +233,7 @@ def get_image(value_id, version):
     # move to beginning of file so `send_file()` it will read from start
     file_object.seek(0)
 
-    response = make_response(
-        send_file(
-            file_object,
-            mimetype="image/PNG",
-        )
-    )
+    response = make_response(send_file(file_object, mimetype="image/PNG",))
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 

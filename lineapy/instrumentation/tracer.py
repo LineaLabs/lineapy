@@ -63,8 +63,7 @@ class Tracer:
         config = get_default_config_by_environment(execution_mode)
         self.records_manager = RecordsManager(config)
         self.session_context = self.create_session_context(
-            session_type,
-            file_name,
+            session_type, file_name,
         )
         self.executor = Executor()
         self.variable_name_to_id: Dict[str, LineaID] = {}
@@ -88,8 +87,7 @@ class Tracer:
                 " correctly"
             )
         self.executor.execute_program(
-            Graph(self.nodes_to_be_evaluated),
-            self.session_context,
+            Graph(self.nodes_to_be_evaluated), self.session_context,
         )
         self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
         # reset
@@ -102,10 +100,7 @@ class Tracer:
         info_log("Tracer", "exit")
         pass
 
-    def look_up_node_id_by_variable_name(
-        self,
-        variable_name: str,
-    ) -> LineaID:
+    def look_up_node_id_by_variable_name(self, variable_name: str,) -> LineaID:
         if variable_name in self.variable_name_to_id:
             return self.variable_name_to_id[variable_name]
 
@@ -128,14 +123,11 @@ class Tracer:
         self.evaluate_records_so_far()
         node_id = self.look_up_node_id_by_variable_name(variable_name)
         self.records_manager.add_node_id_to_artifact_table(
-            node_id,
-            description,
+            node_id, description,
         )
 
     def create_session_context(
-        self,
-        session_type: SessionType,
-        file_name: str,
+        self, session_type: SessionType, file_name: str,
     ):
         """
         Decided to read the code instead because it's more readable
@@ -202,9 +194,7 @@ class Tracer:
     ) -> None:
         """ """
         node = LiteralNode(
-            id=get_new_id(),
-            session_id=self.session_context.id,
-            value=value,
+            id=get_new_id(), session_id=self.session_context.id, value=value,
         )
         self.add_unevaluated_node(node, syntax_dictionary)
 
@@ -277,10 +267,7 @@ class Tracer:
         return node
 
     def assign(
-        self,
-        variable_name: str,
-        value_node: Any,
-        syntax_dictionary: Dict,
+        self, variable_name: str, value_node: Any, syntax_dictionary: Dict,
     ):
         """
         Assign modifies the call node, with:
@@ -314,9 +301,7 @@ class Tracer:
             )
 
     def define_function(
-        self,
-        function_name: str,
-        syntax_dictionary: Dict,
+        self, function_name: str, syntax_dictionary: Dict,
     ) -> None:
         """
         TODO: see limitations in `visit_FunctionDef` about function being pure
