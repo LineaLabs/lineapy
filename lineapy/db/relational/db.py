@@ -73,7 +73,9 @@ class RelationalLineaDB(LineaDB):
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default=False)
         if not isinstance(echo, bool):
-            echo = str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
+            echo = (
+                str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
+            )
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
@@ -176,7 +178,9 @@ class RelationalLineaDB(LineaDB):
             if args["value_literal"] is not None:
                 args[
                     "value_literal_type"
-                ] = RelationalLineaDB.get_type_of_literal_value(args["value_literal"])
+                ] = RelationalLineaDB.get_type_of_literal_value(
+                    args["value_literal"]
+                )
 
         elif node.node_type is NodeType.CallNode:
             node = cast(CallNodeORM, node)
@@ -241,9 +245,9 @@ class RelationalLineaDB(LineaDB):
         elif node.node_type is NodeType.LiteralNode:
             node = cast(LiteralNodeORM, node)
             if node.value is not None:
-                args["value_type"] = RelationalLineaDB.get_type_of_literal_value(
-                    node.value
-                )
+                args[
+                    "value_type"
+                ] = RelationalLineaDB.get_type_of_literal_value(node.value)
 
         elif node.node_type is NodeType.VariableNode:
             """
@@ -295,7 +299,9 @@ class RelationalLineaDB(LineaDB):
         The opposite of write_node_is_artifact
         - for now we can just delete it directly
         """
-        self.session.query(ArtifactORM).filter(ArtifactORM.id == node_id).delete()
+        self.session.query(ArtifactORM).filter(
+            ArtifactORM.id == node_id
+        ).delete()
         self.session.commit()
 
     """
@@ -349,7 +355,9 @@ class RelationalLineaDB(LineaDB):
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralNode:
             node = cast(LiteralNodeORM, node)
-            node.value = get_literal_value_from_string(node.value, node.value_type)
+            node.value = get_literal_value_from_string(
+                node.value, node.value_type
+            )
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNodeORM, node)
             if node.value_literal is not None:
@@ -381,7 +389,9 @@ class RelationalLineaDB(LineaDB):
         ]:
             node = cast(SideEffectsNodeORM, node)
             output_state_change_nodes = (
-                self.session.query(side_effects_output_state_change_association_table)
+                self.session.query(
+                    side_effects_output_state_change_association_table
+                )
                 .filter(
                     (
                         side_effects_output_state_change_association_table.c.side_effects_node_id
@@ -393,11 +403,14 @@ class RelationalLineaDB(LineaDB):
 
             if output_state_change_nodes is not None:
                 node.output_state_change_nodes = [
-                    a.output_state_change_node_id for a in output_state_change_nodes
+                    a.output_state_change_node_id
+                    for a in output_state_change_nodes
                 ]
 
             input_state_change_nodes = (
-                self.session.query(side_effects_input_state_change_association_table)
+                self.session.query(
+                    side_effects_input_state_change_association_table
+                )
                 .filter(
                     (
                         side_effects_input_state_change_association_table.c.side_effects_node_id
@@ -409,7 +422,8 @@ class RelationalLineaDB(LineaDB):
 
             if input_state_change_nodes is not None:
                 node.input_state_change_nodes = [
-                    a.input_state_change_node_id for a in input_state_change_nodes
+                    a.input_state_change_node_id
+                    for a in input_state_change_nodes
                 ]
 
             import_nodes = (
@@ -454,7 +468,9 @@ class RelationalLineaDB(LineaDB):
 
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         node_orms = (
-            self.session.query(NodeORM).filter(NodeORM.session_id == session_id).all()
+            self.session.query(NodeORM)
+            .filter(NodeORM.session_id == session_id)
+            .all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
@@ -480,6 +496,16 @@ class RelationalLineaDB(LineaDB):
         return Graph([full_graph.get_node_else_raise(a) for a in ancestors])
 
     def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
+        """
+        Get all the code associated with an artifact by retrieving the Graph
+        associated with the artifact from the database and piecing together the
+        code from the nodes. Note: The code is the program slice for the
+        artifact, not all code associated with the session in which the
+        artifact was generated.
+
+        :param artifact_id: UUID for the artifact
+        :return: string containing the code for generating the artifact.
+        """
         graph = self.get_graph_from_artifact_id(artifact_id)
         session_code = self.get_context(
             self.get_node_by_id(artifact_id).session_id
@@ -492,20 +518,38 @@ class RelationalLineaDB(LineaDB):
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode
     ) -> List[Node]:
+        """
+        Gets all of the artifacts contained in the input program graph that are
+        descendents of data_source_node.
+
+        :param program: a Graph object representing the program
+        :param data_source_node: a node in program
+        :return: nodes in program that are descendents of data_source_node.
+        """
         descendants = program.get_descendants(data_source_node)
         artifacts = []
         for d_id in descendants:
             descendant_is_artifact = (
-                self.session.query(ArtifactORM).filter(ArtifactORM.id == d_id).first()
+                self.session.query(ArtifactORM)
+                .filter(ArtifactORM.id == d_id)
+                .first()
             ) is not None
             descendant = program.get_node(d_id)
             if descendant_is_artifact and descendant is not None:
                 artifacts.append(descendant)
         return artifacts
 
-    def find_artifact_by_name(self, artifact_name: str) -> Optional[List[Artifact]]:
+    def find_artifact_by_name(
+        self, artifact_name: str
+    ) -> Optional[List[Artifact]]:
         """
-        Return the list of relevant artifacts
+        Find artifacts from the database with `artifact_name` as specified by
+        the user via `linea_publish`. Note: multiple artifacts can have the
+        same name, hence the result can be a list instead of a single artifact.
+
+        :param artifact_name: string containing the name of the artifact
+        given by the user via `linea_publish`
+        :return: a list of Artifact objects with artifact_name as its name.
         """
         query_result = (
             self.session.query(ArtifactORM)

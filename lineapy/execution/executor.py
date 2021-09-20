@@ -41,10 +41,14 @@ class Executor(GraphReader):
 
     @staticmethod
     def install(package):
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", package]
+        )
 
     @staticmethod
-    def lookup_module(module_node: Optional[Node], fn_name: str) -> Optional[Any]:
+    def lookup_module(
+        module_node: Optional[Node], fn_name: str
+    ) -> Optional[Any]:
         if hasattr(lineabuiltins, fn_name):
             return lineabuiltins
 
@@ -60,6 +64,11 @@ class Executor(GraphReader):
         return None
 
     def setup(self, context: SessionContext) -> None:
+        """
+        Set up the execution environment by installing the necessary libraries.
+
+        :param context: `SessionContext` including the necessary libraries.
+        """
         if context.libraries is not None:
             for library in context.libraries:
                 try:
@@ -106,7 +115,9 @@ class Executor(GraphReader):
         """
         ...
 
-    def execute_program(self, program: Graph, context: SessionContext) -> float:
+    def execute_program(
+        self, program: Graph, context: SessionContext
+    ) -> float:
         if context is not None:
             self.setup(context)
 
@@ -124,9 +135,13 @@ class Executor(GraphReader):
     ) -> None:
         if node.input_state_change_nodes is not None:
             for state_var_id in node.input_state_change_nodes:
-                state_var = cast(StateChangeNode, program.get_node(state_var_id))
+                state_var = cast(
+                    StateChangeNode, program.get_node(state_var_id)
+                )
                 # if state_var.state_dependency_type is StateDependencyType.Read:
-                initial_state = program.get_node(state_var.initial_value_node_id)
+                initial_state = program.get_node(
+                    state_var.initial_value_node_id
+                )
                 if initial_state is not None and initial_state.node_type in [
                     NodeType.CallNode,
                     NodeType.LiteralNode,
@@ -136,7 +151,9 @@ class Executor(GraphReader):
 
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
-                import_node = cast(ImportNode, program.get_node(import_node_id))
+                import_node = cast(
+                    ImportNode, program.get_node(import_node_id)
+                )
                 import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
                 scoped_locals[import_node.library.name] = import_node.module
 
@@ -153,13 +170,17 @@ class Executor(GraphReader):
         node = cast(SideEffectsNode, node)
         if node.output_state_change_nodes is not None:
             for state_var_id in node.output_state_change_nodes:
-                state_var = cast(StateChangeNode, program.get_node(state_var_id))
+                state_var = cast(
+                    StateChangeNode, program.get_node(state_var_id)
+                )
 
                 # if state_var.state_dependency_type is StateDependencyType.Write:
                 state_var.value = local_vars[state_var.variable_name]
 
                 if state_var.variable_name is not None:
-                    self._variable_values[state_var.variable_name] = state_var.value
+                    self._variable_values[
+                        state_var.variable_name
+                    ] = state_var.value
 
     @staticmethod
     def get_function(
@@ -207,7 +228,9 @@ class Executor(GraphReader):
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
-                fn, fn_name = Executor.get_function(node, program, scoped_locals)
+                fn, fn_name = Executor.get_function(
+                    node, program, scoped_locals
+                )
 
                 args = program.get_arguments_from_call_node(node)
 
@@ -216,7 +239,9 @@ class Executor(GraphReader):
 
                 # update the assigned variable
                 if node.assigned_variable_name is not None:
-                    self._variable_values[node.assigned_variable_name] = node.value
+                    self._variable_values[
+                        node.assigned_variable_name
+                    ] = node.value
 
                 # if we are calling a locally defined function
                 if node.locally_defined_function_id is not None:
@@ -252,13 +277,19 @@ class Executor(GraphReader):
                 node = cast(LiteralNode, node)
                 # no-op if it's headless
                 if node.assigned_variable_name is not None:
-                    self._variable_values[node.assigned_variable_name] = node.value
+                    self._variable_values[
+                        node.assigned_variable_name
+                    ] = node.value
 
             elif node.node_type == NodeType.VariableNode:
                 node = cast(VariableNode, node)
                 if node.assigned_variable_name is not None:
-                    node.value = program.get_node_value_from_id(node.source_variable_id)
-                    self._variable_values[node.assigned_variable_name] = node.value
+                    node.value = program.get_node_value_from_id(
+                        node.source_variable_id
+                    )
+                    self._variable_values[
+                        node.assigned_variable_name
+                    ] = node.value
 
             # not all node cases are handled, including
             # - DataSourceNode

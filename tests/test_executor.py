@@ -141,7 +141,9 @@ class TestBasicExecutor:
 
     def test_variable_alias_by_value(self):
         e = Executor()
-        e.execute_program(graph_with_alias_by_value, graph_with_alias_by_value_session)
+        e.execute_program(
+            graph_with_alias_by_value, graph_with_alias_by_value_session
+        )
         a = e.get_value_by_variable_name("a")
         b = e.get_value_by_variable_name("b")
         assert a == 2

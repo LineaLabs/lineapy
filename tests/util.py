@@ -142,7 +142,8 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
         )
 
         img_data_node.access_path = (
-            path.abspath(path.join(__file__, "../..")) + "/lineapy/app/simple_data.png"
+            path.abspath(path.join(__file__, "../.."))
+            + "/lineapy/app/simple_data.png"
         )
 
     executor = Executor()

@@ -26,7 +26,7 @@ Note: these should be run in root (``graph_with_csv_import`` does a
 
 ```bash
 mypy -p lineapy
-black lineapy/ --check
+black --line-length 79 --check .
 pytest
 ```
 

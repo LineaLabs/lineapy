@@ -30,9 +30,16 @@ from lineapy.data.types import (
     LiteralType,
 )
 
-""" Relationships
+""" 
+This file contains the ORM versions of the graph node in types.py.
+  Pydantic allows us to extract out a Dataclass like object from the ORM,
+  but not let us directly write to the ORM.
 
-Warning: non exhaustive.
+
+Relationships
+-------------
+
+_Warning: non exhaustive_
 
 SessionContext
 - Library (One to Many)
@@ -68,11 +75,6 @@ StateChangeNode
 """
 
 Base = declarative_base()
-
-
-###############
-# base tables #
-###############
 
 
 class AttributesDict(types.TypeDecorator):
@@ -263,7 +265,9 @@ call_node_association_table = Table(
     "call_node_association",
     Base.metadata,
     Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
-    Column("argument_node_id", ForeignKey("argument_node.id"), primary_key=True),
+    Column(
+        "argument_node_id", ForeignKey("argument_node.id"), primary_key=True
+    ),
 )
 
 
