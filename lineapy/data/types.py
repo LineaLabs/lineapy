@@ -232,6 +232,7 @@ class ArgumentNode(Node):
     """
 
     node_type: NodeType = NodeType.ArgumentNode
+    # Either keyword or positiona_order is required, but not both
     keyword: Optional[str] = None
     positional_order: Optional[int] = None
     value_node_id: Optional[LineaID] = None
@@ -247,6 +248,7 @@ class CallNode(Node):
     """
 
     node_type: NodeType = NodeType.CallNode
+    # These IDs point to argument nodes
     arguments: List[LineaID]
     function_name: str
     function_module: Optional[LineaID] = None
