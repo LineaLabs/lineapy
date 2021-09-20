@@ -149,6 +149,7 @@ class Tracer:
             creation_time=datetime.now(),
             file_name=file_name,
             code=original_code,
+            libraries=[],
         )
         self.records_manager.write_session_context(session_context)
         return session_context
@@ -161,7 +162,8 @@ class Tracer:
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
         """
-        didn't call it import because I think that's a protected name
+        NOTE
+        - didn't call it import because I think that's a protected name
         note that version and path will be introspected at runtime
         """
         library = Library(id=get_new_id(), name=name)
@@ -172,11 +174,14 @@ class Tracer:
             library=library,
             attributes=attributes,
         )
-        info_log("creating", name, alias, attributes, syntax_dictionary)
         if alias is not None:
             self.variable_name_to_id[alias] = node.id
         else:
             self.variable_name_to_id[name] = node.id
+
+        # also need to modify the session_context because of weird executor
+        #   requirement; should prob refactor later
+        self.session_context.libraries.append(library)
         self.add_unevaluated_node(node, syntax_dictionary)
         return
 
