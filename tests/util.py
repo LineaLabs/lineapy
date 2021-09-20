@@ -68,6 +68,7 @@ def compare_ast(node1: AST, node2: AST):
 
 def compare_code_via_ast(code: str, expected: str) -> bool:
     import ast
+
     return compare_ast(ast.parse(code), ast.parse(expected))
 
 
