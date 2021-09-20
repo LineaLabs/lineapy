@@ -64,6 +64,15 @@ class ProgramSlicer(GraphReader):
         pass
 
     def get_slice(self, program: Graph, sinks: Optional[List[Node]] = None) -> str:
+        """
+        Find the necessary and sufficient code for computing the sink nodes.
+        If sinks are None, use the leaf nodes in the program Graph as sinks.
+
+        :param program: the computation graph.
+        :param sinks: artifacts to get the code slice for.
+        :return: string containing the necessary and sufficient code for
+        computing sinks.
+        """
         if sinks is None:
             sinks = [program.get_node(node) for node in program.get_leaf_nodes()]
         ancestors: Set[LineaID] = set([node.id for node in sinks])

@@ -11,23 +11,23 @@ from tests.stub_data.graph_with_messy_nodes import (
     code,
 )
 
+from tests.util import compare_code_via_ast
+
 
 class TestProgramSlicer:
     def test_simple_assignment(self):
         graph_with_messy_nodes.code = code
         program_slicer = ProgramSlicer()
-        assert (
-            program_slicer.get_slice(graph_with_messy_nodes, [f_assign]).strip()
-            == sliced_code.strip()
+        code_slice = program_slicer.get_slice(
+            graph_with_messy_nodes, [f_assign]
         )
+        assert compare_code_via_ast(code_slice, sliced_code)
 
     def test_calls(self):
         # Check to make sure it does not drop global references
         graph_with_function_definition.code = function_code
         program_slicer = ProgramSlicer()
-        assert (
-            program_slicer.get_slice(
-                graph_with_function_definition, [my_function_call]
-            ).strip()
-            == function_code.strip()
+        code_slice = program_slicer.get_slice(
+            graph_with_function_definition, [my_function_call]
         )
+        assert compare_code_via_ast(code_slice, function_code)

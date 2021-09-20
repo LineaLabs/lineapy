@@ -66,6 +66,11 @@ def compare_ast(node1: AST, node2: AST):
     return s1 == s2
 
 
+def compare_code_via_ast(code: str, expected: str) -> bool:
+    import ast
+    return compare_ast(ast.parse(code), ast.parse(expected))
+
+
 def setup_db(mode: ExecutionMode, reset: bool):
     test_db = RelationalLineaDB()
     db_config = get_default_config_by_environment(mode)
