@@ -133,7 +133,9 @@ class TestLineaDB(unittest.TestCase):
         e.execute_program(graph, context)
         stdout = e.get_stdout()
         assert stdout == "10\n"
-        assert are_graphs_identical(graph, simple_with_variable_argument_and_print)
+        assert are_graphs_identical(
+            graph, simple_with_variable_argument_and_print
+        )
 
     def test_basic_import(self):
         """

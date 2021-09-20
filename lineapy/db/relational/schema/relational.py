@@ -265,7 +265,9 @@ call_node_association_table = Table(
     "call_node_association",
     Base.metadata,
     Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
-    Column("argument_node_id", ForeignKey("argument_node.id"), primary_key=True),
+    Column(
+        "argument_node_id", ForeignKey("argument_node.id"), primary_key=True
+    ),
 )
 
 

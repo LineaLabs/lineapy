@@ -3,7 +3,9 @@ from lineapy.data.types import Node
 
 def get_segment_from_code(code: str, node: Node) -> str:
     if node.lineno is node.end_lineno:
-        return code.split("\n")[node.lineno - 1][node.col_offset : node.end_col_offset]
+        return code.split("\n")[node.lineno - 1][
+            node.col_offset : node.end_col_offset
+        ]
     else:
         lines = code.split("\n")[node.lineno - 1 : node.end_lineno]
         lines[0] = lines[0][node.col_offset :]
@@ -21,7 +23,9 @@ def max_col_of_code(code: str) -> int:
     return max_col
 
 
-def replace_slice_of_code(code: str, new_code: str, start: int, end: int) -> str:
+def replace_slice_of_code(
+    code: str, new_code: str, start: int, end: int
+) -> str:
     return code[:start] + new_code + code[end:]
 
 
@@ -34,7 +38,10 @@ def add_node_to_code(current_code: str, session_code: str, node: Node) -> str:
     if node.lineno == node.end_lineno:
         # if it's only a single line to be inserted
         lines[node.lineno - 1] = replace_slice_of_code(
-            lines[node.lineno - 1], segment, node.col_offset, node.end_col_offset
+            lines[node.lineno - 1],
+            segment,
+            node.col_offset,
+            node.end_col_offset,
         )
     else:
         # if multiple lines need insertion
@@ -46,7 +53,10 @@ def add_node_to_code(current_code: str, session_code: str, node: Node) -> str:
         )
 
         lines[node.end_lineno - 1] = replace_slice_of_code(
-            lines[node.end_lineno - 1], segment_lines[-1], 0, node.end_col_offset
+            lines[node.end_lineno - 1],
+            segment_lines[-1],
+            0,
+            node.end_col_offset,
         )
 
         for i in range(1, len(segment_lines) - 1):
