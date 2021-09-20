@@ -91,9 +91,7 @@ def home():
     return "ok"
 
 
-@routes_blueprint.route(
-    "/api/v1/executor/execute/<artifact_id>", methods=["GET"]
-)
+@routes_blueprint.route("/api/v1/executor/execute/<artifact_id>", methods=["GET"])
 def execute(artifact_id):
     """
     Executes the graph associated with the artifact and returns the result of
@@ -144,9 +142,7 @@ def execute(artifact_id):
         return {}
 
 
-@routes_blueprint.route(
-    "/api/v1/executor/executions/<artifact_id>", methods=["GET"]
-)
+@routes_blueprint.route("/api/v1/executor/executions/<artifact_id>", methods=["GET"])
 def get_executions(artifact_id):
 
     execution_orms = (
@@ -198,9 +194,7 @@ def get_artifact(artifact_id):
       information than the summary data provided by `get_artifacts`.
     """
     artifact_orm = (
-        lineadb.session.query(ArtifactORM)
-        .filter(ArtifactORM.id == artifact_id)
-        .first()
+        lineadb.session.query(ArtifactORM).filter(ArtifactORM.id == artifact_id).first()
     )
 
     if artifact_orm is not None:
@@ -264,10 +258,7 @@ def get_node_value(node_id):
         node_value = jsonify_value(node_value.value, node_value.value_type)
 
     node_name = None
-    if (
-        node.node_type is NodeType.CallNode
-        and node.assigned_variable_name is not None
-    ):
+    if node.node_type is NodeType.CallNode and node.assigned_variable_name is not None:
         node_name = node.assigned_variable_name
     else:
         node_name = get_segment_from_code(
