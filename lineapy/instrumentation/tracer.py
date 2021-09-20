@@ -77,28 +77,47 @@ class Tracer:
         self.nodes_to_be_evaluated.append(record)
 
     def evaluate_records_so_far(self):
-        # going to evaluate everything in the execution_pool
-        # pipe the records with their values to the records_manager
-        # and then remove them (so that the runtime could reclaim space)
+        """
+        For JUPYTER & SCRIPT
+        - Evaluate everything in the execution_pool
+        - Pipe the records with their values to the records_manager
+        - Then remove them (so that the runtime could reclaim space)
+        For STATIC, same post-fix but without the evaluation
+        """
 
+        print("CCCCCC evaluating")
         if self.session_type == SessionType.JUPYTER:
             # 🔥 FIXME 🔥
             internal_warning_log(
                 "The method `evaluate_records_so_far` will not evaluate" " correctly"
             )
-        self.executor.execute_program(
-            Graph(self.nodes_to_be_evaluated),
-            self.session_context,
-        )
-        self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
-        # reset
-        self.nodes_to_be_evaluated = []
-        return
+            return
+
+        elif self.session_type == SessionType.SCRIPT:
+            self.executor.execute_program(
+                Graph(self.nodes_to_be_evaluated),
+                self.session_context,
+            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
+            # reset
+            self.nodes_to_be_evaluated = []
+            return
+        elif self.session_type == SessionType.STATIC:
+            # Same flow as SCRIPT but without the executor
+            # In the future, we can potentially do something fancy with
+            #   importing and doing analysis there
+            print("BBBBB", "adding nodes", len(self.nodes_to_be_evaluated))
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
+            # reset
+            self.nodes_to_be_evaluated = []
+            return
+
+        raise CaseNotHandledError(f"Case {self.session_type} is unsupported")
 
     def exit(self):
         self.evaluate_records_so_far()
         self.records_manager.exit()
-        info_log("Tracer", "exit")
+        info_log("Tracer exit")
         pass
 
     def look_up_node_id_by_variable_name(

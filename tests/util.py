@@ -4,9 +4,9 @@ from datetime import datetime
 from os import remove
 from typing import Optional, List
 from re import sub
-from astpretty import pformat
+from tempfile import NamedTemporaryFile
 
-from lineapy import ExecutionMode
+from lineapy.transformer.transformer import ExecutionMode, Transformer
 from lineapy.data.types import (
     SessionContext,
     SessionType,
@@ -16,6 +16,30 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.utils import get_new_id
 
 TEST_ARTIFACT_NAME = "Graph With CSV Import"
+
+
+def run_code(
+    original_code: str,
+    test_name: str,
+    session_type: SessionType = SessionType.SCRIPT,
+) -> str:
+    """
+    Returns file name
+    """
+    with NamedTemporaryFile() as tmp:
+        tmp.write(str.encode(original_code))
+        tmp.flush()
+        # might also need os.path.dirname() in addition to file name
+        file_name = tmp.name
+        transformer = Transformer()
+        new_code = transformer.transform(
+            original_code,
+            session_type,
+            session_name=file_name,
+            execution_mode=ExecutionMode.DEV,
+        )
+        exec(new_code)
+    return file_name
 
 
 def strip_non_letter_num(s: str):

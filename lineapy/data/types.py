@@ -5,8 +5,16 @@ from pydantic import BaseModel
 
 
 class SessionType(Enum):
+    """
+    Session types allow the tracer to know what to expect
+    - JUPYTER: the tracer need to progressively add more nodes to the graph
+    - SCRIPT: the easiest case, run everything until the end
+    - STATIC: does doesn't actually invoke the Executor
+    """
+
     JUPYTER = 1
     SCRIPT = 2
+    STATIC = 3
 
 
 class StorageType(Enum):
