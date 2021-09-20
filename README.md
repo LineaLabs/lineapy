@@ -1,5 +1,13 @@
 # lineapy
 
+This repository contains a few different components:
+
+* A **transformer** which maps Python code to Python code, makign it lazy by turning control flow and function calls into tracer calls.
+* A **tracer** that adds nodes to the graph (and then executes them with the executor)
+* A **dataflow graph** which is stored in SQLite and represents a Python execution
+* An **executor** which takes the graph and can run it as Python code
+* A **server** which exposes a REST API of the graph that `linea-server` accesses 
+
 ## Using Linea
 
 There are two ways to use `linea`:
