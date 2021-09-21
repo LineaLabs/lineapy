@@ -490,10 +490,7 @@ class RelationalLineaDB(LineaDB):
         """
         node = self.get_node_by_id(artifact_id)
         nodes = self.get_nodes_for_session(node.session_id)
-        full_graph = Graph(nodes)
-        ancestors = full_graph.get_ancestors(node)
-        ancestors.append(node.id)
-        return Graph([full_graph.get_node_else_raise(a) for a in ancestors])
+        return Graph(nodes)
 
     def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
         """
