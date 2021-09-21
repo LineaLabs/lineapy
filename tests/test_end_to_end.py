@@ -162,15 +162,3 @@ class TestEndToEnd:
         # assert result.exit_code == 2
         # assert "Usage:" in result.stderr
         pass
-
-    def test_compareops(self):
-        code = "b = 1 < 2 < 3\nassert b"
-        run_code(code, "chained ops")
-
-    def test_binops(self):
-        code = "b = 1 + 2\nassert b == 3"
-        run_code(code, "binop")
-
-    def test_subscript(self):
-        code = "ls = [1,2]\nassert ls[0] == 1"
-        run_code(code, "subscript")

@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Tuple, Optional, List, Dict
+from typing import Any, NewType, Tuple, Optional, List, Dict
 from pydantic import BaseModel
 
 
@@ -36,7 +36,7 @@ The orm_mode allows us to use from_orm to convert ORM
 
 # aliasing the ID type in case we change it later, and to be more descriptive
 #   than str
-LineaID = str
+LineaID = NewType("LineaID", str)
 
 
 class HardwareSpec(BaseModel):

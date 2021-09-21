@@ -475,6 +475,10 @@ class RelationalLineaDB(LineaDB):
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
+    def get_all_nodes(self) -> List[Node]:
+        node_orms = self.session.query(NodeORM).all()
+        return [self.map_orm_to_pydantic(node) for node in node_orms]
+
     def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
         """
         - This is program slicing over database data.
