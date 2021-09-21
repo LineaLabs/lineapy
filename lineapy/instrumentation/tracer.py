@@ -18,7 +18,11 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.records_manager import RecordsManager
-from lineapy.transformer.tracer_util import create_argument_nodes
+from lineapy.instrumentation.tracer_util import (
+    ARGS_TYPE,
+    KEYWORD_ARGS_TYPE,
+    create_argument_nodes,
+)
 from lineapy.utils import (
     CaseNotHandledError,
     InternalLogicError,
@@ -94,6 +98,7 @@ class Tracer:
             Graph(self.nodes_to_be_evaluated),
             self.session_context,
         )
+        print(self.executor.get_stdout())
         self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
         # reset
         self.nodes_to_be_evaluated = []
@@ -249,7 +254,8 @@ class Tracer:
     def call(
         self,
         function_name: str,
-        arguments: Any,
+        arguments: ARGS_TYPE,
+        keyword_arguments: KEYWORD_ARGS_TYPE,
         syntax_dictionary: Dict[str, int],
         function_module: Optional[Any] = None,
     ) -> CallNode:
@@ -268,6 +274,7 @@ class Tracer:
 
         argument_nodes = create_argument_nodes(
             arguments,
+            keyword_arguments,
             self.session_context.id,
             self.look_up_node_id_by_variable_name,
         )

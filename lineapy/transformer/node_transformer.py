@@ -58,6 +58,7 @@ class NodeTransformer(ast.NodeTransformer):
       so that the transformation do not get called more than once.
     """
 
+    # TODO: Remove source
     def __init__(self, source: str):
         self.source = source
 
@@ -212,6 +213,9 @@ class NodeTransformer(ast.NodeTransformer):
                 return synthesize_linea_publish_call_ast(var_node.id)
         else:  # this is the normal case, non-publish
             argument_nodes = [self.visit(arg) for arg in node.args]
+            keyword_argument_nodes = [
+                (arg.arg, self.visit(arg.value)) for arg in node.keywords
+            ]
             # TODO: support keyword arguments as well
             function_module = (
                 ast.Constant(value=name_ref[FUNCTION_MODULE])
@@ -223,6 +227,7 @@ class NodeTransformer(ast.NodeTransformer):
                 argument_nodes,
                 node,
                 function_module=function_module,
+                keyword_arguments=keyword_argument_nodes,
             )
 
     def visit_Assign(self, node: ast.Assign) -> ast.Expr:

@@ -232,9 +232,9 @@ class Executor(GraphReader):
                     node, program, scoped_locals
                 )
 
-                args = program.get_arguments_from_call_node(node)
+                args, kwargs = program.get_arguments_from_call_node(node)
 
-                val = fn(*args)
+                val = fn(*args, **kwargs)
                 node.value = val
 
                 # update the assigned variable

@@ -113,6 +113,11 @@ def get_current_time():
 IS_DEBUG = True
 
 
+def set_debug(is_debug: bool):
+    global IS_DEBUG
+    IS_DEBUG = is_debug
+
+
 """
 Type checking utils
 """
