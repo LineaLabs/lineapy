@@ -12,7 +12,7 @@ from lineapy.instrumentation.tracer import Tracer
 from lineapy.instrumentation.variable import Variable
 from lineapy.data.types import SessionType
 from lineapy.transformer.node_transformer import NodeTransformer
-from lineapy.utils import info_log
+from lineapy.utils import CaseNotHandledError, info_log
 
 # FIXME: find the typing for AST nodes
 TreeNodeType = ast.AST
@@ -62,9 +62,11 @@ class Transformer:
             )
             self.has_initiated = True
 
-        if session_type == SessionType.SCRIPT:
+        if session_type in [SessionType.SCRIPT, SessionType.STATIC]:
             exit_tree = self.create_exit()
             append_code_to_tree(transformed_tree, exit_tree)
+        else:
+            raise CaseNotHandledError(f"{session_type.name} not supported")
 
         # pprint(transformed_tree, show_offsets=False)
         transformed_code = to_source(transformed_tree)
