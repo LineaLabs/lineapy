@@ -149,7 +149,9 @@ class NodeTransformer(ast.NodeTransformer):
                     ast.keyword(
                         arg="name", value=ast.Constant(value=node.module)
                     ),
-                    ast.keyword(arg=SYNTAX_DICTIONARY, value=syntax_dictionary),
+                    ast.keyword(
+                        arg=SYNTAX_DICTIONARY, value=syntax_dictionary
+                    ),
                     ast.keyword(
                         arg="attributes",
                         value=ast.Dict(keys=keys, values=values),
