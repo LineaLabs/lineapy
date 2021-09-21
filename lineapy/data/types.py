@@ -72,7 +72,7 @@ class SessionContext(BaseModel):
     session_name: Optional[str]  # TODO: add API for user
     user_name: Optional[str] = None
     hardware_spec: Optional[HardwareSpec] = None
-    libraries: Optional[List[Library]] = None
+    libraries: List[Library] = []
 
     class Config:
         orm_mode = True

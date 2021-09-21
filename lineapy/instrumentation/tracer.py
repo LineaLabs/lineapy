@@ -72,6 +72,9 @@ class Tracer:
         )
         self.executor = Executor()
         self.variable_name_to_id: Dict[str, LineaID] = {}
+        self.function_name_to_function_module_import_id: Dict[
+            str, LineaID
+        ] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -174,6 +177,7 @@ class Tracer:
             creation_time=datetime.now(),
             file_name=file_name,
             code=original_code,
+            libraries=[],
         )
         self.records_manager.write_session_context(session_context)
         return session_context
@@ -186,7 +190,13 @@ class Tracer:
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
         """
-        didn't call it import because I think that's a protected name
+        - `name`: the name of the module
+        - `alias`: the module could be aliased, e.g., import pandas as pd
+        - `attributes`: a list of functions imported from the library.
+           It keys the aliased name to the original name.
+        NOTE
+        - The input args would _either_ have alias or attributes, but not both
+        - Didn't call the function import because I think that's a protected name
         note that version and path will be introspected at runtime
         """
         library = Library(id=get_new_id(), name=name)
@@ -197,11 +207,24 @@ class Tracer:
             library=library,
             attributes=attributes,
         )
-        info_log("creating", name, alias, attributes, syntax_dictionary)
         if alias is not None:
             self.variable_name_to_id[alias] = node.id
         else:
             self.variable_name_to_id[name] = node.id
+
+        # for the attributes imported, we need to add them to the local lookup
+        #  that yields the importnode's id for the `function_module` field,
+        #  see `graph_with_basic_image`.
+        if attributes is not None:
+            for a in attributes:
+                self.function_name_to_function_module_import_id[a] = node.id
+        # also need to modify the session_context because of weird executor
+        #   requirement; should prob refactor later
+        # and we cannot just modify the runtime value because
+        #   it's already written to disk
+        self.records_manager.add_lib_to_session_context(
+            self.session_context.id, library
+        )
         self.add_unevaluated_node(node, syntax_dictionary)
         return
 
@@ -267,7 +290,8 @@ class Tracer:
           that this is better for program slicing.
 
         TODO:
-        - need to look up the function module live to get the ID
+        - the way we look up the function module is a little confusing, maybe
+          decouple it from variable_name_to_id?
         """
 
         argument_nodes = create_argument_nodes(
@@ -289,6 +313,11 @@ class Tracer:
         # Get node id for function module
         if function_module is not None:
             function_module = self.variable_name_to_id[function_module]
+
+        if function_name in self.function_name_to_function_module_import_id:
+            function_module = self.function_name_to_function_module_import_id[
+                function_name
+            ]
 
         node = CallNode(
             id=get_new_id(),
