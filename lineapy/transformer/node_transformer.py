@@ -39,6 +39,7 @@ from lineapy.instrumentation.tracer import Tracer
 from lineapy.instrumentation.variable import Variable
 from lineapy.lineabuiltins import __build_list__
 from lineapy.transformer.transformer_util import (
+    create_lib_attributes,
     extract_concrete_syntax_from_node,
     get_call_function_name,
     get_tracer_ast_call_func,
@@ -128,14 +129,6 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_ImportFrom(self, node):
         syntax_dictionary = extract_concrete_syntax_from_node(node)
-        keys = []
-        values = []
-        for alias in node.names:
-            keys.append(ast.Constant(value=alias.name))
-            # needed turn_none_to_empty_str because of some issue with pydantic
-            values.append(
-                ast.Constant(value=turn_none_to_empty_str(alias.asname))
-            )
 
         result = ast.Expr(
             ast.Call(
@@ -149,12 +142,10 @@ class NodeTransformer(ast.NodeTransformer):
                     ast.keyword(
                         arg="name", value=ast.Constant(value=node.module)
                     ),
-                    ast.keyword(
-                        arg=SYNTAX_DICTIONARY, value=syntax_dictionary
-                    ),
+                    ast.keyword(arg=SYNTAX_DICTIONARY, value=syntax_dictionary),
                     ast.keyword(
                         arg="attributes",
-                        value=ast.Dict(keys=keys, values=values),
+                        value=create_lib_attributes(node.names),
                     ),
                 ],
             )

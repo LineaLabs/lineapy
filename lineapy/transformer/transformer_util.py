@@ -20,6 +20,17 @@ AST synthesizers used by node_transformers
 SYNTAX_KEY = ["lineno", "col_offset", "end_lineno", "end_col_offset"]
 
 
+def create_lib_attributes(names: List[ast.alias]) -> ast.Dict:
+    keys = []
+    values = []
+    for alias in names:
+        keys.append(
+            ast.Constant(value=alias.asname if alias.asname else alias.name)
+        )
+        values.append(ast.Constant(value=(alias.name)))
+    return ast.Dict(keys=keys, values=values)
+
+
 def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
     """
     TODO: adding typing
@@ -34,9 +45,9 @@ def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
     )
 
 
-def turn_none_to_empty_str(a: Optional[str]):
+def turn_none_to_empty_str(a: Optional[str], b: str):
     if not a:
-        return ""
+        return b
     return a
 
 

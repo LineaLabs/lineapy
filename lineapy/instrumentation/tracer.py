@@ -72,9 +72,7 @@ class Tracer:
         )
         self.executor = Executor()
         self.variable_name_to_id: Dict[str, LineaID] = {}
-        self.function_name_to_function_module_import_id: Dict[
-            str, LineaID
-        ] = {}
+        self.function_name_to_function_module_import_id: Dict[str, LineaID] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -105,9 +103,7 @@ class Tracer:
                 Graph(self.nodes_to_be_evaluated),
                 self.session_context,
             )
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return
@@ -115,9 +111,7 @@ class Tracer:
             # Same flow as SCRIPT but without the executor
             # In the future, we can potentially do something fancy with
             #   importing and doing analysis there
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return
@@ -190,6 +184,7 @@ class Tracer:
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
         """
+        - `attributes` keys the aliased name to the original name.
         NOTE
         - didn't call it import because I think that's a protected name
         note that version and path will be introspected at runtime
@@ -212,17 +207,14 @@ class Tracer:
         #  see `graph_with_basic_image`.
         if attributes is not None:
             for a in attributes:
-                if attributes[a] is not None and attributes[a] != "":
-                    self.function_name_to_function_module_import_id[
-                        attributes[a]
-                    ] = node.id
-                else:
-                    self.function_name_to_function_module_import_id[
-                        a
-                    ] = node.id
+                self.function_name_to_function_module_import_id[a] = node.id
         # also need to modify the session_context because of weird executor
         #   requirement; should prob refactor later
-        self.session_context.libraries.append(library)
+        # and we cannot just modify the runtime value because
+        #   it's already written to disk
+        self.records_manager.add_lib_to_session_context(
+            self.session_context.id, library
+        )
         self.add_unevaluated_node(node, syntax_dictionary)
         return
 

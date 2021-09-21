@@ -1,4 +1,8 @@
-# import lineapy
+import pandas as pd
+import matplotlib.pyplot as plt
+from PIL.Image import open
 
-a = abs(1)
-# lineapy.linea_publish(a, "test artifact")
+df = pd.read_csv("simple_data.csv")
+plt.imsave("simple_data.png", df)
+img = open("simple_data.png")
+img = img.resize([200, 200])
