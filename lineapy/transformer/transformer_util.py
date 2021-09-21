@@ -28,7 +28,8 @@ def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
     return ast.Dict(
         keys=[ast.Constant(value=key) for key in SYNTAX_KEY],
         values=[
-            ast.Constant(value=ast_node.__getattribute__(key)) for key in SYNTAX_KEY
+            ast.Constant(value=ast_node.__getattribute__(key))
+            for key in SYNTAX_KEY
         ],
     )
 
@@ -93,7 +94,10 @@ def synthesize_tracer_call_ast(
                 arg=KEYWORD_ARGUMENTS,
                 value=ast.List(
                     elts=[
-                        ast.Tuple(elts=[ast.Constant(value=name), value])
+                        ast.Tuple(
+                            elts=[ast.Constant(value=name), value],
+                            ctx=ast.Load(),
+                        )
                         for name, value in keyword_arguments
                     ],
                     ctx=ast.Load(),

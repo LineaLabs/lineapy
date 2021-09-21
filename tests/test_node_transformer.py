@@ -111,7 +111,14 @@ class TestNodeTransformer:
         )
         self._check_equality(call_with_args, expected_call_with_args)
 
-        call_with_keyword_args = "foo(b=1)"  # FIXME currently unsupported
+    def test_visit_call_kwargs(self):
+        call_with_keyword_args = "foo(b=1)"
+        expected_call_with_kwargs = (
+            "lineapy_tracer.call(function_name='foo',"
+            " syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 8},"
+            " arguments=[], keyword_arguments=[('b', 1)])"
+        )
+        self._check_equality(call_with_keyword_args, expected_call_with_kwargs)
 
     def test_visit_assign(self):
         simple_assign = "a = 1"
