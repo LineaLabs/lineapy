@@ -45,12 +45,6 @@ def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
     )
 
 
-def turn_none_to_empty_str(a: Optional[str], b: str):
-    if not a:
-        return b
-    return a
-
-
 def get_call_function_name(node: ast.Call) -> dict:
     if type(node.func) == ast.Name:
         func_name = cast(ast.Name, node.func)

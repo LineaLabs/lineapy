@@ -47,7 +47,6 @@ from lineapy.transformer.transformer_util import (
     synthesize_tracer_call_ast,
     synthesize_tracer_headless_literal_ast,
     synthesize_tracer_headless_variable_ast,
-    turn_none_to_empty_str,
 )
 from lineapy.utils import UserError, InvalidStateError, info_log
 
