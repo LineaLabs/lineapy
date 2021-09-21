@@ -5,6 +5,7 @@ from os import remove
 from typing import Optional, List
 from re import sub
 from tempfile import NamedTemporaryFile
+from pydantic import BaseModel
 
 from lineapy.transformer.transformer import ExecutionMode, Transformer
 from lineapy.data.types import (
@@ -13,9 +14,26 @@ from lineapy.data.types import (
 )
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.utils import get_new_id
+from lineapy.utils import get_new_id, internal_warning_log
 
 TEST_ARTIFACT_NAME = "Graph With CSV Import"
+
+
+def compare_pydantic_objects_without_keys(
+    a: BaseModel,
+    b: BaseModel,
+    keys: List[str],
+    log_diff=False,
+):
+    a_d = a.dict()
+    b_d = b.dict()
+    for k in keys:
+        del a_d[k]
+        del b_d[k]
+    diff = a_d == b_d
+    if log_diff:
+        internal_warning_log(f"{a_d}\ndifferent from\n{b_d}")
+    return diff
 
 
 def run_code(

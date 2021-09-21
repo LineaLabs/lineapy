@@ -1,7 +1,8 @@
 import builtins
 import importlib.util
 import io
-from lineapy.utils import CaseNotHandledError, InternalLogicError
+from types import ModuleType
+from lineapy.utils import InternalLogicError
 import subprocess
 import sys
 from typing import Any, Tuple, Optional, Dict, cast
@@ -44,24 +45,6 @@ class Executor(GraphReader):
         subprocess.check_call(
             [sys.executable, "-m", "pip", "install", package]
         )
-
-    @staticmethod
-    def lookup_module(
-        module_node: Optional[Node], fn_name: str
-    ) -> Optional[Any]:
-        if hasattr(lineabuiltins, fn_name):
-            return lineabuiltins
-
-        if module_node is None:
-            return builtins
-
-        if module_node.node_type == NodeType.ImportNode:
-            module_node = cast(ImportNode, module_node)
-            if module_node.module is None:
-                module_node.module = importlib.import_module(module_node.library.name)  # type: ignore
-            return module_node.module
-
-        return None
 
     def setup(self, context: SessionContext) -> None:
         """
@@ -184,31 +167,57 @@ class Executor(GraphReader):
     @staticmethod
     def get_function(
         node: CallNode, program: Graph, scoped_locals: Dict[str, Any]
-    ) -> Tuple[Any, str]:
+    ) -> Any:
+        """
+        `get_function` retrieves the runtime value of the function
+          as defined in the `CallNode`, node.
+        It covers a few special cases:
+        - if the function if locally defined
+        - if the function is part of an imported module
+          - and if the function is an aliased name, in which case we need to
+            look up the original name
+        - if the function is another call function, like __getattr__
+
+        Returns the runtime value of the function
+        """
         fn_name = node.function_name
         fn = None
 
+        # locally defined function
         if node.locally_defined_function_id is not None:
+            # we can just directly get its value
             fn = scoped_locals[fn_name]
-        else:
-            function_module = program.get_node(node.function_module)
-            if (
-                function_module is not None
-                and function_module.node_type == NodeType.ImportNode
-            ):
-                function_module = cast(ImportNode, function_module)
-                if function_module.attributes is not None:
-                    fn_name = function_module.attributes[node.function_name]
+            return fn
 
-            retrieved_module = Executor.lookup_module(function_module, fn_name)
+        # need to load from some module
+        function_module = program.get_node(node.function_module)
+        if function_module is None:
+            # this is either lineabuiltins or python builtins
+            builtin_module: ModuleType = builtins
+            if hasattr(lineabuiltins, fn_name):
+                builtin_module = lineabuiltins
+            fn = getattr(builtin_module, fn_name)
+            return fn
 
-            # if we are performing a call on an object, e.g. a.append(5)
-            if retrieved_module is None:
-                retrieved_module = program.get_node_value(function_module)
+        # Otherwise function_module is not None
+        # sanity check
+        if function_module.node_type == NodeType.ImportNode:
+            function_module = cast(ImportNode, function_module)
+            if function_module.attributes is not None:
+                original_name = function_module.attributes[node.function_name]
+                if original_name is not None:
+                    fn_name = original_name
 
-            fn = getattr(retrieved_module, fn_name)
+            if function_module.module is None:
+                function_module.module = importlib.import_module(function_module.library.name)  # type: ignore
+                # return module_node.module
 
-        return fn, fn_name
+            fn = getattr(function_module.module, fn_name)
+            return fn
+        elif function_module.node_type == NodeType.CallNode:
+            # TODO: add documentation
+            fn = getattr(program.get_node_value(function_module), fn_name)
+            return fn
 
     def walk(self, program: Graph, code: str) -> None:
         sys.stdout = self._stdout
@@ -226,9 +235,7 @@ class Executor(GraphReader):
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
-                fn, fn_name = Executor.get_function(
-                    node, program, scoped_locals
-                )
+                fn = Executor.get_function(node, program, scoped_locals)
 
                 args, kwargs = program.get_arguments_from_call_node(node)
 

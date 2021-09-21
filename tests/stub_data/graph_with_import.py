@@ -13,7 +13,7 @@ import_body_code = "a = power(5, 2)\nb = root(a)"
 
 code = import_code + "\n" + import_body_code
 
-math_lib = Library(id=get_new_id(), name="math", version="1", path="")
+math_lib = Library(id=get_new_id(), name="math", version=None, path=None)
 
 session = get_new_session(code, libraries=[math_lib])
 

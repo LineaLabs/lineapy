@@ -3,7 +3,6 @@ import click
 from lineapy.data.types import SessionType
 from lineapy.transformer.transformer import ExecutionMode, Transformer
 from lineapy.utils import info_log, report_error_to_user, set_debug
-from lineapy import utils
 
 """
 We are using click because our package will likely already have a dependency on
