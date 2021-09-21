@@ -72,9 +72,7 @@ class Tracer:
         )
         self.executor = Executor()
         self.variable_name_to_id: Dict[str, LineaID] = {}
-        self.function_name_to_function_module_import_id: Dict[
-            str, LineaID
-        ] = {}
+        self.function_name_to_function_module_import_id: Dict[str, LineaID] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -105,9 +103,7 @@ class Tracer:
                 Graph(self.nodes_to_be_evaluated),
                 self.session_context,
             )
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return
@@ -115,9 +111,7 @@ class Tracer:
             # Same flow as SCRIPT but without the executor
             # In the future, we can potentially do something fancy with
             #   importing and doing analysis there
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return
@@ -190,9 +184,13 @@ class Tracer:
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
         """
-        - `attributes` keys the aliased name to the original name.
+        - `name`: the name of the module
+        - `alias`: the module could be aliased, e.g., import pandas as pd
+        - `attributes`: a list of functions imported from the library.
+           It keys the aliased name to the original name.
         NOTE
-        - didn't call it import because I think that's a protected name
+        - The input args would _either_ have alias or attributes, but not both
+        - Didn't call the function import because I think that's a protected name
         note that version and path will be introspected at runtime
         """
         library = Library(id=get_new_id(), name=name)
