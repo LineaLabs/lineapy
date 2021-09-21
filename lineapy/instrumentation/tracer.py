@@ -18,7 +18,11 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.records_manager import RecordsManager
-from lineapy.transformer.tracer_util import create_argument_nodes
+from lineapy.instrumentation.tracer_util import (
+    ARGS_TYPE,
+    KEYWORD_ARGS_TYPE,
+    create_argument_nodes,
+)
 from lineapy.utils import (
     CaseNotHandledError,
     InternalLogicError,
@@ -68,6 +72,9 @@ class Tracer:
         )
         self.executor = Executor()
         self.variable_name_to_id: Dict[str, LineaID] = {}
+        self.function_name_to_function_module_import_id: Dict[
+            str, LineaID
+        ] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -77,9 +84,13 @@ class Tracer:
         self.nodes_to_be_evaluated.append(record)
 
     def evaluate_records_so_far(self):
-        # going to evaluate everything in the execution_pool
-        # pipe the records with their values to the records_manager
-        # and then remove them (so that the runtime could reclaim space)
+        """
+        For JUPYTER & SCRIPT
+        - Evaluate everything in the execution_pool
+        - Pipe the records with their values to the records_manager
+        - Then remove them (so that the runtime could reclaim space)
+        For STATIC, same post-fix but without the evaluation
+        """
 
         if self.session_type == SessionType.JUPYTER:
             # 🔥 FIXME 🔥
@@ -87,19 +98,36 @@ class Tracer:
                 "The method `evaluate_records_so_far` will not evaluate"
                 " correctly"
             )
-        self.executor.execute_program(
-            Graph(self.nodes_to_be_evaluated),
-            self.session_context,
-        )
-        self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
-        # reset
-        self.nodes_to_be_evaluated = []
-        return
+            return
+
+        elif self.session_type == SessionType.SCRIPT:
+            self.executor.execute_program(
+                Graph(self.nodes_to_be_evaluated),
+                self.session_context,
+            )
+            self.records_manager.add_evaluated_nodes(
+                self.nodes_to_be_evaluated
+            )
+            # reset
+            self.nodes_to_be_evaluated = []
+            return
+        elif self.session_type == SessionType.STATIC:
+            # Same flow as SCRIPT but without the executor
+            # In the future, we can potentially do something fancy with
+            #   importing and doing analysis there
+            self.records_manager.add_evaluated_nodes(
+                self.nodes_to_be_evaluated
+            )
+            # reset
+            self.nodes_to_be_evaluated = []
+            return
+
+        raise CaseNotHandledError(f"Case {self.session_type} is unsupported")
 
     def exit(self):
         self.evaluate_records_so_far()
         self.records_manager.exit()
-        info_log("Tracer", "exit")
+        info_log("Tracer exit")
         pass
 
     def look_up_node_id_by_variable_name(
@@ -149,6 +177,7 @@ class Tracer:
             creation_time=datetime.now(),
             file_name=file_name,
             code=original_code,
+            libraries=[],
         )
         self.records_manager.write_session_context(session_context)
         return session_context
@@ -161,7 +190,13 @@ class Tracer:
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
         """
-        didn't call it import because I think that's a protected name
+        - `name`: the name of the module
+        - `alias`: the module could be aliased, e.g., import pandas as pd
+        - `attributes`: a list of functions imported from the library.
+           It keys the aliased name to the original name.
+        NOTE
+        - The input args would _either_ have alias or attributes, but not both
+        - Didn't call the function import because I think that's a protected name
         note that version and path will be introspected at runtime
         """
         library = Library(id=get_new_id(), name=name)
@@ -172,11 +207,24 @@ class Tracer:
             library=library,
             attributes=attributes,
         )
-        info_log("creating", name, alias, attributes, syntax_dictionary)
         if alias is not None:
             self.variable_name_to_id[alias] = node.id
         else:
             self.variable_name_to_id[name] = node.id
+
+        # for the attributes imported, we need to add them to the local lookup
+        #  that yields the importnode's id for the `function_module` field,
+        #  see `graph_with_basic_image`.
+        if attributes is not None:
+            for a in attributes:
+                self.function_name_to_function_module_import_id[a] = node.id
+        # also need to modify the session_context because of weird executor
+        #   requirement; should prob refactor later
+        # and we cannot just modify the runtime value because
+        #   it's already written to disk
+        self.records_manager.add_lib_to_session_context(
+            self.session_context.id, library
+        )
         self.add_unevaluated_node(node, syntax_dictionary)
         return
 
@@ -228,7 +276,8 @@ class Tracer:
     def call(
         self,
         function_name: str,
-        arguments: Any,
+        arguments: ARGS_TYPE,
+        keyword_arguments: KEYWORD_ARGS_TYPE,
         syntax_dictionary: Dict[str, int],
         function_module: Optional[Any] = None,
     ) -> CallNode:
@@ -241,11 +290,13 @@ class Tracer:
           that this is better for program slicing.
 
         TODO:
-        - need to look up the function module live to get the ID
+        - the way we look up the function module is a little confusing, maybe
+          decouple it from variable_name_to_id?
         """
 
         argument_nodes = create_argument_nodes(
             arguments,
+            keyword_arguments,
             self.session_context.id,
             self.look_up_node_id_by_variable_name,
         )
@@ -262,6 +313,11 @@ class Tracer:
         # Get node id for function module
         if function_module is not None:
             function_module = self.variable_name_to_id[function_module]
+
+        if function_name in self.function_name_to_function_module_import_id:
+            function_module = self.function_name_to_function_module_import_id[
+                function_name
+            ]
 
         node = CallNode(
             id=get_new_id(),

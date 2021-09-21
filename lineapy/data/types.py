@@ -5,8 +5,16 @@ from pydantic import BaseModel
 
 
 class SessionType(Enum):
+    """
+    Session types allow the tracer to know what to expect
+    - JUPYTER: the tracer need to progressively add more nodes to the graph
+    - SCRIPT: the easiest case, run everything until the end
+    - STATIC: does doesn't actually invoke the Executor
+    """
+
     JUPYTER = 1
     SCRIPT = 2
+    STATIC = 3
 
 
 class StorageType(Enum):
@@ -64,7 +72,7 @@ class SessionContext(BaseModel):
     session_name: Optional[str]  # TODO: add API for user
     user_name: Optional[str] = None
     hardware_spec: Optional[HardwareSpec] = None
-    libraries: Optional[List[Library]] = None
+    libraries: List[Library] = []
 
     class Config:
         orm_mode = True
@@ -232,6 +240,7 @@ class ArgumentNode(Node):
     """
 
     node_type: NodeType = NodeType.ArgumentNode
+    # Either keyword or positiona_order is required, but not both
     keyword: Optional[str] = None
     positional_order: Optional[int] = None
     value_node_id: Optional[LineaID] = None
@@ -247,6 +256,7 @@ class CallNode(Node):
     """
 
     node_type: NodeType = NodeType.CallNode
+    # These IDs point to argument nodes
     arguments: List[LineaID]
     function_name: str
     function_module: Optional[LineaID] = None
@@ -340,7 +350,8 @@ class DataSourceNode(Node):
         - DB
     - For now we are just going to deal with local file systems and not
       support DB. Will add in the future.
-    - Also the access_path should be assumed to be unrolled,
+    - Also the access_path should be assumed to be unrolled to an absolute path
+      so that it is resilient to where the execution happens.
       but it can be a LOCAL access path, which means that it
       alone is not re-produceable.
 

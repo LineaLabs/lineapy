@@ -2,6 +2,7 @@ import ast
 from typing import Any, List, Optional, cast
 
 from lineapy.constants import (
+    KEYWORD_ARGUMENTS,
     LINEAPY_TRACER_NAME,
     FUNCTION_NAME,
     FUNCTION_MODULE,
@@ -19,6 +20,17 @@ AST synthesizers used by node_transformers
 SYNTAX_KEY = ["lineno", "col_offset", "end_lineno", "end_col_offset"]
 
 
+def create_lib_attributes(names: List[ast.alias]) -> ast.Dict:
+    keys = []
+    values = []
+    for alias in names:
+        keys.append(
+            ast.Constant(value=alias.asname if alias.asname else alias.name)
+        )
+        values.append(ast.Constant(value=(alias.name)))
+    return ast.Dict(keys=keys, values=values)
+
+
 def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
     """
     TODO: adding typing
@@ -31,12 +43,6 @@ def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
             for key in SYNTAX_KEY
         ],
     )
-
-
-def turn_none_to_empty_str(a: Optional[str]):
-    if not a:
-        return ""
-    return a
 
 
 def get_call_function_name(node: ast.Call) -> dict:
@@ -65,6 +71,7 @@ def synthesize_tracer_call_ast(
     argument_nodes: List[Any],
     node: Any,  # NOTE: not sure if the ast Nodes have a union type
     function_module: Optional[Any] = None,
+    keyword_arguments: list[tuple[str, ast.AST]] = [],
 ):
     """
     Node is passed to synthesize the `syntax_dictionary`
@@ -87,6 +94,19 @@ def synthesize_tracer_call_ast(
             ast.keyword(
                 arg=ARGUMENTS,
                 value=ast.List(elts=argument_nodes, ctx=ast.Load()),
+            ),
+            ast.keyword(
+                arg=KEYWORD_ARGUMENTS,
+                value=ast.List(
+                    elts=[
+                        ast.Tuple(
+                            elts=[ast.Constant(value=name), value],
+                            ctx=ast.Load(),
+                        )
+                        for name, value in keyword_arguments
+                    ],
+                    ctx=ast.Load(),
+                ),
             ),
         ],
     )
