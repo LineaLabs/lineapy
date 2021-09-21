@@ -138,7 +138,7 @@ class TestEndToEnd:
             )
             assert result.exit_code == 0
             nodes = self.db.get_nodes_by_file_name(tmp_file_name)
-            assert len(nodes) == 2
+            assert len(nodes) == 4
             for c in nodes:
                 if c.node_type == NodeType.FunctionDefinitionNode:
                     assert are_nodes_content_equal(

@@ -38,7 +38,7 @@ jobs:
         pip install black
     - name: Run black --check .
       run: |
-        black --check .
+        black --line-length 79 --check .
     - name: Test with pytest
       run: |
         pytest

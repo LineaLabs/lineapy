@@ -108,7 +108,10 @@ class Graph(object):
             if source.node_type is NodeType.VariableNode:
                 source = cast(VariableNode, source)
 
-                while source is not None and source.node_type is NodeType.VariableNode:
+                while (
+                    source is not None
+                    and source.node_type is NodeType.VariableNode
+                ):
                     source = cast(VariableNode, source)
                     source = self.get_node(source.source_variable_id)
 
@@ -132,23 +135,34 @@ class Graph(object):
         else:
             return node.value  # type: ignore
 
-    def get_node_value_from_id(self, node_id: Optional[LineaID]) -> Optional[Any]:
+    def get_node_value_from_id(
+        self, node_id: Optional[LineaID]
+    ) -> Optional[Any]:
         node = self.get_node(node_id)
         return self.get_node_value(node)
 
-    def get_arguments_from_call_node(self, node: CallNode) -> List[NodeValueType]:
+    def get_arguments_from_call_node(
+        self, node: CallNode
+    ) -> tuple[List[NodeValueType], dict[str, NodeValueType]]:
         """
         FIXME: rather than using our loop comprehension, we should rely
           on database joins
         """
-        if node.arguments and len(node.arguments) > 0:
-            args = [
-                cast(ArgumentNode, self.get_node_else_raise(a)) for a in node.arguments
-            ]
+        arg_nodes = []
+        kwarg_values = {}
+        # Iterate through arguments and append to args/kwargs
+        for arg in node.arguments:
+            argument_node = cast(ArgumentNode, self.get_node_else_raise(arg))
+            if argument_node.keyword is not None:
+                kwarg_values[argument_node.keyword] = self.get_node_value(
+                    argument_node
+                )
+            else:
+                arg_nodes.append(argument_node)
 
-            args.sort(key=get_arg_position)
-            return [self.get_node_value(a) for a in args]
-        return []
+        arg_nodes.sort(key=get_arg_position)
+
+        return [self.get_node_value(a) for a in arg_nodes], kwarg_values
 
     # getting a node's parents before the graph has been constructed
     @staticmethod
@@ -200,7 +214,9 @@ class Graph(object):
         def add_edge_from_node(id: LineaID) -> DirectedEdge:
             return DirectedEdge(source_node_id=id, sink_node_id=node.id)
 
-        edges = list(map(add_edge_from_node, Graph.get_parents_from_node(node)))
+        edges = list(
+            map(add_edge_from_node, Graph.get_parents_from_node(node))
+        )
         return edges
 
     def __get_edges_from_line_number(self) -> List[DirectedEdge]:
@@ -212,16 +228,21 @@ class Graph(object):
                     n
                     for n in self.get_descendants(node)
                     if n is not None
-                    and self.get_node_else_raise(n).node_type is NodeType.CallNode
+                    and self.get_node_else_raise(n).node_type
+                    is NodeType.CallNode
                 ]
 
                 # sort data source nodes children
-                descendants.sort(key=lambda n: self.get_node_else_raise(n).lineno)
+                descendants.sort(
+                    key=lambda n: self.get_node_else_raise(n).lineno
+                )
                 # add edges between children
                 for d in range(len(descendants) - 1):
                     if self.nx_graph.has_edge(
                         descendants[d], descendants[d + 1]
-                    ) or self.nx_graph.has_edge(descendants[d + 1], descendants[d]):
+                    ) or self.nx_graph.has_edge(
+                        descendants[d + 1], descendants[d]
+                    ):
                         continue
                     edges.append(
                         DirectedEdge(

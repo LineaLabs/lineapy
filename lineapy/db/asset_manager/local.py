@@ -40,7 +40,11 @@ class LocalDataAssetManager(DataAssetManager):
     def read_node_value(self, id: LineaID, version: int) -> NodeValueType:
         value_orm = (
             self.session.query(NodeValueORM)
-            .filter(and_(NodeValueORM.node_id == id, NodeValueORM.version == version))
+            .filter(
+                and_(
+                    NodeValueORM.node_id == id, NodeValueORM.version == version
+                )
+            )
             .one()
         )
         return value_orm.value

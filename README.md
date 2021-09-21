@@ -1,5 +1,13 @@
 # lineapy
 
+This repository contains a few different components:
+
+* A **transformer** which maps Python code to Python code, makign it lazy by turning control flow and function calls into tracer calls.
+* A **tracer** that adds nodes to the graph (and then executes them with the executor)
+* A **dataflow graph** which is stored in SQLite and represents a Python execution
+* An **executor** which takes the graph and can run it as Python code
+* A **server** which exposes a REST API of the graph that `linea-server` accesses 
+
 ## Using Linea
 
 There are two ways to use `linea`:
@@ -26,10 +34,15 @@ Note: these should be run in root (``graph_with_csv_import`` does a
 
 ```bash
 mypy -p lineapy
-black lineapy/ --check
+black --line-length 79 --check .
 pytest
 ```
 
+If you want to inspect the AST of some Python code for debugging, you can run:
+
+```bash
+./tests/tools/print_ast.py 'hi(a=10)'
+```
 
 ### Static end to end test/demo
 

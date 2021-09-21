@@ -90,8 +90,8 @@ class TestBasicExecutor:
             simple_function_definition_graph,
             simple_function_definition_graph_session,
         )
-        a = e.get_value_by_variable_name("a")
-        assert a == 1
+        c = e.get_value_by_variable_name("c")
+        assert c == 1
 
     def test_graph_with_function_definition(self):
         """ """
@@ -141,7 +141,9 @@ class TestBasicExecutor:
 
     def test_variable_alias_by_value(self):
         e = Executor()
-        e.execute_program(graph_with_alias_by_value, graph_with_alias_by_value_session)
+        e.execute_program(
+            graph_with_alias_by_value, graph_with_alias_by_value_session
+        )
         a = e.get_value_by_variable_name("a")
         b = e.get_value_by_variable_name("b")
         assert a == 2

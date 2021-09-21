@@ -56,7 +56,9 @@ def are_nodes_content_equal(n1: Node, n2: Node, session_code: str) -> bool:
             return False
         if n1.function_name != n2.function_name:
             internal_warning_log(
-                "Nodes have different names", n1.function_name, n2.function_name
+                "Nodes have different names",
+                n1.function_name,
+                n2.function_name,
             )
             return False
         if n1.assigned_variable_name != n2.assigned_variable_name:

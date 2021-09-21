@@ -113,6 +113,11 @@ def get_current_time():
 IS_DEBUG = True
 
 
+def set_debug(is_debug: bool):
+    global IS_DEBUG
+    IS_DEBUG = is_debug
+
+
 """
 Type checking utils
 """
@@ -140,7 +145,9 @@ def jsonify_value(value: Any, value_type: ValueType) -> str:
     if value_type == ValueType.value:
         return str(value)
 
-    raise CaseNotHandledError(f"Was not able to jsonify value of type {value_type}")
+    raise CaseNotHandledError(
+        f"Was not able to jsonify value of type {value_type}"
+    )
 
 
 def get_value_type(val: Any) -> ValueType:
@@ -188,4 +195,6 @@ def get_value_type(val: Any) -> ValueType:
         if isinstance(val, PIL.Image.Image):
             return ValueType.chart
 
-    raise CaseNotHandledError(f"Do not know the type of {val}, type {type(val)}")
+    raise CaseNotHandledError(
+        f"Do not know the type of {val}, type {type(val)}"
+    )
