@@ -30,6 +30,11 @@ black --line-length 79 --check .
 pytest
 ```
 
+If you want to inspect the AST of some Python code for debugging, you can run:
+
+```bash
+./tests/tools/print_ast.py 'hi(a=10)'
+```
 
 ### Static end to end test/demo
 

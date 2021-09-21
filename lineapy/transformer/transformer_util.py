@@ -2,6 +2,7 @@ import ast
 from typing import Any, List, Optional, cast
 
 from lineapy.constants import (
+    KEYWORD_ARGUMENTS,
     LINEAPY_TRACER_NAME,
     FUNCTION_NAME,
     FUNCTION_MODULE,
@@ -65,6 +66,7 @@ def synthesize_tracer_call_ast(
     argument_nodes: List[Any],
     node: Any,  # NOTE: not sure if the ast Nodes have a union type
     function_module: Optional[Any] = None,
+    keyword_arguments: list[tuple[str, ast.AST]] = [],
 ):
     """
     Node is passed to synthesize the `syntax_dictionary`
@@ -87,6 +89,19 @@ def synthesize_tracer_call_ast(
             ast.keyword(
                 arg=ARGUMENTS,
                 value=ast.List(elts=argument_nodes, ctx=ast.Load()),
+            ),
+            ast.keyword(
+                arg=KEYWORD_ARGUMENTS,
+                value=ast.List(
+                    elts=[
+                        ast.Tuple(
+                            elts=[ast.Constant(value=name), value],
+                            ctx=ast.Load(),
+                        )
+                        for name, value in keyword_arguments
+                    ],
+                    ctx=ast.Load(),
+                ),
             ),
         ],
     )

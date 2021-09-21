@@ -143,20 +143,26 @@ class Graph(object):
 
     def get_arguments_from_call_node(
         self, node: CallNode
-    ) -> List[NodeValueType]:
+    ) -> tuple[List[NodeValueType], dict[str, NodeValueType]]:
         """
         FIXME: rather than using our loop comprehension, we should rely
           on database joins
         """
-        if node.arguments and len(node.arguments) > 0:
-            args = [
-                cast(ArgumentNode, self.get_node_else_raise(a))
-                for a in node.arguments
-            ]
+        arg_nodes = []
+        kwarg_values = {}
+        # Iterate through arguments and append to args/kwargs
+        for arg in node.arguments:
+            argument_node = cast(ArgumentNode, self.get_node_else_raise(arg))
+            if argument_node.keyword is not None:
+                kwarg_values[argument_node.keyword] = self.get_node_value(
+                    argument_node
+                )
+            else:
+                arg_nodes.append(argument_node)
 
-            args.sort(key=get_arg_position)
-            return [self.get_node_value(a) for a in args]
-        return []
+        arg_nodes.sort(key=get_arg_position)
+
+        return [self.get_node_value(a) for a in arg_nodes], kwarg_values
 
     # getting a node's parents before the graph has been constructed
     @staticmethod

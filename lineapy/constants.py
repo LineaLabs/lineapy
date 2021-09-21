@@ -58,7 +58,9 @@ GETATTR = getattr.__name__
 FUNCTION_NAME = "function_name"
 FUNCTION_MODULE = "function_module"
 SYNTAX_DICTIONARY = "syntax_dictionary"
+# TODO: Name these differently
 ARGUMENTS = "arguments"
+KEYWORD_ARGUMENTS = "keyword_arguments"
 VARIABLE_NAME = "variable_name"
 
 # BinOPs
