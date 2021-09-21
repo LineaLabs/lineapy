@@ -19,7 +19,7 @@ class TestProgramSlicer:
         graph_with_messy_nodes.code = code
         program_slicer = ProgramSlicer()
         code_slice = program_slicer.get_slice(
-            graph_with_messy_nodes, [f_assign]
+            graph_with_messy_nodes, [f_assign.id]
         )
         assert compare_code_via_ast(code_slice, sliced_code)
 
@@ -28,6 +28,6 @@ class TestProgramSlicer:
         graph_with_function_definition.code = function_code
         program_slicer = ProgramSlicer()
         code_slice = program_slicer.get_slice(
-            graph_with_function_definition, [my_function_call]
+            graph_with_function_definition, [my_function_call.id]
         )
         assert compare_code_via_ast(code_slice, function_code)

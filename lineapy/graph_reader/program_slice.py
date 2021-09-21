@@ -1,5 +1,5 @@
 import re
-from typing import List, Set, Optional
+from typing import List, Set
 
 from lineapy import Graph
 from lineapy.data.types import Node, LineaID
@@ -67,25 +67,19 @@ class ProgramSlicer(GraphReader):
     def validate(self, graph: Graph) -> None:
         pass
 
-    def get_slice(
-        self, program: Graph, sinks: Optional[List[Node]] = None
-    ) -> str:
+    def get_slice(self, program: Graph, sinks: List[LineaID]) -> str:
         """
         Find the necessary and sufficient code for computing the sink nodes.
-        If sinks are None, use the leaf nodes in the program Graph as sinks.
 
         :param program: the computation graph.
         :param sinks: artifacts to get the code slice for.
         :return: string containing the necessary and sufficient code for
         computing sinks.
         """
-        if sinks is None:
-            sinks = [
-                program.get_node(node) for node in program.get_leaf_nodes()
-            ]
-        ancestors: Set[LineaID] = set([node.id for node in sinks])
+        ancestors: Set[LineaID] = set(sinks)
 
         for sink in sinks:
+            sink = program.get_node(sink)
             ancestors.update(program.get_ancestors(sink))
         subgraph = Graph([program.get_node(node) for node in ancestors])
         subgraph.code = program.code
