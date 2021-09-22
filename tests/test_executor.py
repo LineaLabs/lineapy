@@ -15,30 +15,16 @@ from tests.stub_data.graph_with_csv_import import (
     graph_with_csv_import,
     session as graph_with_file_access_session,
 )
-from tests.stub_data.graph_with_simple_function_definition import (
-    simple_function_definition_graph,
-    session as simple_function_definition_graph_session,
-)
+
 
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
     session as graph_with_function_definition_session,
 )
-from tests.stub_data.graph_with_import import (
-    graph_with_import,
-    session as graph_with_import_session,
-)
+
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
-)
-from tests.stub_data.nested_call_graph import (
-    nested_call_graph,
-    session as nested_call_graph_session,
-)
-from tests.stub_data.simple_graph import (
-    simple_graph,
-    session as simple_graph_session,
 )
 
 
