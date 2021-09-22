@@ -1,4 +1,6 @@
 [tool.black]
 line-length = 79
+exclude = '__snapshots__'
+
 [tool.isort]
 profile = "black"
