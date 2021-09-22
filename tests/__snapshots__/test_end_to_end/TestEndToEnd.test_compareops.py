@@ -6,18 +6,18 @@ lineapy_tracer.assign(
     value_node=lineapy_tracer.call(
         function_name="lt",
         syntax_dictionary={
-            "lineno": 2,
+            "lineno": 1,
             "col_offset": 4,
-            "end_lineno": 2,
+            "end_lineno": 1,
             "end_col_offset": 13,
         },
         arguments=[
             lineapy_tracer.call(
                 function_name="lt",
                 syntax_dictionary={
-                    "lineno": 2,
+                    "lineno": 1,
                     "col_offset": 4,
-                    "end_lineno": 2,
+                    "end_lineno": 1,
                     "end_col_offset": 13,
                 },
                 arguments=[1, 2],
@@ -28,9 +28,9 @@ lineapy_tracer.assign(
         keyword_arguments=[],
     ),
     syntax_dictionary={
-        "lineno": 2,
+        "lineno": 1,
         "col_offset": 0,
-        "end_lineno": 2,
+        "end_lineno": 1,
         "end_col_offset": 13,
     },
 )
