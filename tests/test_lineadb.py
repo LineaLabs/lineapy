@@ -52,9 +52,7 @@ from tests.stub_data.nested_call_graph import (
     code as nested_call_graph_code,
 )
 
-from tests.stub_data.simple_with_variable_argument_and_print import (
-    code as print_code,
-)
+
 from tests.util import are_str_equal, reset_test_db
 
 
@@ -99,9 +97,6 @@ class TestLineaDB:
 
     def test_nested_call_graph(self, execute):
         assert execute(nested_call_graph_code).values["a"] == 10
-
-    def test_graph_with_print(self, execute):
-        assert execute(print_code).stdout == "10\n"
 
     def test_basic_import(self, execute):
         """

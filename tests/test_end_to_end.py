@@ -208,5 +208,14 @@ class TestEndToEnd:
         code = "ls = [1,2]\nassert ls[0] == 1"
         execute(code)
 
-    def test_simple_graph(self, execute):
+    def test_simple(self, execute):
         assert execute("a = abs(-11)").values["a"] == 11
+
+    def test_print(self, execute):
+        assert execute(PRINT_CODE).stdout == "10\n"
+
+
+PRINT_CODE = """a = abs(-11)
+b = min(a, 10)
+print(b)
+"""

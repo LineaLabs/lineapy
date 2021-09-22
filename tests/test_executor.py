@@ -35,9 +35,7 @@ from tests.stub_data.graph_with_loops import (
 from tests.stub_data.nested_call_graph import (
     code as nested_call_graph_code,
 )
-from tests.stub_data.simple_with_variable_argument_and_print import (
-    code as simple_with_variable_argument_and_print_code,
-)
+
 
 from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
@@ -50,10 +48,6 @@ class TestBasicExecutor:
     def test_nested_call_graph(self, execute):
         res = execute(nested_call_graph_code)
         assert res.values["a"] == 10
-
-    def test_graph_with_print(self, execute):
-        res = execute(simple_with_variable_argument_and_print_code)
-        assert res.stdout == "10\n"
 
     def test_basic_import(self, execute):
         """
