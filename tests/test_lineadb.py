@@ -13,32 +13,39 @@ from lineapy.graph_reader.graph_util import are_nodes_equal
 from tests.stub_data.graph_with_alias_by_reference import (
     graph_with_alias_by_reference,
     session as graph_with_alias_by_reference_session,
+    code as graph_with_alias_by_reference_code,
 )
 from tests.stub_data.graph_with_alias_by_value import (
     graph_with_alias_by_value,
     session as graph_with_alias_by_value_session,
+    code as graph_with_alias_by_value_code,
 )
 from tests.stub_data.graph_with_conditionals import (
     graph_with_conditionals,
     session as graph_with_conditionals_session,
+    code as graph_with_conditionals_code,
 )
 from tests.stub_data.graph_with_csv_import import (
     graph_with_csv_import,
     session as graph_with_file_access_session,
+    code as graph_with_file_access_code,
     simple_data_node,
     sum_call,
 )
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
     session as graph_with_function_definition_session,
+    code as graph_with_function_definition_code,
 )
 from tests.stub_data.graph_with_import import (
     graph_with_import,
     session as graph_with_import_session,
+    code as graph_with_import_code,
 )
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
+    code as graph_with_loops_code,
     y_id,
     code as loops_code,
 )
@@ -46,35 +53,39 @@ from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
     graph_sliced_by_var_f,
     session as graph_with_messy_nodes_session,
+    code as graph_with_messy_nodes_code,
     f_assign,
     sliced_code,
 )
 from tests.stub_data.nested_call_graph import (
     nested_call_graph,
     session as nested_call_graph_session,
+    code as nested_call_graph_code,
 )
 from tests.stub_data.simple_graph import (
     simple_graph,
     session as simple_graph_session,
+    simple_graph_code,
 )
 from tests.stub_data.simple_with_variable_argument_and_print import (
     simple_with_variable_argument_and_print,
     session as print_session,
+    code as print_code,
 )
 from tests.util import are_str_equal, reset_test_db
 
 
-class TestLineaDB(unittest.TestCase):
+class TestLineaDB:
     @property
     def db_config(self):
         return get_default_config_by_environment(ExecutionMode.MEMORY)
 
-    def setUp(self):
+    def setup_method(self):
         # just use the default config
         self.lineadb = RelationalLineaDB()
         self.lineadb.init_db(self.db_config)
 
-    def tearDown(self):
+    def teardown_method(self):
         # remove the test db
         reset_test_db(self.db_config.database_uri)
 
@@ -103,54 +114,23 @@ class TestLineaDB(unittest.TestCase):
 
         return db_graph
 
-    def test_simple_graph(self):
-        graph, context = self.write_and_read_graph(
-            simple_graph,
-            simple_graph_session,
-        )
-        e = Executor()
-        e.execute_program(graph, context)
-        a = e.get_value_by_variable_name("a")
-        assert a == 11
-        assert are_graphs_identical(graph, simple_graph)
+    def test_simple_graph(self, execute):
+        assert execute(simple_graph_code).values["a"] == 11
 
-    def test_nested_call_graph(self):
-        graph, context = self.write_and_read_graph(
-            nested_call_graph,
-            nested_call_graph_session,
-        )
-        e = Executor()
-        e.execute_program(graph, context)
-        a = e.get_value_by_variable_name("a")
-        assert a == 10
-        assert are_graphs_identical(graph, nested_call_graph)
+    def test_nested_call_graph(self, execute):
+        assert execute(nested_call_graph_code).values["a"] == 10
 
-    def test_graph_with_print(self):
-        graph, context = self.write_and_read_graph(
-            simple_with_variable_argument_and_print, print_session
-        )
-        e = Executor()
-        e.execute_program(graph, context)
-        stdout = e.get_stdout()
-        assert stdout == "10\n"
-        assert are_graphs_identical(
-            graph, simple_with_variable_argument_and_print
-        )
+    def test_graph_with_print(self, execute):
+        assert execute(print_code).stdout == "10\n"
 
-    def test_basic_import(self):
+    def test_basic_import(self, execute):
         """
         some imports are built in, such as "math" or "datetime"
         """
-        graph, context = self.write_and_read_graph(
-            graph_with_import, graph_with_import_session
-        )
-        e = Executor()
-        e.execute_program(graph, context)
-        b = e.get_value_by_variable_name("b")
-        assert b == 5
-        assert are_graphs_identical(graph, graph_with_import)
+        assert execute(graph_with_import_code).values["b"] == 5
 
-    def test_graph_with_function_definition(self):
+    # TODO: Move to E2E when function definitions that edit globals work
+    def test_graph_with_function_definition(self, execute):
         """ """
         graph, context = self.write_and_read_graph(
             graph_with_function_definition,
@@ -162,6 +142,7 @@ class TestLineaDB(unittest.TestCase):
         assert a == 120
         assert are_graphs_identical(graph, graph_with_function_definition)
 
+    # TODO: Move to E2E when control flow works
     def test_program_with_loops(self):
         graph, context = self.write_and_read_graph(
             graph_with_loops, graph_with_loops_session
@@ -176,6 +157,7 @@ class TestLineaDB(unittest.TestCase):
         assert len(a) == 9
         assert are_graphs_identical(graph, graph_with_loops)
 
+    # TODO: Move to E2E when control flow works
     def test_program_with_conditionals(self):
         graph, context = self.write_and_read_graph(
             graph_with_conditionals,
@@ -189,6 +171,7 @@ class TestLineaDB(unittest.TestCase):
         assert stdout == "False\n"
         assert are_graphs_identical(graph, graph_with_conditionals)
 
+    # TODO: Move to e2e when https://github.com/LineaLabs/lineapy/issues/178 is fixed
     def test_program_with_file_access(self):
         graph, context = self.write_and_read_graph(
             graph_with_csv_import, graph_with_file_access_session
@@ -211,6 +194,7 @@ class TestLineaDB(unittest.TestCase):
         assert len(derived) == 1
         assert derived
 
+    # TODO:  Move to e2e when https://github.com/LineaLabs/lineapy/issues/155 is fixed
     def test_variable_alias_by_value(self):
         graph, context = self.write_and_read_graph(
             graph_with_alias_by_value, graph_with_alias_by_value_session
@@ -223,6 +207,7 @@ class TestLineaDB(unittest.TestCase):
         assert b == 0
         assert are_graphs_identical(graph, graph_with_alias_by_value)
 
+    # TODO:  Move to e2e when https://github.com/LineaLabs/lineapy/issues/155 is fixed
     def test_variable_alias_by_reference(self):
         graph, context = self.write_and_read_graph(
             graph_with_alias_by_reference,
@@ -234,6 +219,7 @@ class TestLineaDB(unittest.TestCase):
         assert s == 10
         assert are_graphs_identical(graph, graph_with_alias_by_reference)
 
+    # TODO:  Move to e2e when https://github.com/LineaLabs/lineapy/issues/155 is fixed
     def test_slicing(self):
         graph, context = self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
@@ -250,6 +236,7 @@ class TestLineaDB(unittest.TestCase):
         assert f == 6
         assert are_graphs_identical(result, graph_sliced_by_var_f)
 
+    # TODO: Move to E2E when control flow works
     def test_slicing_loops(self):
         graph, context = self.write_and_read_graph(
             graph_with_loops, graph_with_loops_session
@@ -261,6 +248,7 @@ class TestLineaDB(unittest.TestCase):
         result = self.lineadb.get_graph_from_artifact_id(y_id)
         assert are_graphs_identical(result, graph)
 
+    # TODO: Move to E2E when control flow works
     def test_code_reconstruction_with_multilined_node(self):
         _ = self.write_and_read_graph(
             graph_with_loops,
@@ -275,6 +263,7 @@ class TestLineaDB(unittest.TestCase):
 
         assert are_str_equal(loops_code, reconstructed)
 
+    # TODO: Move to E2E when control flow works
     def test_code_reconstruction_with_slice(self):
         _ = self.write_and_read_graph(
             graph_with_messy_nodes, graph_with_messy_nodes_session
