@@ -130,7 +130,7 @@ class ExecuteResult:
 
     @property
     def stdout(self) -> str:
-        return self.executor._stdout
+        return self.executor.get_stdout()
 
     def slice(self, variable_name: str) -> ExecuteResult:
         pass

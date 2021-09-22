@@ -40,10 +40,7 @@ from tests.stub_data.simple_graph import (
     simple_graph,
     session as simple_graph_session,
 )
-from tests.stub_data.simple_with_variable_argument_and_print import (
-    simple_with_variable_argument_and_print,
-    session as simple_with_variable_argument_and_print_session,
-)
+
 
 from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
@@ -65,15 +62,6 @@ class TestBasicExecutor:
         e.execute_program(nested_call_graph, nested_call_graph_session)
         a = e.get_value_by_variable_name("a")
         assert a == 10
-
-    def test_graph_with_print(self):
-        e = Executor()
-        e.execute_program(
-            simple_with_variable_argument_and_print,
-            simple_with_variable_argument_and_print_session,
-        )
-        stdout = e.get_stdout()
-        assert stdout == "10\n"
 
     def test_basic_import(self):
         """
