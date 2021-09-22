@@ -1,6 +1,6 @@
 from lineapy import SessionType, Tracer, Variable, ExecutionMode
 lineapy_tracer = Tracer(SessionType.SCRIPT,
-    '[temp file path]'
+    '[source file path]'
     , ExecutionMode.MEMORY)
 lineapy_tracer.assign(variable_name='b', value_node=lineapy_tracer.call(
     function_name='lt', syntax_dictionary={'lineno': 2, 'col_offset': 4,
