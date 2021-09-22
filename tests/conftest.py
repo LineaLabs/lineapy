@@ -66,6 +66,10 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
 
 @pytest.fixture
 def execute(snapshot, tmp_path):
+    """
+    :param snapshot: `snapshot` is a fixture from the syrupy library that's automatically injected by pytest.
+    :param tmp_path: `tmp_path` is provided by the core pytest
+    """
     return ExecuteFixture(
         # Make a new snapshot extension for every comparison, b/c extension class is reset after using
         snapshot,
@@ -96,11 +100,13 @@ class ExecuteFixture:
         """
         Tests trace, graph, and executes code on init.
 
-        If exec_transformed_xfail is passed in, then will expect the execution
-        of the transformed code to fail.
-        https://docs.pytest.org/en/latest/how-to/skipping.html#xfail-mark-test-functions-as-expected-to-fail
+        All kwargs are keyword only (`*`)
 
-        If you don't want to execute, you can set the session type to STATIC
+        :param exec_transformed_xfail: If `exec_transformed_xfail` is passed in
+        then we will expect the execution of the transformed code to fail.
+
+        :param session_type:  If you don't want to execute, you can set the
+        `session_type` to STATIC
         """
         transformer = Transformer()
         # These temp filenames are unique per test function.
