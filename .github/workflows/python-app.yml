@@ -23,7 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest
-          pip install -e . -r requirements.txt -r dev-requirements.txt -r test-requirements.txt
+          pip install -e . -r requirements.txt -r dev-requirements.txt -r test-requirement.txt
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
