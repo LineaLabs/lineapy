@@ -53,7 +53,8 @@ f = a * b * c
 10
 e
 g = e
-"""
+""",
+        exec_transformed_xfail="https://github.com/LineaLabs/lineapy/issues/155",
     )
     assert res.values["g"] == 5
 
@@ -65,6 +66,7 @@ a = [1,2,3]
 b = a
 a.append(4)
 s = sum(b)
-"""
+""",
+        exec_transformed_xfail="https://github.com/LineaLabs/lineapy/issues/155",
     )
     assert res.values["s"] == 10

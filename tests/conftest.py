@@ -75,9 +75,11 @@ class ExecuteFixture:
     # We write the transformed file to this path
     tmp_path: pathlib.Path
 
-    def __call__(self, code: str):
+    def __call__(self, code: str, *, exec_transformed_xfail: str = None):
         """
         Tests trace, graph, and executes code on init.
+
+        if exec_transformed_xfail is true, then will expect the compilation of the transformed code to fail.
         """
         transformer = Transformer()
         tmp_file_path = self.tmp_path / "script.py"
@@ -97,6 +99,9 @@ class ExecuteFixture:
                 trace_code.replace(str(tmp_file_path), "[temp file path]")
                 == self.make_snapshot()
             )
+
+        if exec_transformed_xfail is not None:
+            pytest.xfail(exec_transformed_xfail)
 
         # Write to tmp file before execing, b/c it looks at file
         tmp_file_path.write_text(trace_code)
