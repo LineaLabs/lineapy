@@ -1,5 +1,6 @@
 from typing import cast, List, Dict, Optional, Any
 from dataclasses import dataclass
+
 import networkx as nx
 
 from lineapy.data.types import (
@@ -252,15 +253,3 @@ class Graph(object):
                     )
         # print(edges)
         return edges
-
-    def print(self):
-        for n in self._nodes:
-            print(n)
-        for e in self._edges:
-            print(e)
-
-    def __str__(self):
-        self.print()
-
-    def __repr__(self):
-        self.print()

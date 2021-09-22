@@ -334,12 +334,7 @@ class RelationalLineaDB(LineaDB):
            I would refer for the database to optimize
            this instead of relying on the ORM.
         """
-        session_context = (
-            self.session.query(SessionContextORM)
-            .filter(SessionContextORM.file_name == file_name)
-            .one()
-        )
-
+        session_context = self.get_context_by_file_name(file_name)
         nodes = (
             self.session.query(NodeORM)
             .filter(NodeORM.session_id == session_context.id)
@@ -348,6 +343,13 @@ class RelationalLineaDB(LineaDB):
 
         nodes = [self.map_orm_to_pydantic(node) for node in nodes]
         return nodes
+
+    def get_context_by_file_name(self, file_name: str) -> SessionContextORM:
+        return (
+            self.session.query(SessionContextORM)
+            .filter(SessionContextORM.file_name == file_name)
+            .one()
+        )
 
     def get_context(self, linea_id: str) -> SessionContext:
         query_obj = (
@@ -487,6 +489,10 @@ class RelationalLineaDB(LineaDB):
             .filter(NodeORM.session_id == session_id)
             .all()
         )
+        return [self.map_orm_to_pydantic(node) for node in node_orms]
+
+    def get_all_nodes(self) -> List[Node]:
+        node_orms = self.session.query(NodeORM).all()
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
     def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
