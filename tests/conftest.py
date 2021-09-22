@@ -53,6 +53,16 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
         except FileNotFoundError:
             return None
 
+    def get_snapshot_name(self, *, index: int = 0) -> str:
+        """
+        Override to not replace < in filename
+        """
+        return (
+            super(SingleFileSnapshotExtension, self)
+            .get_snapshot_name(index=index)
+            .replace("/", "__")
+        )
+
 
 @pytest.fixture
 def execute(snapshot, subtests, tmp_path):
@@ -81,14 +91,13 @@ class ExecuteFixture:
         code: str,
         *,
         exec_transformed_xfail: str = None,
-        transform_xfail: str = None,
         session_type: SessionType = SessionType.SCRIPT,
     ):
         """
         Tests trace, graph, and executes code on init.
 
         If exec_transformed_xfail is passed in, then will expect the execution of the transformed code to fail.
-        If transform_xfail is passed in, that it will be expected to fail when creating the transformed code.
+        https://docs.pytest.org/en/latest/how-to/skipping.html#xfail-mark-test-functions-as-expected-to-fail
 
         If you don't want to execute, you can set the session type to STATIC
         """
@@ -97,9 +106,6 @@ class ExecuteFixture:
         source_code_path.write_text(code)
 
         # Verify snapshot of source of user transformed code
-
-        if transform_xfail is not None:
-            pytest.xfail(transform_xfail)
 
         trace_code = transformer.transform(
             code,  # Set as script so it evals
@@ -121,6 +127,7 @@ class ExecuteFixture:
 
         if exec_transformed_xfail is not None:
             pytest.xfail(exec_transformed_xfail)
+            return
 
         transformed_code_path = self.tmp_path / "transformed.py"
 

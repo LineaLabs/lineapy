@@ -8,7 +8,7 @@ literal_1 = LiteralNode(
     lineno=1,
     col_offset=0,
     end_lineno=1,
-    end_col_offset=5,
+    end_col_offset=1,
     value=1,
-    assigned_variable_name="a",
+    assigned_variable_name=None,
 )
