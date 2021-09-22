@@ -103,7 +103,9 @@ class ExecuteFixture:
 
         # Execute the transformed code to create the graph in memory and exec
         locals: dict[str, typing.Any] = {}
-        exec(trace_code, {}, locals)
+        with self.subtests.test(msg="exec transformed"):
+            bytecode = compile(trace_code, str(tmp_file_path), "exec")
+            exec(bytecode, {}, locals)
         tracer: Tracer = locals["lineapy_tracer"]
 
         db = tracer.records_manager.db

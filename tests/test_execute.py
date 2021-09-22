@@ -39,3 +39,32 @@ print(b)
 """
     )
     assert res.stdout == "10\n"
+
+
+def test_messy_nodes(execute):
+    res = execute(
+        """
+a = 1
+b = a + 2
+c = 2
+d = 4
+e = d + a
+f = a * b * c
+10
+e
+g = e
+"""
+    )
+    assert res.values["g"] == 5
+
+
+def test_alias_by_reference(execute):
+    res = execute(
+        """
+a = [1,2,3]
+b = a
+a.append(4)
+s = sum(b)
+"""
+    )
+    assert res.values["s"] == 10
