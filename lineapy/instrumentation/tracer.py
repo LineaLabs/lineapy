@@ -72,7 +72,9 @@ class Tracer:
         )
         self.executor = Executor()
         self.variable_name_to_id: Dict[str, LineaID] = {}
-        self.function_name_to_function_module_import_id: Dict[str, LineaID] = {}
+        self.function_name_to_function_module_import_id: Dict[
+            str, LineaID
+        ] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -102,7 +104,9 @@ class Tracer:
             self.executor.execute_program(
                 Graph(self.nodes_to_be_evaluated, self.session_context),
             )
-            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
+            self.records_manager.add_evaluated_nodes(
+                self.nodes_to_be_evaluated
+            )
             # reset
             self.nodes_to_be_evaluated = []
             return
@@ -110,7 +114,9 @@ class Tracer:
             # Same flow as SCRIPT but without the executor
             # In the future, we can potentially do something fancy with
             #   importing and doing analysis there
-            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
+            self.records_manager.add_evaluated_nodes(
+                self.nodes_to_be_evaluated
+            )
             # reset
             self.nodes_to_be_evaluated = []
             return

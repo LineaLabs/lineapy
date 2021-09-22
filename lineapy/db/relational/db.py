@@ -73,7 +73,9 @@ class RelationalLineaDB(LineaDB):
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default=False)
         if not isinstance(echo, bool):
-            echo = str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
+            echo = (
+                str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
+            )
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
@@ -173,7 +175,9 @@ class RelationalLineaDB(LineaDB):
         self.session.add(context_orm)
         self.session.commit()
 
-    def add_lib_to_session_context(self, context_id: LineaID, library: Library):
+    def add_lib_to_session_context(
+        self, context_id: LineaID, library: Library
+    ):
         library_orm = self.write_library(library, context_id)
         self.session.commit()
 
@@ -488,7 +492,9 @@ class RelationalLineaDB(LineaDB):
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
-    def get_session_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
+    def get_session_graph_from_artifact_id(
+        self, artifact_id: LineaID
+    ) -> Graph:
         """ """
         node = self.get_node_by_id(artifact_id)
         nodes = self.get_nodes_for_session(node.session_id)

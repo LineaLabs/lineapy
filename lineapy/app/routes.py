@@ -73,10 +73,13 @@ def access_db_and_jsonify_artifact(artifact: Artifact, version: int):
     graph_nodes = lineadb.get_session_graph_from_artifact_id(artifact.id).nodes
 
     graph_node_values = [
-        lineadb.get_node_value_from_db(node.id, version) for node in graph_nodes
+        lineadb.get_node_value_from_db(node.id, version)
+        for node in graph_nodes
     ]
 
-    graph_node_values = [node for node in graph_node_values if node is not None]
+    graph_node_values = [
+        node for node in graph_node_values if node is not None
+    ]
 
     return jsonify_artifact(
         artifact, version, code, artifact_value, graph_nodes, graph_node_values
