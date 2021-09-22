@@ -1,4 +1,5 @@
 import ast
+from lineapy.data.types import SessionType
 import astor
 
 from lineapy.constants import (
@@ -63,73 +64,32 @@ class TestNodeTransformer:
             )
             assert False
 
-    def test_visit_import(self):
+    def test_visit_import(self, execute):
         simple_import = "import pandas"
-        simple_expected = (
-            "lineapy_tracer.trace_import(name='pandas', "
-            "syntax_dictionary={'lineno': 1,"
-            "'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 13},"
-            " alias=None)"
-        )
-        self._check_equality(simple_import, simple_expected)
+        execute(simple_import)
+
         alias_import = "import pandas as pd"
-        alias_expected = (
-            "lineapy_tracer.trace_import(name='pandas',"
-            " syntax_dictionary={'lineno':1,"
-            " 'col_offset':0,'end_lineno':1,'end_col_offset':19},   "
-            " alias='pd')"
-        )
-        self._check_equality(alias_import, alias_expected)
-        # multiple_imports = "import os, time"
-        # multiple_expected = ""
-        # self._check_equality(multiple_imports, multiple_expected)
+        execute(alias_import)
 
-    def test_visit_importfrom(self):
-        expected = (
-            "lineapy_tracer.trace_import(name='math', "
-            " syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 43},    attributes={'power': 'pow', 'root':"
-            " 'sqrt'})"
-        )
-        self._check_equality(import_code, expected)
+    def test_visit_importfrom(self, execute):
+        execute("from math import pow as power")
 
-    def test_visit_call(self):
+    def test_visit_call(self, execute):
         simple_call = "foo()"
-        expected_simple_call = (
-            "lineapy_tracer.call(function_name='foo',"
-            " syntax_dictionary={'lineno': 1,"
-            + "'col_offset': 0, 'end_lineno': 1, 'end_col_offset': 5},"
-            " arguments=[], keyword_arguments=[])"
-        )
-        self._check_equality(simple_call, expected_simple_call)
+        execute(simple_call, session_type=SessionType.STATIC)
 
-        call_with_args = "foo(a, b)"
-        expected_call_with_args = (
-            "lineapy_tracer.call(function_name='foo',"
-            " syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 9}, arguments=[Variable('a'), Variable('b')],"
-            " keyword_arguments=[])"
-        )
-        self._check_equality(call_with_args, expected_call_with_args)
+        call_with_args = "foo(1, 2)"
+        execute(call_with_args, session_type=SessionType.STATIC)
 
-    def test_visit_call_kwargs(self):
+    def test_visit_call_kwargs(self, execute):
         call_with_keyword_args = "foo(b=1)"
-        expected_call_with_kwargs = (
-            "lineapy_tracer.call(function_name='foo',"
-            " syntax_dictionary={'lineno': 1,'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 8}, arguments=[], keyword_arguments=[('b', 1)])"
-        )
-        self._check_equality(call_with_keyword_args, expected_call_with_kwargs)
+        execute(call_with_keyword_args, session_type=SessionType.STATIC)
 
-    def test_visit_assign(self):
+    def test_visit_assign(self, execute):
         simple_assign = "a = 1"
-        expected_simple_assign = (
-            "lineapy_tracer.literal(assigned_variable_name='a', value=1, "
-            "syntax_dictionary={'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
-            "'end_col_offset': 5})"
-        )
-        self._check_equality(simple_assign, expected_simple_assign)
+        execute(simple_assign)
 
+        # TODO: Move to execute when #155 is done
         assign_variable = "a = foo"
         expected_assign_variable = (
             "lineapy_tracer.assign(variable_name='a',"
@@ -139,26 +99,18 @@ class TestNodeTransformer:
         )
         self._check_equality(assign_variable, expected_assign_variable)
 
-    def test_visit_list(self):
+    def test_visit_list(self, execute):
         simple_list = "[1, 2]"
-        expected_simple_list = (
-            "lineapy_tracer.call(function_name='__build_list__',"
-            " syntax_dictionary={"
-            + "'lineno': 1, 'col_offset': 0, 'end_lineno': 1,"
-            " 'end_col_offset': 6},"
-            + "arguments=[1, 2], keyword_arguments=[])"
-        )
-        self._check_equality(simple_list, expected_simple_list)
+        execute(simple_list)
 
         variable_list = "[1, a]"
-        expected_variable_list = (
-            "lineapy_tracer.call(function_name='__build_list__',syntax_dictionary={'lineno':"
-            " 1, 'col_offset': 0, 'end_lineno': 1,'end_col_offset': 6},"
-            " arguments=[1, Variable('a')], keyword_arguments=[])"
+        execute(
+            variable_list,
+            session_type=SessionType.STATIC,
+            exec_transformed_xfail="evaling transformed with undefined var in list fails",
         )
-        self._check_equality(variable_list, expected_variable_list)
 
-    def test_visit_binop(self):
+    def test_visit_binop(self, execute):
         op_map = {
             "+": ADD,
             "-": SUB,
@@ -176,13 +128,10 @@ class TestNodeTransformer:
         }
         for op in op_map:
             simple_op = f"a {op} 1"
-            expected_simple_op = (
-                f"lineapy_tracer.call(function_name='{op_map[op]}',"
-                " syntax_dictionary={'lineno': 1,'col_offset': 0,"
-                f" 'end_lineno': 1, 'end_col_offset': {len(op) + 4}}},"
-                " arguments=[Variable('a'), 1], keyword_arguments=[])"
+            execute(
+                simple_op,
+                exec_transformed_xfail="evaling transformed with undefined var in op fails",
             )
-            self._check_equality(simple_op, expected_simple_op)
 
     def test_visit_compare(self):
         op_map = {

@@ -33,7 +33,6 @@ from tests.stub_data.graph_with_loops import (
     session as graph_with_loops_session,
 )
 from tests.stub_data.nested_call_graph import (
-    nested_call_graph,
     code as nested_call_graph_code,
 )
 from tests.stub_data.simple_graph import simple_graph_code

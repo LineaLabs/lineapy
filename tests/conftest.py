@@ -81,13 +81,16 @@ class ExecuteFixture:
         code: str,
         *,
         exec_transformed_xfail: str = None,
-        transform_xfail: str = None
+        transform_xfail: str = None,
+        session_type: SessionType = SessionType.SCRIPT,
     ):
         """
         Tests trace, graph, and executes code on init.
 
         If exec_transformed_xfail is passed in, then will expect the execution of the transformed code to fail.
         If transform_xfail is passed in, that it will be expected to fail when creating the transformed code.
+
+        If you don't want to execute, you can set the session type to STATIC
         """
         transformer = Transformer()
         source_code_path = self.tmp_path / "source.py"
@@ -100,7 +103,7 @@ class ExecuteFixture:
 
         trace_code = transformer.transform(
             code,  # Set as script so it evals
-            session_type=SessionType.SCRIPT,
+            session_type=session_type,
             # TODO: rename arg to session path
             session_name=str(source_code_path),
             execution_mode=ExecutionMode.MEMORY,
