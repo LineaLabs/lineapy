@@ -13,39 +13,31 @@ from lineapy.graph_reader.graph_util import are_nodes_equal
 from tests.stub_data.graph_with_alias_by_reference import (
     graph_with_alias_by_reference,
     session as graph_with_alias_by_reference_session,
-    code as graph_with_alias_by_reference_code,
 )
 from tests.stub_data.graph_with_alias_by_value import (
     graph_with_alias_by_value,
     session as graph_with_alias_by_value_session,
-    code as graph_with_alias_by_value_code,
 )
 from tests.stub_data.graph_with_conditionals import (
     graph_with_conditionals,
     session as graph_with_conditionals_session,
-    code as graph_with_conditionals_code,
 )
 from tests.stub_data.graph_with_csv_import import (
     graph_with_csv_import,
     session as graph_with_file_access_session,
-    code as graph_with_file_access_code,
     simple_data_node,
     sum_call,
 )
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
     session as graph_with_function_definition_session,
-    code as graph_with_function_definition_code,
 )
 from tests.stub_data.graph_with_import import (
-    graph_with_import,
-    session as graph_with_import_session,
     code as graph_with_import_code,
 )
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
-    code as graph_with_loops_code,
     y_id,
     code as loops_code,
 )
@@ -53,23 +45,16 @@ from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
     graph_sliced_by_var_f,
     session as graph_with_messy_nodes_session,
-    code as graph_with_messy_nodes_code,
     f_assign,
     sliced_code,
 )
 from tests.stub_data.nested_call_graph import (
-    nested_call_graph,
-    session as nested_call_graph_session,
     code as nested_call_graph_code,
 )
 from tests.stub_data.simple_graph import (
-    simple_graph,
-    session as simple_graph_session,
     simple_graph_code,
 )
 from tests.stub_data.simple_with_variable_argument_and_print import (
-    simple_with_variable_argument_and_print,
-    session as print_session,
     code as print_code,
 )
 from tests.util import are_str_equal, reset_test_db
