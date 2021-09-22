@@ -51,9 +51,7 @@ from tests.stub_data.graph_with_messy_nodes import (
 from tests.stub_data.nested_call_graph import (
     code as nested_call_graph_code,
 )
-from tests.stub_data.simple_graph import (
-    simple_graph_code,
-)
+
 from tests.stub_data.simple_with_variable_argument_and_print import (
     code as print_code,
 )
@@ -98,9 +96,6 @@ class TestLineaDB:
         db_graph = Graph(nodes)
 
         return db_graph
-
-    def test_simple_graph(self, execute):
-        assert execute(simple_graph_code).values["a"] == 11
 
     def test_nested_call_graph(self, execute):
         assert execute(nested_call_graph_code).values["a"] == 10

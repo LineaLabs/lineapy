@@ -207,3 +207,6 @@ class TestEndToEnd:
     def test_subscript(self, execute):
         code = "ls = [1,2]\nassert ls[0] == 1"
         execute(code)
+
+    def test_simple_graph(self, execute):
+        assert execute("a = abs(-11)").values["a"] == 11
