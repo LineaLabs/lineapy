@@ -104,5 +104,5 @@ line_3 = CallNode(
 )
 
 simple_with_variable_argument_and_print = Graph(
-    [arg_a, arg_10, arg_b, arg_literal, line_1, line_2, line_3]
+    [arg_a, arg_10, arg_b, arg_literal, line_1, line_2, line_3], session
 )

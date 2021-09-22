@@ -93,5 +93,6 @@ line_3 = CallNode(
 )
 
 graph_with_import = Graph(
-    [arg_literal1, arg_literal2, arg_a, import_math_node, line_2, line_3]
+    [arg_literal1, arg_literal2, arg_a, import_math_node, line_2, line_3],
+    session,
 )

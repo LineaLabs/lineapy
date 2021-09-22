@@ -33,7 +33,7 @@ from lineapy.db.asset_manager.local import (
 )
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
-from lineapy.graph_reader.program_slice import ProgramSlicer
+from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.utils import (
     CaseNotHandledError,
     NullValueError,
@@ -73,9 +73,7 @@ class RelationalLineaDB(LineaDB):
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default=False)
         if not isinstance(echo, bool):
-            echo = (
-                str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
-            )
+            echo = str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
@@ -175,9 +173,7 @@ class RelationalLineaDB(LineaDB):
         self.session.add(context_orm)
         self.session.commit()
 
-    def add_lib_to_session_context(
-        self, context_id: LineaID, library: Library
-    ):
+    def add_lib_to_session_context(self, context_id: LineaID, library: Library):
         library_orm = self.write_library(library, context_id)
         self.session.commit()
 
@@ -481,6 +477,10 @@ class RelationalLineaDB(LineaDB):
         return [Artifact.from_orm(r) for r in results]
 
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
+        """
+        Get all the nodes associated with the session, which does
+         NOT include things like SessionContext
+        """
         node_orms = (
             self.session.query(NodeORM)
             .filter(NodeORM.session_id == session_id)
@@ -488,23 +488,11 @@ class RelationalLineaDB(LineaDB):
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
-    def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
-        """
-        - This is program slicing over database data.
-        - There are lots of complexities when it comes to mutation
-          - Examples:
-            - Third party libraries have functions that mutate some global or
-              variable state.
-          - Strategy for now
-            - definitely take care of the simple cases, like `VariableNode`
-            - simple heuristics that may create false positives
-              (include things not necessary)
-            - but definitely NOT false negatives (then the program
-              CANNOT be executed)
-        """
+    def get_session_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
+        """ """
         node = self.get_node_by_id(artifact_id)
         nodes = self.get_nodes_for_session(node.session_id)
-        return Graph(nodes)
+        return Graph(nodes, self.get_context(node.session_id))
 
     def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
         """
@@ -517,14 +505,8 @@ class RelationalLineaDB(LineaDB):
         :param artifact_id: UUID for the artifact
         :return: string containing the code for generating the artifact.
         """
-        graph = self.get_graph_from_artifact_id(artifact_id)
-        session_code = self.get_context(
-            self.get_node_by_id(artifact_id).session_id
-        ).code
-        graph.code = session_code
-
-        program_slicer = ProgramSlicer()
-        return program_slicer.get_slice(graph, [artifact_id])
+        graph = self.get_session_graph_from_artifact_id(artifact_id)
+        return get_program_slice(graph, [artifact_id])
 
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode

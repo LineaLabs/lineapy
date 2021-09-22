@@ -62,5 +62,5 @@ assignment_node = CallNode(
 )
 
 simple_function_definition_graph = Graph(
-    [definition_node, a_arg, b_arg, assignment_node]
+    [definition_node, a_arg, b_arg, assignment_node], session
 )

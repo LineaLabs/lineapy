@@ -221,5 +221,6 @@ graph_with_loops = Graph(
         line_6,
         operator_module,
         line_7,
-    ]
+    ],
+    session,
 )

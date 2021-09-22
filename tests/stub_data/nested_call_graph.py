@@ -80,4 +80,6 @@ line_1b = CallNode(
     end_col_offset=21,
 )
 
-nested_call_graph = Graph([arg_literal, arg_1, arg_10, line_1a, line_1b])
+nested_call_graph = Graph(
+    [arg_literal, arg_1, arg_10, line_1a, line_1b], session
+)

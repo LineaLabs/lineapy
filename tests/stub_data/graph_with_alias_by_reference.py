@@ -116,7 +116,7 @@ b_sum = CallNode(
 )
 
 graph_with_alias_by_reference = Graph(
-    nodes=[
+    [
         arg_1,
         arg_2,
         arg_3,
@@ -127,4 +127,5 @@ graph_with_alias_by_reference = Graph(
         a_append,
         b_sum,
     ],
+    session,
 )

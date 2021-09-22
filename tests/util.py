@@ -64,10 +64,24 @@ def strip_non_letter_num(s: str):
     return sub("[\\s+]", "", s)
 
 
-def are_str_equal(s1: str, s2: str, remove_all_non_letter=False):
+def are_str_equal(
+    s1: str,
+    s2: str,
+    remove_all_non_letter=False,
+    find_diff=False,
+):
     if remove_all_non_letter:
         return strip_non_letter_num(s1) == strip_non_letter_num(s2)
-    return s1.strip() == s2.strip()
+    if s1.strip() == s2.strip():
+        return True
+    if find_diff:
+        splitS1 = set(s1.split("\n"))
+        splitS2 = set(s2.split("\n"))
+
+        diff = splitS2.difference(splitS1)
+        diff = ", ".join(diff)
+        print("Difference:", diff)
+        return False
 
 
 def get_new_session(
@@ -148,7 +162,7 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     executor = Executor()
 
     # execute stub graph and write to database
-    execution_time = executor.execute_program(stub_graph, context)
+    execution_time = executor.execute_program(stub_graph)
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
 
@@ -191,7 +205,7 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     executor = Executor()
 
     # execute stub graph and write to database
-    execution_time = executor.execute_program(stub_graph, context)
+    execution_time = executor.execute_program(stub_graph)
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
 

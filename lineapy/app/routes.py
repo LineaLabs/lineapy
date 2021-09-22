@@ -70,16 +70,13 @@ def access_db_and_jsonify_artifact(artifact: Artifact, version: int):
     if artifact_value is None:
         raise InternalLogicError("Cannot find artifact")
     code = lineadb.get_code_from_artifact_id(artifact.id)
-    graph_nodes = lineadb.get_graph_from_artifact_id(artifact.id).nodes
+    graph_nodes = lineadb.get_session_graph_from_artifact_id(artifact.id).nodes
 
     graph_node_values = [
-        lineadb.get_node_value_from_db(node.id, version)
-        for node in graph_nodes
+        lineadb.get_node_value_from_db(node.id, version) for node in graph_nodes
     ]
 
-    graph_node_values = [
-        node for node in graph_node_values if node is not None
-    ]
+    graph_node_values = [node for node in graph_node_values if node is not None]
 
     return jsonify_artifact(
         artifact, version, code, artifact_value, graph_nodes, graph_node_values
@@ -114,7 +111,7 @@ def execute(artifact_id):
 
         # get graph and re-execute
         executor = Executor()
-        program = lineadb.get_graph_from_artifact_id(artifact_id)
+        program = lineadb.get_session_graph_from_artifact_id(artifact_id)
         artifact_node = lineadb.get_node_by_id(artifact_id)
         context = lineadb.get_context(artifact_node.session_id)
         execution_time = executor.execute_program(program, context)

@@ -56,22 +56,19 @@ class TestBasicExecutor:
     def test_simple_graph(self):
         # initialize the executor
         e = Executor()
-        e.execute_program(simple_graph, simple_graph_session)
+        e.execute_program(simple_graph)
         a = e.get_value_by_variable_name("a")
         assert a == 11
 
     def test_nested_call_graph(self):
         e = Executor()
-        e.execute_program(nested_call_graph, nested_call_graph_session)
+        e.execute_program(nested_call_graph)
         a = e.get_value_by_variable_name("a")
         assert a == 10
 
     def test_graph_with_print(self):
         e = Executor()
-        e.execute_program(
-            simple_with_variable_argument_and_print,
-            simple_with_variable_argument_and_print_session,
-        )
+        e.execute_program(simple_with_variable_argument_and_print)
         stdout = e.get_stdout()
         assert stdout == "10\n"
 
@@ -80,7 +77,7 @@ class TestBasicExecutor:
         some imports are built in, such as "math" or "datetime"
         """
         e = Executor()
-        e.execute_program(graph_with_import, graph_with_import_session)
+        e.execute_program(graph_with_import)
         b = e.get_value_by_variable_name("b")
         assert b == 5
 
@@ -88,7 +85,6 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             simple_function_definition_graph,
-            simple_function_definition_graph_session,
         )
         c = e.get_value_by_variable_name("c")
         assert c == 1
@@ -98,7 +94,6 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_function_definition,
-            graph_with_function_definition_session,
         )
         a = e.get_value_by_variable_name("a")
         assert a == 120
@@ -111,7 +106,7 @@ class TestBasicExecutor:
 
     def test_program_with_loops(self):
         e = Executor()
-        e.execute_program(graph_with_loops, graph_with_loops_session)
+        e.execute_program(graph_with_loops)
         y = e.get_value_by_variable_name("y")
         x = e.get_value_by_variable_name("x")
         a = e.get_value_by_variable_name("a")
@@ -123,7 +118,6 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_conditionals,
-            graph_with_conditionals_session,
         )
         bs = e.get_value_by_variable_name("bs")
         stdout = e.get_stdout()
@@ -134,16 +128,13 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_csv_import,
-            graph_with_file_access_session,
         )
         s = e.get_value_by_variable_name("s")
         assert s == 25
 
     def test_variable_alias_by_value(self):
         e = Executor()
-        e.execute_program(
-            graph_with_alias_by_value, graph_with_alias_by_value_session
-        )
+        e.execute_program(graph_with_alias_by_value)
         a = e.get_value_by_variable_name("a")
         b = e.get_value_by_variable_name("b")
         assert a == 2
@@ -153,7 +144,6 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_alias_by_reference,
-            graph_with_alias_by_reference_session,
         )
         s = e.get_value_by_variable_name("s")
         assert s == 10
@@ -162,7 +152,6 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_messy_nodes,
-            graph_with_messy_nodes_session,
         )
         g = e.get_value_by_variable_name("g")
         assert g == 5

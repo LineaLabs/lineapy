@@ -104,12 +104,13 @@ condition_line = ConditionNode(
 )
 
 graph_with_conditionals = Graph(
-    nodes=[
+    [
         condition_line,
         state_change_input,
         state_change_output,
         arg_1,
         arg_2,
         bs_line,
-    ]
+    ],
+    session,
 )

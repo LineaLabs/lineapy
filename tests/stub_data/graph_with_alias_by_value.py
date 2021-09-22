@@ -61,4 +61,4 @@ a_mutate = LiteralNode(
     end_col_offset=5,
 )
 
-graph_with_alias_by_value = Graph(nodes=[a_assign, b_assign, a_mutate])
+graph_with_alias_by_value = Graph([a_assign, b_assign, a_mutate], session)

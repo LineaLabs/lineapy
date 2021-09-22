@@ -45,4 +45,4 @@ line_1 = CallNode(
     end_col_offset=12,
 )
 
-simple_graph = Graph([arg_literal, line_1])
+simple_graph = Graph([arg_literal, line_1], session)
