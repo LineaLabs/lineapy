@@ -34,8 +34,8 @@ The orm_mode allows us to use from_orm to convert ORM
 """
 
 
-# aliasing the ID type in case we change it later, and to be more descriptive
-#   than str
+# Use a NewType instead of a string so that we can look at annotations of fields in pydantic models
+# that use this to differentiate between strings and IDs when pretty printing
 LineaID = NewType("LineaID", str)
 
 
