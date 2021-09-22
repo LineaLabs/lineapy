@@ -78,8 +78,9 @@ class ExecuteFixture:
     """
     Creates an instance returned from the fixture.
 
-    Like https://docs.pytest.org/en/6.2.x/fixture.html#factories-as-fixtures but uses a class with a __call__ method,
-    instead of a function, for better debugging.
+    Like https://docs.pytest.org/en/6.2.x/fixture.html#factories-as-fixtures
+    but uses a class with a __call__ method, instead of a function, for
+    better debugging.
     """
 
     snapshot: syrupy.SnapshotAssertion
@@ -95,12 +96,16 @@ class ExecuteFixture:
         """
         Tests trace, graph, and executes code on init.
 
-        If exec_transformed_xfail is passed in, then will expect the execution of the transformed code to fail.
+        If exec_transformed_xfail is passed in, then will expect the execution
+        of the transformed code to fail.
         https://docs.pytest.org/en/latest/how-to/skipping.html#xfail-mark-test-functions-as-expected-to-fail
 
         If you don't want to execute, you can set the session type to STATIC
         """
         transformer = Transformer()
+        # These temp filenames are unique per test function.
+        # If `execute` is called twice in a test, it will overwrite the
+        # previous paths
         source_code_path = self.tmp_path / "source.py"
         source_code_path.write_text(code)
 
