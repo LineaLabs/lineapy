@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 import typing
 import black
 import networkx as nx
+from pydantic import BaseModel
 from pydantic.fields import SHAPE_LIST, SHAPE_SINGLETON
 
 from lineapy.data.types import (
@@ -307,15 +308,21 @@ class GraphPrinter:
             node = self.graph.ids[node_id]
             attr_name = self.get_node_type_name(node.node_type)
             self.id_to_attribute_name[node_id] = attr_name
-            yield f"{attr_name} = {type(node).__name__}("
-            yield from self.pretty_print_node_lines(node)
+            yield f"{attr_name} = ("
+            yield from self.pretty_print_model(node)
             yield ")"
+
+    def pretty_print_model(self, model: BaseModel) -> typing.Iterable[str]:
+        yield f"{type(model).__name__}("
+        yield from self.pretty_print_node_lines(model)
+        yield ")"
 
     def lookup_id(self, id: LineaID) -> str:
         return self.id_to_attribute_name[id] + ".id"
 
-    def pretty_print_node_lines(self, node: Node) -> typing.Iterable[str]:
-        for k, v in node.dict().items():
+    def pretty_print_node_lines(self, node: BaseModel) -> typing.Iterable[str]:
+        for k in node.__fields__.keys():
+            v = getattr(node, k)
             field = node.__fields__[k]
             tp = field.type_
             shape = field.shape
@@ -335,17 +342,19 @@ class GraphPrinter:
                 v_str = "[" + ", ".join(args) + "]"
             # Singleton NewTypes get cast to str by pydantic, so we can't differentiate at the field
             # level between them and strings, so we just see if can look up the ID
-            elif v in self.id_to_attribute_name:
-                v_str = self.lookup_id(v)
+            elif isinstance(v, str) and v in self.id_to_attribute_name:  # type: ignore
+                v_str = self.lookup_id(v)  # type: ignore
             else:
-                v_str = pretty_print_value(v)
+                v_str = "\n".join(self.pretty_print_value(v))
             yield f"{k}={v_str},"
 
-
-def pretty_print_value(v: object) -> str:
-    if isinstance(v, enum.Enum):
-        return v.name
-    return repr(v)
+    def pretty_print_value(self, v: object) -> typing.Iterable[str]:
+        if isinstance(v, enum.Enum):
+            yield v.name
+        elif isinstance(v, BaseModel):
+            yield from self.pretty_print_model(v)
+        else:
+            yield repr(v)
 
 
 def pretty_print_node_type(type: NodeType) -> str:

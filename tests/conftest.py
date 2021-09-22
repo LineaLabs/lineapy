@@ -75,41 +75,54 @@ class ExecuteFixture:
     # We write the transformed file to this path
     tmp_path: pathlib.Path
 
-    def __call__(self, code: str, *, exec_transformed_xfail: str = None):
+    def __call__(
+        self,
+        code: str,
+        *,
+        exec_transformed_xfail: str = None,
+        transform_xfail: str = None
+    ):
         """
         Tests trace, graph, and executes code on init.
 
-        if exec_transformed_xfail is true, then will expect the compilation of the transformed code to fail.
+        If exec_transformed_xfail is passed in, then will expect the execution of the transformed code to fail.
+        If transform_xfail is passed in, that it will be expected to fail when creating the transformed code.
         """
         transformer = Transformer()
-        tmp_file_path = self.tmp_path / "script.py"
+        source_code_path = self.tmp_path / "source.py"
+        source_code_path.write_text(code)
 
         # Verify snapshot of source of user transformed code
+
+        if transform_xfail is not None:
+            pytest.xfail(transform_xfail)
 
         trace_code = transformer.transform(
             code,  # Set as script so it evals
             session_type=SessionType.SCRIPT,
             # TODO: rename arg to session path
-            session_name=str(tmp_file_path),
+            session_name=str(source_code_path),
             execution_mode=ExecutionMode.MEMORY,
         )
 
         with self.subtests.test(msg="node transformer"):
             assert (
-                trace_code.replace(str(tmp_file_path), "[temp file path]")
+                trace_code.replace(str(source_code_path), "[source file path]")
                 == self.make_snapshot()
             )
 
         if exec_transformed_xfail is not None:
             pytest.xfail(exec_transformed_xfail)
 
+        transformed_code_path = self.tmp_path / "transformed.py"
+
         # Write to tmp file before execing, b/c it looks at file
-        tmp_file_path.write_text(trace_code)
+        transformed_code_path.write_text(trace_code)
 
         # Execute the transformed code to create the graph in memory and exec
         locals: dict[str, typing.Any] = {}
         with self.subtests.test(msg="exec transformed"):
-            bytecode = compile(trace_code, str(tmp_file_path), "exec")
+            bytecode = compile(trace_code, str(transformed_code_path), "exec")
             exec(bytecode, {}, locals)
         tracer: Tracer = locals["lineapy_tracer"]
 

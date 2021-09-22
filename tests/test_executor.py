@@ -46,41 +46,11 @@ from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
     session as graph_with_messy_nodes_session,
 )
+import pytest
 
 
 class TestBasicExecutor:
-    # we should probably do a shared setup in the future
-    def test_simple_graph(self):
-        # initialize the executor
-        e = Executor()
-        e.execute_program(simple_graph, simple_graph_session)
-        a = e.get_value_by_variable_name("a")
-        assert a == 11
-
-    def test_nested_call_graph(self):
-        e = Executor()
-        e.execute_program(nested_call_graph, nested_call_graph_session)
-        a = e.get_value_by_variable_name("a")
-        assert a == 10
-
-    def test_basic_import(self):
-        """
-        some imports are built in, such as "math" or "datetime"
-        """
-        e = Executor()
-        e.execute_program(graph_with_import, graph_with_import_session)
-        b = e.get_value_by_variable_name("b")
-        assert b == 5
-
-    def test_simple_function_definition_graph(self):
-        e = Executor()
-        e.execute_program(
-            simple_function_definition_graph,
-            simple_function_definition_graph_session,
-        )
-        c = e.get_value_by_variable_name("c")
-        assert c == 1
-
+    # TODO: Move to E2E when function definitions that edit globals work
     def test_graph_with_function_definition(self):
         """ """
         e = Executor()
@@ -97,6 +67,7 @@ class TestBasicExecutor:
         """
         pass
 
+    # TODO: Move to E2E test when loops work
     def test_program_with_loops(self):
         e = Executor()
         e.execute_program(graph_with_loops, graph_with_loops_session)
@@ -107,6 +78,8 @@ class TestBasicExecutor:
         assert x == 36
         assert len(a) == 9
 
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/180 is fixed
+    # and enable as end to end test
     def test_program_with_conditionals(self):
         e = Executor()
         e.execute_program(
@@ -118,6 +91,8 @@ class TestBasicExecutor:
         assert bs == [1, 2, 3]
         assert stdout == "False\n"
 
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/178 is fixed
+    # and enable as end to end test
     def test_program_with_file_access(self):
         e = Executor()
         e.execute_program(
@@ -127,6 +102,8 @@ class TestBasicExecutor:
         s = e.get_value_by_variable_name("s")
         assert s == 25
 
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/155 is fixed
+    # and enable as end to end test
     def test_variable_alias_by_value(self):
         e = Executor()
         e.execute_program(
@@ -137,6 +114,8 @@ class TestBasicExecutor:
         assert a == 2
         assert b == 0
 
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/155 is fixed
+    # and enable as end to end test
     def test_variable_alias_by_reference(self):
         e = Executor()
         e.execute_program(
@@ -146,6 +125,8 @@ class TestBasicExecutor:
         s = e.get_value_by_variable_name("s")
         assert s == 10
 
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/155 is fixed
+    # and enable as end to end test
     def test_headless_variable_and_literals(self):
         e = Executor()
         e.execute_program(
@@ -174,3 +155,118 @@ class TestBasicExecutor:
         # stdout = e.get_stdout()
         # assert stdout == "True\n"
         pass
+
+
+def test_simple(execute):
+    res = execute("a = abs(-11)")
+    assert res.values["a"] == 11
+
+
+def test_nested_call(execute):
+    res = execute("a = min(abs(-11), 10)")
+    assert res.values["a"] == 10
+
+
+def test_simple_with_variable_argument_and_print(execute):
+    res = execute(
+        """
+a = abs(-11)
+b = min(a, 10)
+print(b)
+"""
+    )
+    assert res.stdout == "10\n"
+
+
+def test_messy_nodes(execute):
+    res = execute(
+        """
+a = 1
+b = a + 2
+c = 2
+d = 4
+e = d + a
+f = a * b * c
+10
+e
+g = e
+""",
+        exec_transformed_xfail="https://github.com/LineaLabs/lineapy/issues/155",
+    )
+    assert res.values["g"] == 5
+
+
+def test_alias_by_reference(execute):
+    res = execute(
+        """
+a = [1,2,3]
+b = a
+a.append(4)
+s = sum(b)
+""",
+        exec_transformed_xfail="https://github.com/LineaLabs/lineapy/issues/155",
+    )
+    assert res.values["s"] == 10
+
+
+def test_variable_alias_by_value(execute):
+    res = execute(
+        """
+a = 0
+b = a
+a = 2
+""",
+        exec_transformed_xfail="https://github.com/LineaLabs/lineapy/issues/155",
+    )
+    assert res.values["a"] == 2
+    assert res.values["b"] == 0
+
+
+def test_file_access(execute):
+    res = execute(
+        """
+import pandas as pd
+df = pd.read_csv('simple_data.csv')
+s = df['a'].sum()
+""",
+        transform_xfail="https://github.com/LineaLabs/lineapy/issues/178",
+    )
+    assert res.values["s"] == 25
+
+
+@pytest.mark.xfail(reason="https://github.com/LineaLabs/lineapy/issues/180")
+def test_conditionals(execute):
+    res = execute(
+        """
+bs = [1,2]
+if len(bs) > 4:
+    print("True")
+else:
+    bs.append(3)
+    print("False")
+"""
+    )
+    assert res.stdout == "False\n"
+    assert res.values["bs"] == [1, 2, 3]
+
+
+def test_simple_function_definition(execute):
+    res = execute(
+        """
+def foo(a, b):
+    return a - b
+c = foo(b=1, a=2)
+"""
+    )
+    assert res.values["c"] == 1
+
+
+def test_import(execute):
+    res = execute(
+        """
+from math import pow as power, sqrt as root
+a = power(5, 2)
+b = root(a)
+"""
+    )
+    assert res.values["b"] == 5

@@ -208,3 +208,30 @@ class TestEndToEnd:
         # assert result.exit_code == 2
         # assert "Usage:" in result.stderr
         pass
+
+
+def test_compareops(execute):
+    execute(
+        """
+b = 1 < 2 < 3
+assert b
+"""
+    )
+
+
+def test_binops(execute):
+    execute(
+        """
+b = 1 + 2
+assert b == 3
+"""
+    )
+
+
+def test_subscript(execute):
+    execute(
+        """
+ls = [1,2]
+assert ls[0] == 1
+"""
+    )
