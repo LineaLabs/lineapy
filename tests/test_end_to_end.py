@@ -169,6 +169,7 @@ class TestEndToEnd:
     #         session_context, graph_with_basic_image_session, True
     #     )
     def test_import(self):
+        # TODO: When we serialize session context with graph,
         tmp_file_name = run_code(import_code, "basic_import")
         nodes = self.db.get_nodes_by_file_name(tmp_file_name)
         assert len(nodes) == 6

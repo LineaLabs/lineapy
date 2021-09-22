@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from enum import Enum
 from typing import Any, NewType, Tuple, Optional, List, Dict
 from pydantic import BaseModel
@@ -65,7 +65,7 @@ class SessionContext(BaseModel):
 
     id: LineaID  # populated on creation by uuid.uuid4()
     environment_type: SessionType
-    creation_time: datetime
+    creation_time: datetime.datetime
     # making file name required since every thing runs from some file
     file_name: str
     code: str
@@ -81,7 +81,7 @@ class SessionContext(BaseModel):
 class NodeContext(BaseModel):
     lines: Tuple[int, int]
     columns: Tuple[int, int]
-    execution_duration: datetime
+    execution_duration: datetime.datetime
     cell_id: Optional[str] = None  # only applicable to Jupyter sessions
 
     class Config:
@@ -137,7 +137,7 @@ class NodeValue(BaseModel):
     value: NodeValueType
     value_type: ValueType
     virtual: bool
-    timestamp: datetime
+    timestamp: datetime.datetime
 
     class Config:
         orm_mode = True
@@ -146,7 +146,7 @@ class NodeValue(BaseModel):
 class Execution(BaseModel):
     artifact_id: LineaID
     version: str
-    timestamp: Optional[datetime]
+    timestamp: Optional[datetime.datetime]
     execution_time: float
 
     class Config:

@@ -1,6 +1,7 @@
 from __future__ import annotations
-
+import datetime
 import dataclasses
+from lineapy.graph_writer.graph_printer import GraphPrinter
 import pathlib
 import typing
 from pathlib import Path
@@ -14,7 +15,7 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
-from lineapy.data.types import Artifact, SessionType
+from lineapy.data.types import Artifact, SessionContext, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
@@ -107,11 +108,12 @@ class ExecuteFixture:
 
         # Verify snapshot of source of user transformed code
 
+        session_name = str(source_code_path)
         trace_code = transformer.transform(
             code,  # Set as script so it evals
             session_type=session_type,
             # TODO: rename arg to session path
-            session_name=str(source_code_path),
+            session_name=session_name,
             execution_mode=ExecutionMode.MEMORY,
         )
 
@@ -146,8 +148,21 @@ class ExecuteFixture:
         # Verify snapshot of graph
         nodes = db.get_all_nodes()
         graph = Graph(nodes)
+        context = SessionContext.from_orm(
+            db.get_context_by_file_name(session_name)
+        )
+
         with self.subtests.test(msg="graph"):
-            assert repr(graph) == self.make_snapshot()
+
+            assert (
+                GraphPrinter(graph, context)()
+                .replace(str(source_code_path), "[source file path]")
+                .replace(
+                    repr(context.creation_time),
+                    repr(datetime.datetime.fromordinal(1)),
+                )
+                == self.make_snapshot()
+            )
 
         return ExecuteResult(db, graph, tracer.executor)
 
