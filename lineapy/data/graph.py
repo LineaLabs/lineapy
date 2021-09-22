@@ -60,6 +60,7 @@ class Graph(object):
             ]
         )
 
+        self.print = GraphPrinter(self)
         if not nx.is_directed_acyclic_graph(self._nx_graph):
             raise InternalLogicError("Graph should not be cyclic")
 
@@ -260,9 +261,6 @@ class Graph(object):
         # print(edges)
         return edges
 
-    def print(self):
-        return GraphPrinter(self).print()
-
     def __str__(self):
         return self.print()
 
@@ -287,7 +285,7 @@ class GraphPrinter:
         default_factory=lambda: collections.defaultdict(lambda: 0)
     )
 
-    def print(self) -> Any:
+    def __call__(self) -> Any:
         s = "\n".join(self.lines())
         return black.format_str(s, mode=black.Mode())
 
