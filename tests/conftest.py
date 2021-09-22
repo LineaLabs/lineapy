@@ -4,6 +4,7 @@ import dataclasses
 import pathlib
 import typing
 from pathlib import Path
+import black
 
 import pytest
 import pytest_subtests
@@ -21,6 +22,7 @@ from lineapy.transformer.transformer import Transformer
 
 
 # Based off of unmerged JSON extension
+# Writes each snapshot to its own Python file
 # https://github.com/tophat/syrupy/pull/552/files#diff-9bab2a0973c5e73c86ed7042300befcaa5a034df17cea4d013eeaece6af66979
 class PythonSnapshotExtension(SingleFileSnapshotExtension):
     _file_extension = "py"
@@ -71,8 +73,6 @@ class ExecuteFixture:
 
     make_snapshot: typing.Callable[[], syrupy.SnapshotAssertion]
     subtests: pytest_subtests.SubTests
-    # lineadb: RelationalLineaDB
-    # We write the transformed file to this path
     tmp_path: pathlib.Path
 
     def __call__(
@@ -106,10 +106,14 @@ class ExecuteFixture:
         )
 
         with self.subtests.test(msg="node transformer"):
-            assert (
-                trace_code.replace(str(source_code_path), "[source file path]")
-                == self.make_snapshot()
+            # Replace the source path with a consistant name so its compared properly
+            pretty_trace_code = black.format_str(
+                trace_code.replace(
+                    str(source_code_path), "[source file path]"
+                ),
+                mode=black.Mode(),
             )
+            assert pretty_trace_code == self.make_snapshot()
 
         if exec_transformed_xfail is not None:
             pytest.xfail(exec_transformed_xfail)
@@ -134,7 +138,6 @@ class ExecuteFixture:
         with self.subtests.test(msg="graph"):
             assert repr(graph) == self.make_snapshot()
 
-        # TODO: Add ability to slice graph and then compare result, like in test_lineadb test_slicing
         return ExecuteResult(db, graph, tracer.executor)
 
 
