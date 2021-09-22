@@ -26,10 +26,6 @@ from tests.stub_data.graph_with_simple_function_definition import (
 #     code as graph_with_basic_image_code,
 #     session as graph_with_basic_image_session,
 # )
-from tests.stub_data.graph_with_import import (
-    code as import_code,
-    session as import_session,
-)
 
 publish_name = "testing artifact publish"
 publish_code = (
@@ -37,6 +33,17 @@ publish_code = (
     f" abs(-11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
     f" '{publish_name}')\n"
 )
+
+
+PRINT_CODE = """a = abs(-11)
+b = min(a, 10)
+print(b)
+"""
+
+IMPORT_CODE = """from math import pow as power, sqrt as root
+a = power(5, 2)
+b = root(a)
+"""
 
 
 class TestEndToEnd:
@@ -168,24 +175,9 @@ class TestEndToEnd:
     #     assert compare_pydantic_objects_without_id(
     #         session_context, graph_with_basic_image_session, True
     #     )
-    def test_import(self):
-        # TODO: When we serialize session context with graph,
-        tmp_file_name = run_code(import_code, "basic_import")
-        nodes = self.db.get_nodes_by_file_name(tmp_file_name)
-        assert len(nodes) == 6
-        session_context = self.db.get_context(nodes[0].session_id)
-        # make sure that the libraries are the sam
-        assert compare_pydantic_objects_without_keys(
-            session_context,
-            import_session,
-            ["id", "libraries", "file_name", "creation_time"],
-            True,
-        )
-        assert len(session_context.libraries) == len(import_session.libraries)
-        for idx, l in enumerate(session_context.libraries):
-            assert compare_pydantic_objects_without_keys(
-                l, import_session.libraries[idx], ["id"], True
-            )
+    def test_import(self, execute):
+        res = execute(IMPORT_CODE)
+        assert res.values["b"] == 5
 
     def test_no_script_error(self):
         # TODO
@@ -214,9 +206,3 @@ class TestEndToEnd:
 
     def test_print(self, execute):
         assert execute(PRINT_CODE).stdout == "10\n"
-
-
-PRINT_CODE = """a = abs(-11)
-b = min(a, 10)
-print(b)
-"""

@@ -32,9 +32,7 @@ from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
     session as graph_with_function_definition_session,
 )
-from tests.stub_data.graph_with_import import (
-    code as graph_with_import_code,
-)
+
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
@@ -97,12 +95,6 @@ class TestLineaDB:
 
     def test_nested_call_graph(self, execute):
         assert execute(nested_call_graph_code).values["a"] == 10
-
-    def test_basic_import(self, execute):
-        """
-        some imports are built in, such as "math" or "datetime"
-        """
-        assert execute(graph_with_import_code).values["b"] == 5
 
     # TODO: Move to E2E when function definitions that edit globals work
     def test_graph_with_function_definition(self, execute):

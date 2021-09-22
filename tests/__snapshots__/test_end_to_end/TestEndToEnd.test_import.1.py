@@ -7,7 +7,7 @@ session = SessionContext(
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
-    code="from math import pow as power, sqrt as root\na = power(5, 2)\nb = root(a)",
+    code="from math import pow as power, sqrt as root\na = power(5, 2)\nb = root(a)\n",
     session_name=None,
     user_name=None,
     hardware_spec=None,

@@ -25,9 +25,7 @@ from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
     session as graph_with_function_definition_session,
 )
-from tests.stub_data.graph_with_import import (
-    code as graph_with_import_code,
-)
+
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
@@ -48,13 +46,6 @@ class TestBasicExecutor:
     def test_nested_call_graph(self, execute):
         res = execute(nested_call_graph_code)
         assert res.values["a"] == 10
-
-    def test_basic_import(self, execute):
-        """
-        some imports are built in, such as "math" or "datetime"
-        """
-        res = execute(graph_with_import_code)
-        assert res.values["b"] == 5
 
     def test_simple_function_definition_graph(self, execute):
         res = execute(simple_function_definition_graph_code)
