@@ -206,3 +206,9 @@ class TestEndToEnd:
 
     def test_print(self, execute):
         assert execute(PRINT_CODE).stdout == "10\n"
+
+    def test_chained_attributes(self, execute):
+        """
+        https://github.com/LineaLabs/lineapy/issues/161
+        """
+        execute("import altair; altair.data_transformers.enable('json')")
