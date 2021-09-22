@@ -126,7 +126,6 @@ class ExecuteFixture:
 
         if exec_transformed_xfail is not None:
             pytest.xfail(exec_transformed_xfail)
-            return
 
         transformed_code_path = self.tmp_path / "transformed.py"
 
