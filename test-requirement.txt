@@ -2,5 +2,4 @@ altair
 pandas
 seaborn
 sklearn
-pytest-subtests==0.5.0
 syrupy==1.4.5

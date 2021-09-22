@@ -8,7 +8,6 @@ from pathlib import Path
 import black
 
 import pytest
-import pytest_subtests
 import syrupy
 from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
@@ -66,10 +65,10 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
 
 
 @pytest.fixture
-def execute(snapshot, subtests, tmp_path):
+def execute(snapshot, tmp_path):
     return ExecuteFixture(
-        lambda: snapshot(extension_class=PythonSnapshotExtension),
-        subtests,
+        # Make a new snapshot extension for every comparison, b/c extension class is reset after using
+        snapshot,
         tmp_path,
     )
 
@@ -83,8 +82,7 @@ class ExecuteFixture:
     instead of a function, for better debugging.
     """
 
-    make_snapshot: typing.Callable[[], syrupy.SnapshotAssertion]
-    subtests: pytest_subtests.SubTests
+    snapshot: syrupy.SnapshotAssertion
     tmp_path: pathlib.Path
 
     def __call__(
@@ -117,15 +115,14 @@ class ExecuteFixture:
             execution_mode=ExecutionMode.MEMORY,
         )
 
-        with self.subtests.test(msg="node transformer"):
-            # Replace the source path with a consistant name so its compared properly
-            pretty_trace_code = black.format_str(
-                trace_code.replace(
-                    str(source_code_path), "[source file path]"
-                ),
-                mode=black.Mode(),
-            )
-            assert pretty_trace_code == self.make_snapshot()
+        # Replace the source path with a consistant name so its compared properly
+        pretty_trace_code = black.format_str(
+            trace_code.replace(str(source_code_path), "[source file path]"),
+            mode=black.Mode(),
+        )
+        assert pretty_trace_code == self.snapshot(
+            extension_class=PythonSnapshotExtension
+        )
 
         if exec_transformed_xfail is not None:
             pytest.xfail(exec_transformed_xfail)
@@ -138,9 +135,8 @@ class ExecuteFixture:
 
         # Execute the transformed code to create the graph in memory and exec
         locals: dict[str, typing.Any] = {}
-        with self.subtests.test(msg="exec transformed"):
-            bytecode = compile(trace_code, str(transformed_code_path), "exec")
-            exec(bytecode, {}, locals)
+        bytecode = compile(trace_code, str(transformed_code_path), "exec")
+        exec(bytecode, {}, locals)
         tracer: Tracer = locals["lineapy_tracer"]
 
         db = tracer.records_manager.db
@@ -152,17 +148,15 @@ class ExecuteFixture:
             db.get_context_by_file_name(session_name)
         )
 
-        with self.subtests.test(msg="graph"):
-
-            assert (
-                GraphPrinter(graph, context)()
-                .replace(str(source_code_path), "[source file path]")
-                .replace(
-                    repr(context.creation_time),
-                    repr(datetime.datetime.fromordinal(1)),
-                )
-                == self.make_snapshot()
+        assert (
+            GraphPrinter(graph, context)()
+            .replace(str(source_code_path), "[source file path]")
+            .replace(
+                repr(context.creation_time),
+                repr(datetime.datetime.fromordinal(1)),
             )
+            == self.snapshot(extension_class=PythonSnapshotExtension)
+        )
 
         return ExecuteResult(db, graph, tracer.executor)
 
