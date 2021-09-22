@@ -12,6 +12,7 @@ from tests.util import get_new_id, get_new_session
 code = """a = 2
 b = 2
 c = min(b,5)
+b
 """
 
 sliced_code = """
@@ -73,6 +74,17 @@ c_assign = CallNode(
     end_col_offset=12,
 )
 
+headless_variable = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_variable_id=1,
+    lineno=4,
+    col_offset=0,
+    end_lineno=4,
+    end_col_offset=1,
+)
+
+
 graph_with_simple_slicing = Graph(
     [
         a_assign,
@@ -80,6 +92,7 @@ graph_with_simple_slicing = Graph(
         b_argument_node,
         literal_arg_node,
         c_assign,
+        headless_variable,
     ],
     session,
 )

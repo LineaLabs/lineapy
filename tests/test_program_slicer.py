@@ -5,12 +5,11 @@ from tests.stub_data.graph_with_function_definition import (
     code as function_code,
 )
 
-# from tests.stub_data.graph_with_messy_nodes import (
-#     graph_with_messy_nodes,
-#     f_assign,
-#     sliced_code,
-#     code,
-# )
+from tests.stub_data.graph_with_messy_nodes import (
+    graph_with_messy_nodes,
+    f_assign,
+    sliced_code as sliced_messy_graph,
+)
 
 from tests.stub_data.graph_with_simple_slicing import (
     graph_with_simple_slicing,
@@ -29,10 +28,12 @@ class TestProgramSlicer:
     """
 
     def test_simple_assignment(self):
-        code_slice = get_program_slice(
-            graph_with_simple_slicing, [c_assign.id]
-        )
+        code_slice = get_program_slice(graph_with_simple_slicing, [c_assign.id])
         assert compare_code_via_ast(code_slice, sliced_code)
+
+    def test_messy_graph(self):
+        code_slice = get_program_slice(graph_with_messy_nodes, [f_assign.id])
+        assert compare_code_via_ast(code_slice, sliced_messy_graph)
 
     def test_calls(self):
         # Check to make sure it does not drop global references
