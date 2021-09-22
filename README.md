@@ -39,6 +39,9 @@ black --line-length 79 --check .
 pytest
 ```
 
+Some tests use use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test, to make it easier to update generate code and graphs.
+If you mean to change the tracing or graph spec, or added a new test that uses it, then run `--snapshot-update` to update the saved snapshots.
+
 If you want to inspect the AST of some Python code for debugging, you can run:
 
 ```bash
