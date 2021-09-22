@@ -16,7 +16,6 @@ from tests.util import (
     reset_test_db,
     run_code,
 )
-from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
 from tests.stub_data.graph_with_simple_function_definition import (
     definition_node,
     assignment_node,
@@ -74,35 +73,23 @@ class TestEndToEnd:
             SessionType.STATIC,
         ],
     )
-    def test_end_to_end_simple_graph(self, session_type):
-        tmp_file_name = run_code(
-            simple_graph_code,
-            "simple graph code",
-            session_type,
-        )
-        nodes = self.db.get_nodes_by_file_name(tmp_file_name)
-        # there should just be two
-        assert len(nodes) == 2
-        for c in nodes:
-            if c.node_type == NodeType.CallNode:
-                assert are_nodes_content_equal(
-                    c, line_1, self.db.get_context(nodes[0].session_id).code
-                )
-            if c.node_type == NodeType.ArgumentNode:
-                assert are_nodes_content_equal(
-                    c,
-                    arg_literal,
-                    self.db.get_context(nodes[0].session_id).code,
-                )
+    def test_end_to_end_simple_graph(self, session_type, execute):
+        res = execute(publish_code, session_type=session_type)
 
-    def test_publish(self):
+        nodes = res.graph.nodes
+        assert len(nodes) == 3
+
+    def test_publish(self, execute):
         """
         testing something super simple
         """
-        _ = run_code(publish_code, publish_name)
-        artifacts = self.db.get_all_artifacts()
+        res = execute(publish_code)
+
+        artifacts = res.artifacts
+
         assert len(artifacts) == 1
         artifact = artifacts[0]
+
         info_log("logged artifact", artifact)
         assert artifact.name == publish_name
         time_diff = get_current_time() - artifact.date_created

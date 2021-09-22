@@ -14,7 +14,7 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
-from lineapy.data.types import SessionType
+from lineapy.data.types import Artifact, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
@@ -154,7 +154,7 @@ class ExecuteFixture:
 
 @dataclasses.dataclass
 class ExecuteResult:
-    lineadb: RelationalLineaDB
+    db: RelationalLineaDB
     graph: Graph
     executor: Executor
 
@@ -165,6 +165,10 @@ class ExecuteResult:
     @property
     def stdout(self) -> str:
         return self.executor.get_stdout()
+
+    @property
+    def artifacts(self) -> list[Artifact]:
+        return self.db.get_all_artifacts()
 
     def slice(self, variable_name: str) -> ExecuteResult:
         pass
