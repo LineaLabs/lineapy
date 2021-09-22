@@ -33,6 +33,7 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
     def _write_snapshot_fossil(
         self, *, snapshot_fossil: SnapshotFossil
     ) -> None:
+
         filepath, data = (
             snapshot_fossil.location,
             next(iter(snapshot_fossil)).data,
