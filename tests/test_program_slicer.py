@@ -28,7 +28,9 @@ class TestProgramSlicer:
     """
 
     def test_simple_assignment(self):
-        code_slice = get_program_slice(graph_with_simple_slicing, [c_assign.id])
+        code_slice = get_program_slice(
+            graph_with_simple_slicing, [c_assign.id]
+        )
         assert compare_code_via_ast(code_slice, sliced_code)
 
     def test_messy_graph(self):

@@ -247,7 +247,9 @@ class Graph(object):
         def add_edge_from_node(id: LineaID) -> DirectedEdge:
             return DirectedEdge(source_node_id=id, sink_node_id=node.id)
 
-        edges = list(map(add_edge_from_node, Graph.get_parents_from_node(node)))
+        edges = list(
+            map(add_edge_from_node, Graph.get_parents_from_node(node))
+        )
         return edges
 
     def __get_edges_from_line_number(self) -> List[DirectedEdge]:
