@@ -230,7 +230,9 @@ class NodeTransformer(ast.NodeTransformer):
         - Call, e.g., `a = foo()`
 
         TODO
-        - Name, e.g. `a = b`
+        - None variable assignment, should be turned into a setattr call
+          not an assignment, so we might need to change the return signature
+          from ast.Expr.
         """
 
         syntax_dictionary = extract_concrete_syntax_from_node(node)
@@ -263,6 +265,11 @@ class NodeTransformer(ast.NodeTransformer):
                 " indices."
             )
 
+        # e.g. `x.y = 10`
+        if not isinstance(node.targets[0], ast.Name):
+            raise NotImplementedError(
+                "Other assignment types are not supported"
+            )
         variable_name = node.targets[0].id  # type: ignore
         # Literal assign
         if isinstance(node.value, ast.Constant):
@@ -290,10 +297,37 @@ class NodeTransformer(ast.NodeTransformer):
             )
             return ast.Expr(value=call_ast)
 
-        if not isinstance(node.targets[0], ast.Name):
-            raise NotImplementedError(
-                "Other assignment types are not supported"
+        if isinstance(node.value, ast.Name):
+            # this is a variable alias
+            # FIXME: need to clean up the repetition
+            variable_call_ast: ast.Call = ast.Call(
+                func=ast.Attribute(
+                    value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                    attr=Tracer.variable_alias.__name__,
+                    ctx=ast.Load(),
+                ),
+                args=[],
+                keywords=[
+                    ast.keyword(
+                        arg="assigned_variable_name",
+                        value=ast.Constant(value=variable_name),
+                    ),
+                    ast.keyword(
+                        arg="source_variable_name",
+                        value=ast.Constant(value=node.value.id),
+                    ),
+                    ast.keyword(
+                        arg=SYNTAX_DICTIONARY,
+                        value=syntax_dictionary,
+                    ),
+                ],
             )
+            return ast.Expr(value=variable_call_ast)
+
+        # if not isinstance(node.targets[0], ast.Name):
+        #     raise NotImplementedError(
+        #         "Other assignment types are not supported"
+        #     )
 
         call_ast = ast.Call(
             func=ast.Attribute(

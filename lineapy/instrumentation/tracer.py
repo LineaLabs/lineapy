@@ -272,6 +272,25 @@ class Tracer:
             self.variable_name_to_id[assigned_variable_name] = node.id
         self.add_unevaluated_node(node, syntax_dictionary)
 
+    def variable_alias(
+        self,
+        assigned_variable_name: str,
+        source_variable_name: str,
+        syntax_dictionary: Dict[str, int],
+    ):
+        """
+        TODO: need to clean up this method; overlap with literal
+        """
+        node = VariableNode(
+            id=get_new_id(),
+            session_id=self.session_context.id,
+            assigned_variable_name=assigned_variable_name,
+            source_variable_id=self.variable_name_to_id[source_variable_name],
+        )
+        if assigned_variable_name is not None:
+            self.variable_name_to_id[assigned_variable_name] = node.id
+        self.add_unevaluated_node(node, syntax_dictionary)
+
     def call(
         self,
         function_name: str,
