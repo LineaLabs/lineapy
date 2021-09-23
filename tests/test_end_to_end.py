@@ -90,6 +90,8 @@ class TestEndToEnd:
 
     def test_variable_alias(self, execute):
         res = execute(VARIABLE_ALIAS_CODE)
+        assert res.values["a"] == 1
+        assert res.values["b"] == 1
 
     def test_publish(self, execute):
         """

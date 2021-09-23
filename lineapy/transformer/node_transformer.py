@@ -230,7 +230,9 @@ class NodeTransformer(ast.NodeTransformer):
         - Call, e.g., `a = foo()`
 
         TODO
-        - Name, e.g. `a = b`
+        - None variable assignment, should be turned into a setattr call
+          not an assignment, so we might need to change the return signature
+          from ast.Expr.
         """
 
         syntax_dictionary = extract_concrete_syntax_from_node(node)
@@ -263,6 +265,11 @@ class NodeTransformer(ast.NodeTransformer):
                 " indices."
             )
 
+        # e.g. `x.y = 10`
+        if not isinstance(node.targets[0], ast.Name):
+            raise NotImplementedError(
+                "Other assignment types are not supported"
+            )
         variable_name = node.targets[0].id  # type: ignore
         # Literal assign
         if isinstance(node.value, ast.Constant):
