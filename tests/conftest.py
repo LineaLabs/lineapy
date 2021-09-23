@@ -146,7 +146,16 @@ class ExecuteFixture:
         # Execute the transformed code to create the graph in memory and exec
         locals: dict[str, typing.Any] = {}
         bytecode = compile(trace_code, str(transformed_code_path), "exec")
-        exec(bytecode, {}, locals)
+
+        # Handle exceptions on execing the transformed code,
+        # So that if an error is raised during evaluation of the nodes
+        # we can still get the graph to dump and compare before raising that
+        exec_transformed_exception: typing.Optional[Exception] = None
+        try:
+            exec(bytecode, {}, locals)
+        except Exception as e:
+            exec_transformed_exception = e
+
         tracer: Tracer = locals["lineapy_tracer"]
 
         db = tracer.records_manager.db
@@ -167,6 +176,9 @@ class ExecuteFixture:
             )
             == self.snapshot(extension_class=PythonSnapshotExtension)
         )
+
+        if exec_transformed_exception is not None:
+            raise exec_transformed_exception
 
         return ExecuteResult(db, graph, tracer.executor)
 
