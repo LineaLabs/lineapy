@@ -255,6 +255,10 @@ class TestDelete:
         res = execute("a = [1]; del a[0]")
         assert res.values["a"] == []
 
+    def test_set_attr(self, execute):
+        res = execute("import types; x = types.SimpleNamespace(); x.hi = 1")
+        assert res.values["x"].hi == 1
+
     def test_del_attribute(self, execute):
         """
         Part of #95
