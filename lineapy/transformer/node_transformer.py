@@ -70,11 +70,16 @@ class NodeTransformer(ast.NodeTransformer):
         code = """{}""".format(ast.get_source_segment(self.source, node))
         return code
 
-    @staticmethod
-    def _get_index(subscript: ast.Subscript) -> ast.AST:
-        if isinstance(subscript.slice, ast.Index):
-            return subscript.slice.value  # type: ignore
-        return subscript.slice
+    def visit(self, node: ast.AST) -> Any:
+        try:
+            return super().visit(node)
+        except Exception as e:
+            code_context = self._get_code_from_node(node)
+            if code_context != "None":
+                info_log(
+                    f"Error while transforming code: \n\n{code_context}\n"
+                )
+            raise e
 
     def visit_Expr(self, node: ast.Expr) -> Any:
         """
@@ -238,7 +243,7 @@ class NodeTransformer(ast.NodeTransformer):
         if isinstance(node.targets[0], ast.Subscript):
             # Assigning a specific value to an index
             subscript_target: ast.Subscript = node.targets[0]
-            index = self._get_index(subscript_target)
+            index = subscript_target.slice
             # note: isinstance(index, ast.List) only works for pandas,
             #  not Python lists
             if (
@@ -442,19 +447,8 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
         args = [self.visit(node.value)]
-        index = self._get_index(node)
-        if (
-            isinstance(index, ast.Name)
-            or isinstance(index, ast.Constant)
-            or isinstance(index, ast.List)
-        ):
-            args.append(self.visit(index))
-        elif isinstance(index, ast.Slice):
-            args.append(self.visit_Slice(index))
-        else:
-            raise NotImplementedError(
-                "Subscript for multiple indices not supported."
-            )
+        index = node.slice
+        args.append(self.visit(index))
         if isinstance(node.ctx, ast.Load):
             return synthesize_tracer_call_ast(
                 GET_ITEM,
