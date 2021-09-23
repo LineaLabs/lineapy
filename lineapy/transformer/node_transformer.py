@@ -520,12 +520,8 @@ class NodeTransformer(ast.NodeTransformer):
             module: ast.expr
             if isinstance(value, ast.Name):
                 module = ast.Constant(value=value.id)
-            elif isinstance(value, ast.Attribute):
-                module = self.visit(value)
             else:
-                raise CaseNotHandledError(
-                    f"Cannot get module of function {func}"
-                )
+                module = self.visit(value)
             return func.attr, module
 
         raise CaseNotHandledError("Other types of function calls!")
