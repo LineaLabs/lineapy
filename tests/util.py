@@ -182,6 +182,10 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     test_db.session.commit()
 
 
+def get_project_directory():
+    return path.abspath(path.join(__file__, "../.."))
+
+
 def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import ExecutionORM
@@ -196,13 +200,11 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 
     if mode == ExecutionMode.DEV:
         simple_data_node.access_path = (
-            path.abspath(path.join(__file__, "../.."))
-            + "/tests/stub_data/simple_data.csv"
+            get_project_directory() + "/tests/stub_data/simple_data.csv"
         )
 
         img_data_node.access_path = (
-            path.abspath(path.join(__file__, "../.."))
-            + "/lineapy/app/simple_data.png"
+            get_project_directory() + "/lineapy/app/simple_data.png"
         )
 
     executor = Executor()
