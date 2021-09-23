@@ -1,3 +1,5 @@
+import pytest
+
 from lineapy.execution.executor import Executor
 from tests.stub_data.graph_with_alias_by_reference import (
     graph_with_alias_by_reference,
@@ -16,79 +18,40 @@ from tests.stub_data.graph_with_csv_import import (
     session as graph_with_file_access_session,
 )
 from tests.stub_data.graph_with_simple_function_definition import (
-    simple_function_definition_graph,
-    session as simple_function_definition_graph_session,
+    code as simple_function_definition_graph_code,
 )
 
 from tests.stub_data.graph_with_function_definition import (
     graph_with_function_definition,
     session as graph_with_function_definition_session,
 )
-from tests.stub_data.graph_with_import import (
-    graph_with_import,
-    session as graph_with_import_session,
-)
+
 from tests.stub_data.graph_with_loops import (
     graph_with_loops,
     session as graph_with_loops_session,
 )
 from tests.stub_data.nested_call_graph import (
-    nested_call_graph,
-    session as nested_call_graph_session,
+    code as nested_call_graph_code,
 )
-from tests.stub_data.simple_graph import (
-    simple_graph,
-    session as simple_graph_session,
-)
-from tests.stub_data.simple_with_variable_argument_and_print import (
-    simple_with_variable_argument_and_print,
-    session as simple_with_variable_argument_and_print_session,
-)
+
 
 from tests.stub_data.graph_with_messy_nodes import (
     graph_with_messy_nodes,
     session as graph_with_messy_nodes_session,
+    code as graph_with_messy_nodes_code,
 )
 
 
 class TestBasicExecutor:
-    # we should probably do a shared setup in the future
-    def test_simple_graph(self):
-        # initialize the executor
-        e = Executor()
-        e.execute_program(simple_graph)
-        a = e.get_value_by_variable_name("a")
-        assert a == 11
+    def test_nested_call_graph(self, execute):
+        res = execute(nested_call_graph_code)
+        assert res.values["a"] == 10
 
-    def test_nested_call_graph(self):
-        e = Executor()
-        e.execute_program(nested_call_graph)
-        a = e.get_value_by_variable_name("a")
-        assert a == 10
+    def test_simple_function_definition_graph(self, execute):
+        res = execute(simple_function_definition_graph_code)
+        assert res.values["c"] == 1
 
-    def test_graph_with_print(self):
-        e = Executor()
-        e.execute_program(simple_with_variable_argument_and_print)
-        stdout = e.get_stdout()
-        assert stdout == "10\n"
-
-    def test_basic_import(self):
-        """
-        some imports are built in, such as "math" or "datetime"
-        """
-        e = Executor()
-        e.execute_program(graph_with_import)
-        b = e.get_value_by_variable_name("b")
-        assert b == 5
-
-    def test_simple_function_definition_graph(self):
-        e = Executor()
-        e.execute_program(
-            simple_function_definition_graph,
-        )
-        c = e.get_value_by_variable_name("c")
-        assert c == 1
-
+    # TODO: Move to E2E when function definitions that edit globals work
     def test_graph_with_function_definition(self):
         """ """
         e = Executor()
@@ -104,6 +67,7 @@ class TestBasicExecutor:
         """
         pass
 
+    # TODO: Move to E2E test when loops work
     def test_program_with_loops(self):
         e = Executor()
         e.execute_program(graph_with_loops)
@@ -114,6 +78,8 @@ class TestBasicExecutor:
         assert x == 36
         assert len(a) == 9
 
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/180 is fixed
+    # and enable as end to end test
     def test_program_with_conditionals(self):
         e = Executor()
         e.execute_program(
@@ -124,6 +90,8 @@ class TestBasicExecutor:
         assert bs == [1, 2, 3]
         assert stdout == "False\n"
 
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/178 is fixed
+    # and enable as end to end test
     def test_program_with_file_access(self):
         e = Executor()
         e.execute_program(
@@ -132,6 +100,8 @@ class TestBasicExecutor:
         s = e.get_value_by_variable_name("s")
         assert s == 25
 
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/155 is fixed
+    # and enable as end to end test
     def test_variable_alias_by_value(self):
         e = Executor()
         e.execute_program(graph_with_alias_by_value)
@@ -140,6 +110,8 @@ class TestBasicExecutor:
         assert a == 2
         assert b == 0
 
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/155 is fixed
+    # and enable as end to end test
     def test_variable_alias_by_reference(self):
         e = Executor()
         e.execute_program(
@@ -148,13 +120,23 @@ class TestBasicExecutor:
         s = e.get_value_by_variable_name("s")
         assert s == 10
 
-    def test_headless_variable_and_literals(self):
+    # TODO: Remove when https://github.com/LineaLabs/lineapy/issues/155 is fixed
+    # and enable as end to end test
+    def test_headless_variable_and_literals(self, execute):
         e = Executor()
         e.execute_program(
             graph_with_messy_nodes,
         )
         g = e.get_value_by_variable_name("g")
         assert g == 5
+
+        res = execute(
+            graph_with_messy_nodes_code,
+            exec_transformed_xfail=(
+                "https://github.com/LineaLabs/lineapy/issues/155"
+            ),
+        )
+        assert res.values["g"] == 5
 
     def test_execute_program_with_inputs_graph_with_loops(self):
         # e = Executor()

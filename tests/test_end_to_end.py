@@ -16,7 +16,6 @@ from tests.util import (
     reset_test_db,
     run_code,
 )
-from tests.stub_data.simple_graph import simple_graph_code, line_1, arg_literal
 from tests.stub_data.graph_with_simple_function_definition import (
     definition_node,
     assignment_node,
@@ -27,10 +26,6 @@ from tests.stub_data.graph_with_simple_function_definition import (
 #     code as graph_with_basic_image_code,
 #     session as graph_with_basic_image_session,
 # )
-from tests.stub_data.graph_with_import import (
-    code as import_code,
-    session as import_session,
-)
 
 publish_name = "testing artifact publish"
 publish_code = (
@@ -38,6 +33,17 @@ publish_code = (
     f" abs(-11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
     f" '{publish_name}')\n"
 )
+
+
+PRINT_CODE = """a = abs(-11)
+b = min(a, 10)
+print(b)
+"""
+
+IMPORT_CODE = """from math import pow as power, sqrt as root
+a = power(5, 2)
+b = root(a)
+"""
 
 
 class TestEndToEnd:
@@ -74,35 +80,23 @@ class TestEndToEnd:
             SessionType.STATIC,
         ],
     )
-    def test_end_to_end_simple_graph(self, session_type):
-        tmp_file_name = run_code(
-            simple_graph_code,
-            "simple graph code",
-            session_type,
-        )
-        nodes = self.db.get_nodes_by_file_name(tmp_file_name)
-        # there should just be two
-        assert len(nodes) == 2
-        for c in nodes:
-            if c.node_type == NodeType.CallNode:
-                assert are_nodes_content_equal(
-                    c, line_1, self.db.get_context(nodes[0].session_id).code
-                )
-            if c.node_type == NodeType.ArgumentNode:
-                assert are_nodes_content_equal(
-                    c,
-                    arg_literal,
-                    self.db.get_context(nodes[0].session_id).code,
-                )
+    def test_end_to_end_simple_graph(self, session_type, execute):
+        res = execute(publish_code, session_type=session_type)
 
-    def test_publish(self):
+        nodes = res.graph.nodes
+        assert len(nodes) == 3
+
+    def test_publish(self, execute):
         """
         testing something super simple
         """
-        _ = run_code(publish_code, publish_name)
-        artifacts = self.db.get_all_artifacts()
+        res = execute(publish_code)
+
+        artifacts = res.artifacts
+
         assert len(artifacts) == 1
         artifact = artifacts[0]
+
         info_log("logged artifact", artifact)
         assert artifact.name == publish_name
         time_diff = get_current_time() - artifact.date_created
@@ -181,23 +175,9 @@ class TestEndToEnd:
     #     assert compare_pydantic_objects_without_id(
     #         session_context, graph_with_basic_image_session, True
     #     )
-    def test_import(self):
-        tmp_file_name = run_code(import_code, "basic_import")
-        nodes = self.db.get_nodes_by_file_name(tmp_file_name)
-        assert len(nodes) == 6
-        session_context = self.db.get_context(nodes[0].session_id)
-        # make sure that the libraries are the sam
-        assert compare_pydantic_objects_without_keys(
-            session_context,
-            import_session,
-            ["id", "libraries", "file_name", "creation_time"],
-            True,
-        )
-        assert len(session_context.libraries) == len(import_session.libraries)
-        for idx, l in enumerate(session_context.libraries):
-            assert compare_pydantic_objects_without_keys(
-                l, import_session.libraries[idx], ["id"], True
-            )
+    def test_import(self, execute):
+        res = execute(IMPORT_CODE)
+        assert res.values["b"] == 5
 
     def test_no_script_error(self):
         # TODO
@@ -209,14 +189,20 @@ class TestEndToEnd:
         # assert "Usage:" in result.stderr
         pass
 
-    def test_compareops(self):
+    def test_compareops(self, execute):
         code = "b = 1 < 2 < 3\nassert b"
-        run_code(code, "chained ops")
+        execute(code)
 
-    def test_binops(self):
+    def test_binops(self, execute):
         code = "b = 1 + 2\nassert b == 3"
-        run_code(code, "binop")
+        execute(code)
 
-    def test_subscript(self):
+    def test_subscript(self, execute):
         code = "ls = [1,2]\nassert ls[0] == 1"
-        run_code(code, "subscript")
+        execute(code)
+
+    def test_simple(self, execute):
+        assert execute("a = abs(-11)").values["a"] == 11
+
+    def test_print(self, execute):
+        assert execute(PRINT_CODE).stdout == "10\n"

@@ -73,9 +73,7 @@ class RelationalLineaDB(LineaDB):
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default=False)
         if not isinstance(echo, bool):
-            echo = (
-                str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
-            )
+            echo = str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
@@ -175,9 +173,7 @@ class RelationalLineaDB(LineaDB):
         self.session.add(context_orm)
         self.session.commit()
 
-    def add_lib_to_session_context(
-        self, context_id: LineaID, library: Library
-    ):
+    def add_lib_to_session_context(self, context_id: LineaID, library: Library):
         library_orm = self.write_library(library, context_id)
         self.session.commit()
 
@@ -333,12 +329,7 @@ class RelationalLineaDB(LineaDB):
            I would refer for the database to optimize
            this instead of relying on the ORM.
         """
-        session_context = (
-            self.session.query(SessionContextORM)
-            .filter(SessionContextORM.file_name == file_name)
-            .one()
-        )
-
+        session_context = self.get_context_by_file_name(file_name)
         nodes = (
             self.session.query(NodeORM)
             .filter(NodeORM.session_id == session_context.id)
@@ -347,6 +338,15 @@ class RelationalLineaDB(LineaDB):
 
         nodes = [self.map_orm_to_pydantic(node) for node in nodes]
         return nodes
+
+    def get_context_by_file_name(self, file_name: str) -> SessionContext:
+        query_obj = (
+            self.session.query(SessionContextORM)
+            .filter(SessionContextORM.file_name == file_name)
+            .one()
+        )
+        obj = SessionContext.from_orm(query_obj)
+        return obj
 
     def get_context(self, linea_id: str) -> SessionContext:
         query_obj = (
@@ -492,10 +492,28 @@ class RelationalLineaDB(LineaDB):
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
-    def get_session_graph_from_artifact_id(
-        self, artifact_id: LineaID
-    ) -> Graph:
-        """ """
+    # def get_session_graph_from_artifact_id(
+    #     self, artifact_id: LineaID
+    # ) -> Graph:
+    #     """ """
+    def get_all_nodes(self) -> List[Node]:
+        node_orms = self.session.query(NodeORM).all()
+        return [self.map_orm_to_pydantic(node) for node in node_orms]
+
+    def get_session_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
+        """
+        - This is program slicing over database data.
+        - There are lots of complexities when it comes to mutation
+          - Examples:
+            - Third party libraries have functions that mutate some global or
+              variable state.
+          - Strategy for now
+            - definitely take care of the simple cases, like `VariableNode`
+            - simple heuristics that may create false positives
+              (include things not necessary)
+            - but definitely NOT false negatives (then the program
+              CANNOT be executed)
+        """
         node = self.get_node_by_id(artifact_id)
         nodes = self.get_nodes_for_session(node.session_id)
         return Graph(nodes, self.get_context(node.session_id))

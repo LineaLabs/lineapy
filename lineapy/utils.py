@@ -4,6 +4,7 @@ from uuid import uuid4
 from time import time
 
 from lineapy.data.types import (
+    LineaID,
     LiteralType,
     ValueType,
 )
@@ -100,7 +101,7 @@ Data gen utils
 """
 
 
-def get_new_id() -> str:
+def get_new_id() -> LineaID:
     # https://docs.python.org/3/library/uuid.html#module-uuid seems to use str
     #   instead of hex, so that's why
     return str(uuid4())

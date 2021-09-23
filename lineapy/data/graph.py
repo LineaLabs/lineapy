@@ -1,5 +1,7 @@
+from lineapy.graph_reader.graph_printer import GraphPrinter
 from typing import cast, List, Dict, Optional, Any
 from dataclasses import dataclass
+
 import networkx as nx
 
 from lineapy.data.types import (
@@ -62,6 +64,7 @@ class Graph(object):
             ]
         )
         self.session_context = session_context
+        self.printer = GraphPrinter(self)
 
         # validation
         if not nx.is_directed_acyclic_graph(self._nx_graph):
@@ -244,9 +247,7 @@ class Graph(object):
         def add_edge_from_node(id: LineaID) -> DirectedEdge:
             return DirectedEdge(source_node_id=id, sink_node_id=node.id)
 
-        edges = list(
-            map(add_edge_from_node, Graph.get_parents_from_node(node))
-        )
+        edges = list(map(add_edge_from_node, Graph.get_parents_from_node(node)))
         return edges
 
     def __get_edges_from_line_number(self) -> List[DirectedEdge]:
@@ -290,14 +291,8 @@ class Graph(object):
         """
         return Graph(nodes, self.session_context)
 
-    def print(self):
-        for n in self._nodes:
-            print(n)
-        for e in self._edges:
-            print(e)
-
     def __str__(self):
-        self.print()
+        self.printer()
 
-    # def __repr__(self):
-    #     self.print()
+    def __repr__(self):
+        self.printer()

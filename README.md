@@ -2,20 +2,21 @@
 
 This repository contains a few different components:
 
-* A **transformer** which maps Python code to Python code, makign it lazy by turning control flow and function calls into tracer calls.
-* A **tracer** that adds nodes to the graph (and then executes them with the executor)
-* A **dataflow graph** which is stored in SQLite and represents a Python execution
-* An **executor** which takes the graph and can run it as Python code
-* A **server** which exposes a REST API of the graph that `linea-server` accesses 
+-   A **transformer** which maps Python code to Python code, makign it lazy by turning control flow and function calls into tracer calls.
+-   A **tracer** that adds nodes to the graph (and then executes them with the executor)
+-   A **dataflow graph** which is stored in SQLite and represents a Python execution
+-   An **executor** which takes the graph and can run it as Python code
+-   A **server** which exposes a REST API of the graph that `linea-server` accesses
 
 ## Using Linea
 
 There are two ways to use `linea`:
-* The CLI tool: `python lineapy/cli/cli.py --mode dev your_file.py`
-    * The dev mode is local, and the remote one is under development).
-* A new IPython kernel: select the lineapy Kernel when you open your 
-  jupyter notebook. 
-    * Note that this is still under development.
+
+-   The CLI tool: `python lineapy/cli/cli.py --mode dev your_file.py`
+    -   The dev mode is local, and the remote one is under development).
+-   A new IPython kernel: select the lineapy Kernel when you open your
+    jupyter notebook.
+    -   Note that this is still under development.
 
 ## First-time Setup
 
@@ -29,8 +30,8 @@ pip install -e . --user
 
 ## Tests
 
-Note: these should be run in root (``graph_with_csv_import`` does a
-  relative file access)
+Note: these should be run in root (`graph_with_csv_import` does a
+relative file access)
 
 ```bash
 mypy -p lineapy
@@ -38,10 +39,25 @@ black --line-length 79 --check .
 pytest
 ```
 
+Some tests use use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test, to make it easier to update generate code and graphs.
+If you mean to change the tracing or graph spec, or added a new test that uses it, then run `--snapshot-update` to update the saved snapshots.
+
+Also we use [pytest's xfail](https://docs.pytest.org/en/latest/how-to/skipping.html#xfail-mark-test-functions-as-expected-to-fail) to mark tests that are expected to fail, because of a known bug. To have them run anyway, run `--run-xfail`.
+
 If you want to inspect the AST of some Python code for debugging, you can run:
 
 ```bash
 ./tests/tools/print_ast.py 'hi(a=10)'
+```
+
+### Github Actions
+
+The tests are run on Github Actions. If you are trying to debug a failure that happens on Github Actions, you can try using [`act`](https://github.com/nektos/act), which will run it locally through docker:
+
+```bash
+brew install act
+act
+# When it prompts, the "medium" image seems to work out alright.
 ```
 
 ### Static end to end test/demo
@@ -50,20 +66,21 @@ For a static end to end test along with [linea-server](https://github.com/LineaL
 
 ```bash
 python tests/setup_integrated_tests.py
-python lineapy/app/application.py 
+python lineapy/app/application.py
 ```
 
 `setup_integrated_tests.py` creates the stub data that the flask application then serves.
 
-Then head over to [linea-server](https://github.com/LineaLabs/linea-server) and 
-run the usual commands there (`python application.py` and `yarn start` in 
+Then head over to [linea-server](https://github.com/LineaLabs/linea-server) and
+run the usual commands there (`python application.py` and `yarn start` in
 the `/server` and `/frontend` folders respectively)
 
 Note that if you are running these on EC2, you need to do tunneling on **three**
 ports:
-* One for the lineapy flask app, which is currently on 4000
-* One for the linea-server flask app, which is on 5000
-* And one for the linea-server dev server (for the React app), which  is on 3000
+
+-   One for the lineapy flask app, which is currently on 4000
+-   One for the linea-server flask app, which is on 5000
+-   And one for the linea-server dev server (for the React app), which is on 3000
 
 For Yifan's machine, the tunneling looks like the following:
 
@@ -82,14 +99,14 @@ Coming soon!
 To make use of our virtual env, you need to do these steps (reference: https://medium.com/@nrk25693/how-to-add-your-conda-environment-to-your-jupyter-notebook-in-just-4-steps-abeab8b8d084)
 
 ```bash
-conda install -c anaconda ipykernel 
+conda install -c anaconda ipykernel
 python -m ipykernel install --user --name=lineapy-env
 ```
+
 ## Best practices
 
 For any Jupyter Notebooks that you think your reviewer might directly comment on,
 please run `jupyter nbconvert --to script` and commit the corresponding .py script to make comments easier.
-
 
 ## Dev notes
 
