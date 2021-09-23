@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Any, Optional, List, cast
+from typing import Dict, Any, Optional, List, Union, cast
 
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
@@ -297,7 +297,11 @@ class Tracer:
         arguments: ARGS_TYPE,
         keyword_arguments: KEYWORD_ARGS_TYPE,
         syntax_dictionary: Dict[str, int],
-        function_module: Optional[Any] = None,
+        # TODO: We add `CallNode` as an arg here to support nested
+        # getattrs followed by a call. The "module" then is really
+        # not a module, but just a CallNode that is a getattr
+        # We should refactor this!
+        function_module: Union[None, str, CallNode] = None,
     ) -> CallNode:
         """
         NOTE
@@ -329,10 +333,13 @@ class Tracer:
             ]
 
         # Get node id for function module
-        if function_module is not None:
+        if isinstance(function_module, str):
             function_module = self.variable_name_to_id[function_module]
 
-        if function_name in self.function_name_to_function_module_import_id:
+        if isinstance(function_module, CallNode):
+            function_module = function_module.id
+        # Don't do special function name lookup if function_module is a node
+        elif function_name in self.function_name_to_function_module_import_id:
             function_module = self.function_name_to_function_module_import_id[
                 function_name
             ]
