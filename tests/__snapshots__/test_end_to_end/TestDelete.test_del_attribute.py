@@ -43,11 +43,11 @@ lineapy_tracer.call(
     arguments=[Variable("x"), "hi", 1],
     keyword_arguments=[],
 )
-del lineapy_tracer.call(
-    function_name="getattr",
+lineapy_tracer.call(
+    function_name="delattr",
     syntax_dictionary={
         "lineno": 1,
-        "col_offset": 57,
+        "col_offset": 53,
         "end_lineno": 1,
         "end_col_offset": 61,
     },

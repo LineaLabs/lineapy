@@ -53,8 +53,10 @@ class ExecutionMode(Enum):
 # Transformer related
 GET_ITEM = operator.__getitem__.__name__
 SET_ITEM = operator.__setitem__.__name__
+DEL_ITEM = operator.__delitem__.__name__
 SET_ATTR = setattr.__name__
 GETATTR = getattr.__name__
+DEL_ATTR = delattr.__name__
 
 FUNCTION_NAME = "function_name"
 FUNCTION_MODULE = "function_module"

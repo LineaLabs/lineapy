@@ -5,6 +5,8 @@ from attr import attr
 
 from lineapy import linea_publish
 from lineapy.constants import (
+    DEL_ATTR,
+    DEL_ITEM,
     LINEAPY_TRACER_NAME,
     ADD,
     SET_ATTR,
@@ -227,6 +229,37 @@ class NodeTransformer(ast.NodeTransformer):
                 node,
                 function_module=function_module,
                 keyword_arguments=keyword_argument_nodes,
+            )
+
+    def visit_Delete(self, node: ast.Delete) -> ast.Expr:
+        target = node.targets[0]
+
+        if isinstance(target, ast.Name):
+            raise NotImplementedError(
+                "We do not support unassigning a variable"
+            )
+        elif isinstance(target, ast.Subscript):
+            return ast.Expr(
+                value=synthesize_tracer_call_ast(
+                    DEL_ITEM,
+                    [self.visit(target.value), self.visit(target.slice)],
+                    node,
+                )
+            )
+        elif isinstance(target, ast.Attribute):
+            return ast.Expr(
+                value=synthesize_tracer_call_ast(
+                    DEL_ATTR,
+                    [
+                        self.visit(target.value),
+                        ast.Constant(value=target.attr),
+                    ],
+                    node,
+                )
+            )
+        else:
+            raise NotImplementedError(
+                f"We do not support deleting {type(target)}"
             )
 
     def visit_Assign(self, node: ast.Assign) -> ast.Expr:
