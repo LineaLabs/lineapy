@@ -167,7 +167,6 @@ class ExecuteFixture:
         nodes = db.get_all_nodes()
         context = db.get_context_by_file_name(session_name)
         graph = Graph(nodes, context)
-        print("AAAA", context.working_directory)
         assert (
             graph.printer()
             .replace(str(source_code_path), "[source file path]")

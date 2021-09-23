@@ -45,7 +45,9 @@ class Executor:
 
     @staticmethod
     def install(package):
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", package]
+        )
 
     def setup(self, context: SessionContext) -> None:
         """
@@ -136,7 +138,9 @@ class Executor:
 
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
-                import_node = cast(ImportNode, program.get_node(import_node_id))
+                import_node = cast(
+                    ImportNode, program.get_node(import_node_id)
+                )
                 import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
                 scoped_locals[import_node.library.name] = import_node.module
 
