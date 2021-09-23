@@ -1,7 +1,6 @@
 from __future__ import annotations
 import datetime
 import dataclasses
-from lineapy.graph_reader.graph_printer import GraphPrinter
 import pathlib
 import typing
 from pathlib import Path
@@ -14,7 +13,7 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
-from lineapy.data.types import Artifact, SessionContext, SessionType
+from lineapy.data.types import Artifact, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
@@ -24,6 +23,10 @@ from lineapy.transformer.transformer import Transformer
 # Based off of unmerged JSON extension
 # Writes each snapshot to its own Python file
 # https://github.com/tophat/syrupy/pull/552/files#diff-9bab2a0973c5e73c86ed7042300befcaa5a034df17cea4d013eeaece6af66979
+
+DUMMY_WORKING_DIR = "dummy_linea_repo/"
+
+
 class PythonSnapshotExtension(SingleFileSnapshotExtension):
     _file_extension = "py"
 
@@ -164,12 +167,17 @@ class ExecuteFixture:
         nodes = db.get_all_nodes()
         context = db.get_context_by_file_name(session_name)
         graph = Graph(nodes, context)
+        print("AAAA", context.working_directory)
         assert (
             graph.printer()
             .replace(str(source_code_path), "[source file path]")
             .replace(
                 repr(context.creation_time),
                 repr(datetime.datetime.fromordinal(1)),
+            )
+            .replace(
+                context.working_directory,
+                DUMMY_WORKING_DIR,
             )
             == self.snapshot(extension_class=PythonSnapshotExtension)
         )

@@ -105,6 +105,7 @@ class SessionContextORM(Base):  # type: ignore
     environment_type = Column(Enum(SessionType))
     creation_time = Column(DateTime)
     file_name = Column(String)
+    working_directory = Column(String)
     session_name = Column(String, nullable=True)
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)

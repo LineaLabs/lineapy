@@ -58,9 +58,15 @@ class Library(BaseModel):
 class SessionContext(BaseModel):
     """
     Each execution of a script/notebook is a "Session".
+    :param working_directory: captures where the code ran by the user
+
     The session context object provides important metadata used by
     - executor to get the code from the syntax_dictionary
     - route to supply the frontend, e.g., user_name and creation_time
+
+    TODO:
+    - we should remove the dependency on the working_directory because
+      its brittle
     """
 
     id: LineaID  # populated on creation by uuid.uuid4()
@@ -69,6 +75,7 @@ class SessionContext(BaseModel):
     # making file name required since every thing runs from some file
     file_name: str
     code: str
+    working_directory: str  # must be passed in for now
     session_name: Optional[str]  # TODO: add API for user
     user_name: Optional[str] = None
     hardware_spec: Optional[HardwareSpec] = None

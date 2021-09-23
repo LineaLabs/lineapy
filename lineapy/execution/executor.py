@@ -1,5 +1,6 @@
 import builtins
 import importlib.util
+from os import chdir
 import io
 from types import ModuleType
 from lineapy.utils import InternalLogicError
@@ -28,6 +29,9 @@ from lineapy.graph_reader.graph_util import get_segment_from_code
 
 class Executor:
     def __init__(self):
+        """
+        TODO: documentation
+        """
         self._variable_values = {}
 
         # Note: no output will be shown in Terminal because it is being redirected here
@@ -41,9 +45,7 @@ class Executor:
 
     @staticmethod
     def install(package):
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", package]
-        )
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
     def setup(self, context: SessionContext) -> None:
         """
@@ -51,6 +53,7 @@ class Executor:
 
         :param context: `SessionContext` including the necessary libraries.
         """
+        chdir(context.working_directory)
         if context.libraries is not None:
             for library in context.libraries:
                 try:
@@ -133,9 +136,7 @@ class Executor:
 
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
-                import_node = cast(
-                    ImportNode, program.get_node(import_node_id)
-                )
+                import_node = cast(ImportNode, program.get_node(import_node_id))
                 import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
                 scoped_locals[import_node.library.name] = import_node.module
 

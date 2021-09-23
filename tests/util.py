@@ -6,6 +6,7 @@ from typing import Optional, List
 from re import sub
 from tempfile import NamedTemporaryFile
 from pydantic import BaseModel
+from os import getcwd
 
 from lineapy.transformer.transformer import ExecutionMode, Transformer
 from lineapy.data.types import (
@@ -88,6 +89,7 @@ def get_new_session(
     code: str,
     libraries: Optional[List] = None,
 ) -> SessionContext:
+    working_directory = getcwd()
     if libraries is None:
         libraries = []
     return SessionContext(
@@ -97,6 +99,7 @@ def get_new_session(
         creation_time=datetime.now(),
         libraries=libraries,
         code=code,
+        working_directory=working_directory,
     )
 
 

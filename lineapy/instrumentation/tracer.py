@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Dict, Any, Optional, List, Union, cast
+from os import getcwd
 
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
@@ -72,9 +73,7 @@ class Tracer:
         )
         self.executor = Executor()
         self.variable_name_to_id: Dict[str, LineaID] = {}
-        self.function_name_to_function_module_import_id: Dict[
-            str, LineaID
-        ] = {}
+        self.function_name_to_function_module_import_id: Dict[str, LineaID] = {}
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -104,9 +103,7 @@ class Tracer:
             self.executor.execute_program(
                 Graph(self.nodes_to_be_evaluated, self.session_context),
             )
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return
@@ -114,9 +111,7 @@ class Tracer:
             # Same flow as SCRIPT but without the executor
             # In the future, we can potentially do something fancy with
             #   importing and doing analysis there
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return
@@ -168,6 +163,7 @@ class Tracer:
         Decided to read the code instead because it's more readable
           than passing through the transformer
         """
+        working_directory = getcwd()
         original_code = open(file_name, "r").read()
         session_context = SessionContext(
             id=get_new_id(),
@@ -176,6 +172,7 @@ class Tracer:
             creation_time=datetime.now(),
             file_name=file_name,
             code=original_code,
+            working_directory=working_directory,
             libraries=[],
         )
         self.records_manager.write_session_context(session_context)

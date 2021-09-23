@@ -8,6 +8,7 @@ session = SessionContext(
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
     code="def foo(a, b):\n    return a - b\nc = foo(b=1, a=2)\n",
+    working_directory="dummy_linea_repo/",
     session_name=None,
     user_name=None,
     hardware_spec=None,

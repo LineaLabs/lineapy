@@ -8,6 +8,7 @@ session = SessionContext(
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
     code="from math import pow as power, sqrt as root\na = power(5, 2)\nb = root(a)\n",
+    working_directory="dummy_linea_repo/",
     session_name=None,
     user_name=None,
     hardware_spec=None,
