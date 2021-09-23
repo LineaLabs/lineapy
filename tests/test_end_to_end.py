@@ -223,3 +223,11 @@ class TestEndToEnd:
         assert altair.data_transformers.active != "json"
         res = execute("import altair; altair.data_transformers.enable('json')")
         assert altair.data_transformers.active == "json"
+
+    def test_lookup_undefined_global_call(self, execute):
+        """
+        Even though get_ipython isn't defined when executing normally,
+        we can still create a graph for it if we don't try to execute it
+        outside of ipython.
+        """
+        execute("get_ipython().system('')", session_type=SessionType.STATIC)
