@@ -261,4 +261,5 @@ graph_with_basic_image = Graph(
         resize_arg,
         resize_call,
     ],
+    session,
 )

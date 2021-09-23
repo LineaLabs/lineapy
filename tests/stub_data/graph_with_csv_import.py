@@ -124,4 +124,5 @@ graph_with_csv_import = Graph(
         sum_call,
         col_name_literal,
     ],
+    session,
 )

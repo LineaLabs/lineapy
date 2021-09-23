@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 from typing import List, Optional, cast, Any
 
 from sqlalchemy import create_engine
@@ -34,7 +33,7 @@ from lineapy.db.asset_manager.local import (
 )
 from lineapy.db.base import LineaDBConfig, LineaDB
 from lineapy.db.relational.schema.relational import *
-from lineapy.execution.code_util import add_node_to_code, max_col_of_code
+from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.utils import (
     CaseNotHandledError,
     NullValueError,
@@ -344,12 +343,14 @@ class RelationalLineaDB(LineaDB):
         nodes = [self.map_orm_to_pydantic(node) for node in nodes]
         return nodes
 
-    def get_context_by_file_name(self, file_name: str) -> SessionContextORM:
-        return (
+    def get_context_by_file_name(self, file_name: str) -> SessionContext:
+        query_obj = (
             self.session.query(SessionContextORM)
             .filter(SessionContextORM.file_name == file_name)
             .one()
         )
+        obj = SessionContext.from_orm(query_obj)
+        return obj
 
     def get_context(self, linea_id: str) -> SessionContext:
         query_obj = (
@@ -484,6 +485,10 @@ class RelationalLineaDB(LineaDB):
         return [Artifact.from_orm(r) for r in results]
 
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
+        """
+        Get all the nodes associated with the session, which does
+         NOT include things like SessionContext
+        """
         node_orms = (
             self.session.query(NodeORM)
             .filter(NodeORM.session_id == session_id)
@@ -491,11 +496,17 @@ class RelationalLineaDB(LineaDB):
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
+    # def get_session_graph_from_artifact_id(
+    #     self, artifact_id: LineaID
+    # ) -> Graph:
+    #     """ """
     def get_all_nodes(self) -> List[Node]:
         node_orms = self.session.query(NodeORM).all()
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
-    def get_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
+    def get_session_graph_from_artifact_id(
+        self, artifact_id: LineaID
+    ) -> Graph:
         """
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation
@@ -511,10 +522,7 @@ class RelationalLineaDB(LineaDB):
         """
         node = self.get_node_by_id(artifact_id)
         nodes = self.get_nodes_for_session(node.session_id)
-        full_graph = Graph(nodes)
-        ancestors = full_graph.get_ancestors(node)
-        ancestors.append(node.id)
-        return Graph([full_graph.get_node_else_raise(a) for a in ancestors])
+        return Graph(nodes, self.get_context(node.session_id))
 
     def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
         """
@@ -527,34 +535,8 @@ class RelationalLineaDB(LineaDB):
         :param artifact_id: UUID for the artifact
         :return: string containing the code for generating the artifact.
         """
-        graph = self.get_graph_from_artifact_id(artifact_id)
-        session_code = self.get_context(
-            self.get_node_by_id(artifact_id).session_id
-        ).code
-
-        nodes = [
-            node
-            for node in graph.nodes
-            if node.lineno is not None and node.col_offset is not None
-        ]
-
-        num_lines = len(session_code.split("\n"))
-        code = "\n".join([" " * max_col_of_code(session_code)] * num_lines)
-
-        for node in nodes:
-            code = add_node_to_code(code, session_code, node)
-
-        # replace groups of empty lines with single empty line
-        # https://stackoverflow.com/questions/28901452/reduce-multiple-blank-lines-to-single-pythonically
-        code = re.sub(r"\n\s*\n", "\n\n", code)
-
-        # remove extra white spaces from end of each line
-        lines = code.split("\n")
-        for i in range(len(lines)):
-            lines[i] = lines[i].rstrip()
-        code = "\n".join(lines)
-
-        return code
+        graph = self.get_session_graph_from_artifact_id(artifact_id)
+        return get_program_slice(graph, [artifact_id])
 
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode

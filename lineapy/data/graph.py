@@ -1,3 +1,4 @@
+from lineapy.graph_reader.graph_printer import GraphPrinter
 from typing import cast, List, Dict, Optional, Any
 from dataclasses import dataclass
 
@@ -10,6 +11,7 @@ from lineapy.data.types import (
     NodeValueType,
     NodeType,
     CallNode,
+    SessionContext,
     SideEffectsNode,
     StateChangeNode,
     VariableNode,
@@ -33,10 +35,18 @@ class DirectedEdge:
 
 
 class Graph(object):
-    def __init__(self, nodes: List[Node]):
+    def __init__(self, nodes: List[Node], session_context: SessionContext):
         """
-        Note:
-        - edges could be none for very simple programs
+        Graph represents a
+        It is constructed based on the following variables:
+        :param nodes: a list of nodes and the session context in wh
+        :param session_context: the session context associated with the graph
+
+        NOTE:
+        - It makes sense to include session_context in the constructor of
+          the graph because the information in session_context is semantically
+          important to the notion of a Graph. Concretely, we are starting
+          to also use the code entry from the session_context.
         """
         self._nodes: List[Node] = nodes
         self._ids: Dict[LineaID, Node] = dict((n.id, n) for n in nodes)
@@ -53,7 +63,10 @@ class Graph(object):
                 for edge in self.__get_edges_from_line_number()
             ]
         )
+        self.session_context = session_context
+        self.printer = GraphPrinter(self)
 
+        # validation
         if not nx.is_directed_acyclic_graph(self._nx_graph):
             raise InternalLogicError("Graph should not be cyclic")
 
@@ -69,20 +82,39 @@ class Graph(object):
     def nodes(self) -> List[Node]:
         return self._nodes
 
+    @property
+    def source_code(self) -> str:
+        """
+        Note that this is named "source_code" to emphasize that this was the
+          original code, in the case where the graph is modified, the
+          "derived_code" would be different
+        """
+        return self.session_context.code
+
+    def __eq__(self, other) -> bool:
+        return nx.is_isomorphic(self.nx_graph, other.nx_graph)
+
     def visit_order(self) -> List[LineaID]:
         return list(nx.topological_sort(self.nx_graph))
 
     def get_parents(self, node: Node) -> List[LineaID]:
         return list(self.nx_graph.predecessors(node.id))
 
-    def get_ancestors(self, node: Node) -> List[LineaID]:
-        return list(nx.ancestors(self.nx_graph, node.id))
+    def get_ancestors(self, node_id: LineaID) -> List[LineaID]:
+        return list(nx.ancestors(self.nx_graph, node_id))
 
     def get_children(self, node: Node) -> List[LineaID]:
         return list(self.nx_graph.successors(node.id))
 
     def get_descendants(self, node: Node) -> List[LineaID]:
         return list(nx.descendants(self.nx_graph, node.id))
+
+    def get_leaf_nodes(self) -> List[LineaID]:
+        return [
+            node
+            for node in self.nx_graph.nodes
+            if self.nx_graph.out_degree(node) == 0
+        ]
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
         if node_id is not None and node_id in self.ids:
@@ -234,6 +266,7 @@ class Graph(object):
                 ]
 
                 # sort data source nodes children
+                # FIXME: lineno check
                 descendants.sort(
                     key=lambda n: self.get_node_else_raise(n).lineno
                 )
@@ -253,3 +286,15 @@ class Graph(object):
                     )
         # print(edges)
         return edges
+
+    def get_subgraph(self, nodes: List[Node]) -> "Graph":
+        """
+        FIXME
+        """
+        return Graph(nodes, self.session_context)
+
+    def __str__(self):
+        self.printer()
+
+    def __repr__(self):
+        self.printer()

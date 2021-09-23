@@ -1,8 +1,5 @@
 from typing import cast
 
-import networkx as nx
-
-from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
@@ -10,8 +7,19 @@ from lineapy.data.types import (
     Node,
     NodeType,
 )
-from lineapy.execution.code_util import get_segment_from_code
 from lineapy.utils import CaseNotHandledError, internal_warning_log
+
+
+def get_segment_from_code(code: str, node: Node) -> str:
+    if node.lineno is node.end_lineno:
+        return code.split("\n")[node.lineno - 1][
+            node.col_offset : node.end_col_offset
+        ]
+    else:
+        lines = code.split("\n")[node.lineno - 1 : node.end_lineno]
+        lines[0] = lines[0][node.col_offset :]
+        lines[-1] = lines[-1][: node.end_col_offset]
+        return "\n".join(lines)
 
 
 def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
@@ -102,13 +110,4 @@ def are_nodes_content_equal(n1: Node, n2: Node, session_code: str) -> bool:
         # TODO: add state variable checks!!!
         return True
 
-    raise CaseNotHandledError(f"{n1.node_type } is not supported")
-
-
-def are_graphs_identical(g1: Graph, g2: Graph, deep_check=False) -> bool:
-    """
-    This is simple util to traverse the graph for direct comparisons.
-    In the future, for caching, we will have to do more advanced
-      entity resolution
-    """
-    return nx.is_isomorphic(g1.nx_graph, g2.nx_graph)
+    raise CaseNotHandledError(f"{n1.node_type} is not supported")

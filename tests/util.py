@@ -64,10 +64,24 @@ def strip_non_letter_num(s: str):
     return sub("[\\s+]", "", s)
 
 
-def are_str_equal(s1: str, s2: str, remove_all_non_letter=False):
+def are_str_equal(
+    s1: str,
+    s2: str,
+    remove_all_non_letter=False,
+    find_diff=False,
+):
     if remove_all_non_letter:
         return strip_non_letter_num(s1) == strip_non_letter_num(s2)
-    return s1.strip() == s2.strip()
+    if s1.strip() == s2.strip():
+        return True
+    if find_diff:
+        splitS1 = set(s1.split("\n"))
+        splitS2 = set(s2.split("\n"))
+
+        diff = splitS2.difference(splitS1)
+        diff = ", ".join(diff)
+        print("Difference:", diff)
+        return False
 
 
 def get_new_session(
@@ -108,6 +122,12 @@ def compare_ast(node1: AST, node2: AST):
     return s1 == s2
 
 
+def compare_code_via_ast(code: str, expected: str) -> bool:
+    import ast
+
+    return compare_ast(ast.parse(code), ast.parse(expected))
+
+
 def setup_db(mode: ExecutionMode, reset: bool):
     test_db = RelationalLineaDB()
     db_config = get_default_config_by_environment(mode)
@@ -142,7 +162,7 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     executor = Executor()
 
     # execute stub graph and write to database
-    execution_time = executor.execute_program(stub_graph, context)
+    execution_time = executor.execute_program(stub_graph)
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
 
@@ -185,7 +205,7 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     executor = Executor()
 
     # execute stub graph and write to database
-    execution_time = executor.execute_program(stub_graph, context)
+    execution_time = executor.execute_program(stub_graph)
     test_db.write_context(context)
     test_db.write_nodes(stub_graph.nodes)
 

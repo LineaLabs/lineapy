@@ -109,4 +109,5 @@ graph_with_function_definition = Graph(
         a_input_state_change,
         a_output_state_change,
     ],
+    session,
 )

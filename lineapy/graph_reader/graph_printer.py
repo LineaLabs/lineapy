@@ -1,14 +1,18 @@
+from __future__ import annotations
 from dataclasses import dataclass, field
-from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID, SessionContext, NodeType
 import collections
 import black
-from typing import Any, Iterable
+from typing import TYPE_CHECKING, Iterable
 from pydantic import BaseModel
 import collections
 import enum
 import re
-from pydantic.fields import SHAPE_LIST, SHAPE_SINGLETON
+from pydantic.fields import SHAPE_LIST
+
+
+if TYPE_CHECKING:
+    from lineapy.data.graph import Graph
+from lineapy.data.types import LineaID, NodeType
 
 
 @dataclass
@@ -16,20 +20,19 @@ class GraphPrinter:
     """
     Pretty prints a graph, in a similar way as how you would create it by hand.
 
-    This represenation should be consistant despite UUIDs being different.
+    This representation should be consistant despite UUIDs being different.
     """
 
     graph: Graph
-    session: SessionContext
     id_to_attribute_name: dict[LineaID, str] = field(default_factory=dict)
 
-    # Mapping of each node types to the count of nodes of that type printed so far,
-    # to create variables based on node type.
+    # Mapping of each node types to the count of nodes of that type printed
+    # so far to create variables based on node type.
     node_type_to_count: dict[NodeType, int] = field(
         default_factory=lambda: collections.defaultdict(lambda: 0)
     )
 
-    def __call__(self) -> Any:
+    def __call__(self) -> str:
         s = "\n".join(self.lines())
         return black.format_str(s, mode=black.Mode())
 
@@ -47,7 +50,7 @@ class GraphPrinter:
         yield "from lineapy.data.types import *"
         yield "from lineapy.utils import get_new_id"
         yield "session = ("
-        yield from self.pretty_print_model(self.session)
+        yield from self.pretty_print_model(self.graph.session_context)
         yield ")"
 
         for node_id in self.graph.visit_order():

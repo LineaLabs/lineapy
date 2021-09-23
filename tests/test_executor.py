@@ -57,7 +57,6 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_function_definition,
-            graph_with_function_definition_session,
         )
         a = e.get_value_by_variable_name("a")
         assert a == 120
@@ -71,7 +70,7 @@ class TestBasicExecutor:
     # TODO: Move to E2E test when loops work
     def test_program_with_loops(self):
         e = Executor()
-        e.execute_program(graph_with_loops, graph_with_loops_session)
+        e.execute_program(graph_with_loops)
         y = e.get_value_by_variable_name("y")
         x = e.get_value_by_variable_name("x")
         a = e.get_value_by_variable_name("a")
@@ -85,7 +84,6 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_conditionals,
-            graph_with_conditionals_session,
         )
         bs = e.get_value_by_variable_name("bs")
         stdout = e.get_stdout()
@@ -98,7 +96,6 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_csv_import,
-            graph_with_file_access_session,
         )
         s = e.get_value_by_variable_name("s")
         assert s == 25
@@ -107,9 +104,7 @@ class TestBasicExecutor:
     # and enable as end to end test
     def test_variable_alias_by_value(self):
         e = Executor()
-        e.execute_program(
-            graph_with_alias_by_value, graph_with_alias_by_value_session
-        )
+        e.execute_program(graph_with_alias_by_value)
         a = e.get_value_by_variable_name("a")
         b = e.get_value_by_variable_name("b")
         assert a == 2
@@ -121,7 +116,6 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_alias_by_reference,
-            graph_with_alias_by_reference_session,
         )
         s = e.get_value_by_variable_name("s")
         assert s == 10
@@ -132,14 +126,15 @@ class TestBasicExecutor:
         e = Executor()
         e.execute_program(
             graph_with_messy_nodes,
-            graph_with_messy_nodes_session,
         )
         g = e.get_value_by_variable_name("g")
         assert g == 5
 
         res = execute(
             graph_with_messy_nodes_code,
-            exec_transformed_xfail="https://github.com/LineaLabs/lineapy/issues/155",
+            exec_transformed_xfail=(
+                "https://github.com/LineaLabs/lineapy/issues/155"
+            ),
         )
         assert res.values["g"] == 5
 

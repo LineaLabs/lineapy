@@ -9,26 +9,6 @@ from lineapy.data.types import (
 )
 from tests.util import get_new_id, get_new_session
 
-"""
-```
-a = 1
-b = a + 2
-c = 2
-d = 4
-e = d + a
-f = a * b * c
-```
-
-# slice on f
-
-```
-a = 1
-b = a + 2
-c = 2
-f = a * b * c
-```
-"""
-
 # including also a headless integer & variable
 code = """a = 1
 b = a + 2
@@ -44,7 +24,6 @@ g = e
 sliced_code = """a = 1
 b = a + 2
 c = 2
-
 f = a * b * c
 """
 
@@ -189,7 +168,6 @@ f_assign_1 = CallNode(
     session_id=session.id,
     function_name="mul",
     function_module=operator_module.id,  # built in
-    assigned_variable_name="f",
     arguments=[a_argument_node_3.id, b_argument_node.id],
     lineno=6,
     col_offset=4,
@@ -245,7 +223,7 @@ headless_literal = LiteralNode(
 headless_variable = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_variable_id=1,
+    source_variable_id=e_assign.id,
     lineno=8,
     col_offset=0,
     end_lineno=8,
@@ -284,7 +262,8 @@ graph_with_messy_nodes = Graph(
         headless_literal,
         headless_variable,
         variable_alias,
-    ]
+    ],
+    session,
 )
 
 graph_sliced_by_var_f = Graph(
@@ -301,5 +280,6 @@ graph_sliced_by_var_f = Graph(
         f_argument_node,
         c_argument_node,
         f_assign,
-    ]
+    ],
+    session,
 )

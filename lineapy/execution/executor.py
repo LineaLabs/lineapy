@@ -5,7 +5,7 @@ from types import ModuleType
 from lineapy.utils import InternalLogicError
 import subprocess
 import sys
-from typing import Any, Tuple, Optional, Dict, cast
+from typing import Any, Optional, Dict, cast
 import time
 
 import lineapy.lineabuiltins as lineabuiltins
@@ -23,11 +23,10 @@ from lineapy.data.types import (
     LineaID,
     VariableNode,
 )
-from lineapy.execution.code_util import get_segment_from_code
-from lineapy.graph_reader.base import GraphReader
+from lineapy.graph_reader.graph_util import get_segment_from_code
 
 
-class Executor(GraphReader):
+class Executor:
     def __init__(self):
         self._variable_values = {}
 
@@ -98,14 +97,16 @@ class Executor(GraphReader):
         """
         ...
 
-    def execute_program(
-        self, program: Graph, context: SessionContext
-    ) -> float:
-        if context is not None:
-            self.setup(context)
-
+    def execute_program(self, program: Graph) -> float:
+        """
+        Returns how long the program took
+        TODO:
+        - we should probably also return the stdout and any error messages
+          as well in the near future
+        """
+        self.setup(program.session_context)
         start = time.time()
-        self.walk(program, context.code)
+        self.walk(program)
         end = time.time()
         return end - start
 
@@ -120,7 +121,6 @@ class Executor(GraphReader):
                 state_var = cast(
                     StateChangeNode, program.get_node(state_var_id)
                 )
-                # if state_var.state_dependency_type is StateDependencyType.Read:
                 initial_state = program.get_node(
                     state_var.initial_value_node_id
                 )
@@ -156,7 +156,6 @@ class Executor(GraphReader):
                     StateChangeNode, program.get_node(state_var_id)
                 )
 
-                # if state_var.state_dependency_type is StateDependencyType.Write:
                 state_var.value = local_vars[state_var.variable_name]
 
                 if state_var.variable_name is not None:
@@ -219,8 +218,9 @@ class Executor(GraphReader):
             fn = getattr(program.get_node_value(function_module), fn_name)
             return fn
 
-    def walk(self, program: Graph, code: str) -> None:
+    def walk(self, program: Graph) -> None:
         sys.stdout = self._stdout
+        code = program.source_code
 
         for node_id in program.visit_order():
             node = program.get_node(node_id)

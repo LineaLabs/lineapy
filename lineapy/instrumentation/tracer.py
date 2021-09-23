@@ -102,8 +102,7 @@ class Tracer:
 
         elif self.session_type == SessionType.SCRIPT:
             self.executor.execute_program(
-                Graph(self.nodes_to_be_evaluated),
-                self.session_context,
+                Graph(self.nodes_to_be_evaluated, self.session_context),
             )
             self.records_manager.add_evaluated_nodes(
                 self.nodes_to_be_evaluated

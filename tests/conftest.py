@@ -1,7 +1,7 @@
 from __future__ import annotations
 import datetime
 import dataclasses
-from lineapy.graph_writer.graph_printer import GraphPrinter
+from lineapy.graph_reader.graph_printer import GraphPrinter
 import pathlib
 import typing
 from pathlib import Path
@@ -153,13 +153,10 @@ class ExecuteFixture:
 
         # Verify snapshot of graph
         nodes = db.get_all_nodes()
-        graph = Graph(nodes)
-        context = SessionContext.from_orm(
-            db.get_context_by_file_name(session_name)
-        )
-
+        context = db.get_context_by_file_name(session_name)
+        graph = Graph(nodes, context)
         assert (
-            GraphPrinter(graph, context)()
+            graph.printer()
             .replace(str(source_code_path), "[source file path]")
             .replace(
                 repr(context.creation_time),
