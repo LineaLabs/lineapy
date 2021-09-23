@@ -12,7 +12,7 @@ This repository contains a few different components:
 
 There are two ways to use `linea`:
 
--   The CLI tool: `python lineapy/cli/cli.py --mode dev your_file.py`
+-   The CLI tool: `lineapy --mode dev your_file.py`
     -   The dev mode is local, and the remote one is under development).
 -   A new IPython kernel: select the lineapy Kernel when you open your
     jupyter notebook.
