@@ -211,4 +211,8 @@ class TestEndToEnd:
         """
         https://github.com/LineaLabs/lineapy/issues/161
         """
-        execute("import altair; altair.data_transformers.enable('json')")
+        import altair
+
+        assert altair.data_transformers.active != "json"
+        res = execute("import altair; altair.data_transformers.enable('json')")
+        assert altair.data_transformers.active == "json"

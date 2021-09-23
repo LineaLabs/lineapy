@@ -150,7 +150,7 @@ def jsonify_value(value: Any, value_type: ValueType) -> str:
     )
 
 
-def get_value_type(val: Any) -> ValueType:
+def get_value_type(val: Any) -> Optional[ValueType]:
     """
     Got a little hacky so as to avoid dependency on external libraries.
     Current method is to check if the dependent library is already imported,
@@ -159,7 +159,7 @@ def get_value_type(val: Any) -> ValueType:
     Note:
     - Watch out for error here if the Executor tests fail.
     TODO
-    - We need to more gracefully handle cases that we do not recognize
+    - We currently just silently ignore cases we cant handle
     """
     if is_integer(val):
         return ValueType.value
@@ -195,6 +195,4 @@ def get_value_type(val: Any) -> ValueType:
         if isinstance(val, PIL.Image.Image):
             return ValueType.chart
 
-    raise CaseNotHandledError(
-        f"Do not know the type of {val}, type {type(val)}"
-    )
+    return None

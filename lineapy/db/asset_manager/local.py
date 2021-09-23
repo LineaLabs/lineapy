@@ -24,7 +24,9 @@ class LocalDataAssetManager(DataAssetManager):
             materialize = DataAssetManager.caching_decider(node)
             if materialize:
                 value = node.value
-
+                value_type = get_value_type(value)
+                if value_type is None:
+                    return None
                 value_orm = NodeValueORM(
                     node_id=node.id,
                     value=value,

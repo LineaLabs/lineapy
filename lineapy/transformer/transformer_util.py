@@ -1,5 +1,5 @@
 import ast
-from typing import Any, List, Optional, cast
+from typing import Any, List, Optional
 
 from lineapy.constants import (
     KEYWORD_ARGUMENTS,
@@ -11,7 +11,6 @@ from lineapy.constants import (
     VARIABLE_NAME,
 )
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.utils import CaseNotHandledError
 
 """
 AST synthesizers used by node_transformers
@@ -43,19 +42,6 @@ def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
             for key in SYNTAX_KEY
         ],
     )
-
-
-def get_call_function_name(node: ast.Call) -> dict:
-    if type(node.func) == ast.Name:
-        func_name = cast(ast.Name, node.func)
-        return {FUNCTION_NAME: func_name.id}
-    if type(node.func) == ast.Attribute:
-        func_attribute = cast(ast.Attribute, node.func)
-        return {
-            FUNCTION_NAME: func_attribute.attr,
-            FUNCTION_MODULE: func_attribute.value.id,
-        }
-    raise CaseNotHandledError("Other types of function calls!")
 
 
 def get_tracer_ast_call_func(tracer_func: str):

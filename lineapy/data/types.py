@@ -258,9 +258,12 @@ class CallNode(Node):
     node_type: NodeType = NodeType.CallNode
     # These IDs point to argument nodes
     arguments: List[LineaID]
+
+    # TODO: We can refactor the next three into one function_id
     function_name: str
     function_module: Optional[LineaID] = None
     locally_defined_function_id: Optional[LineaID] = None
+
     assigned_variable_name: Optional[str] = None
     value: Optional[NodeValueType] = None
 

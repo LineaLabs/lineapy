@@ -1,5 +1,5 @@
 import ast
-from typing import cast, Any
+from typing import Optional, cast, Any
 
 from lineapy import linea_publish
 from lineapy.constants import (
@@ -41,14 +41,18 @@ from lineapy.lineabuiltins import __build_list__
 from lineapy.transformer.transformer_util import (
     create_lib_attributes,
     extract_concrete_syntax_from_node,
-    get_call_function_name,
     get_tracer_ast_call_func,
     synthesize_linea_publish_call_ast,
     synthesize_tracer_call_ast,
     synthesize_tracer_headless_literal_ast,
     synthesize_tracer_headless_variable_ast,
 )
-from lineapy.utils import UserError, InvalidStateError, info_log
+from lineapy.utils import (
+    CaseNotHandledError,
+    UserError,
+    InvalidStateError,
+    info_log,
+)
 
 
 class NodeTransformer(ast.NodeTransformer):
@@ -168,10 +172,10 @@ class NodeTransformer(ast.NodeTransformer):
         TODO: support key word
         TODO: find function_module
         """
-        name_ref = get_call_function_name(node)
+        function_name, function_module = self.get_call_function_name(node)
         # a little hacky, assume no one else would have a function name
         #   called linea_publish
-        if name_ref[FUNCTION_NAME] == linea_publish.__name__:
+        if function_name == linea_publish.__name__:
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:
                 raise UserError(
@@ -209,13 +213,8 @@ class NodeTransformer(ast.NodeTransformer):
                 (arg.arg, self.visit(arg.value)) for arg in node.keywords
             ]
             # TODO: support keyword arguments as well
-            function_module = (
-                ast.Constant(value=name_ref[FUNCTION_MODULE])
-                if FUNCTION_MODULE in name_ref
-                else None
-            )
             return synthesize_tracer_call_ast(
-                name_ref[FUNCTION_NAME],
+                function_name,
                 argument_nodes,
                 node,
                 function_module=function_module,
@@ -472,3 +471,27 @@ class NodeTransformer(ast.NodeTransformer):
             [self.visit(node.value), ast.Constant(value=node.attr)],
             node,
         )
+
+    def get_call_function_name(
+        self, node: ast.Call
+    ) -> tuple[str, Optional[ast.expr]]:
+        """
+        Returns (function_name, function_module)
+        """
+        func = node.func
+        if isinstance(func, ast.Name):
+            return func.id, None
+        if isinstance(func, ast.Attribute):
+            value = func.value
+            module: ast.expr
+            if isinstance(value, ast.Name):
+                module = ast.Constant(value=value.id)
+            elif isinstance(value, ast.Attribute):
+                module = self.visit(value)
+            else:
+                raise CaseNotHandledError(
+                    f"Cannot get module of function {func}"
+                )
+            return func.attr, module
+
+        raise CaseNotHandledError("Other types of function calls!")
