@@ -40,7 +40,7 @@ pytest
 ```
 
 Some tests use use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test, to make it easier to update generate code and graphs.
-If you mean to change the tracing or graph spec, or added a new test that uses it, then run `--snapshot-update` to update the saved snapshots.
+If you mean to change the tracing or graph spec, or added a new test that uses it, then run `pytest --snapshot-update` to update the saved snapshots.
 
 Also we use [pytest's xfail](https://docs.pytest.org/en/latest/how-to/skipping.html#xfail-mark-test-functions-as-expected-to-fail) to mark tests that are expected to fail, because of a known bug. To have them run anyway, run `--run-xfail`.
 

@@ -12,9 +12,7 @@ from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import get_current_time, info_log
 
 from tests.util import (
-    compare_pydantic_objects_without_keys,
     reset_test_db,
-    run_code,
 )
 from tests.stub_data.graph_with_simple_function_definition import (
     definition_node,
@@ -28,7 +26,7 @@ from tests.stub_data.graph_with_simple_function_definition import (
 # )
 
 publish_name = "testing artifact publish"
-publish_code = (
+PUBLISH_CODE = (
     f"import {lineapy.__name__}\na ="
     f" abs(-11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
     f" '{publish_name}')\n"
@@ -43,6 +41,10 @@ print(b)
 IMPORT_CODE = """from math import pow as power, sqrt as root
 a = power(5, 2)
 b = root(a)
+"""
+
+VARIABLE_ALIAS_CODE = """a = 1
+b = a
 """
 
 
@@ -81,16 +83,19 @@ class TestEndToEnd:
         ],
     )
     def test_end_to_end_simple_graph(self, session_type, execute):
-        res = execute(publish_code, session_type=session_type)
+        res = execute(PUBLISH_CODE, session_type=session_type)
 
         nodes = res.graph.nodes
         assert len(nodes) == 3
+
+    def test_variable_alias(self, execute):
+        res = execute(VARIABLE_ALIAS_CODE)
 
     def test_publish(self, execute):
         """
         testing something super simple
         """
-        res = execute(publish_code)
+        res = execute(PUBLISH_CODE)
 
         artifacts = res.artifacts
 
@@ -107,7 +112,7 @@ class TestEndToEnd:
         same test as above but via the CLI
         """
         with NamedTemporaryFile() as tmp:
-            tmp.write(str.encode(publish_code))
+            tmp.write(str.encode(PUBLISH_CODE))
             tmp.flush()
             # might also need os.path.dirname() in addition to file name
             tmp_file_name = tmp.name

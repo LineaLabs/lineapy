@@ -110,9 +110,9 @@ lineapy_tracer.headless_literal(
 lineapy_tracer.headless_variable(
     "e", {"lineno": 8, "col_offset": 0, "end_lineno": 8, "end_col_offset": 1}
 )
-lineapy_tracer.assign(
-    variable_name="g",
-    value_node=Variable("e"),
+lineapy_tracer.variable_alias(
+    assigned_variable_name="g",
+    source_variable_name="e",
     syntax_dictionary={
         "lineno": 9,
         "col_offset": 0,
