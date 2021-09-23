@@ -67,15 +67,14 @@ class NodeTransformer(ast.NodeTransformer):
         self.source = source
 
     def _get_code_from_node(self, node):
-        code = """{}""".format(ast.get_source_segment(self.source, node))
-        return code
+        return ast.get_source_segment(self.source, node)
 
     def visit(self, node: ast.AST) -> Any:
         try:
             return super().visit(node)
         except Exception as e:
             code_context = self._get_code_from_node(node)
-            if code_context != "None":
+            if code_context:
                 info_log(
                     f"Error while transforming code: \n\n{code_context}\n"
                 )
