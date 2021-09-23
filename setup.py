@@ -53,6 +53,10 @@ setup(
             "tests",
         ]
     ),
+    # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
+    entry_points={
+        "console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"],
+    },
     include_package_data=True,
     data_files=[
         (
