@@ -57,7 +57,7 @@ def linea_cli(mode, session, file_name):
         report_error_to_user("Error: File does not appear to exist.")
     else:
         # Remove the file if we have no errors
-        os.unlink(transformed_code_file)
+        os.unlink(transformed_code_file.name)
 
 
 if __name__ == "__main__":
