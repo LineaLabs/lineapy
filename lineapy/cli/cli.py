@@ -1,3 +1,4 @@
+from tempfile import NamedTemporaryFile
 import click
 
 from lineapy.data.types import SessionType
@@ -40,8 +41,14 @@ def linea_cli(mode, session, file_name):
             session_name=file_name,
             execution_mode=execution_mode,
         )
+
+        transformed_code_file = NamedTemporaryFile(delete=False)
+        transformed_code_file.write(new_code.encode())
+        transformed_code_file.close()
+
         info_log("new_code\n" + new_code)
-        exec(new_code)
+        bytecode = compile(new_code, transformed_code_file.name, "exec")
+        exec(bytecode)
     except IOError:
         report_error_to_user("Error: File does not appear to exist.")
 
