@@ -14,6 +14,7 @@ from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import get_current_time, info_log
 
 from tests.util import (
+    get_project_directory,
     reset_test_db,
 )
 from tests.stub_data.graph_with_simple_function_definition import (
@@ -23,8 +24,8 @@ from tests.stub_data.graph_with_simple_function_definition import (
 )
 
 from tests.stub_data.graph_with_basic_image import (
-    code as graph_with_basic_image_code,
-    session as graph_with_basic_image_session,
+    write_image_code,
+    read_image_code,
 )
 
 publish_name = "testing artifact publish"
@@ -174,19 +175,27 @@ class TestEndToEnd:
         Changes the directory of the execution to make sure things are working.
 
         NOTE:
-        - This test alone REQUIRES that the tests be ran from the root,
-          since the code depends on a dummy file
         - We cannot assert on the nodes being equal to what's generated yet
           because DataSourceSode is not yet implemented.
         """
         cwd = getcwd()
-        res = execute(graph_with_basic_image_code)
-        p = tmpdir.mkdir("tmp")
-        chdir(p)
+
+        # Try running at first from the root directory of the project, so the
+        # read csv can find the right file
+        chdir(get_project_directory())
+        res = execute(write_image_code)
+        # We currently execute the read image code after, b/c we don't have
+        # dependencies set up between the writing and reading files.
+
+        execute(read_image_code)
+
+        # Then try in a random directory, to make sure its preserved when executing
+        chdir(tmpdir.mkdir("tmp"))
         e = Executor()
         e.execute_program(res.graph)
         # TODO: add some assertion, but for now it's sufficient that it's
         #       working
+
         chdir(cwd)  # reset
 
     def test_import(self, execute):

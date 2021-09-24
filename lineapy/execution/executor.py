@@ -1,6 +1,6 @@
 import builtins
 import importlib.util
-from os import chdir
+from os import chdir, getcwd
 import io
 from types import ModuleType
 from lineapy.utils import InternalLogicError
@@ -55,6 +55,7 @@ class Executor:
 
         :param context: `SessionContext` including the necessary libraries.
         """
+        self.prev_working_dir = getcwd()
         chdir(context.working_directory)
         if context.libraries is not None:
             for library in context.libraries:
@@ -64,6 +65,9 @@ class Executor:
                 except ModuleNotFoundError:
                     # Note: look out for errors when handling imports with multiple levels of parent packages (e.g. from x.y.z import a)
                     Executor.install(library.name.split(".")[0])
+
+    def teardown(self) -> None:
+        chdir(self.prev_working_dir)
 
     def get_stdout(self) -> str:
         """
@@ -113,6 +117,7 @@ class Executor:
         start = time.time()
         self.walk(program)
         end = time.time()
+        self.teardown()
         return end - start
 
     def setup_context_for_node(
