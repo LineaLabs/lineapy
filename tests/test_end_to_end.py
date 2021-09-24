@@ -247,3 +247,6 @@ class TestEndToEnd:
         outside of ipython.
         """
         execute("get_ipython().system('')", session_type=SessionType.STATIC)
+
+    def test_subscript_call(self, execute):
+        execute("[0][abs(0)]", session_type=SessionType.STATIC)
