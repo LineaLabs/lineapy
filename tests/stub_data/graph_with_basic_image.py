@@ -9,14 +9,19 @@ from lineapy.data.types import (
 )
 from tests.util import get_new_id, get_new_session
 
-code = """import pandas as pd
+write_image_code = """import pandas as pd
 import matplotlib.pyplot as plt
-from PIL.Image import open
 df = pd.read_csv('tests/stub_data/simple_data.csv')
 plt.imsave('simple_data.png', df)
+"""
+
+read_image_code = """from PIL.Image import open
 img = open('simple_data.png')
 img = img.resize([200, 200])
 """
+
+
+code = write_image_code + read_image_code
 
 pandas_lib = Library(
     id=get_new_id(),

@@ -24,7 +24,8 @@ from tests.stub_data.graph_with_simple_function_definition import (
 )
 
 from tests.stub_data.graph_with_basic_image import (
-    code as graph_with_basic_image_code,
+    write_image_code,
+    read_image_code,
 )
 
 publish_name = "testing artifact publish"
@@ -182,7 +183,11 @@ class TestEndToEnd:
         # Try running at first from the root directory of the project, so the
         # read csv can find the right file
         chdir(get_project_directory())
-        res = execute(graph_with_basic_image_code)
+        res = execute(write_image_code)
+        # We currently execute the read image code after, b/c we don't have
+        # dependencies set up between the writing and reading files.
+
+        execute(read_image_code)
 
         # Then try in a random directory, to make sure its preserved when executing
         chdir(tmpdir.mkdir("tmp"))
