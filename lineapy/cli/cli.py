@@ -1,3 +1,4 @@
+import os
 from tempfile import NamedTemporaryFile
 import click
 
@@ -42,6 +43,9 @@ def linea_cli(mode, session, file_name):
             execution_mode=execution_mode,
         )
 
+        # Write transformed code to a file and don't delete it, so
+        # that if an exception is raised when executing it, we
+        # can look at the traceback
         transformed_code_file = NamedTemporaryFile(delete=False)
         transformed_code_file.write(new_code.encode())
         transformed_code_file.close()
@@ -51,6 +55,9 @@ def linea_cli(mode, session, file_name):
         exec(bytecode)
     except IOError:
         report_error_to_user("Error: File does not appear to exist.")
+    else:
+        # Remove the file if we have no errors
+        os.unlink(transformed_code_file)
 
 
 if __name__ == "__main__":
