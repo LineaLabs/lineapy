@@ -1,7 +1,9 @@
+from lineapy.execution.executor import Executor
 from lineapy.graph_reader.graph_util import are_nodes_content_equal
 from tempfile import NamedTemporaryFile
 from click.testing import CliRunner
 import pytest
+from os import chdir, getcwd
 
 import lineapy
 from lineapy.cli.cli import linea_cli
@@ -12,6 +14,7 @@ from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import get_current_time, info_log
 
 from tests.util import (
+    get_project_directory,
     reset_test_db,
 )
 from tests.stub_data.graph_with_simple_function_definition import (
@@ -20,10 +23,10 @@ from tests.stub_data.graph_with_simple_function_definition import (
     code as function_definition_code,
 )
 
-# from tests.stub_data.graph_with_basic_image import (
-#     code as graph_with_basic_image_code,
-#     session as graph_with_basic_image_session,
-# )
+from tests.stub_data.graph_with_basic_image import (
+    write_image_code,
+    read_image_code,
+)
 
 publish_name = "testing artifact publish"
 PUBLISH_CODE = (
@@ -167,21 +170,34 @@ class TestEndToEnd:
                         function_definition_code,
                     )
 
-    # FIXME: this does not work, need a better story around files
-    # def test_graph_with_basic_image(self):
-    #     # FIXME: need to be refactored after Sauls' changes
-    #     # we want to check that session context is also loading in the libraries
+    def test_graph_with_basic_image(self, execute, tmpdir):
+        """
+        Changes the directory of the execution to make sure things are working.
 
-    #     # assert that the sessions are equal graph_with_basic_image_session
-    #     tmp_file_name = run_code(graph_with_basic_image_code, "basic_image")
-    #     nodes = self.db.get_nodes_by_file_name(tmp_file_name)
-    #     print(nodes)
-    #     assert len(nodes) == 17
-    #     # TODO: check that the nodes are equal
-    #     session_context = self.db.get_context(nodes[0].session_id)
-    #     assert compare_pydantic_objects_without_id(
-    #         session_context, graph_with_basic_image_session, True
-    #     )
+        NOTE:
+        - We cannot assert on the nodes being equal to what's generated yet
+          because DataSourceSode is not yet implemented.
+        """
+        cwd = getcwd()
+
+        # Try running at first from the root directory of the project, so the
+        # read csv can find the right file
+        chdir(get_project_directory())
+        res = execute(write_image_code)
+        # We currently execute the read image code after, b/c we don't have
+        # dependencies set up between the writing and reading files.
+
+        execute(read_image_code)
+
+        # Then try in a random directory, to make sure its preserved when executing
+        chdir(tmpdir.mkdir("tmp"))
+        e = Executor()
+        e.execute_program(res.graph)
+        # TODO: add some assertion, but for now it's sufficient that it's
+        #       working
+
+        chdir(cwd)  # reset
+
     def test_import(self, execute):
         res = execute(IMPORT_CODE)
         assert res.values["b"] == 5

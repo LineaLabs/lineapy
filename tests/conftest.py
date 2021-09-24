@@ -1,7 +1,6 @@
 from __future__ import annotations
 import datetime
 import dataclasses
-from lineapy.graph_reader.graph_printer import GraphPrinter
 import pathlib
 import typing
 from pathlib import Path
@@ -14,7 +13,7 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
-from lineapy.data.types import Artifact, SessionContext, SessionType
+from lineapy.data.types import Artifact, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
@@ -24,6 +23,10 @@ from lineapy.transformer.transformer import Transformer
 # Based off of unmerged JSON extension
 # Writes each snapshot to its own Python file
 # https://github.com/tophat/syrupy/pull/552/files#diff-9bab2a0973c5e73c86ed7042300befcaa5a034df17cea4d013eeaece6af66979
+
+DUMMY_WORKING_DIR = "dummy_linea_repo/"
+
+
 class PythonSnapshotExtension(SingleFileSnapshotExtension):
     _file_extension = "py"
 
@@ -147,14 +150,7 @@ class ExecuteFixture:
         locals: dict[str, typing.Any] = {}
         bytecode = compile(trace_code, str(transformed_code_path), "exec")
 
-        # Handle exceptions on execing the transformed code,
-        # So that if an error is raised during evaluation of the nodes
-        # we can still get the graph to dump and compare before raising that
-        exec_transformed_exception: typing.Optional[Exception] = None
-        try:
-            exec(bytecode, {}, locals)
-        except Exception as e:
-            exec_transformed_exception = e
+        exec(bytecode, {}, locals)
 
         tracer: Tracer = locals["lineapy_tracer"]
 
@@ -171,11 +167,12 @@ class ExecuteFixture:
                 repr(context.creation_time),
                 repr(datetime.datetime.fromordinal(1)),
             )
+            .replace(
+                context.working_directory,
+                DUMMY_WORKING_DIR,
+            )
             == self.snapshot(extension_class=PythonSnapshotExtension)
         )
-
-        if exec_transformed_exception is not None:
-            raise exec_transformed_exception
 
         return ExecuteResult(db, graph, tracer.executor)
 

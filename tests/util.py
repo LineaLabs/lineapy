@@ -6,6 +6,7 @@ from typing import Optional, List
 from re import sub
 from tempfile import NamedTemporaryFile
 from pydantic import BaseModel
+from os import getcwd
 
 from lineapy.transformer.transformer import ExecutionMode, Transformer
 from lineapy.data.types import (
@@ -88,6 +89,7 @@ def get_new_session(
     code: str,
     libraries: Optional[List] = None,
 ) -> SessionContext:
+    working_directory = getcwd()
     if libraries is None:
         libraries = []
     return SessionContext(
@@ -97,6 +99,7 @@ def get_new_session(
         creation_time=datetime.now(),
         libraries=libraries,
         code=code,
+        working_directory=working_directory,
     )
 
 
@@ -179,6 +182,10 @@ def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     test_db.session.commit()
 
 
+def get_project_directory():
+    return path.abspath(path.join(__file__, "../.."))
+
+
 def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
     from lineapy.execution.executor import Executor
     from lineapy.db.relational.schema.relational import ExecutionORM
@@ -193,13 +200,11 @@ def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
 
     if mode == ExecutionMode.DEV:
         simple_data_node.access_path = (
-            path.abspath(path.join(__file__, "../.."))
-            + "/tests/stub_data/simple_data.csv"
+            get_project_directory() + "/tests/stub_data/simple_data.csv"
         )
 
         img_data_node.access_path = (
-            path.abspath(path.join(__file__, "../.."))
-            + "/lineapy/app/simple_data.png"
+            get_project_directory() + "/lineapy/app/simple_data.png"
         )
 
     executor = Executor()

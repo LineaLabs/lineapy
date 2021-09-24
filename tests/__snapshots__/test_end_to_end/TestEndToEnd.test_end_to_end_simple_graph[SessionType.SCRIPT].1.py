@@ -8,6 +8,7 @@ session = SessionContext(
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
     code="import lineapy\na = abs(-11)\nlineapy.linea_publish(a, 'testing artifact publish')\n",
+    working_directory="dummy_linea_repo/",
     session_name=None,
     user_name=None,
     hardware_spec=None,
