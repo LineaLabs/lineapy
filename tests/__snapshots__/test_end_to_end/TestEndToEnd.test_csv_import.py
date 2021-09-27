@@ -12,14 +12,14 @@ lineapy_tracer.trace_import(
     alias="pd",
 )
 lineapy_tracer.trace_import(
-    name="matplotlib.pyplot",
+    name="lineapy",
     syntax_dictionary={
         "lineno": 2,
         "col_offset": 0,
         "end_lineno": 2,
-        "end_col_offset": 31,
+        "end_col_offset": 14,
     },
-    alias="plt",
+    alias=None,
 )
 lineapy_tracer.assign(
     variable_name="df",
@@ -42,16 +42,36 @@ lineapy_tracer.assign(
         "end_col_offset": 41,
     },
 )
-lineapy_tracer.call(
-    function_name="imsave",
+lineapy_tracer.assign(
+    variable_name="s",
+    value_node=lineapy_tracer.call(
+        function_name="sum",
+        syntax_dictionary={
+            "lineno": 5,
+            "col_offset": 4,
+            "end_lineno": 5,
+            "end_col_offset": 17,
+        },
+        arguments=[],
+        keyword_arguments=[],
+        function_module=lineapy_tracer.call(
+            function_name="getitem",
+            syntax_dictionary={
+                "lineno": 5,
+                "col_offset": 4,
+                "end_lineno": 5,
+                "end_col_offset": 11,
+            },
+            arguments=[Variable("df"), "a"],
+            keyword_arguments=[],
+        ),
+    ),
     syntax_dictionary={
         "lineno": 5,
         "col_offset": 0,
         "end_lineno": 5,
-        "end_col_offset": 33,
+        "end_col_offset": 17,
     },
-    arguments=["simple_data.png", Variable("df")],
-    keyword_arguments=[],
-    function_module="plt",
 )
+lineapy_tracer.publish(variable_name="s", description="Graph With CSV Import")
 lineapy_tracer.exit()

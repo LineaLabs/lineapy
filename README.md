@@ -30,9 +30,6 @@ pip install -e . --user
 
 ## Tests
 
-Note: these should be run in root (`graph_with_csv_import` does a
-relative file access)
-
 ```bash
 mypy -p lineapy
 black --line-length 79 --check .
@@ -65,7 +62,7 @@ act
 For a static end to end test along with [linea-server](https://github.com/LineaLabs/linea-server)
 
 ```bash
-python tests/setup_integrated_tests.py
+python -m tests.setup_integrated_tests
 python lineapy/app/application.py
 ```
 

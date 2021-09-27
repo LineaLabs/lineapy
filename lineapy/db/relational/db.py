@@ -288,6 +288,7 @@ class RelationalLineaDB(LineaDB):
         node_id: LineaID,
         date_created: float,
         name: Optional[str] = None,
+        execution_time: Optional[float] = None,
     ) -> None:
         """
         Given that whether something is an artifact is just a human annotation,
@@ -306,6 +307,15 @@ class RelationalLineaDB(LineaDB):
                 date_created=date_created,
             )
             self.session.add(artifact)
+
+            # Currently each execution maps to exactly one artifact,
+            # so for now we add a new execution every time we publish an artifact
+            execution = ExecutionORM(
+                artifact_id=artifact.id,
+                version=1,
+                execution_time=execution_time,
+            )
+            self.session.add(execution)
             self.session.commit()
 
     def remove_node_id_from_artifact_table(self, node_id: LineaID) -> None:

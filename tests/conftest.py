@@ -1,12 +1,15 @@
 from __future__ import annotations
 import datetime
 import dataclasses
+from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.db.relational.schema.relational import ArtifactORM
+import os
 import pathlib
 import typing
 from pathlib import Path
-import black
 
 import pytest
+from sqlalchemy import true
 import syrupy
 from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
@@ -18,7 +21,9 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.transformer import Transformer
-
+from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.utils import prettify
+from .util import get_project_directory
 
 # Based off of unmerged JSON extension
 # Writes each snapshot to its own Python file
@@ -68,14 +73,26 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
 
 
 @pytest.fixture
-def execute(snapshot, tmp_path):
+def python_snapshot(request):
+    """
+    Copied from the default fixture, but updating the extension class to be Python
+    """
+    return syrupy.SnapshotAssertion(
+        update_snapshots=request.config.option.update_snapshots,
+        extension_class=PythonSnapshotExtension,
+        test_location=syrupy.PyTestLocation(request.node),
+        session=request.session.config._syrupy,
+    )
+
+
+@pytest.fixture
+def execute(python_snapshot, tmp_path):
     """
     :param snapshot: `snapshot` is a fixture from the syrupy library that's automatically injected by pytest.
     :param tmp_path: `tmp_path` is provided by the core pytest
     """
     return ExecuteFixture(
-        # Make a new snapshot extension for every comparison, b/c extension class is reset after using
-        snapshot,
+        python_snapshot,
         tmp_path,
     )
 
@@ -99,6 +116,7 @@ class ExecuteFixture:
         *,
         exec_transformed_xfail: str = None,
         session_type: SessionType = SessionType.SCRIPT,
+        compare_snapshot: bool = True,
     ):
         """
         Tests trace, graph, and executes code on init.
@@ -110,6 +128,9 @@ class ExecuteFixture:
 
         :param session_type:  If you don't want to execute, you can set the
         `session_type` to STATIC
+
+        :param compare_snapshot:  If you don't want to compare the snapshots,
+        just execute the code then set `compare_snapshot` to False.
         """
         transformer = Transformer()
         # These temp filenames are unique per test function.
@@ -130,13 +151,11 @@ class ExecuteFixture:
         )
 
         # Replace the source path with a consistant name so its compared properly
-        pretty_trace_code = black.format_str(
+        pretty_trace_code = prettify(
             trace_code.replace(str(source_code_path), "[source file path]"),
-            mode=black.Mode(),
         )
-        assert pretty_trace_code == self.snapshot(
-            extension_class=PythonSnapshotExtension
-        )
+        if compare_snapshot:
+            assert pretty_trace_code == self.snapshot
 
         if exec_transformed_xfail is not None:
             pytest.xfail(exec_transformed_xfail)
@@ -160,19 +179,20 @@ class ExecuteFixture:
         nodes = db.get_all_nodes()
         context = db.get_context_by_file_name(session_name)
         graph = Graph(nodes, context)
-        assert (
-            graph.printer()
-            .replace(str(source_code_path), "[source file path]")
-            .replace(
-                repr(context.creation_time),
-                repr(datetime.datetime.fromordinal(1)),
+        if compare_snapshot:
+            assert (
+                graph.printer()
+                .replace(str(source_code_path), "[source file path]")
+                .replace(
+                    repr(context.creation_time),
+                    repr(datetime.datetime.fromordinal(1)),
+                )
+                .replace(
+                    context.working_directory,
+                    DUMMY_WORKING_DIR,
+                )
+                == self.snapshot
             )
-            .replace(
-                context.working_directory,
-                DUMMY_WORKING_DIR,
-            )
-            == self.snapshot(extension_class=PythonSnapshotExtension)
-        )
 
         return ExecuteResult(db, graph, tracer.executor)
 
@@ -195,20 +215,25 @@ class ExecuteResult:
     def artifacts(self) -> list[Artifact]:
         return self.db.get_all_artifacts()
 
-    def slice(self, variable_name: str) -> ExecuteResult:
-        pass
-        # TODO: implement like:
-        #         graph, context = self.write_and_read_graph(
-        #     graph_with_messy_nodes, graph_with_messy_nodes_session
-        # )
-        # self.lineadb.add_node_id_to_artifact_table(
-        #     f_assign.id,
-        #     get_current_time(),
-        # )
-        # result = self.lineadb.get_graph_from_artifact_id(f_assign.id)
-        # self.lineadb.remove_node_id_from_artifact_table(f_assign.id)
-        # e = Executor()
-        # e.execute_program(result, context)
-        # f = e.get_value_by_variable_name("f")
-        # assert f == 6
-        # assert are_graphs_identical(result, graph_sliced_by_var_f)
+    def slice(self, artifact_name: str) -> str:
+        """
+        Gets the code for a slice of the graph from an artifact
+        """
+        artifact = (
+            self.db.session.query(ArtifactORM)
+            .filter(ArtifactORM.name == artifact_name)
+            .one()
+        )
+        return get_program_slice(self.graph, [artifact.id])
+
+
+@pytest.fixture(autouse=True)
+def chdir_test_file():
+    """
+    Make sure all tests are run relative to the project root
+    """
+    current_working_dir = os.getcwd()
+
+    os.chdir(get_project_directory())
+    yield
+    os.chdir(current_working_dir)

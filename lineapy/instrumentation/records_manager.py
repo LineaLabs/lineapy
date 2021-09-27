@@ -38,11 +38,14 @@ class RecordsManager:
         self,
         node_id: LineaID,
         name: Optional[str] = None,
+        execution_time: Optional[float] = None,
     ):
         # need to flush all to DB since it's accessing its values at runtime
         self.flush_records()
         date_created = get_current_time()
-        self.db.add_node_id_to_artifact_table(node_id, date_created, name)
+        self.db.add_node_id_to_artifact_table(
+            node_id, date_created, name, execution_time
+        )
 
     """
     Pass through functions to the db

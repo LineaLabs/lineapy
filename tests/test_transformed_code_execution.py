@@ -48,10 +48,6 @@ class TestTransformedCodeExecution:
         )
         self._run_program(code)
 
-    # def test_tmp(self):
-    #     code = "import pandas as pd;df = pd.read_csv('simple_data.csv');s = df['a'].sum()"
-    #     self._run_program(code)
-
     def test_attribute(self):
         code = "a = 1\na.imag == 1"
         self._run_program(code)

@@ -1,3 +1,4 @@
+from lineapy.cli.utils import run_transformed
 import os.path as path
 from ast import AST, dump
 from datetime import datetime
@@ -35,30 +36,6 @@ def compare_pydantic_objects_without_keys(
     if log_diff:
         internal_warning_log(f"{a_d}\ndifferent from\n{b_d}")
     return diff
-
-
-def run_code(
-    original_code: str,
-    test_name: str,
-    session_type: SessionType = SessionType.SCRIPT,
-) -> str:
-    """
-    Returns file name
-    """
-    with NamedTemporaryFile() as tmp:
-        tmp.write(str.encode(original_code))
-        tmp.flush()
-        # might also need os.path.dirname() in addition to file name
-        file_name = tmp.name
-        transformer = Transformer()
-        new_code = transformer.transform(
-            original_code,
-            session_type,
-            session_name=file_name,
-            execution_mode=ExecutionMode.DEV,
-        )
-        exec(new_code)
-    return file_name
 
 
 def strip_non_letter_num(s: str):
@@ -131,97 +108,55 @@ def compare_code_via_ast(code: str, expected: str) -> bool:
     return compare_ast(ast.parse(code), ast.parse(expected))
 
 
-def setup_db(mode: ExecutionMode, reset: bool):
-    test_db = RelationalLineaDB()
+CSV_CODE = """import pandas as pd
+import lineapy
+
+df = pd.read_csv('tests/simple_data.csv')
+s = df['a'].sum()
+
+lineapy.linea_publish(s, "Graph With CSV Import")
+"""
+
+WRITE_IMAGE_CODE = """import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('tests/simple_data.csv')
+plt.imsave('simple_data.png', df)
+"""
+
+READ_IMAGE_CODE = """import lineapy
+from PIL.Image import open
+
+img = open('simple_data.png')
+img = img.resize([200, 200])
+
+lineapy.linea_publish(img, "Graph With Image")
+"""
+
+
+def setup_db(mode: ExecutionMode, reset: bool) -> RelationalLineaDB:
     db_config = get_default_config_by_environment(mode)
     if reset:
         reset_test_db(db_config.database_uri)
-    test_db.init_db(db_config)
 
-    setup_value_test(test_db, mode)
-    setup_image_test(test_db, mode)
-    return test_db
+    run_code(CSV_CODE, mode)
+    run_code(WRITE_IMAGE_CODE, mode)
+    run_code(READ_IMAGE_CODE, mode)
+
+    db = RelationalLineaDB()
+    db.init_db(db_config)
+    return db
 
 
-def setup_value_test(test_db: RelationalLineaDB, mode: ExecutionMode):
-    from lineapy.execution.executor import Executor
-    from lineapy.db.relational.schema.relational import (
-        ExecutionORM,
-    )
-
-    from tests.stub_data.api_stub_graph import (
-        graph_with_csv_import as stub_graph,
-        session as context,
-        sum_call as artifact,
-        simple_data_node,
-    )
-
-    if mode == ExecutionMode.DEV:
-        simple_data_node.access_path = (
-            path.abspath(path.join(__file__, "../.."))
-            + "/tests/stub_data/simple_data.csv"
-        )
-
-    executor = Executor()
-
-    # execute stub graph and write to database
-    execution_time = executor.execute_program(stub_graph)
-    test_db.write_context(context)
-    test_db.write_nodes(stub_graph.nodes)
-
-    test_db.add_node_id_to_artifact_table(
-        artifact.id,
-        name=TEST_ARTIFACT_NAME,
-        date_created=1372944000.0,
-    )
-
-    exec_orm = ExecutionORM(
-        artifact_id=artifact.id, version=1, execution_time=execution_time
-    )
-    test_db.session.add(exec_orm)
-    test_db.session.commit()
+def run_code(code: str, mode: ExecutionMode):
+    """
+    Saves code in a temporary file and executes it
+    """
+    with NamedTemporaryFile() as tmp:
+        tmp.write(str.encode(code))
+        tmp.flush()
+        run_transformed(tmp.name, SessionType.SCRIPT, mode)
 
 
 def get_project_directory():
     return path.abspath(path.join(__file__, "../.."))
-
-
-def setup_image_test(test_db: RelationalLineaDB, mode: ExecutionMode):
-    from lineapy.execution.executor import Executor
-    from lineapy.db.relational.schema.relational import ExecutionORM
-
-    from tests.stub_data.graph_with_basic_image import (
-        graph_with_basic_image as stub_graph,
-        session as context,
-        resize_call,
-        simple_data_node,
-        img_data_node,
-    )
-
-    if mode == ExecutionMode.DEV:
-        simple_data_node.access_path = (
-            get_project_directory() + "/tests/stub_data/simple_data.csv"
-        )
-
-        img_data_node.access_path = (
-            get_project_directory() + "/lineapy/app/simple_data.png"
-        )
-
-    executor = Executor()
-
-    # execute stub graph and write to database
-    execution_time = executor.execute_program(stub_graph)
-    test_db.write_context(context)
-    test_db.write_nodes(stub_graph.nodes)
-
-    test_db.add_node_id_to_artifact_table(
-        resize_call.id,
-        name="Graph With Image",
-        date_created=1372944000.0,
-    )
-
-    exec_orm = ExecutionORM(
-        artifact_id=resize_call.id, version=1, execution_time=execution_time
-    )
-    test_db.session.add(exec_orm)
-    test_db.session.commit()

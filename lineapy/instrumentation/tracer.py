@@ -84,7 +84,7 @@ class Tracer:
             augment_node_with_syntax(record, syntax_dictionary)
         self.nodes_to_be_evaluated.append(record)
 
-    def evaluate_records_so_far(self):
+    def evaluate_records_so_far(self) -> Optional[float]:
         """
         For JUPYTER & SCRIPT
         - Evaluate everything in the execution_pool
@@ -99,10 +99,10 @@ class Tracer:
                 "The method `evaluate_records_so_far` will not evaluate"
                 " correctly"
             )
-            return
+            return None
 
         elif self.session_type == SessionType.SCRIPT:
-            self.executor.execute_program(
+            time = self.executor.execute_program(
                 Graph(self.nodes_to_be_evaluated, self.session_context),
             )
             self.records_manager.add_evaluated_nodes(
@@ -110,7 +110,7 @@ class Tracer:
             )
             # reset
             self.nodes_to_be_evaluated = []
-            return
+            return time
         elif self.session_type == SessionType.STATIC:
             # Same flow as SCRIPT but without the executor
             # In the future, we can potentially do something fancy with
@@ -120,7 +120,7 @@ class Tracer:
             )
             # reset
             self.nodes_to_be_evaluated = []
-            return
+            return None
 
         raise CaseNotHandledError(f"Case {self.session_type} is unsupported")
 
@@ -153,11 +153,10 @@ class Tracer:
         #   little confusing)
         # TODO: look up node_id base on variable_name
         # need to force an eval
-        self.evaluate_records_so_far()
+        execution_time = self.evaluate_records_so_far()
         node_id = self.look_up_node_id_by_variable_name(variable_name)
         self.records_manager.add_node_id_to_artifact_table(
-            node_id,
-            description,
+            node_id, description, execution_time
         )
 
     def create_session_context(

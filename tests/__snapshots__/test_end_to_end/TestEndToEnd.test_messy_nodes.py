@@ -1,13 +1,23 @@
 from lineapy import SessionType, Tracer, Variable, ExecutionMode
 
 lineapy_tracer = Tracer(SessionType.SCRIPT, "[source file path]", ExecutionMode.MEMORY)
-lineapy_tracer.literal(
-    assigned_variable_name="a",
-    value=1,
+lineapy_tracer.trace_import(
+    name="lineapy",
     syntax_dictionary={
         "lineno": 1,
         "col_offset": 0,
         "end_lineno": 1,
+        "end_col_offset": 14,
+    },
+    alias=None,
+)
+lineapy_tracer.literal(
+    assigned_variable_name="a",
+    value=1,
+    syntax_dictionary={
+        "lineno": 2,
+        "col_offset": 0,
+        "end_lineno": 2,
         "end_col_offset": 5,
     },
 )
@@ -16,18 +26,18 @@ lineapy_tracer.assign(
     value_node=lineapy_tracer.call(
         function_name="add",
         syntax_dictionary={
-            "lineno": 2,
+            "lineno": 3,
             "col_offset": 4,
-            "end_lineno": 2,
+            "end_lineno": 3,
             "end_col_offset": 9,
         },
         arguments=[Variable("a"), 2],
         keyword_arguments=[],
     ),
     syntax_dictionary={
-        "lineno": 2,
+        "lineno": 3,
         "col_offset": 0,
-        "end_lineno": 2,
+        "end_lineno": 3,
         "end_col_offset": 9,
     },
 )
@@ -35,9 +45,9 @@ lineapy_tracer.literal(
     assigned_variable_name="c",
     value=2,
     syntax_dictionary={
-        "lineno": 3,
+        "lineno": 4,
         "col_offset": 0,
-        "end_lineno": 3,
+        "end_lineno": 4,
         "end_col_offset": 5,
     },
 )
@@ -45,9 +55,9 @@ lineapy_tracer.literal(
     assigned_variable_name="d",
     value=4,
     syntax_dictionary={
-        "lineno": 4,
+        "lineno": 5,
         "col_offset": 0,
-        "end_lineno": 4,
+        "end_lineno": 5,
         "end_col_offset": 5,
     },
 )
@@ -56,18 +66,18 @@ lineapy_tracer.assign(
     value_node=lineapy_tracer.call(
         function_name="add",
         syntax_dictionary={
-            "lineno": 5,
+            "lineno": 6,
             "col_offset": 4,
-            "end_lineno": 5,
+            "end_lineno": 6,
             "end_col_offset": 9,
         },
         arguments=[Variable("d"), Variable("a")],
         keyword_arguments=[],
     ),
     syntax_dictionary={
-        "lineno": 5,
+        "lineno": 6,
         "col_offset": 0,
-        "end_lineno": 5,
+        "end_lineno": 6,
         "end_col_offset": 9,
     },
 )
@@ -76,18 +86,18 @@ lineapy_tracer.assign(
     value_node=lineapy_tracer.call(
         function_name="mul",
         syntax_dictionary={
-            "lineno": 6,
+            "lineno": 7,
             "col_offset": 4,
-            "end_lineno": 6,
+            "end_lineno": 7,
             "end_col_offset": 13,
         },
         arguments=[
             lineapy_tracer.call(
                 function_name="mul",
                 syntax_dictionary={
-                    "lineno": 6,
+                    "lineno": 7,
                     "col_offset": 4,
-                    "end_lineno": 6,
+                    "end_lineno": 7,
                     "end_col_offset": 9,
                 },
                 arguments=[Variable("a"), Variable("b")],
@@ -98,26 +108,27 @@ lineapy_tracer.assign(
         keyword_arguments=[],
     ),
     syntax_dictionary={
-        "lineno": 6,
+        "lineno": 7,
         "col_offset": 0,
-        "end_lineno": 6,
+        "end_lineno": 7,
         "end_col_offset": 13,
     },
 )
 lineapy_tracer.headless_literal(
-    10, {"lineno": 7, "col_offset": 0, "end_lineno": 7, "end_col_offset": 2}
+    10, {"lineno": 8, "col_offset": 0, "end_lineno": 8, "end_col_offset": 2}
 )
 lineapy_tracer.headless_variable(
-    "e", {"lineno": 8, "col_offset": 0, "end_lineno": 8, "end_col_offset": 1}
+    "e", {"lineno": 9, "col_offset": 0, "end_lineno": 9, "end_col_offset": 1}
 )
 lineapy_tracer.variable_alias(
     assigned_variable_name="g",
     source_variable_name="e",
     syntax_dictionary={
-        "lineno": 9,
+        "lineno": 10,
         "col_offset": 0,
-        "end_lineno": 9,
+        "end_lineno": 10,
         "end_col_offset": 5,
     },
 )
+lineapy_tracer.publish(variable_name="f", description="f")
 lineapy_tracer.exit()
