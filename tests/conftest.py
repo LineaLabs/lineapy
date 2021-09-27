@@ -9,7 +9,6 @@ import typing
 from pathlib import Path
 
 import pytest
-from sqlalchemy import true
 import syrupy
 from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
@@ -23,7 +22,7 @@ from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.transformer import Transformer
 from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.utils import prettify
-from .util import get_project_directory
+from tests.util import get_project_directory
 
 # Based off of unmerged JSON extension
 # Writes each snapshot to its own Python file
