@@ -1,4 +1,3 @@
-from lineapy.cli.utils import run_transformed
 import os.path as path
 from ast import AST, dump
 from datetime import datetime
@@ -17,6 +16,7 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.utils import get_new_id, internal_warning_log
+from lineapy.cli.utils import run_transformed
 
 TEST_ARTIFACT_NAME = "Graph With CSV Import"
 
