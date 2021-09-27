@@ -1,3 +1,9 @@
+from tests.util import (
+    READ_IMAGE_CODE,
+    WRITE_IMAGE_CODE,
+    CSV_CODE,
+    reset_test_db,
+)
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.graph_util import are_nodes_content_equal
 from tempfile import NamedTemporaryFile
@@ -11,22 +17,8 @@ from lineapy.data.types import NodeType, SessionType
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.transformer.transformer import ExecutionMode
-from lineapy.utils import get_current_time, info_log
+from lineapy.utils import get_current_time, info_log, prettify
 
-from tests.util import (
-    get_project_directory,
-    reset_test_db,
-)
-from tests.stub_data.graph_with_simple_function_definition import (
-    definition_node,
-    assignment_node,
-    code as function_definition_code,
-)
-
-from tests.stub_data.graph_with_basic_image import (
-    write_image_code,
-    read_image_code,
-)
 
 publish_name = "testing artifact publish"
 PUBLISH_CODE = (
@@ -49,6 +41,77 @@ b = root(a)
 VARIABLE_ALIAS_CODE = """a = 1
 b = a
 """
+
+ALIAS_BY_REFERENCE = """a = [1,2,3]
+b = a
+a.append(4)
+s = sum(b)
+"""
+
+ALIAS_BY_VALUE = """a = 0
+b = a
+a = 2
+"""
+
+MESSY_NODES = """import lineapy
+a = 1
+b = a + 2
+c = 2
+d = 4
+e = d + a
+f = a * b * c
+10
+e
+g = e
+
+lineapy.linea_publish(f, 'f')
+"""
+
+
+FUNCTION_DEFINITION_CODE = """def foo(a, b):
+    return a - b
+c = foo(b=1, a=2)
+"""
+
+CONDITIONALS_CODE = """bs = [1,2]
+if len(bs) > 4:
+    print("True")
+else:
+    bs.append(3)
+    print("False")
+"""
+
+FUNCTION_DEFINITION_GLOBAL_CODE = """import math
+import lineapy
+a = 0
+def my_function():
+    global a
+    a = math.factorial(5)
+res = my_function()
+lineapy.linea_publish(res, 'res')
+"""
+
+LOOP_CODE = """import lineapy
+a = []
+b = 0
+for x in range(9):
+    a.append(x)
+    b+=x
+x = sum(a)
+y = x + b
+lineapy.linea_publish(y, 'y')
+"""
+
+SIMPLE_SLICE = """import lineapy
+a = 2
+b = 2
+c = min(b,5)
+b
+lineapy.linea_publish(c, 'c')
+"""
+
+
+NESTED_CALL = "a = min(abs(-11), 10)"
 
 
 class TestEndToEnd:
@@ -135,40 +198,13 @@ class TestEndToEnd:
         ],
     )
     def test_function_definition_without_side_effect(
-        self, session_type: SessionType
+        self, session_type: SessionType, execute
     ):
-        with NamedTemporaryFile() as tmp:
-            tmp.write(str.encode(function_definition_code))
-            tmp.flush()
-            # might also need os.path.dirname() in addition to file name
-            tmp_file_name = tmp.name
-            # FIXME: make into constants
-            result = self.runner.invoke(
-                linea_cli,
-                [
-                    "--mode",
-                    "dev",
-                    "--session",
-                    session_type.name,
-                    tmp_file_name,
-                ],
-            )
-            assert result.exit_code == 0
-            nodes = self.db.get_nodes_by_file_name(tmp_file_name)
-            assert len(nodes) == 4
-            for c in nodes:
-                if c.node_type == NodeType.FunctionDefinitionNode:
-                    assert are_nodes_content_equal(
-                        c,
-                        definition_node,
-                        function_definition_code,
-                    )
-                if c.node_type == NodeType.CallNode:
-                    assert are_nodes_content_equal(
-                        c,
-                        assignment_node,
-                        function_definition_code,
-                    )
+        res = execute(FUNCTION_DEFINITION_CODE, session_type=session_type)
+        nodes = res.db.get_all_nodes()
+        assert len(nodes) == 4
+        if session_type == SessionType.SCRIPT:
+            assert res.values["c"] == 1
 
     def test_graph_with_basic_image(self, execute, tmpdir):
         """
@@ -182,21 +218,21 @@ class TestEndToEnd:
 
         # Try running at first from the root directory of the project, so the
         # read csv can find the right file
-        chdir(get_project_directory())
-        res = execute(write_image_code)
+        res = execute(WRITE_IMAGE_CODE)
         # We currently execute the read image code after, b/c we don't have
         # dependencies set up between the writing and reading files.
 
-        execute(read_image_code)
+        execute(READ_IMAGE_CODE)
+
+        # TODO: Verify artifact was added as well
 
         # Then try in a random directory, to make sure its preserved when executing
         chdir(tmpdir.mkdir("tmp"))
         e = Executor()
         e.execute_program(res.graph)
+
         # TODO: add some assertion, but for now it's sufficient that it's
         #       working
-
-        chdir(cwd)  # reset
 
     def test_import(self, execute):
         res = execute(IMPORT_CODE)
@@ -250,6 +286,79 @@ class TestEndToEnd:
 
     def test_subscript_call(self, execute):
         execute("[0][abs(0)]", session_type=SessionType.STATIC)
+
+    def test_alias_by_reference(self, execute):
+        res = execute(ALIAS_BY_REFERENCE)
+        assert res.values["s"] == 10
+
+    def test_alias_by_value(self, execute):
+        res = execute(ALIAS_BY_VALUE)
+        assert res.values["a"] == 2
+        assert res.values["b"] == 0
+
+    def test_csv_import(self, execute):
+        res = execute(CSV_CODE)
+        assert res.values["s"] == 25
+
+    def test_messy_nodes(self, execute, python_snapshot):
+        res = execute(MESSY_NODES)
+        assert res.values["g"] == 5
+        assert res.slice("f") == python_snapshot
+
+    def test_messy_nodes_slice(self, execute, python_snapshot):
+        res = execute(MESSY_NODES, compare_snapshot=False)
+        assert res.slice("f") == python_snapshot
+
+    def test_conditionals(self, execute):
+        res = execute(CONDITIONALS_CODE, exec_transformed_xfail="control flow")
+        assert res.stdout == "False\n"
+        assert res.values["bs"] == [1, 2, 3]
+
+    def test_function_definition_global(self, execute):
+        res = execute(
+            FUNCTION_DEFINITION_GLOBAL_CODE,
+            exec_transformed_xfail="global in function",
+        )
+        assert res.values["a"] == 120
+
+    def test_function_definition_global_slice(self, execute):
+        """
+        Verify code is the same
+        """
+        res = execute(
+            FUNCTION_DEFINITION_GLOBAL_CODE,
+            compare_snapshot=False,
+            exec_transformed_xfail="global in function",
+        )
+        assert res.slice("res") == FUNCTION_DEFINITION_GLOBAL_CODE
+
+    def test_loop_code(self, execute):
+        res = execute(LOOP_CODE, exec_transformed_xfail="control flow")
+
+        assert len(res.values["a"]) == 9
+        assert res.values["y"] == 72
+        assert res.values["x"] == 36
+
+    def test_loop_code_slice(self, execute):
+        res = execute(
+            LOOP_CODE,
+            exec_transformed_xfail="control flow",
+            compare_snapshot=False,
+        )
+
+        assert res.slice("y") == LOOP_CODE
+
+    def test_simple_slice(self, execute, python_snapshot):
+        res = execute(
+            SIMPLE_SLICE,
+            compare_snapshot=False,
+        )
+
+        assert res.slice("c") == python_snapshot
+
+    def test_nested_call_graph(self, execute):
+        res = execute(NESTED_CALL)
+        assert res.values["a"] == 10
 
 
 class TestDelete:

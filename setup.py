@@ -48,11 +48,7 @@ setup(
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
     ],
-    packages=find_packages(
-        exclude=[
-            "tests",
-        ]
-    ),
+    packages=find_packages(),
     # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
     entry_points={
         "console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"],

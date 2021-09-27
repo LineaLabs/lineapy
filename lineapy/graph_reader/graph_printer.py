@@ -13,6 +13,7 @@ from pydantic.fields import SHAPE_LIST
 if TYPE_CHECKING:
     from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID, NodeType
+from lineapy.utils import prettify
 
 
 @dataclass
@@ -33,8 +34,7 @@ class GraphPrinter:
     )
 
     def __call__(self) -> str:
-        s = "\n".join(self.lines())
-        return black.format_str(s, mode=black.Mode())
+        return prettify("\n".join(self.lines()))
 
     def get_node_type_count(self, node_type: NodeType) -> int:
         prev = self.node_type_to_count[node_type]

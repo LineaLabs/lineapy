@@ -3,6 +3,8 @@ from typing import Any, Optional
 from uuid import uuid4
 from time import time
 
+import black
+
 from lineapy.data.types import (
     LineaID,
     LiteralType,
@@ -197,3 +199,11 @@ def get_value_type(val: Any) -> Optional[ValueType]:
             return ValueType.chart
 
     return None
+
+
+def prettify(code: str) -> str:
+
+    return black.format_str(
+        code,
+        mode=black.Mode(),
+    )
