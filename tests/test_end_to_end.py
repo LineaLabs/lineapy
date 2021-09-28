@@ -336,10 +336,7 @@ class TestEndToEnd:
 
     @pytest.mark.xfail
     def test_function_definition_global(self, execute):
-        res = execute(
-            FUNCTION_DEFINITION_GLOBAL_CODE,
-            exec_transformed_xfail="global in function",
-        )
+        res = execute(FUNCTION_DEFINITION_GLOBAL_CODE)
         assert res.values["a"] == 120
 
     @pytest.mark.xfail
