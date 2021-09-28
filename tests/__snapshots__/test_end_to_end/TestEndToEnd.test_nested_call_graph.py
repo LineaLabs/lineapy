@@ -9,9 +9,6 @@ session = SessionContext(
     file_name="[source file path]",
     code="a = min(abs(11), 10)",
     working_directory="dummy_linea_repo/",
-    session_name=None,
-    user_name=None,
-    hardware_spec=None,
     libraries=[],
 )
 literal_1 = LiteralNode(
@@ -26,12 +23,7 @@ literal_1 = LiteralNode(
 lookup_1 = LookupNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
     name="abs",
-    value=None,
 )
 literal_2 = LiteralNode(
     id=get_new_id(),
@@ -45,36 +37,19 @@ literal_2 = LiteralNode(
 lookup_2 = LookupNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
     name="min",
-    value=None,
 )
 argument_1 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
-    keyword=None,
     positional_order=0,
     value_node_id=literal_1.id,
-    value_literal=None,
 )
 argument_2 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
-    keyword=None,
     positional_order=1,
     value_node_id=literal_2.id,
-    value_literal=None,
 )
 call_1 = CallNode(
     id=get_new_id(),
@@ -85,19 +60,12 @@ call_1 = CallNode(
     end_col_offset=15,
     arguments=[argument_1.id],
     function_id=lookup_1.id,
-    value=None,
 )
 argument_3 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
-    keyword=None,
     positional_order=0,
     value_node_id=call_1.id,
-    value_literal=None,
 )
 call_2 = CallNode(
     id=get_new_id(),
@@ -108,16 +76,10 @@ call_2 = CallNode(
     end_col_offset=20,
     arguments=[argument_2.id, argument_3.id],
     function_id=lookup_2.id,
-    value=None,
 )
 variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
     source_node_id=call_2.id,
     assigned_variable_name="a",
-    value=None,
 )

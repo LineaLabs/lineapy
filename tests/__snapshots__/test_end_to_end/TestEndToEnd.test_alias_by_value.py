@@ -9,9 +9,6 @@ session = SessionContext(
     file_name="[source file path]",
     code="a = 0\nb = a\na = 2\n",
     working_directory="dummy_linea_repo/",
-    session_name=None,
-    user_name=None,
-    hardware_spec=None,
     libraries=[],
 )
 literal_1 = LiteralNode(
@@ -41,27 +38,16 @@ variable_1 = VariableNode(
     end_col_offset=5,
     source_node_id=literal_1.id,
     assigned_variable_name="a",
-    value=None,
 )
 variable_2 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
     source_node_id=literal_2.id,
     assigned_variable_name="a",
-    value=None,
 )
 variable_3 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
     source_node_id=variable_1.id,
     assigned_variable_name="b",
-    value=None,
 )

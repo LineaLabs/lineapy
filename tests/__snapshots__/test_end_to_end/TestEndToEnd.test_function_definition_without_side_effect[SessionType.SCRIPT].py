@@ -9,9 +9,6 @@ session = SessionContext(
     file_name="[source file path]",
     code="def foo(a, b):\n    return a - b\nc = foo(b=1, a=2)\n",
     working_directory="dummy_linea_repo/",
-    session_name=None,
-    user_name=None,
-    hardware_spec=None,
     libraries=[],
 )
 function_definition_1 = FunctionDefinitionNode(
@@ -25,7 +22,6 @@ function_definition_1 = FunctionDefinitionNode(
     input_state_change_nodes=[],
     import_nodes=[],
     function_name="foo",
-    value=None,
 )
 literal_1 = LiteralNode(
     id=get_new_id(),
@@ -48,26 +44,14 @@ literal_2 = LiteralNode(
 argument_1 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
     keyword="b",
-    positional_order=None,
     value_node_id=literal_1.id,
-    value_literal=None,
 )
 argument_2 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
     keyword="a",
-    positional_order=None,
     value_node_id=literal_2.id,
-    value_literal=None,
 )
 call_1 = CallNode(
     id=get_new_id(),
@@ -78,16 +62,10 @@ call_1 = CallNode(
     end_col_offset=17,
     arguments=[argument_1.id, argument_2.id],
     function_id=function_definition_1.id,
-    value=None,
 )
 variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
     source_node_id=call_1.id,
     assigned_variable_name="c",
-    value=None,
 )

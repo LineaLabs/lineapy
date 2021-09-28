@@ -72,6 +72,11 @@ class GraphPrinter:
     def pretty_print_node_lines(self, node: BaseModel) -> Iterable[str]:
         for k in node.__fields__.keys():
             v = getattr(node, k)
+
+            # Ignore values that are none
+            if v is None:
+                continue
+
             field = node.__fields__[k]
             tp = field.type_
             shape = field.shape

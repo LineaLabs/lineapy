@@ -9,15 +9,10 @@ session = SessionContext(
     file_name="[source file path]",
     code="import pandas as pd",
     working_directory="dummy_linea_repo/",
-    session_name=None,
-    user_name=None,
-    hardware_spec=None,
     libraries=[
         Library(
             id=get_new_id(),
             name="pandas",
-            version=None,
-            path=None,
         ),
     ],
 )
@@ -31,10 +26,6 @@ import_1 = ImportNode(
     library=Library(
         id=get_new_id(),
         name="pandas",
-        version=None,
-        path=None,
     ),
-    attributes=None,
     alias="pd",
-    module=None,
 )
