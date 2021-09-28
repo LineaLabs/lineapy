@@ -1,0 +1,138 @@
+import datetime
+from lineapy.data.types import *
+from lineapy.utils import get_new_id
+
+session = SessionContext(
+    id=get_new_id(),
+    environment_type=SessionType.SCRIPT,
+    creation_time=datetime.datetime(1, 1, 1, 0, 0),
+    file_name="[source file path]",
+    code="from decimal import Decimal\nobj = Decimal('3.1415926535897932384626433832795028841971')\nassert +obj != obj",
+    working_directory="dummy_linea_repo/",
+    libraries=[
+        Library(
+            id=get_new_id(),
+            name="decimal",
+        ),
+    ],
+)
+variable_2 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=59,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=2,
+                    col_offset=14,
+                    end_lineno=2,
+                    end_col_offset=58,
+                    value="3.1415926535897932384626433832795028841971",
+                ).id,
+            ).id
+        ],
+        function_id=VariableNode(
+            id=get_new_id(),
+            session_id=session.id,
+            source_node_id=CallNode(
+                id=get_new_id(),
+                session_id=session.id,
+                arguments=[
+                    ArgumentNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        positional_order=0,
+                        value_node_id=ImportNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            lineno=1,
+                            col_offset=0,
+                            end_lineno=1,
+                            end_col_offset=27,
+                            library=Library(
+                                id=get_new_id(),
+                                name="decimal",
+                            ),
+                            attributes={"Decimal": "Decimal"},
+                        ).id,
+                    ).id,
+                    ArgumentNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        positional_order=1,
+                        value_node_id=LiteralNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            value="Decimal",
+                        ).id,
+                    ).id,
+                ],
+                function_id=LookupNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    name="getattr",
+                ).id,
+            ).id,
+            assigned_variable_name="Decimal",
+        ).id,
+    ).id,
+    assigned_variable_name="obj",
+)
+call_4 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=3,
+    col_offset=7,
+    end_lineno=3,
+    end_col_offset=18,
+    arguments=[
+        ArgumentNode(
+            id=get_new_id(),
+            session_id=session.id,
+            positional_order=0,
+            value_node_id=CallNode(
+                id=get_new_id(),
+                session_id=session.id,
+                lineno=3,
+                col_offset=7,
+                end_lineno=3,
+                end_col_offset=11,
+                arguments=[
+                    ArgumentNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        positional_order=0,
+                        value_node_id=variable_2.id,
+                    ).id
+                ],
+                function_id=LookupNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    name="pos",
+                ).id,
+            ).id,
+        ).id,
+        ArgumentNode(
+            id=get_new_id(),
+            session_id=session.id,
+            positional_order=1,
+            value_node_id=variable_2.id,
+        ).id,
+    ],
+    function_id=LookupNode(
+        id=get_new_id(),
+        session_id=session.id,
+        name="ne",
+    ).id,
+)

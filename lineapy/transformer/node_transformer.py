@@ -35,6 +35,9 @@ from lineapy.constants import (
     GET_ITEM,
     SET_ITEM,
     GETATTR,
+    POS,
+    NEG,
+    INVERT,
 )
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.lineabuiltins import __build_list__
@@ -251,6 +254,22 @@ class NodeTransformer(ast.NodeTransformer):
             syntax_dictionary,
         )
         return None
+
+    def visit_UnaryOp(self, node: ast.UnaryOp) -> CallNode:
+        ast_to_op_map = {
+            ast.Invert: INVERT,
+            ast.Not: NOT,
+            ast.UAdd: POS,
+            ast.USub: NEG,
+        }
+        op = node.op
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
+
+        return self.tracer.call(
+            self.tracer.lookup_node(ast_to_op_map[type(op)]),
+            syntax_dictionary,
+            self.visit(node.operand),
+        )
 
     def visit_List(self, node: ast.List) -> CallNode:
         elem_nodes = [self.visit(elem) for elem in node.elts]
