@@ -56,10 +56,18 @@ class GraphPrinter:
         for node_id in self.graph.visit_order():
             node = self.graph.ids[node_id]
             attr_name = self.get_node_type_name(node.node_type)
-            self.id_to_attribute_name[node_id] = attr_name
-            yield f"{attr_name} = ("
-            yield from self.pretty_print_model(node)
-            yield ")"
+            # If the node only has one sucessor, then save its body
+            # as the attribute name, so its inlined when accessed.
+            if len(list(self.graph._nx_graph.successors(node_id))) == 1:
+                self.id_to_attribute_name[node_id] = "\n".join(
+                    self.pretty_print_model(node)
+                )
+
+            else:
+                self.id_to_attribute_name[node_id] = attr_name
+                yield f"{attr_name} = ("
+                yield from self.pretty_print_model(node)
+                yield ")"
 
     def pretty_print_model(self, model: BaseModel) -> Iterable[str]:
         yield f"{type(model).__name__}("
@@ -73,7 +81,7 @@ class GraphPrinter:
         for k in node.__fields__.keys():
             v = getattr(node, k)
 
-            # Ignore values that are none
+            # Ignore nodes that are none
             if v is None:
                 continue
 

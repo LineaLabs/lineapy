@@ -11,18 +11,17 @@ session = SessionContext(
     working_directory="dummy_linea_repo/",
     libraries=[],
 )
-literal_1 = LiteralNode(
-    id=get_new_id(),
-    session_id=session.id,
-    lineno=1,
-    col_offset=0,
-    end_lineno=1,
-    end_col_offset=5,
-    value=2,
-)
 variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=literal_1.id,
+    source_node_id=LiteralNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=5,
+        value=2,
+    ).id,
     assigned_variable_name="b",
 )

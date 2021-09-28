@@ -11,39 +11,37 @@ session = SessionContext(
     working_directory="dummy_linea_repo/",
     libraries=[],
 )
-literal_1 = LiteralNode(
-    id=get_new_id(),
-    session_id=session.id,
-    lineno=1,
-    col_offset=8,
-    end_lineno=1,
-    end_col_offset=10,
-    value=11,
-)
-lookup_1 = LookupNode(
-    id=get_new_id(),
-    session_id=session.id,
-    name="abs",
-)
-argument_1 = ArgumentNode(
-    id=get_new_id(),
-    session_id=session.id,
-    positional_order=0,
-    value_node_id=literal_1.id,
-)
-call_1 = CallNode(
-    id=get_new_id(),
-    session_id=session.id,
-    lineno=1,
-    col_offset=0,
-    end_lineno=1,
-    end_col_offset=11,
-    arguments=[argument_1.id],
-    function_id=lookup_1.id,
-)
 variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=call_1.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=11,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=1,
+                    col_offset=8,
+                    end_lineno=1,
+                    end_col_offset=10,
+                    value=11,
+                ).id,
+            ).id
+        ],
+        function_id=LookupNode(
+            id=get_new_id(),
+            session_id=session.id,
+            name="abs",
+        ).id,
+    ).id,
     assigned_variable_name="a",
 )
