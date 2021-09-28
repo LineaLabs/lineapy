@@ -12,6 +12,7 @@ import time
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
+    LookupNode,
     SessionContext,
     NodeType,
     Node,
@@ -228,6 +229,7 @@ class Executor:
         """
         FIXME: side effect evaluation is currently not supported
         """
+        print("BBBBBBB")
 
         sys.stdout = self._stdout
         code = program.source_code
@@ -242,6 +244,14 @@ class Executor:
 
             # all of these have to be in the same scope in order to read
             # and write to scoped_locals properly using Python exec
+            if node.node_type == NodeType.LookupNode:
+                node = cast(LookupNode, node)
+                if hasattr(builtins, node.name):
+                    return getattr(builtins, node.name)
+                if hasattr(lineabuiltins, node.name):
+                    return getattr(lineabuiltins, node.name)
+                return globals()[node.name]
+                # other magical things
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
@@ -286,11 +296,13 @@ class Executor:
                 node = cast(LiteralNode, node)
 
             elif node.node_type == NodeType.VariableNode:
+                print("AAAA variable node", node)
                 node = cast(VariableNode, node)
                 if node.assigned_variable_name is not None:
                     node.value = program.get_node_value_from_id(
                         node.source_node_id
                     )
+
                     self._variable_values[
                         node.assigned_variable_name
                     ] = node.value

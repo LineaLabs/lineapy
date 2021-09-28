@@ -113,6 +113,7 @@ class NodeType(Enum):
     VariableNode = 12
     ClassDefinitionNode = 13
     SideEffectsNode = 14
+    LookupNode = 15
 
 
 class LiteralType(Enum):
@@ -285,8 +286,9 @@ class LookupNode(Node):
     """
     For unknown/undefined variables e.g. SQLcontext, get_ipython, int.
     """
-
+    node_type = NodeType.LookupNode
     name: str
+    value: Optional[Any]
 
 
 # TODO: Rename to AssignmentNode?

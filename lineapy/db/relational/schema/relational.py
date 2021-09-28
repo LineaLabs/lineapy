@@ -232,6 +232,15 @@ side_effects_import_association_table = Table(
 )
 
 
+class LookupNodeORM(NodeORM):
+    __tablename__ = "lookup"
+    __mapper_args__ = {"polymorphic_identity": NodeType.LookupNode}
+
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
+
+    name = Column(String, nullable=False)
+
+
 class SideEffectsNodeORM(NodeORM):
     __tablename__ = "side_effects_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.SideEffectsNode}
@@ -277,20 +286,20 @@ class CallNodeORM(NodeORM):
     __mapper_args__ = {"polymorphic_identity": NodeType.CallNode}
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
-
-    function_module = Column(String, nullable=True)
-    locally_defined_function_id = Column(String, nullable=True)
+    # FIXME: add ForeignKey("node.id") back in!!!!
+    function_id = Column(String, nullable=False)
+    # function_module = Column(String, nullable=True)
+    # locally_defined_function_id = Column(String, nullable=True)
 
     # this pattern is used when multiple sibling classes have the same column
-    @declared_attr
-    def assigned_variable_name(cls):
-        return NodeORM.__table__.c.get(
-            "assigned_variable_name", Column(String, nullable=True)
-        )
-
-    @declared_attr
-    def function_name(cls):
-        return NodeORM.__table__.c.get("function_name", Column(String))
+    # @declared_attr
+    # def assigned_variable_name(cls):
+    #     return NodeORM.__table__.c.get(
+    #         "assigned_variable_name", Column(String, nullable=True)
+    #     )
+    # @declared_attr
+    # def function_name(cls):
+    #     return NodeORM.__table__.c.get("function_name", Column(String))
 
 
 class ArgumentNodeORM(NodeORM):

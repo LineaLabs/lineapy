@@ -1,5 +1,5 @@
 from lineapy.graph_reader.graph_printer import GraphPrinter
-from typing import cast, List, Dict, Optional, Any
+from typing import Iterator, cast, List, Dict, Optional, Any
 from dataclasses import dataclass
 
 import networkx as nx
@@ -53,7 +53,7 @@ class Graph(object):
         self._nx_graph = nx.DiGraph()
         self._nx_graph.add_nodes_from([node.id for node in nodes])
 
-        self._edges: List[DirectedEdge] = Graph.__get_edges_from_nodes(nodes)
+        self._edges: List[DirectedEdge] = self.__get_edges_from_nodes(nodes)
         self._nx_graph.add_edges_from(
             [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
         )
@@ -198,21 +198,18 @@ class Graph(object):
         return [self.get_node_value(a) for a in arg_nodes], kwarg_values
 
     # getting a node's parents before the graph has been constructed
-    @staticmethod
-    def get_parents_from_node(node: Node) -> List[LineaID]:
-        source_nodes = []
+    # @staticmethod
+    def get_parents_from_node(self, node: Node) -> Iterator[LineaID]:
 
         if node.node_type is NodeType.CallNode:
             node = cast(CallNode, node)
-            source_nodes.extend(node.arguments)
-            if node.function_module is not None:
-                source_nodes.append(node.function_module)
-            if node.locally_defined_function_id is not None:
-                source_nodes.append(node.locally_defined_function_id)
+            yield from node.arguments
+            yield node.function_id
+            assert self.get_node(node.function_id) is not None
         elif node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
             if node.value_node_id is not None:
-                source_nodes.append(node.value_node_id)
+                yield node.value_node_id
         elif node.node_type in [
             NodeType.LoopNode,
             NodeType.ConditionNode,
@@ -220,36 +217,32 @@ class Graph(object):
         ]:
             node = cast(SideEffectsNode, node)
             if node.import_nodes is not None:
-                source_nodes.extend(node.import_nodes)
+                yield from node.import_nodes
             if node.input_state_change_nodes is not None:
-                source_nodes.extend(node.input_state_change_nodes)
+                yield from node.input_state_change_nodes
         elif node.node_type is NodeType.StateChangeNode:
             node = cast(StateChangeNode, node)
             if node.state_dependency_type is StateDependencyType.Write:
-                source_nodes.append(node.associated_node_id)
+                yield node.associated_node_id
             elif node.state_dependency_type is StateDependencyType.Read:
-                source_nodes.append(node.initial_value_node_id)
+                yield node.initial_value_node_id
         elif node.node_type is NodeType.VariableNode:
             node = cast(VariableNode, node)
-            source_nodes.append(node.source_node_id)
+            yield node.source_node_id
 
-        return source_nodes
-
-    @staticmethod
-    def __get_edges_from_nodes(nodes: List[Node]) -> List[DirectedEdge]:
+    # @staticmethod
+    def __get_edges_from_nodes(self, nodes: List[Node]) -> List[DirectedEdge]:
         edges = []
         for node in nodes:
-            edges.extend(Graph.__get_edges_to_node(node))
+            edges.extend(self.__get_edges_to_node(node))
         return edges
 
-    @staticmethod
-    def __get_edges_to_node(node: Node) -> List[DirectedEdge]:
+    # @staticmethod
+    def __get_edges_to_node(self, node: Node) -> List[DirectedEdge]:
         def add_edge_from_node(id: LineaID) -> DirectedEdge:
             return DirectedEdge(source_node_id=id, sink_node_id=node.id)
 
-        edges = list(
-            map(add_edge_from_node, Graph.get_parents_from_node(node))
-        )
+        edges = list(map(add_edge_from_node, self.get_parents_from_node(node)))
         return edges
 
     def __get_edges_from_line_number(self) -> List[DirectedEdge]:

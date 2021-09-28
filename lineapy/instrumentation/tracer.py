@@ -1,4 +1,3 @@
-from ast import arguments
 from datetime import datetime
 from typing import Dict, Any, Optional, List, Union, cast
 from os import getcwd
@@ -39,10 +38,12 @@ SyntaxDictionary = Dict[str, Optional[int]]
 
 # helper functions
 def augment_node_with_syntax(node: Node, syntax_dictionary: Dict):
-    node.lineno = syntax_dictionary["lineno"]
-    node.col_offset = syntax_dictionary["col_offset"]
-    node.end_lineno = syntax_dictionary["end_lineno"]
-    node.end_col_offset = syntax_dictionary["end_col_offset"]
+    # FIMXE: syntax_dictionary is messy
+    if len(syntax_dictionary) > 0:
+        node.lineno = syntax_dictionary["lineno"]
+        node.col_offset = syntax_dictionary["col_offset"]
+        node.end_lineno = syntax_dictionary["end_lineno"]
+        node.end_col_offset = syntax_dictionary["end_col_offset"]
 
 
 class Tracer:
@@ -147,11 +148,13 @@ class Tracer:
             # user define var and fun def
             return self.variable_name_to_node[variable_name]
         else:
-            return LookupNode(
+            new_node = LookupNode(
                 id=get_new_id(),
                 session_id=self.session_context.id,
                 name=variable_name,
             )
+            self.add_unevaluated_node(new_node)
+            return new_node
 
     def look_up_node_id_by_variable_name(self, variable_name: str) -> LineaID:
         return self.lookup_node(variable_name).id
@@ -313,8 +316,10 @@ class Tracer:
             keyword_arguments,
             self.session_context.id,
         )
-        argument_node_ids = [n.id for n in argument_nodes]
-        [self.add_unevaluated_node(n) for n in argument_nodes]
+        argument_node_ids = []
+        for n in argument_nodes:
+            argument_node_ids.append(n.id)
+            self.add_unevaluated_node(n)
 
         # locally_defined_function_id: Optional[LineaID] = None
         # now see if we need to add a locally_defined_function_id

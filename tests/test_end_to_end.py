@@ -21,11 +21,10 @@ from lineapy.utils import get_current_time, info_log, prettify
 
 
 publish_name = "testing artifact publish"
-PUBLISH_CODE = (
-    f"import {lineapy.__name__}\na ="
-    f" abs(11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
-    f" '{publish_name}')\n"
-)
+PUBLISH_CODE = f"""import {lineapy.__name__}
+a = abs(11)
+{lineapy.__name__}.{lineapy.linea_publish.__name__}(a, '{publish_name}')
+"""
 
 PANDAS_RANDOM_CODE = """import pandas as pd
 df = pd.DataFrame([1,2])
