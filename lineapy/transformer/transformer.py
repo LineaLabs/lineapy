@@ -18,7 +18,7 @@ class Transformer:
     """
 
     def __init__(self):
-        self.has_initiated = False
+        self.tracer = None
 
     def transform(
         self,
@@ -28,34 +28,16 @@ class Transformer:
         session_name: str,
     ):
         info_log("transform", code)
-        if not self.has_initiated:
+        if not self.tracer:
             self.tracer = Tracer(session_type, session_name, execution_mode)
-            self.has_initiated = True
 
-        self.transform_user_code(code)
-        if session_type in [SessionType.SCRIPT, SessionType.STATIC]:
-            self.create_exit()
-        else:
-            raise CaseNotHandledError(f"{session_type.name} not supported")
-
-        # pprint(transformed_tree, show_offsets=False)
-        # transformed_code = to_source(transformed_tree)
-        # return transformed_code
-
-    def transform_user_code(self, code: str):
-        # FIXME: just a pass thru for now
         node_transformer = NodeTransformer(code, self.tracer)
         tree = ast.parse(code)
         node_transformer.visit(tree)
-        # return new_tree
+        if session_type in [SessionType.SCRIPT, SessionType.STATIC]:
+            self.tracer.exit()
+        else:
+            raise CaseNotHandledError(f"{session_type.name} not supported")
 
     def set_active_cell(self, cell_id):
         pass
-
-    def create_exit(self):
-        """
-        Hack: just returning raw string for now... We can invest in nodes
-          if there is a feature that requires such.
-        NOTE: maybe we could move this to a standalone function
-        """
-        self.tracer.exit()
