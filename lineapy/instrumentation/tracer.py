@@ -264,7 +264,7 @@ class Tracer:
         # getattrs followed by a call. The "module" then is really
         # not a module, but just a CallNode that is a getattr
         # We should refactor this!
-        function_module: Union[None, str, CallNode] = None,
+        function_module: Union[None, str, Node] = None,
     ) -> CallNode:
         """
         NOTE

@@ -1,5 +1,5 @@
 import ast
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 from lineapy.data.types import CallNode, Node
 from lineapy.instrumentation.tracer import Tracer
@@ -11,7 +11,7 @@ AST synthesizers used by node_transformers
 SYNTAX_KEY = ["lineno", "col_offset", "end_lineno", "end_col_offset"]
 
 
-def create_lib_attributes(names: List[ast.alias]) -> dict:
+def create_lib_attributes(names: List[ast.alias]) -> dict[str, str]:
     return {
         alias.asname if alias.asname else alias.name: alias.name
         for alias in names
@@ -32,8 +32,8 @@ def tracer_call_with_syntax(
     tracer: Tracer,
     function_name: str,
     argument_nodes: List[Node],
-    node: Any,  # NOTE: not sure if the ast Nodes have a union type
-    function_module: Optional[Any] = None,
+    node: ast.AST,
+    function_module: Union[str, Node, None] = None,
     keyword_arguments: list[tuple[str, Node]] = [],
 ) -> CallNode:
     """
