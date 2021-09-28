@@ -1,8 +1,8 @@
-from lineapy.graph_reader.graph_printer import GraphPrinter
 from typing import cast, List, Dict, Optional, Any
 
 import networkx as nx
 
+from lineapy.graph_reader.graph_printer import GraphPrinter
 from lineapy.data.types import (
     LineaID,
     Node,
