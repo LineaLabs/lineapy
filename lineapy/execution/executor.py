@@ -290,17 +290,12 @@ class Executor:
 
             elif node.node_type == NodeType.LiteralNode:
                 node = cast(LiteralNode, node)
-                # no-op if it's headless
-                if node.assigned_variable_name is not None:
-                    self._variable_values[
-                        node.assigned_variable_name
-                    ] = node.value
 
             elif node.node_type == NodeType.VariableNode:
                 node = cast(VariableNode, node)
                 if node.assigned_variable_name is not None:
                     node.value = program.get_node_value_from_id(
-                        node.source_variable_id
+                        node.source_node_id
                     )
                     self._variable_values[
                         node.assigned_variable_name

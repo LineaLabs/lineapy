@@ -353,7 +353,7 @@ class VariableNodeORM(NodeORM):
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 
-    source_variable_id = Column(String)
+    source_node_id = Column(String)
     assigned_variable_name = Column(String, nullable=True)
 
 

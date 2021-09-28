@@ -1,4 +1,4 @@
-from lineapy import SessionType, Tracer, Variable, ExecutionMode
+from lineapy import SessionType, Tracer, ExecutionMode
 
 lineapy_tracer = Tracer(SessionType.SCRIPT, "[source file path]", ExecutionMode.MEMORY)
 lineapy_tracer.trace_import(
@@ -19,7 +19,12 @@ lineapy_tracer.call(
         "end_lineno": 1,
         "end_col_offset": 54,
     },
-    arguments=["json"],
+    arguments=[
+        lineapy_tracer.literal(
+            "json",
+            {"lineno": 1, "col_offset": 47, "end_lineno": 1, "end_col_offset": 53},
+        )
+    ],
     keyword_arguments=[],
     function_module=lineapy_tracer.call(
         function_name="getattr",
@@ -29,7 +34,18 @@ lineapy_tracer.call(
             "end_lineno": 1,
             "end_col_offset": 39,
         },
-        arguments=[Variable("altair"), "data_transformers"],
+        arguments=[
+            lineapy_tracer.lookup_node("altair"),
+            lineapy_tracer.literal(
+                "data_transformers",
+                {
+                    "lineno": None,
+                    "col_offset": None,
+                    "end_lineno": None,
+                    "end_col_offset": None,
+                },
+            ),
+        ],
         keyword_arguments=[],
     ),
 )

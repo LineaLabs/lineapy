@@ -7,12 +7,21 @@ session = SessionContext(
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
-    code="a = abs(-11)",
+    code="a = abs(11)",
     working_directory="dummy_linea_repo/",
     session_name=None,
     user_name=None,
     hardware_spec=None,
     libraries=[],
+)
+literal_1 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=8,
+    end_lineno=1,
+    end_col_offset=10,
+    value=11,
 )
 argument_1 = ArgumentNode(
     id=get_new_id(),
@@ -23,8 +32,8 @@ argument_1 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=0,
-    value_node_id=None,
-    value_literal=-11,
+    value_node_id=literal_1.id,
+    value_literal=None,
 )
 call_1 = CallNode(
     id=get_new_id(),
@@ -32,7 +41,7 @@ call_1 = CallNode(
     lineno=1,
     col_offset=0,
     end_lineno=1,
-    end_col_offset=12,
+    end_col_offset=11,
     arguments=[argument_1.id],
     function_name="abs",
     function_module=None,

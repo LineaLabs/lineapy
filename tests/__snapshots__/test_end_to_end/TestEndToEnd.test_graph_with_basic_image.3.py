@@ -61,6 +61,33 @@ import_2 = ImportNode(
     alias=None,
     module=None,
 )
+literal_1 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=4,
+    col_offset=11,
+    end_lineno=4,
+    end_col_offset=28,
+    value="simple_data.png",
+)
+literal_2 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=5,
+    col_offset=18,
+    end_lineno=5,
+    end_col_offset=21,
+    value=200,
+)
+literal_3 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=5,
+    col_offset=23,
+    end_lineno=5,
+    end_col_offset=26,
+    value=200,
+)
 argument_1 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
@@ -70,8 +97,8 @@ argument_1 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=0,
-    value_node_id=None,
-    value_literal="simple_data.png",
+    value_node_id=literal_1.id,
+    value_literal=None,
 )
 argument_2 = ArgumentNode(
     id=get_new_id(),
@@ -82,8 +109,8 @@ argument_2 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=0,
-    value_node_id=None,
-    value_literal=200,
+    value_node_id=literal_2.id,
+    value_literal=None,
 )
 argument_3 = ArgumentNode(
     id=get_new_id(),
@@ -94,8 +121,8 @@ argument_3 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=1,
-    value_node_id=None,
-    value_literal=200,
+    value_node_id=literal_3.id,
+    value_literal=None,
 )
 call_1 = CallNode(
     id=get_new_id(),

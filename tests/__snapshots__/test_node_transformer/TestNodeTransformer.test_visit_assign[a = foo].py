@@ -1,9 +1,9 @@
-from lineapy import SessionType, Tracer, Variable, ExecutionMode
+from lineapy import SessionType, Tracer, ExecutionMode
 
 lineapy_tracer = Tracer(SessionType.SCRIPT, "[source file path]", ExecutionMode.MEMORY)
-lineapy_tracer.variable_alias(
-    assigned_variable_name="a",
-    source_variable_name="foo",
+lineapy_tracer.assign(
+    variable_name="a",
+    value_node=lineapy_tracer.lookup_node("foo"),
     syntax_dictionary={
         "lineno": 1,
         "col_offset": 0,

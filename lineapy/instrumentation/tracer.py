@@ -72,7 +72,7 @@ class Tracer:
             file_name,
         )
         self.executor = Executor()
-        self.variable_name_to_id: Dict[str, LineaID] = {}
+        self.variable_name_to_node: Dict[str, Node] = {}
         self.function_name_to_function_module_import_id: Dict[
             str, LineaID
         ] = {}
@@ -130,21 +130,13 @@ class Tracer:
         info_log("Tracer exit")
         pass
 
-    def look_up_node_id_by_variable_name(
-        self,
-        variable_name: str,
-    ) -> LineaID:
-        if variable_name in self.variable_name_to_id:
-            return self.variable_name_to_id[variable_name]
+    def lookup_node(self, variable_name: str) -> Node:
+        return self.variable_name_to_node[variable_name]
 
-        # Note that this could also be because we didn't track
-        #   variables ourselves.
-        raise UserError(
-            f"Trying to lookup variable {variable_name}, which is not"
-            " found. Note that this could be that you are trying to publish a"
-            " variable assigned to a literal value."
-        )
+    def look_up_node_id_by_variable_name(self, variable_name: str) -> LineaID:
+        return self.lookup_node(variable_name).id
 
+    # TODO: Refactor to take in node id
     def publish(
         self, variable_name: str, description: Optional[str] = None
     ) -> None:
@@ -209,9 +201,9 @@ class Tracer:
             attributes=attributes,
         )
         if alias is not None:
-            self.variable_name_to_id[alias] = node.id
+            self.variable_name_to_node[alias] = node
         else:
-            self.variable_name_to_id[name] = node.id
+            self.variable_name_to_node[name] = node
 
         # for the attributes imported, we need to add them to the local lookup
         #  that yields the importnode's id for the `function_module` field,
@@ -237,7 +229,7 @@ class Tracer:
             node = VariableNode(
                 id=get_new_id(),
                 session_id=self.session_context.id,
-                source_variable_id=source_node_id,
+                source_node_id=source_node_id,
             )
             # FIXME: this node doesn't even need to be evaluated
             #   we should prob decouple the evaluation with the insertion
@@ -246,21 +238,9 @@ class Tracer:
         else:
             raise InternalLogicError(f"Variable {variable_name} not found")
 
-    def headless_literal(
-        self, value: Any, syntax_dictionary: Dict[str, int]
-    ) -> None:
-        """ """
-        node = LiteralNode(
-            id=get_new_id(),
-            session_id=self.session_context.id,
-            value=value,
-        )
-        self.add_unevaluated_node(node, syntax_dictionary)
-
     def literal(
         self,
         value: Any,
-        assigned_variable_name: Optional[str],
         syntax_dictionary: Dict[str, int],
     ):
         # this literal should be assigned or used later
@@ -268,30 +248,9 @@ class Tracer:
             id=get_new_id(),
             session_id=self.session_context.id,
             value=value,
-            assigned_variable_name=assigned_variable_name,
         )
-        if assigned_variable_name is not None:
-            self.variable_name_to_id[assigned_variable_name] = node.id
         self.add_unevaluated_node(node, syntax_dictionary)
-
-    def variable_alias(
-        self,
-        assigned_variable_name: str,
-        source_variable_name: str,
-        syntax_dictionary: Dict[str, int],
-    ):
-        """
-        TODO: need to clean up this method; overlap with literal
-        """
-        node = VariableNode(
-            id=get_new_id(),
-            session_id=self.session_context.id,
-            assigned_variable_name=assigned_variable_name,
-            source_variable_id=self.variable_name_to_id[source_variable_name],
-        )
-        if assigned_variable_name is not None:
-            self.variable_name_to_id[assigned_variable_name] = node.id
-        self.add_unevaluated_node(node, syntax_dictionary)
+        return node
 
     def call(
         self,
@@ -322,21 +281,22 @@ class Tracer:
             arguments,
             keyword_arguments,
             self.session_context.id,
-            self.look_up_node_id_by_variable_name,
         )
         argument_node_ids = [n.id for n in argument_nodes]
         [self.add_unevaluated_node(n) for n in argument_nodes]
 
         locally_defined_function_id: Optional[LineaID] = None
         # now see if we need to add a locally_defined_function_id
-        if function_name in self.variable_name_to_id:
-            locally_defined_function_id = self.variable_name_to_id[
-                function_name
-            ]
+        if function_name in self.variable_name_to_node:
+            locally_defined_function_id = (
+                self.look_up_node_id_by_variable_name(function_name)
+            )
 
         # Get node id for function module
         if isinstance(function_module, str):
-            function_module = self.variable_name_to_id[function_module]
+            function_module = self.look_up_node_id_by_variable_name(
+                function_module
+            )
 
         if isinstance(function_module, CallNode):
             function_module = function_module.id
@@ -362,7 +322,7 @@ class Tracer:
     def assign(
         self,
         variable_name: str,
-        value_node: Any,
+        value_node: Node,
         syntax_dictionary: Dict,
     ):
         """
@@ -372,24 +332,21 @@ class Tracer:
           that's why we need to update
         This is not the most functional/pure but it gets the job done for now.
         """
-        # shared logic
-        self.variable_name_to_id[variable_name] = value_node.id
         augment_node_with_syntax(value_node, syntax_dictionary)
         if type(value_node) is CallNode:
+            self.variable_name_to_node[variable_name] = value_node
             call_node = cast(CallNode, value_node)
             call_node.assigned_variable_name = variable_name
         elif type(value_node) in [VariableNode, LiteralNode]:
-            pass  # shared logic is sufficient
-        elif type(value_node) in [int, str]:
             # hack: we should have consistent Literal handling...
-            new_node = LiteralNode(
+            new_node = VariableNode(
                 id=get_new_id(),
                 session_id=self.session_context.id,
                 assigned_variable_name=variable_name,
-                value=value_node,
+                source_node_id=value_node.id,
             )
             self.add_unevaluated_node(new_node)
-            self.variable_name_to_id[variable_name] = new_node.id
+            self.variable_name_to_node[variable_name] = new_node
             return
         else:
             raise CaseNotHandledError(
@@ -409,7 +366,7 @@ class Tracer:
             session_id=self.session_context.id,
             function_name=function_name,
         )
-        self.variable_name_to_id[function_name] = node.id
+        self.variable_name_to_node[function_name] = node
         self.add_unevaluated_node(node, syntax_dictionary)
 
     def loop(self) -> None:

@@ -7,12 +7,30 @@ session = SessionContext(
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
-    code="a = abs(-11)\nb = min(a, 10)\nprint(b)\n",
+    code="a = abs(11)\nb = min(a, 10)\nprint(b)\n",
     working_directory="dummy_linea_repo/",
     session_name=None,
     user_name=None,
     hardware_spec=None,
     libraries=[],
+)
+literal_1 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=8,
+    end_lineno=1,
+    end_col_offset=10,
+    value=11,
+)
+literal_2 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=2,
+    col_offset=11,
+    end_lineno=2,
+    end_col_offset=13,
+    value=10,
 )
 argument_1 = ArgumentNode(
     id=get_new_id(),
@@ -23,8 +41,8 @@ argument_1 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=0,
-    value_node_id=None,
-    value_literal=-11,
+    value_node_id=literal_1.id,
+    value_literal=None,
 )
 argument_2 = ArgumentNode(
     id=get_new_id(),
@@ -35,8 +53,8 @@ argument_2 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=1,
-    value_node_id=None,
-    value_literal=10,
+    value_node_id=literal_2.id,
+    value_literal=None,
 )
 call_1 = CallNode(
     id=get_new_id(),
@@ -44,7 +62,7 @@ call_1 = CallNode(
     lineno=1,
     col_offset=0,
     end_lineno=1,
-    end_col_offset=12,
+    end_col_offset=11,
     arguments=[argument_1.id],
     function_name="abs",
     function_module=None,

@@ -22,5 +22,4 @@ literal_1 = LiteralNode(
     end_lineno=1,
     end_col_offset=1,
     value=1,
-    assigned_variable_name=None,
 )

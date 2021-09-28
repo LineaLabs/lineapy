@@ -1,4 +1,4 @@
-from lineapy import SessionType, Tracer, Variable, ExecutionMode
+from lineapy import SessionType, Tracer, ExecutionMode
 
 lineapy_tracer = Tracer(SessionType.SCRIPT, "[source file path]", ExecutionMode.MEMORY)
 lineapy_tracer.assign(
@@ -11,7 +11,17 @@ lineapy_tracer.assign(
             "end_lineno": 1,
             "end_col_offset": 11,
         },
-        arguments=[1, 2, 3],
+        arguments=[
+            lineapy_tracer.literal(
+                1, {"lineno": 1, "col_offset": 5, "end_lineno": 1, "end_col_offset": 6}
+            ),
+            lineapy_tracer.literal(
+                2, {"lineno": 1, "col_offset": 7, "end_lineno": 1, "end_col_offset": 8}
+            ),
+            lineapy_tracer.literal(
+                3, {"lineno": 1, "col_offset": 9, "end_lineno": 1, "end_col_offset": 10}
+            ),
+        ],
         keyword_arguments=[],
     ),
     syntax_dictionary={
@@ -21,9 +31,9 @@ lineapy_tracer.assign(
         "end_col_offset": 11,
     },
 )
-lineapy_tracer.variable_alias(
-    assigned_variable_name="b",
-    source_variable_name="a",
+lineapy_tracer.assign(
+    variable_name="b",
+    value_node=lineapy_tracer.lookup_node("a"),
     syntax_dictionary={
         "lineno": 2,
         "col_offset": 0,
@@ -39,7 +49,11 @@ lineapy_tracer.call(
         "end_lineno": 3,
         "end_col_offset": 11,
     },
-    arguments=[4],
+    arguments=[
+        lineapy_tracer.literal(
+            4, {"lineno": 3, "col_offset": 9, "end_lineno": 3, "end_col_offset": 10}
+        )
+    ],
     keyword_arguments=[],
     function_module="a",
 )
@@ -53,7 +67,7 @@ lineapy_tracer.assign(
             "end_lineno": 4,
             "end_col_offset": 10,
         },
-        arguments=[Variable("b")],
+        arguments=[lineapy_tracer.lookup_node("b")],
         keyword_arguments=[],
     ),
     syntax_dictionary={

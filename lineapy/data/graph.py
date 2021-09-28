@@ -133,7 +133,7 @@ class Graph(object):
         # find the original source node in a chain of aliases
         if node.node_type is NodeType.VariableNode:
             node = cast(VariableNode, node)
-            source = self.get_node(node.source_variable_id)
+            source = self.get_node(node.source_node_id)
             if source is None:
                 print("WARNING: Could not find source node from id.")
                 return None
@@ -146,7 +146,7 @@ class Graph(object):
                     and source.node_type is NodeType.VariableNode
                 ):
                     source = cast(VariableNode, source)
-                    source = self.get_node(source.source_variable_id)
+                    source = self.get_node(source.source_node_id)
 
             return source.value  # type: ignore
 
@@ -231,7 +231,7 @@ class Graph(object):
                 source_nodes.append(node.initial_value_node_id)
         elif node.node_type is NodeType.VariableNode:
             node = cast(VariableNode, node)
-            source_nodes.append(node.source_variable_id)
+            source_nodes.append(node.source_node_id)
 
         return source_nodes
 

@@ -56,7 +56,7 @@ class TestTransformedCodeExecution:
         name = "testing artifact publish"
         publish_code = (
             f"import {lineapy.__name__}\na ="
-            f" abs(-11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
+            f" abs(11)\n{lineapy.__name__}.{lineapy.linea_publish.__name__}(a,"
             f" '{name}')\n"
         )
         print(publish_code)

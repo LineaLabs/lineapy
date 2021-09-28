@@ -1,4 +1,4 @@
-from lineapy import SessionType, Tracer, Variable, ExecutionMode
+from lineapy import SessionType, Tracer, ExecutionMode
 
 lineapy_tracer = Tracer(SessionType.STATIC, "[source file path]", ExecutionMode.MEMORY)
 lineapy_tracer.call(
@@ -18,7 +18,17 @@ lineapy_tracer.call(
                 "end_lineno": 1,
                 "end_col_offset": 3,
             },
-            arguments=[0],
+            arguments=[
+                lineapy_tracer.literal(
+                    0,
+                    {
+                        "lineno": 1,
+                        "col_offset": 1,
+                        "end_lineno": 1,
+                        "end_col_offset": 2,
+                    },
+                )
+            ],
             keyword_arguments=[],
         ),
         lineapy_tracer.call(
@@ -29,7 +39,17 @@ lineapy_tracer.call(
                 "end_lineno": 1,
                 "end_col_offset": 10,
             },
-            arguments=[0],
+            arguments=[
+                lineapy_tracer.literal(
+                    0,
+                    {
+                        "lineno": 1,
+                        "col_offset": 8,
+                        "end_lineno": 1,
+                        "end_col_offset": 9,
+                    },
+                )
+            ],
             keyword_arguments=[],
         ),
     ],

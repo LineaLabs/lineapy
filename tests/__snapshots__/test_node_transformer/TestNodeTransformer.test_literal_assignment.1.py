@@ -22,5 +22,15 @@ literal_1 = LiteralNode(
     end_lineno=1,
     end_col_offset=5,
     value=2,
+)
+variable_1 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    source_node_id=literal_1.id,
     assigned_variable_name="b",
+    value=None,
 )
