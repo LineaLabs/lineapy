@@ -27,6 +27,11 @@ PUBLISH_CODE = (
     f" '{publish_name}')\n"
 )
 
+PANDAS_RANDOM_CODE = """import pandas as pd
+df = pd.DataFrame([1,2])
+assert df.size == 2
+"""
+
 
 PRINT_CODE = """a = abs(11)
 b = min(a, 10)
@@ -159,6 +164,22 @@ class TestEndToEnd:
         assert res.values["a"] == 1
         assert res.values["b"] == 1
 
+    def test_pandas(self, execute):
+        res = execute(PANDAS_RANDOM_CODE)
+
+    def test_chained_ops(self, execute):
+        code = "b = 1 < 2 < 3\nassert b"
+        execute(code)
+
+    def test_import_name(self, execute):
+        code = "import pandas as pd\nassert pd.__name__ == 'pandas'"
+        execute(code)
+
+    def test_fake_attribute(self, execute):
+        code = "a = 1\nb=a.imag == 1"
+        res = execute(code)
+        assert res.values["b"] == False
+
     def test_publish(self, execute):
         """
         testing something super simple
@@ -208,7 +229,7 @@ class TestEndToEnd:
         """
         Changes the directory of the execution to make sure things are working.
 
-        NOTE:
+            NOTE:
         - We cannot assert on the nodes being equal to what's generated yet
           because DataSourceSode is not yet implemented.
         """
@@ -307,18 +328,18 @@ class TestEndToEnd:
         res = execute(MESSY_NODES, compare_snapshot=False)
         assert res.slice("f") == python_snapshot
 
+    @pytest.mark.xfail
     def test_conditionals(self, execute):
-        res = execute(CONDITIONALS_CODE, exec_transformed_xfail="control flow")
+        res = execute(CONDITIONALS_CODE)
         assert res.stdout == "False\n"
         assert res.values["bs"] == [1, 2, 3]
 
+    @pytest.mark.xfail
     def test_function_definition_global(self, execute):
-        res = execute(
-            FUNCTION_DEFINITION_GLOBAL_CODE,
-            exec_transformed_xfail="global in function",
-        )
+        res = execute(FUNCTION_DEFINITION_GLOBAL_CODE)
         assert res.values["a"] == 120
 
+    @pytest.mark.xfail
     def test_function_definition_global_slice(self, execute):
         """
         Verify code is the same
@@ -326,21 +347,21 @@ class TestEndToEnd:
         res = execute(
             FUNCTION_DEFINITION_GLOBAL_CODE,
             compare_snapshot=False,
-            exec_transformed_xfail="global in function",
         )
         assert res.slice("res") == FUNCTION_DEFINITION_GLOBAL_CODE
 
+    @pytest.mark.xfail
     def test_loop_code(self, execute):
-        res = execute(LOOP_CODE, exec_transformed_xfail="control flow")
+        res = execute(LOOP_CODE)
 
         assert len(res.values["a"]) == 9
         assert res.values["y"] == 72
         assert res.values["x"] == 36
 
+    @pytest.mark.xfail
     def test_loop_code_slice(self, execute):
         res = execute(
             LOOP_CODE,
-            exec_transformed_xfail="control flow",
             compare_snapshot=False,
         )
 

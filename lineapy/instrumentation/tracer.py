@@ -33,6 +33,8 @@ from lineapy.utils import (
     get_new_id,
 )
 
+SyntaxDictionary = Dict[str, Optional[int]]
+
 
 # helper functions
 def augment_node_with_syntax(node: Node, syntax_dictionary: Dict):
@@ -178,7 +180,7 @@ class Tracer:
     def trace_import(
         self,
         name: str,
-        syntax_dictionary: Dict[str, int],
+        syntax_dictionary: SyntaxDictionary,
         alias: Optional[str] = None,
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
@@ -222,7 +224,7 @@ class Tracer:
         return
 
     def headless_variable(
-        self, variable_name: str, syntax_dictionary: Dict[str, int]
+        self, variable_name: str, syntax_dictionary: SyntaxDictionary
     ) -> None:
         source_node_id = self.look_up_node_id_by_variable_name(variable_name)
         if source_node_id is not None:
@@ -240,8 +242,8 @@ class Tracer:
 
     def literal(
         self,
-        value: Any,
-        syntax_dictionary: Dict[str, int],
+        value: object,
+        syntax_dictionary: SyntaxDictionary,
     ):
         # this literal should be assigned or used later
         node = LiteralNode(
@@ -257,12 +259,12 @@ class Tracer:
         function_name: str,
         arguments: ARGS_TYPE,
         keyword_arguments: KEYWORD_ARGS_TYPE,
-        syntax_dictionary: Dict[str, int],
+        syntax_dictionary: SyntaxDictionary,
         # TODO: We add `CallNode` as an arg here to support nested
         # getattrs followed by a call. The "module" then is really
         # not a module, but just a CallNode that is a getattr
         # We should refactor this!
-        function_module: Union[None, str, CallNode] = None,
+        function_module: Union[None, str, Node] = None,
     ) -> CallNode:
         """
         NOTE

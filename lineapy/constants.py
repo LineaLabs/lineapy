@@ -26,10 +26,6 @@ MEMORY_DATABASE_URI = "sqlite:///:memory:"
 
 SQLALCHEMY_ECHO = "SQLALCHEMY_ECHO"
 
-LINEAPY_TRACER_CLASS = "Tracer"
-LINEAPY_TRACER_NAME = "lineapy_tracer"
-LINEAPY_IMPORT_LIB_NAME = "lineapy"
-
 # no addressable file location
 DB_DATA_ASSET_MANAGER = "virtual"
 
@@ -57,14 +53,6 @@ DEL_ITEM = operator.__delitem__.__name__
 SET_ATTR = setattr.__name__
 GETATTR = getattr.__name__
 DEL_ATTR = delattr.__name__
-
-FUNCTION_NAME = "function_name"
-FUNCTION_MODULE = "function_module"
-SYNTAX_DICTIONARY = "syntax_dictionary"
-# TODO: Name these differently
-ARGUMENTS = "arguments"
-KEYWORD_ARGUMENTS = "keyword_arguments"
-VARIABLE_NAME = "variable_name"
 
 # BinOPs
 ADD = operator.__add__.__name__

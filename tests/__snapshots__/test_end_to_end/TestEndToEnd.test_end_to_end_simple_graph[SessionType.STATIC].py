@@ -1,40 +1,75 @@
-from lineapy import SessionType, Tracer, ExecutionMode
+import datetime
+from lineapy.data.types import *
+from lineapy.utils import get_new_id
 
-lineapy_tracer = Tracer(SessionType.STATIC, "[source file path]", ExecutionMode.MEMORY)
-lineapy_tracer.trace_import(
-    name="lineapy",
-    syntax_dictionary={
-        "lineno": 1,
-        "col_offset": 0,
-        "end_lineno": 1,
-        "end_col_offset": 14,
-    },
-    alias=None,
+session = SessionContext(
+    id=get_new_id(),
+    environment_type=SessionType.STATIC,
+    creation_time=datetime.datetime(1, 1, 1, 0, 0),
+    file_name="[source file path]",
+    code="import lineapy\na = abs(11)\nlineapy.linea_publish(a, 'testing artifact publish')\n",
+    working_directory="dummy_linea_repo/",
+    session_name=None,
+    user_name=None,
+    hardware_spec=None,
+    libraries=[
+        Library(
+            id=get_new_id(),
+            name="lineapy",
+            version=None,
+            path=None,
+        ),
+    ],
 )
-lineapy_tracer.assign(
-    variable_name="a",
-    value_node=lineapy_tracer.call(
-        function_name="abs",
-        syntax_dictionary={
-            "lineno": 2,
-            "col_offset": 4,
-            "end_lineno": 2,
-            "end_col_offset": 11,
-        },
-        arguments=[
-            lineapy_tracer.literal(
-                11,
-                {"lineno": 2, "col_offset": 8, "end_lineno": 2, "end_col_offset": 10},
-            )
-        ],
-        keyword_arguments=[],
+import_1 = ImportNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=14,
+    library=Library(
+        id=get_new_id(),
+        name="lineapy",
+        version=None,
+        path=None,
     ),
-    syntax_dictionary={
-        "lineno": 2,
-        "col_offset": 0,
-        "end_lineno": 2,
-        "end_col_offset": 11,
-    },
+    attributes=None,
+    alias=None,
+    module=None,
 )
-lineapy_tracer.publish(variable_name="a", description="testing artifact publish")
-lineapy_tracer.exit()
+literal_1 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=2,
+    col_offset=8,
+    end_lineno=2,
+    end_col_offset=10,
+    value=11,
+)
+argument_1 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    keyword=None,
+    positional_order=0,
+    value_node_id=literal_1.id,
+    value_literal=None,
+)
+call_1 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=2,
+    col_offset=0,
+    end_lineno=2,
+    end_col_offset=11,
+    arguments=[argument_1.id],
+    function_name="abs",
+    function_module=None,
+    locally_defined_function_id=None,
+    assigned_variable_name="a",
+    value=None,
+)
