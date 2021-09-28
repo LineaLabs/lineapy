@@ -18,10 +18,8 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import Artifact, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
-from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.transformer import Transformer
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.utils import prettify
 from tests.util import get_project_directory
 
 # Based off of unmerged JSON extension
@@ -113,7 +111,6 @@ class ExecuteFixture:
         self,
         code: str,
         *,
-        # exec_transformed_xfail: str = None,
         session_type: SessionType = SessionType.SCRIPT,
         compare_snapshot: bool = True,
     ):
@@ -121,9 +118,6 @@ class ExecuteFixture:
         Tests trace, graph, and executes code on init.
 
         All kwargs are keyword only (`*`)
-
-        :param exec_transformed_xfail: If `exec_transformed_xfail` is passed in
-        then we will expect the execution of the transformed code to fail.
 
         :param session_type:  If you don't want to execute, you can set the
         `session_type` to STATIC
@@ -149,30 +143,9 @@ class ExecuteFixture:
             execution_mode=ExecutionMode.MEMORY,
         )
 
-        # Replace the source path with a consistant name so its compared properly
-        # pretty_trace_code = prettify(
-        #     trace_code.replace(str(source_code_path), "[source file path]"),
-        # )
-        # if compare_snapshot:
-        #     assert pretty_trace_code == self.snapshot
+        tracer = transformer.tracer
 
-        # if exec_transformed_xfail is not None:
-        #     pytest.xfail(exec_transformed_xfail)
-
-        # transformed_code_path = self.tmp_path / "transformed.py"
-
-        # Write to tmp file before execing, b/c it looks at file
-        # transformed_code_path.write_text(trace_code)
-
-        # Execute the transformed code to create the graph in memory and exec
-        # locals: dict[str, typing.Any] = {}
-        # bytecode = compile(trace_code, str(transformed_code_path), "exec")
-
-        # exec(bytecode, {}, locals)
-
-        # tracer: Tracer = locals["lineapy_tracer"]
-
-        db = transformer.tracer.records_manager.db
+        db = tracer.records_manager.db
 
         # Verify snapshot of graph
         nodes = db.get_all_nodes()
@@ -193,7 +166,7 @@ class ExecuteFixture:
                 == self.snapshot
             )
 
-        return ExecuteResult(db, graph, transformer.tracer.executor)
+        return ExecuteResult(db, graph, tracer.executor)
 
 
 @dataclasses.dataclass
