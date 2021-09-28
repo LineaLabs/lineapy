@@ -223,7 +223,7 @@ class NodeTransformer(ast.NodeTransformer):
                     self.visit(index),
                     self.visit(node.value),
                 ]
-                tracer_call_with_syntax(
+                return tracer_call_with_syntax(
                     self.tracer,
                     SET_ITEM,
                     argument_nodes,
@@ -237,7 +237,7 @@ class NodeTransformer(ast.NodeTransformer):
         # e.g. `x.y = 10`
         elif isinstance(node.targets[0], ast.Attribute):
             target = node.targets[0]
-            tracer_call_with_syntax(
+            return tracer_call_with_syntax(
                 self.tracer,
                 SET_ATTR,
                 [
