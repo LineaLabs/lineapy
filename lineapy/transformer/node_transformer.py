@@ -1,6 +1,6 @@
 import ast
 from lineapy.data.types import CallNode, Node
-from typing import Union, cast, Any
+from typing import Optional, Union, cast, Any
 
 
 from lineapy import linea_publish
@@ -66,6 +66,10 @@ class NodeTransformer(ast.NodeTransformer):
         return ast.get_source_segment(self.source, node)
 
     def visit(self, node: ast.AST) -> Any:
+        """
+        Should return a Node when visiting expressions, to chain them,
+        or a None when visiting statements.
+        """
         try:
             return super().visit(node)
         except Exception as e:
@@ -76,11 +80,10 @@ class NodeTransformer(ast.NodeTransformer):
                 )
             raise e
 
-    def visit_Import(self, node):
+    def visit_Import(self, node: ast.Import) -> None:
         """
         Similar to `visit_ImportFrom`, slightly different class syntax
         """
-        # result = []
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         for lib in node.names:
             self.tracer.trace_import(
@@ -89,7 +92,8 @@ class NodeTransformer(ast.NodeTransformer):
                 alias=lib.asname,
             )
 
-    def visit_ImportFrom(self, node):
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        assert node.module
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         self.tracer.trace_import(
             node.module,
@@ -100,8 +104,10 @@ class NodeTransformer(ast.NodeTransformer):
     def visit_Name(self, node: ast.Name) -> Node:
         return self.tracer.lookup_node(node.id)
 
-    def visit_Call(self, node):
-        """ """
+    def visit_Call(self, node: ast.Call) -> Optional[CallNode]:
+        """
+        Returns None if visiting special publish linea publish, which cannot be chained
+        """
         function_name, function_module = self.get_call_function_name(node)
         # a little hacky, assume no one else would have a function name
         #   called linea_publish
@@ -131,26 +137,27 @@ class NodeTransformer(ast.NodeTransformer):
                         f" `{linea_publish.__name__}`, you gave"
                         f" {type(node.args[1])}"
                     )
-                # description_node = cast(ast.Constant, node.args[1])
-                return self.tracer.publish(var_node.id, node.args[1].value)
+                self.tracer.publish(var_node.id, node.args[1].value)
             else:
-                return self.tracer.publish(var_node.id)
-        else:  # this is the normal case, non-publish
-            argument_nodes = [self.visit(arg) for arg in node.args]
-            keyword_argument_nodes = [
-                (arg.arg, self.visit(arg.value)) for arg in node.keywords
-            ]
-            # TODO: support keyword arguments as well
-            return tracer_call_with_syntax(
-                self.tracer,
-                function_name,
-                argument_nodes,
-                node,
-                function_module=function_module,
-                keyword_arguments=keyword_argument_nodes,
-            )
+                self.tracer.publish(var_node.id)
+            return None
+        # this is the normal case, non-publish
+        argument_nodes = [self.visit(arg) for arg in node.args]
+        keyword_argument_nodes = [
+            (cast(str, arg.arg), self.visit(arg.value))
+            for arg in node.keywords
+        ]
+        # TODO: support keyword arguments as well
+        return tracer_call_with_syntax(
+            self.tracer,
+            function_name,
+            argument_nodes,
+            node,
+            function_module=function_module,
+            keyword_arguments=keyword_argument_nodes,
+        )
 
-    def visit_Delete(self, node: ast.Delete):
+    def visit_Delete(self, node: ast.Delete) -> None:
         target = node.targets[0]
 
         if isinstance(target, ast.Name):
@@ -158,14 +165,14 @@ class NodeTransformer(ast.NodeTransformer):
                 "We do not support unassigning a variable"
             )
         elif isinstance(target, ast.Subscript):
-            return tracer_call_with_syntax(
+            tracer_call_with_syntax(
                 self.tracer,
                 DEL_ITEM,
                 [self.visit(target.value), self.visit(target.slice)],
                 node,
             )
         elif isinstance(target, ast.Attribute):
-            return tracer_call_with_syntax(
+            tracer_call_with_syntax(
                 self.tracer,
                 DEL_ATTR,
                 [
@@ -179,11 +186,11 @@ class NodeTransformer(ast.NodeTransformer):
                 f"We do not support deleting {type(target)}"
             )
 
-    def visit_Constant(self, node: ast.Constant):
+    def visit_Constant(self, node: ast.Constant) -> Node:
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         return self.tracer.literal(node.value, syntax_dictionary)
 
-    def visit_Assign(self, node: ast.Assign):
+    def visit_Assign(self, node: ast.Assign) -> None:
         """
         Assign currently special cases for:
         - Subscript, e.g., `ls[0] = 1`
@@ -216,13 +223,12 @@ class NodeTransformer(ast.NodeTransformer):
                     self.visit(index),
                     self.visit(node.value),
                 ]
-                return tracer_call_with_syntax(
+                tracer_call_with_syntax(
                     self.tracer,
                     SET_ITEM,
                     argument_nodes,
                     node,
                 )
-                # return ast.Expr(value=call)
 
             raise NotImplementedError(
                 "Assignment for Subscript supported only for Constant and Name"
@@ -231,7 +237,7 @@ class NodeTransformer(ast.NodeTransformer):
         # e.g. `x.y = 10`
         elif isinstance(node.targets[0], ast.Attribute):
             target = node.targets[0]
-            return tracer_call_with_syntax(
+            tracer_call_with_syntax(
                 self.tracer,
                 SET_ATTR,
                 [
@@ -241,7 +247,6 @@ class NodeTransformer(ast.NodeTransformer):
                 ],
                 node,
             )
-            # return ast.Expr(value=call)
 
         if not isinstance(node.targets[0], ast.Name):
             raise NotImplementedError(
@@ -337,6 +342,7 @@ class NodeTransformer(ast.NodeTransformer):
         return left
 
     def visit_Slice(self, node: ast.Slice) -> CallNode:
+        assert node.lower and node.upper
         slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
         if node.step is not None:
             slice_arguments.append(self.visit(node.step))
@@ -368,7 +374,7 @@ class NodeTransformer(ast.NodeTransformer):
                 " visit_Assign."
             )
 
-    def visit_FunctionDef(self, node: ast.FunctionDef):
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """
         For now, assume the function is pure, i.e.:
         - no globals
@@ -403,7 +409,7 @@ class NodeTransformer(ast.NodeTransformer):
             return func.id, None
         if isinstance(func, ast.Attribute):
             value = func.value
-            module: ast.expr
+            module: Union[Node, str]
             if isinstance(value, ast.Name):
                 module = value.id
             else:

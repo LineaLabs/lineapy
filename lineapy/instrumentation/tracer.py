@@ -180,7 +180,7 @@ class Tracer:
     def trace_import(
         self,
         name: str,
-        syntax_dictionary: Dict[str, Optional[int]],
+        syntax_dictionary: SyntaxDictionary,
         alias: Optional[str] = None,
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
@@ -242,7 +242,7 @@ class Tracer:
 
     def literal(
         self,
-        value: Any,
+        value: object,
         syntax_dictionary: SyntaxDictionary,
     ):
         # this literal should be assigned or used later
