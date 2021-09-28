@@ -305,6 +305,7 @@ class TestEndToEnd:
     def test_subscript_call(self, execute):
         execute("[0][abs(0)]", session_type=SessionType.STATIC)
 
+    @pytest.mark.xfail(reason="Mutations #197")
     def test_alias_by_reference(self, execute):
         res = execute(ALIAS_BY_REFERENCE)
         assert res.values["s"] == 10

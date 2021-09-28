@@ -1,4 +1,5 @@
 import ast
+import lineapy
 from lineapy.data.types import CallNode, Node
 from typing import Optional, Union, cast, Any
 
@@ -73,7 +74,9 @@ class NodeTransformer(ast.NodeTransformer):
         except Exception as e:
             code_context = self._get_code_from_node(node)
             if code_context:
-                info_log(f"Error while transforming code: \n\n{code_context}\n")
+                info_log(
+                    f"Error while transforming code: \n\n{code_context}\n"
+                )
             raise e
 
     def visit_Import(self, node: ast.Import) -> None:
@@ -110,8 +113,12 @@ class NodeTransformer(ast.NodeTransformer):
         #   called linea_publish
 
         if (
-            isinstance(node.func, ast.Name)
-            and node.func.id == linea_publish.__name__
+            isinstance(node.func, ast.Attribute)
+            and isinstance(node.func.value, ast.Name)
+            # TODO: Rename linea publish and possibly make more robust
+            # to allow import from
+            and node.func.attr == linea_publish.__name__
+            and node.func.value.id == lineapy.__name__
         ):
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:

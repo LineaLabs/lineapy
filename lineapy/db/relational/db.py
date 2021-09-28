@@ -74,7 +74,9 @@ class RelationalLineaDB(LineaDB):
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default=False)
         if not isinstance(echo, bool):
-            echo = str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
+            echo = (
+                str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
+            )
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
@@ -176,7 +178,9 @@ class RelationalLineaDB(LineaDB):
         self.session.add(context_orm)
         self.session.commit()
 
-    def add_lib_to_session_context(self, context_id: LineaID, library: Library):
+    def add_lib_to_session_context(
+        self, context_id: LineaID, library: Library
+    ):
         library_orm = self.write_library(library, context_id)
         self.session.commit()
 
@@ -186,6 +190,7 @@ class RelationalLineaDB(LineaDB):
 
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
+        # TODO: Extract out del values to one place
         if node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
             if args["value_literal"] is not None:
@@ -211,7 +216,8 @@ class RelationalLineaDB(LineaDB):
             NodeType.FunctionDefinitionNode,
         ]:
             node = cast(SideEffectsNodeORM, node)
-
+            if "value" in args:
+                del args["value"]
             if node.output_state_change_nodes is not None:
                 for state_change_id in node.output_state_change_nodes:
                     self.session.execute(
@@ -298,27 +304,22 @@ class RelationalLineaDB(LineaDB):
         just have a table that tracks what Node IDs are deemed as artifacts.
         """
 
-        node = self.get_node_by_id(node_id)
-        if node.node_type in [
-            NodeType.CallNode,
-            NodeType.FunctionDefinitionNode,
-        ]:
-            artifact = ArtifactORM(
-                id=node_id,
-                name=name,
-                date_created=date_created,
-            )
-            self.session.add(artifact)
+        artifact = ArtifactORM(
+            id=node_id,
+            name=name,
+            date_created=date_created,
+        )
+        self.session.add(artifact)
 
-            # Currently each execution maps to exactly one artifact,
-            # so for now we add a new execution every time we publish an artifact
-            execution = ExecutionORM(
-                artifact_id=artifact.id,
-                version=1,
-                execution_time=execution_time,
-            )
-            self.session.add(execution)
-            self.session.commit()
+        # Currently each execution maps to exactly one artifact,
+        # so for now we add a new execution every time we publish an artifact
+        execution = ExecutionORM(
+            artifact_id=artifact.id,
+            version=1,
+            execution_time=execution_time,
+        )
+        self.session.add(execution)
+        self.session.commit()
 
     def remove_node_id_from_artifact_table(self, node_id: LineaID) -> None:
         """
@@ -516,7 +517,9 @@ class RelationalLineaDB(LineaDB):
         node_orms = self.session.query(NodeORM).all()
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
-    def get_session_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
+    def get_session_graph_from_artifact_id(
+        self, artifact_id: LineaID
+    ) -> Graph:
         """
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation

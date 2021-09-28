@@ -41,6 +41,16 @@ literal_3 = LiteralNode(
     end_col_offset=9,
     value=3,
 )
+lookup_1 = LookupNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    name="__build_list__",
+    value=None,
+)
 literal_4 = LiteralNode(
     id=get_new_id(),
     session_id=session.id,
@@ -58,6 +68,16 @@ literal_5 = LiteralNode(
     end_lineno=3,
     end_col_offset=4,
     value=0,
+)
+lookup_2 = LookupNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    name="getitem",
+    value=None,
 )
 argument_1 = ArgumentNode(
     id=get_new_id(),
@@ -126,9 +146,17 @@ call_1 = CallNode(
     end_lineno=1,
     end_col_offset=10,
     arguments=[argument_1.id, argument_2.id, argument_3.id],
-    function_name="__build_list__",
-    function_module=None,
-    locally_defined_function_id=None,
+    function_id=lookup_1.id,
+    value=None,
+)
+variable_2 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    source_node_id=call_1.id,
     assigned_variable_name="ls",
     value=None,
 )
@@ -141,7 +169,7 @@ argument_5 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=0,
-    value_node_id=call_1.id,
+    value_node_id=variable_2.id,
     value_literal=None,
 )
 call_2 = CallNode(
@@ -152,9 +180,6 @@ call_2 = CallNode(
     end_lineno=3,
     end_col_offset=5,
     arguments=[argument_4.id, argument_5.id],
-    function_name="getitem",
-    function_module=None,
-    locally_defined_function_id=None,
-    assigned_variable_name=None,
+    function_id=lookup_2.id,
     value=None,
 )

@@ -32,6 +32,16 @@ literal_2 = LiteralNode(
     end_col_offset=3,
     value=2,
 )
+lookup_1 = LookupNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    name="le",
+    value=None,
+)
 variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
@@ -86,9 +96,6 @@ call_1 = CallNode(
     end_lineno=3,
     end_col_offset=6,
     arguments=[argument_1.id, argument_2.id],
-    function_name="le",
-    function_module=None,
-    locally_defined_function_id=None,
-    assigned_variable_name=None,
+    function_id=lookup_1.id,
     value=None,
 )

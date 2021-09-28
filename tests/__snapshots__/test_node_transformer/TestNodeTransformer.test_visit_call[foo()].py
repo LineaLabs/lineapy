@@ -14,6 +14,16 @@ session = SessionContext(
     hardware_spec=None,
     libraries=[],
 )
+lookup_1 = LookupNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    name="foo",
+    value=None,
+)
 call_1 = CallNode(
     id=get_new_id(),
     session_id=session.id,
@@ -22,9 +32,6 @@ call_1 = CallNode(
     end_lineno=1,
     end_col_offset=5,
     arguments=[],
-    function_name="foo",
-    function_module=None,
-    locally_defined_function_id=None,
-    assigned_variable_name=None,
+    function_id=lookup_1.id,
     value=None,
 )

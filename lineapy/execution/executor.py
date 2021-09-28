@@ -46,7 +46,9 @@ class Executor:
 
     @staticmethod
     def install(package):
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", package]
+        )
 
     def setup(self, context: SessionContext) -> None:
         """
@@ -142,7 +144,9 @@ class Executor:
 
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
-                import_node = cast(ImportNode, program.get_node(import_node_id))
+                import_node = cast(
+                    ImportNode, program.get_node(import_node_id)
+                )
                 import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
                 scoped_locals[import_node.library.name] = import_node.module
 
@@ -229,9 +233,7 @@ class Executor:
         """
         FIXME: side effect evaluation is currently not supported
         """
-        print("BBBBBBB")
 
-        sys.stdout = self._stdout
         code = program.source_code
 
         for node_id in program.visit_order():
@@ -246,20 +248,18 @@ class Executor:
             # and write to scoped_locals properly using Python exec
             if node.node_type == NodeType.LookupNode:
                 node = cast(LookupNode, node)
-                if hasattr(builtins, node.name):
-                    return getattr(builtins, node.name)
-                if hasattr(lineabuiltins, node.name):
-                    return getattr(lineabuiltins, node.name)
-                return globals()[node.name]
-                # other magical things
-
-            if node.node_type == NodeType.CallNode:
+                node.value = lookup_value(node.name)
+            elif node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
                 fn = program.get_node(node.function_id).value
 
                 args, kwargs = program.get_arguments_from_call_node(node)
 
+                print(fn, args, kwargs)
+                sys.stdout = self._stdout
                 val = fn(*args, **kwargs)
+                sys.stdout = self._old_stdout
+
                 node.value = val
 
                 # if we are calling a locally defined function
@@ -291,12 +291,12 @@ class Executor:
                     get_segment_from_code(code, node),
                     scoped_locals,
                 )
+                node.value = scoped_locals[node.function_name]
 
             elif node.node_type == NodeType.LiteralNode:
                 node = cast(LiteralNode, node)
 
             elif node.node_type == NodeType.VariableNode:
-                print("AAAA variable node", node)
                 node = cast(VariableNode, node)
                 if node.assigned_variable_name is not None:
                     node.value = program.get_node_value_from_id(
@@ -311,7 +311,16 @@ class Executor:
             # - DataSourceNode
             # - ArgumentNode
 
-        sys.stdout = self._old_stdout
-
     def validate(self, program: Graph) -> None:
         raise NotImplementedError("validate is not implemented!")
+
+
+def lookup_value(name: str) -> object:
+    """
+    Lookup a value from a string identifier.
+    """
+    if hasattr(builtins, name):
+        return getattr(builtins, name)
+    if hasattr(lineabuiltins, name):
+        return getattr(lineabuiltins, name)
+    return globals()[name]
