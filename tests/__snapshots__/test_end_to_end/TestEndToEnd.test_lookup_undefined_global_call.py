@@ -9,57 +9,73 @@ session = SessionContext(
     file_name="[source file path]",
     code="get_ipython().system('')",
     working_directory="dummy_linea_repo/",
-    session_name=None,
-    user_name=None,
-    hardware_spec=None,
     libraries=[],
 )
-call_1 = CallNode(
-    id=get_new_id(),
-    session_id=session.id,
-    lineno=1,
-    col_offset=0,
-    end_lineno=1,
-    end_col_offset=13,
-    arguments=[],
-    function_name="get_ipython",
-    function_module=None,
-    locally_defined_function_id=None,
-    assigned_variable_name=None,
-    value=None,
-)
-literal_1 = LiteralNode(
-    id=get_new_id(),
-    session_id=session.id,
-    lineno=1,
-    col_offset=21,
-    end_lineno=1,
-    end_col_offset=23,
-    value="",
-)
-argument_1 = ArgumentNode(
-    id=get_new_id(),
-    session_id=session.id,
-    lineno=None,
-    col_offset=None,
-    end_lineno=None,
-    end_col_offset=None,
-    keyword=None,
-    positional_order=0,
-    value_node_id=literal_1.id,
-    value_literal=None,
-)
-call_2 = CallNode(
+call_3 = CallNode(
     id=get_new_id(),
     session_id=session.id,
     lineno=1,
     col_offset=0,
     end_lineno=1,
     end_col_offset=24,
-    arguments=[argument_1.id],
-    function_name="system",
-    function_module=call_1.id,
-    locally_defined_function_id=None,
-    assigned_variable_name=None,
-    value=None,
+    arguments=[
+        ArgumentNode(
+            id=get_new_id(),
+            session_id=session.id,
+            positional_order=0,
+            value_node_id=LiteralNode(
+                id=get_new_id(),
+                session_id=session.id,
+                lineno=1,
+                col_offset=21,
+                end_lineno=1,
+                end_col_offset=23,
+                value="",
+            ).id,
+        ).id
+    ],
+    function_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=20,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=CallNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=13,
+                    arguments=[],
+                    function_id=LookupNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        name="get_ipython",
+                    ).id,
+                ).id,
+            ).id,
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=1,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    value="system",
+                ).id,
+            ).id,
+        ],
+        function_id=LookupNode(
+            id=get_new_id(),
+            session_id=session.id,
+            name="getattr",
+        ).id,
+    ).id,
 )

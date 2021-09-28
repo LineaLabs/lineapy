@@ -9,9 +9,6 @@ session = SessionContext(
     file_name="[source file path]",
     code="foo()",
     working_directory="dummy_linea_repo/",
-    session_name=None,
-    user_name=None,
-    hardware_spec=None,
     libraries=[],
 )
 call_1 = CallNode(
@@ -22,9 +19,9 @@ call_1 = CallNode(
     end_lineno=1,
     end_col_offset=5,
     arguments=[],
-    function_name="foo",
-    function_module=None,
-    locally_defined_function_id=None,
-    assigned_variable_name=None,
-    value=None,
+    function_id=LookupNode(
+        id=get_new_id(),
+        session_id=session.id,
+        name="foo",
+    ).id,
 )

@@ -1,8 +1,6 @@
 import ast
-from typing import Any, List, Optional, Union
+from typing import List, Optional
 
-from lineapy.data.types import CallNode, Node
-from lineapy.instrumentation.tracer import Tracer
 
 """
 AST synthesizers used by node_transformers
@@ -24,28 +22,4 @@ def extract_concrete_syntax_from_node(
     """
     TODO: adding typing
     """
-    # pprint(ast_node)
     return {key: getattr(ast_node, key, None) for key in SYNTAX_KEY}
-
-
-def tracer_call_with_syntax(
-    tracer: Tracer,
-    function_name: str,
-    argument_nodes: List[Node],
-    node: ast.AST,
-    function_module: Union[str, Node, None] = None,
-    keyword_arguments: list[tuple[str, Node]] = [],
-) -> CallNode:
-    """
-    Node is passed to synthesize the `syntax_dictionary`
-      this reduces duplicate logic across the visit_* functions
-    """
-
-    syntax_dictionary = extract_concrete_syntax_from_node(node)
-    return tracer.call(
-        function_name,
-        argument_nodes,
-        keyword_arguments,
-        syntax_dictionary,
-        function_module,
-    )

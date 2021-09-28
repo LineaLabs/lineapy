@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 from enum import Enum
 from typing import Any, NewType, Tuple, Optional, List, Dict
@@ -37,6 +38,17 @@ The orm_mode allows us to use from_orm to convert ORM
 # Use a NewType instead of a string so that we can look at annotations of fields in pydantic models
 # that use this to differentiate between strings and IDs when pretty printing
 LineaID = NewType("LineaID", str)
+
+
+@dataclass
+class DirectedEdge:
+    """
+    `DirectedEdge` is only used by the Graph to constructure dependencies
+      so that we can use `networkx` directly.
+    """
+
+    source_node_id: LineaID
+    sink_node_id: LineaID
 
 
 class HardwareSpec(BaseModel):
@@ -113,6 +125,7 @@ class NodeType(Enum):
     VariableNode = 12
     ClassDefinitionNode = 13
     SideEffectsNode = 14
+    LookupNode = 15
 
 
 class LiteralType(Enum):
@@ -256,8 +269,10 @@ class ArgumentNode(Node):
 
 class CallNode(Node):
     """
-    - `locally_defined_function_id`: helps with slicing and the lineapy
-    transformer and corresponding APIs would need to capture these info.
+    - `function_id`: node containing the value of the function call, which
+      could be from various places: (1) locally defined, (2) imported, and
+      (3) magically existing, e.g. from builtins (`min`), or environment
+      like `get_ipython`.
     - `value`: value of the call result, filled at runtime. It may be cached
       by the data asset manager
     """
@@ -265,13 +280,12 @@ class CallNode(Node):
     node_type: NodeType = NodeType.CallNode
     # These IDs point to argument nodes
     arguments: List[LineaID]
-
+    function_id: LineaID
     # TODO: We can refactor the next three into one function_id
-    function_name: str
-    function_module: Optional[LineaID] = None
-    locally_defined_function_id: Optional[LineaID] = None
-
-    assigned_variable_name: Optional[str] = None
+    # function_name: str
+    # function_module: Optional[LineaID] = None
+    # locally_defined_function_id: Optional[LineaID] = None
+    # assigned_variable_name: Optional[str] = None
     value: Optional[NodeValueType] = None
 
 
@@ -280,7 +294,15 @@ class LiteralNode(Node):
     value: NodeValueType
 
 
-# TODO: Add LookupNode for unknown/undefined variables e.g. SQLcontext, get_ipython, int.
+class LookupNode(Node):
+    """
+    For unknown/undefined variables e.g. SQLcontext, get_ipython, int.
+    """
+
+    node_type = NodeType.LookupNode
+    name: str
+    value: Optional[Any]
+
 
 # TODO: Rename to AssignmentNode?
 class VariableNode(Node):

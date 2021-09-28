@@ -2,16 +2,16 @@ import builtins
 import importlib.util
 from os import chdir, getcwd
 import io
-from types import ModuleType
-from lineapy.utils import InternalLogicError
 import subprocess
 import sys
 from typing import Any, Optional, Dict, cast
 import time
 
+from lineapy.utils import InternalLogicError
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
+    LookupNode,
     SessionContext,
     NodeType,
     Node,
@@ -34,7 +34,8 @@ class Executor:
         """
         self._variable_values = {}
 
-        # Note: no output will be shown in Terminal because it is being redirected here
+        # Note: no output will be shown in Terminal because it is
+        #       being redirected here
         self._old_stdout = sys.stdout
         self._stdout = io.StringIO()
 
@@ -63,7 +64,9 @@ class Executor:
                     if importlib.util.find_spec(library.name) is None:
                         Executor.install(library.name)
                 except ModuleNotFoundError:
-                    # Note: look out for errors when handling imports with multiple levels of parent packages (e.g. from x.y.z import a)
+                    # Note: look out for errors when handling imports with
+                    #   multiple levels of parent packages
+                    #   (e.g. from x.y.z import a)
                     Executor.install(library.name.split(".")[0])
 
     def teardown(self) -> None:
@@ -75,8 +78,10 @@ class Executor:
         For instance, `print("hi")` should yield a result of "hi\n" from this function.
 
         Note:
-        - If we assume that everything is sliced, the user printing may not happen, but third party libs may still have outputs.
-        - Also the user may manually annotate for the print line to be included and in general stdouts are useful
+        - If we assume that everything is sliced, the user printing may not
+        happen, but third party libs may still have outputs.
+        - Also the user may manually annotate for the print line to be
+        included and in general stdouts are useful
         """
 
         val = self._stdout.getvalue()
@@ -95,9 +100,10 @@ class Executor:
     ) -> Any:
         """
         Execute the `program` with specific `inputs`.
-        Note: the inputs do not have to be root nodes in `program`. For a non-root node input, we should cut its
-        dependencies. For example `a = foo(), b = a + 1`, if `a` is passed in as an input with value `2`, we should
-        skip `foo()`.
+        Note: the inputs do not have to be root nodes in `program`. For
+          a non-root node input, we should cut its dependencies.
+          For example `a = foo(), b = a + 1`, if `a` is passed
+          in as an input with value `2`, we should skip `foo()`.
 
         TODO:
         :param program: program to be run.
@@ -173,63 +179,11 @@ class Executor:
                         state_var.variable_name
                     ] = state_var.value
 
-    @staticmethod
-    def get_function(
-        node: CallNode, program: Graph, scoped_locals: Dict[str, Any]
-    ) -> Any:
-        """
-        `get_function` retrieves the runtime value of the function
-          as defined in the `CallNode`, node.
-        It covers a few special cases:
-        - if the function if locally defined
-        - if the function is part of an imported module
-          - and if the function is an aliased name, in which case we need to
-            look up the original name
-        - if the function is another call function, like __getattr__
-
-        Returns the runtime value of the function
-        """
-        fn_name = node.function_name
-        fn = None
-
-        # locally defined function
-        if node.locally_defined_function_id is not None:
-            # we can just directly get its value
-            fn = scoped_locals[fn_name]
-            return fn
-
-        # need to load from some module
-        function_module = program.get_node(node.function_module)
-        if function_module is None:
-            # this is either lineabuiltins or python builtins
-            builtin_module: ModuleType = builtins
-            if hasattr(lineabuiltins, fn_name):
-                builtin_module = lineabuiltins
-            fn = getattr(builtin_module, fn_name)
-            return fn
-
-        # Otherwise function_module is not None
-        # sanity check
-        if function_module.node_type == NodeType.ImportNode:
-            function_module = cast(ImportNode, function_module)
-            if function_module.attributes is not None:
-                original_name = function_module.attributes[node.function_name]
-                if original_name is not None:
-                    fn_name = original_name
-
-            if function_module.module is None:
-                function_module.module = importlib.import_module(function_module.library.name)  # type: ignore
-                # return module_node.module
-
-            fn = getattr(function_module.module, fn_name)
-            return fn
-        elif function_module.node_type == NodeType.CallNode:
-            # TODO: add documentation
-            fn = getattr(program.get_node_value(function_module), fn_name)
-            return fn
-
     def walk(self, program: Graph) -> None:
-        sys.stdout = self._stdout
+        """
+        FIXME: side effect evaluation is currently not supported
+        """
+
         code = program.source_code
 
         for node_id in program.visit_order():
@@ -242,32 +196,21 @@ class Executor:
 
             # all of these have to be in the same scope in order to read
             # and write to scoped_locals properly using Python exec
-
-            if node.node_type == NodeType.CallNode:
+            if node.node_type == NodeType.LookupNode:
+                node = cast(LookupNode, node)
+                node.value = lookup_value(node.name)
+            elif node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
-                fn = Executor.get_function(node, program, scoped_locals)
+                fn = program.get_node(node.function_id).value
 
                 args, kwargs = program.get_arguments_from_call_node(node)
 
+                print(fn, args, kwargs)
+                sys.stdout = self._stdout
                 val = fn(*args, **kwargs)
+                sys.stdout = self._old_stdout
+
                 node.value = val
-
-                # update the assigned variable
-                if node.assigned_variable_name is not None:
-                    self._variable_values[
-                        node.assigned_variable_name
-                    ] = node.value
-
-                # if we are calling a locally defined function
-                if node.locally_defined_function_id is not None:
-                    locally_defined_func = program.get_node(
-                        node.locally_defined_function_id
-                    )
-                    self.update_node_side_effects(
-                        locally_defined_func,
-                        program,
-                        scoped_locals,
-                    )
 
             elif node.node_type == NodeType.ImportNode:
                 node = cast(ImportNode, node)
@@ -287,6 +230,7 @@ class Executor:
                     get_segment_from_code(code, node),
                     scoped_locals,
                 )
+                node.value = scoped_locals[node.function_name]
 
             elif node.node_type == NodeType.LiteralNode:
                 node = cast(LiteralNode, node)
@@ -297,6 +241,7 @@ class Executor:
                     node.value = program.get_node_value_from_id(
                         node.source_node_id
                     )
+
                     self._variable_values[
                         node.assigned_variable_name
                     ] = node.value
@@ -305,7 +250,16 @@ class Executor:
             # - DataSourceNode
             # - ArgumentNode
 
-        sys.stdout = self._old_stdout
-
     def validate(self, program: Graph) -> None:
         raise NotImplementedError("validate is not implemented!")
+
+
+def lookup_value(name: str) -> object:
+    """
+    Lookup a value from a string identifier.
+    """
+    if hasattr(builtins, name):
+        return getattr(builtins, name)
+    if hasattr(lineabuiltins, name):
+        return getattr(lineabuiltins, name)
+    return globals()[name]

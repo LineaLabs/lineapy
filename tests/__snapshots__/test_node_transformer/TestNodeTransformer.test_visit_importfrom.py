@@ -9,32 +9,54 @@ session = SessionContext(
     file_name="[source file path]",
     code="from math import pow as power",
     working_directory="dummy_linea_repo/",
-    session_name=None,
-    user_name=None,
-    hardware_spec=None,
     libraries=[
         Library(
             id=get_new_id(),
             name="math",
-            version=None,
-            path=None,
         ),
     ],
 )
-import_1 = ImportNode(
+variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=1,
-    col_offset=0,
-    end_lineno=1,
-    end_col_offset=29,
-    library=Library(
+    source_node_id=CallNode(
         id=get_new_id(),
-        name="math",
-        version=None,
-        path=None,
-    ),
-    attributes={"power": "pow"},
-    alias=None,
-    module=None,
+        session_id=session.id,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=ImportNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=29,
+                    library=Library(
+                        id=get_new_id(),
+                        name="math",
+                    ),
+                    attributes={"power": "pow"},
+                ).id,
+            ).id,
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=1,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    value="pow",
+                ).id,
+            ).id,
+        ],
+        function_id=LookupNode(
+            id=get_new_id(),
+            session_id=session.id,
+            name="getattr",
+        ).id,
+    ).id,
+    assigned_variable_name="power",
 )

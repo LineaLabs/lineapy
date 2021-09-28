@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Iterator, cast, List, Dict, Optional, Any
 
 from lineapy.data.types import (
     ArgumentNode,
@@ -6,8 +6,60 @@ from lineapy.data.types import (
     FunctionDefinitionNode,
     Node,
     NodeType,
+    DirectedEdge,
+    SideEffectsNode,
+    StateChangeNode,
+    StateDependencyType,
+    VariableNode,
+    LineaID,
 )
 from lineapy.utils import CaseNotHandledError, internal_warning_log
+
+MAX_ARG_POSITION = 1000
+
+
+def get_edges_from_nodes(nodes: List[Node]) -> Iterator[DirectedEdge]:
+    for node in nodes:
+        for id in get_parents_from_node(node):
+            yield DirectedEdge(source_node_id=id, sink_node_id=node.id)
+
+
+def get_arg_position(x: ArgumentNode):
+    if x.positional_order is not None:
+        return x.positional_order
+    else:
+        return MAX_ARG_POSITION
+
+
+def get_parents_from_node(node: Node) -> Iterator[LineaID]:
+
+    if node.node_type is NodeType.CallNode:
+        node = cast(CallNode, node)
+        yield from node.arguments
+        yield node.function_id
+    elif node.node_type is NodeType.ArgumentNode:
+        node = cast(ArgumentNode, node)
+        if node.value_node_id is not None:
+            yield node.value_node_id
+    elif node.node_type in [
+        NodeType.LoopNode,
+        NodeType.ConditionNode,
+        NodeType.FunctionDefinitionNode,
+    ]:
+        node = cast(SideEffectsNode, node)
+        if node.import_nodes is not None:
+            yield from node.import_nodes
+        if node.input_state_change_nodes is not None:
+            yield from node.input_state_change_nodes
+    elif node.node_type is NodeType.StateChangeNode:
+        node = cast(StateChangeNode, node)
+        if node.state_dependency_type is StateDependencyType.Write:
+            yield node.associated_node_id
+        elif node.state_dependency_type is StateDependencyType.Read:
+            yield node.initial_value_node_id
+    elif node.node_type is NodeType.VariableNode:
+        node = cast(VariableNode, node)
+        yield node.source_node_id
 
 
 def get_segment_from_code(code: str, node: Node) -> str:

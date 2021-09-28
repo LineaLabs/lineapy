@@ -14,6 +14,7 @@ from lineapy.data.types import (
     Artifact,
     Library,
     LineaID,
+    LookupNode,
     NodeValue,
     SessionContext,
     CallNode,
@@ -102,6 +103,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.DataSourceNode: DataSourceNodeORM,
             NodeType.StateChangeNode: StateChangeNodeORM,
             NodeType.VariableNode: VariableNodeORM,
+            NodeType.LookupNode: LookupNodeORM,
         }
 
         return pydantic_to_orm[node.node_type]  # type: ignore
@@ -119,6 +121,7 @@ class RelationalLineaDB(LineaDB):
             NodeType.DataSourceNode: DataSourceNode,
             NodeType.StateChangeNode: StateChangeNode,
             NodeType.VariableNode: VariableNode,
+            NodeType.LookupNode: LookupNode,
         }
 
         return orm_to_pydantic[node.node_type]  # type: ignore
@@ -187,6 +190,7 @@ class RelationalLineaDB(LineaDB):
 
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
+        # TODO: Extract out del values to one place
         if node.node_type is NodeType.ArgumentNode:
             node = cast(ArgumentNode, node)
             if args["value_literal"] is not None:
@@ -212,7 +216,8 @@ class RelationalLineaDB(LineaDB):
             NodeType.FunctionDefinitionNode,
         ]:
             node = cast(SideEffectsNodeORM, node)
-
+            if "value" in args:
+                del args["value"]
             if node.output_state_change_nodes is not None:
                 for state_change_id in node.output_state_change_nodes:
                     self.session.execute(
@@ -263,6 +268,9 @@ class RelationalLineaDB(LineaDB):
                     "value_type"
                 ] = RelationalLineaDB.get_type_of_literal_value(node.value)
 
+        elif node.node_type is NodeType.LookupNode:
+            del args["value"]
+
         elif node.node_type is NodeType.VariableNode:
             """
             The value is just for run time information
@@ -296,27 +304,22 @@ class RelationalLineaDB(LineaDB):
         just have a table that tracks what Node IDs are deemed as artifacts.
         """
 
-        node = self.get_node_by_id(node_id)
-        if node.node_type in [
-            NodeType.CallNode,
-            NodeType.FunctionDefinitionNode,
-        ]:
-            artifact = ArtifactORM(
-                id=node_id,
-                name=name,
-                date_created=date_created,
-            )
-            self.session.add(artifact)
+        artifact = ArtifactORM(
+            id=node_id,
+            name=name,
+            date_created=date_created,
+        )
+        self.session.add(artifact)
 
-            # Currently each execution maps to exactly one artifact,
-            # so for now we add a new execution every time we publish an artifact
-            execution = ExecutionORM(
-                artifact_id=artifact.id,
-                version=1,
-                execution_time=execution_time,
-            )
-            self.session.add(execution)
-            self.session.commit()
+        # Currently each execution maps to exactly one artifact,
+        # so for now we add a new execution every time we publish an artifact
+        execution = ExecutionORM(
+            artifact_id=artifact.id,
+            version=1,
+            execution_time=execution_time,
+        )
+        self.session.add(execution)
+        self.session.commit()
 
     def remove_node_id_from_artifact_table(self, node_id: LineaID) -> None:
         """
