@@ -69,6 +69,12 @@ BITXOR = operator.__xor__.__name__
 BITAND = operator.__and__.__name__
 MATMUL = operator.__matmul__.__name__
 
+
+# UnaryOps
+INVERT = operator.__invert__.__name__
+POS = operator.__pos__.__name__
+NEG = operator.__neg__.__name__
+
 # CompareOps
 EQ = operator.__eq__.__name__
 NOTEQ = operator.__ne__.__name__
