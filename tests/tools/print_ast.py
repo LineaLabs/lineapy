@@ -14,7 +14,7 @@ import astor
 @click.command()
 @click.argument("code")
 def linea_cli(code):
-    code = "-1"
+
     ast_ = ast.parse(code)
     print("*** AST ***")
     pprint(ast_)
