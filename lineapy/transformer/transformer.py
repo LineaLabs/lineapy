@@ -9,7 +9,6 @@ from lineapy.constants import (
     ExecutionMode,
 )
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.instrumentation.variable import Variable
 from lineapy.data.types import SessionType
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.utils import CaseNotHandledError, info_log
@@ -113,7 +112,6 @@ class Transformer:
             names=[
                 ast.alias(name=SessionType.__name__, asname=None),
                 ast.alias(name=Tracer.__name__, asname=None),
-                ast.alias(name=Variable.__name__, asname=None),
                 ast.alias(name=ExecutionMode.__name__, asname=None),
             ],
             level=0,

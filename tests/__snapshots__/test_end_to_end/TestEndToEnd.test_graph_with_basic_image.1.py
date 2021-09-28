@@ -61,6 +61,24 @@ import_2 = ImportNode(
     alias="plt",
     module=None,
 )
+literal_1 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=4,
+    col_offset=17,
+    end_lineno=4,
+    end_col_offset=40,
+    value="tests/simple_data.csv",
+)
+literal_2 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=5,
+    col_offset=11,
+    end_lineno=5,
+    end_col_offset=28,
+    value="simple_data.png",
+)
 argument_1 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
@@ -70,8 +88,8 @@ argument_1 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=0,
-    value_node_id=None,
-    value_literal="tests/simple_data.csv",
+    value_node_id=literal_1.id,
+    value_literal=None,
 )
 argument_2 = ArgumentNode(
     id=get_new_id(),
@@ -82,8 +100,8 @@ argument_2 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=0,
-    value_node_id=None,
-    value_literal="simple_data.png",
+    value_node_id=literal_2.id,
+    value_literal=None,
 )
 call_1 = CallNode(
     id=get_new_id(),

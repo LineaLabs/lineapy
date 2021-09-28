@@ -1,4 +1,4 @@
-from lineapy import SessionType, Tracer, Variable, ExecutionMode
+from lineapy import SessionType, Tracer, ExecutionMode
 
 lineapy_tracer = Tracer(SessionType.SCRIPT, "[source file path]", ExecutionMode.MEMORY)
 lineapy_tracer.trace_import(
@@ -31,7 +31,12 @@ lineapy_tracer.assign(
             "end_lineno": 4,
             "end_col_offset": 41,
         },
-        arguments=["tests/simple_data.csv"],
+        arguments=[
+            lineapy_tracer.literal(
+                "tests/simple_data.csv",
+                {"lineno": 4, "col_offset": 17, "end_lineno": 4, "end_col_offset": 40},
+            )
+        ],
         keyword_arguments=[],
         function_module="pd",
     ),
@@ -62,7 +67,18 @@ lineapy_tracer.assign(
                 "end_lineno": 5,
                 "end_col_offset": 11,
             },
-            arguments=[Variable("df"), "a"],
+            arguments=[
+                lineapy_tracer.lookup_node("df"),
+                lineapy_tracer.literal(
+                    "a",
+                    {
+                        "lineno": 5,
+                        "col_offset": 7,
+                        "end_lineno": 5,
+                        "end_col_offset": 10,
+                    },
+                ),
+            ],
             keyword_arguments=[],
         ),
     ),

@@ -30,7 +30,7 @@ def create_lib_attributes(names: List[ast.alias]) -> ast.Dict:
     return ast.Dict(keys=keys, values=values)
 
 
-def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
+def extract_concrete_syntax_from_node(ast_node: ast.AST) -> ast.Dict:
     """
     TODO: adding typing
     """
@@ -38,7 +38,8 @@ def extract_concrete_syntax_from_node(ast_node) -> ast.Dict:
     return ast.Dict(
         keys=[ast.Constant(value=key) for key in SYNTAX_KEY],
         values=[
-            ast.Constant(value=ast_node.__getattribute__(key))
+            # We dont have concrete syntax for nodes we generate
+            ast.Constant(value=getattr(ast_node, key, None))
             for key in SYNTAX_KEY
         ],
     )
@@ -54,7 +55,7 @@ def get_tracer_ast_call_func(tracer_func: str):
 
 def synthesize_tracer_call_ast(
     function_name: str,
-    argument_nodes: List[Any],
+    argument_nodes: List[ast.expr],
     node: Any,  # NOTE: not sure if the ast Nodes have a union type
     function_module: Optional[Any] = None,
     keyword_arguments: list[tuple[str, ast.AST]] = [],
@@ -106,24 +107,6 @@ def synthesize_tracer_call_ast(
         )
 
     return call
-
-
-def synthesize_tracer_headless_literal_ast(node: ast.Constant):
-    """
-    Similar to `synthesize_tracer_headless_variable_ast`, but for literals.
-    """
-    syntax_dictionary = extract_concrete_syntax_from_node(node)
-    return ast.Expr(
-        value=ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.headless_literal.__name__,
-                ctx=ast.Load(),
-            ),
-            args=[node, syntax_dictionary],
-            keywords=[],
-        )
-    )
 
 
 def synthesize_tracer_headless_variable_ast(node: ast.Name):

@@ -14,6 +14,24 @@ session = SessionContext(
     hardware_spec=None,
     libraries=[],
 )
+literal_1 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=4,
+    end_lineno=1,
+    end_col_offset=5,
+    value=1,
+)
+literal_2 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=7,
+    end_lineno=1,
+    end_col_offset=8,
+    value=2,
+)
 argument_1 = ArgumentNode(
     id=get_new_id(),
     session_id=session.id,
@@ -23,8 +41,8 @@ argument_1 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=0,
-    value_node_id=None,
-    value_literal=1,
+    value_node_id=literal_1.id,
+    value_literal=None,
 )
 argument_2 = ArgumentNode(
     id=get_new_id(),
@@ -35,8 +53,8 @@ argument_2 = ArgumentNode(
     end_col_offset=None,
     keyword=None,
     positional_order=1,
-    value_node_id=None,
-    value_literal=2,
+    value_node_id=literal_2.id,
+    value_literal=None,
 )
 call_1 = CallNode(
     id=get_new_id(),

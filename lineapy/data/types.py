@@ -278,9 +278,11 @@ class CallNode(Node):
 class LiteralNode(Node):
     node_type: NodeType = NodeType.LiteralNode
     value: NodeValueType
-    assigned_variable_name: Optional[str]
 
 
+# TODO: Add LookupNode for unknown/undefined variables e.g. SQLcontext, get_ipython, int.
+
+# TODO: Rename to AssignmentNode?
 class VariableNode(Node):
     """
     Supports the following cases
@@ -288,13 +290,13 @@ class VariableNode(Node):
     > b
     > a = b
     ```
-    `b` would be the `source_variable_id` in both cases,
+    `b` would be the `source_node_id` in both cases,
     and `a` is the `assigned_variable_id` in the second case.
     """
 
     node_type: NodeType = NodeType.VariableNode
-    source_variable_id: LineaID
-    assigned_variable_name: Optional[str]
+    source_node_id: LineaID
+    assigned_variable_name: str
     value: Optional[Any]  # loaded at run time
 
 

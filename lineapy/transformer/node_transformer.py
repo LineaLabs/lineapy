@@ -41,7 +41,6 @@ from lineapy.constants import (
     VARIABLE_NAME,
 )
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.instrumentation.variable import Variable
 from lineapy.lineabuiltins import __build_list__
 from lineapy.transformer.transformer_util import (
     create_lib_attributes,
@@ -49,8 +48,6 @@ from lineapy.transformer.transformer_util import (
     get_tracer_ast_call_func,
     synthesize_linea_publish_call_ast,
     synthesize_tracer_call_ast,
-    synthesize_tracer_headless_literal_ast,
-    synthesize_tracer_headless_variable_ast,
 )
 from lineapy.utils import (
     CaseNotHandledError,
@@ -84,22 +81,6 @@ class NodeTransformer(ast.NodeTransformer):
                     f"Error while transforming code: \n\n{code_context}\n"
                 )
             raise e
-
-    def visit_Expr(self, node: ast.Expr) -> Any:
-        """
-        NOTE
-        - Exprs are indications that it's a new line, which allows us to
-          observe headless variables and literals, which is useful for
-          notebook settings.
-        - Some expressions, like Assign, do not come with Expr wrapped
-          and we need to pad with expr to correctly create new lines.
-        """
-        v = node.value
-        if isinstance(v, ast.Name):
-            return synthesize_tracer_headless_variable_ast(v)  # type: ignore
-        elif isinstance(v, ast.Constant):
-            return synthesize_tracer_headless_literal_ast(v)  # type: ignore
-        return ast.Expr(value=self.visit(node.value))
 
     def visit_Import(self, node):
         """
@@ -166,10 +147,11 @@ class NodeTransformer(ast.NodeTransformer):
         )
         return result
 
-    def visit_Name(self, node) -> ast.Call:
+    def visit_Name(self, node: ast.Name) -> ast.Call:
         return ast.Call(
-            func=ast.Name(
-                id=Variable.__name__,
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.lookup_node.__name__,
                 ctx=ast.Load(),
             ),
             args=[ast.Constant(value=node.id)],
@@ -251,7 +233,7 @@ class NodeTransformer(ast.NodeTransformer):
                     DEL_ATTR,
                     [
                         self.visit(target.value),
-                        ast.Constant(value=target.attr),
+                        self.visit(ast.Constant(value=target.attr)),
                     ],
                     node,
                 )
@@ -260,6 +242,19 @@ class NodeTransformer(ast.NodeTransformer):
             raise NotImplementedError(
                 f"We do not support deleting {type(target)}"
             )
+
+    def visit_Constant(self, node: ast.Constant) -> ast.Call:
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
+
+        return ast.Call(
+            func=ast.Attribute(
+                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
+                attr=Tracer.literal.__name__,
+                ctx=ast.Load(),
+            ),
+            args=[node, syntax_dictionary],
+            keywords=[],
+        )
 
     def visit_Assign(self, node: ast.Assign) -> ast.Expr:
         """
@@ -273,6 +268,8 @@ class NodeTransformer(ast.NodeTransformer):
           not an assignment, so we might need to change the return signature
           from ast.Expr.
         """
+        # TODO support multiple assignment
+        assert len(node.targets) == 1
 
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         if isinstance(node.targets[0], ast.Subscript):
@@ -310,7 +307,7 @@ class NodeTransformer(ast.NodeTransformer):
                 SET_ATTR,
                 [
                     self.visit(target.value),
-                    ast.Constant(target.attr),
+                    self.visit(ast.Constant(target.attr)),
                     self.visit(node.value),
                 ],
                 node,
@@ -322,58 +319,6 @@ class NodeTransformer(ast.NodeTransformer):
                 "Other assignment types are not supported"
             )
         variable_name = node.targets[0].id  # type: ignore
-        # Literal assign
-        if isinstance(node.value, ast.Constant):
-            call_ast: ast.Call = ast.Call(
-                func=ast.Attribute(
-                    value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                    attr=Tracer.literal.__name__,
-                    ctx=ast.Load(),
-                ),
-                args=[],
-                keywords=[
-                    ast.keyword(
-                        arg="assigned_variable_name",
-                        value=ast.Constant(value=variable_name),
-                    ),
-                    ast.keyword(
-                        arg="value",
-                        value=self.visit(node.value),
-                    ),
-                    ast.keyword(
-                        arg=SYNTAX_DICTIONARY,
-                        value=syntax_dictionary,
-                    ),
-                ],
-            )
-            return ast.Expr(value=call_ast)
-
-        if isinstance(node.value, ast.Name):
-            # this is a variable alias
-            # FIXME: need to clean up the repetition
-            variable_call_ast: ast.Call = ast.Call(
-                func=ast.Attribute(
-                    value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                    attr=Tracer.variable_alias.__name__,
-                    ctx=ast.Load(),
-                ),
-                args=[],
-                keywords=[
-                    ast.keyword(
-                        arg="assigned_variable_name",
-                        value=ast.Constant(value=variable_name),
-                    ),
-                    ast.keyword(
-                        arg="source_variable_name",
-                        value=ast.Constant(value=node.value.id),
-                    ),
-                    ast.keyword(
-                        arg=SYNTAX_DICTIONARY,
-                        value=syntax_dictionary,
-                    ),
-                ],
-            )
-            return ast.Expr(value=variable_call_ast)
 
         # if not isinstance(node.targets[0], ast.Name):
         #     raise NotImplementedError(
@@ -517,7 +462,7 @@ class NodeTransformer(ast.NodeTransformer):
         For now, assume the function is pure, i.e.:
         - no globals
         - no writing to variables defined outside the scope
-        TODO: remove these limitations in future PRs
+        TODO: remove these limitatsynthesize_tracer_call_astions in future PRs
         """
         # apparently FunctionDef is not inside Expr so for the new call we need to create new line
         function_name = node.name
@@ -543,7 +488,10 @@ class NodeTransformer(ast.NodeTransformer):
 
         return synthesize_tracer_call_ast(
             GETATTR,
-            [self.visit(node.value), ast.Constant(value=node.attr)],
+            [
+                self.visit(node.value),
+                self.visit(ast.Constant(value=node.attr)),
+            ],
             node,
         )
 

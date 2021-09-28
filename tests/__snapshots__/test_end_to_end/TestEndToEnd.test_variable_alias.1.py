@@ -22,7 +22,6 @@ literal_1 = LiteralNode(
     end_lineno=1,
     end_col_offset=5,
     value=1,
-    assigned_variable_name="a",
 )
 variable_1 = VariableNode(
     id=get_new_id(),
@@ -31,7 +30,18 @@ variable_1 = VariableNode(
     col_offset=0,
     end_lineno=2,
     end_col_offset=5,
-    source_variable_id=literal_1.id,
+    source_node_id=literal_1.id,
+    assigned_variable_name="a",
+    value=None,
+)
+variable_2 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    source_node_id=variable_1.id,
     assigned_variable_name="b",
     value=None,
 )
