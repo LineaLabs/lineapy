@@ -1,13 +1,12 @@
 import ast
-from typing import Optional, cast, Any
+from lineapy.data.types import CallNode, Node
+from typing import Union, cast, Any
 
-from attr import attr
 
 from lineapy import linea_publish
 from lineapy.constants import (
     DEL_ATTR,
     DEL_ITEM,
-    LINEAPY_TRACER_NAME,
     ADD,
     SET_ATTR,
     SUB,
@@ -35,19 +34,13 @@ from lineapy.constants import (
     GET_ITEM,
     SET_ITEM,
     GETATTR,
-    FUNCTION_NAME,
-    FUNCTION_MODULE,
-    SYNTAX_DICTIONARY,
-    VARIABLE_NAME,
 )
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.lineabuiltins import __build_list__
 from lineapy.transformer.transformer_util import (
     create_lib_attributes,
     extract_concrete_syntax_from_node,
-    get_tracer_ast_call_func,
-    synthesize_linea_publish_call_ast,
-    synthesize_tracer_call_ast,
+    tracer_call_with_syntax,
 )
 from lineapy.utils import (
     CaseNotHandledError,
@@ -65,8 +58,9 @@ class NodeTransformer(ast.NodeTransformer):
     """
 
     # TODO: Remove source
-    def __init__(self, source: str):
+    def __init__(self, source: str, tracer: Tracer):
         self.source = source
+        self.tracer = tracer
 
     def _get_code_from_node(self, node):
         return ast.get_source_segment(self.source, node)
@@ -86,83 +80,28 @@ class NodeTransformer(ast.NodeTransformer):
         """
         Similar to `visit_ImportFrom`, slightly different class syntax
         """
-        result = []
+        # result = []
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         for lib in node.names:
-            result.append(
-                ast.Expr(
-                    ast.Call(
-                        func=ast.Attribute(
-                            value=ast.Name(
-                                id=LINEAPY_TRACER_NAME,
-                                ctx=ast.Load(),
-                            ),
-                            attr=Tracer.trace_import.__name__,
-                            ctx=ast.Load(),
-                        ),
-                        args=[],
-                        keywords=[
-                            ast.keyword(
-                                arg="name",
-                                value=ast.Constant(value=lib.name),
-                            ),
-                            ast.keyword(
-                                arg=SYNTAX_DICTIONARY,
-                                value=syntax_dictionary,
-                            ),
-                            ast.keyword(
-                                arg="alias",
-                                value=ast.Constant(value=lib.asname),
-                            ),
-                        ],
-                    )
-                )
+            self.tracer.trace_import(
+                lib.name,
+                syntax_dictionary,
+                alias=lib.asname,
             )
-        return result
 
     def visit_ImportFrom(self, node):
         syntax_dictionary = extract_concrete_syntax_from_node(node)
-
-        result = ast.Expr(
-            ast.Call(
-                func=ast.Attribute(
-                    value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                    attr=Tracer.trace_import.__name__,
-                    ctx=ast.Load(),
-                ),
-                args=[],
-                keywords=[
-                    ast.keyword(
-                        arg="name", value=ast.Constant(value=node.module)
-                    ),
-                    ast.keyword(
-                        arg=SYNTAX_DICTIONARY, value=syntax_dictionary
-                    ),
-                    ast.keyword(
-                        arg="attributes",
-                        value=create_lib_attributes(node.names),
-                    ),
-                ],
-            )
-        )
-        return result
-
-    def visit_Name(self, node: ast.Name) -> ast.Call:
-        return ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.lookup_node.__name__,
-                ctx=ast.Load(),
-            ),
-            args=[ast.Constant(value=node.id)],
-            keywords=[],
+        self.tracer.trace_import(
+            node.module,
+            syntax_dictionary,
+            attributes=create_lib_attributes(node.names),
         )
 
-    def visit_Call(self, node) -> ast.Call:
-        """
-        TODO: support key word
-        TODO: find function_module
-        """
+    def visit_Name(self, node: ast.Name) -> Node:
+        return self.tracer.lookup_node(node.id)
+
+    def visit_Call(self, node):
+        """ """
         function_name, function_module = self.get_call_function_name(node)
         # a little hacky, assume no one else would have a function name
         #   called linea_publish
@@ -192,19 +131,18 @@ class NodeTransformer(ast.NodeTransformer):
                         f" `{linea_publish.__name__}`, you gave"
                         f" {type(node.args[1])}"
                     )
-                description_node = cast(ast.Constant, node.args[1])
-                return synthesize_linea_publish_call_ast(
-                    var_node.id, description_node.value
-                )
+                # description_node = cast(ast.Constant, node.args[1])
+                return self.tracer.publish(var_node.id, node.args[1].value)
             else:
-                return synthesize_linea_publish_call_ast(var_node.id)
+                return self.tracer.publish(var_node.id)
         else:  # this is the normal case, non-publish
             argument_nodes = [self.visit(arg) for arg in node.args]
             keyword_argument_nodes = [
                 (arg.arg, self.visit(arg.value)) for arg in node.keywords
             ]
             # TODO: support keyword arguments as well
-            return synthesize_tracer_call_ast(
+            return tracer_call_with_syntax(
+                self.tracer,
                 function_name,
                 argument_nodes,
                 node,
@@ -212,7 +150,7 @@ class NodeTransformer(ast.NodeTransformer):
                 keyword_arguments=keyword_argument_nodes,
             )
 
-    def visit_Delete(self, node: ast.Delete) -> ast.Expr:
+    def visit_Delete(self, node: ast.Delete):
         target = node.targets[0]
 
         if isinstance(target, ast.Name):
@@ -220,43 +158,32 @@ class NodeTransformer(ast.NodeTransformer):
                 "We do not support unassigning a variable"
             )
         elif isinstance(target, ast.Subscript):
-            return ast.Expr(
-                value=synthesize_tracer_call_ast(
-                    DEL_ITEM,
-                    [self.visit(target.value), self.visit(target.slice)],
-                    node,
-                )
+            return tracer_call_with_syntax(
+                self.tracer,
+                DEL_ITEM,
+                [self.visit(target.value), self.visit(target.slice)],
+                node,
             )
         elif isinstance(target, ast.Attribute):
-            return ast.Expr(
-                value=synthesize_tracer_call_ast(
-                    DEL_ATTR,
-                    [
-                        self.visit(target.value),
-                        self.visit(ast.Constant(value=target.attr)),
-                    ],
-                    node,
-                )
+            return tracer_call_with_syntax(
+                self.tracer,
+                DEL_ATTR,
+                [
+                    self.visit(target.value),
+                    self.visit(ast.Constant(value=target.attr)),
+                ],
+                node,
             )
         else:
             raise NotImplementedError(
                 f"We do not support deleting {type(target)}"
             )
 
-    def visit_Constant(self, node: ast.Constant) -> ast.Call:
+    def visit_Constant(self, node: ast.Constant):
         syntax_dictionary = extract_concrete_syntax_from_node(node)
+        return self.tracer.literal(node.value, syntax_dictionary)
 
-        return ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.literal.__name__,
-                ctx=ast.Load(),
-            ),
-            args=[node, syntax_dictionary],
-            keywords=[],
-        )
-
-    def visit_Assign(self, node: ast.Assign) -> ast.Expr:
+    def visit_Assign(self, node: ast.Assign):
         """
         Assign currently special cases for:
         - Subscript, e.g., `ls[0] = 1`
@@ -289,12 +216,13 @@ class NodeTransformer(ast.NodeTransformer):
                     self.visit(index),
                     self.visit(node.value),
                 ]
-                call: ast.Call = synthesize_tracer_call_ast(
+                return tracer_call_with_syntax(
+                    self.tracer,
                     SET_ITEM,
                     argument_nodes,
                     node,
                 )
-                return ast.Expr(value=call)
+                # return ast.Expr(value=call)
 
             raise NotImplementedError(
                 "Assignment for Subscript supported only for Constant and Name"
@@ -303,7 +231,8 @@ class NodeTransformer(ast.NodeTransformer):
         # e.g. `x.y = 10`
         elif isinstance(node.targets[0], ast.Attribute):
             target = node.targets[0]
-            call = synthesize_tracer_call_ast(
+            return tracer_call_with_syntax(
+                self.tracer,
                 SET_ATTR,
                 [
                     self.visit(target.value),
@@ -312,7 +241,7 @@ class NodeTransformer(ast.NodeTransformer):
                 ],
                 node,
             )
-            return ast.Expr(value=call)
+            # return ast.Expr(value=call)
 
         if not isinstance(node.targets[0], ast.Name):
             raise NotImplementedError(
@@ -320,43 +249,19 @@ class NodeTransformer(ast.NodeTransformer):
             )
         variable_name = node.targets[0].id  # type: ignore
 
-        # if not isinstance(node.targets[0], ast.Name):
-        #     raise NotImplementedError(
-        #         "Other assignment types are not supported"
-        #     )
-
-        call_ast = ast.Call(
-            func=ast.Attribute(
-                value=ast.Name(id=LINEAPY_TRACER_NAME, ctx=ast.Load()),
-                attr=Tracer.assign.__name__,
-                ctx=ast.Load(),
-            ),
-            args=[],
-            keywords=[
-                ast.keyword(
-                    arg=VARIABLE_NAME,
-                    value=ast.Constant(value=variable_name),
-                ),
-                ast.keyword(
-                    arg="value_node",
-                    value=self.visit(node.value),
-                ),
-                ast.keyword(
-                    arg=SYNTAX_DICTIONARY,
-                    value=syntax_dictionary,
-                ),
-            ],
+        self.tracer.assign(
+            variable_name,
+            self.visit(node.value),
+            syntax_dictionary,
         )
-        result = ast.Expr(value=call_ast)
-        return result
 
-    def visit_List(self, node: ast.List) -> ast.Call:
+    def visit_List(self, node: ast.List) -> CallNode:
         elem_nodes = [self.visit(elem) for elem in node.elts]
-        return synthesize_tracer_call_ast(
-            __build_list__.__name__, elem_nodes, node
+        return tracer_call_with_syntax(
+            self.tracer, __build_list__.__name__, elem_nodes, node
         )
 
-    def visit_BinOp(self, node: ast.BinOp) -> ast.Call:
+    def visit_BinOp(self, node: ast.BinOp) -> CallNode:
         ast_to_op_map = {
             ast.Add: ADD,
             ast.Sub: SUB,
@@ -372,15 +277,16 @@ class NodeTransformer(ast.NodeTransformer):
             ast.BitAnd: BITAND,
             ast.MatMult: MATMUL,
         }
-        op = ast_to_op_map[node.op.__class__]
+        op = ast_to_op_map[node.op.__class__]  # type: ignore
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
-        return synthesize_tracer_call_ast(
+        return tracer_call_with_syntax(
+            self.tracer,
             op,
             argument_nodes,
             node,
         )
 
-    def visit_Compare(self, node: ast.Compare) -> ast.Call:
+    def visit_Compare(self, node: ast.Compare) -> CallNode:
         ast_to_op_map = {
             ast.Eq: EQ,
             ast.NotEq: NOTEQ,
@@ -407,19 +313,22 @@ class NodeTransformer(ast.NodeTransformer):
                 left = right
                 right = tmp
             if op.__class__ in ast_to_op_map:
-                left = synthesize_tracer_call_ast(
+                left = tracer_call_with_syntax(
+                    self.tracer,
                     ast_to_op_map[op.__class__],
                     [left, right],
                     node,
                 )
             elif isinstance(op, ast.NotIn):
                 # need to call operator.not_ on __contains___
-                inside = synthesize_tracer_call_ast(
+                inside = tracer_call_with_syntax(
+                    self.tracer,
                     ast_to_op_map[ast.In],
                     [left, right],
                     node,
                 )
-                left = synthesize_tracer_call_ast(
+                left = tracer_call_with_syntax(
+                    self.tracer,
                     NOT,
                     [inside],
                     node,
@@ -427,22 +336,24 @@ class NodeTransformer(ast.NodeTransformer):
 
         return left
 
-    def visit_Slice(self, node: ast.Slice) -> ast.Call:
+    def visit_Slice(self, node: ast.Slice) -> CallNode:
         slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
         if node.step is not None:
             slice_arguments.append(self.visit(node.step))
-        return synthesize_tracer_call_ast(
+        return tracer_call_with_syntax(
+            self.tracer,
             slice.__name__,
             slice_arguments,
             node,
         )
 
-    def visit_Subscript(self, node: ast.Subscript) -> ast.Call:
+    def visit_Subscript(self, node: ast.Subscript) -> CallNode:
         args = [self.visit(node.value)]
         index = node.slice
         args.append(self.visit(index))
         if isinstance(node.ctx, ast.Load):
-            return synthesize_tracer_call_ast(
+            return tracer_call_with_syntax(
+                self.tracer,
                 GET_ITEM,
                 args,
                 node,
@@ -457,7 +368,7 @@ class NodeTransformer(ast.NodeTransformer):
                 " visit_Assign."
             )
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
+    def visit_FunctionDef(self, node: ast.FunctionDef):
         """
         For now, assume the function is pure, i.e.:
         - no globals
@@ -467,26 +378,12 @@ class NodeTransformer(ast.NodeTransformer):
         # apparently FunctionDef is not inside Expr so for the new call we need to create new line
         function_name = node.name
         syntax_dictionary = extract_concrete_syntax_from_node(node)
-        return ast.Expr(
-            value=ast.Call(
-                func=get_tracer_ast_call_func(Tracer.define_function.__name__),
-                args=[],
-                keywords=[
-                    ast.keyword(
-                        arg=FUNCTION_NAME,
-                        value=ast.Constant(value=function_name),
-                    ),
-                    ast.keyword(
-                        arg=SYNTAX_DICTIONARY,
-                        value=syntax_dictionary,
-                    ),
-                ],
-            ),
-        )
+        self.tracer.define_function(function_name, syntax_dictionary)
 
-    def visit_Attribute(self, node: ast.Attribute) -> ast.Call:
+    def visit_Attribute(self, node: ast.Attribute) -> CallNode:
 
-        return synthesize_tracer_call_ast(
+        return tracer_call_with_syntax(
+            self.tracer,
             GETATTR,
             [
                 self.visit(node.value),
@@ -497,7 +394,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     def get_call_function_name(
         self, node: ast.Call
-    ) -> tuple[str, Optional[ast.expr]]:
+    ) -> tuple[str, Union[Node, None, str]]:
         """
         Returns (function_name, function_module)
         """
@@ -508,7 +405,7 @@ class NodeTransformer(ast.NodeTransformer):
             value = func.value
             module: ast.expr
             if isinstance(value, ast.Name):
-                module = ast.Constant(value=value.id)
+                module = value.id
             else:
                 module = self.visit(value)
             return func.attr, module

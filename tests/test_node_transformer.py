@@ -18,19 +18,14 @@ class TestNodeTransformer:
         call_with_keyword_args = "foo(b=1)"
         execute(call_with_keyword_args, session_type=SessionType.STATIC)
 
-    @pytest.mark.parametrize("code", ("a = 1", "a = foo"))
+    @pytest.mark.parametrize("code", ("a = 1", "b=2\na = b"))
     def test_visit_assign(self, execute, code):
-        execute(
-            code,
-            exec_transformed_xfail="evaling transformed with undefined var in list fails",
-        )
+        execute(code)
 
-    @pytest.mark.parametrize("code", ("[1, 2]", "[1, a]"))
+    @pytest.mark.parametrize("code", ("[1, 2]", "a=3\n[1, a]"))
+    @pytest.mark.xfail
     def test_visit_list(self, execute, code):
-        execute(
-            code,
-            exec_transformed_xfail="evaling transformed with undefined var in list fails",
-        )
+        execute(code)
 
     @pytest.mark.parametrize(
         "op",
@@ -47,15 +42,15 @@ class TestNodeTransformer:
             "|",
             "^",
             "&",
-            "@",
+            pytest.param("@", marks=pytest.mark.xfail()),
         ),
     )
     def test_visit_binop(self, execute, op):
         execute(
-            f"a {op} 1",
-            exec_transformed_xfail="cant eval undefined var in transform",
+            f"a=1\na {op} 1",
         )
 
+    @pytest.mark.xfail
     @pytest.mark.parametrize(
         "op",
         (
@@ -74,8 +69,7 @@ class TestNodeTransformer:
     )
     def test_visit_compare(self, execute, op):
         execute(
-            f"a {op} b",
-            exec_transformed_xfail="cant eval undefined var in transform",
+            f"a=1\nb=2\na {op} b",
         )
 
     @pytest.mark.parametrize(
@@ -85,13 +79,12 @@ class TestNodeTransformer:
             "ls[a]",
             "ls[1:2]",
             "ls[1:a]",
-            "ls[[1,2]]",
+            pytest.param("ls[[1,2]]", marks=pytest.mark.xfail()),
         ),
     )
     def test_visit_subscript(self, execute, code):
         execute(
-            code,
-            exec_transformed_xfail="cant eval undefined var in transform",
+            "ls=[1,2,3]\na=1\n" + code,
         )
 
     @pytest.mark.parametrize(
@@ -101,13 +94,12 @@ class TestNodeTransformer:
             "ls[a] = b",
             "ls[1:2] = [1]",
             "ls[1:a] = [b]",
-            "ls[[1,2]] = [1,2]",
+            pytest.param("ls[[1,2]] = [1,2]", marks=pytest.mark.xfail()),
         ),
     )
     def test_visit_assign_subscript(self, execute, code):
         execute(
-            code,
-            exec_transformed_xfail="cant eval undefined var in transform",
+            "ls=[1,2,3]\na=1\nb=4\n" + code,
         )
 
     @pytest.mark.parametrize(
@@ -119,18 +111,14 @@ class TestNodeTransformer:
     )
     def test_linea_publish_visit_call(self, execute, code):
         execute(
-            code,
-            exec_transformed_xfail="cant eval undefined var in transform",
+            "a=1\n" + code,
         )
 
     def test_headless_literal(self, execute):
         execute("1")
 
     def test_headless_variable(self, execute):
-        execute(
-            "b",
-            exec_transformed_xfail="evaling transformed with undefined var fails",
-        )
+        execute("b=1\nb")
 
     def test_literal_assignment(self, execute):
         execute("b = 2")

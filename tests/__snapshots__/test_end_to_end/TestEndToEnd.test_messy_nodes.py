@@ -1,146 +1,270 @@
-from lineapy import SessionType, Tracer, ExecutionMode
+import datetime
+from lineapy.data.types import *
+from lineapy.utils import get_new_id
 
-lineapy_tracer = Tracer(SessionType.SCRIPT, "[source file path]", ExecutionMode.MEMORY)
-lineapy_tracer.trace_import(
-    name="lineapy",
-    syntax_dictionary={
-        "lineno": 1,
-        "col_offset": 0,
-        "end_lineno": 1,
-        "end_col_offset": 14,
-    },
+session = SessionContext(
+    id=get_new_id(),
+    environment_type=SessionType.SCRIPT,
+    creation_time=datetime.datetime(1, 1, 1, 0, 0),
+    file_name="[source file path]",
+    code="import lineapy\na = 1\nb = a + 2\nc = 2\nd = 4\ne = d + a\nf = a * b * c\n10\ne\ng = e\n\nlineapy.linea_publish(f, 'f')\n",
+    working_directory="dummy_linea_repo/",
+    session_name=None,
+    user_name=None,
+    hardware_spec=None,
+    libraries=[
+        Library(
+            id=get_new_id(),
+            name="lineapy",
+            version=None,
+            path=None,
+        ),
+    ],
+)
+import_1 = ImportNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=14,
+    library=Library(
+        id=get_new_id(),
+        name="lineapy",
+        version=None,
+        path=None,
+    ),
+    attributes=None,
     alias=None,
+    module=None,
 )
-lineapy_tracer.assign(
-    variable_name="a",
-    value_node=lineapy_tracer.literal(
-        1, {"lineno": 2, "col_offset": 4, "end_lineno": 2, "end_col_offset": 5}
-    ),
-    syntax_dictionary={
-        "lineno": 2,
-        "col_offset": 0,
-        "end_lineno": 2,
-        "end_col_offset": 5,
-    },
+literal_1 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=2,
+    col_offset=0,
+    end_lineno=2,
+    end_col_offset=5,
+    value=1,
 )
-lineapy_tracer.assign(
-    variable_name="b",
-    value_node=lineapy_tracer.call(
-        function_name="add",
-        syntax_dictionary={
-            "lineno": 3,
-            "col_offset": 4,
-            "end_lineno": 3,
-            "end_col_offset": 9,
-        },
-        arguments=[
-            lineapy_tracer.lookup_node("a"),
-            lineapy_tracer.literal(
-                2, {"lineno": 3, "col_offset": 8, "end_lineno": 3, "end_col_offset": 9}
-            ),
-        ],
-        keyword_arguments=[],
-    ),
-    syntax_dictionary={
-        "lineno": 3,
-        "col_offset": 0,
-        "end_lineno": 3,
-        "end_col_offset": 9,
-    },
+literal_2 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=3,
+    col_offset=8,
+    end_lineno=3,
+    end_col_offset=9,
+    value=2,
 )
-lineapy_tracer.assign(
-    variable_name="c",
-    value_node=lineapy_tracer.literal(
-        2, {"lineno": 4, "col_offset": 4, "end_lineno": 4, "end_col_offset": 5}
-    ),
-    syntax_dictionary={
-        "lineno": 4,
-        "col_offset": 0,
-        "end_lineno": 4,
-        "end_col_offset": 5,
-    },
+literal_3 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=4,
+    col_offset=0,
+    end_lineno=4,
+    end_col_offset=5,
+    value=2,
 )
-lineapy_tracer.assign(
-    variable_name="d",
-    value_node=lineapy_tracer.literal(
-        4, {"lineno": 5, "col_offset": 4, "end_lineno": 5, "end_col_offset": 5}
-    ),
-    syntax_dictionary={
-        "lineno": 5,
-        "col_offset": 0,
-        "end_lineno": 5,
-        "end_col_offset": 5,
-    },
+literal_4 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=5,
+    col_offset=0,
+    end_lineno=5,
+    end_col_offset=5,
+    value=4,
 )
-lineapy_tracer.assign(
-    variable_name="e",
-    value_node=lineapy_tracer.call(
-        function_name="add",
-        syntax_dictionary={
-            "lineno": 6,
-            "col_offset": 4,
-            "end_lineno": 6,
-            "end_col_offset": 9,
-        },
-        arguments=[lineapy_tracer.lookup_node("d"), lineapy_tracer.lookup_node("a")],
-        keyword_arguments=[],
-    ),
-    syntax_dictionary={
-        "lineno": 6,
-        "col_offset": 0,
-        "end_lineno": 6,
-        "end_col_offset": 9,
-    },
+literal_5 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=8,
+    col_offset=0,
+    end_lineno=8,
+    end_col_offset=2,
+    value=10,
 )
-lineapy_tracer.assign(
-    variable_name="f",
-    value_node=lineapy_tracer.call(
-        function_name="mul",
-        syntax_dictionary={
-            "lineno": 7,
-            "col_offset": 4,
-            "end_lineno": 7,
-            "end_col_offset": 13,
-        },
-        arguments=[
-            lineapy_tracer.call(
-                function_name="mul",
-                syntax_dictionary={
-                    "lineno": 7,
-                    "col_offset": 4,
-                    "end_lineno": 7,
-                    "end_col_offset": 9,
-                },
-                arguments=[
-                    lineapy_tracer.lookup_node("a"),
-                    lineapy_tracer.lookup_node("b"),
-                ],
-                keyword_arguments=[],
-            ),
-            lineapy_tracer.lookup_node("c"),
-        ],
-        keyword_arguments=[],
-    ),
-    syntax_dictionary={
-        "lineno": 7,
-        "col_offset": 0,
-        "end_lineno": 7,
-        "end_col_offset": 13,
-    },
+variable_1 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    source_node_id=literal_1.id,
+    assigned_variable_name="a",
+    value=None,
 )
-lineapy_tracer.literal(
-    10, {"lineno": 8, "col_offset": 0, "end_lineno": 8, "end_col_offset": 2}
+argument_1 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    keyword=None,
+    positional_order=1,
+    value_node_id=literal_2.id,
+    value_literal=None,
 )
-lineapy_tracer.lookup_node("e")
-lineapy_tracer.assign(
-    variable_name="g",
-    value_node=lineapy_tracer.lookup_node("e"),
-    syntax_dictionary={
-        "lineno": 10,
-        "col_offset": 0,
-        "end_lineno": 10,
-        "end_col_offset": 5,
-    },
+variable_2 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    source_node_id=literal_3.id,
+    assigned_variable_name="c",
+    value=None,
 )
-lineapy_tracer.publish(variable_name="f", description="f")
-lineapy_tracer.exit()
+variable_3 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    source_node_id=literal_4.id,
+    assigned_variable_name="d",
+    value=None,
+)
+argument_2 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    keyword=None,
+    positional_order=0,
+    value_node_id=variable_1.id,
+    value_literal=None,
+)
+argument_3 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    keyword=None,
+    positional_order=1,
+    value_node_id=variable_1.id,
+    value_literal=None,
+)
+argument_4 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    keyword=None,
+    positional_order=0,
+    value_node_id=variable_1.id,
+    value_literal=None,
+)
+argument_5 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    keyword=None,
+    positional_order=1,
+    value_node_id=variable_2.id,
+    value_literal=None,
+)
+argument_6 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    keyword=None,
+    positional_order=0,
+    value_node_id=variable_3.id,
+    value_literal=None,
+)
+call_1 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=3,
+    col_offset=0,
+    end_lineno=3,
+    end_col_offset=9,
+    arguments=[argument_1.id, argument_2.id],
+    function_name="add",
+    function_module=None,
+    locally_defined_function_id=None,
+    assigned_variable_name="b",
+    value=None,
+)
+call_2 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=10,
+    col_offset=0,
+    end_lineno=10,
+    end_col_offset=5,
+    arguments=[argument_3.id, argument_6.id],
+    function_name="add",
+    function_module=None,
+    locally_defined_function_id=None,
+    assigned_variable_name="g",
+    value=None,
+)
+argument_7 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    keyword=None,
+    positional_order=1,
+    value_node_id=call_1.id,
+    value_literal=None,
+)
+call_3 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=7,
+    col_offset=4,
+    end_lineno=7,
+    end_col_offset=9,
+    arguments=[argument_4.id, argument_7.id],
+    function_name="mul",
+    function_module=None,
+    locally_defined_function_id=None,
+    assigned_variable_name=None,
+    value=None,
+)
+argument_8 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=None,
+    col_offset=None,
+    end_lineno=None,
+    end_col_offset=None,
+    keyword=None,
+    positional_order=0,
+    value_node_id=call_3.id,
+    value_literal=None,
+)
+call_4 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=7,
+    col_offset=0,
+    end_lineno=7,
+    end_col_offset=13,
+    arguments=[argument_5.id, argument_8.id],
+    function_name="mul",
+    function_module=None,
+    locally_defined_function_id=None,
+    assigned_variable_name="f",
+    value=None,
+)
