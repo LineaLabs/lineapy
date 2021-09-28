@@ -288,18 +288,6 @@ class CallNodeORM(NodeORM):
     id = Column(String, ForeignKey("node.id"), primary_key=True)
     # FIXME: add ForeignKey("node.id") back in!!!!
     function_id = Column(String, nullable=False)
-    # function_module = Column(String, nullable=True)
-    # locally_defined_function_id = Column(String, nullable=True)
-
-    # this pattern is used when multiple sibling classes have the same column
-    # @declared_attr
-    # def assigned_variable_name(cls):
-    #     return NodeORM.__table__.c.get(
-    #         "assigned_variable_name", Column(String, nullable=True)
-    #     )
-    # @declared_attr
-    # def function_name(cls):
-    #     return NodeORM.__table__.c.get("function_name", Column(String))
 
 
 class ArgumentNodeORM(NodeORM):
@@ -335,10 +323,6 @@ class LiteralNodeORM(NodeORM):
     @declared_attr
     def value(cls):
         return NodeORM.__table__.c.get("value", Column(String))
-
-    # @declared_attr
-    # def value_node_id(cls):
-    #     return NodeORM.__table__.c.get("value_node_id", Column(String))
 
 
 class FunctionDefinitionNodeORM(SideEffectsNodeORM):

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 from enum import Enum
 from typing import Any, NewType, Tuple, Optional, List, Dict
@@ -37,6 +38,17 @@ The orm_mode allows us to use from_orm to convert ORM
 # Use a NewType instead of a string so that we can look at annotations of fields in pydantic models
 # that use this to differentiate between strings and IDs when pretty printing
 LineaID = NewType("LineaID", str)
+
+
+@dataclass
+class DirectedEdge:
+    """
+    `DirectedEdge` is only used by the Graph to constructure dependencies
+      so that we can use `networkx` directly.
+    """
+
+    source_node_id: LineaID
+    sink_node_id: LineaID
 
 
 class HardwareSpec(BaseModel):
@@ -286,6 +298,7 @@ class LookupNode(Node):
     """
     For unknown/undefined variables e.g. SQLcontext, get_ipython, int.
     """
+
     node_type = NodeType.LookupNode
     name: str
     value: Optional[Any]

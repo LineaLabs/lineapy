@@ -1,7 +1,7 @@
 import ast
 import lineapy
 from lineapy.data.types import CallNode, Node
-from typing import Optional, Union, cast, Any
+from typing import Optional, cast, Any
 
 
 from lineapy import linea_publish

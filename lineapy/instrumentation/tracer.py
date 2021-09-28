@@ -1,12 +1,11 @@
 from datetime import datetime
-from typing import Dict, Any, Optional, List, Union, cast
+from typing import Dict, Optional, List
 from os import getcwd
 import builtins
 
 from lineapy.constants import GETATTR, ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    ArgumentNode,
     CallNode,
     FunctionDefinitionNode,
     ImportNode,
@@ -328,35 +327,11 @@ class Tracer:
             argument_node_ids.append(n.id)
             self.add_unevaluated_node(n)
 
-        # locally_defined_function_id: Optional[LineaID] = None
-        # now see if we need to add a locally_defined_function_id
-        # if function_name in self.variable_name_to_node:
-        #     locally_defined_function_id = (
-        #         self.look_up_node_id_by_variable_name(function_name)
-        #     )
-
-        # # Get node id for function module
-        # if isinstance(function_module, str):
-        #     function_module = self.look_up_node_id_by_variable_name(
-        #         function_module
-        #     )
-
-        # if isinstance(function_module, CallNode):
-        #     function_module = function_module.id
-        # Don't do special function name lookup if function_module is a node
-        # elif function_name in self.function_name_to_function_module_import_id:
-        #     function_module = self.function_name_to_function_module_import_id[
-        #         function_name
-        #     ]
-
         node = CallNode(
             id=get_new_id(),
             session_id=self.session_context.id,
             function_id=function_node.id,
-            # function_name=function_name,
-            # locally_defined_function_id=locally_defined_function_id,
             arguments=argument_node_ids,
-            # function_module=function_module,
         )
         self.add_unevaluated_node(node, syntax_dictionary)
         # info_log("call invoked from tracer", function_name,

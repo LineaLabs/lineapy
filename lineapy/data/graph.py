@@ -1,6 +1,5 @@
 from lineapy.graph_reader.graph_printer import GraphPrinter
-from typing import Iterator, cast, List, Dict, Optional, Any
-from dataclasses import dataclass
+from typing import cast, List, Dict, Optional, Any
 
 import networkx as nx
 
@@ -12,26 +11,16 @@ from lineapy.data.types import (
     NodeType,
     CallNode,
     SessionContext,
-    SideEffectsNode,
-    StateChangeNode,
     VariableNode,
-    StateDependencyType,
     DataSourceNode,
     ImportNode,
+    DirectedEdge,
 )
-from lineapy.graph_reader.graph_helper import get_arg_position
+from lineapy.graph_reader.graph_util import (
+    get_arg_position,
+    get_edges_from_nodes,
+)
 from lineapy.utils import InternalLogicError, NullValueError
-
-
-@dataclass
-class DirectedEdge:
-    """
-    `DirectedEdge` is only used by the Graph to constructure dependencies
-      so that we can use `networkx` directly.
-    """
-
-    source_node_id: LineaID
-    sink_node_id: LineaID
 
 
 class Graph(object):
@@ -53,14 +42,15 @@ class Graph(object):
         self._nx_graph = nx.DiGraph()
         self._nx_graph.add_nodes_from([node.id for node in nodes])
 
-        self._edges: List[DirectedEdge] = self.__get_edges_from_nodes(nodes)
+        self._edges: List[DirectedEdge] = list(get_edges_from_nodes(nodes))
         self._nx_graph.add_edges_from(
             [(edge.source_node_id, edge.sink_node_id) for edge in self._edges]
         )
+        # FIXME this is kinda ugly
         self._nx_graph.add_edges_from(
             [
                 (edge.source_node_id, edge.sink_node_id)
-                for edge in self.__get_edges_from_line_number()
+                for edge in self._get_edges_from_line_number()
             ]
         )
         self.session_context = session_context
@@ -115,6 +105,41 @@ class Graph(object):
             for node in self.nx_graph.nodes
             if self.nx_graph.out_degree(node) == 0
         ]
+
+    def _get_edges_from_line_number(self) -> List[DirectedEdge]:
+        edges = []
+        # find all data source nodes
+        for node in self.nodes:
+            if node.node_type is NodeType.DataSourceNode:
+                descendants = [
+                    n
+                    for n in self.get_descendants(node)
+                    if n is not None
+                    and self.get_node_else_raise(n).node_type
+                    is NodeType.CallNode
+                ]
+
+                # sort data source nodes children
+                # FIXME: lineno check
+                descendants.sort(
+                    key=lambda n: self.get_node_else_raise(n).lineno
+                )
+                # add edges between children
+                for d in range(len(descendants) - 1):
+                    if self.nx_graph.has_edge(
+                        descendants[d], descendants[d + 1]
+                    ) or self.nx_graph.has_edge(
+                        descendants[d + 1], descendants[d]
+                    ):
+                        continue
+                    edges.append(
+                        DirectedEdge(
+                            source_node_id=descendants[d],
+                            sink_node_id=descendants[d + 1],
+                        )
+                    )
+        # print(edges)
+        return edges
 
     def get_node(self, node_id: Optional[LineaID]) -> Optional[Node]:
         if node_id is not None and node_id in self.ids:
@@ -196,89 +221,6 @@ class Graph(object):
         arg_nodes.sort(key=get_arg_position)
 
         return [self.get_node_value(a) for a in arg_nodes], kwarg_values
-
-    # getting a node's parents before the graph has been constructed
-    # @staticmethod
-    def get_parents_from_node(self, node: Node) -> Iterator[LineaID]:
-
-        if node.node_type is NodeType.CallNode:
-            node = cast(CallNode, node)
-            yield from node.arguments
-            yield node.function_id
-            assert self.get_node(node.function_id) is not None
-        elif node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNode, node)
-            if node.value_node_id is not None:
-                yield node.value_node_id
-        elif node.node_type in [
-            NodeType.LoopNode,
-            NodeType.ConditionNode,
-            NodeType.FunctionDefinitionNode,
-        ]:
-            node = cast(SideEffectsNode, node)
-            if node.import_nodes is not None:
-                yield from node.import_nodes
-            if node.input_state_change_nodes is not None:
-                yield from node.input_state_change_nodes
-        elif node.node_type is NodeType.StateChangeNode:
-            node = cast(StateChangeNode, node)
-            if node.state_dependency_type is StateDependencyType.Write:
-                yield node.associated_node_id
-            elif node.state_dependency_type is StateDependencyType.Read:
-                yield node.initial_value_node_id
-        elif node.node_type is NodeType.VariableNode:
-            node = cast(VariableNode, node)
-            yield node.source_node_id
-
-    # @staticmethod
-    def __get_edges_from_nodes(self, nodes: List[Node]) -> List[DirectedEdge]:
-        edges = []
-        for node in nodes:
-            edges.extend(self.__get_edges_to_node(node))
-        return edges
-
-    # @staticmethod
-    def __get_edges_to_node(self, node: Node) -> List[DirectedEdge]:
-        def add_edge_from_node(id: LineaID) -> DirectedEdge:
-            return DirectedEdge(source_node_id=id, sink_node_id=node.id)
-
-        edges = list(map(add_edge_from_node, self.get_parents_from_node(node)))
-        return edges
-
-    def __get_edges_from_line_number(self) -> List[DirectedEdge]:
-        edges = []
-        # find all data source nodes
-        for node in self.nodes:
-            if node.node_type is NodeType.DataSourceNode:
-                descendants = [
-                    n
-                    for n in self.get_descendants(node)
-                    if n is not None
-                    and self.get_node_else_raise(n).node_type
-                    is NodeType.CallNode
-                ]
-
-                # sort data source nodes children
-                # FIXME: lineno check
-                descendants.sort(
-                    key=lambda n: self.get_node_else_raise(n).lineno
-                )
-                # add edges between children
-                for d in range(len(descendants) - 1):
-                    if self.nx_graph.has_edge(
-                        descendants[d], descendants[d + 1]
-                    ) or self.nx_graph.has_edge(
-                        descendants[d + 1], descendants[d]
-                    ):
-                        continue
-                    edges.append(
-                        DirectedEdge(
-                            source_node_id=descendants[d],
-                            sink_node_id=descendants[d + 1],
-                        )
-                    )
-        # print(edges)
-        return edges
 
     def get_subgraph(self, nodes: List[Node]) -> "Graph":
         """
