@@ -1,24 +1,23 @@
-from tests.util import (
-    READ_IMAGE_CODE,
-    WRITE_IMAGE_CODE,
-    CSV_CODE,
-    reset_test_db,
-)
-from lineapy.execution.executor import Executor
-from lineapy.graph_reader.graph_util import are_nodes_content_equal
 from tempfile import NamedTemporaryFile
 from click.testing import CliRunner
 import pytest
 from os import chdir, getcwd
 
 import lineapy
+from lineapy.execution.executor import Executor
 from lineapy.cli.cli import linea_cli
-from lineapy.data.types import NodeType, SessionType
+from lineapy.data.types import SessionType
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.transformer.transformer import ExecutionMode
-from lineapy.utils import get_current_time, info_log, prettify
+from lineapy.utils import get_current_time, info_log
 
+from tests.util import (
+    READ_IMAGE_CODE,
+    WRITE_IMAGE_CODE,
+    CSV_CODE,
+    reset_test_db,
+)
 
 publish_name = "testing artifact publish"
 PUBLISH_CODE = f"""import {lineapy.__name__}
@@ -26,9 +25,16 @@ a = abs(11)
 {lineapy.__name__}.{lineapy.linea_publish.__name__}(a, '{publish_name}')
 """
 
+
 PANDAS_RANDOM_CODE = """import pandas as pd
 df = pd.DataFrame([1,2])
+df[0].astype(str)
 assert df.size == 2
+"""
+
+DICTIONARY_SUPPORT = """import pandas as pd
+df = pd.DataFrame({"id": [1,2]})
+df["id"].sum()
 """
 
 
@@ -223,6 +229,10 @@ class TestEndToEnd:
         res = execute(FUNCTION_DEFINITION_CODE, session_type=session_type)
         if session_type == SessionType.SCRIPT:
             assert res.values["c"] == 1
+
+    @pytest.mark.xfail(reason="Mutations ##221")
+    def test_dictionary_support(self, execute):
+        res = execute(DICTIONARY_SUPPORT)
 
     def test_graph_with_basic_image(self, execute, tmpdir):
         """
