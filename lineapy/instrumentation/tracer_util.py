@@ -1,40 +1,29 @@
-from typing import Callable, List, Union, Iterable
+from typing import Iterator
 
 from lineapy.utils import get_new_id
-
 from lineapy.data.types import (
     ArgumentNode,
-    CallNode,
     LineaID,
-    LiteralNode,
     Node,
-    VariableNode,
 )
-
-# Created to avoid circular imports...
-
-ARG_TYPE = Node
-ARGS_TYPE = list[ARG_TYPE]
-KEYWORD_ARGS_TYPE = list[tuple[str, ARG_TYPE]]
 
 
 def create_argument_nodes(
-    arguments: ARGS_TYPE,
-    keyword_arguments: KEYWORD_ARGS_TYPE,
+    arguments: list[Node],
+    keyword_arguments: dict[str, Node],
     session_context_id: LineaID,
-) -> List[ArgumentNode]:
-    argument_nodes = []
-    for idx_or_name, a in [*list(enumerate(arguments)), *keyword_arguments]:
-        new_arg = ArgumentNode(
+) -> Iterator[ArgumentNode]:
+    for idx, v in enumerate(arguments):
+        yield ArgumentNode(
             id=get_new_id(),
             session_id=session_context_id,
+            positional_order=idx,
+            value_node_id=v.id,
         )
-        if isinstance(idx_or_name, int):
-            new_arg.positional_order = idx_or_name
-        else:
-            new_arg.keyword = idx_or_name  # type: ignore
-        argument_nodes.append(new_arg)
-
-        new_arg.value_node_id = a.id
-
-    return argument_nodes
+    for k, v in keyword_arguments.items():
+        yield ArgumentNode(
+            id=get_new_id(),
+            session_id=session_context_id,
+            keyword=k,
+            value_node_id=v.id,
+        )

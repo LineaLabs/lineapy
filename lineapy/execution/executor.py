@@ -45,9 +45,7 @@ class Executor:
 
     @staticmethod
     def install(package):
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", package]
-        )
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
     def setup(self, context: SessionContext) -> None:
         """
@@ -143,9 +141,7 @@ class Executor:
 
         if node.import_nodes is not None:
             for import_node_id in node.import_nodes:
-                import_node = cast(
-                    ImportNode, program.get_node(import_node_id)
-                )
+                import_node = cast(ImportNode, program.get_node(import_node_id))
                 import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
                 scoped_locals[import_node.library.name] = import_node.module
 
@@ -189,46 +185,50 @@ class Executor:
 
         Returns the runtime value of the function
         """
-        fn_name = node.function_name
-        fn = None
+        # fn_name = node.function_name
+        # fn = None
 
-        # locally defined function
-        if node.locally_defined_function_id is not None:
-            # we can just directly get its value
-            fn = scoped_locals[fn_name]
-            return fn
+        # # locally defined function
+        # if node.locally_defined_function_id is not None:
+        #     # we can just directly get its value
+        #     fn = scoped_locals[fn_name]
+        #     return fn
 
-        # need to load from some module
-        function_module = program.get_node(node.function_module)
-        if function_module is None:
-            # this is either lineabuiltins or python builtins
-            builtin_module: ModuleType = builtins
-            if hasattr(lineabuiltins, fn_name):
-                builtin_module = lineabuiltins
-            fn = getattr(builtin_module, fn_name)
-            return fn
+        # # need to load from some module
+        # function_module = program.get_node(node.function_module)
+        # if function_module is None:
+        #     # this is either lineabuiltins or python builtins
+        #     builtin_module: ModuleType = builtins
+        #     if hasattr(lineabuiltins, fn_name):
+        #         builtin_module = lineabuiltins
+        #     fn = getattr(builtin_module, fn_name)
+        #     return fn
 
-        # Otherwise function_module is not None
-        # sanity check
-        if function_module.node_type == NodeType.ImportNode:
-            function_module = cast(ImportNode, function_module)
-            if function_module.attributes is not None:
-                original_name = function_module.attributes[node.function_name]
-                if original_name is not None:
-                    fn_name = original_name
+        # # Otherwise function_module is not None
+        # # sanity check
+        # if function_module.node_type == NodeType.ImportNode:
+        #     function_module = cast(ImportNode, function_module)
+        #     if function_module.attributes is not None:
+        #         original_name = function_module.attributes[node.function_name]
+        #         if original_name is not None:
+        #             fn_name = original_name
 
-            if function_module.module is None:
-                function_module.module = importlib.import_module(function_module.library.name)  # type: ignore
-                # return module_node.module
+        #     if function_module.module is None:
+        #         function_module.module = importlib.import_module(function_module.library.name)  # type: ignore
+        #         # return module_node.module
 
-            fn = getattr(function_module.module, fn_name)
-            return fn
-        elif function_module.node_type == NodeType.CallNode:
-            # TODO: add documentation
-            fn = getattr(program.get_node_value(function_module), fn_name)
-            return fn
+        #     fn = getattr(function_module.module, fn_name)
+        #     return fn
+        # elif function_module.node_type == NodeType.CallNode:
+        #     # TODO: add documentation
+        #     fn = getattr(program.get_node_value(function_module), fn_name)
+        #     return fn
 
     def walk(self, program: Graph) -> None:
+        """
+        FIXME: side effect evaluation is currently not supported
+        """
+
         sys.stdout = self._stdout
         code = program.source_code
 
@@ -245,29 +245,23 @@ class Executor:
 
             if node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
-                fn = Executor.get_function(node, program, scoped_locals)
+                fn = program.get_node(node.function_id).value
 
                 args, kwargs = program.get_arguments_from_call_node(node)
 
                 val = fn(*args, **kwargs)
                 node.value = val
 
-                # update the assigned variable
-                if node.assigned_variable_name is not None:
-                    self._variable_values[
-                        node.assigned_variable_name
-                    ] = node.value
-
                 # if we are calling a locally defined function
-                if node.locally_defined_function_id is not None:
-                    locally_defined_func = program.get_node(
-                        node.locally_defined_function_id
-                    )
-                    self.update_node_side_effects(
-                        locally_defined_func,
-                        program,
-                        scoped_locals,
-                    )
+                # if node.locally_defined_function_id is not None:
+                #     locally_defined_func = program.get_node(
+                #         node.locally_defined_function_id
+                #     )
+                #     self.update_node_side_effects(
+                #         locally_defined_func,
+                #         program,
+                #         scoped_locals,
+                #     )
 
             elif node.node_type == NodeType.ImportNode:
                 node = cast(ImportNode, node)

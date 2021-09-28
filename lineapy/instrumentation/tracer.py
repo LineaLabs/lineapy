@@ -1,16 +1,20 @@
+from ast import arguments
 from datetime import datetime
 from typing import Dict, Any, Optional, List, Union, cast
 from os import getcwd
+import builtins
 
-from lineapy.constants import ExecutionMode
+from lineapy.constants import GETATTR, ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
+    ArgumentNode,
     CallNode,
     FunctionDefinitionNode,
     ImportNode,
     Library,
     LineaID,
     LiteralNode,
+    LookupNode,
     Node,
     SessionContext,
     SessionType,
@@ -20,14 +24,11 @@ from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.records_manager import RecordsManager
 from lineapy.instrumentation.tracer_util import (
-    ARGS_TYPE,
-    KEYWORD_ARGS_TYPE,
     create_argument_nodes,
 )
 from lineapy.utils import (
     CaseNotHandledError,
     InternalLogicError,
-    UserError,
     info_log,
     internal_warning_log,
     get_new_id,
@@ -75,9 +76,13 @@ class Tracer:
         )
         self.executor = Executor()
         self.variable_name_to_node: Dict[str, Node] = {}
-        self.function_name_to_function_module_import_id: Dict[
-            str, LineaID
-        ] = {}
+        self.function_name_to_function_module_import_id: Dict[str, LineaID] = {}
+        self._builtins = None
+
+    def _get_builtin_node(self) -> ImportNode:
+        if self._builtins is None:
+            self._builtins = self.trace_import(builtins.__name__, {})
+        return self._builtins
 
     def add_unevaluated_node(
         self, record: Node, syntax_dictionary: Optional[Dict] = None
@@ -107,9 +112,7 @@ class Tracer:
             time = self.executor.execute_program(
                 Graph(self.nodes_to_be_evaluated, self.session_context),
             )
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return time
@@ -117,9 +120,7 @@ class Tracer:
             # Same flow as SCRIPT but without the executor
             # In the future, we can potentially do something fancy with
             #   importing and doing analysis there
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return None
@@ -133,7 +134,24 @@ class Tracer:
         pass
 
     def lookup_node(self, variable_name: str) -> Node:
-        return self.variable_name_to_node[variable_name]
+        """
+        Cases:
+        - user defined variable & function definitions
+        - imported libs
+        - unknown runtime magic functions---special case to
+          LookupNode
+          - builtin functions, e.g., min
+          - custom runtime, e.g., get_ipython
+        """
+        if variable_name in self.variable_name_to_node:
+            # user define var and fun def
+            return self.variable_name_to_node[variable_name]
+        else:
+            return LookupNode(
+                id=get_new_id(),
+                session_id=self.session_context.id,
+                name=variable_name,
+            )
 
     def look_up_node_id_by_variable_name(self, variable_name: str) -> LineaID:
         return self.lookup_node(variable_name).id
@@ -211,8 +229,18 @@ class Tracer:
         #  that yields the importnode's id for the `function_module` field,
         #  see `graph_with_basic_image`.
         if attributes is not None:
-            for a in attributes:
-                self.function_name_to_function_module_import_id[a] = node.id
+            for alias, original_name in attributes.items():
+                # self.function_name_to_function_module_import_id[a] = node.id
+                self.assign(
+                    alias,
+                    self.call(
+                        self.lookup_node(GETATTR),
+                        {},
+                        self.literal(original_name, {}),
+                    ),
+                    {},
+                )
+
         # also need to modify the session_context because of weird executor
         #   requirement; should prob refactor later
         # and we cannot just modify the runtime value because
@@ -256,15 +284,16 @@ class Tracer:
 
     def call(
         self,
-        function_name: str,
-        arguments: ARGS_TYPE,
-        keyword_arguments: KEYWORD_ARGS_TYPE,
+        function_node: Node,
         syntax_dictionary: SyntaxDictionary,
+        # function_name: str,
+        *arguments: Node,
+        **keyword_arguments: Node,
         # TODO: We add `CallNode` as an arg here to support nested
         # getattrs followed by a call. The "module" then is really
         # not a module, but just a CallNode that is a getattr
         # We should refactor this!
-        function_module: Union[None, str, Node] = None,
+        # function_module: Union[None, str, Node] = None,
     ) -> CallNode:
         """
         NOTE
@@ -280,41 +309,42 @@ class Tracer:
         """
 
         argument_nodes = create_argument_nodes(
-            arguments,
+            list(arguments),
             keyword_arguments,
             self.session_context.id,
         )
         argument_node_ids = [n.id for n in argument_nodes]
         [self.add_unevaluated_node(n) for n in argument_nodes]
 
-        locally_defined_function_id: Optional[LineaID] = None
+        # locally_defined_function_id: Optional[LineaID] = None
         # now see if we need to add a locally_defined_function_id
-        if function_name in self.variable_name_to_node:
-            locally_defined_function_id = (
-                self.look_up_node_id_by_variable_name(function_name)
-            )
+        # if function_name in self.variable_name_to_node:
+        #     locally_defined_function_id = (
+        #         self.look_up_node_id_by_variable_name(function_name)
+        #     )
 
-        # Get node id for function module
-        if isinstance(function_module, str):
-            function_module = self.look_up_node_id_by_variable_name(
-                function_module
-            )
+        # # Get node id for function module
+        # if isinstance(function_module, str):
+        #     function_module = self.look_up_node_id_by_variable_name(
+        #         function_module
+        #     )
 
-        if isinstance(function_module, CallNode):
-            function_module = function_module.id
+        # if isinstance(function_module, CallNode):
+        #     function_module = function_module.id
         # Don't do special function name lookup if function_module is a node
-        elif function_name in self.function_name_to_function_module_import_id:
-            function_module = self.function_name_to_function_module_import_id[
-                function_name
-            ]
+        # elif function_name in self.function_name_to_function_module_import_id:
+        #     function_module = self.function_name_to_function_module_import_id[
+        #         function_name
+        #     ]
 
         node = CallNode(
             id=get_new_id(),
             session_id=self.session_context.id,
-            function_name=function_name,
-            locally_defined_function_id=locally_defined_function_id,
+            function_id=function_node.id,
+            # function_name=function_name,
+            # locally_defined_function_id=locally_defined_function_id,
             arguments=argument_node_ids,
-            function_module=function_module,
+            # function_module=function_module,
         )
         self.add_unevaluated_node(node, syntax_dictionary)
         # info_log("call invoked from tracer", function_name,
@@ -335,25 +365,15 @@ class Tracer:
         This is not the most functional/pure but it gets the job done for now.
         """
         augment_node_with_syntax(value_node, syntax_dictionary)
-        if type(value_node) is CallNode:
-            self.variable_name_to_node[variable_name] = value_node
-            call_node = cast(CallNode, value_node)
-            call_node.assigned_variable_name = variable_name
-        elif type(value_node) in [VariableNode, LiteralNode]:
-            # hack: we should have consistent Literal handling...
-            new_node = VariableNode(
-                id=get_new_id(),
-                session_id=self.session_context.id,
-                assigned_variable_name=variable_name,
-                source_node_id=value_node.id,
-            )
-            self.add_unevaluated_node(new_node)
-            self.variable_name_to_node[variable_name] = new_node
-            return
-        else:
-            raise CaseNotHandledError(
-                f"got type {type(value_node)} for {value_node}"
-            )
+        new_node = VariableNode(
+            id=get_new_id(),
+            session_id=self.session_context.id,
+            assigned_variable_name=variable_name,
+            source_node_id=value_node.id,
+        )
+        self.add_unevaluated_node(new_node)
+        self.variable_name_to_node[variable_name] = new_node
+        return
 
     def define_function(
         self,
