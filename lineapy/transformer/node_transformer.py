@@ -40,7 +40,7 @@ from lineapy.constants import (
     INVERT,
 )
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.lineabuiltins import __build_list__
+from lineapy.lineabuiltins import __build_list__, __assert__
 from lineapy.transformer.transformer_util import (
     create_lib_attributes,
     extract_concrete_syntax_from_node,
@@ -81,6 +81,29 @@ class NodeTransformer(ast.NodeTransformer):
                     f"Error while transforming code: \n\n{code_context}\n"
                 )
             raise e
+
+    def generic_visit(self, node: ast.AST) -> ast.AST:
+        raise NotImplementedError(
+            f"Don't know how to transform {type(node).__name__}"
+        )
+
+    def visit_Module(self, node: ast.Module) -> Any:
+        return super().generic_visit(node)
+
+    def visit_Expr(self, node: ast.Expr) -> Any:
+        return super().generic_visit(node)
+
+    def visit_Assert(self, node: ast.Assert) -> None:
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
+
+        args = [self.visit(node.test)]
+        if node.msg:
+            args.append(self.visit(node.msg))
+        self.tracer.call(
+            self.tracer.lookup_node(__assert__.__name__),
+            syntax_dictionary,
+            *args,
+        )
 
     def visit_Import(self, node: ast.Import) -> None:
         """

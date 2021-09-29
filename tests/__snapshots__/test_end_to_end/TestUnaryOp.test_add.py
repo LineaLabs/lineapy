@@ -89,11 +89,11 @@ variable_2 = VariableNode(
     ).id,
     assigned_variable_name="obj",
 )
-call_4 = CallNode(
+call_5 = CallNode(
     id=get_new_id(),
     session_id=session.id,
     lineno=3,
-    col_offset=7,
+    col_offset=0,
     end_lineno=3,
     end_col_offset=18,
     arguments=[
@@ -107,32 +107,52 @@ call_4 = CallNode(
                 lineno=3,
                 col_offset=7,
                 end_lineno=3,
-                end_col_offset=11,
+                end_col_offset=18,
                 arguments=[
                     ArgumentNode(
                         id=get_new_id(),
                         session_id=session.id,
                         positional_order=0,
+                        value_node_id=CallNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            lineno=3,
+                            col_offset=7,
+                            end_lineno=3,
+                            end_col_offset=11,
+                            arguments=[
+                                ArgumentNode(
+                                    id=get_new_id(),
+                                    session_id=session.id,
+                                    positional_order=0,
+                                    value_node_id=variable_2.id,
+                                ).id
+                            ],
+                            function_id=LookupNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                name="pos",
+                            ).id,
+                        ).id,
+                    ).id,
+                    ArgumentNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        positional_order=1,
                         value_node_id=variable_2.id,
-                    ).id
+                    ).id,
                 ],
                 function_id=LookupNode(
                     id=get_new_id(),
                     session_id=session.id,
-                    name="pos",
+                    name="ne",
                 ).id,
             ).id,
-        ).id,
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=1,
-            value_node_id=variable_2.id,
-        ).id,
+        ).id
     ],
     function_id=LookupNode(
         id=get_new_id(),
         session_id=session.id,
-        name="ne",
+        name="__assert__",
     ).id,
 )

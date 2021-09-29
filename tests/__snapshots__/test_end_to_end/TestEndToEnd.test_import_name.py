@@ -16,11 +16,11 @@ session = SessionContext(
         ),
     ],
 )
-call_2 = CallNode(
+call_3 = CallNode(
     id=get_new_id(),
     session_id=session.id,
     lineno=2,
-    col_offset=7,
+    col_offset=0,
     end_lineno=2,
     end_col_offset=30,
     arguments=[
@@ -34,24 +34,54 @@ call_2 = CallNode(
                 lineno=2,
                 col_offset=7,
                 end_lineno=2,
-                end_col_offset=18,
+                end_col_offset=30,
                 arguments=[
                     ArgumentNode(
                         id=get_new_id(),
                         session_id=session.id,
                         positional_order=0,
-                        value_node_id=ImportNode(
+                        value_node_id=CallNode(
                             id=get_new_id(),
                             session_id=session.id,
-                            lineno=1,
-                            col_offset=0,
-                            end_lineno=1,
-                            end_col_offset=19,
-                            library=Library(
+                            lineno=2,
+                            col_offset=7,
+                            end_lineno=2,
+                            end_col_offset=18,
+                            arguments=[
+                                ArgumentNode(
+                                    id=get_new_id(),
+                                    session_id=session.id,
+                                    positional_order=0,
+                                    value_node_id=ImportNode(
+                                        id=get_new_id(),
+                                        session_id=session.id,
+                                        lineno=1,
+                                        col_offset=0,
+                                        end_lineno=1,
+                                        end_col_offset=19,
+                                        library=Library(
+                                            id=get_new_id(),
+                                            name="pandas",
+                                        ),
+                                        alias="pd",
+                                    ).id,
+                                ).id,
+                                ArgumentNode(
+                                    id=get_new_id(),
+                                    session_id=session.id,
+                                    positional_order=1,
+                                    value_node_id=LiteralNode(
+                                        id=get_new_id(),
+                                        session_id=session.id,
+                                        value="__name__",
+                                    ).id,
+                                ).id,
+                            ],
+                            function_id=LookupNode(
                                 id=get_new_id(),
-                                name="pandas",
-                            ),
-                            alias="pd",
+                                session_id=session.id,
+                                name="getattr",
+                            ).id,
                         ).id,
                     ).id,
                     ArgumentNode(
@@ -61,35 +91,25 @@ call_2 = CallNode(
                         value_node_id=LiteralNode(
                             id=get_new_id(),
                             session_id=session.id,
-                            value="__name__",
+                            lineno=2,
+                            col_offset=22,
+                            end_lineno=2,
+                            end_col_offset=30,
+                            value="pandas",
                         ).id,
                     ).id,
                 ],
                 function_id=LookupNode(
                     id=get_new_id(),
                     session_id=session.id,
-                    name="getattr",
+                    name="eq",
                 ).id,
             ).id,
-        ).id,
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=1,
-            value_node_id=LiteralNode(
-                id=get_new_id(),
-                session_id=session.id,
-                lineno=2,
-                col_offset=22,
-                end_lineno=2,
-                end_col_offset=30,
-                value="pandas",
-            ).id,
-        ).id,
+        ).id
     ],
     function_id=LookupNode(
         id=get_new_id(),
         session_id=session.id,
-        name="eq",
+        name="__assert__",
     ).id,
 )
