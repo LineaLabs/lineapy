@@ -122,71 +122,6 @@ variable_1 = VariableNode(
     ).id,
     assigned_variable_name="df",
 )
-call_7 = CallNode(
-    id=get_new_id(),
-    session_id=session.id,
-    lineno=4,
-    col_offset=7,
-    end_lineno=4,
-    end_col_offset=19,
-    arguments=[
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=0,
-            value_node_id=CallNode(
-                id=get_new_id(),
-                session_id=session.id,
-                lineno=4,
-                col_offset=7,
-                end_lineno=4,
-                end_col_offset=14,
-                arguments=[
-                    ArgumentNode(
-                        id=get_new_id(),
-                        session_id=session.id,
-                        positional_order=0,
-                        value_node_id=variable_1.id,
-                    ).id,
-                    ArgumentNode(
-                        id=get_new_id(),
-                        session_id=session.id,
-                        positional_order=1,
-                        value_node_id=LiteralNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            value="size",
-                        ).id,
-                    ).id,
-                ],
-                function_id=LookupNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    name="getattr",
-                ).id,
-            ).id,
-        ).id,
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=1,
-            value_node_id=LiteralNode(
-                id=get_new_id(),
-                session_id=session.id,
-                lineno=4,
-                col_offset=18,
-                end_lineno=4,
-                end_col_offset=19,
-                value=2,
-            ).id,
-        ).id,
-    ],
-    function_id=LookupNode(
-        id=get_new_id(),
-        session_id=session.id,
-        name="eq",
-    ).id,
-)
 call_8 = CallNode(
     id=get_new_id(),
     session_id=session.id,
@@ -270,5 +205,90 @@ call_8 = CallNode(
             session_id=session.id,
             name="getattr",
         ).id,
+    ).id,
+)
+call_9 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=4,
+    col_offset=0,
+    end_lineno=4,
+    end_col_offset=19,
+    arguments=[
+        ArgumentNode(
+            id=get_new_id(),
+            session_id=session.id,
+            positional_order=0,
+            value_node_id=CallNode(
+                id=get_new_id(),
+                session_id=session.id,
+                lineno=4,
+                col_offset=7,
+                end_lineno=4,
+                end_col_offset=19,
+                arguments=[
+                    ArgumentNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        positional_order=0,
+                        value_node_id=CallNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            lineno=4,
+                            col_offset=7,
+                            end_lineno=4,
+                            end_col_offset=14,
+                            arguments=[
+                                ArgumentNode(
+                                    id=get_new_id(),
+                                    session_id=session.id,
+                                    positional_order=0,
+                                    value_node_id=variable_1.id,
+                                ).id,
+                                ArgumentNode(
+                                    id=get_new_id(),
+                                    session_id=session.id,
+                                    positional_order=1,
+                                    value_node_id=LiteralNode(
+                                        id=get_new_id(),
+                                        session_id=session.id,
+                                        value="size",
+                                    ).id,
+                                ).id,
+                            ],
+                            function_id=LookupNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                name="getattr",
+                            ).id,
+                        ).id,
+                    ).id,
+                    ArgumentNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        positional_order=1,
+                        value_node_id=LiteralNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            lineno=4,
+                            col_offset=18,
+                            end_lineno=4,
+                            end_col_offset=19,
+                            value=2,
+                        ).id,
+                    ).id,
+                ],
+                function_id=LookupNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    name="eq",
+                ).id,
+            ).id,
+        ).id
+    ],
+    function_id=LookupNode(
+        id=get_new_id(),
+        session_id=session.id,
+        name="__assert__",
     ).id,
 )
