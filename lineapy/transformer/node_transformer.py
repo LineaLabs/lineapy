@@ -39,7 +39,7 @@ from lineapy.constants import (
     NEG,
     INVERT,
 )
-from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer import SyntaxDictionary, Tracer
 from lineapy.lineabuiltins import __build_list__, __assert__, __build_tuple__
 from lineapy.transformer.transformer_util import (
     create_lib_attributes,
@@ -222,22 +222,34 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Assign(self, node: ast.Assign) -> None:
         """
-        Assign currently special cases for:
-        - Subscript, e.g., `ls[0] = 1`
-        - Constant, e.g., `a = 1`
-        - Call, e.g., `a = foo()`
-
         TODO
         - None variable assignment, should be turned into a setattr call
           not an assignment, so we might need to change the return signature
           from ast.Expr.
         """
-        # TODO support multiple assignment
         assert len(node.targets) == 1
         syntax_dictionary = extract_concrete_syntax_from_node(node)
-
         target = node.targets[0]
-        # e.g., `x["y"] = 10`
+        self.visit_assign_value(
+            target, self.visit(node.value), syntax_dictionary
+        )
+
+    def visit_assign_value(
+        self,
+        target: ast.AST,
+        value_node: Node,
+        syntax_dictionary: SyntaxDictionary,
+    ) -> None:
+        """
+        Visits assigning a target node to a value. This is extracted out of
+        visit_assign, so we can call it multiple times and pass in the value as a node,
+        instead of as AST, when we are assigning to a tuple.
+
+        Assign currently special cases for:
+        - Subscript, e.g., `ls[0] = 1`
+        - Constant, e.g., `a = 1`
+        - Call, e.g., `a = foo()`
+        """
         if isinstance(target, ast.Subscript):
             index = target.slice
             # note: isinstance(index, ast.List) only works for pandas,
@@ -248,7 +260,7 @@ class NodeTransformer(ast.NodeTransformer):
                 syntax_dictionary,
                 self.visit(target.value),
                 self.visit(index),
-                self.visit(node.value),
+                value_node,
             )
         # e.g. `x.y = 10`
         elif isinstance(target, ast.Attribute):
@@ -257,30 +269,30 @@ class NodeTransformer(ast.NodeTransformer):
                 syntax_dictionary,
                 self.visit(target.value),
                 self.visit(ast.Constant(target.attr)),
-                self.visit(node.value),
+                value_node,
             )
         elif isinstance(target, ast.Tuple):
             # Assigning to a tuple of values, is like indexing the value
             # and then assigning to each.
-            # Techniquely, its unpacking the sequence and setting it to each,
+            # Technically, its unpacking the sequence and setting it to each,
             # but for now we just index and hope that all values we are assigning
             # to multiple values can be indexed.
-            for i, el in enumerate(target.elts):
-                self.visit_Assign(
-                    ast.Assign(
-                        targets=[el],
-                        value=ast.Subscript(
-                            slice=ast.Constant(value=i),
-                            value=node.value,
-                            ctx=ast.Load(),
-                        ),
-                    )
+            for i, target_el in enumerate(target.elts):
+                self.visit_assign_value(
+                    target_el,
+                    self.tracer.call(
+                        self.tracer.lookup_node(GET_ITEM),
+                        {},
+                        value_node,
+                        self.tracer.literal(i, {}),
+                    ),
+                    {},
                 )
         elif isinstance(target, ast.Name):
             variable_name = target.id
             self.tracer.assign(
                 variable_name,
-                self.visit(node.value),
+                value_node,
                 syntax_dictionary,
             )
         else:
