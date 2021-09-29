@@ -13,8 +13,7 @@ from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import get_current_time, info_log
 
 from tests.util import (
-    READ_IMAGE_CODE,
-    WRITE_IMAGE_CODE,
+    IMAGE_CODE,
     CSV_CODE,
     reset_test_db,
 )
@@ -248,15 +247,8 @@ class TestEndToEnd:
         - We cannot assert on the nodes being equal to what's generated yet
           because DataSourceSode is not yet implemented.
         """
-        cwd = getcwd()
 
-        # Try running at first from the root directory of the project, so the
-        # read csv can find the right file
-        res = execute(WRITE_IMAGE_CODE)
-        # We currently execute the read image code after, b/c we don't have
-        # dependencies set up between the writing and reading files.
-
-        execute(READ_IMAGE_CODE)
+        res = execute(IMAGE_CODE)
 
         # TODO: Verify artifact was added as well
 

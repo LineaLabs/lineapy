@@ -117,15 +117,13 @@ s = df['a'].sum()
 lineapy.linea_publish(s, "Graph With CSV Import")
 """
 
-WRITE_IMAGE_CODE = """import pandas as pd
+IMAGE_CODE = """import lineapy
+import pandas as pd
 import matplotlib.pyplot as plt
+from PIL.Image import open
 
 df = pd.read_csv('tests/simple_data.csv')
 plt.imsave('simple_data.png', df)
-"""
-
-READ_IMAGE_CODE = """import lineapy
-from PIL.Image import open
 
 img = open('simple_data.png')
 img = img.resize([200, 200])
@@ -140,8 +138,7 @@ def setup_db(mode: ExecutionMode, reset: bool) -> RelationalLineaDB:
         reset_test_db(db_config.database_uri)
 
     run_code(CSV_CODE, mode)
-    run_code(WRITE_IMAGE_CODE, mode)
-    run_code(READ_IMAGE_CODE, mode)
+    run_code(IMAGE_CODE, mode)
 
     db = RelationalLineaDB()
     db.init_db(db_config)
