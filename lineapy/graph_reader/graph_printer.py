@@ -1,7 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 import collections
-import black
+from xml.dom import SyntaxErr
+from lineapy.transformer.transformer_util import SYNTAX_KEY
 from typing import TYPE_CHECKING, Iterable
 from pydantic import BaseModel
 import collections
@@ -25,6 +26,14 @@ class GraphPrinter:
     """
 
     graph: Graph
+
+    """
+    Set `snapshot_mode` to False if you want to see the ID values and
+    not see the line numbers, which is helpful during debugging.
+    """
+    snapshot_mode: bool
+    # Set to True to nest node strings, when they only have one successor.
+    nest_nodes: bool = field(default=True)
     id_to_attribute_name: dict[LineaID, str] = field(default_factory=dict)
 
     # Mapping of each node types to the count of nodes of that type printed
@@ -33,7 +42,7 @@ class GraphPrinter:
         default_factory=lambda: collections.defaultdict(lambda: 0)
     )
 
-    def __call__(self) -> str:
+    def print(self) -> str:
         return prettify("\n".join(self.lines()))
 
     def get_node_type_count(self, node_type: NodeType) -> int:
@@ -53,12 +62,15 @@ class GraphPrinter:
         yield from self.pretty_print_model(self.graph.session_context)
         yield ")"
 
-        for node_id in self.graph.visit_order():
-            node = self.graph.ids[node_id]
+        for node in self.graph.visit_order():
+            node_id = node.id
             attr_name = self.get_node_type_name(node.node_type)
-            # If the node only has one sucessor, then save its body
+            # If the node only has one successor, then save its body
             # as the attribute name, so its inlined when accessed.
-            if len(list(self.graph._nx_graph.successors(node_id))) == 1:
+            if (
+                self.nest_nodes
+                and len(list(self.graph._nx_graph.successors(node_id))) == 1
+            ):
                 self.id_to_attribute_name[node_id] = "\n".join(
                     self.pretty_print_model(node)
                 )
@@ -91,6 +103,8 @@ class GraphPrinter:
             v_str: str
             if k == "node_type":
                 continue
+            if k in SYNTAX_KEY and self.snapshot_mode is False:
+                continue
             elif k == "id":
                 v_str = "get_new_id()"
             elif k == "session_id":
@@ -122,7 +136,13 @@ class GraphPrinter:
                 yield ","
             yield "]"
         else:
-            yield repr(v)
+            value = repr(v)
+            # Try parsing as Python code, if we can't, then wrap in string.
+            try:
+                compile(value, "", "exec")
+            except SyntaxError:
+                value = repr(value)
+            yield value
 
 
 def pretty_print_node_type(type: NodeType) -> str:

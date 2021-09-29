@@ -77,7 +77,7 @@ variable_1 = VariableNode(
     ).id,
     assigned_variable_name="a",
 )
-call_4 = CallNode(
+call_3 = CallNode(
     id=get_new_id(),
     session_id=session.id,
     lineno=3,

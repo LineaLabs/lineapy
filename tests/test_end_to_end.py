@@ -13,8 +13,7 @@ from lineapy.transformer.transformer import ExecutionMode
 from lineapy.utils import get_current_time, info_log
 
 from tests.util import (
-    READ_IMAGE_CODE,
-    WRITE_IMAGE_CODE,
+    IMAGE_CODE,
     CSV_CODE,
     reset_test_db,
 )
@@ -248,15 +247,8 @@ class TestEndToEnd:
         - We cannot assert on the nodes being equal to what's generated yet
           because DataSourceSode is not yet implemented.
         """
-        cwd = getcwd()
 
-        # Try running at first from the root directory of the project, so the
-        # read csv can find the right file
-        res = execute(WRITE_IMAGE_CODE)
-        # We currently execute the read image code after, b/c we don't have
-        # dependencies set up between the writing and reading files.
-
-        execute(READ_IMAGE_CODE)
+        res = execute(IMAGE_CODE)
 
         # TODO: Verify artifact was added as well
 
@@ -321,13 +313,15 @@ class TestEndToEnd:
     def test_subscript_call(self, execute):
         execute("[0][abs(0)]", session_type=SessionType.STATIC)
 
-    @pytest.mark.xfail(reason="Mutations #197")
+    # @pytest.mark.xfail(reason="Mutations #197")
     def test_alias_by_reference(self, execute):
         res = execute(ALIAS_BY_REFERENCE)
+        print(res)
         assert res.values["s"] == 10
 
     def test_alias_by_value(self, execute):
         res = execute(ALIAS_BY_VALUE)
+        print(res.graph)
         assert res.values["a"] == 2
         assert res.values["b"] == 0
 
@@ -452,6 +446,7 @@ class TestDelete:
         Part of #95
         """
         res = execute(
-            "import types; x = types.SimpleNamespace(); x.hi = 1; del x.hi"
+            "import types; x = types.SimpleNamespace(); x.hi = 1; del x.hi",
         )
-        assert not hasattr(res.values["x"], "hi")
+        x = res.values["x"]
+        assert not hasattr(x, "hi")

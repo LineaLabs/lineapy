@@ -122,7 +122,7 @@ variable_1 = VariableNode(
     ).id,
     assigned_variable_name="df",
 )
-call_8 = CallNode(
+call_6 = CallNode(
     id=get_new_id(),
     session_id=session.id,
     lineno=3,

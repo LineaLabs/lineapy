@@ -1,4 +1,5 @@
-from typing import cast, List, Dict, Optional, Any
+from queue import PriorityQueue, Queue
+from typing import Iterator, TypeVar, cast, List, Dict, Optional, Any, Callable
 
 import networkx as nx
 
@@ -19,8 +20,14 @@ from lineapy.data.types import (
 from lineapy.graph_reader.graph_util import (
     get_arg_position,
     get_edges_from_nodes,
+    sort_node_by_position,
 )
-from lineapy.utils import InternalLogicError, NullValueError
+from lineapy.utils import (
+    InternalLogicError,
+    NullValueError,
+    debug_log,
+    listify,
+)
 
 
 class Graph(object):
@@ -54,7 +61,6 @@ class Graph(object):
             ]
         )
         self.session_context = session_context
-        self.printer = GraphPrinter(self)
 
         # validation
         if not nx.is_directed_acyclic_graph(self._nx_graph):
@@ -84,8 +90,59 @@ class Graph(object):
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
 
-    def visit_order(self) -> List[LineaID]:
-        return list(nx.topological_sort(self.nx_graph))
+    def print(self, snapshot_mode=False) -> str:
+        return GraphPrinter(self, snapshot_mode).print()
+
+    @listify
+    def visit_order(self) -> Iterator[Node]:
+        """
+        Just using the line number as tie breaker for now since we don't have
+          a good way to track dependencies
+          Note that we cannot just use the line number to sort because
+            there are nodes created by us that do not have line numbers...
+        """
+
+        # Generally, we want to traverse the graph in a way to maintain two
+        # constraints:
+
+        # 1. All parents must be traveresed before their children
+        # 2. If we have any freedom, those with earlier line number should come first
+
+        # To do this, we do a breadth first traversal, keeping our queue ordered
+        # by their line number. The sorting is done via the __lt__ method
+        # of the Node
+        queue = PriorityQueue[Node]()
+
+        # We also keep a mapping of each node to the number of parents left
+        # which have not been visited yet.
+        remaining_parents = {
+            node.id: self.nx_graph.in_degree(node.id) for node in self.nodes
+        }
+        # We also keep track of all nodes we have already added to the queue
+        # so that we don't add them again
+        seen = set[LineaID]()
+        # First we add all of the nodes to the queue which have no parents
+        for node in self.nodes:
+            if self.nx_graph.in_degree(node.id) == 0:
+                seen.add(node.id)
+                queue.put(node)
+
+        while queue.qsize():
+            # Find the first node in the queue whcih has all its parents removed
+            node = queue_get_when(
+                queue, lambda n: remaining_parents[n.id] == 0
+            )
+
+            # Then, we add all of its children to the queue, making sure to mark
+            # for each that we have seen one of its parents
+            yield node
+            for child_id in self.get_children(node):
+                remaining_parents[child_id] -= 1
+                if child_id in seen:
+                    continue
+                child_node = self.ids[child_id]
+                queue.put(child_node)
+                seen.add(child_id)
 
     def get_parents(self, node: Node) -> List[LineaID]:
         return list(self.nx_graph.predecessors(node.id))
@@ -229,7 +286,25 @@ class Graph(object):
         return Graph(nodes, self.session_context)
 
     def __str__(self):
-        self.printer()
+        return self.print()
 
     def __repr__(self):
-        self.printer()
+        return self.print()
+
+
+T = TypeVar("T")
+
+
+def queue_get_when(queue: Queue[T], filter_fn: Callable[[T], bool]) -> T:
+    """
+    Gets the first element in the queue that satisfies the filter function.
+    """
+    # We have to pop off a number of elements, stopping when we find one that
+    # satisfies our conditional, since we can't iterate through a queue.
+    popped_off = [queue.get()]
+    while not filter_fn(popped_off[-1]):
+        popped_off.append(queue.get())
+    *add_back_to_queue, found = popped_off
+    for tmp_node in add_back_to_queue:
+        queue.put(tmp_node)
+    return found

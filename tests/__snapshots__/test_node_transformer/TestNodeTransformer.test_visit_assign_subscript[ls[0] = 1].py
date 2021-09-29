@@ -11,7 +11,7 @@ session = SessionContext(
     working_directory="dummy_linea_repo/",
     libraries=[],
 )
-variable_1 = VariableNode(
+variable_2 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
     source_node_id=LiteralNode(
@@ -25,7 +25,7 @@ variable_1 = VariableNode(
     ).id,
     assigned_variable_name="a",
 )
-variable_2 = VariableNode(
+variable_3 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
     source_node_id=LiteralNode(

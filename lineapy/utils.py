@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Optional
+from typing import Any, Callable, Optional, TypeVar
 from uuid import uuid4
 from time import time
 
@@ -93,9 +93,9 @@ def info_log(*args):
         print(bcolors.GREEN + "[Info] ", *args, "\n" + bcolors.ENDC)
 
 
-def debug_log(msg: str):
+def debug_log(*args):
     if IS_DEBUG:
-        print(bcolors.WARNING + msg + bcolors.ENDC)
+        print(bcolors.WARNING, *args, bcolors.ENDC)
 
 
 """
@@ -207,3 +207,18 @@ def prettify(code: str) -> str:
         code,
         mode=black.Mode(),
     )
+
+
+T = TypeVar("T", bound=Callable)
+
+
+def listify(fn: T) -> T:
+    """
+    TODO: Once we switch to Python 3.10, we can type this properly
+    https://www.python.org/dev/peps/pep-0612/
+    """
+
+    def wrapper(*args, **kwargs):
+        return list(fn(*args, **kwargs))
+
+    return wrapper

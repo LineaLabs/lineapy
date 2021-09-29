@@ -7,9 +7,17 @@ session = SessionContext(
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
-    code="import pandas as pd\nimport matplotlib.pyplot as plt\n\ndf = pd.read_csv('tests/simple_data.csv')\nplt.imsave('simple_data.png', df)\n",
+    code="import lineapy\nimport pandas as pd\nimport matplotlib.pyplot as plt\nfrom PIL.Image import open\n\ndf = pd.read_csv('tests/simple_data.csv')\nplt.imsave('simple_data.png', df)\n\nimg = open('simple_data.png')\nimg = img.resize([200, 200])\n\nlineapy.linea_publish(img, \"Graph With Image\")\n",
     working_directory="dummy_linea_repo/",
     libraries=[
+        Library(
+            id=get_new_id(),
+            name="PIL.Image",
+        ),
+        Library(
+            id=get_new_id(),
+            name="lineapy",
+        ),
         Library(
             id=get_new_id(),
             name="matplotlib.pyplot",
@@ -20,12 +28,24 @@ session = SessionContext(
         ),
     ],
 )
-call_4 = CallNode(
+import_1 = ImportNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=5,
+    lineno=1,
     col_offset=0,
-    end_lineno=5,
+    end_lineno=1,
+    end_col_offset=14,
+    library=Library(
+        id=get_new_id(),
+        name="lineapy",
+    ),
+)
+call_5 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=7,
+    col_offset=0,
+    end_lineno=7,
     end_col_offset=33,
     arguments=[
         ArgumentNode(
@@ -35,9 +55,9 @@ call_4 = CallNode(
             value_node_id=LiteralNode(
                 id=get_new_id(),
                 session_id=session.id,
-                lineno=5,
+                lineno=7,
                 col_offset=11,
-                end_lineno=5,
+                end_lineno=7,
                 end_col_offset=28,
                 value="simple_data.png",
             ).id,
@@ -52,9 +72,9 @@ call_4 = CallNode(
                 source_node_id=CallNode(
                     id=get_new_id(),
                     session_id=session.id,
-                    lineno=4,
+                    lineno=6,
                     col_offset=0,
-                    end_lineno=4,
+                    end_lineno=6,
                     end_col_offset=41,
                     arguments=[
                         ArgumentNode(
@@ -64,9 +84,9 @@ call_4 = CallNode(
                             value_node_id=LiteralNode(
                                 id=get_new_id(),
                                 session_id=session.id,
-                                lineno=4,
+                                lineno=6,
                                 col_offset=17,
-                                end_lineno=4,
+                                end_lineno=6,
                                 end_col_offset=40,
                                 value="tests/simple_data.csv",
                             ).id,
@@ -75,9 +95,9 @@ call_4 = CallNode(
                     function_id=CallNode(
                         id=get_new_id(),
                         session_id=session.id,
-                        lineno=4,
+                        lineno=6,
                         col_offset=5,
-                        end_lineno=4,
+                        end_lineno=6,
                         end_col_offset=16,
                         arguments=[
                             ArgumentNode(
@@ -87,9 +107,9 @@ call_4 = CallNode(
                                 value_node_id=ImportNode(
                                     id=get_new_id(),
                                     session_id=session.id,
-                                    lineno=1,
+                                    lineno=2,
                                     col_offset=0,
-                                    end_lineno=1,
+                                    end_lineno=2,
                                     end_col_offset=19,
                                     library=Library(
                                         id=get_new_id(),
@@ -123,9 +143,9 @@ call_4 = CallNode(
     function_id=CallNode(
         id=get_new_id(),
         session_id=session.id,
-        lineno=5,
+        lineno=7,
         col_offset=0,
-        end_lineno=5,
+        end_lineno=7,
         end_col_offset=10,
         arguments=[
             ArgumentNode(
@@ -135,9 +155,9 @@ call_4 = CallNode(
                 value_node_id=ImportNode(
                     id=get_new_id(),
                     session_id=session.id,
-                    lineno=2,
+                    lineno=3,
                     col_offset=0,
-                    end_lineno=2,
+                    end_lineno=3,
                     end_col_offset=31,
                     library=Library(
                         id=get_new_id(),
@@ -163,4 +183,170 @@ call_4 = CallNode(
             name="getattr",
         ).id,
     ).id,
+)
+variable_4 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=10,
+        col_offset=0,
+        end_lineno=10,
+        end_col_offset=28,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=CallNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=10,
+                    col_offset=17,
+                    end_lineno=10,
+                    end_col_offset=27,
+                    arguments=[
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=0,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                lineno=10,
+                                col_offset=18,
+                                end_lineno=10,
+                                end_col_offset=21,
+                                value=200,
+                            ).id,
+                        ).id,
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=1,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                lineno=10,
+                                col_offset=23,
+                                end_lineno=10,
+                                end_col_offset=26,
+                                value=200,
+                            ).id,
+                        ).id,
+                    ],
+                    function_id=LookupNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        name="__build_list__",
+                    ).id,
+                ).id,
+            ).id
+        ],
+        function_id=CallNode(
+            id=get_new_id(),
+            session_id=session.id,
+            lineno=10,
+            col_offset=6,
+            end_lineno=10,
+            end_col_offset=16,
+            arguments=[
+                ArgumentNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    positional_order=0,
+                    value_node_id=VariableNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        source_node_id=CallNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            lineno=9,
+                            col_offset=0,
+                            end_lineno=9,
+                            end_col_offset=29,
+                            arguments=[
+                                ArgumentNode(
+                                    id=get_new_id(),
+                                    session_id=session.id,
+                                    positional_order=0,
+                                    value_node_id=LiteralNode(
+                                        id=get_new_id(),
+                                        session_id=session.id,
+                                        lineno=9,
+                                        col_offset=11,
+                                        end_lineno=9,
+                                        end_col_offset=28,
+                                        value="simple_data.png",
+                                    ).id,
+                                ).id
+                            ],
+                            function_id=VariableNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                source_node_id=CallNode(
+                                    id=get_new_id(),
+                                    session_id=session.id,
+                                    arguments=[
+                                        ArgumentNode(
+                                            id=get_new_id(),
+                                            session_id=session.id,
+                                            positional_order=0,
+                                            value_node_id=ImportNode(
+                                                id=get_new_id(),
+                                                session_id=session.id,
+                                                lineno=4,
+                                                col_offset=0,
+                                                end_lineno=4,
+                                                end_col_offset=26,
+                                                library=Library(
+                                                    id=get_new_id(),
+                                                    name="PIL.Image",
+                                                ),
+                                                attributes={"open": "open"},
+                                            ).id,
+                                        ).id,
+                                        ArgumentNode(
+                                            id=get_new_id(),
+                                            session_id=session.id,
+                                            positional_order=1,
+                                            value_node_id=LiteralNode(
+                                                id=get_new_id(),
+                                                session_id=session.id,
+                                                value="open",
+                                            ).id,
+                                        ).id,
+                                    ],
+                                    function_id=LookupNode(
+                                        id=get_new_id(),
+                                        session_id=session.id,
+                                        name="getattr",
+                                    ).id,
+                                ).id,
+                                assigned_variable_name="open",
+                            ).id,
+                        ).id,
+                        assigned_variable_name="img",
+                    ).id,
+                ).id,
+                ArgumentNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    positional_order=1,
+                    value_node_id=LiteralNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        value="resize",
+                    ).id,
+                ).id,
+            ],
+            function_id=LookupNode(
+                id=get_new_id(),
+                session_id=session.id,
+                name="getattr",
+            ).id,
+        ).id,
+    ).id,
+    assigned_variable_name="img",
 )

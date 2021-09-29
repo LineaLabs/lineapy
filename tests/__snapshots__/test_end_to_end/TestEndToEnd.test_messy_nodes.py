@@ -28,15 +28,6 @@ import_1 = ImportNode(
         name="lineapy",
     ),
 )
-literal_5 = LiteralNode(
-    id=get_new_id(),
-    session_id=session.id,
-    lineno=8,
-    col_offset=0,
-    end_lineno=8,
-    end_col_offset=2,
-    value=10,
-)
 variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
@@ -51,61 +42,7 @@ variable_1 = VariableNode(
     ).id,
     assigned_variable_name="a",
 )
-variable_6 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
-    source_node_id=VariableNode(
-        id=get_new_id(),
-        session_id=session.id,
-        lineno=10,
-        col_offset=0,
-        end_lineno=10,
-        end_col_offset=5,
-        source_node_id=CallNode(
-            id=get_new_id(),
-            session_id=session.id,
-            lineno=6,
-            col_offset=0,
-            end_lineno=6,
-            end_col_offset=9,
-            arguments=[
-                ArgumentNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    positional_order=0,
-                    value_node_id=VariableNode(
-                        id=get_new_id(),
-                        session_id=session.id,
-                        source_node_id=LiteralNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            lineno=5,
-                            col_offset=0,
-                            end_lineno=5,
-                            end_col_offset=5,
-                            value=4,
-                        ).id,
-                        assigned_variable_name="d",
-                    ).id,
-                ).id,
-                ArgumentNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    positional_order=1,
-                    value_node_id=variable_1.id,
-                ).id,
-            ],
-            function_id=LookupNode(
-                id=get_new_id(),
-                session_id=session.id,
-                name="add",
-            ).id,
-        ).id,
-        assigned_variable_name="e",
-    ).id,
-    assigned_variable_name="g",
-)
-variable_7 = VariableNode(
+variable_5 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
     source_node_id=CallNode(
@@ -214,4 +151,67 @@ variable_7 = VariableNode(
         ).id,
     ).id,
     assigned_variable_name="f",
+)
+literal_5 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=8,
+    col_offset=0,
+    end_lineno=8,
+    end_col_offset=2,
+    value=10,
+)
+variable_7 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=VariableNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=10,
+        col_offset=0,
+        end_lineno=10,
+        end_col_offset=5,
+        source_node_id=CallNode(
+            id=get_new_id(),
+            session_id=session.id,
+            lineno=6,
+            col_offset=0,
+            end_lineno=6,
+            end_col_offset=9,
+            arguments=[
+                ArgumentNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    positional_order=0,
+                    value_node_id=VariableNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        source_node_id=LiteralNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            lineno=5,
+                            col_offset=0,
+                            end_lineno=5,
+                            end_col_offset=5,
+                            value=4,
+                        ).id,
+                        assigned_variable_name="d",
+                    ).id,
+                ).id,
+                ArgumentNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    positional_order=1,
+                    value_node_id=variable_1.id,
+                ).id,
+            ],
+            function_id=LookupNode(
+                id=get_new_id(),
+                session_id=session.id,
+                name="add",
+            ).id,
+        ).id,
+        assigned_variable_name="e",
+    ).id,
+    assigned_variable_name="g",
 )

@@ -18,6 +18,21 @@ from lineapy.utils import CaseNotHandledError, internal_warning_log
 MAX_ARG_POSITION = 1000
 
 
+def sort_node_by_position(nodes: List[Node]) -> List[LineaID]:
+    """
+    First checks for the line number, then the column. If
+    """
+
+    def get_key(n: Node):
+        return (
+            n.lineno if n.lineno else 0,
+            n.col_offset if n.col_offset else 0,
+        )
+
+    nodes.sort(key=get_key, reverse=True)
+    return [n.id for n in nodes]
+
+
 def get_edges_from_nodes(nodes: List[Node]) -> Iterator[DirectedEdge]:
     for node in nodes:
         for id in get_parents_from_node(node):

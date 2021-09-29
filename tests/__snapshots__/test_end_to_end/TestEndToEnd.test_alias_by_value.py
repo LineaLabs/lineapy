@@ -14,20 +14,6 @@ session = SessionContext(
 variable_2 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=LiteralNode(
-        id=get_new_id(),
-        session_id=session.id,
-        lineno=3,
-        col_offset=0,
-        end_lineno=3,
-        end_col_offset=5,
-        value=2,
-    ).id,
-    assigned_variable_name="a",
-)
-variable_3 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
     source_node_id=VariableNode(
         id=get_new_id(),
         session_id=session.id,
@@ -47,4 +33,18 @@ variable_3 = VariableNode(
         assigned_variable_name="a",
     ).id,
     assigned_variable_name="b",
+)
+variable_3 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=LiteralNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=5,
+        value=2,
+    ).id,
+    assigned_variable_name="a",
 )
