@@ -40,7 +40,7 @@ from lineapy.constants import (
     INVERT,
 )
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.lineabuiltins import __build_list__, __assert__
+from lineapy.lineabuiltins import __build_list__, __assert__, __build_tuple__
 from lineapy.transformer.transformer_util import (
     create_lib_attributes,
     extract_concrete_syntax_from_node,
@@ -236,25 +236,22 @@ class NodeTransformer(ast.NodeTransformer):
         assert len(node.targets) == 1
         syntax_dictionary = extract_concrete_syntax_from_node(node)
 
+        target = node.targets[0]
         # e.g., `x["y"] = 10`
-        if isinstance(node.targets[0], ast.Subscript):
-            subscript_target: ast.Subscript = node.targets[0]
-            index = subscript_target.slice
+        if isinstance(target, ast.Subscript):
+            index = target.slice
             # note: isinstance(index, ast.List) only works for pandas,
             #  not Python lists
             # if isinstance(index, (ast.Constant, ast.Name, ast.List, ast.Slice)):
             self.tracer.call(
                 self.tracer.lookup_node(SET_ITEM),
                 syntax_dictionary,
-                self.visit(subscript_target.value),
+                self.visit(target.value),
                 self.visit(index),
                 self.visit(node.value),
             )
-            return None
-
         # e.g. `x.y = 10`
-        elif isinstance(node.targets[0], ast.Attribute):
-            target = node.targets[0]
+        elif isinstance(target, ast.Attribute):
             self.tracer.call(
                 self.tracer.lookup_node(SET_ATTR),
                 syntax_dictionary,
@@ -262,20 +259,35 @@ class NodeTransformer(ast.NodeTransformer):
                 self.visit(ast.Constant(target.attr)),
                 self.visit(node.value),
             )
-            return None
-
-        # FIXME: not sure what else is there...
-        if not isinstance(node.targets[0], ast.Name):
+        elif isinstance(target, ast.Tuple):
+            # Assigning to a tuple of values, is like indexing the value
+            # and then assigning to each.
+            # Techniquely, its unpacking the sequence and setting it to each,
+            # but for now we just index and hope that all values we are assigning
+            # to multiple values can be indexed.
+            for i, el in enumerate(target.elts):
+                self.visit_Assign(
+                    ast.Assign(
+                        targets=[el],
+                        value=ast.Subscript(
+                            slice=ast.Constant(value=i),
+                            value=node.value,
+                            ctx=ast.Load(),
+                        ),
+                    )
+                )
+        elif isinstance(target, ast.Name):
+            variable_name = target.id
+            self.tracer.assign(
+                variable_name,
+                self.visit(node.value),
+                syntax_dictionary,
+            )
+        else:
             raise NotImplementedError(
                 "Other assignment types are not supported"
             )
-        variable_name = node.targets[0].id  # type: ignore
 
-        self.tracer.assign(
-            variable_name,
-            self.visit(node.value),
-            syntax_dictionary,
-        )
         return None
 
     def visit_UnaryOp(self, node: ast.UnaryOp) -> CallNode:
@@ -299,6 +311,15 @@ class NodeTransformer(ast.NodeTransformer):
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         return self.tracer.call(
             self.tracer.lookup_node(__build_list__.__name__),
+            syntax_dictionary,
+            *elem_nodes,
+        )
+
+    def visit_Tuple(self, node: ast.Tuple) -> CallNode:
+        elem_nodes = [self.visit(elem) for elem in node.elts]
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
+        return self.tracer.call(
+            self.tracer.lookup_node(__build_tuple__.__name__),
             syntax_dictionary,
             *elem_nodes,
         )

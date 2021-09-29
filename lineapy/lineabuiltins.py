@@ -9,6 +9,10 @@ def __build_list__(*items) -> List:
     return list(items)
 
 
+def __build_tuple__(*items) -> tuple:
+    return items
+
+
 def __assert__(v: object, message: Optional[str] = None) -> None:
     if message is None:
         assert v
