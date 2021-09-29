@@ -1,5 +1,6 @@
-from queue import PriorityQueue
-from typing import Iterable, Iterator, cast, List, Dict, Optional, Any
+from collections import Callable
+from queue import PriorityQueue, Queue
+from typing import Iterable, Iterator, TypeVar, cast, List, Dict, Optional, Any
 
 import networkx as nx
 
@@ -128,14 +129,10 @@ class Graph(object):
                 queue.put(node)
 
         while queue.qsize():
-            # To pop off a node, we find the first node in the queue which
-            # has all of its parents already processed.
-            tried_nodes = [queue.get()]
-            while remaining_parents[tried_nodes[-1].id] != 0:
-                tried_nodes.append(queue.get())
-            *add_back_to_queue, node = tried_nodes
-            for tmp_node in add_back_to_queue:
-                queue.put(tmp_node)
+            # Find the first node in the queue whcih has all its parents removed
+            node = queue_get_when(
+                queue, lambda n: remaining_parents[n.id] == 0
+            )
 
             # Then, we add all of its children to the queue, making sure to mark
             # for each that we have seen one of its parents
@@ -294,3 +291,21 @@ class Graph(object):
 
     def __repr__(self):
         return self.print()
+
+
+T = TypeVar("T")
+
+
+def queue_get_when(queue: Queue[T], filter_fn: Callable[[T], bool]) -> T:
+    """
+    Gets the first element in the queue that satisfies the filter function.
+    """
+    # We have to pop off a number of elements, stopping when we find one that
+    # satisfies our conditional, since we can't iterate through a queue.
+    popped_off = [queue.get()]
+    while not filter_fn(popped_off[-1]):
+        popped_off.append(queue.get())
+    *add_back_to_queue, found = popped_off
+    for tmp_node in add_back_to_queue:
+        queue.put(tmp_node)
+    return found
