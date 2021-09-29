@@ -11,6 +11,41 @@ session = SessionContext(
     working_directory="dummy_linea_repo/",
     libraries=[],
 )
+lookup_1 = LookupNode(
+    id=get_new_id(),
+    session_id=session.id,
+    name="foo",
+)
+literal_1 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=4,
+    end_lineno=1,
+    end_col_offset=5,
+    value=1,
+)
+literal_2 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=7,
+    end_lineno=1,
+    end_col_offset=8,
+    value=2,
+)
+argument_1 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=0,
+    value_node_id=literal_1.id,
+)
+argument_2 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=1,
+    value_node_id=literal_2.id,
+)
 call_1 = CallNode(
     id=get_new_id(),
     session_id=session.id,
@@ -18,39 +53,6 @@ call_1 = CallNode(
     col_offset=0,
     end_lineno=1,
     end_col_offset=9,
-    arguments=[
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=0,
-            value_node_id=LiteralNode(
-                id=get_new_id(),
-                session_id=session.id,
-                lineno=1,
-                col_offset=4,
-                end_lineno=1,
-                end_col_offset=5,
-                value=1,
-            ).id,
-        ).id,
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=1,
-            value_node_id=LiteralNode(
-                id=get_new_id(),
-                session_id=session.id,
-                lineno=1,
-                col_offset=7,
-                end_lineno=1,
-                end_col_offset=8,
-                value=2,
-            ).id,
-        ).id,
-    ],
-    function_id=LookupNode(
-        id=get_new_id(),
-        session_id=session.id,
-        name="foo",
-    ).id,
+    arguments=[argument_1.id, argument_2.id],
+    function_id=lookup_1.id,
 )

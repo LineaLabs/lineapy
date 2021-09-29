@@ -7,7 +7,7 @@ import sys
 from typing import Any, Optional, Dict, cast
 import time
 
-from lineapy.utils import InternalLogicError
+from lineapy.utils import InternalLogicError, debug_log
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -185,7 +185,6 @@ class Executor:
         """
 
         code = program.source_code
-
         for node_id in program.visit_order():
             node = program.get_node(node_id)
             if node is None:
@@ -201,7 +200,7 @@ class Executor:
                 node.value = lookup_value(node.name)
             elif node.node_type == NodeType.CallNode:
                 node = cast(CallNode, node)
-                fn = program.get_node(node.function_id).value
+                fn = program.get_node(node.function_id).value  # type: ignore
 
                 args, kwargs = program.get_arguments_from_call_node(node)
 

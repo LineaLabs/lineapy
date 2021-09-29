@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 import collections
-import black
+from lineapy.transformer.transformer_util import SYNTAX_KEY
 from typing import TYPE_CHECKING, Iterable
 from pydantic import BaseModel
 import collections
@@ -25,6 +25,12 @@ class GraphPrinter:
     """
 
     graph: Graph
+
+    """
+    Set `snapshot_mode` to False if you want to see the ID values and
+    not see the line numbers, which is helpful during debugging.
+    """
+    snapshot_mode: bool
     id_to_attribute_name: dict[LineaID, str] = field(default_factory=dict)
 
     # Mapping of each node types to the count of nodes of that type printed
@@ -33,7 +39,7 @@ class GraphPrinter:
         default_factory=lambda: collections.defaultdict(lambda: 0)
     )
 
-    def __call__(self) -> str:
+    def print(self) -> str:
         return prettify("\n".join(self.lines()))
 
     def get_node_type_count(self, node_type: NodeType) -> int:
@@ -53,21 +59,29 @@ class GraphPrinter:
         yield from self.pretty_print_model(self.graph.session_context)
         yield ")"
 
-        for node_id in self.graph.visit_order():
+        visit_order = self.graph.visit_order()
+        for node_id in visit_order:
             node = self.graph.ids[node_id]
             attr_name = self.get_node_type_name(node.node_type)
-            # If the node only has one sucessor, then save its body
+            # If the node only has one successor, then save its body
             # as the attribute name, so its inlined when accessed.
-            if len(list(self.graph._nx_graph.successors(node_id))) == 1:
-                self.id_to_attribute_name[node_id] = "\n".join(
-                    self.pretty_print_model(node)
-                )
+            # if len(list(self.graph._nx_graph.successors(node_id))) == 1:
+            #     self.id_to_attribute_name[node_id] = "\n".join(
+            #         self.pretty_print_model(node)
+            #     )
 
-            else:
-                self.id_to_attribute_name[node_id] = attr_name
-                yield f"{attr_name} = ("
-                yield from self.pretty_print_model(node)
-                yield ")"
+            # else:
+            self.id_to_attribute_name[node_id] = attr_name
+            yield f"{attr_name} = ("
+            yield from self.pretty_print_model(node)
+            yield ")"
+        if not self.snapshot_mode:
+            yield ""
+            yield ("# Topological sorting:")
+            for ids in self.graph.topological_sort_grouped():
+                yield (
+                    ", ".join([self.id_to_attribute_name[id_] for id_ in ids])
+                )
 
     def pretty_print_model(self, model: BaseModel) -> Iterable[str]:
         yield f"{type(model).__name__}("
@@ -90,6 +104,8 @@ class GraphPrinter:
             shape = field.shape
             v_str: str
             if k == "node_type":
+                continue
+            if k in SYNTAX_KEY and self.snapshot_mode is False:
                 continue
             elif k == "id":
                 v_str = "get_new_id()"

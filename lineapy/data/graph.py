@@ -1,4 +1,4 @@
-from typing import cast, List, Dict, Optional, Any
+from typing import Iterable, Iterator, cast, List, Dict, Optional, Any
 
 import networkx as nx
 
@@ -19,8 +19,14 @@ from lineapy.data.types import (
 from lineapy.graph_reader.graph_util import (
     get_arg_position,
     get_edges_from_nodes,
+    sort_node_by_position,
 )
-from lineapy.utils import InternalLogicError, NullValueError
+from lineapy.utils import (
+    InternalLogicError,
+    NullValueError,
+    debug_log,
+    listify,
+)
 
 
 class Graph(object):
@@ -54,7 +60,6 @@ class Graph(object):
             ]
         )
         self.session_context = session_context
-        self.printer = GraphPrinter(self)
 
         # validation
         if not nx.is_directed_acyclic_graph(self._nx_graph):
@@ -84,8 +89,39 @@ class Graph(object):
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
 
-    def visit_order(self) -> List[LineaID]:
-        return list(nx.topological_sort(self.nx_graph))
+    def print(self, snapshot_mode=False) -> str:
+        return GraphPrinter(self, snapshot_mode).print()
+
+    @listify
+    def topological_sort_grouped(self) -> Iterable[List[LineaID]]:
+        # adapted from https://stackoverflow.com/questions/56802797/digraph-parallel-ordering
+        # Rather than collapsing the groups[3, 1, 2, 4, 6, 7, 5]
+        # it returns the partial ordering [[1, 3], [2], [4], [5, 6], [7]]
+        indegree_map = {v: d for v, d in self.nx_graph.in_degree() if d > 0}
+        zero_indegree = [v for v, d in self.nx_graph.in_degree() if d == 0]
+        while zero_indegree:
+            yield zero_indegree
+            new_zero_indegree = []
+            for v in zero_indegree:
+                for _, child in self.nx_graph.edges(v):
+                    indegree_map[child] -= 1
+                    if not indegree_map[child]:
+                        new_zero_indegree.append(child)
+            zero_indegree = new_zero_indegree
+
+    @listify
+    def visit_order(self) -> Iterator[LineaID]:
+        """
+        Just using the line number as tie breaker for now since we don't have
+          a good way to track dependencies
+          Note that we cannot just use the line number to sort because
+            there are nodes created by us that do not have line numbers...
+        """
+        # order = list(nx.topological_sort(self.nx_graph))
+        partial_order = self.topological_sort_grouped()
+        for group in partial_order:
+            nodes = list(map(self.get_node_else_raise, group))
+            yield from sort_node_by_position(nodes)
 
     def get_parents(self, node: Node) -> List[LineaID]:
         return list(self.nx_graph.predecessors(node.id))
@@ -229,7 +265,7 @@ class Graph(object):
         return Graph(nodes, self.session_context)
 
     def __str__(self):
-        self.printer()
+        return self.print()
 
     def __repr__(self):
-        self.printer()
+        return self.print()

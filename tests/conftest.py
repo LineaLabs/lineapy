@@ -153,7 +153,7 @@ class ExecuteFixture:
         graph = Graph(nodes, context)
         if compare_snapshot:
             assert (
-                graph.printer()
+                graph.print(snapshot_mode=True)
                 .replace(str(source_code_path), "[source file path]")
                 .replace(
                     repr(context.creation_time),

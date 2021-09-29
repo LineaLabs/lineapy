@@ -16,6 +16,97 @@ session = SessionContext(
         ),
     ],
 )
+lookup_1 = LookupNode(
+    id=get_new_id(),
+    session_id=session.id,
+    name="getattr",
+)
+lookup_2 = LookupNode(
+    id=get_new_id(),
+    session_id=session.id,
+    name="getattr",
+)
+literal_1 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    value="data_transformers",
+)
+literal_2 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    value="enable",
+)
+import_1 = ImportNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=0,
+    end_lineno=1,
+    end_col_offset=13,
+    library=Library(
+        id=get_new_id(),
+        name="altair",
+    ),
+)
+literal_3 = LiteralNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=47,
+    end_lineno=1,
+    end_col_offset=53,
+    value="json",
+)
+argument_1 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=0,
+    value_node_id=import_1.id,
+)
+argument_2 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=0,
+    value_node_id=literal_3.id,
+)
+argument_3 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=1,
+    value_node_id=literal_1.id,
+)
+argument_4 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=1,
+    value_node_id=literal_2.id,
+)
+call_1 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=15,
+    end_lineno=1,
+    end_col_offset=39,
+    arguments=[argument_1.id, argument_3.id],
+    function_id=lookup_2.id,
+)
+argument_5 = ArgumentNode(
+    id=get_new_id(),
+    session_id=session.id,
+    positional_order=0,
+    value_node_id=call_1.id,
+)
+call_2 = CallNode(
+    id=get_new_id(),
+    session_id=session.id,
+    lineno=1,
+    col_offset=15,
+    end_lineno=1,
+    end_col_offset=46,
+    arguments=[argument_4.id, argument_5.id],
+    function_id=lookup_1.id,
+)
 call_3 = CallNode(
     id=get_new_id(),
     session_id=session.id,
@@ -23,92 +114,6 @@ call_3 = CallNode(
     col_offset=15,
     end_lineno=1,
     end_col_offset=54,
-    arguments=[
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=0,
-            value_node_id=LiteralNode(
-                id=get_new_id(),
-                session_id=session.id,
-                lineno=1,
-                col_offset=47,
-                end_lineno=1,
-                end_col_offset=53,
-                value="json",
-            ).id,
-        ).id
-    ],
-    function_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        lineno=1,
-        col_offset=15,
-        end_lineno=1,
-        end_col_offset=46,
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=CallNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    lineno=1,
-                    col_offset=15,
-                    end_lineno=1,
-                    end_col_offset=39,
-                    arguments=[
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            positional_order=0,
-                            value_node_id=ImportNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                lineno=1,
-                                col_offset=0,
-                                end_lineno=1,
-                                end_col_offset=13,
-                                library=Library(
-                                    id=get_new_id(),
-                                    name="altair",
-                                ),
-                            ).id,
-                        ).id,
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            positional_order=1,
-                            value_node_id=LiteralNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                value="data_transformers",
-                            ).id,
-                        ).id,
-                    ],
-                    function_id=LookupNode(
-                        id=get_new_id(),
-                        session_id=session.id,
-                        name="getattr",
-                    ).id,
-                ).id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=LiteralNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    value="enable",
-                ).id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="getattr",
-        ).id,
-    ).id,
+    arguments=[argument_2.id],
+    function_id=call_2.id,
 )
