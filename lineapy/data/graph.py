@@ -1,6 +1,5 @@
-from collections import Callable
 from queue import PriorityQueue, Queue
-from typing import Iterable, Iterator, TypeVar, cast, List, Dict, Optional, Any
+from typing import Iterator, TypeVar, cast, List, Dict, Optional, Any, Callable
 
 import networkx as nx
 
