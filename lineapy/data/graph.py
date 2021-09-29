@@ -1,3 +1,4 @@
+from queue import PriorityQueue
 from typing import Iterable, Iterator, cast, List, Dict, Optional, Any
 
 import networkx as nx
@@ -93,35 +94,59 @@ class Graph(object):
         return GraphPrinter(self, snapshot_mode).print()
 
     @listify
-    def topological_sort_grouped(self) -> Iterable[List[LineaID]]:
-        # adapted from https://stackoverflow.com/questions/56802797/digraph-parallel-ordering
-        # Rather than collapsing the groups[3, 1, 2, 4, 6, 7, 5]
-        # it returns the partial ordering [[1, 3], [2], [4], [5, 6], [7]]
-        indegree_map = {v: d for v, d in self.nx_graph.in_degree() if d > 0}
-        zero_indegree = [v for v, d in self.nx_graph.in_degree() if d == 0]
-        while zero_indegree:
-            yield zero_indegree
-            new_zero_indegree = []
-            for v in zero_indegree:
-                for _, child in self.nx_graph.edges(v):
-                    indegree_map[child] -= 1
-                    if not indegree_map[child]:
-                        new_zero_indegree.append(child)
-            zero_indegree = new_zero_indegree
-
-    @listify
-    def visit_order(self) -> Iterator[LineaID]:
+    def visit_order(self) -> Iterator[Node]:
         """
         Just using the line number as tie breaker for now since we don't have
           a good way to track dependencies
           Note that we cannot just use the line number to sort because
             there are nodes created by us that do not have line numbers...
         """
-        # order = list(nx.topological_sort(self.nx_graph))
-        partial_order = self.topological_sort_grouped()
-        for group in partial_order:
-            nodes = list(map(self.get_node_else_raise, group))
-            yield from sort_node_by_position(nodes)
+
+        # Generally, we want to traverse the graph in a way to maintain two
+        # constraints:
+
+        # 1. All parents must be traveresed before their children
+        # 2. If we have any freedom, those with earlier line number should come first
+
+        # To do this, we do a breadth first traversal, keeping our queue ordered
+        # by their line number. The sorting is done via the __lt__ method
+        # of the Node
+        queue = PriorityQueue[Node]()
+
+        # We also keep a mapping of each node to the number of parents left
+        # which have not been visited yet.
+        remaining_parents = {
+            node.id: self.nx_graph.in_degree(node.id) for node in self.nodes
+        }
+        # We also keep track of all nodes we have already added to the queue
+        # so that we don't add them again
+        seen = set[LineaID]()
+        # First we add all of the nodes to the queue which have no parents
+        for node in self.nodes:
+            if self.nx_graph.in_degree(node.id) == 0:
+                seen.add(node.id)
+                queue.put(node)
+
+        while queue.qsize():
+            # To pop off a node, we find the first node in the queue which
+            # has all of its parents already processed.
+            tried_nodes = [queue.get()]
+            while remaining_parents[tried_nodes[-1].id] != 0:
+                tried_nodes.append(queue.get())
+            *add_back_to_queue, node = tried_nodes
+            for tmp_node in add_back_to_queue:
+                queue.put(tmp_node)
+
+            # Then, we add all of its children to the queue, making sure to mark
+            # for each that we have seen one of its parents
+            yield node
+            for child_id in self.get_children(node):
+                remaining_parents[child_id] -= 1
+                if child_id in seen:
+                    continue
+                child_node = self.ids[child_id]
+                queue.put(child_node)
+                seen.add(child_id)
 
     def get_parents(self, node: Node) -> List[LineaID]:
         return list(self.nx_graph.predecessors(node.id))

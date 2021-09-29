@@ -324,6 +324,7 @@ class TestEndToEnd:
     # @pytest.mark.xfail(reason="Mutations #197")
     def test_alias_by_reference(self, execute):
         res = execute(ALIAS_BY_REFERENCE)
+        print(res)
         assert res.values["s"] == 10
 
     def test_alias_by_value(self, execute):
@@ -453,6 +454,7 @@ class TestDelete:
         Part of #95
         """
         res = execute(
-            "import types; x = types.SimpleNamespace(); x.hi = 1; del x.hi"
+            "import types; x = types.SimpleNamespace(); x.hi = 1; del x.hi",
         )
-        assert not hasattr(res.values["x"], "hi")
+        x = res.values["x"]
+        assert not hasattr(x, "hi")

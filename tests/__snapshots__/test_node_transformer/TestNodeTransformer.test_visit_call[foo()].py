@@ -11,11 +11,6 @@ session = SessionContext(
     working_directory="dummy_linea_repo/",
     libraries=[],
 )
-lookup_1 = LookupNode(
-    id=get_new_id(),
-    session_id=session.id,
-    name="foo",
-)
 call_1 = CallNode(
     id=get_new_id(),
     session_id=session.id,
@@ -24,5 +19,9 @@ call_1 = CallNode(
     end_lineno=1,
     end_col_offset=5,
     arguments=[],
-    function_id=lookup_1.id,
+    function_id=LookupNode(
+        id=get_new_id(),
+        session_id=session.id,
+        name="foo",
+    ).id,
 )

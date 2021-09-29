@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import datetime
 from enum import Enum
+from math import inf
 from typing import Any, NewType, Tuple, Optional, List, Dict
 from pydantic import BaseModel
 
@@ -209,6 +210,20 @@ class Node(BaseModel):
 
     class Config:
         orm_mode = True
+
+    def __lt__(self, other: object) -> bool:
+        """
+        Sort nodes by line number and column, putting those without line numbers
+        at the begining.
+
+        Used to break ties in topological node ordering.
+        """
+        if not isinstance(other, Node):
+            return NotImplemented
+        return (self.lineno or -1, self.col_offset or -1) < (
+            other.lineno or -1,
+            other.col_offset or -1,
+        )
 
 
 class SideEffectsNode(Node):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 import collections
+from xml.dom import SyntaxErr
 from lineapy.transformer.transformer_util import SYNTAX_KEY
 from typing import TYPE_CHECKING, Iterable
 from pydantic import BaseModel
@@ -59,29 +60,21 @@ class GraphPrinter:
         yield from self.pretty_print_model(self.graph.session_context)
         yield ")"
 
-        visit_order = self.graph.visit_order()
-        for node_id in visit_order:
-            node = self.graph.ids[node_id]
+        for node in self.graph.visit_order():
+            node_id = node.id
             attr_name = self.get_node_type_name(node.node_type)
             # If the node only has one successor, then save its body
             # as the attribute name, so its inlined when accessed.
-            # if len(list(self.graph._nx_graph.successors(node_id))) == 1:
-            #     self.id_to_attribute_name[node_id] = "\n".join(
-            #         self.pretty_print_model(node)
-            #     )
-
-            # else:
-            self.id_to_attribute_name[node_id] = attr_name
-            yield f"{attr_name} = ("
-            yield from self.pretty_print_model(node)
-            yield ")"
-        if not self.snapshot_mode:
-            yield ""
-            yield ("# Topological sorting:")
-            for ids in self.graph.topological_sort_grouped():
-                yield (
-                    ", ".join([self.id_to_attribute_name[id_] for id_ in ids])
+            if len(list(self.graph._nx_graph.successors(node_id))) == 1:
+                self.id_to_attribute_name[node_id] = "\n".join(
+                    self.pretty_print_model(node)
                 )
+
+            else:
+                self.id_to_attribute_name[node_id] = attr_name
+                yield f"{attr_name} = ("
+                yield from self.pretty_print_model(node)
+                yield ")"
 
     def pretty_print_model(self, model: BaseModel) -> Iterable[str]:
         yield f"{type(model).__name__}("
@@ -138,7 +131,13 @@ class GraphPrinter:
                 yield ","
             yield "]"
         else:
-            yield repr(v)
+            value = repr(v)
+            # Try parsing as Python code, if we can't, then wrap in string.
+            try:
+                compile(value, "", "exec")
+            except SyntaxError:
+                value = repr(value)
+            yield value
 
 
 def pretty_print_node_type(type: NodeType) -> str:

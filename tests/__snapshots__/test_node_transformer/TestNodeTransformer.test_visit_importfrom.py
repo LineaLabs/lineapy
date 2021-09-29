@@ -16,50 +16,47 @@ session = SessionContext(
         ),
     ],
 )
-lookup_1 = LookupNode(
-    id=get_new_id(),
-    session_id=session.id,
-    name="getattr",
-)
-literal_1 = LiteralNode(
-    id=get_new_id(),
-    session_id=session.id,
-    value="pow",
-)
-import_1 = ImportNode(
-    id=get_new_id(),
-    session_id=session.id,
-    lineno=1,
-    col_offset=0,
-    end_lineno=1,
-    end_col_offset=29,
-    library=Library(
-        id=get_new_id(),
-        name="math",
-    ),
-    attributes={"power": "pow"},
-)
-argument_1 = ArgumentNode(
-    id=get_new_id(),
-    session_id=session.id,
-    positional_order=1,
-    value_node_id=literal_1.id,
-)
-argument_2 = ArgumentNode(
-    id=get_new_id(),
-    session_id=session.id,
-    positional_order=0,
-    value_node_id=import_1.id,
-)
-call_1 = CallNode(
-    id=get_new_id(),
-    session_id=session.id,
-    arguments=[argument_1.id, argument_2.id],
-    function_id=lookup_1.id,
-)
 variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=call_1.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=ImportNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=29,
+                    library=Library(
+                        id=get_new_id(),
+                        name="math",
+                    ),
+                    attributes={"power": "pow"},
+                ).id,
+            ).id,
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=1,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    value="pow",
+                ).id,
+            ).id,
+        ],
+        function_id=LookupNode(
+            id=get_new_id(),
+            session_id=session.id,
+            name="getattr",
+        ).id,
+    ).id,
     assigned_variable_name="power",
 )

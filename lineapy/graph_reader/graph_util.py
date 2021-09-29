@@ -29,7 +29,7 @@ def sort_node_by_position(nodes: List[Node]) -> List[LineaID]:
             n.col_offset if n.col_offset else 0,
         )
 
-    nodes.sort(key=get_key)
+    nodes.sort(key=get_key, reverse=True)
     return [n.id for n in nodes]
 
 
