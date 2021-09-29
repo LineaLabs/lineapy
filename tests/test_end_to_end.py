@@ -26,6 +26,8 @@ a = abs(11)
 """
 
 
+STRING_FORMAT = """a = '{{ {0} }}'.format('foo')"""
+
 PANDAS_RANDOM_CODE = """import pandas as pd
 df = pd.DataFrame([1,2])
 df[0].astype(str)
@@ -150,6 +152,10 @@ class TestEndToEnd:
         reset_test_db(config.database_uri)
         self.db = RelationalLineaDB()
         self.db.init_db(config)
+
+    def test_string_format(self, execute):
+        res = execute(STRING_FORMAT)
+        assert res.values["a"] == "{ foo }"
 
     @pytest.mark.parametrize(
         "session_type",
