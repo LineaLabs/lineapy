@@ -11,26 +11,26 @@ session = SessionContext(
     working_directory="dummy_linea_repo/",
     libraries=[],
 )
-variable_1 = VariableNode(
+call_3 = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        lineno=1,
-        col_offset=0,
-        end_lineno=1,
-        end_col_offset=13,
-        arguments=[
-            ArgumentNode(
+    lineno=2,
+    col_offset=0,
+    end_lineno=2,
+    end_col_offset=8,
+    arguments=[
+        ArgumentNode(
+            id=get_new_id(),
+            session_id=session.id,
+            positional_order=0,
+            value_node_id=VariableNode(
                 id=get_new_id(),
                 session_id=session.id,
-                positional_order=0,
-                value_node_id=CallNode(
+                source_node_id=CallNode(
                     id=get_new_id(),
                     session_id=session.id,
                     lineno=1,
-                    col_offset=4,
+                    col_offset=0,
                     end_lineno=1,
                     end_col_offset=13,
                     arguments=[
@@ -38,14 +38,48 @@ variable_1 = VariableNode(
                             id=get_new_id(),
                             session_id=session.id,
                             positional_order=0,
-                            value_node_id=LiteralNode(
+                            value_node_id=CallNode(
                                 id=get_new_id(),
                                 session_id=session.id,
                                 lineno=1,
                                 col_offset=4,
                                 end_lineno=1,
-                                end_col_offset=5,
-                                value=1,
+                                end_col_offset=13,
+                                arguments=[
+                                    ArgumentNode(
+                                        id=get_new_id(),
+                                        session_id=session.id,
+                                        positional_order=0,
+                                        value_node_id=LiteralNode(
+                                            id=get_new_id(),
+                                            session_id=session.id,
+                                            lineno=1,
+                                            col_offset=4,
+                                            end_lineno=1,
+                                            end_col_offset=5,
+                                            value=1,
+                                        ).id,
+                                    ).id,
+                                    ArgumentNode(
+                                        id=get_new_id(),
+                                        session_id=session.id,
+                                        positional_order=1,
+                                        value_node_id=LiteralNode(
+                                            id=get_new_id(),
+                                            session_id=session.id,
+                                            lineno=1,
+                                            col_offset=8,
+                                            end_lineno=1,
+                                            end_col_offset=9,
+                                            value=2,
+                                        ).id,
+                                    ).id,
+                                ],
+                                function_id=LookupNode(
+                                    id=get_new_id(),
+                                    session_id=session.id,
+                                    name="lt",
+                                ).id,
                             ).id,
                         ).id,
                         ArgumentNode(
@@ -56,10 +90,10 @@ variable_1 = VariableNode(
                                 id=get_new_id(),
                                 session_id=session.id,
                                 lineno=1,
-                                col_offset=8,
+                                col_offset=12,
                                 end_lineno=1,
-                                end_col_offset=9,
-                                value=2,
+                                end_col_offset=13,
+                                value=3,
                             ).id,
                         ).id,
                     ],
@@ -69,27 +103,13 @@ variable_1 = VariableNode(
                         name="lt",
                     ).id,
                 ).id,
+                assigned_variable_name="b",
             ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=LiteralNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    lineno=1,
-                    col_offset=12,
-                    end_lineno=1,
-                    end_col_offset=13,
-                    value=3,
-                ).id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="lt",
-        ).id,
+        ).id
+    ],
+    function_id=LookupNode(
+        id=get_new_id(),
+        session_id=session.id,
+        name="__assert__",
     ).id,
-    assigned_variable_name="b",
 )
