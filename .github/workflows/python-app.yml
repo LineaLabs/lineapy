@@ -9,9 +9,8 @@ on:
   pull_request:
 
 jobs:
-  build:
+  pytest:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python 3.9
@@ -20,21 +19,38 @@ jobs:
           python-version: 3.9
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest
           pip install -e . -r requirements.txt -r dev-requirements.txt -r test-requirement.txt
-      - name: Lint with flake8
+      - name: Test with pytest
         run: |
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          pytest
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
       - name: Install Black
         run: |
           pip install black
       - name: Run black --check .
         run: |
           black --line-length 79 --check .
-      - name: Test with pytest
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install flake8
         run: |
-          pytest
+          pip install flake8
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
