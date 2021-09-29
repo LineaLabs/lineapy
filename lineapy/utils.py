@@ -211,11 +211,13 @@ def prettify(code: str) -> str:
 
 T = TypeVar("T", bound=Callable)
 
+
 def listify(fn: T) -> T:
     """
     TODO: Once we switch to Python 3.10, we can type this properly
     https://www.python.org/dev/peps/pep-0612/
     """
+
     def wrapper(*args, **kwargs):
         return list(fn(*args, **kwargs))
 
