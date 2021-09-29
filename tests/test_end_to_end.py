@@ -455,3 +455,17 @@ class TestDelete:
         )
         x = res.values["x"]
         assert not hasattr(x, "hi")
+
+
+class TestListComprehension:
+    def test_sets_value(self, execute):
+        res = execute("x = [i + 1 for i in range(3)]")
+        assert res.values["x"] == [2, 3, 4]
+
+    def test_depends_on_prev_value(self, execute):
+        res = execute(
+            "import linea\ny = range(3)\nx = [i + 1 for i in y]\nlinea.linea_publish(x, 'x')",
+            compare_snapshot=False,
+        )
+        assert res.values["x"] == [2, 3, 4]
+        assert execute(res.slice("x")).values["x"] == [2, 3, 4]
