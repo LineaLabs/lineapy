@@ -32,6 +32,8 @@ class GraphPrinter:
     not see the line numbers, which is helpful during debugging.
     """
     snapshot_mode: bool
+    # Set to True to nest node strings, when they only have one successor.
+    nest_nodes: bool = field(default=True)
     id_to_attribute_name: dict[LineaID, str] = field(default_factory=dict)
 
     # Mapping of each node types to the count of nodes of that type printed
@@ -65,7 +67,10 @@ class GraphPrinter:
             attr_name = self.get_node_type_name(node.node_type)
             # If the node only has one successor, then save its body
             # as the attribute name, so its inlined when accessed.
-            if len(list(self.graph._nx_graph.successors(node_id))) == 1:
+            if (
+                self.nest_nodes
+                and len(list(self.graph._nx_graph.successors(node_id))) == 1
+            ):
                 self.id_to_attribute_name[node_id] = "\n".join(
                     self.pretty_print_model(node)
                 )
