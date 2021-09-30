@@ -71,6 +71,7 @@ setup(
             "mypy",
             "pytest",
             "astpretty",
+            "matplotlib",
         ],
         "server": [
             "flask",
