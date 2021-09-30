@@ -22,11 +22,6 @@ class Scope:
     # Names that are loaded/accessed in this scope
     loaded: set[str] = field(default_factory=set)
 
-    def resolve(self) -> None:
-        # Any variables that we have set, and also loaded, remove from the
-        # loaded
-        self.loaded -= self.stored
-
     def record_child(self, child: Scope) -> None:
         """
         Combine with a child node.
@@ -39,13 +34,14 @@ class Scope:
 
 def unify(*scopes: Scope) -> Scope:
     """
-    Unify multiple scopes into one.
+    Unify multiple scopes into one, by taking the union of all the their variables
+    and resolving any variables it tries to load from those that it has stored.
     """
     s = Scope(
         stored=set.union(*(s.stored for s in scopes)),
         loaded=set.union(*(s.loaded for s in scopes)),
     )
-    s.resolve()
+    s.loaded -= s.stored
     return s
 
 
