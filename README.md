@@ -1,110 +1,53 @@
-# lineapy
+# `lineapy`
 
-This repository contains a few different components:
+Lineapy is a Python library for analyzing data science workflows.
 
--   A **transformer** which maps Python code to Python code, makign it lazy by turning control flow and function calls into tracer calls.
--   A **tracer** that adds nodes to the graph (and then executes them with the executor)
--   A **dataflow graph** which is stored in SQLite and represents a Python execution
--   An **executor** which takes the graph and can run it as Python code
--   A **server** which exposes a REST API of the graph that `linea-server` accesses
 
-## Using Linea
+TODO: Insert terminal gif of running lineapy slicing on datascience file.
 
-There are two ways to use `linea`:
 
--   The CLI tool: `lineapy --mode dev your_file.py`
-    -   The dev mode is local, and the remote one is under development).
--   A new IPython kernel: select the lineapy Kernel when you open your
-    jupyter notebook.
-    -   Note that this is still under development.
+## Features
 
-## First-time Setup
+Currently, you can run Linea as CLI command to slice your Python code to extract
+only the code that is neccesary to recompute some result. Along the way, Linea
+stores the semantics of your code into a database, which we are working on exposing
+as well.
 
-```bash
-conda create --name lineapy-env python=3.9
-conda activate lineapy-env
-pip install -r requirements.txt
-pip install -r dev-requirements.txt
-pip install -e . --user
-```
+We are working to add support for more Python contructs. We currently don't support
+much control flow, function mutation, or all function definitions.
 
-## Tests
+
+### Installing
+
+You can run linea either by cloning the repository or by using our Docker image.
+
+
+### Docker
+
+1. First install Docker and then authenticate to the [Github Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry)
+  so you can pull our private image.
+2. Now you can pull and run our image to slice Python code:
 
 ```bash
-mypy -p lineapy
-black --line-length 79 --check .
-pytest
+$ cat my_script.py
+....
+$ docker run --rm -v $PWD:/app -w /app LineaLabs/lineapy:latest my_script.py
+...
 ```
 
-Some tests use use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test, to make it easier to update generate code and graphs.
-If you mean to change the tracing or graph spec, or added a new test that uses it, then run `pytest --snapshot-update` to update the saved snapshots.
+### Repository
 
-Also we use [pytest's xfail](https://docs.pytest.org/en/latest/how-to/skipping.html#xfail-mark-test-functions-as-expected-to-fail) to mark tests that are expected to fail, because of a known bug. To have them run anyway, run `--run-xfail`.
-
-If you want to inspect the AST of some Python code for debugging, you can run:
+You can also run Linea by cloning this repository and running the `lineapy`:
 
 ```bash
-./tests/tools/print_ast.py 'hi(a=10)'
+$ git clone git@github.com:LineaLabs/lineapy.git
+$ cd lineapy
+# Linea currently requires Python 3.9
+$ pip install -e .
+
+$ cat examples/...
+some file
+# Linea will analyze your file in order to slice your code for a certain result.
+$ lineapy --slice "my graph" examples/...
+some sliced code
 ```
-
-### Github Actions
-
-The tests are run on Github Actions. If you are trying to debug a failure that happens on Github Actions, you can try using [`act`](https://github.com/nektos/act), which will run it locally through docker:
-
-```bash
-brew install act
-act
-# When it prompts, the "medium" image seems to work out alright.
-```
-
-### Static end to end test/demo
-
-For a static end to end test along with [linea-server](https://github.com/LineaLabs/linea-server)
-
-```bash
-python -m tests.setup_integrated_tests
-python lineapy/app/application.py
-```
-
-`setup_integrated_tests.py` creates the stub data that the flask application then serves.
-
-Then head over to [linea-server](https://github.com/LineaLabs/linea-server) and
-run the usual commands there (`python application.py` and `yarn start` in
-the `/server` and `/frontend` folders respectively)
-
-Note that if you are running these on EC2, you need to do tunneling on **three**
-ports:
-
--   One for the lineapy flask app, which is currently on 4000
--   One for the linea-server flask app, which is on 5000
--   And one for the linea-server dev server (for the React app), which is on 3000
-
-For Yifan's machine, the tunneling looks like the following:
-
-```bash
-ssh -N -f -L localhost:3000:0.0.0.0:3000 ubuntu@3.18.79.230
-ssh -N -f -L localhost:5000:0.0.0.0:5000 ubuntu@3.18.79.230
-ssh -N -f -L localhost:4000:0.0.0.0:4000 ubuntu@3.18.79.230
-```
-
-## Running the servers live
-
-Coming soon!
-
-## Jupyter
-
-To make use of our virtual env, you need to do these steps (reference: https://medium.com/@nrk25693/how-to-add-your-conda-environment-to-your-jupyter-notebook-in-just-4-steps-abeab8b8d084)
-
-```bash
-conda install -c anaconda ipykernel
-python -m ipykernel install --user --name=lineapy-env
-```
-
-## Best practices
-
-For any Jupyter Notebooks that you think your reviewer might directly comment on,
-please run `jupyter nbconvert --to script` and commit the corresponding .py script to make comments easier.
-
-## Dev notes
-
-Something weird about the `tests/test_flask_app.py`; please double check even if pytest is passing.
