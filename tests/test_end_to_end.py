@@ -389,6 +389,11 @@ class TestEndToEnd:
         res = execute(NESTED_CALL)
         assert res.values["a"] == 10
 
+    def test_assignment_destructuring(self, execute):
+        res = execute("a, b = (1, 2)")
+        assert res.values["a"] == 1
+        assert res.values["b"] == 2
+
 
 class TestUnaryOp:
     def test_sub(self, execute):
