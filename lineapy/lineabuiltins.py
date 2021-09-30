@@ -20,7 +20,10 @@ def __assert__(v: object, message: Optional[str] = None) -> None:
         assert v, message
 
 
-EXPRESSION_SAVED_NAME = "__linea_expresion__"
+# Magic variable name used internally in the `__exec__` function, when we
+# are execuing an expression and want to save its result. To do so, we have
+# to set it to a variable, then retrieve that variable from the scope.
+_EXPRESSION_SAVED_NAME = "__linea_expresion__"
 
 
 def __exec__(
@@ -34,10 +37,10 @@ def __exec__(
     argument.
     """
     if is_expr:
-        code = f"{EXPRESSION_SAVED_NAME} = {code}"
+        code = f"{_EXPRESSION_SAVED_NAME} = {code}"
     bytecode = compile(code, "<string>", "exec")
     exec(bytecode, globals(), input_locals)
     returned_locals = [input_locals[name] for name in output_locals]
     if is_expr:
-        returned_locals.append(input_locals[EXPRESSION_SAVED_NAME])
+        returned_locals.append(input_locals[_EXPRESSION_SAVED_NAME])
     return returned_locals
