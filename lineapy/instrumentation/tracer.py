@@ -434,8 +434,8 @@ class Tracer:
         Builds a call node which will executes code statements
         with the locals set to input_values.
 
-        For each variable in output_variables, it will set the local variable
-        to the locals state after calling.
+        For each variable in output_variables, it will create nodes which will
+        assign to those local variables after calling.
 
         If is_expression is True, it will return the result of the expression, otherwise
         it will return None.
