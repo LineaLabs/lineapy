@@ -61,6 +61,7 @@ setup(
         "SQLAlchemy",
         "networkx",
         "black",
+        "rich",
     ],
     extras_require={
         "dev": [

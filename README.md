@@ -22,13 +22,15 @@ Options:
   --mode TEXT     Either `memory`, `dev`, `test`, or `prod` mode
   --session TEXT  Either `STATIC`,or `SCRIPT` mode
   --slice TEXT    Print the sliced code that this artifact depends on
+  --print-source  Whether to print the source code
+  --print-graph   Whether to print the generated graph code
   --help          Show this message and exit.
 # Run linea on a Python file to analyze it.
 # Use --print-graph to print out the graph it creates
 $ lineapy --print-source --print-graph tests/simple.py
 ...
 # Use --slice to slice the code to that which is needed to recompute an artifact
-$ lineapy --print-source tests/artifact.py --slice 'result'
+$ lineapy --print-source tests/tests/housing.py --slice 'p value'
 ...
 ```
 
@@ -61,45 +63,6 @@ $ git clone git@github.com:LineaLabs/lineapy.git
 $ cd lineapy
 # Linea currently requires Python 3.9
 $ pip install -e .
-
-$ cat tests/housing.py
-import lineapy
-
-import altair as alt
-import pandas as pd
-import seaborn as sns
-from sklearn.ensemble import RandomForestClassifier
-
-alt.data_transformers.enable("json")
-alt.renderers.enable("mimetype")
-
-assets = pd.read_csv("ames_train_cleaned.csv")
-
-sns.relplot(data=assets, x="Year_Built", y="SalePrice", size="Lot_Area")
-
-
-def get_threshold():
-    return 1970
-
-
-def is_new(col):
-    return col > get_threshold()
-
-
-assets["is_new"] = is_new(assets["Year_Built"])
-
-clf = RandomForestClassifier(random_state=0)
-y = assets["is_new"]
-x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
-
-clf.fit(x, y)
-p = clf.predict([[100 * 1000, 10, 4]])
-lineapy.linea_publish(p, "p value")
-# Linea will analyze your file in order to slice your code for a certain artifact.
 $ lineapy --slice "p value" tests/housing.py
-from sklearn.ensemble import RandomForestClassifier
-
-clf = RandomForestClassifier(random_state=0)
-
-p = clf.predict([[100 * 1000, 10, 4]])
+...
 ```

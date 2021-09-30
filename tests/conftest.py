@@ -1,9 +1,7 @@
 from __future__ import annotations
 import datetime
 import dataclasses
-from lineapy.cli.utils import run_transformed
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.db.relational.schema.relational import ArtifactORM
 import os
 import pathlib
 import typing
@@ -136,11 +134,14 @@ class ExecuteFixture:
 
         session_name = str(source_code_path)
 
-        tracer = run_transformed(
-            session_name,
+        transformer = Transformer()
+        transformer.transform(
+            code,
             session_type=session_type,
+            session_name=session_name,
             execution_mode=ExecutionMode.MEMORY,
         )
+        tracer = transformer.tracer
 
         db = tracer.records_manager.db
 
