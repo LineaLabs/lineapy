@@ -200,7 +200,6 @@ class Executor:
 
                 args, kwargs = program.get_arguments_from_call_node(node)
 
-                print(fn, args, kwargs)
                 sys.stdout = self._stdout
                 val = fn(*args, **kwargs)
                 sys.stdout = self._old_stdout
