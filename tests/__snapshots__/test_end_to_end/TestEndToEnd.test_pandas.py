@@ -7,7 +7,7 @@ session = SessionContext(
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
-    code="import pandas as pd\ndf = pd.DataFrame([1,2])\ndf[0].astype(str)\nassert df.size == 2\n",
+    code="from pandas import DataFrame\ndf = DataFrame([1,2])\ndf[0].astype(str)\nassert df.size == 2\n",
     working_directory="dummy_linea_repo/",
     libraries=[
         Library(
@@ -16,7 +16,7 @@ session = SessionContext(
         ),
     ],
 )
-variable_1 = VariableNode(
+variable_2 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
     source_node_id=CallNode(
@@ -25,7 +25,7 @@ variable_1 = VariableNode(
         lineno=2,
         col_offset=0,
         end_lineno=2,
-        end_col_offset=24,
+        end_col_offset=21,
         arguments=[
             ArgumentNode(
                 id=get_new_id(),
@@ -35,9 +35,9 @@ variable_1 = VariableNode(
                     id=get_new_id(),
                     session_id=session.id,
                     lineno=2,
-                    col_offset=18,
+                    col_offset=15,
                     end_lineno=2,
-                    end_col_offset=23,
+                    end_col_offset=20,
                     arguments=[
                         ArgumentNode(
                             id=get_new_id(),
@@ -47,9 +47,9 @@ variable_1 = VariableNode(
                                 id=get_new_id(),
                                 session_id=session.id,
                                 lineno=2,
-                                col_offset=19,
+                                col_offset=16,
                                 end_lineno=2,
-                                end_col_offset=20,
+                                end_col_offset=17,
                                 value=1,
                             ).id,
                         ).id,
@@ -61,9 +61,9 @@ variable_1 = VariableNode(
                                 id=get_new_id(),
                                 session_id=session.id,
                                 lineno=2,
-                                col_offset=21,
+                                col_offset=18,
                                 end_lineno=2,
-                                end_col_offset=22,
+                                end_col_offset=19,
                                 value=2,
                             ).id,
                         ).id,
@@ -76,48 +76,49 @@ variable_1 = VariableNode(
                 ).id,
             ).id
         ],
-        function_id=CallNode(
+        function_id=VariableNode(
             id=get_new_id(),
             session_id=session.id,
-            lineno=2,
-            col_offset=5,
-            end_lineno=2,
-            end_col_offset=17,
-            arguments=[
-                ArgumentNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    positional_order=0,
-                    value_node_id=ImportNode(
-                        id=get_new_id(),
-                        session_id=session.id,
-                        lineno=1,
-                        col_offset=0,
-                        end_lineno=1,
-                        end_col_offset=19,
-                        library=Library(
-                            id=get_new_id(),
-                            name="pandas",
-                        ),
-                        alias="pd",
-                    ).id,
-                ).id,
-                ArgumentNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    positional_order=1,
-                    value_node_id=LiteralNode(
-                        id=get_new_id(),
-                        session_id=session.id,
-                        value="DataFrame",
-                    ).id,
-                ).id,
-            ],
-            function_id=LookupNode(
+            source_node_id=CallNode(
                 id=get_new_id(),
                 session_id=session.id,
-                name="getattr",
+                arguments=[
+                    ArgumentNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        positional_order=0,
+                        value_node_id=ImportNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            lineno=1,
+                            col_offset=0,
+                            end_lineno=1,
+                            end_col_offset=28,
+                            library=Library(
+                                id=get_new_id(),
+                                name="pandas",
+                            ),
+                            attributes={"DataFrame": "DataFrame"},
+                        ).id,
+                    ).id,
+                    ArgumentNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        positional_order=1,
+                        value_node_id=LiteralNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            value="DataFrame",
+                        ).id,
+                    ).id,
+                ],
+                function_id=LookupNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    name="getattr",
+                ).id,
             ).id,
+            assigned_variable_name="DataFrame",
         ).id,
     ).id,
     assigned_variable_name="df",
@@ -165,7 +166,7 @@ call_6 = CallNode(
                             id=get_new_id(),
                             session_id=session.id,
                             positional_order=0,
-                            value_node_id=variable_1.id,
+                            value_node_id=variable_2.id,
                         ).id,
                         ArgumentNode(
                             id=get_new_id(),
@@ -243,7 +244,7 @@ call_9 = CallNode(
                                     id=get_new_id(),
                                     session_id=session.id,
                                     positional_order=0,
-                                    value_node_id=variable_1.id,
+                                    value_node_id=variable_2.id,
                                 ).id,
                                 ArgumentNode(
                                     id=get_new_id(),

@@ -18,3 +18,26 @@ def __assert__(v: object, message: Optional[str] = None) -> None:
         assert v
     else:
         assert v, message
+
+
+EXPRESSION_SAVED_NAME = "__linea_expresion__"
+
+
+def __exec__(
+    code: str, is_expr: bool, *output_locals: str, **input_locals: object
+) -> list[object]:
+    """
+    Execute the `code` with `input_locals` set as locals,
+    and returns a list of the `output_locals` pulled from the environment.
+
+    If the code is an expression, it will return the result as well as the last
+    argument.
+    """
+    if is_expr:
+        code = f"{EXPRESSION_SAVED_NAME} = {code}"
+    bytecode = compile(code, "<string>", "exec")
+    exec(bytecode, globals(), input_locals)
+    returned_locals = [input_locals[name] for name in output_locals]
+    if is_expr:
+        returned_locals.append(input_locals[EXPRESSION_SAVED_NAME])
+    return returned_locals

@@ -1,10 +1,11 @@
 from datetime import datetime
-from typing import Dict, Optional, List
+from typing import Dict, Iterable, Literal, Optional, List, overload
 from os import getcwd
 import builtins
 
-from lineapy.constants import GETATTR, ExecutionMode
+from lineapy.constants import GET_ITEM, GETATTR, ExecutionMode
 from lineapy.data.graph import Graph
+from lineapy.lineabuiltins import __exec__
 from lineapy.data.types import (
     CallNode,
     FunctionDefinitionNode,
@@ -396,3 +397,73 @@ class Tracer:
         TODO: append records
         """
         pass
+
+    # Overload when is expression, returns Node
+    @overload
+    def exec(
+        self,
+        code: str,
+        is_expression: Literal[True],
+        output_variables: list[str],
+        input_values: dict[str, Node],
+        syntax_dictionary: SyntaxDictionary,
+    ) -> Node:
+        ...
+
+    # Overload when is statement, returns None
+    @overload
+    def exec(
+        self,
+        code: str,
+        is_expression: Literal[False],
+        output_variables: list[str],
+        input_values: dict[str, Node],
+        syntax_dictionary: SyntaxDictionary,
+    ) -> None:
+        ...
+
+    def exec(
+        self,
+        code: str,
+        is_expression: bool,
+        output_variables: list[str],
+        input_values: dict[str, Node],
+        syntax_dictionary: SyntaxDictionary,
+    ) -> Optional[Node]:
+        """
+        Builds a call node which will executes code statements
+        with the locals set to input_values.
+
+        For each variable in output_variables, it will set the local variable
+        to the locals state after calling.
+
+        If is_expression is True, it will return the result of the expression, otherwise
+        it will return None.
+        """
+        res = self.call(
+            self.lookup_node(__exec__.__name__),
+            syntax_dictionary,
+            self.literal(code, {}),
+            self.literal(is_expression, {}),
+            *(self.literal(v, {}) for v in output_variables),
+            **input_values,
+        )
+        for i, v in enumerate(output_variables):
+            self.assign(
+                v,
+                self.call(
+                    self.lookup_node(GET_ITEM),
+                    {},
+                    res,
+                    self.literal(i, {}),
+                ),
+                syntax_dictionary,
+            )
+        if is_expression:
+            return self.call(
+                self.lookup_node(GET_ITEM),
+                {},
+                res,
+                self.literal(len(output_variables), {}),
+            )
+        return None
