@@ -53,7 +53,8 @@ class ScopeNodeTransformer(ast.NodeTransformer):
 
     def generic_visit(self, node: ast.AST) -> ast.AST:
         raise NotImplementedError(
-            f"Don't know how to analyze scope for node type {type(node).__name__}:\n\n{astpretty.pformat(node)}"
+            "Don't know how to analyze scope for node type"
+            f" {type(node).__name__}:\n\n{astpretty.pformat(node)}"
         )
 
     def visit_Expr(self, node: ast.Expr) -> Scope:
@@ -93,3 +94,6 @@ class ScopeNodeTransformer(ast.NodeTransformer):
             self.visit(node.func),
             *(self.visit(arg) for arg in node.args),
         )
+
+    def visit_Attribute(self, node: ast.Attribute) -> Scope:
+        return self.visit(node.value)

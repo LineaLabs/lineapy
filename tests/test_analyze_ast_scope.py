@@ -15,6 +15,7 @@ EXAMPLES: list[tuple[str, Scope]] = [
     # if they are not defined in one of their parent scopes.
     ("[x for xx in xxx if x for x in xx]", Scope(loaded={"xxx", "x"})),
     ("[x for xx in xxx for x in xx if x]", Scope(loaded={"xxx"})),
+    ("x.y", Scope(loaded={"x"})),
 ]
 
 
