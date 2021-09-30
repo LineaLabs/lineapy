@@ -60,6 +60,7 @@ setup(
         "pydantic",
         "SQLAlchemy",
         "networkx",
+        "black",
     ],
     extras_require={
         "dev": [
@@ -68,7 +69,6 @@ setup(
             "sklearn",
             "syrupy==1.4.5",
             "mypy",
-            "black",
             "pytest",
             "astpretty",
         ],
