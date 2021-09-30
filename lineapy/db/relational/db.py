@@ -563,7 +563,9 @@ class RelationalLineaDB(LineaDB):
         :return: string containing the code for generating the artifact.
         """
         artifacts = self.find_artifact_by_name(artifact_name)
-        assert len(artifacts) == 1, "Should only be one artifact with this name"
+        assert (
+            len(artifacts) == 1
+        ), "Should only be one artifact with this name"
         return self.get_code_from_artifact_id(artifacts[0].id)
 
     def find_all_artifacts_derived_from_data_source(
