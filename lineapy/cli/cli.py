@@ -90,9 +90,15 @@ def linea_cli(mode, session, file_name, slice, print_source, print_graph):
         )
 
     if print_graph:
+        graph_code = graph.print(
+            include_source_location=False,
+            include_id_field=False,
+            include_session=False,
+            include_imports=False,
+        )
         tree.add(
             rich.console.Group(
-                "፨ Graph", rich.syntax.Syntax(str(graph), "python")
+                "፨ Graph", rich.syntax.Syntax(graph_code, "python")
             )
         )
 
