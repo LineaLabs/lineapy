@@ -30,11 +30,11 @@ class GraphPrinter:
     # Whether to include the source locations from the graph
     include_source_location: bool = field(default=True)
     # Whether to include the ID fields for nodes in generation
-    include_id_field: bool = field(default=True)
+    include_id_field: bool = field(default=False)
     # Whether to include the session
     include_session: bool = field(default=True)
     # Whether to include the imports needed to run the file
-    include_imports: bool = field(default=True)
+    include_imports: bool = field(default=False)
 
     # Set to True to nest node strings, when they only have one successor.
     nest_nodes: bool = field(default=True)

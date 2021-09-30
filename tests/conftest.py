@@ -151,7 +151,7 @@ class ExecuteFixture:
         # Verify snapshot of graph
         if compare_snapshot:
             assert (
-                graph.print(snapshot_mode=True)
+                graph.print(include_imports=True, include_id_field=True)
                 .replace(str(source_code_path), "[source file path]")
                 .replace(
                     repr(context.creation_time),
