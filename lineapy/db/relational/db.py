@@ -493,6 +493,17 @@ class RelationalLineaDB(LineaDB):
             .first()
         )
 
+    def get_artifact_by_name(self, artifact_name: str) -> ArtifactORM:
+        """
+        Gets a code slice for an artifact by name, assuming there is only
+        one artifact with that name,
+        """
+        return (
+            self.session.query(ArtifactORM)
+            .filter(ArtifactORM.name == artifact_name)
+            .one()
+        )
+
     def get_all_artifacts(self) -> List[Artifact]:
         results = self.session.query(ArtifactORM).all()
         return [Artifact.from_orm(r) for r in results]

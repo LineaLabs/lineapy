@@ -188,7 +188,8 @@ class ExecuteResult:
         """
         Gets the code for a slice of the graph from an artifact
         """
-        return self.db.get_code_from_artifact_name(artifact_name)
+        artifact = self.db.get_artifact_by_name(artifact_name)
+        return get_program_slice(self.graph, [artifact.id])
 
 
 @pytest.fixture(autouse=True)

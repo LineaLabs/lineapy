@@ -27,7 +27,6 @@ from lineapy.instrumentation.tracer_util import (
 from lineapy.utils import (
     CaseNotHandledError,
     InternalLogicError,
-    info_log,
     internal_warning_log,
     get_new_id,
 )
@@ -136,7 +135,6 @@ class Tracer:
     def exit(self):
         self.evaluate_records_so_far()
         self.records_manager.exit()
-        info_log("Tracer exit")
         pass
 
     def lookup_node(self, variable_name: str) -> Node:

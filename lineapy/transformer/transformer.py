@@ -27,7 +27,6 @@ class Transformer:
         execution_mode: ExecutionMode,
         session_name: str,
     ):
-        info_log("transform", code)
         if not self.tracer:
             self.tracer = Tracer(session_type, session_name, execution_mode)
 
