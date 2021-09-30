@@ -32,7 +32,7 @@ You can run linea either by cloning the repository or by using our Docker image.
 ```bash
 $ cat my_script.py
 ....
-$ docker run --rm -v $PWD:/app -w /app ghcr.io/LineaLabs/lineapy:latest my_script.py
+$ docker run --rm -v $PWD:/app -w /app ghcr.io/LineaLabs/lineapy:main my_script.py
 ...
 ```
 
