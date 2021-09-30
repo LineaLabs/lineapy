@@ -2,8 +2,6 @@
 
 Lineapy is a Python library for analyzing data science workflows.
 
-TODO: Insert terminal gif of running lineapy slicing on datascience file.
-
 ## Features
 
 Currently, you can run Linea as CLI command to slice your Python code to extract
