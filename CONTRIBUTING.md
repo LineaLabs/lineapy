@@ -1,4 +1,3 @@
-
 # Contributing
 
 This repository contains a few different components:
@@ -9,17 +8,13 @@ This repository contains a few different components:
 -   An **executor** which takes the graph and can run it as Python code
 -   A **server** which exposes a REST API of the graph that `linea-server` accesses. This is currently not being kept up to date.
 
-
 ## First-time Setup
 
 ```bash
 conda create --name lineapy-env python=3.9
 conda activate lineapy-env
-pip install -r requirements.txt
-pip install -r dev-requirements.txt
-pip install -e . --user
+pip install -e .[dev] --user
 ```
-
 
 ## Tests
 

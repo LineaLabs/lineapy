@@ -46,9 +46,9 @@ $ cd lineapy
 # Linea currently requires Python 3.9
 $ pip install -e .
 
-$ cat examples/...
+$ cat examples/housing_data.py
 some file
-# Linea will analyze your file in order to slice your code for a certain result.
-$ lineapy --slice "my graph" examples/...
+# Linea will analyze your file in order to slice your code for a certain artifact.
+$ lineapy --slice "prediction_var_name" examples/housing_data.py
 some sliced code
 ```
