@@ -1,3 +1,5 @@
+import lineapy
+
 import altair as alt
 import pandas as pd
 import seaborn as sns
@@ -27,4 +29,4 @@ x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
 
 clf.fit(x, y)
 p = clf.predict([[100 * 1000, 10, 4]])
-print("p value", p)
+lineapy.linea_publish(p, "p value")

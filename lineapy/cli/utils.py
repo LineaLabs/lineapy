@@ -1,5 +1,6 @@
 import os
 from typing import Optional
+from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils import info_log
 from tempfile import NamedTemporaryFile
 from lineapy.transformer.transformer import ExecutionMode, Transformer
@@ -10,7 +11,7 @@ def run_transformed(
     file_name: str,
     session_type: SessionType,
     execution_mode: ExecutionMode,
-) -> None:
+) -> Tracer:
     transformer = Transformer()
     lines = open(file_name, "r").readlines()
     code = "".join(lines)
@@ -21,3 +22,4 @@ def run_transformed(
         session_name=file_name,
         execution_mode=execution_mode,
     )
+    return transformer.tracer
