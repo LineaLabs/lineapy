@@ -1,0 +1,122 @@
+import datetime
+from lineapy.data.types import *
+from lineapy.utils import get_new_id
+
+session = SessionContext(
+    id=get_new_id(),
+    environment_type=SessionType.SCRIPT,
+    creation_time=datetime.datetime(1, 1, 1, 0, 0),
+    file_name="[source file path]",
+    code="\ny = range(3)\nx = [i + 1 for i in y]\n",
+    working_directory="dummy_linea_repo/",
+    libraries=[],
+)
+variable_2 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=22,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=CallNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=3,
+                    col_offset=4,
+                    end_lineno=3,
+                    end_col_offset=22,
+                    arguments=[
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            keyword="y",
+                            value_node_id=VariableNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                source_node_id=CallNode(
+                                    id=get_new_id(),
+                                    session_id=session.id,
+                                    lineno=2,
+                                    col_offset=0,
+                                    end_lineno=2,
+                                    end_col_offset=12,
+                                    arguments=[
+                                        ArgumentNode(
+                                            id=get_new_id(),
+                                            session_id=session.id,
+                                            positional_order=0,
+                                            value_node_id=LiteralNode(
+                                                id=get_new_id(),
+                                                session_id=session.id,
+                                                lineno=2,
+                                                col_offset=10,
+                                                end_lineno=2,
+                                                end_col_offset=11,
+                                                value=3,
+                                            ).id,
+                                        ).id
+                                    ],
+                                    function_id=LookupNode(
+                                        id=get_new_id(),
+                                        session_id=session.id,
+                                        name="range",
+                                    ).id,
+                                ).id,
+                                assigned_variable_name="y",
+                            ).id,
+                        ).id,
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=0,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                value="[i + 1 for i in y]",
+                            ).id,
+                        ).id,
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=1,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                value=1,
+                            ).id,
+                        ).id,
+                    ],
+                    function_id=LookupNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        name="__exec__",
+                    ).id,
+                ).id,
+            ).id,
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=1,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    value=0,
+                ).id,
+            ).id,
+        ],
+        function_id=LookupNode(
+            id=get_new_id(),
+            session_id=session.id,
+            name="getitem",
+        ).id,
+    ).id,
+    assigned_variable_name="x",
+)

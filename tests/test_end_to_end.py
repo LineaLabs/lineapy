@@ -27,8 +27,8 @@ a = abs(11)
 
 STRING_FORMAT = """a = '{{ {0} }}'.format('foo')"""
 
-PANDAS_RANDOM_CODE = """import pandas as pd
-df = pd.DataFrame([1,2])
+PANDAS_RANDOM_CODE = """from pandas import DataFrame
+df = DataFrame([1,2])
 df[0].astype(str)
 assert df.size == 2
 """
@@ -455,3 +455,18 @@ class TestDelete:
         )
         x = res.values["x"]
         assert not hasattr(x, "hi")
+
+
+class TestListComprehension:
+    def test_returns_value(self, execute):
+        res = execute("x = [i + 1 for i in range(3)]")
+        assert res.values["x"] == [1, 2, 3]
+
+    def test_depends_on_prev_value(self, execute):
+        res = execute(
+            "import lineapy\ny = range(3)\nx = [i + 1 for i in y]\nlineapy.linea_publish(x, 'x')",
+            compare_snapshot=False,
+        )
+        # Verify that i isn't set in the local scope
+        assert res.values == {"x": [1, 2, 3], "y": range(3)}
+        assert execute(res.slice("x")).values["x"] == [1, 2, 3]

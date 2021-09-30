@@ -1,4 +1,5 @@
 import ast
+from lineapy.transformer.analyze_ast_scope import analyze_ast_scope
 import lineapy
 from lineapy.data.types import CallNode, Node
 from typing import Optional, cast, Any
@@ -457,4 +458,17 @@ class NodeTransformer(ast.NodeTransformer):
             extract_concrete_syntax_from_node(node),
             self.visit(node.value),
             self.visit(ast.Constant(value=node.attr)),
+        )
+
+    def visit_ListComp(self, node: ast.ListComp) -> Node:
+        syntax_dictionary = extract_concrete_syntax_from_node(node)
+        code = self._get_code_from_node(node)
+        scope = analyze_ast_scope(node)
+        input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
+        return self.tracer.exec(
+            code=code,
+            is_expression=True,
+            syntax_dictionary=syntax_dictionary,
+            input_values=input_values,
+            output_variables=list(scope.stored),
         )
