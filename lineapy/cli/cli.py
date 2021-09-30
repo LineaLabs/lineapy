@@ -21,7 +21,7 @@ We are using click because our package will likely already have a dependency on
 )
 @click.option(
     "--session",
-    default=SessionType.SCRIPT.name,
+    default=SessionType.STATIC.name,
     help=(
         f"Either `f{SessionType.STATIC.name}`,"
         f"or `f{SessionType.SCRIPT.name}` mode"
