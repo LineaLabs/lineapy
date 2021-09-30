@@ -2,9 +2,7 @@
 
 Lineapy is a Python library for analyzing data science workflows.
 
-
 TODO: Insert terminal gif of running lineapy slicing on datascience file.
-
 
 ## Features
 
@@ -16,22 +14,25 @@ as well.
 We are working to add support for more Python contructs. We currently don't support
 much control flow, function mutation, or all function definitions.
 
+```bash
+$ lineapy --help
+...
+```
 
 ### Installing
 
 You can run linea either by cloning the repository or by using our Docker image.
 
-
 ### Docker
 
 1. First install Docker and then authenticate to the [Github Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry)
-  so you can pull our private image.
+   so you can pull our private image.
 2. Now you can pull and run our image to slice Python code:
 
 ```bash
 $ cat my_script.py
 ....
-$ docker run --rm -v $PWD:/app -w /app LineaLabs/lineapy:latest my_script.py
+$ docker run --rm -v $PWD:/app -w /app ghcr.io/LineaLabs/lineapy:latest my_script.py
 ...
 ```
 
