@@ -2,7 +2,6 @@ from __future__ import annotations
 import datetime
 import dataclasses
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.db.relational.schema.relational import ArtifactORM
 import os
 import pathlib
 import typing
@@ -125,7 +124,6 @@ class ExecuteFixture:
         :param compare_snapshot:  If you don't want to compare the snapshots,
         just execute the code then set `compare_snapshot` to False.
         """
-        transformer = Transformer()
         # These temp filenames are unique per test function.
         # If `execute` is called twice in a test, it will overwrite the
         # previous paths
@@ -135,25 +133,25 @@ class ExecuteFixture:
         # Verify snapshot of source of user transformed code
 
         session_name = str(source_code_path)
+
+        transformer = Transformer()
         transformer.transform(
-            code,  # Set as script so it evals
+            code,
             session_type=session_type,
-            # TODO: rename arg to session path
             session_name=session_name,
             execution_mode=ExecutionMode.MEMORY,
         )
-
         tracer = transformer.tracer
 
         db = tracer.records_manager.db
 
-        # Verify snapshot of graph
         nodes = db.get_all_nodes()
         context = db.get_context_by_file_name(session_name)
         graph = Graph(nodes, context)
+        # Verify snapshot of graph
         if compare_snapshot:
             assert (
-                graph.print(snapshot_mode=True)
+                graph.print(include_imports=True, include_id_field=True)
                 .replace(str(source_code_path), "[source file path]")
                 .replace(
                     repr(context.creation_time),
@@ -191,11 +189,7 @@ class ExecuteResult:
         """
         Gets the code for a slice of the graph from an artifact
         """
-        artifact = (
-            self.db.session.query(ArtifactORM)
-            .filter(ArtifactORM.name == artifact_name)
-            .one()
-        )
+        artifact = self.db.get_artifact_by_name(artifact_name)
         return get_program_slice(self.graph, [artifact.id])
 
 

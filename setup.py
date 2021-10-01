@@ -53,6 +53,32 @@ setup(
     entry_points={
         "console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"],
     },
+    install_requires=[
+        "Pillow",
+        "astor",
+        "click",
+        "pydantic",
+        "SQLAlchemy",
+        "networkx",
+        "black",
+        "rich",
+    ],
+    extras_require={
+        "dev": [
+            "altair",
+            "pandas",
+            "sklearn",
+            "syrupy==1.4.5",
+            "mypy",
+            "pytest",
+            "astpretty",
+            "matplotlib",
+        ],
+        "server": [
+            "flask",
+            "flask-cors",
+        ],
+    },
     include_package_data=True,
     data_files=[
         (

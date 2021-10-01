@@ -493,6 +493,17 @@ class RelationalLineaDB(LineaDB):
             .first()
         )
 
+    def get_artifact_by_name(self, artifact_name: str) -> ArtifactORM:
+        """
+        Gets a code slice for an artifact by name, assuming there is only
+        one artifact with that name,
+        """
+        return (
+            self.session.query(ArtifactORM)
+            .filter(ArtifactORM.name == artifact_name)
+            .one()
+        )
+
     def get_all_artifacts(self) -> List[Artifact]:
         results = self.session.query(ArtifactORM).all()
         return [Artifact.from_orm(r) for r in results]
@@ -551,6 +562,23 @@ class RelationalLineaDB(LineaDB):
         graph = self.get_session_graph_from_artifact_id(artifact_id)
         return get_program_slice(graph, [artifact_id])
 
+    def get_code_from_artifact_name(self, artifact_name: str) -> str:
+        """
+        Get all the code associated with an artifact by retrieving the Graph
+        associated with the artifact from the database and piecing together the
+        code from the nodes. Note: The code is the program slice for the
+        artifact, not all code associated with the session in which the
+        artifact was generated.
+
+        :param artifact_name: Name of the artifact
+        :return: string containing the code for generating the artifact.
+        """
+        artifacts = self.find_artifact_by_name(artifact_name)
+        assert (
+            len(artifacts) == 1
+        ), "Should only be one artifact with this name"
+        return self.get_code_from_artifact_id(artifacts[0].id)
+
     def find_all_artifacts_derived_from_data_source(
         self, program: Graph, data_source_node: DataSourceNode
     ) -> List[Node]:
@@ -575,9 +603,7 @@ class RelationalLineaDB(LineaDB):
                 artifacts.append(descendant)
         return artifacts
 
-    def find_artifact_by_name(
-        self, artifact_name: str
-    ) -> Optional[List[Artifact]]:
+    def find_artifact_by_name(self, artifact_name: str) -> List[Artifact]:
         """
         Find artifacts from the database with `artifact_name` as specified by
         the user via `linea_publish`. Note: multiple artifacts can have the

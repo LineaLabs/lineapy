@@ -16,7 +16,6 @@ from lineapy.data.types import (
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.utils import get_new_id, internal_warning_log
-from lineapy.cli.utils import run_transformed
 
 TEST_ARTIFACT_NAME = "Graph With CSV Import"
 
@@ -152,7 +151,13 @@ def run_code(code: str, mode: ExecutionMode):
     with NamedTemporaryFile() as tmp:
         tmp.write(str.encode(code))
         tmp.flush()
-        run_transformed(tmp.name, SessionType.SCRIPT, mode)
+        transformer = Transformer()
+        transformer.transform(
+            code,
+            session_type=SessionType.SCRIPT,
+            session_name=tmp.name,
+            execution_mode=mode,
+        )
 
 
 def get_project_directory():

@@ -27,11 +27,15 @@ class GraphPrinter:
 
     graph: Graph
 
-    """
-    Set `snapshot_mode` to False if you want to see the ID values and
-    not see the line numbers, which is helpful during debugging.
-    """
-    snapshot_mode: bool
+    # Whether to include the source locations from the graph
+    include_source_location: bool = field(default=True)
+    # Whether to include the ID fields for nodes in generation
+    include_id_field: bool = field(default=False)
+    # Whether to include the session
+    include_session: bool = field(default=True)
+    # Whether to include the imports needed to run the file
+    include_imports: bool = field(default=False)
+
     # Set to True to nest node strings, when they only have one successor.
     nest_nodes: bool = field(default=True)
     id_to_attribute_name: dict[LineaID, str] = field(default_factory=dict)
@@ -55,12 +59,14 @@ class GraphPrinter:
         return f"{pretty_print_node_type(node_type)}_{self.get_node_type_count(node_type)}"
 
     def lines(self) -> Iterable[str]:
-        yield "import datetime"
-        yield "from lineapy.data.types import *"
-        yield "from lineapy.utils import get_new_id"
-        yield "session = ("
-        yield from self.pretty_print_model(self.graph.session_context)
-        yield ")"
+        if self.include_imports:
+            yield "import datetime"
+            yield "from lineapy.data.types import *"
+            yield "from lineapy.utils import get_new_id"
+        if self.include_session:
+            yield "session = ("
+            yield from self.pretty_print_model(self.graph.session_context)
+            yield ")"
 
         for node in self.graph.visit_order():
             node_id = node.id
@@ -103,11 +109,15 @@ class GraphPrinter:
             v_str: str
             if k == "node_type":
                 continue
-            if k in SYNTAX_KEY and self.snapshot_mode is False:
+            if k in SYNTAX_KEY and not self.include_source_location:
                 continue
             elif k == "id":
+                if not self.include_id_field:
+                    continue
                 v_str = "get_new_id()"
             elif k == "session_id":
+                if not self.include_session:
+                    continue
                 v_str = "session.id"
             elif tp == LineaID and shape == SHAPE_LIST and v is not None:
                 args = [self.lookup_id(id_) for id_ in v]

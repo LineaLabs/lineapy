@@ -90,8 +90,8 @@ class Graph(object):
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
 
-    def print(self, snapshot_mode=False) -> str:
-        return GraphPrinter(self, snapshot_mode).print()
+    def print(self, **kwargs) -> str:
+        return GraphPrinter(self, **kwargs).print()
 
     @listify
     def visit_order(self) -> Iterator[Node]:

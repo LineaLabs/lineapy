@@ -1,5 +1,0 @@
-altair
-pandas
-seaborn
-sklearn
-syrupy==1.4.5
