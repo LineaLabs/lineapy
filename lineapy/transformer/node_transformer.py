@@ -2,7 +2,7 @@ import ast
 from lineapy.transformer.analyze_ast_scope import analyze_ast_scope
 import lineapy
 from lineapy.data.types import CallNode, Node
-from typing import Optional, cast, Any
+from typing import Optional, Union, cast, Any
 
 
 from lineapy import linea_publish
@@ -47,6 +47,7 @@ from lineapy.transformer.transformer_util import (
     extract_concrete_syntax_from_node,
 )
 from lineapy.utils import (
+    InternalLogicError,
     UserError,
     InvalidStateError,
     info_log,
@@ -460,11 +461,13 @@ class NodeTransformer(ast.NodeTransformer):
             self.visit(ast.Constant(value=node.attr)),
         )
 
-    def visit_ListComp(self, node: ast.ListComp) -> Node:
+    def _visit_black_box(self, node: Union[ast.ListComp, ast.If]):
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         code = self._get_code_from_node(node)
         scope = analyze_ast_scope(node)
         input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
+        if code is None:
+            raise InternalLogicError("Code block should not be empty")
         return self.tracer.exec(
             code=code,
             is_expression=True,
@@ -472,3 +475,9 @@ class NodeTransformer(ast.NodeTransformer):
             input_values=input_values,
             output_variables=list(scope.stored),
         )
+
+    def visit_ListComp(self, node: ast.ListComp) -> Node:
+        return self._visit_black_box(node)
+
+    def visit_If(self, node: ast.If) -> Node:
+        return self._visit_black_box(node)

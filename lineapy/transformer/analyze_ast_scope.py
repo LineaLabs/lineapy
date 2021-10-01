@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import List
 
 """
 Utility for analyzing python AST scoping.
@@ -17,6 +18,11 @@ def analyze_ast_scope(a: ast.AST) -> Scope:
 
 @dataclass
 class Scope:
+    """
+    stored follows the ast convention of newly defined variables; similarly,
+      loaded is for the ones accessed.
+    """
+
     # Names that are stored/set in this scope
     stored: set[str] = field(default_factory=set)
     # Names that are loaded/accessed in this scope
@@ -48,10 +54,13 @@ def unify(*scopes: Scope) -> Scope:
 class ScopeNodeTransformer(ast.NodeTransformer):
     """
     A node transformer which should return a Scope if it can figure it out
-    for the given node.
+      for the given node.
+
+    The general strategy is to make sure that we resolve the variables that
+      are created within the block.
     """
 
-    def generic_visit(self, node: ast.AST) -> ast.AST:
+    def generic_visit(self, node: ast.AST) -> Scope:
         raise NotImplementedError(
             "Don't know how to analyze scope for node type"
             f" {type(node).__name__}:\n\n{astpretty.pformat(node)}"
@@ -59,6 +68,10 @@ class ScopeNodeTransformer(ast.NodeTransformer):
 
     def visit_Expr(self, node: ast.Expr) -> Scope:
         return self.visit(node.value)
+
+    def visit_Assign(self, node: ast.Assign) -> Scope:
+        scopes = [self.visit(t) for t in node.targets]
+        return unify(*scopes)
 
     def visit_ListComp(self, node: ast.ListComp) -> Scope:
         inner_scope = self.visit(node.elt)
@@ -75,6 +88,31 @@ class ScopeNodeTransformer(ast.NodeTransformer):
         # The list comprehension itself is a scope, so remove any variables
         # it sets when returning
         return Scope(loaded=inner_scope.loaded)
+
+    def visit_If(self, node: ast.If) -> Scope:
+        # this basically reduces to the generic case
+        # nothing is defined in test, so the scope should just be reading
+        current_scope = self.visit(node.test)
+
+        def _visit_children(expressions: List[ast.stmt]):
+            newly_stored: set[str] = set()
+            for e in expressions:
+                # we don't care about what the subscopes stores
+                child_scope = self.visit(e)
+                current_scope.loaded |= (
+                    child_scope.loaded - current_scope.stored - newly_stored
+                )
+                newly_stored |= child_scope.stored
+
+        _visit_children(node.body)
+        _visit_children(node.orelse)
+        return Scope(loaded=current_scope.loaded)
+
+    def visit_Compare(self, node: ast.Compare) -> Scope:
+        scopes = [self.visit(node.left)]
+        for i in range(len(node.ops)):
+            scopes.append(self.visit(node.comparators[i]))
+        return unify(*scopes)
 
     def visit_Name(self, node: ast.Name) -> Scope:
         if isinstance(node.ctx, ast.Load):

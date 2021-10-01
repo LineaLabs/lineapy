@@ -7,6 +7,16 @@ import ast
 import astpretty
 
 
+IF_EXAMPLES: list[tuple[str, Scope]] = [
+    # including print for now, and we can decide if we don't want it to be kept
+    ("if a:\n  b=1\n  print(b)", Scope(loaded={"a", "print"})),
+    ("if a:\n  print(b)", Scope(loaded={"a", "b", "print"})),
+    (
+        "if a:\n  c=1\nelif b==1:\n  d=2\nelse:\n  print(c)",
+        Scope(loaded={"a", "b", "c", "print"}),
+    ),
+]
+
 EXAMPLES: list[tuple[str, Scope]] = [
     ("[x for x in xx]", Scope(loaded={"xx"})),
     ("[x for x in xx if y]", Scope(loaded={"xx", "y"})),
@@ -19,7 +29,13 @@ EXAMPLES: list[tuple[str, Scope]] = [
 ]
 
 
+@pytest.mark.parametrize("code,scope", IF_EXAMPLES)
+def test_if(code: str, scope: Scope):
+    a = ast.parse(code).body[0]
+    assert analyze_ast_scope(a) == scope, astpretty.pformat(a)
+
+
 @pytest.mark.parametrize("code,scope", EXAMPLES)
-def test_analyze_ast_scope(code: str, scope: Scope):
+def test_list_comprehension(code: str, scope: Scope):
     a = ast.parse(code).body[0]
     assert analyze_ast_scope(a) == scope, astpretty.pformat(a)
