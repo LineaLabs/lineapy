@@ -410,8 +410,11 @@ class NodeTransformer(ast.NodeTransformer):
         return left
 
     def visit_Slice(self, node: ast.Slice) -> CallNode:
-        assert node.lower and node.upper
-        slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
+        none_node = self.tracer.literal(None, {})
+        slice_arguments = [
+            self.visit(node.lower) if node.lower else none_node,
+            self.visit(node.upper) if node.upper else none_node,
+        ]
         if node.step is not None:
             slice_arguments.append(self.visit(node.step))
         return self.tracer.call(
