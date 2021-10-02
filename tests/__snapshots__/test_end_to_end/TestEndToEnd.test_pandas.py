@@ -16,10 +16,6 @@ session = SessionContext(
         ),
     ],
 )
-literal_4 = LiteralNode(
-    id=get_new_id(),
-    session_id=session.id,
-)
 variable_2 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
@@ -476,14 +472,11 @@ call_18 = CallNode(
                                                                             id=get_new_id(),
                                                                             session_id=session.id,
                                                                             positional_order=0,
-                                                                            value_node_id=literal_4.id,
-                                                                        ).id,
-                                                                        ArgumentNode(
-                                                                            id=get_new_id(),
-                                                                            session_id=session.id,
-                                                                            positional_order=1,
-                                                                            value_node_id=literal_4.id,
-                                                                        ).id,
+                                                                            value_node_id=LiteralNode(
+                                                                                id=get_new_id(),
+                                                                                session_id=session.id,
+                                                                            ).id,
+                                                                        ).id
                                                                     ],
                                                                     function_id=LookupNode(
                                                                         id=get_new_id(),

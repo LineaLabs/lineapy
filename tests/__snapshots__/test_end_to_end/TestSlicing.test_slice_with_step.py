@@ -11,10 +11,6 @@ session = SessionContext(
     working_directory="dummy_linea_repo/",
     libraries=[],
 )
-literal_1 = LiteralNode(
-    id=get_new_id(),
-    session_id=session.id,
-)
 variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
@@ -104,13 +100,19 @@ variable_1 = VariableNode(
                             id=get_new_id(),
                             session_id=session.id,
                             positional_order=0,
-                            value_node_id=literal_1.id,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                            ).id,
                         ).id,
                         ArgumentNode(
                             id=get_new_id(),
                             session_id=session.id,
                             positional_order=1,
-                            value_node_id=literal_1.id,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                            ).id,
                         ).id,
                         ArgumentNode(
                             id=get_new_id(),
