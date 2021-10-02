@@ -465,3 +465,6 @@ class Tracer:
                 self.literal(len(output_variables), {}),
             )
         return None
+
+    def none(self) -> LiteralNode:
+        return self.literal(None, {})

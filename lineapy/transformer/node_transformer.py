@@ -411,14 +411,28 @@ class NodeTransformer(ast.NodeTransformer):
         return left
 
     def visit_Slice(self, node: ast.Slice) -> CallNode:
-        assert node.lower and node.upper
-        slice_arguments = [self.visit(node.lower), self.visit(node.upper)]
-        if node.step is not None:
-            slice_arguments.append(self.visit(node.step))
+        stop_node = (
+            self.visit(node.upper) if node.upper else self.tracer.none()
+        )
+        # From https://docs.python.org/3/library/functions.html?highlight=slice#slice
+        # slice can be called in two ways:
+        # 1. slice(stop) when the start and step are None
+        if node.lower is None and node.step is None:
+            args = [stop_node]
+        # 2. slice(start, stop, [step]) otherwise
+        else:
+            start_node = (
+                self.visit(node.lower) if node.lower else self.tracer.none()
+            )
+            args = [start_node, stop_node]
+            if node.step:
+                step_node = self.visit(node.step)
+                args.append(step_node)
+
         return self.tracer.call(
             self.tracer.lookup_node(slice.__name__),
             extract_concrete_syntax_from_node(node),
-            *slice_arguments,
+            *args,
         )
 
     def visit_Subscript(self, node: ast.Subscript) -> CallNode:
