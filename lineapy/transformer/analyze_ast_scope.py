@@ -37,6 +37,20 @@ class Scope:
         """
         self.loaded |= child.loaded - self.stored
 
+    def record_sibling(self, sibling: Scope) -> None:
+        """
+        Combine with the next sibling in this block. For example, if you have
+        two statements in a block, `a; b`, then get the scope of `a` and `b` and
+        then call `a_scope.record_sibling(b_scope)`.
+
+        It is similar to record_child, except the stores scopes are also added
+        whereas in record_child, they are not recorded.
+        """
+        # Mark anything as loaded, that the current scope does not
+        # have stored
+        self.loaded |= sibling.loaded - self.stored
+        self.stored |= sibling.stored
+
 
 def unify(*scopes: Scope) -> Scope:
     """
@@ -95,15 +109,13 @@ class ScopeNodeTransformer(ast.NodeTransformer):
         current_scope = self.visit(node.test)
 
         for expressions in [node.body, node.orelse]:
-            newly_stored = set[str]()
+            # For each block of expressions, iterate over each expression
+            # and update the inner scope. Then, once its finished,
+            # Add any variables its looking for to our parent scope
+            inner_scope = Scope()
             for e in expressions:
-                # we don't care about what the subscopes stores
-                child_scope = self.visit(e)
-                current_scope.loaded |= (
-                    child_scope.loaded - current_scope.stored - newly_stored
-                )
-                newly_stored |= child_scope.stored
-
+                inner_scope.record_sibling(self.visit(e))
+            current_scope.record_child(inner_scope)
         return Scope(loaded=current_scope.loaded)
 
     def visit_Compare(self, node: ast.Compare) -> Scope:
