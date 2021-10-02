@@ -10,6 +10,7 @@ import astpretty
 IF_EXAMPLES: list[tuple[str, Scope]] = [
     # including print for now, and we can decide if we don't want it to be kept
     ("if a:\n  b=1\n  print(b)", Scope(loaded={"a", "print"})),
+    ("if a:\n  print(b)\n  b=1", Scope(loaded={"a", "b", "print"})),
     ("if a:\n  print(b)", Scope(loaded={"a", "b", "print"})),
     (
         "if a:\n  c=1\nelif b==1:\n  d=2\nelse:\n  print(c)",
