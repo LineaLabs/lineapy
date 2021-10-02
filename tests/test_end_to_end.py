@@ -475,3 +475,29 @@ class TestListComprehension:
         # Verify that i isn't set in the local scope
         assert res.values == {"x": [1, 2, 3], "y": range(3)}
         assert execute(res.slice("x")).values["x"] == [1, 2, 3]
+
+
+class TestSlicing:
+    def test_empty_slice(self, execute):
+        res = execute("x = [1, 2, 3][:]")
+        assert res.values["x"] == [1, 2, 3]
+
+    def test_slice_with_step(self, execute):
+        res = execute("x = [1, 2, 3][::2]")
+        assert res.values["x"] == [1, 3]
+
+    def test_slice_with_step_and_start(self, execute):
+        res = execute("x = [1, 2, 3][0::2]")
+        assert res.values["x"] == [1, 3]
+
+    def test_slice_with_step_and_stop(self, execute):
+        res = execute("x = [1, 2, 3][:2:2]")
+        assert res.values["x"] == [1]
+
+    def test_slice_with_step_and_start_and_stop(self, execute):
+        res = execute("x = [1, 2, 3][1:2:2]")
+        assert res.values["x"] == [2]
+
+    def test_slice_with_start(self, execute):
+        res = execute("x = [1, 2, 3][1:]")
+        assert res.values["x"] == [2, 3]
