@@ -60,7 +60,7 @@ class ScopeNodeTransformer(ast.NodeTransformer):
       are created within the block.
     """
 
-    def generic_visit(self, node: ast.AST) -> Scope:
+    def generic_visit(self, node: ast.AST) -> Scope:  # type: ignore
         raise NotImplementedError(
             "Don't know how to analyze scope for node type"
             f" {type(node).__name__}:\n\n{astpretty.pformat(node)}"
