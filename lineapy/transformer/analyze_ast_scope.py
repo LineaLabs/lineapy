@@ -94,8 +94,8 @@ class ScopeNodeTransformer(ast.NodeTransformer):
         # nothing is defined in test, so the scope should just be reading
         current_scope = self.visit(node.test)
 
-        def _visit_children(expressions: List[ast.stmt]):
-            newly_stored: set[str] = set()
+        for expressions in [node.body, node.orelse]:
+            newly_stored = set[str]()
             for e in expressions:
                 # we don't care about what the subscopes stores
                 child_scope = self.visit(e)
@@ -104,8 +104,6 @@ class ScopeNodeTransformer(ast.NodeTransformer):
                 )
                 newly_stored |= child_scope.stored
 
-        _visit_children(node.body)
-        _visit_children(node.orelse)
         return Scope(loaded=current_scope.loaded)
 
     def visit_Compare(self, node: ast.Compare) -> Scope:
