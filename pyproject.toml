@@ -4,3 +4,10 @@ exclude = '__snapshots__'
 
 [tool.isort]
 profile = "black"
+
+[tool.coverage.run]
+# Trace which side of branches were taken
+# https://coverage.readthedocs.io/en/latest/branch.html#branch
+branch = true
+# Ignore coverage on app, since we are letting it rot
+omit = ["lineapy/app/*"]

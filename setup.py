@@ -73,6 +73,8 @@ setup(
             "mypy",
             "pytest",
             "matplotlib",
+            "coverage[toml]",
+            "pytest-cov",
         ],
         "server": [
             "flask",
