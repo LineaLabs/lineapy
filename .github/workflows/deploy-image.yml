@@ -1,6 +1,6 @@
 # From https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/publishing-and-installing-a-package-with-github-actions#publishing-a-package-using-an-action
 
-name: Create and publish a Docker image
+name: Create, publish and test a Docker image
 
 on:
   push:
@@ -40,3 +40,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Test the Docker image
+        run: docker run --rm ${{ steps.meta.outputs.tags }} --help
