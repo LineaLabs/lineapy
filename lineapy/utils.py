@@ -136,7 +136,10 @@ def is_integer(val):
 
 def get_literal_value_from_string(val: str, literal_type: LiteralType) -> Any:
     if literal_type is LiteralType.Integer:
-        return int(val)
+        try:
+            return int(val)
+        except ValueError:
+            return float(val)
     elif literal_type is LiteralType.Boolean:
         return val == "True"
     return val
