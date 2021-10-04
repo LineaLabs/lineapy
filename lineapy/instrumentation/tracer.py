@@ -5,7 +5,7 @@ import builtins
 
 from lineapy.constants import GET_ITEM, GETATTR, ExecutionMode
 from lineapy.data.graph import Graph
-from lineapy.lineabuiltins import __exec__
+from lineapy.lineabuiltins import __exec__, __build_tuple__
 from lineapy.data.types import (
     CallNode,
     FunctionDefinitionNode,
@@ -468,3 +468,10 @@ class Tracer:
 
     def none(self) -> LiteralNode:
         return self.literal(None, {})
+
+    def tuple(self, *args: Node, syntax_dictionary=None) -> CallNode:
+        return self.call(
+            self.lookup_node(__build_tuple__.__name__),
+            syntax_dictionary or {},
+            *args,
+        )
