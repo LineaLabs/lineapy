@@ -62,6 +62,7 @@ setup(
         "networkx",
         "black",
         "rich",
+        "astpretty",
     ],
     extras_require={
         "dev": [
@@ -71,7 +72,6 @@ setup(
             "syrupy==1.4.5",
             "mypy",
             "pytest",
-            "astpretty",
             "matplotlib",
         ],
         "server": [
