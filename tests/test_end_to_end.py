@@ -502,3 +502,13 @@ class TestSlicing:
     def test_slice_with_start(self, execute):
         res = execute("x = [1, 2, 3][1:]")
         assert res.values["x"] == [2, 3]
+
+
+class TestDictionary:
+    def test_basic_dict(self, execute):
+        res = execute("x = {'a': 1, 'b': 2}")
+        assert res.values["x"] == {"a": 1, "b": 2}
+
+    def test_splatting(self, execute):
+        res = execute("x = {1: 2, 2:2, **{1: 3, 2: 3}, 1: 4}")
+        assert res.values["x"] == {1: 4, 2: 3}

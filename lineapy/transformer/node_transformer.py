@@ -41,7 +41,13 @@ from lineapy.constants import (
     INVERT,
 )
 from lineapy.instrumentation.tracer import SyntaxDictionary, Tracer
-from lineapy.lineabuiltins import __build_list__, __assert__, __build_tuple__
+from lineapy.lineabuiltins import (
+    __build_list__,
+    __assert__,
+    __build_tuple__,
+    __build_dict__,
+    __build_dict_kwargs_sentinel__,
+)
 from lineapy.transformer.transformer_util import (
     create_lib_attributes,
     extract_concrete_syntax_from_node,
@@ -332,10 +338,8 @@ class NodeTransformer(ast.NodeTransformer):
     def visit_Tuple(self, node: ast.Tuple) -> CallNode:
         elem_nodes = [self.visit(elem) for elem in node.elts]
         syntax_dictionary = extract_concrete_syntax_from_node(node)
-        return self.tracer.call(
-            self.tracer.lookup_node(__build_tuple__.__name__),
-            syntax_dictionary,
-            *elem_nodes,
+        return self.tracer.tuple(
+            *elem_nodes, syntax_dictionary=syntax_dictionary
         )
 
     def visit_BinOp(self, node: ast.BinOp) -> CallNode:
@@ -495,3 +499,27 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_If(self, node: ast.If) -> Node:
         return self._visit_black_box(node)
+
+    def visit_Dict(self, node: ast.Dict) -> CallNode:
+        keys = node.keys
+        values = node.values
+        # Build a dict call from a list of tuples of each key, mapping to each value
+        # If the key is None, use a sentinel value
+        return self.tracer.call(
+            self.tracer.lookup_node(__build_dict__.__name__),
+            extract_concrete_syntax_from_node(node),
+            *(
+                self.tracer.tuple(
+                    self.visit(k)
+                    if k is not None
+                    else self.tracer.call(
+                        self.tracer.lookup_node(
+                            __build_dict_kwargs_sentinel__.__name__
+                        ),
+                        {},
+                    ),
+                    self.visit(v),
+                )
+                for k, v in zip(keys, values)
+            ),
+        )

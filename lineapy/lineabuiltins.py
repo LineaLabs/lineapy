@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Literal, Optional, Union, Mapping, TypeVar
 from operator import *  # Keep unused import for transitive import by Executor
 
 # NOTE: previous attempt at some import issues with the operator model
@@ -7,6 +7,53 @@ from operator import *  # Keep unused import for transitive import by Executor
 
 def __build_list__(*items) -> List:
     return list(items)
+
+
+class _DictKwargsSentinel(object):
+    """
+    A sentinel object to be passed into __build_dict__ to signal that a certain
+    args is passed in as kwargs.
+    There is currently a PEP for a standard Python sentinel:
+    https://www.python.org/dev/peps/pep-0661/#id16
+    We use a custom class currently to aid in the typing.
+    """
+
+    pass
+
+
+def __build_dict_kwargs_sentinel__() -> _DictKwargsSentinel:
+    return _DictKwargsSentinel()
+
+
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+def __build_dict__(
+    *keys_and_values: Union[
+        tuple[K, V], tuple[_DictKwargsSentinel, Mapping[K, V]]
+    ]
+) -> dict[K, V]:
+    """
+    Build a dict from a number of key value pairs.
+
+    There is a special case for dictionary unpacking. In this case, the
+    key will be an instance of _DictKwargsSentinel.
+
+    For example, if the user creates a dict like {1: 2, **d, 3: 4},
+    then it will create a call like"
+    __build_dict__((1, 2), (__build_dict_kwargs_sentinel__(), d), (3, 4))
+
+    We use a sentinel value instead of None, because None can be a valid
+    dictionary key.
+    """
+    d: dict[K, V] = {}
+    for (key, value) in keys_and_values:
+        if isinstance(key, _DictKwargsSentinel):
+            d.update(value)  # type: ignore
+        else:
+            d[key] = value  # type: ignore
+    return d
 
 
 def __build_tuple__(*items) -> tuple:
