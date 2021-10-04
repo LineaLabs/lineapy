@@ -52,7 +52,8 @@ a = power(5, 2)
 b = root(a)
 """
 
-VARIABLE_ALIAS_CODE = """a = 1
+# also tests for float
+VARIABLE_ALIAS_CODE = """a = 1.2
 b = a
 """
 
@@ -178,8 +179,8 @@ class TestEndToEnd:
 
     def test_variable_alias(self, execute):
         res = execute(VARIABLE_ALIAS_CODE)
-        assert res.values["a"] == 1
-        assert res.values["b"] == 1
+        assert res.values["a"] == 1.2
+        assert res.values["b"] == 1.2
 
     def test_chained_ops(self, execute):
         code = "b = 1 < 2 < 3\nassert b"
