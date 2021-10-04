@@ -48,7 +48,7 @@ x = 1 + 2
 y = x + 3
 assert y == 4
 
-$ docker run --rm -v $PWD:/app -w /app ghcr.io/LineaLabs/lineapy:main my_script.py --print-graph
+$ docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main my_script.py --print-graph
 ...
 ```
 
