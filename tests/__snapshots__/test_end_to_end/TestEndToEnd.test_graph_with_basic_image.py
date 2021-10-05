@@ -25,9 +25,7 @@ img = img.resize([200, 200])
 
 lineapy.linea_publish(img, "Graph With Image")
 """,
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 import_1 = ImportNode(
     id=get_new_id(),

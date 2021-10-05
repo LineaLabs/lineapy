@@ -20,9 +20,7 @@ s = df[\'a\'].sum()
 
 lineapy.linea_publish(s, "Graph With CSV Import")
 """,
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 import_2 = ImportNode(
     id=get_new_id(),

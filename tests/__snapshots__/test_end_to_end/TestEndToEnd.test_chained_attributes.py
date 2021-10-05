@@ -13,9 +13,7 @@ session = SessionContext(
 source_1 = SourceCode(
     id=get_new_id(),
     code="import altair; altair.data_transformers.enable('json')",
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 call_3 = CallNode(
     id=get_new_id(),

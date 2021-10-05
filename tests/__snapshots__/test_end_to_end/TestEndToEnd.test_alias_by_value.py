@@ -16,9 +16,7 @@ source_1 = SourceCode(
 b = a
 a = 2
 """,
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 variable_2 = VariableNode(
     id=get_new_id(),

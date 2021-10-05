@@ -16,9 +16,7 @@ source_1 = SourceCode(
 b = min(a, 10)
 print(b)
 """,
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 call_3 = CallNode(
     id=get_new_id(),

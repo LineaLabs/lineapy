@@ -13,9 +13,7 @@ session = SessionContext(
 source_1 = SourceCode(
     id=get_new_id(),
     code="1",
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 literal_1 = LiteralNode(
     id=get_new_id(),

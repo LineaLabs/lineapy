@@ -13,9 +13,7 @@ session = SessionContext(
 source_1 = SourceCode(
     id=get_new_id(),
     code="import pandas as pd",
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 import_1 = ImportNode(
     id=get_new_id(),

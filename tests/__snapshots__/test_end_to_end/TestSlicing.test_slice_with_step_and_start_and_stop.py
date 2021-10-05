@@ -13,9 +13,7 @@ session = SessionContext(
 source_1 = SourceCode(
     id=get_new_id(),
     code="x = [1, 2, 3][1:2:2]",
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 variable_1 = VariableNode(
     id=get_new_id(),

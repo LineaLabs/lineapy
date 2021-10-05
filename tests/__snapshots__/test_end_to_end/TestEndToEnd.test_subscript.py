@@ -14,9 +14,7 @@ source_1 = SourceCode(
     id=get_new_id(),
     code="""ls = [1,2]
 assert ls[0] == 1""",
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 call_4 = CallNode(
     id=get_new_id(),

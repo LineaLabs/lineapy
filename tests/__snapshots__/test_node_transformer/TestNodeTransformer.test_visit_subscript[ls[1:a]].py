@@ -15,9 +15,7 @@ source_1 = SourceCode(
     code="""ls=[1,2,3]
 a=1
 ls[1:a]""",
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 call_3 = CallNode(
     id=get_new_id(),

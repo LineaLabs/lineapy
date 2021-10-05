@@ -16,9 +16,7 @@ source_1 = SourceCode(
 a = abs(11)
 lineapy.linea_publish(a, \'testing artifact publish\')
 """,
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 import_1 = ImportNode(
     id=get_new_id(),

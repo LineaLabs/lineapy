@@ -17,9 +17,7 @@ b = a
 a.append(4)
 s = sum(b)
 """,
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 variable_1 = VariableNode(
     id=get_new_id(),

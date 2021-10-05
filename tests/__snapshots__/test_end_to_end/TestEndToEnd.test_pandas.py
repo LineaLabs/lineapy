@@ -19,9 +19,7 @@ assert df.size == 4
 new_df = df.iloc[:, 1]
 assert new_df.size == 2
 """,
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 variable_2 = VariableNode(
     id=get_new_id(),

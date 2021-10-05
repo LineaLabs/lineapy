@@ -15,9 +15,7 @@ source_1 = SourceCode(
     code="""from decimal import Decimal
 obj = Decimal(\'3.1415926535897932384626433832795028841971\')
 assert +obj != obj""",
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 variable_2 = VariableNode(
     id=get_new_id(),

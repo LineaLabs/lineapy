@@ -16,9 +16,7 @@ source_1 = SourceCode(
 a = power(5, 2)
 b = root(a)
 """,
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 import_1 = ImportNode(
     id=get_new_id(),

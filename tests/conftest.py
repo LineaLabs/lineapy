@@ -20,6 +20,7 @@ from lineapy.execution.executor import Executor
 from lineapy.transformer.transformer import Transformer
 from lineapy.graph_reader.program_slice import get_program_slice
 from tests.util import get_project_directory
+from lineapy.utils import prettify
 
 # Based off of unmerged JSON extension
 # Writes each snapshot to its own Python file
@@ -150,15 +151,18 @@ class ExecuteFixture:
         # Verify snapshot of graph
         if compare_snapshot:
             assert (
-                graph.print(include_imports=True, include_id_field=True)
-                .replace(str(source_code_path), "[source file path]")
-                .replace(
-                    repr(context.creation_time),
-                    repr(datetime.datetime.fromordinal(1)),
-                )
-                .replace(
-                    context.working_directory,
-                    DUMMY_WORKING_DIR,
+                # Prettify again in case replacements cause line wraps
+                prettify(
+                    graph.print(include_imports=True, include_id_field=True)
+                    .replace(str(source_code_path), "[source file path]")
+                    .replace(
+                        repr(context.creation_time),
+                        repr(datetime.datetime.fromordinal(1)),
+                    )
+                    .replace(
+                        context.working_directory,
+                        DUMMY_WORKING_DIR,
+                    )
                 )
                 == self.snapshot
             )

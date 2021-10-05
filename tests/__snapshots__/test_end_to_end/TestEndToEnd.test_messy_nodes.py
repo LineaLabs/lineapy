@@ -25,9 +25,7 @@ g = e
 
 lineapy.linea_publish(f, \'f\')
 """,
-    location=PosixPath(
-        "[source file path]"
-    ),
+    location=PosixPath("[source file path]"),
 )
 import_1 = ImportNode(
     id=get_new_id(),
