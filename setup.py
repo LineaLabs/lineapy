@@ -63,6 +63,7 @@ setup(
         "black",
         "rich",
         "astpretty",
+        "attrs",
     ],
     extras_require={
         "dev": [
