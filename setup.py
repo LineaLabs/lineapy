@@ -73,7 +73,7 @@ setup(
             "mypy",
             "pytest",
             "matplotlib",
-            "coverage[toml]",
+            "coverage[toml]<5.0",
             "pytest-cov",
         ],
         "server": [
