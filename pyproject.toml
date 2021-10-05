@@ -6,6 +6,7 @@ exclude = '__snapshots__'
 profile = "black"
 
 [tool.coverage.run]
+source = ["lineapy"]
 # Trace which side of branches were taken
 # https://coverage.readthedocs.io/en/latest/branch.html#branch
 branch = true
