@@ -5,11 +5,15 @@ from typing import Optional
 from lineapy.constants import ExecutionMode
 
 
-def trace(session_name: Optional[str]=None, mode: ExecutionMode = ExecutionMode.MEMORY) -> None:
+def trace(
+    session_name: Optional[str] = None,
+    mode: ExecutionMode = ExecutionMode.MEMORY,
+) -> None:
     """
     Trace any subsequent cells with linea.
     """
     pass
+
 
 def stop() -> None:
     """

@@ -61,8 +61,6 @@ def are_str_equal(
         return False
 
 
-
-
 def reset_test_db(sqlite_uri: str):
     """ """
     try:
