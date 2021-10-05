@@ -75,6 +75,9 @@ setup(
             "matplotlib",
             "coverage[toml]",
             "pytest-cov",
+            "jupyterlab",
+            "ipython",
+            "SQLAlchemy[mypy]",
         ],
         "server": [
             "flask",

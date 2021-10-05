@@ -1,7 +1,9 @@
+from __future__ import annotations
 import json
 from datetime import datetime
 
 from sqlalchemy import (
+    CheckConstraint,
     Column,
     UniqueConstraint,
     Integer,
@@ -104,7 +106,6 @@ class SessionContextORM(Base):  # type: ignore
     id = Column(String, primary_key=True)
     environment_type = Column(Enum(SessionType))
     creation_time = Column(DateTime)
-    file_name = Column(String)
     working_directory = Column(String)
     session_name = Column(String, nullable=True)
     user_name = Column(String, nullable=True)
@@ -178,16 +179,50 @@ class NodeORM(Base):  # type: ignore
     col_offset = Column(Integer, nullable=True)  # col numbers are 0-indexed
     end_lineno = Column(Integer, nullable=True)
     end_col_offset = Column(Integer, nullable=True)
+    source_code_id = Column(
+        String, ForeignKey("source_code.id"), nullable=True
+    )
+    source_code: SourceCodeORM = relationship("SourceCodeORM", lazy="joined")
 
-    line = Column(Integer, nullable=True)
-    line_end = Column(Integer, nullable=True)
-    col_start = Column(Integer, nullable=True)
-    col_end = Column(Integer, nullable=True)
+    __table_args__ = (
+        # Either all source keys or none should be specified
+        CheckConstraint(
+            "(lineno IS NULL) = (col_offset is NULL) and "
+            "(col_offset is NULL) = (end_lineno is NULL) and "
+            "(end_lineno is NULL) = (end_col_offset is NULL) and "
+            "(end_col_offset is NULL) = (source_code_id is NULL)"
+        ),
+    )
 
     __mapper_args__ = {
         "polymorphic_on": node_type,
         "polymorphic_identity": NodeType.Node,
     }
+
+
+class SourceCodeORM(Base):
+    __tablename__ = "source_code"
+    # nodes: list[NodeORM] = relationship(
+    #     "NodeORM", back_populates="source_code"
+    # )
+
+    id = Column(String, primary_key=True)
+    code = Column(String)
+
+    path = Column(String, nullable=True)
+    jupyter_execution_count = Column(Integer, nullable=True)
+    jupyter_session_id = Column(String, nullable=True)
+
+    __table_args__ = (
+        # Either path is set or jupyter_execution_count and jupyter_session_id are set
+        CheckConstraint(
+            "(path IS NOT NULL) != ((jupyter_execution_count IS NOT NULL) AND (jupyter_execution_count IS NOT NULL))"
+        ),
+        # If one jupyter arg is provided, both must be
+        CheckConstraint(
+            "(jupyter_execution_count IS NULL) = (jupyter_session_id is NULL)"
+        ),
+    )
 
 
 side_effects_output_state_change_association_table = Table(

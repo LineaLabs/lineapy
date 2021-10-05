@@ -135,18 +135,17 @@ class ExecuteFixture:
         session_name = str(source_code_path)
 
         transformer = Transformer()
-        transformer.transform(
+        tracer = transformer.transform(
             code,
             session_type=session_type,
-            session_name=session_name,
+            path=session_name,
             execution_mode=ExecutionMode.MEMORY,
         )
-        tracer = transformer.tracer
 
         db = tracer.records_manager.db
 
         nodes = db.get_all_nodes()
-        context = db.get_context_by_file_name(session_name)
+        context = tracer.session_context
         graph = Graph(nodes, context)
         # Verify snapshot of graph
         if compare_snapshot:

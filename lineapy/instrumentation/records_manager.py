@@ -1,6 +1,12 @@
 from typing import List, Optional
 
-from lineapy.data.types import LineaID, Node, SessionContext, Library
+from lineapy.data.types import (
+    LineaID,
+    Node,
+    SessionContext,
+    Library,
+    SourceCode,
+)
 from lineapy.db.base import LineaDBConfig
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.utils import get_current_time
@@ -63,3 +69,6 @@ class RecordsManager:
         self, context_id: LineaID, library: Library
     ) -> None:
         self.db.add_lib_to_session_context(context_id, library)
+
+    def write_source_code(self, source_code: SourceCode) -> None:
+        self.db.write_source_code(source_code)

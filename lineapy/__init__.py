@@ -32,3 +32,16 @@ __all__ = [
     "ExecutionMode",
     "__version__",
 ]
+
+
+def load_ipython_extension(ipython: Any) -> None:
+    """
+    When running `%load_ext lineapy` this function
+    will be run.
+    See https://ipython.readthedocs.io/en/stable/config/custommagics.html#defining-custom-magics
+    for information on the `load_ipython_extension` function.
+    """
+    # Register a custom AST transformation
+    # https://ipython.readthedocs.io/en/stable/config/inputtransforms.html#ast-transformations
+    Tracer(session_type, session_name, execution_mode)
+    ipython.shell.ast_transformers.append(Tracer())

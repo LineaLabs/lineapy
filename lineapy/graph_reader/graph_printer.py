@@ -13,7 +13,7 @@ from pydantic.fields import SHAPE_LIST
 
 if TYPE_CHECKING:
     from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID, NodeType
+from lineapy.data.types import LineaID, NodeType, SourceCode, SourceLocation
 from lineapy.utils import prettify
 
 
@@ -46,6 +46,8 @@ class GraphPrinter:
         default_factory=lambda: collections.defaultdict(lambda: 0)
     )
 
+    source_code_count: int = field(default=0)
+
     def print(self) -> str:
         return prettify("\n".join(self.lines()))
 
@@ -61,6 +63,7 @@ class GraphPrinter:
     def lines(self) -> Iterable[str]:
         if self.include_imports:
             yield "import datetime"
+            yield "from pathlib import *"
             yield "from lineapy.data.types import *"
             yield "from lineapy.utils import get_new_id"
         if self.include_session:
@@ -71,6 +74,23 @@ class GraphPrinter:
         for node in self.graph.visit_order():
             node_id = node.id
             attr_name = self.get_node_type_name(node.node_type)
+
+            # If the node has source code, and we haven't printed it before
+            # print that first so it will just reference
+            source_location = node.source_location
+            if (
+                source_location
+                and source_location.source_code.id
+                not in self.id_to_attribute_name
+            ):
+                self.source_code_count += 1
+                name = f"source_{self.source_code_count}"
+                self.id_to_attribute_name[
+                    source_location.source_code.id
+                ] = name
+                yield f"{name} = ("
+                yield from self.pretty_print_model(source_location.source_code)
+                yield ")"
             # If the node only has one successor, then save its body
             # as the attribute name, so its inlined when accessed.
             if (
@@ -135,7 +155,9 @@ class GraphPrinter:
             yield f"{k}={v_str},"
 
     def pretty_print_value(self, v: object) -> Iterable[str]:
-        if isinstance(v, enum.Enum):
+        if isinstance(v, SourceCode):
+            yield self.lookup_id(v.id)
+        elif isinstance(v, enum.Enum):
             yield f"{type(v).__name__}.{v.name}"
         elif isinstance(v, BaseModel):
             yield from self.pretty_print_model(v)
@@ -145,6 +167,8 @@ class GraphPrinter:
                 yield from self.pretty_print_value(x)
                 yield ","
             yield "]"
+        elif isinstance(v, str):
+            yield pretty_print_str(v)
         else:
             value = repr(v)
             # Try parsing as Python code, if we can't, then wrap in string.
@@ -153,6 +177,17 @@ class GraphPrinter:
             except SyntaxError:
                 value = repr(value)
             yield value
+
+
+def pretty_print_str(s: str) -> str:
+    """
+    Pretty prints a string, so that if it has a newline, prints it as a triple
+    quoted string.
+    """
+    if "\n" in s:
+        string_escape_single_quote = s.replace("'", "\\'")
+        return f"'''{string_escape_single_quote}'''"
+    return repr(s)
 
 
 def pretty_print_node_type(type: NodeType) -> str:

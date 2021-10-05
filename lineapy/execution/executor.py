@@ -24,7 +24,7 @@ from lineapy.data.types import (
     LineaID,
     VariableNode,
 )
-from lineapy.graph_reader.graph_util import get_segment_from_code
+from lineapy.graph_reader.graph_util import get_segment_from_source_location
 
 
 class Executor:
@@ -184,7 +184,6 @@ class Executor:
         FIXME: side effect evaluation is currently not supported
         """
 
-        code = program.source_code
         for node in program.visit_order():
 
             scoped_locals = locals()
@@ -214,14 +213,18 @@ class Executor:
                 node = cast(SideEffectsNode, node)
                 # set up vars and imports
                 self.setup_context_for_node(node, program, scoped_locals)
-                exec(get_segment_from_code(code, node))
+                source_location = node.source_location
+                assert source_location
+                exec(get_segment_from_source_location(source_location))
                 self.update_node_side_effects(node, program, scoped_locals)
 
             elif node.node_type == NodeType.FunctionDefinitionNode:
                 node = cast(FunctionDefinitionNode, node)
+                source_location = node.source_location
+                assert source_location
                 self.setup_context_for_node(node, program, scoped_locals)
                 exec(
-                    get_segment_from_code(code, node),
+                    get_segment_from_source_location(source_location),
                     scoped_locals,
                 )
                 node.value = scoped_locals[node.function_name]

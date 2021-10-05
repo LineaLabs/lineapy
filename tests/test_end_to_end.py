@@ -475,7 +475,8 @@ class TestListComprehension:
         )
         # Verify that i isn't set in the local scope
         assert res.values == {"x": [1, 2, 3], "y": range(3)}
-        assert execute(res.slice("x")).values["x"] == [1, 2, 3]
+        sliced_code = res.slice("x")
+        assert execute(sliced_code).values["x"] == [1, 2, 3]
 
 
 class TestSlicing:

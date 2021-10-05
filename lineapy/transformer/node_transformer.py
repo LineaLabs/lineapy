@@ -1,7 +1,15 @@
 import ast
+
+from attr import has
 from lineapy.transformer.analyze_ast_scope import analyze_ast_scope
 import lineapy
-from lineapy.data.types import CallNode, Node
+from lineapy.data.types import (
+    CallNode,
+    Node,
+    SourceCode,
+    SourceCodeLocation,
+    SourceLocation,
+)
 from typing import Optional, Union, cast, Any
 
 
@@ -40,7 +48,7 @@ from lineapy.constants import (
     NEG,
     INVERT,
 )
-from lineapy.instrumentation.tracer import SyntaxDictionary, Tracer
+from lineapy.instrumentation.tracer import Tracer
 from lineapy.lineabuiltins import (
     __build_list__,
     __assert__,
@@ -56,6 +64,7 @@ from lineapy.utils import (
     InternalLogicError,
     UserError,
     InvalidStateError,
+    get_new_id,
     info_log,
 )
 
@@ -67,13 +76,17 @@ class NodeTransformer(ast.NodeTransformer):
       so that the transformation do not get called more than once.
     """
 
-    # TODO: Remove source
-    def __init__(self, source: str, tracer: Tracer):
-        self.source = source
+    def __init__(
+        self, code: str, location: SourceCodeLocation, tracer: Tracer
+    ):
+        self.source_code = SourceCode(
+            id=get_new_id(), code=code, location=location
+        )
+        tracer.records_manager.write_source_code(self.source_code)
         self.tracer = tracer
 
-    def _get_code_from_node(self, node):
-        return ast.get_source_segment(self.source, node)
+    def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
+        return ast.get_source_segment(self.source_code.code, node)
 
     def visit(self, node: ast.AST) -> Any:
         """
@@ -102,14 +115,13 @@ class NodeTransformer(ast.NodeTransformer):
         return super().generic_visit(node)
 
     def visit_Assert(self, node: ast.Assert) -> None:
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
 
         args = [self.visit(node.test)]
         if node.msg:
             args.append(self.visit(node.msg))
         self.tracer.call(
             self.tracer.lookup_node(__assert__.__name__),
-            syntax_dictionary,
+            self.get_source(node),
             *args,
         )
 
@@ -117,20 +129,18 @@ class NodeTransformer(ast.NodeTransformer):
         """
         Similar to `visit_ImportFrom`, slightly different class syntax
         """
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
         for lib in node.names:
             self.tracer.trace_import(
                 lib.name,
-                syntax_dictionary,
+                self.get_source(node),
                 alias=lib.asname,
             )
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         assert node.module
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
         self.tracer.trace_import(
             node.module,
-            syntax_dictionary,
+            self.get_source(node),
             attributes=create_lib_attributes(node.names),
         )
 
@@ -192,7 +202,7 @@ class NodeTransformer(ast.NodeTransformer):
 
         return self.tracer.call(
             function_node,
-            extract_concrete_syntax_from_node(node),
+            self.get_source(node),
             *argument_nodes,
             **keyword_argument_nodes,
         )
@@ -208,14 +218,14 @@ class NodeTransformer(ast.NodeTransformer):
         elif isinstance(target, ast.Subscript):
             self.tracer.call(
                 self.tracer.lookup_node(DEL_ITEM),
-                syntax_dictionary,
+                self.get_source(node),
                 self.visit(target.value),
                 self.visit(target.slice),
             )
         elif isinstance(target, ast.Attribute):
             self.tracer.call(
                 self.tracer.lookup_node(DEL_ATTR),
-                syntax_dictionary,
+                self.get_source(node),
                 self.visit(target.value),
                 self.visit(ast.Constant(value=target.attr)),
             )
@@ -225,8 +235,10 @@ class NodeTransformer(ast.NodeTransformer):
             )
 
     def visit_Constant(self, node: ast.Constant) -> Node:
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
-        return self.tracer.literal(node.value, syntax_dictionary)
+        return self.tracer.literal(
+            node.value,
+            self.get_source(node),
+        )
 
     def visit_Assign(self, node: ast.Assign) -> None:
         """
@@ -236,17 +248,18 @@ class NodeTransformer(ast.NodeTransformer):
           from ast.Expr.
         """
         assert len(node.targets) == 1
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
         target = node.targets[0]
         self.visit_assign_value(
-            target, self.visit(node.value), syntax_dictionary
+            target,
+            self.visit(node.value),
+            self.get_source(node),
         )
 
     def visit_assign_value(
         self,
         target: ast.AST,
         value_node: Node,
-        syntax_dictionary: SyntaxDictionary,
+        source_location: Optional[SourceLocation] = None,
     ) -> None:
         """
         Visits assigning a target node to a value. This is extracted out of
@@ -265,7 +278,7 @@ class NodeTransformer(ast.NodeTransformer):
             # if isinstance(index, (ast.Constant, ast.Name, ast.List, ast.Slice)):
             self.tracer.call(
                 self.tracer.lookup_node(SET_ITEM),
-                syntax_dictionary,
+                source_location,
                 self.visit(target.value),
                 self.visit(index),
                 value_node,
@@ -274,7 +287,7 @@ class NodeTransformer(ast.NodeTransformer):
         elif isinstance(target, ast.Attribute):
             self.tracer.call(
                 self.tracer.lookup_node(SET_ATTR),
-                syntax_dictionary,
+                source_location,
                 self.visit(target.value),
                 self.visit(ast.Constant(target.attr)),
                 value_node,
@@ -290,18 +303,17 @@ class NodeTransformer(ast.NodeTransformer):
                     target_el,
                     self.tracer.call(
                         self.tracer.lookup_node(GET_ITEM),
-                        {},
+                        None,
                         value_node,
-                        self.tracer.literal(i, {}),
+                        self.tracer.literal(i),
                     ),
-                    {},
                 )
         elif isinstance(target, ast.Name):
             variable_name = target.id
             self.tracer.assign(
                 variable_name,
                 value_node,
-                syntax_dictionary,
+                source_location,
             )
         else:
             raise NotImplementedError(
@@ -318,28 +330,26 @@ class NodeTransformer(ast.NodeTransformer):
             ast.USub: NEG,
         }
         op = node.op
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
 
         return self.tracer.call(
             self.tracer.lookup_node(ast_to_op_map[type(op)]),
-            syntax_dictionary,
+            self.get_source(node),
             self.visit(node.operand),
         )
 
     def visit_List(self, node: ast.List) -> CallNode:
         elem_nodes = [self.visit(elem) for elem in node.elts]
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
         return self.tracer.call(
             self.tracer.lookup_node(__build_list__.__name__),
-            syntax_dictionary,
+            self.get_source(node),
             *elem_nodes,
         )
 
     def visit_Tuple(self, node: ast.Tuple) -> CallNode:
         elem_nodes = [self.visit(elem) for elem in node.elts]
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
         return self.tracer.tuple(
-            *elem_nodes, syntax_dictionary=syntax_dictionary
+            *elem_nodes,
+            source_location=self.get_source(node),
         )
 
     def visit_BinOp(self, node: ast.BinOp) -> CallNode:
@@ -362,7 +372,7 @@ class NodeTransformer(ast.NodeTransformer):
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
         return self.tracer.call(
             self.tracer.lookup_node(op),
-            extract_concrete_syntax_from_node(node),
+            self.get_source(node),
             *argument_nodes,
         )
 
@@ -394,7 +404,7 @@ class NodeTransformer(ast.NodeTransformer):
             if op.__class__ in ast_to_op_map:
                 left = self.tracer.call(
                     self.tracer.lookup_node(ast_to_op_map[op.__class__]),
-                    extract_concrete_syntax_from_node(node),
+                    self.get_source(node),
                     left,
                     right,
                 )
@@ -402,13 +412,13 @@ class NodeTransformer(ast.NodeTransformer):
                 # need to call operator.not_ on __contains___
                 inside = self.tracer.call(
                     self.tracer.lookup_node(ast_to_op_map[ast.In]),
-                    extract_concrete_syntax_from_node(node),
+                    self.get_source(node),
                     left,
                     right,
                 )
                 left = self.tracer.call(
                     self.tracer.lookup_node(NOT),
-                    extract_concrete_syntax_from_node(node),
+                    self.get_source(node),
                     inside,
                 )
 
@@ -416,7 +426,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Slice(self, node: ast.Slice) -> CallNode:
         stop_node = (
-            self.visit(node.upper) if node.upper else self.tracer.none()
+            self.visit(node.upper) if node.upper else self.tracer.literal(None)
         )
         # From https://docs.python.org/3/library/functions.html?highlight=slice#slice
         # slice can be called in two ways:
@@ -426,7 +436,9 @@ class NodeTransformer(ast.NodeTransformer):
         # 2. slice(start, stop, [step]) otherwise
         else:
             start_node = (
-                self.visit(node.lower) if node.lower else self.tracer.none()
+                self.visit(node.lower)
+                if node.lower
+                else self.tracer.literal(None)
             )
             args = [start_node, stop_node]
             if node.step:
@@ -435,7 +447,7 @@ class NodeTransformer(ast.NodeTransformer):
 
         return self.tracer.call(
             self.tracer.lookup_node(slice.__name__),
-            extract_concrete_syntax_from_node(node),
+            self.get_source(node),
             *args,
         )
 
@@ -446,7 +458,7 @@ class NodeTransformer(ast.NodeTransformer):
         if isinstance(node.ctx, ast.Load):
             return self.tracer.call(
                 self.tracer.lookup_node(GET_ITEM),
-                extract_concrete_syntax_from_node(node),
+                self.get_source(node),
                 *args,
             )
         elif isinstance(node.ctx, ast.Del):
@@ -467,20 +479,21 @@ class NodeTransformer(ast.NodeTransformer):
         """
 
         function_name = node.name
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
-        self.tracer.define_function(function_name, syntax_dictionary)
+        self.tracer.define_function(
+            function_name,
+            self.get_source(node),
+        )
 
     def visit_Attribute(self, node: ast.Attribute) -> CallNode:
 
         return self.tracer.call(
             self.tracer.lookup_node(GETATTR),
-            extract_concrete_syntax_from_node(node),
+            self.get_source(node),
             self.visit(node.value),
             self.visit(ast.Constant(value=node.attr)),
         )
 
     def _visit_black_box(self, node: Union[ast.ListComp, ast.If]):
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
         code = self._get_code_from_node(node)
         scope = analyze_ast_scope(node)
         input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
@@ -489,7 +502,7 @@ class NodeTransformer(ast.NodeTransformer):
         return self.tracer.exec(
             code=code,
             is_expression=True,
-            syntax_dictionary=syntax_dictionary,
+            source_location=self.get_source(node),
             input_values=input_values,
             output_variables=list(scope.stored),
         )
@@ -507,7 +520,7 @@ class NodeTransformer(ast.NodeTransformer):
         # If the key is None, use a sentinel value
         return self.tracer.call(
             self.tracer.lookup_node(__build_dict__.__name__),
-            extract_concrete_syntax_from_node(node),
+            self.get_source(node),
             *(
                 self.tracer.tuple(
                     self.visit(k)
@@ -516,10 +529,21 @@ class NodeTransformer(ast.NodeTransformer):
                         self.tracer.lookup_node(
                             __build_dict_kwargs_sentinel__.__name__
                         ),
-                        {},
+                        None,
                     ),
                     self.visit(v),
                 )
                 for k, v in zip(keys, values)
             ),
+        )
+
+    def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
+        if not hasattr(node, "lineno"):
+            return None
+        return SourceLocation(
+            source_code=self.source_code,
+            lineno=node.lineno,
+            col_offset=node.col_offset,
+            end_lineno=node.end_lineno,
+            end_col_offset=node.end_col_offset,
         )

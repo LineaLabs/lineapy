@@ -1,9 +1,13 @@
+from __future__ import annotations
 from dataclasses import dataclass
 import datetime
 from enum import Enum
-from math import inf
-from typing import Any, NewType, Tuple, Optional, List, Dict
+from typing import TYPE_CHECKING, Any, NewType, Optional, List, Dict, Union
 from pydantic import BaseModel
+from pathlib import Path
+
+if TYPE_CHECKING:
+    from db.relational import NodeORM
 
 
 class SessionType(Enum):
@@ -85,24 +89,11 @@ class SessionContext(BaseModel):
     id: LineaID  # populated on creation by uuid.uuid4()
     environment_type: SessionType
     creation_time: datetime.datetime
-    # making file name required since every thing runs from some file
-    file_name: str
-    code: str
     working_directory: str  # must be passed in for now
-    session_name: Optional[str]  # TODO: add API for user
+    session_name: Optional[str]
     user_name: Optional[str] = None
     hardware_spec: Optional[HardwareSpec] = None
     libraries: List[Library] = []
-
-    class Config:
-        orm_mode = True
-
-
-class NodeContext(BaseModel):
-    lines: Tuple[int, int]
-    columns: Tuple[int, int]
-    execution_duration: datetime.datetime
-    cell_id: Optional[str] = None  # only applicable to Jupyter sessions
 
     class Config:
         orm_mode = True
@@ -188,6 +179,112 @@ class Artifact(BaseModel):
         orm_mode = True
 
 
+class JupyterCell(BaseModel):
+    # The execution number of the cell
+    # https://nbformat.readthedocs.io/en/latest/format_description.html#code-cells
+    execution_count: int
+    # The session context ID for this execution
+    session_id: LineaID
+
+
+SourceCodeLocation = Union[Path, JupyterCell]
+
+
+class SourceCode(BaseModel):
+    """
+    The source code of the code that was executed.
+    """
+
+    id: LineaID
+    code: str
+    location: SourceCodeLocation
+
+    class Config:
+        orm_mode = True
+
+    def __hash__(self) -> int:
+        return hash((self.id))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, SourceCode):
+            return NotImplemented
+        return self.id == other.id
+
+    def __lt__(self, other: object) -> bool:
+        """
+        Returns true if the this source code comes before the other, only applies
+        to Jupyter sources.
+
+        It will return not implemented, if they are not from the same file
+        or the same Jupyter session.
+        """
+        if not isinstance(other, SourceCode):
+            return NotImplemented
+        self_location = self.location
+        other_location = other.location
+        if isinstance(self_location, Path) and isinstance(
+            other_location, Path
+        ):
+            # If they are of different files, we can't compare them
+            if self_location != other_location:
+                return NotImplemented
+            # Otherwise, they are equal so not lt
+            return False
+        elif isinstance(self_location, JupyterCell) and isinstance(
+            other_location, JupyterCell
+        ):
+            # If they are from different sessions, we cant compare them.
+            if self_location.session_id != other_location.session_id:
+                return NotImplemented
+            # Compare jupyter cells first by execution count, then line number
+            return (self_location.execution_count,) < (
+                other_location.execution_count,
+            )
+        # If they are different source locations, we don't know how to compare
+        assert type(self_location) == type(other_location)
+        return NotImplemented
+
+
+class SourceLocation(BaseModel):
+    """
+    The location of the original source.
+
+    eventually we need to also be able to support fused locations, like MLIR:
+    https://mlir.llvm.org/docs/Dialects/Builtin/#location-attributes
+    but for now we just point at the original user source location.
+    """
+
+    lineno: int
+    col_offset: int
+    end_lineno: int
+    end_col_offset: int
+    source_code: SourceCode
+
+    def __lt__(self, other: object) -> bool:
+        """
+        Returns true if the this source location comes before the other.
+
+        It will return not implemented, if they are not from the same file
+        or the same Jupyter session.
+        """
+        if not isinstance(other, SourceLocation):
+            return NotImplemented
+        source_code_lt = self.source_code < other.source_code
+        # If they are different source locations, we don't know how to compare
+        if source_code_lt == NotImplemented:
+            return NotImplemented
+        # Otherwise, if they are from the same source, compare by line number
+        if self.source_code.location == other.source_code.location:
+            return (self.lineno, self.col_offset) < (
+                other.lineno,
+                other.col_offset,
+            )
+        return source_code_lt
+
+    class Config:
+        orm_mode = True
+
+
 class Node(BaseModel):
     """
     - id: string version of UUID, which we chose because
@@ -203,10 +300,7 @@ class Node(BaseModel):
     id: LineaID
     session_id: LineaID  # refers to SessionContext.id
     node_type: NodeType = NodeType.Node
-    lineno: Optional[int]
-    col_offset: Optional[int]
-    end_lineno: Optional[int]
-    end_col_offset: Optional[int]
+    source_location: Optional[SourceLocation]
 
     class Config:
         orm_mode = True
@@ -220,10 +314,13 @@ class Node(BaseModel):
         """
         if not isinstance(other, Node):
             return NotImplemented
-        return (self.lineno or -1, self.col_offset or -1) < (
-            other.lineno or -1,
-            other.col_offset or -1,
-        )
+
+        if not other.source_location:
+            return False
+        if not self.source_location:
+            return True
+
+        return self.source_location < other.source_location
 
 
 class SideEffectsNode(Node):

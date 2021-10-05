@@ -78,15 +78,6 @@ class Graph(object):
     def nodes(self) -> List[Node]:
         return self._nodes
 
-    @property
-    def source_code(self) -> str:
-        """
-        Note that this is named "source_code" to emphasize that this was the
-          original code, in the case where the graph is modified, the
-          "derived_code" would be different
-        """
-        return self.session_context.code
-
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
 

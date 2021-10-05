@@ -1,4 +1,5 @@
 import datetime
+from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
@@ -6,23 +7,26 @@ session = SessionContext(
     id=get_new_id(),
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    file_name="[source file path]",
-    code="import altair; altair.data_transformers.enable('json')",
     working_directory="dummy_linea_repo/",
-    libraries=[
-        Library(
-            id=get_new_id(),
-            name="altair",
-        ),
-    ],
+    libraries=[],
+)
+source_1 = SourceCode(
+    id=get_new_id(),
+    code="import altair; altair.data_transformers.enable('json')",
+    location=PosixPath(
+        "[source file path]"
+    ),
 )
 call_3 = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=1,
-    col_offset=15,
-    end_lineno=1,
-    end_col_offset=54,
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=15,
+        end_lineno=1,
+        end_col_offset=54,
+        source_code=source_1.id,
+    ),
     arguments=[
         ArgumentNode(
             id=get_new_id(),
@@ -31,10 +35,13 @@ call_3 = CallNode(
             value_node_id=LiteralNode(
                 id=get_new_id(),
                 session_id=session.id,
-                lineno=1,
-                col_offset=47,
-                end_lineno=1,
-                end_col_offset=53,
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=47,
+                    end_lineno=1,
+                    end_col_offset=53,
+                    source_code=source_1.id,
+                ),
                 value="json",
             ).id,
         ).id
@@ -42,10 +49,13 @@ call_3 = CallNode(
     function_id=CallNode(
         id=get_new_id(),
         session_id=session.id,
-        lineno=1,
-        col_offset=15,
-        end_lineno=1,
-        end_col_offset=46,
+        source_location=SourceLocation(
+            lineno=1,
+            col_offset=15,
+            end_lineno=1,
+            end_col_offset=46,
+            source_code=source_1.id,
+        ),
         arguments=[
             ArgumentNode(
                 id=get_new_id(),
@@ -54,10 +64,13 @@ call_3 = CallNode(
                 value_node_id=CallNode(
                     id=get_new_id(),
                     session_id=session.id,
-                    lineno=1,
-                    col_offset=15,
-                    end_lineno=1,
-                    end_col_offset=39,
+                    source_location=SourceLocation(
+                        lineno=1,
+                        col_offset=15,
+                        end_lineno=1,
+                        end_col_offset=39,
+                        source_code=source_1.id,
+                    ),
                     arguments=[
                         ArgumentNode(
                             id=get_new_id(),
@@ -66,10 +79,13 @@ call_3 = CallNode(
                             value_node_id=ImportNode(
                                 id=get_new_id(),
                                 session_id=session.id,
-                                lineno=1,
-                                col_offset=0,
-                                end_lineno=1,
-                                end_col_offset=13,
+                                source_location=SourceLocation(
+                                    lineno=1,
+                                    col_offset=0,
+                                    end_lineno=1,
+                                    end_col_offset=13,
+                                    source_code=source_1.id,
+                                ),
                                 library=Library(
                                     id=get_new_id(),
                                     name="altair",
