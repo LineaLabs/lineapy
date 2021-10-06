@@ -89,10 +89,8 @@ class LineaInputTransformer:
         Translate the lines of code for the cell provided by ipython.
         """
         # TODO: better exit and stop detection
-        if (
-            lines
-            and "exit()" in lines[0]
-            or "lineapy.ipython.stop()" in lines[0]
+        if lines and (
+            "exit()" in lines[0] or "lineapy.ipython.stop()" in lines[0]
         ):
             return lines
 
