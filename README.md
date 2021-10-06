@@ -2,6 +2,8 @@
 
 Lineapy is a Python library for analyzing data science workflows.
 
+[![Coverage Status](https://coveralls.io/repos/github/LineaLabs/lineapy/badge.svg?t=jgH0YL)](https://coveralls.io/github/LineaLabs/lineapy)
+
 ## Features
 
 ### CLI

@@ -74,12 +74,15 @@ setup(
             "mypy",
             "pytest",
             "matplotlib",
-            "coverage[toml]",
+            # Coveralls doesn't work with 6.0
+            # https://github.com/TheKevJames/coveralls-python/issues/326
+            "coverage[toml]<6.0",
             "pytest-cov",
             "jupyterlab",
             "ipython",
             "nbval",
             "SQLAlchemy[mypy]",
+            "coveralls",
         ],
         "server": [
             "flask",
