@@ -222,6 +222,10 @@ def queue_get_when(queue: Queue[T], filter_fn: Callable[[T], bool]) -> T:
     """
     # We have to pop off a number of elements, stopping when we find one that
     # satisfies our conditional, since we can't iterate through a queue.
+
+    # Use a timeout of 0 for the gets, otherewise if we have some bug
+    # where we are trying to get off the queue and its empty it will just
+    # block forever. with a timeout of 0, it will raise an exception instead.
     popped_off = [queue.get(timeout=0)]
     while not filter_fn(popped_off[-1]):
         popped_off.append(queue.get(timeout=0))
