@@ -1,2 +1,6 @@
 [flake8]
 exclude = __snapshots__
+per-file-ignores =
+    # ignore get_ipython missing 
+    lineapy/ipython.py: F821
+
