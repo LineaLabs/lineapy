@@ -8,7 +8,6 @@ from lineapy.data.graph import Graph
 from lineapy.lineabuiltins import __exec__, __build_tuple__
 from lineapy.data.types import (
     CallNode,
-    FunctionDefinitionNode,
     ImportNode,
     Library,
     LineaID,
@@ -361,22 +360,6 @@ class Tracer:
         self.variable_name_to_node[variable_name] = new_node
         return
 
-    def define_function(
-        self,
-        function_name: str,
-        syntax_dictionary: Dict,
-    ) -> None:
-        """
-        TODO: see limitations in `visit_FunctionDef` about function being pure
-        """
-        node = FunctionDefinitionNode(
-            id=get_new_id(),
-            session_id=self.session_context.id,
-            function_name=function_name,
-        )
-        self.variable_name_to_node[function_name] = node
-        self.add_unevaluated_node(node, syntax_dictionary)
-
     def loop(self) -> None:
         """
         Handles both for and while loops. Since we are treating it like a black
@@ -396,30 +379,6 @@ class Tracer:
         """
         pass
 
-    # Overload when is expression, returns Node
-    @overload
-    def exec(
-        self,
-        code: str,
-        is_expression: Literal[True],
-        output_variables: list[str],
-        input_values: dict[str, Node],
-        syntax_dictionary: SyntaxDictionary,
-    ) -> Node:
-        ...
-
-    # Overload when is statement, returns None
-    @overload
-    def exec(
-        self,
-        code: str,
-        is_expression: Literal[False],
-        output_variables: list[str],
-        input_values: dict[str, Node],
-        syntax_dictionary: SyntaxDictionary,
-    ) -> None:
-        ...
-
     def exec(
         self,
         code: str,
@@ -438,6 +397,8 @@ class Tracer:
         If is_expression is True, it will return the result of the expression, otherwise
         it will return None.
         """
+        # make sure it's sorted so that the printer will be consistent
+        output_variables.sort()
         res = self.call(
             self.lookup_node(__exec__.__name__),
             syntax_dictionary,

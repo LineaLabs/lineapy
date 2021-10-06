@@ -21,6 +21,26 @@ class _DictKwargsSentinel(object):
     pass
 
 
+class _VariableNotSetSentinel(object):
+    """
+    A sentinel object to let us know that an object is not set at runtime
+      this is useful when we do static analysis and do not know which
+      branch was executed, e.g. in
+      ```
+      if True:
+        c = 10
+        if True:
+          k = 6
+      else:
+        d = 5
+      ```
+      `c` and `k` will be set, but `d` will NOT be!
+
+    """
+
+    pass
+
+
 def __build_dict_kwargs_sentinel__() -> _DictKwargsSentinel:
     return _DictKwargsSentinel()
 
@@ -75,7 +95,7 @@ _EXPRESSION_SAVED_NAME = "__linea_expresion__"
 
 def __exec__(
     code: str, is_expr: bool, *output_locals: str, **input_locals: object
-) -> list[object]:
+) -> list[Union[object, _VariableNotSetSentinel]]:
     """
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
@@ -87,7 +107,10 @@ def __exec__(
         code = f"{_EXPRESSION_SAVED_NAME} = {code}"
     bytecode = compile(code, "<string>", "exec")
     exec(bytecode, globals(), input_locals)
-    returned_locals = [input_locals[name] for name in output_locals]
+    returned_locals = [
+        input_locals.get(name, _VariableNotSetSentinel())
+        for name in output_locals
+    ]
     if is_expr:
         returned_locals.append(input_locals[_EXPRESSION_SAVED_NAME])
     return returned_locals

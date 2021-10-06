@@ -7,16 +7,30 @@ session = SessionContext(
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
-    code="a=1\nb=2\na != b",
+    code="a=1\nb=2\nc=3\na != b",
     working_directory="dummy_linea_repo/",
     libraries=[],
+)
+variable_3 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=LiteralNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=3,
+        value=3,
+    ).id,
+    assigned_variable_name="c",
 )
 call_1 = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=3,
+    lineno=4,
     col_offset=0,
-    end_lineno=3,
+    end_lineno=4,
     end_col_offset=6,
     arguments=[
         ArgumentNode(

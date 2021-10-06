@@ -3,7 +3,6 @@ from typing import Iterator, cast, List, Dict, Optional, Any
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
-    FunctionDefinitionNode,
     Node,
     NodeType,
     DirectedEdge,
@@ -56,16 +55,6 @@ def get_parents_from_node(node: Node) -> Iterator[LineaID]:
         node = cast(ArgumentNode, node)
         if node.value_node_id is not None:
             yield node.value_node_id
-    elif node.node_type in [
-        NodeType.LoopNode,
-        NodeType.ConditionNode,
-        NodeType.FunctionDefinitionNode,
-    ]:
-        node = cast(SideEffectsNode, node)
-        if node.import_nodes is not None:
-            yield from node.import_nodes
-        if node.input_state_change_nodes is not None:
-            yield from node.input_state_change_nodes
     elif node.node_type is NodeType.StateChangeNode:
         node = cast(StateChangeNode, node)
         if node.state_dependency_type is StateDependencyType.Write:
@@ -129,14 +118,12 @@ def are_nodes_content_equal(n1: Node, n2: Node, session_code: str) -> bool:
         ):
             internal_warning_log("Nodes point to different code")
             return False
-        if n1.function_name != n2.function_name:
+        if n1.function_id != n2.function_id:
             internal_warning_log(
-                "Nodes have different names",
-                n1.function_name,
-                n2.function_name,
+                "Nodes have different function ids",
+                n1.function_id,
+                n2.function_id,
             )
-            return False
-        if n1.assigned_variable_name != n2.assigned_variable_name:
             return False
         return True
     if n1.node_type is NodeType.ArgumentNode:
@@ -163,18 +150,6 @@ def are_nodes_content_equal(n1: Node, n2: Node, session_code: str) -> bool:
                 n2.value_literal,
             )
             return False
-        return True
-    if n1.node_type is NodeType.FunctionDefinitionNode:
-        n1 = cast(FunctionDefinitionNode, n1)
-        n2 = cast(FunctionDefinitionNode, n2)
-        if n1.function_name != n2.function_name:
-            internal_warning_log(
-                "FunctionDefinitionNode different",
-                n1.function_name,
-                n2.function_name,
-            )
-            return False
-        # TODO: add state variable checks!!!
         return True
 
     raise CaseNotHandledError(f"{n1.node_type} is not supported")

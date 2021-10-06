@@ -121,8 +121,8 @@ class GraphPrinter:
                 v_str = "session.id"
             elif tp == LineaID and shape == SHAPE_LIST and v is not None:
                 args = [self.lookup_id(id_) for id_ in v]
-                # Arguments are unordered, even though they are lists not sets,
-                # so sort them before exporting
+                # Arguments are unordered and we need to sort them to
+                #   make sure that the diffing do not create false negatives
                 if k == "arguments":
                     args.sort()
                 v_str = "[" + ", ".join(args) + "]"

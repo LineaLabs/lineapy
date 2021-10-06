@@ -148,3 +148,5 @@ temp.py
 *.png
 
 tmp_*
+housing.csv
+*.temp
