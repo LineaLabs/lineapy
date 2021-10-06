@@ -76,6 +76,7 @@ setup(
             "matplotlib",
             "coverage[toml]<5.0",
             "pytest-cov",
+            "coveralls",
         ],
         "server": [
             "flask",
