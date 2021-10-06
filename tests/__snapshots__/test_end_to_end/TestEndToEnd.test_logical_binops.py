@@ -1,4 +1,5 @@
 import datetime
+from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
@@ -6,21 +7,41 @@ session = SessionContext(
     id=get_new_id(),
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    file_name="[source file path]",
-    code="a = 1\nb = 2\nr1 = a == b\nr2 = a != b\nr3 = a < b\nr4 = a <= b\nr5 = a > b\nr6 = a >= b\n",
     working_directory="dummy_linea_repo/",
-    libraries=[],
+)
+source_1 = SourceCode(
+    id=get_new_id(),
+    code="""a = 1
+b = 2
+r1 = a == b
+r2 = a != b
+r3 = a < b
+r4 = a <= b
+r5 = a > b
+r6 = a >= b
+""",
+    location=PosixPath("[source file path]"),
 )
 variable_1 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=LiteralNode(
-        id=get_new_id(),
-        session_id=session.id,
+    source_location=SourceLocation(
         lineno=1,
         col_offset=0,
         end_lineno=1,
         end_col_offset=5,
+        source_code=source_1.id,
+    ),
+    source_node_id=LiteralNode(
+        id=get_new_id(),
+        session_id=session.id,
+        source_location=SourceLocation(
+            lineno=1,
+            col_offset=4,
+            end_lineno=1,
+            end_col_offset=5,
+            source_code=source_1.id,
+        ),
         value=1,
     ).id,
     assigned_variable_name="a",
@@ -28,13 +49,23 @@ variable_1 = VariableNode(
 variable_2 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=LiteralNode(
-        id=get_new_id(),
-        session_id=session.id,
+    source_location=SourceLocation(
         lineno=2,
         col_offset=0,
         end_lineno=2,
         end_col_offset=5,
+        source_code=source_1.id,
+    ),
+    source_node_id=LiteralNode(
+        id=get_new_id(),
+        session_id=session.id,
+        source_location=SourceLocation(
+            lineno=2,
+            col_offset=4,
+            end_lineno=2,
+            end_col_offset=5,
+            source_code=source_1.id,
+        ),
         value=2,
     ).id,
     assigned_variable_name="b",
@@ -42,13 +73,23 @@ variable_2 = VariableNode(
 variable_3 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
+    source_location=SourceLocation(
         lineno=3,
         col_offset=0,
         end_lineno=3,
         end_col_offset=11,
+        source_code=source_1.id,
+    ),
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        source_location=SourceLocation(
+            lineno=3,
+            col_offset=5,
+            end_lineno=3,
+            end_col_offset=11,
+            source_code=source_1.id,
+        ),
         arguments=[
             ArgumentNode(
                 id=get_new_id(),
@@ -74,13 +115,23 @@ variable_3 = VariableNode(
 variable_4 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
+    source_location=SourceLocation(
         lineno=4,
         col_offset=0,
         end_lineno=4,
         end_col_offset=11,
+        source_code=source_1.id,
+    ),
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        source_location=SourceLocation(
+            lineno=4,
+            col_offset=5,
+            end_lineno=4,
+            end_col_offset=11,
+            source_code=source_1.id,
+        ),
         arguments=[
             ArgumentNode(
                 id=get_new_id(),
@@ -106,13 +157,23 @@ variable_4 = VariableNode(
 variable_5 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
+    source_location=SourceLocation(
         lineno=5,
         col_offset=0,
         end_lineno=5,
         end_col_offset=10,
+        source_code=source_1.id,
+    ),
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        source_location=SourceLocation(
+            lineno=5,
+            col_offset=5,
+            end_lineno=5,
+            end_col_offset=10,
+            source_code=source_1.id,
+        ),
         arguments=[
             ArgumentNode(
                 id=get_new_id(),
@@ -138,13 +199,23 @@ variable_5 = VariableNode(
 variable_6 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
+    source_location=SourceLocation(
         lineno=6,
         col_offset=0,
         end_lineno=6,
         end_col_offset=11,
+        source_code=source_1.id,
+    ),
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        source_location=SourceLocation(
+            lineno=6,
+            col_offset=5,
+            end_lineno=6,
+            end_col_offset=11,
+            source_code=source_1.id,
+        ),
         arguments=[
             ArgumentNode(
                 id=get_new_id(),
@@ -170,13 +241,23 @@ variable_6 = VariableNode(
 variable_7 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
+    source_location=SourceLocation(
         lineno=7,
         col_offset=0,
         end_lineno=7,
         end_col_offset=10,
+        source_code=source_1.id,
+    ),
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        source_location=SourceLocation(
+            lineno=7,
+            col_offset=5,
+            end_lineno=7,
+            end_col_offset=10,
+            source_code=source_1.id,
+        ),
         arguments=[
             ArgumentNode(
                 id=get_new_id(),
@@ -202,13 +283,23 @@ variable_7 = VariableNode(
 variable_8 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
+    source_location=SourceLocation(
         lineno=8,
         col_offset=0,
         end_lineno=8,
         end_col_offset=11,
+        source_code=source_1.id,
+    ),
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        source_location=SourceLocation(
+            lineno=8,
+            col_offset=5,
+            end_lineno=8,
+            end_col_offset=11,
+            source_code=source_1.id,
+        ),
         arguments=[
             ArgumentNode(
                 id=get_new_id(),

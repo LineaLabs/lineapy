@@ -1,4 +1,5 @@
 import datetime
+from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
@@ -6,23 +7,23 @@ session = SessionContext(
     id=get_new_id(),
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    file_name="[source file path]",
-    code="import types; x = types.SimpleNamespace(); x.hi = 1",
     working_directory="dummy_linea_repo/",
-    libraries=[
-        Library(
-            id=get_new_id(),
-            name="types",
-        ),
-    ],
+)
+source_1 = SourceCode(
+    id=get_new_id(),
+    code="import types; x = types.SimpleNamespace(); x.hi = 1",
+    location=PosixPath("[source file path]"),
 )
 call_3 = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=1,
-    col_offset=43,
-    end_lineno=1,
-    end_col_offset=51,
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=43,
+        end_lineno=1,
+        end_col_offset=51,
+        source_code=source_1.id,
+    ),
     arguments=[
         ArgumentNode(
             id=get_new_id(),
@@ -31,21 +32,34 @@ call_3 = CallNode(
             value_node_id=VariableNode(
                 id=get_new_id(),
                 session_id=session.id,
-                source_node_id=CallNode(
-                    id=get_new_id(),
-                    session_id=session.id,
+                source_location=SourceLocation(
                     lineno=1,
                     col_offset=14,
                     end_lineno=1,
                     end_col_offset=41,
+                    source_code=source_1.id,
+                ),
+                source_node_id=CallNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    source_location=SourceLocation(
+                        lineno=1,
+                        col_offset=18,
+                        end_lineno=1,
+                        end_col_offset=41,
+                        source_code=source_1.id,
+                    ),
                     arguments=[],
                     function_id=CallNode(
                         id=get_new_id(),
                         session_id=session.id,
-                        lineno=1,
-                        col_offset=18,
-                        end_lineno=1,
-                        end_col_offset=39,
+                        source_location=SourceLocation(
+                            lineno=1,
+                            col_offset=18,
+                            end_lineno=1,
+                            end_col_offset=39,
+                            source_code=source_1.id,
+                        ),
                         arguments=[
                             ArgumentNode(
                                 id=get_new_id(),
@@ -54,10 +68,13 @@ call_3 = CallNode(
                                 value_node_id=ImportNode(
                                     id=get_new_id(),
                                     session_id=session.id,
-                                    lineno=1,
-                                    col_offset=0,
-                                    end_lineno=1,
-                                    end_col_offset=12,
+                                    source_location=SourceLocation(
+                                        lineno=1,
+                                        col_offset=0,
+                                        end_lineno=1,
+                                        end_col_offset=12,
+                                        source_code=source_1.id,
+                                    ),
                                     library=Library(
                                         id=get_new_id(),
                                         name="types",
@@ -102,10 +119,13 @@ call_3 = CallNode(
             value_node_id=LiteralNode(
                 id=get_new_id(),
                 session_id=session.id,
-                lineno=1,
-                col_offset=50,
-                end_lineno=1,
-                end_col_offset=51,
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=50,
+                    end_lineno=1,
+                    end_col_offset=51,
+                    source_code=source_1.id,
+                ),
                 value=1,
             ).id,
         ).id,

@@ -1,10 +1,11 @@
 from datetime import datetime
-from typing import Dict, Iterable, Literal, Optional, List, overload
+from typing import Dict, Literal, Optional, List, cast, overload
 from os import getcwd
-import builtins
 
 from lineapy.constants import GET_ITEM, GETATTR, ExecutionMode
 from lineapy.data.graph import Graph
+from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.lineabuiltins import __exec__, __build_tuple__
 from lineapy.data.types import (
     CallNode,
@@ -16,6 +17,7 @@ from lineapy.data.types import (
     Node,
     SessionContext,
     SessionType,
+    SourceLocation,
     VariableNode,
 )
 from lineapy.db.base import get_default_config_by_environment
@@ -31,25 +33,13 @@ from lineapy.utils import (
     get_new_id,
 )
 
-SyntaxDictionary = Dict[str, Optional[int]]
-
-
-# helper functions
-def augment_node_with_syntax(node: Node, syntax_dictionary: Dict):
-    # FIMXE: syntax_dictionary is messy
-    if len(syntax_dictionary) > 0:
-        node.lineno = syntax_dictionary["lineno"]
-        node.col_offset = syntax_dictionary["col_offset"]
-        node.end_lineno = syntax_dictionary["end_lineno"]
-        node.end_col_offset = syntax_dictionary["end_col_offset"]
-
 
 class Tracer:
     def __init__(
         self,
         session_type: SessionType,
-        file_name: str = "",
-        execution_mode: ExecutionMode = ExecutionMode.TEST,
+        execution_mode: ExecutionMode,
+        session_name: Optional[str] = None,
     ):
         """
         Tracer is internal to Linea and it implements the "hidden APIs"
@@ -63,33 +53,52 @@ class Tracer:
         - Executes the program, using the `Executor`.
         """
         self.session_type = session_type
-        self.file_name = file_name
         self.nodes_to_be_evaluated: List[Node] = []
         # TODO: we should probably poll from the local linea config file
         #   what this configuration should be
         config = get_default_config_by_environment(execution_mode)
         self.records_manager = RecordsManager(config)
+        self.db = self.records_manager.db
         self.session_context = self.create_session_context(
             session_type,
-            file_name,
+            session_name,
         )
         self.executor = Executor()
+        # TODO: Either save mapping of variable ID to node, or save full graph....
+
         self.variable_name_to_node: Dict[str, Node] = {}
         self.function_name_to_function_module_import_id: Dict[
             str, LineaID
         ] = {}
-        self._builtins = None
 
-    def _get_builtin_node(self) -> ImportNode:
-        if self._builtins is None:
-            self._builtins = self.trace_import(builtins.__name__, {})
-        return self._builtins
+    @property
+    def graph(self) -> Graph:
+        # TODO: persist this instead on the tracer and keep nodes there
+        nodes = self.records_manager.db.get_nodes_for_session(
+            self.session_context.id
+        )
+        return Graph(nodes, self.session_context)
+
+    @property
+    def values(self) -> dict[str, object]:
+        return self.executor._variable_values
+
+    @property
+    def stdout(self) -> str:
+        return self.executor.get_stdout()
+
+    def slice(self, artifact_name: str) -> str:
+        """
+        Gets the code for a slice of the graph from an artifact
+        """
+        artifact = self.db.get_artifact_by_name(artifact_name)
+        return get_program_slice(self.graph, [LineaID(cast(str, artifact.id))])
 
     def add_unevaluated_node(
-        self, record: Node, syntax_dictionary: Optional[Dict] = None
+        self, record: Node, source_location: Optional[SourceLocation] = None
     ):
-        if syntax_dictionary:
-            augment_node_with_syntax(record, syntax_dictionary)
+        if source_location:
+            record.source_location = source_location
         self.nodes_to_be_evaluated.append(record)
 
     def evaluate_records_so_far(self) -> Optional[float]:
@@ -101,18 +110,20 @@ class Tracer:
         For STATIC, same post-fix but without the evaluation
         """
 
-        if self.session_type == SessionType.JUPYTER:
-            # 🔥 FIXME 🔥
-            internal_warning_log(
-                "The method `evaluate_records_so_far` will not evaluate"
-                " correctly"
+        if (
+            self.session_type == SessionType.SCRIPT
+            or self.session_type == SessionType.JUPYTER
+        ):
+            # Include all the variable nodess we have as well, since
+            # we could have executed some previous expressions, and then later
+            # executed another one that dependened on those variables
+            graph = Graph(
+                self.nodes_to_be_evaluated
+                + list(self.variable_name_to_node.values()),
+                self.session_context,
             )
-            return None
 
-        elif self.session_type == SessionType.SCRIPT:
-            time = self.executor.execute_program(
-                Graph(self.nodes_to_be_evaluated, self.session_context),
-            )
+            time = self.executor.execute_program(graph)
             self.records_manager.add_evaluated_nodes(
                 self.nodes_to_be_evaluated
             )
@@ -180,23 +191,19 @@ class Tracer:
     def create_session_context(
         self,
         session_type: SessionType,
-        file_name: str,
+        session_name: Optional[str],
     ):
         """
         Decided to read the code instead because it's more readable
           than passing through the transformer
         """
         working_directory = getcwd()
-        original_code = open(file_name, "r").read()
         session_context = SessionContext(
             id=get_new_id(),
-            # TODO: hm, we should prob refactor the name, kinda confusing here
             environment_type=session_type,
             creation_time=datetime.now(),
-            file_name=file_name,
-            code=original_code,
             working_directory=working_directory,
-            libraries=[],
+            session_name=session_name,
         )
         self.records_manager.write_session_context(session_context)
         return session_context
@@ -204,7 +211,7 @@ class Tracer:
     def trace_import(
         self,
         name: str,
-        syntax_dictionary: SyntaxDictionary,
+        source_location: Optional[SourceLocation] = None,
         alias: Optional[str] = None,
         attributes: Optional[Dict[str, str]] = None,
     ) -> None:
@@ -225,6 +232,7 @@ class Tracer:
             alias=alias,
             library=library,
             attributes=attributes,
+            source_location=source_location,
         )
         if alias is not None:
             self.variable_name_to_node[alias] = node
@@ -241,11 +249,10 @@ class Tracer:
                     alias,
                     self.call(
                         self.lookup_node(GETATTR),
-                        {},
+                        None,
                         node,
-                        self.literal(original_name, {}),
+                        self.literal(original_name),
                     ),
-                    {},
                 )
 
         # also need to modify the session_context because of weird executor
@@ -255,44 +262,28 @@ class Tracer:
         self.records_manager.add_lib_to_session_context(
             self.session_context.id, library
         )
-        self.add_unevaluated_node(node, syntax_dictionary)
+        self.add_unevaluated_node(node)
         return
-
-    def headless_variable(
-        self, variable_name: str, syntax_dictionary: SyntaxDictionary
-    ) -> None:
-        source_node_id = self.look_up_node_id_by_variable_name(variable_name)
-        if source_node_id is not None:
-            node = VariableNode(
-                id=get_new_id(),
-                session_id=self.session_context.id,
-                source_node_id=source_node_id,
-            )
-            # FIXME: this node doesn't even need to be evaluated
-            #   we should prob decouple the evaluation with the insertion
-            #   of new nodes
-            self.add_unevaluated_node(node, syntax_dictionary)
-        else:
-            raise InternalLogicError(f"Variable {variable_name} not found")
 
     def literal(
         self,
         value: object,
-        syntax_dictionary: SyntaxDictionary,
+        source_location: Optional[SourceLocation] = None,
     ):
         # this literal should be assigned or used later
         node = LiteralNode(
             id=get_new_id(),
             session_id=self.session_context.id,
             value=value,
+            source_location=source_location,
         )
-        self.add_unevaluated_node(node, syntax_dictionary)
+        self.add_unevaluated_node(node)
         return node
 
     def call(
         self,
         function_node: Node,
-        syntax_dictionary: SyntaxDictionary,
+        source_location: Optional[SourceLocation],
         # function_name: str,
         *arguments: Node,
         **keyword_arguments: Node,
@@ -330,8 +321,9 @@ class Tracer:
             session_id=self.session_context.id,
             function_id=function_node.id,
             arguments=argument_node_ids,
+            source_location=source_location,
         )
-        self.add_unevaluated_node(node, syntax_dictionary)
+        self.add_unevaluated_node(node)
         # info_log("call invoked from tracer", function_name,
         #   function_module, arguments)
         return node
@@ -340,8 +332,8 @@ class Tracer:
         self,
         variable_name: str,
         value_node: Node,
-        syntax_dictionary: Dict,
-    ):
+        source_location: Optional[SourceLocation] = None,
+    ) -> None:
         """
         Assign modifies the call node, with:
         - assigned variable name
@@ -349,12 +341,12 @@ class Tracer:
           that's why we need to update
         This is not the most functional/pure but it gets the job done for now.
         """
-        augment_node_with_syntax(value_node, syntax_dictionary)
         new_node = VariableNode(
             id=get_new_id(),
             session_id=self.session_context.id,
             assigned_variable_name=variable_name,
             source_node_id=value_node.id,
+            source_location=source_location,
         )
         self.add_unevaluated_node(new_node)
         self.variable_name_to_node[variable_name] = new_node
@@ -385,7 +377,7 @@ class Tracer:
         is_expression: bool,
         output_variables: list[str],
         input_values: dict[str, Node],
-        syntax_dictionary: SyntaxDictionary,
+        source_location: Optional[SourceLocation] = None,
     ) -> Optional[Node]:
         """
         Builds a call node which will executes code statements
@@ -401,10 +393,12 @@ class Tracer:
         output_variables.sort()
         res = self.call(
             self.lookup_node(__exec__.__name__),
-            syntax_dictionary,
-            self.literal(code, {}),
-            self.literal(is_expression, {}),
-            *(self.literal(v, {}) for v in output_variables),
+            source_location,
+            self.literal(code),
+            self.literal(
+                is_expression,
+            ),
+            *(self.literal(v) for v in output_variables),
             **input_values,
         )
         for i, v in enumerate(output_variables):
@@ -412,27 +406,26 @@ class Tracer:
                 v,
                 self.call(
                     self.lookup_node(GET_ITEM),
-                    {},
+                    None,
                     res,
-                    self.literal(i, {}),
+                    self.literal(i),
                 ),
-                syntax_dictionary,
+                source_location,
             )
         if is_expression:
             return self.call(
                 self.lookup_node(GET_ITEM),
-                {},
+                None,
                 res,
-                self.literal(len(output_variables), {}),
+                self.literal(len(output_variables)),
             )
         return None
 
-    def none(self) -> LiteralNode:
-        return self.literal(None, {})
-
-    def tuple(self, *args: Node, syntax_dictionary=None) -> CallNode:
+    def tuple(
+        self, *args: Node, source_location: Optional[SourceLocation] = None
+    ) -> CallNode:
         return self.call(
             self.lookup_node(__build_tuple__.__name__),
-            syntax_dictionary or {},
+            source_location,
             *args,
         )

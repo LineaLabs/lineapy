@@ -21,6 +21,7 @@ from lineapy.data.types import (
     LineaID,
     VariableNode,
 )
+from lineapy.graph_reader.graph_util import get_segment_from_source_location
 
 
 class Executor:
@@ -28,7 +29,7 @@ class Executor:
         """
         TODO: documentation
         """
-        self._variable_values = {}
+        self._variable_values: dict[str, object] = {}
 
         # Note: no output will be shown in Terminal because it is
         #       being redirected here
@@ -40,12 +41,6 @@ class Executor:
     # def data_asset_manager(self) -> DataAssetManager:
     #     pass
 
-    @staticmethod
-    def install(package):
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", package]
-        )
-
     def setup(self, context: SessionContext) -> None:
         """
         Set up the execution environment by installing the necessary libraries.
@@ -54,16 +49,6 @@ class Executor:
         """
         self.prev_working_dir = getcwd()
         chdir(context.working_directory)
-        if context.libraries is not None:
-            for library in context.libraries:
-                try:
-                    if importlib.util.find_spec(library.name) is None:
-                        Executor.install(library.name)
-                except ModuleNotFoundError:
-                    # Note: look out for errors when handling imports with
-                    #   multiple levels of parent packages
-                    #   (e.g. from x.y.z import a)
-                    Executor.install(library.name.split(".")[0])
 
     def teardown(self) -> None:
         chdir(self.prev_working_dir)
@@ -126,9 +111,11 @@ class Executor:
         """
         FIXME: side effect evaluation is currently not supported
         """
-
-        # code = program.source_code
         for node in program.visit_order():
+            # If we have already executed this node, dont do it again
+            # This shows up during jupyter cell exection
+            if getattr(node, "value", None) is not None:
+                continue
 
             # scoped_locals = locals()
 
@@ -158,13 +145,11 @@ class Executor:
 
             elif node.node_type == NodeType.VariableNode:
                 node = cast(VariableNode, node)
-                if node.assigned_variable_name is not None:
-                    node.value = program.get_node_value_from_id(
-                        node.source_node_id
-                    )
-                    self._variable_values[
-                        node.assigned_variable_name
-                    ] = node.value
+                node.value = program.get_node_value(
+                    program.ids[node.source_node_id]
+                )
+
+                self._variable_values[node.assigned_variable_name] = node.value
 
             # not all node cases are handled, including
             # - DataSourceNode

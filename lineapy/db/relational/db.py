@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import List, Optional, cast, Any
 
 from sqlalchemy import create_engine
@@ -12,6 +13,7 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ArgumentNode,
     Artifact,
+    JupyterCell,
     Library,
     LineaID,
     LookupNode,
@@ -21,6 +23,8 @@ from lineapy.data.types import (
     ImportNode,
     LiteralNode,
     DataSourceNode,
+    SourceCode,
+    SourceLocation,
     StateChangeNode,
     VariableNode,
     Node,
@@ -154,19 +158,32 @@ class RelationalLineaDB(LineaDB):
     def write_context(self, context: SessionContext) -> None:
         args = context.dict()
 
-        if context.libraries:
-            for i in range(len(args["libraries"])):
-                library_orm = self.write_library(
-                    context.libraries[i],
-                    context.id,
-                )
-                args["libraries"][i] = library_orm
-        else:
-            args["libraries"] = []
-
         context_orm = SessionContextORM(**args)
 
         self.session.add(context_orm)
+        self.session.commit()
+
+    def write_source_code(self, source_code: SourceCode) -> None:
+        """
+        Writes a source code object to the database.
+
+        It first has to convert it to a SourceCodeORM object, which has the fields
+        inlined instead of a union
+        """
+        source_code_orm = SourceCodeORM(
+            id=source_code.id, code=source_code.code
+        )
+        location = source_code.location
+        if isinstance(location, Path):
+            source_code_orm.path = str(location)
+            source_code_orm.jupyter_execution_count = None
+            source_code_orm.jupyter_session_id = None
+        else:
+            source_code_orm.path = None
+            source_code_orm.jupyter_execution_count = location.execution_count
+            source_code_orm.jupyter_session_id = location.session_id
+
+        self.session.add(source_code_orm)
         self.session.commit()
 
     def add_lib_to_session_context(
@@ -181,18 +198,24 @@ class RelationalLineaDB(LineaDB):
         self.write_node_values(nodes)
 
     def write_single_node(self, node: Node) -> None:
-        args = node.dict()
-        # TODO: Extract out del values to one place
-        if node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNode, node)
-            if args["value_literal"] is not None:
-                args[
-                    "value_literal_type"
-                ] = RelationalLineaDB.get_type_of_literal_value(
-                    args["value_literal"]
-                )
+        args = node.dict(exclude={"source_location"})
+        # Map source location sub model in memory node, to inlined attributes
+        # in ORM and map source code to foreign key
+        source_location = node.source_location
+        if source_location is not None:
+            args["lineno"] = source_location.lineno
+            args["col_offset"] = source_location.col_offset
+            args["end_lineno"] = source_location.end_lineno
+            args["end_col_offset"] = source_location.end_col_offset
+            args["source_code_id"] = source_location.source_code.id
+        else:
+            args["lineno"] = None
+            args["col_offset"] = None
+            args["end_lineno"] = None
+            args["end_col_offset"] = None
+            args["source_code_id"] = None
 
-        elif node.node_type is NodeType.CallNode:
+        if node.node_type is NodeType.CallNode:
             node = cast(CallNodeORM, node)
             for arg in node.arguments:
                 self.session.execute(
@@ -304,36 +327,6 @@ class RelationalLineaDB(LineaDB):
     Readers
     """
 
-    def get_nodes_by_file_name(self, file_name: str):
-        """
-        First queries SessionContext for file_name
-        Then find all the nodes by session_id
-        Note:
-        - This is currently used for testing purposes
-        - TODO: finish enumerating over all the tables (just a subset for now)
-        - FIXME: I wonder if there is a way to write this in a single query,
-           I would refer for the database to optimize
-           this instead of relying on the ORM.
-        """
-        session_context = self.get_context_by_file_name(file_name)
-        nodes = (
-            self.session.query(NodeORM)
-            .filter(NodeORM.session_id == session_context.id)
-            .all()
-        )
-
-        nodes = [self.map_orm_to_pydantic(node) for node in nodes]
-        return nodes
-
-    def get_context_by_file_name(self, file_name: str) -> SessionContext:
-        query_obj = (
-            self.session.query(SessionContextORM)
-            .filter(SessionContextORM.file_name == file_name)
-            .one()
-        )
-        obj = SessionContext.from_orm(query_obj)
-        return obj
-
     def get_context(self, linea_id: str) -> SessionContext:
         query_obj = (
             self.session.query(SessionContextORM)
@@ -352,18 +345,26 @@ class RelationalLineaDB(LineaDB):
         return self.map_orm_to_pydantic(node)
 
     def map_orm_to_pydantic(self, node: NodeORM) -> Node:
+        # If we have source locations, save those on the node.
+        if node.source_code_id != None:
+            node.source_code.location = (  # type: ignore
+                Path(node.source_code.path)
+                if node.source_code.path
+                else JupyterCell(
+                    execution_count=node.source_code.jupyter_execution_count,
+                    session_id=node.source_code.jupyter_session_id,
+                )
+            )
+            # Call from_orm on itself, because it contains all the line number
+            # calls on the ORM
+            node.source_location = SourceLocation.from_orm(node)  # type: ignore
+
         # cast string serialized values to their appropriate types
         if node.node_type is NodeType.LiteralNode:
             node = cast(LiteralNodeORM, node)
             node.value = get_literal_value_from_string(
                 node.value, node.value_type
             )
-        elif node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNodeORM, node)
-            if node.value_literal is not None:
-                node.value_literal = get_literal_value_from_string(
-                    node.value_literal, node.value_literal_type
-                )
         elif node.node_type is NodeType.ImportNode:
             node = cast(ImportNodeORM, node)
             library_orm = (

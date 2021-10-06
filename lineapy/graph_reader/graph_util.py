@@ -7,6 +7,7 @@ from lineapy.data.types import (
     NodeType,
     DirectedEdge,
     SideEffectsNode,
+    SourceLocation,
     StateChangeNode,
     StateDependencyType,
     VariableNode,
@@ -66,15 +67,18 @@ def get_parents_from_node(node: Node) -> Iterator[LineaID]:
         yield node.source_node_id
 
 
-def get_segment_from_code(code: str, node: Node) -> str:
-    if node.lineno is node.end_lineno:
-        return code.split("\n")[node.lineno - 1][
-            node.col_offset : node.end_col_offset
+def get_segment_from_source_location(source_location: SourceLocation) -> str:
+    code = source_location.source_code.code
+    if source_location.lineno is source_location.end_lineno:
+        return code.split("\n")[source_location.lineno - 1][
+            source_location.col_offset : source_location.end_col_offset
         ]
     else:
-        lines = code.split("\n")[node.lineno - 1 : node.end_lineno]
-        lines[0] = lines[0][node.col_offset :]
-        lines[-1] = lines[-1][: node.end_col_offset]
+        lines = code.split("\n")[
+            source_location.lineno - 1 : source_location.end_lineno
+        ]
+        lines[0] = lines[0][source_location.col_offset :]
+        lines[-1] = lines[-1][: source_location.end_col_offset]
         return "\n".join(lines)
 
 
@@ -94,62 +98,3 @@ def are_nodes_equal(n1: Node, n2: Node, deep_check=False) -> bool:
         # Maybe there is an easier way to just implement their __str__
         #   and check that?
     return True
-
-
-def are_nodes_content_equal(n1: Node, n2: Node, session_code: str) -> bool:
-    """
-    TODO:
-    - we should add the syntax for comparison maybe?
-    - we should probably make use of PyDantic's built in comparison,
-      not possible right now since we have the extra ID field.
-    - this test is not complete yet
-    """
-    # this one skips the ID checking
-    # will refactor based on the linea-spec-db branch
-    if n1.node_type != n2.node_type:
-        return False
-
-    if n1.node_type is NodeType.CallNode:
-        n1 = cast(CallNode, n1)
-        n2 = cast(CallNode, n2)
-
-        if get_segment_from_code(session_code, n1) != get_segment_from_code(
-            session_code, n2
-        ):
-            internal_warning_log("Nodes point to different code")
-            return False
-        if n1.function_id != n2.function_id:
-            internal_warning_log(
-                "Nodes have different function ids",
-                n1.function_id,
-                n2.function_id,
-            )
-            return False
-        return True
-    if n1.node_type is NodeType.ArgumentNode:
-        n1 = cast(ArgumentNode, n1)
-        n2 = cast(ArgumentNode, n2)
-        if n1.positional_order != n2.positional_order:
-            internal_warning_log(
-                "Nodes have different positional_order",
-                n1.positional_order,
-                n2.positional_order,
-            )
-            return False
-        if n1.value_node_id != n2.value_node_id:
-            internal_warning_log(
-                "Nodes have different value_node_id",
-                n1.value_node_id,
-                n2.value_node_id,
-            )
-            return False
-        if n2.value_literal != n2.value_literal:
-            internal_warning_log(
-                "Nodes have different value_literal",
-                n1.value_literal,
-                n2.value_literal,
-            )
-            return False
-        return True
-
-    raise CaseNotHandledError(f"{n1.node_type} is not supported")

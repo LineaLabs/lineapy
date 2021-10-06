@@ -1,4 +1,5 @@
 import datetime
+from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
@@ -6,18 +7,29 @@ session = SessionContext(
     id=get_new_id(),
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    file_name="[source file path]",
-    code='bs = [1,2]\nif len(bs) > 4:\n    print("True")\nelse:\n    bs.append(3)\n    print("False")\n',
     working_directory="dummy_linea_repo/",
-    libraries=[],
+)
+source_1 = SourceCode(
+    id=get_new_id(),
+    code="""bs = [1,2]
+if len(bs) > 4:
+    print("True")
+else:
+    bs.append(3)
+    print("False")
+""",
+    location=PosixPath("[source file path]"),
 )
 call_2 = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=2,
-    col_offset=0,
-    end_lineno=6,
-    end_col_offset=18,
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=6,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
     arguments=[
         ArgumentNode(
             id=get_new_id(),
@@ -26,13 +38,23 @@ call_2 = CallNode(
             value_node_id=VariableNode(
                 id=get_new_id(),
                 session_id=session.id,
-                source_node_id=CallNode(
-                    id=get_new_id(),
-                    session_id=session.id,
+                source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
                     end_lineno=1,
                     end_col_offset=10,
+                    source_code=source_1.id,
+                ),
+                source_node_id=CallNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    source_location=SourceLocation(
+                        lineno=1,
+                        col_offset=5,
+                        end_lineno=1,
+                        end_col_offset=10,
+                        source_code=source_1.id,
+                    ),
                     arguments=[
                         ArgumentNode(
                             id=get_new_id(),
@@ -41,10 +63,13 @@ call_2 = CallNode(
                             value_node_id=LiteralNode(
                                 id=get_new_id(),
                                 session_id=session.id,
-                                lineno=1,
-                                col_offset=6,
-                                end_lineno=1,
-                                end_col_offset=7,
+                                source_location=SourceLocation(
+                                    lineno=1,
+                                    col_offset=6,
+                                    end_lineno=1,
+                                    end_col_offset=7,
+                                    source_code=source_1.id,
+                                ),
                                 value=1,
                             ).id,
                         ).id,
@@ -55,10 +80,13 @@ call_2 = CallNode(
                             value_node_id=LiteralNode(
                                 id=get_new_id(),
                                 session_id=session.id,
-                                lineno=1,
-                                col_offset=8,
-                                end_lineno=1,
-                                end_col_offset=9,
+                                source_location=SourceLocation(
+                                    lineno=1,
+                                    col_offset=8,
+                                    end_lineno=1,
+                                    end_col_offset=9,
+                                    source_code=source_1.id,
+                                ),
                                 value=2,
                             ).id,
                         ).id,
@@ -99,7 +127,11 @@ call_2 = CallNode(
             value_node_id=LiteralNode(
                 id=get_new_id(),
                 session_id=session.id,
-                value='if len(bs) > 4:\n    print("True")\nelse:\n    bs.append(3)\n    print("False")',
+                value="""if len(bs) > 4:
+    print("True")
+else:
+    bs.append(3)
+    print("False")""",
             ).id,
         ).id,
         ArgumentNode(

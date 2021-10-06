@@ -17,9 +17,11 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import Artifact, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
+from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.transformer import Transformer
 from lineapy.graph_reader.program_slice import get_program_slice
 from tests.util import get_project_directory
+from lineapy.utils import prettify
 
 # Based off of unmerged JSON extension
 # Writes each snapshot to its own Python file
@@ -112,7 +114,7 @@ class ExecuteFixture:
         *,
         session_type: SessionType = SessionType.SCRIPT,
         compare_snapshot: bool = True,
-    ):
+    ) -> Tracer:
         """
         Tests trace, graph, and executes code on init.
 
@@ -135,62 +137,38 @@ class ExecuteFixture:
         session_name = str(source_code_path)
 
         transformer = Transformer()
-        transformer.transform(
+        tracer = transformer.transform(
             code,
             session_type=session_type,
-            session_name=session_name,
+            path=session_name,
             execution_mode=ExecutionMode.MEMORY,
         )
-        tracer = transformer.tracer
 
         db = tracer.records_manager.db
 
         nodes = db.get_all_nodes()
-        context = db.get_context_by_file_name(session_name)
+        context = tracer.session_context
         graph = Graph(nodes, context)
         # Verify snapshot of graph
         if compare_snapshot:
             assert (
-                graph.print(include_imports=True, include_id_field=True)
-                .replace(str(source_code_path), "[source file path]")
-                .replace(
-                    repr(context.creation_time),
-                    repr(datetime.datetime.fromordinal(1)),
-                )
-                .replace(
-                    context.working_directory,
-                    DUMMY_WORKING_DIR,
+                # Prettify again in case replacements cause line wraps
+                prettify(
+                    graph.print(include_imports=True, include_id_field=True)
+                    .replace(str(source_code_path), "[source file path]")
+                    .replace(
+                        repr(context.creation_time),
+                        repr(datetime.datetime.fromordinal(1)),
+                    )
+                    .replace(
+                        context.working_directory,
+                        DUMMY_WORKING_DIR,
+                    )
                 )
                 == self.snapshot
             )
 
-        return ExecuteResult(db, graph, tracer.executor)
-
-
-@dataclasses.dataclass
-class ExecuteResult:
-    db: RelationalLineaDB
-    graph: Graph
-    executor: Executor
-
-    @property
-    def values(self) -> dict[str, object]:
-        return self.executor._variable_values
-
-    @property
-    def stdout(self) -> str:
-        return self.executor.get_stdout()
-
-    @property
-    def artifacts(self) -> list[Artifact]:
-        return self.db.get_all_artifacts()
-
-    def slice(self, artifact_name: str) -> str:
-        """
-        Gets the code for a slice of the graph from an artifact
-        """
-        artifact = self.db.get_artifact_by_name(artifact_name)
-        return get_program_slice(self.graph, [artifact.id])
+        return tracer
 
 
 @pytest.fixture(autouse=True)

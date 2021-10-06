@@ -61,24 +61,6 @@ def are_str_equal(
         return False
 
 
-def get_new_session(
-    code: str,
-    libraries: Optional[List] = None,
-) -> SessionContext:
-    working_directory = getcwd()
-    if libraries is None:
-        libraries = []
-    return SessionContext(
-        id=get_new_id(),
-        file_name="testing.py",
-        environment_type=SessionType.SCRIPT,
-        creation_time=datetime.now(),
-        libraries=libraries,
-        code=code,
-        working_directory=working_directory,
-    )
-
-
 def reset_test_db(sqlite_uri: str):
     """ """
     try:

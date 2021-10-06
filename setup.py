@@ -78,6 +78,10 @@ setup(
             # https://github.com/TheKevJames/coveralls-python/issues/326
             "coverage[toml]<6.0",
             "pytest-cov",
+            "jupyterlab",
+            "ipython",
+            "nbval",
+            "SQLAlchemy[mypy]",
             "coveralls",
         ],
         "server": [
@@ -86,13 +90,4 @@ setup(
         ],
     },
     include_package_data=True,
-    data_files=[
-        (
-            "share/jupyter/kernels/lineapy",
-            [
-                "lineapy/kernel/kernel.json",
-                "lineapy/kernel/resources/lineapy-logo.png",
-            ],
-        ),
-    ],
 )

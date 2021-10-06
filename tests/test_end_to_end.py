@@ -294,12 +294,8 @@ class TestEndToEnd:
         """
         res = execute(PUBLISH_CODE)
 
-        artifacts = res.artifacts
+        artifact = res.db.get_artifact_by_name(publish_name)
 
-        assert len(artifacts) == 1
-        artifact = artifacts[0]
-
-        info_log("logged artifact", artifact)
         assert artifact.name == publish_name
         time_diff = get_current_time() - artifact.date_created
         assert time_diff < 1000
@@ -538,7 +534,8 @@ class TestListComprehension:
         )
         # Verify that i isn't set in the local scope
         assert res.values == {"x": [1, 2, 3], "y": range(3)}
-        assert execute(res.slice("x")).values["x"] == [1, 2, 3]
+        sliced_code = res.slice("x")
+        assert execute(sliced_code).values["x"] == [1, 2, 3]
 
 
 class TestSlicing:

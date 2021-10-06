@@ -1,4 +1,5 @@
 import datetime
+from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
@@ -6,23 +7,24 @@ session = SessionContext(
     id=get_new_id(),
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    file_name="[source file path]",
-    code="import pandas as pd\nassert pd.__name__ == 'pandas'",
     working_directory="dummy_linea_repo/",
-    libraries=[
-        Library(
-            id=get_new_id(),
-            name="pandas",
-        ),
-    ],
+)
+source_1 = SourceCode(
+    id=get_new_id(),
+    code="""import pandas as pd
+assert pd.__name__ == \'pandas\'""",
+    location=PosixPath("[source file path]"),
 )
 call_3 = CallNode(
     id=get_new_id(),
     session_id=session.id,
-    lineno=2,
-    col_offset=0,
-    end_lineno=2,
-    end_col_offset=30,
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=30,
+        source_code=source_1.id,
+    ),
     arguments=[
         ArgumentNode(
             id=get_new_id(),
@@ -31,10 +33,13 @@ call_3 = CallNode(
             value_node_id=CallNode(
                 id=get_new_id(),
                 session_id=session.id,
-                lineno=2,
-                col_offset=7,
-                end_lineno=2,
-                end_col_offset=30,
+                source_location=SourceLocation(
+                    lineno=2,
+                    col_offset=7,
+                    end_lineno=2,
+                    end_col_offset=30,
+                    source_code=source_1.id,
+                ),
                 arguments=[
                     ArgumentNode(
                         id=get_new_id(),
@@ -43,10 +48,13 @@ call_3 = CallNode(
                         value_node_id=CallNode(
                             id=get_new_id(),
                             session_id=session.id,
-                            lineno=2,
-                            col_offset=7,
-                            end_lineno=2,
-                            end_col_offset=18,
+                            source_location=SourceLocation(
+                                lineno=2,
+                                col_offset=7,
+                                end_lineno=2,
+                                end_col_offset=18,
+                                source_code=source_1.id,
+                            ),
                             arguments=[
                                 ArgumentNode(
                                     id=get_new_id(),
@@ -55,10 +63,13 @@ call_3 = CallNode(
                                     value_node_id=ImportNode(
                                         id=get_new_id(),
                                         session_id=session.id,
-                                        lineno=1,
-                                        col_offset=0,
-                                        end_lineno=1,
-                                        end_col_offset=19,
+                                        source_location=SourceLocation(
+                                            lineno=1,
+                                            col_offset=0,
+                                            end_lineno=1,
+                                            end_col_offset=19,
+                                            source_code=source_1.id,
+                                        ),
                                         library=Library(
                                             id=get_new_id(),
                                             name="pandas",
@@ -91,10 +102,13 @@ call_3 = CallNode(
                         value_node_id=LiteralNode(
                             id=get_new_id(),
                             session_id=session.id,
-                            lineno=2,
-                            col_offset=22,
-                            end_lineno=2,
-                            end_col_offset=30,
+                            source_location=SourceLocation(
+                                lineno=2,
+                                col_offset=22,
+                                end_lineno=2,
+                                end_col_offset=30,
+                                source_code=source_1.id,
+                            ),
                             value="pandas",
                         ).id,
                     ).id,
