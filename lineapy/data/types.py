@@ -238,8 +238,8 @@ class SourceCode(BaseModel):
             if self_location.session_id != other_location.session_id:
                 return NotImplemented
             # Compare jupyter cells first by execution count, then line number
-            return (self_location.execution_count,) < (
-                other_location.execution_count,
+            return (self_location.execution_count) < (
+                other_location.execution_count
             )
         # If they are different source locations, we don't know how to compare
         assert type(self_location) == type(other_location)
@@ -379,7 +379,7 @@ class ArgumentNode(Node):
     # Either keyword or positional_order is required, but not both
     keyword: Optional[str] = None
     positional_order: Optional[int] = None
-    value_node_id: LineaID = None
+    value_node_id: LineaID
 
 
 class CallNode(Node):

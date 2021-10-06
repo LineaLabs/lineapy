@@ -1,5 +1,40 @@
+from typing import Callable
 from IPython.core.interactiveshell import InteractiveShell, ExecutionResult
 import pytest
+import functools
+from lineapy.instrumentation.tracer import Tracer
+
+
+def test_empty_cell(run_cell):
+    """
+    Test that the trace_line method works.
+    """
+    assert run_cell("") is None
+
+
+def test_result(run_cell):
+    assert run_cell("10") == 10
+
+
+def test_assign(run_cell):
+    assert run_cell("a = 10") is None
+    assert run_cell("a") == 10
+
+
+def test_stop(run_cell):
+    assert isinstance(run_cell("lineapy.ipython.stop()"), Tracer)
+    assert run_cell("10") == 10
+
+
+def test_slice(run_cell):
+    assert run_cell("import lineapy") is None
+    assert run_cell("a = [1, 2, 3]") is None
+    assert run_cell("y = 10") is None
+    assert run_cell("x=a[0]\nlineapy.linea_publish(x, 'x')") is None
+    assert (
+        run_cell("tracer = lineapy.ipython.stop()\ntracer.slice('x')")
+        == "a = [1, 2, 3]\nx=a[0]\n"
+    )
 
 
 @pytest.fixture
@@ -17,37 +52,26 @@ def ip():
 
 @pytest.fixture
 def ip_traced(ip):
-    res = ip.run_cell("import lineapy.ipython\nlineapy.ipython.start()")
-    assert res.success
-    assert res.result is None
+    """
+    An ipython fixture that first enables
+    """
+    assert (
+        _run_cell(ip, "import lineapy.ipython\nlineapy.ipython.start()")
+        is None
+    )
     return ip
 
 
-def assert_success(res: ExecutionResult, result=None) -> None:
+def _run_cell(ip: InteractiveShell, cell: str) -> object:
+    """
+    Runs a cell and asserts it succeeds, returning the result.
+    """
+    res = ip.run_cell(cell)
     assert not res.error_before_exec
     assert not res.error_in_exec
-    assert res.result == result
+    return res.result
 
 
-def test_run_cell(ip):
-    """
-    Test that the run_cell method works.
-    """
-    assert_success(ip.run_cell("a = 1; 10"), 10)
-    assert ip.user_ns["a"] == 1
-
-
-def test_empty_cell(ip_traced):
-    """
-    Test that the trace_line method works.
-    """
-    assert_success(ip_traced.run_cell(""))
-
-
-def test_result(ip_traced):
-    assert_success(ip_traced.run_cell("10"), 10)
-
-
-def test_assign(ip_traced):
-    assert_success(ip_traced.run_cell("a = 10"))
-    assert_success(ip_traced.run_cell("a"), 10)
+@pytest.fixture
+def run_cell(ip_traced: InteractiveShell) -> Callable[[str], object]:
+    return functools.partial(_run_cell, ip_traced)

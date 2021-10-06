@@ -89,7 +89,11 @@ class LineaInputTransformer:
         Translate the lines of code for the cell provided by ipython.
         """
         # TODO: better exit and stop detection
-        if lines == ["exit()\n"] or lines == ["lineapy.ipython.stop()\n"]:
+        if (
+            lines
+            and "exit()" in lines[0]
+            or "lineapy.ipython.stop()" in lines[0]
+        ):
             return lines
 
         ends_with_semicolon = lines and lines[-1].endswith(";")
