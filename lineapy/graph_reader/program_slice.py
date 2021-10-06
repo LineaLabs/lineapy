@@ -16,7 +16,7 @@ def get_slice_graph(graph: Graph, sinks: List[LineaID]) -> Graph:
     for sink in sinks:
         ancestors.update(graph.get_ancestors(sink))
     ancestors.update(sinks)
-    new_nodes = [graph.get_node_else_raise(node) for node in ancestors]
+    new_nodes = [graph.ids[node] for node in ancestors]
     subgraph = graph.get_subgraph(new_nodes)
     return subgraph
 

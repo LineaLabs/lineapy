@@ -1,10 +1,11 @@
 from datetime import datetime
-from typing import Dict, Literal, Optional, List, overload
+from typing import Dict, Literal, Optional, List, cast, overload
 from os import getcwd
 
 from lineapy.constants import GET_ITEM, GETATTR, ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.lineabuiltins import __exec__, __build_tuple__
 from lineapy.data.types import (
     CallNode,
@@ -58,15 +59,41 @@ class Tracer:
         #   what this configuration should be
         config = get_default_config_by_environment(execution_mode)
         self.records_manager = RecordsManager(config)
+        self.db = self.records_manager.db
         self.session_context = self.create_session_context(
             session_type,
             session_name,
         )
         self.executor = Executor()
+        # TODO: Either save mapping of variable ID to node, or save full graph....
+
         self.variable_name_to_node: Dict[str, Node] = {}
         self.function_name_to_function_module_import_id: Dict[
             str, LineaID
         ] = {}
+
+    @property
+    def graph(self) -> Graph:
+        # TODO: persist this instead on the tracer and keep nodes there
+        nodes = self.records_manager.db.get_nodes_for_session(
+            self.session_context.id
+        )
+        return Graph(nodes, self.session_context)
+
+    @property
+    def values(self) -> dict[str, object]:
+        return self.executor._variable_values
+
+    @property
+    def stdout(self) -> str:
+        return self.executor.get_stdout()
+
+    def slice(self, artifact_name: str) -> str:
+        """
+        Gets the code for a slice of the graph from an artifact
+        """
+        artifact = self.db.get_artifact_by_name(artifact_name)
+        return get_program_slice(self.graph, [LineaID(cast(str, artifact.id))])
 
     def add_unevaluated_node(
         self, record: Node, source_location: Optional[SourceLocation] = None
@@ -84,18 +111,20 @@ class Tracer:
         For STATIC, same post-fix but without the evaluation
         """
 
-        if self.session_type == SessionType.JUPYTER:
-            # 🔥 FIXME 🔥
-            internal_warning_log(
-                "The method `evaluate_records_so_far` will not evaluate"
-                " correctly"
+        if (
+            self.session_type == SessionType.SCRIPT
+            or self.session_type == SessionType.JUPYTER
+        ):
+            # Include all the variable nodess we have as well, since
+            # we could have executed some previous expressions, and then later
+            # executed another one that dependened on those variables
+            graph = Graph(
+                self.nodes_to_be_evaluated
+                + list(self.variable_name_to_node.values()),
+                self.session_context,
             )
-            return None
 
-        elif self.session_type == SessionType.SCRIPT:
-            time = self.executor.execute_program(
-                Graph(self.nodes_to_be_evaluated, self.session_context),
-            )
+            time = self.executor.execute_program(graph)
             self.records_manager.add_evaluated_nodes(
                 self.nodes_to_be_evaluated
             )

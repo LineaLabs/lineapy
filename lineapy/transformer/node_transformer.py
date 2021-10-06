@@ -84,6 +84,9 @@ class NodeTransformer(ast.NodeTransformer):
         )
         tracer.records_manager.write_source_code(self.source_code)
         self.tracer = tracer
+        # The result of the last line, a node if it was an expression,
+        # None if it was a statement. Used by ipython to grab the last value
+        self.last_statement_result: Optional[Node] = None
 
     def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
         return ast.get_source_segment(self.source_code.code, node)
@@ -109,10 +112,11 @@ class NodeTransformer(ast.NodeTransformer):
         )
 
     def visit_Module(self, node: ast.Module) -> Any:
-        return super().generic_visit(node)
+        for stmt in node.body:
+            self.last_statement_result = self.visit(stmt)
 
-    def visit_Expr(self, node: ast.Expr) -> Any:
-        return super().generic_visit(node)
+    def visit_Expr(self, node: ast.Expr) -> Node:
+        return self.visit(node.value)
 
     def visit_Assert(self, node: ast.Assert) -> None:
 

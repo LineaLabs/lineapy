@@ -113,7 +113,7 @@ class ExecuteFixture:
         *,
         session_type: SessionType = SessionType.SCRIPT,
         compare_snapshot: bool = True,
-    ):
+    ) -> Tracer:
         """
         Tests trace, graph, and executes code on init.
 
@@ -167,33 +167,7 @@ class ExecuteFixture:
                 == self.snapshot
             )
 
-        return ExecuteResult(db, graph, tracer.executor)
-
-
-@dataclasses.dataclass
-class ExecuteResult:
-    db: RelationalLineaDB
-    graph: Graph
-    executor: Executor
-
-    @property
-    def values(self) -> dict[str, object]:
-        return self.executor._variable_values
-
-    @property
-    def stdout(self) -> str:
-        return self.executor.get_stdout()
-
-    @property
-    def artifacts(self) -> list[Artifact]:
-        return self.db.get_all_artifacts()
-
-    def slice(self, artifact_name: str) -> str:
-        """
-        Gets the code for a slice of the graph from an artifact
-        """
-        artifact = self.db.get_artifact_by_name(artifact_name)
-        return get_program_slice(self.graph, [artifact.id])
+        return tracer
 
 
 @pytest.fixture(autouse=True)

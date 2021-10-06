@@ -32,7 +32,7 @@ class Executor:
         """
         TODO: documentation
         """
-        self._variable_values = {}
+        self._variable_values: dict[str, object] = {}
 
         # Note: no output will be shown in Terminal because it is
         #       being redirected here
@@ -183,8 +183,11 @@ class Executor:
         """
         FIXME: side effect evaluation is currently not supported
         """
-
         for node in program.visit_order():
+            # If we have already executed this node, dont do it again
+            # This shows up during jupyter cell exection
+            if getattr(node, "value", None) is not None:
+                continue
 
             scoped_locals = locals()
 
@@ -234,14 +237,11 @@ class Executor:
 
             elif node.node_type == NodeType.VariableNode:
                 node = cast(VariableNode, node)
-                if node.assigned_variable_name is not None:
-                    node.value = program.get_node_value_from_id(
-                        node.source_node_id
-                    )
+                node.value = program.get_node_value(
+                    program.ids[node.source_node_id]
+                )
 
-                    self._variable_values[
-                        node.assigned_variable_name
-                    ] = node.value
+                self._variable_values[node.assigned_variable_name] = node.value
 
             # not all node cases are handled, including
             # - DataSourceNode

@@ -86,13 +86,4 @@ setup(
         ],
     },
     include_package_data=True,
-    data_files=[
-        (
-            "share/jupyter/kernels/lineapy",
-            [
-                "lineapy/kernel/kernel.json",
-                "lineapy/kernel/resources/lineapy-logo.png",
-            ],
-        ),
-    ],
 )

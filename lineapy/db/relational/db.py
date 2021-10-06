@@ -227,17 +227,7 @@ class RelationalLineaDB(LineaDB):
             args["end_col_offset"] = None
             args["source_code_id"] = None
 
-        # TODO: Extract out del values to one place
-        if node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNode, node)
-            if args["value_literal"] is not None:
-                args[
-                    "value_literal_type"
-                ] = RelationalLineaDB.get_type_of_literal_value(
-                    args["value_literal"]
-                )
-
-        elif node.node_type is NodeType.CallNode:
+        if node.node_type is NodeType.CallNode:
             node = cast(CallNodeORM, node)
             for arg in node.arguments:
                 self.session.execute(
@@ -419,12 +409,6 @@ class RelationalLineaDB(LineaDB):
             node.value = get_literal_value_from_string(
                 node.value, node.value_type
             )
-        elif node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNodeORM, node)
-            if node.value_literal is not None:
-                node.value_literal = get_literal_value_from_string(
-                    node.value_literal, node.value_literal_type
-                )
         elif node.node_type is NodeType.ImportNode:
             node = cast(ImportNodeORM, node)
             library_orm = (

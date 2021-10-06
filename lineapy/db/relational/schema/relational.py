@@ -333,8 +333,6 @@ class ArgumentNodeORM(NodeORM):
 
     keyword = Column(String, nullable=True)
     positional_order = Column(Integer, nullable=True)
-    value_literal = Column(String, nullable=True)
-    value_literal_type = Column(Enum(LiteralType), nullable=True)
 
     @declared_attr
     def value_node_id(cls):

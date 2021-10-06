@@ -99,6 +99,7 @@ class SessionContext(BaseModel):
         orm_mode = True
 
 
+# TODO: Use sentinel for empty type to differentiate between None and empty
 NodeValueType = Any
 
 
@@ -372,15 +373,13 @@ class ArgumentNode(Node):
     Each call may have arguments, and the arguments are stored in ArgumentNode
     Each argument could be
     - keyword or positional (hence the optional)
-    - value_literal or a reference to an existing variable (via the ID)
     """
 
     node_type: NodeType = NodeType.ArgumentNode
-    # Either keyword or positiona_order is required, but not both
+    # Either keyword or positional_order is required, but not both
     keyword: Optional[str] = None
     positional_order: Optional[int] = None
-    value_node_id: Optional[LineaID] = None
-    value_literal: Optional[Any] = None
+    value_node_id: LineaID = None
 
 
 class CallNode(Node):

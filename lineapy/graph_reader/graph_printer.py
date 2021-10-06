@@ -95,7 +95,7 @@ class GraphPrinter:
             # as the attribute name, so its inlined when accessed.
             if (
                 self.nest_nodes
-                and len(list(self.graph._nx_graph.successors(node_id))) == 1
+                and len(list(self.graph.nx_graph.successors(node_id))) == 1
             ):
                 self.id_to_attribute_name[node_id] = "\n".join(
                     self.pretty_print_model(node)
@@ -113,7 +113,9 @@ class GraphPrinter:
         yield ")"
 
     def lookup_id(self, id: LineaID) -> str:
-        return self.id_to_attribute_name[id] + ".id"
+        if id in self.id_to_attribute_name:
+            return self.id_to_attribute_name[id] + ".id"
+        return repr(id)
 
     def pretty_print_node_lines(self, node: BaseModel) -> Iterable[str]:
         for k in node.__fields__.keys():
