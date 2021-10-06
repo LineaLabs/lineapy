@@ -2,10 +2,9 @@
 Code to transform inputs when running in IPython, to trace them.
 """
 from __future__ import annotations
-from dataclasses import field
+from dataclasses import field, dataclass
 from typing import TYPE_CHECKING, Callable, ClassVar, Literal, Optional
 
-from attr import dataclass, has
 from lineapy.constants import ExecutionMode
 import ast
 from lineapy.data.types import JupyterCell, LineaID, SessionType
@@ -28,9 +27,7 @@ def start(
     """
     ipython = get_ipython()  # type: ignore
 
-    input_transformers_post: list[
-        Callable[[list[str]], list[str]]
-    ] = ipython.input_transformers_post
+    input_transformers_post = ipython.input_transformers_post
 
     linea_input_transformers = [
         it
@@ -57,17 +54,15 @@ def stop() -> Tracer:
     """
     ipython = get_ipython()  # type: ignore
 
-    input_transformers_post: list[
-        Callable[[list[str]], list[str]]
-    ] = ipython.input_transformers_post
+    input_transformers_post = ipython.input_transformers_post
 
-    linea_input_transformers = [
+    (input_transformer,) = [
         it
         for it in input_transformers_post
         if isinstance(it, LineaInputTransformer)
     ]
-    assert len(linea_input_transformers) == 1, "Not tracing"
-    return linea_input_transformers[0].tracer
+    input_transformers_post.remove(input_transformer)
+    return input_transformer.tracer
 
 
 @dataclass
@@ -75,6 +70,11 @@ class LineaInputTransformer:
     tracer: Tracer
     session_id: LineaID
     ipython: InteractiveShell
+
+    # Store the last execution count and last resulting codes lines
+    # to avoid re-execution when working around an ipykernel bug
+    # that calls the transformer twice TODO: make bug
+    last_call: Optional[tuple[int, list[str]]] = field(default=None)
 
     # the last expression value execute, will be what is displayed in the cell
     last_value: object = field(default=None)
@@ -94,9 +94,16 @@ class LineaInputTransformer:
         ):
             return lines
 
+        execution_count = self.ipython.execution_count
+        if self.last_call:
+            prev_execution_count, prev_lines = self.last_call
+            # Work around for ipython bug to prevent double execution in notebooks
+            if execution_count == prev_execution_count:
+                return prev_lines
+
         code = "".join(lines)
         location = JupyterCell(
-            execution_count=self.ipython.execution_count,
+            execution_count=execution_count,
             session_id=self.session_id,
         )
         node_transformer = NodeTransformer(code, location, self.tracer)
@@ -117,7 +124,10 @@ class LineaInputTransformer:
         ends_with_semicolon = lines and lines[-1].endswith(";")
         if not ends_with_semicolon and node_transformer.last_statement_result:
             self.last_value = node_transformer.last_statement_result.value  # type: ignore
-            return [
+            lines = [
                 "get_ipython().input_transformers_post[0].last_value\n",
             ]
-        return []
+        else:
+            lines = []
+        self.last_call = (execution_count, lines)
+        return lines

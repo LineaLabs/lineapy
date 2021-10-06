@@ -78,6 +78,7 @@ setup(
             "pytest-cov",
             "jupyterlab",
             "ipython",
+            "nbval",
             "SQLAlchemy[mypy]",
         ],
         "server": [

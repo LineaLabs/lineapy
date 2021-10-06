@@ -16,7 +16,6 @@ def test_result(run_cell):
     assert run_cell("10") == 10
 
 
-def test_assign(run_cell):
     assert run_cell("a = 10") is None
     assert run_cell("a") == 10
 
@@ -46,8 +45,7 @@ def ip():
 
     It provides a `run_cell` method, which returns an `ExecutionResult`.
     """
-    shell = InteractiveShell()
-    yield shell
+    return InteractiveShell()
 
 
 @pytest.fixture
@@ -66,7 +64,9 @@ def _run_cell(ip: InteractiveShell, cell: str) -> object:
     """
     Runs a cell and asserts it succeeds, returning the result.
     """
-    res = ip.run_cell(cell)
+
+    # Set store_history to True to get execution_counts added to cells
+    res = ip.run_cell(cell, store_history=True)
     assert not res.error_before_exec
     assert not res.error_in_exec
     return res.result

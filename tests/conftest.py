@@ -17,6 +17,7 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import Artifact, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
+from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.transformer import Transformer
 from lineapy.graph_reader.program_slice import get_program_slice
 from tests.util import get_project_directory
