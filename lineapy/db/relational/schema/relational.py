@@ -201,9 +201,6 @@ class NodeORM(Base):  # type: ignore
 
 class SourceCodeORM(Base):
     __tablename__ = "source_code"
-    # nodes: list[NodeORM] = relationship(
-    #     "NodeORM", back_populates="source_code"
-    # )
 
     id = Column(String, primary_key=True)
     code = Column(String)

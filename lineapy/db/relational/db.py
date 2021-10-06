@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Optional, cast, Any
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session, joinedload, Query
+from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
@@ -378,13 +378,6 @@ class RelationalLineaDB(LineaDB):
     def map_orm_to_pydantic(self, node: NodeORM) -> Node:
         # If we have source locations, save those on the node.
         if node.source_code_id != None:
-            # TODO: This should be a join, but I couldn't get them to work in
-            # sqlalchemy.
-            # source_code = (
-            #     self.session.query(SourceCodeORM)
-            #     .filter(SourceCodeORM.id == node.source_code_id)
-            #     .one()
-            # )
             node.source_code.location = (  # type: ignore
                 Path(node.source_code.path)
                 if node.source_code.path
@@ -393,8 +386,6 @@ class RelationalLineaDB(LineaDB):
                     session_id=node.source_code.jupyter_session_id,
                 )
             )
-            # Set the source_code on itself before trying to map to node
-            # node.source_code = SourceCode.from_orm(source_code)  # type: ignore
             # Call from_orm on itself, because it contains all the line number
             # calls on the ORM
             node.source_location = SourceLocation.from_orm(node)  # type: ignore

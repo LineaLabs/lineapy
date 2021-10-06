@@ -266,26 +266,6 @@ class Tracer:
         self.add_unevaluated_node(node)
         return
 
-    def headless_variable(
-        self,
-        variable_name: str,
-        source_location: Optional[SourceLocation] = None,
-    ) -> None:
-        source_node_id = self.look_up_node_id_by_variable_name(variable_name)
-        if source_node_id is not None:
-            node = VariableNode(
-                id=get_new_id(),
-                session_id=self.session_context.id,
-                source_node_id=source_node_id,
-                source_location=source_location,
-            )
-            # FIXME: this node doesn't even need to be evaluated
-            #   we should prob decouple the evaluation with the insertion
-            #   of new nodes
-            self.add_unevaluated_node(node)
-        else:
-            raise InternalLogicError(f"Variable {variable_name} not found")
-
     def literal(
         self,
         value: object,
