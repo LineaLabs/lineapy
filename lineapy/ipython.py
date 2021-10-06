@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from IPython.core import InteractiveShell
 
 
-# TODO: Support starting, stopping, and restarting.
 def start(
     session_name: Optional[str] = None,
     execution_mode: ExecutionMode = ExecutionMode.MEMORY,
