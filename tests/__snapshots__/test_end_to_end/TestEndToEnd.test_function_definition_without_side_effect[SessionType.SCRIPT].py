@@ -7,11 +7,91 @@ session = SessionContext(
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
-    code="def foo(a, b):\n    return a - b\nc = foo(b=1, a=2)\n",
+    code="def foo(a, b):\n    return a - b\nc = foo(b=1, a=2)\nd = foo(5,1)\n",
     working_directory="dummy_linea_repo/",
     libraries=[],
 )
 variable_1 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=1,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=16,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=CallNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=2,
+                    end_col_offset=16,
+                    arguments=[
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=0,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                value="def foo(a, b):\n    return a - b",
+                            ).id,
+                        ).id,
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=1,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                value=0,
+                            ).id,
+                        ).id,
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=2,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                value="foo",
+                            ).id,
+                        ).id,
+                    ],
+                    function_id=LookupNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        name="__exec__",
+                    ).id,
+                ).id,
+            ).id,
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=1,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    value=0,
+                ).id,
+            ).id,
+        ],
+        function_id=LookupNode(
+            id=get_new_id(),
+            session_id=session.id,
+            name="getitem",
+        ).id,
+    ).id,
+    assigned_variable_name="foo",
+)
+variable_2 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
     source_node_id=CallNode(
@@ -51,18 +131,51 @@ variable_1 = VariableNode(
                 ).id,
             ).id,
         ],
-        function_id=FunctionDefinitionNode(
-            id=get_new_id(),
-            session_id=session.id,
-            lineno=1,
-            col_offset=0,
-            end_lineno=2,
-            end_col_offset=16,
-            output_state_change_nodes=[],
-            input_state_change_nodes=[],
-            import_nodes=[],
-            function_name="foo",
-        ).id,
+        function_id=variable_1.id,
     ).id,
     assigned_variable_name="c",
+)
+variable_3 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=4,
+        col_offset=0,
+        end_lineno=4,
+        end_col_offset=12,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=4,
+                    col_offset=8,
+                    end_lineno=4,
+                    end_col_offset=9,
+                    value=5,
+                ).id,
+            ).id,
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=1,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=4,
+                    col_offset=10,
+                    end_lineno=4,
+                    end_col_offset=11,
+                    value=1,
+                ).id,
+            ).id,
+        ],
+        function_id=variable_1.id,
+    ).id,
+    assigned_variable_name="d",
 )

@@ -116,9 +116,9 @@ class NodeType(Enum):
     ArgumentNode = 2
     CallNode = 3
     LiteralNode = 4
-    FunctionDefinitionNode = 5
-    ConditionNode = 6
-    LoopNode = 7
+    # FunctionDefinitionNode = 5
+    # ConditionNode = 6
+    # LoopNode = 7
     WithNode = 8
     ImportNode = 9
     StateChangeNode = 10
@@ -341,20 +341,6 @@ class VariableNode(Node):
     value: Optional[Any]  # loaded at run time
 
 
-class FunctionDefinitionNode(SideEffectsNode):
-    """
-    TODO: should we track if its an recursive function?
-    """
-
-    node_type: NodeType = NodeType.FunctionDefinitionNode
-    function_name: str
-    value: Optional[Any]  # loaded at run time
-
-
-class ConditionNode(SideEffectsNode):
-    node_type: NodeType = NodeType.ConditionNode
-
-
 class StateDependencyType(Enum):
     Read = 1
     Write = 2
@@ -380,17 +366,6 @@ class StateChangeNode(Node):
     initial_value_node_id: LineaID
     state_dependency_type: StateDependencyType
     value: Optional[NodeValueType]
-
-
-class LoopNode(SideEffectsNode):
-    """
-    We do not care about the intermediate states, but rather just what state has
-      changed. It's conceptually similar to representing loops in a more
-      functional way (such as map and reduce).  We do this by treating
-      the LoopNode as a node similar to "CallNode".
-    """
-
-    node_type: NodeType = NodeType.LoopNode
 
 
 class DataSourceNode(Node):

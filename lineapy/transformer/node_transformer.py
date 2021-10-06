@@ -1,5 +1,5 @@
 import ast
-from lineapy.transformer.analyze_ast_scope import analyze_ast_scope
+from lineapy.transformer.analyze_scope import analyze_code_scope
 import lineapy
 from lineapy.data.types import CallNode, Node
 from typing import Optional, Union, cast, Any
@@ -85,9 +85,7 @@ class NodeTransformer(ast.NodeTransformer):
         except Exception as e:
             code_context = self._get_code_from_node(node)
             if code_context:
-                info_log(
-                    f"Error while transforming code: \n\n{code_context}\n"
-                )
+                info_log(f"Error while transforming code: \n\n{code_context}\n")
             raise e
 
     def generic_visit(self, node: ast.AST) -> ast.AST:
@@ -415,9 +413,7 @@ class NodeTransformer(ast.NodeTransformer):
         return left
 
     def visit_Slice(self, node: ast.Slice) -> CallNode:
-        stop_node = (
-            self.visit(node.upper) if node.upper else self.tracer.none()
-        )
+        stop_node = self.visit(node.upper) if node.upper else self.tracer.none()
         # From https://docs.python.org/3/library/functions.html?highlight=slice#slice
         # slice can be called in two ways:
         # 1. slice(stop) when the start and step are None
@@ -459,17 +455,6 @@ class NodeTransformer(ast.NodeTransformer):
                 " visit_Assign."
             )
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        """
-        For now, assume the function is pure, i.e.:
-        - no globals
-        - no writing to variables defined outside the scope
-        """
-
-        function_name = node.name
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
-        self.tracer.define_function(function_name, syntax_dictionary)
-
     def visit_Attribute(self, node: ast.Attribute) -> CallNode:
 
         return self.tracer.call(
@@ -479,26 +464,49 @@ class NodeTransformer(ast.NodeTransformer):
             self.visit(ast.Constant(value=node.attr)),
         )
 
-    def _visit_black_box(self, node: Union[ast.ListComp, ast.If]):
+    def _visit_black_box(
+        self,
+        node: Union[
+            ast.ListComp,
+            ast.If,
+            ast.For,
+            ast.FunctionDef,
+        ],
+    ):
         syntax_dictionary = extract_concrete_syntax_from_node(node)
         code = self._get_code_from_node(node)
-        scope = analyze_ast_scope(node)
-        input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
-        if code is None:
-            raise InternalLogicError("Code block should not be empty")
-        return self.tracer.exec(
-            code=code,
-            is_expression=True,
-            syntax_dictionary=syntax_dictionary,
-            input_values=input_values,
-            output_variables=list(scope.stored),
-        )
+        if code is not None:
+            scope = analyze_code_scope(code)
+            input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
+            if code is None:
+                raise InternalLogicError("Code block should not be empty")
+
+            return self.tracer.exec(
+                code=code,
+                is_expression=isinstance(node, ast.ListComp),
+                syntax_dictionary=syntax_dictionary,
+                input_values=input_values,
+                output_variables=list(scope.stored),
+            )
+        raise InternalLogicError(f"Cannod find code for node {node}")
 
     def visit_ListComp(self, node: ast.ListComp) -> Node:
-        return self._visit_black_box(node)
+        return self._visit_black_box(node)  # type: ignore
 
-    def visit_If(self, node: ast.If) -> Node:
-        return self._visit_black_box(node)
+    def visit_If(self, node: ast.If) -> None:
+        return self._visit_black_box(node)  # type: ignore
+
+    def visit_For(self, node: ast.For) -> None:
+        return self._visit_black_box(node)  # type: ignore
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        """
+        For now, assume the function is pure, i.e.:
+        - no globals
+        - no writing to variables defined outside the scope
+        """
+
+        return self._visit_black_box(node)  # type: ignore
 
     def visit_Dict(self, node: ast.Dict) -> CallNode:
         keys = node.keys

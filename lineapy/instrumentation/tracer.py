@@ -8,7 +8,6 @@ from lineapy.data.graph import Graph
 from lineapy.lineabuiltins import __exec__, __build_tuple__
 from lineapy.data.types import (
     CallNode,
-    FunctionDefinitionNode,
     ImportNode,
     Library,
     LineaID,
@@ -76,9 +75,7 @@ class Tracer:
         )
         self.executor = Executor()
         self.variable_name_to_node: Dict[str, Node] = {}
-        self.function_name_to_function_module_import_id: Dict[
-            str, LineaID
-        ] = {}
+        self.function_name_to_function_module_import_id: Dict[str, LineaID] = {}
         self._builtins = None
 
     def _get_builtin_node(self) -> ImportNode:
@@ -114,9 +111,7 @@ class Tracer:
             time = self.executor.execute_program(
                 Graph(self.nodes_to_be_evaluated, self.session_context),
             )
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return time
@@ -124,9 +119,7 @@ class Tracer:
             # Same flow as SCRIPT but without the executor
             # In the future, we can potentially do something fancy with
             #   importing and doing analysis there
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
+            self.records_manager.add_evaluated_nodes(self.nodes_to_be_evaluated)
             # reset
             self.nodes_to_be_evaluated = []
             return None
@@ -361,22 +354,6 @@ class Tracer:
         self.variable_name_to_node[variable_name] = new_node
         return
 
-    def define_function(
-        self,
-        function_name: str,
-        syntax_dictionary: Dict,
-    ) -> None:
-        """
-        TODO: see limitations in `visit_FunctionDef` about function being pure
-        """
-        node = FunctionDefinitionNode(
-            id=get_new_id(),
-            session_id=self.session_context.id,
-            function_name=function_name,
-        )
-        self.variable_name_to_node[function_name] = node
-        self.add_unevaluated_node(node, syntax_dictionary)
-
     def loop(self) -> None:
         """
         Handles both for and while loops. Since we are treating it like a black
@@ -397,28 +374,28 @@ class Tracer:
         pass
 
     # Overload when is expression, returns Node
-    @overload
-    def exec(
-        self,
-        code: str,
-        is_expression: Literal[True],
-        output_variables: list[str],
-        input_values: dict[str, Node],
-        syntax_dictionary: SyntaxDictionary,
-    ) -> Node:
-        ...
+    # @overload
+    # def exec(
+    #     self,
+    #     code: str,
+    #     is_expression: Literal[True],
+    #     output_variables: list[str],
+    #     input_values: dict[str, Node],
+    #     syntax_dictionary: SyntaxDictionary,
+    # ) -> Node:
+    #     ...
 
-    # Overload when is statement, returns None
-    @overload
-    def exec(
-        self,
-        code: str,
-        is_expression: Literal[False],
-        output_variables: list[str],
-        input_values: dict[str, Node],
-        syntax_dictionary: SyntaxDictionary,
-    ) -> None:
-        ...
+    # # Overload when is statement, returns None
+    # @overload
+    # def exec(
+    #     self,
+    #     code: str,
+    #     is_expression: Literal[False],
+    #     output_variables: list[str],
+    #     input_values: dict[str, Node],
+    #     syntax_dictionary: SyntaxDictionary,
+    # ) -> None:
+    #     ...
 
     def exec(
         self,

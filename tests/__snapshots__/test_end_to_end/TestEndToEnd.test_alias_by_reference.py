@@ -7,7 +7,7 @@ session = SessionContext(
     environment_type=SessionType.SCRIPT,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     file_name="[source file path]",
-    code="a = [1,2,3]\nb = a\na.append(4)\ns = sum(b)\n",
+    code="a = [1,2,3]\nb = a\na.append(4)\nc = 2\nr1 = c in a\nr2 = c not in a\ns = sum(b)\n",
     working_directory="dummy_linea_repo/",
     libraries=[],
 )
@@ -135,12 +135,110 @@ call_3 = CallNode(
 variable_3 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
-    source_node_id=CallNode(
+    source_node_id=LiteralNode(
         id=get_new_id(),
         session_id=session.id,
         lineno=4,
         col_offset=0,
         end_lineno=4,
+        end_col_offset=5,
+        value=2,
+    ).id,
+    assigned_variable_name="c",
+)
+variable_4 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=5,
+        col_offset=0,
+        end_lineno=5,
+        end_col_offset=11,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=variable_1.id,
+            ).id,
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=1,
+                value_node_id=variable_3.id,
+            ).id,
+        ],
+        function_id=LookupNode(
+            id=get_new_id(),
+            session_id=session.id,
+            name="contains",
+        ).id,
+    ).id,
+    assigned_variable_name="r1",
+)
+variable_5 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=6,
+        col_offset=0,
+        end_lineno=6,
+        end_col_offset=15,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=CallNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    lineno=6,
+                    col_offset=5,
+                    end_lineno=6,
+                    end_col_offset=15,
+                    arguments=[
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=0,
+                            value_node_id=variable_1.id,
+                        ).id,
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=1,
+                            value_node_id=variable_3.id,
+                        ).id,
+                    ],
+                    function_id=LookupNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        name="contains",
+                    ).id,
+                ).id,
+            ).id
+        ],
+        function_id=LookupNode(
+            id=get_new_id(),
+            session_id=session.id,
+            name="not_",
+        ).id,
+    ).id,
+    assigned_variable_name="r2",
+)
+variable_6 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        lineno=7,
+        col_offset=0,
+        end_lineno=7,
         end_col_offset=10,
         arguments=[
             ArgumentNode(

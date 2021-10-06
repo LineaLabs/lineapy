@@ -20,9 +20,9 @@ from lineapy.data.types import (
     CallNode,
     ImportNode,
     LiteralNode,
-    FunctionDefinitionNode,
-    ConditionNode,
-    LoopNode,
+    # FunctionDefinitionNode,
+    # ConditionNode,
+    # LoopNode,
     DataSourceNode,
     StateChangeNode,
     VariableNode,
@@ -74,9 +74,7 @@ class RelationalLineaDB(LineaDB):
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default=False)
         if not isinstance(echo, bool):
-            echo = (
-                str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
-            )
+            echo = str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
@@ -97,9 +95,6 @@ class RelationalLineaDB(LineaDB):
             NodeType.CallNode: CallNodeORM,
             NodeType.ImportNode: ImportNodeORM,
             NodeType.LiteralNode: LiteralNodeORM,
-            NodeType.FunctionDefinitionNode: FunctionDefinitionNodeORM,
-            NodeType.ConditionNode: ConditionNodeORM,
-            NodeType.LoopNode: LoopNodeORM,
             NodeType.DataSourceNode: DataSourceNodeORM,
             NodeType.StateChangeNode: StateChangeNodeORM,
             NodeType.VariableNode: VariableNodeORM,
@@ -115,9 +110,6 @@ class RelationalLineaDB(LineaDB):
             NodeType.CallNode: CallNode,
             NodeType.ImportNode: ImportNode,
             NodeType.LiteralNode: LiteralNode,
-            NodeType.FunctionDefinitionNode: FunctionDefinitionNode,
-            NodeType.ConditionNode: ConditionNode,
-            NodeType.LoopNode: LoopNode,
             NodeType.DataSourceNode: DataSourceNode,
             NodeType.StateChangeNode: StateChangeNode,
             NodeType.VariableNode: VariableNode,
@@ -178,15 +170,14 @@ class RelationalLineaDB(LineaDB):
         self.session.add(context_orm)
         self.session.commit()
 
-    def add_lib_to_session_context(
-        self, context_id: LineaID, library: Library
-    ):
+    def add_lib_to_session_context(self, context_id: LineaID, library: Library):
         library_orm = self.write_library(library, context_id)
         self.session.commit()
 
     def write_nodes(self, nodes: List[Node]) -> None:
         for n in nodes:
             self.write_single_node(n)
+        self.write_node_values(nodes)
 
     def write_single_node(self, node: Node) -> None:
         args = node.dict()
@@ -209,48 +200,6 @@ class RelationalLineaDB(LineaDB):
                 )
             del args["arguments"]
             del args["value"]
-
-        elif node.node_type in [
-            NodeType.LoopNode,
-            NodeType.ConditionNode,
-            NodeType.FunctionDefinitionNode,
-        ]:
-            node = cast(SideEffectsNodeORM, node)
-            if "value" in args:
-                del args["value"]
-            if node.output_state_change_nodes is not None:
-                for state_change_id in node.output_state_change_nodes:
-                    self.session.execute(
-                        side_effects_output_state_change_association_table.insert(),
-                        params={
-                            "side_effects_node_id": node.id,
-                            "output_state_change_node_id": state_change_id,
-                        },
-                    )
-
-            if node.input_state_change_nodes is not None:
-                for state_change_id in node.input_state_change_nodes:
-                    self.session.execute(
-                        side_effects_input_state_change_association_table.insert(),
-                        params={
-                            "side_effects_node_id": node.id,
-                            "input_state_change_node_id": state_change_id,
-                        },
-                    )
-
-            if node.import_nodes is not None:
-                for import_id in node.import_nodes:
-                    self.session.execute(
-                        side_effects_import_association_table.insert(),
-                        params={
-                            "side_effects_node_id": node.id,
-                            "import_node_id": import_id,
-                        },
-                    )
-
-            del args["input_state_change_nodes"]
-            del args["output_state_change_nodes"]
-            del args["import_nodes"]
 
         elif node.node_type is NodeType.ImportNode:
             node = cast(ImportNodeORM, node)
@@ -282,14 +231,33 @@ class RelationalLineaDB(LineaDB):
         self.session.add(node_orm)
         self.session.commit()
 
-        self.write_single_node_value(node, version=1)
-
-    def write_node_values(self, nodes: List[Node], version: int) -> None:
+    def write_node_values(
+        self,
+        nodes: List[Node],
+        version: Optional[int] = None,
+    ) -> None:
+        # Lookup version if we don't know
+        if version is None:
+            # TODO: look up
+            version = 1  # eff it...
         for n in nodes:
-            self.write_single_node_value(n, version)
+            graph_cache_veto = False
+            if isinstance(n, CallNode):
+                # look up the function_id
+                fun_node = next(x for x in nodes if x.id == n.function_id)
+                if isinstance(fun_node, LookupNode):
+                    if fun_node.name == "__exec__":
+                        graph_cache_veto = True
+            else:
+                graph_cache_veto = True
+            self.write_single_node_value(n, version, graph_cache_veto)
 
-    def write_single_node_value(self, node: Node, version: int) -> None:
-        self.data_asset_manager.write_node_value(node, version)
+    def write_single_node_value(
+        self, node: Node, version: int, graph_cache_veto: bool
+    ) -> None:
+        self.data_asset_manager.write_node_value(
+            node, version, graph_cache_veto
+        )
 
     def add_node_id_to_artifact_table(
         self,
@@ -412,63 +380,6 @@ class RelationalLineaDB(LineaDB):
             )
             node.arguments = [a.argument_node_id for a in arguments]
 
-        # TODO: find a way to have this just check for SideEffectsNode type
-        elif node.node_type in [
-            NodeType.LoopNode,
-            NodeType.ConditionNode,
-            NodeType.FunctionDefinitionNode,
-        ]:
-            node = cast(SideEffectsNodeORM, node)
-            output_state_change_nodes = (
-                self.session.query(
-                    side_effects_output_state_change_association_table
-                )
-                .filter(
-                    (
-                        side_effects_output_state_change_association_table.c.side_effects_node_id
-                    )
-                    == node.id
-                )
-                .all()
-            )
-
-            if output_state_change_nodes is not None:
-                node.output_state_change_nodes = [
-                    a.output_state_change_node_id
-                    for a in output_state_change_nodes
-                ]
-
-            input_state_change_nodes = (
-                self.session.query(
-                    side_effects_input_state_change_association_table
-                )
-                .filter(
-                    (
-                        side_effects_input_state_change_association_table.c.side_effects_node_id
-                    )
-                    == node.id
-                )
-                .all()
-            )
-
-            if input_state_change_nodes is not None:
-                node.input_state_change_nodes = [
-                    a.input_state_change_node_id
-                    for a in input_state_change_nodes
-                ]
-
-            import_nodes = (
-                self.session.query(side_effects_import_association_table)
-                .filter(
-                    side_effects_import_association_table.c.side_effects_node_id
-                    == node.id
-                )
-                .all()
-            )
-
-            if import_nodes is not None:
-                node.import_nodes = [a.import_node_id for a in import_nodes]
-
         return RelationalLineaDB.get_pydantic(node).from_orm(node)
 
     def get_node_value_from_db(
@@ -528,9 +439,7 @@ class RelationalLineaDB(LineaDB):
         node_orms = self.session.query(NodeORM).all()
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
-    def get_session_graph_from_artifact_id(
-        self, artifact_id: LineaID
-    ) -> Graph:
+    def get_session_graph_from_artifact_id(self, artifact_id: LineaID) -> Graph:
         """
         - This is program slicing over database data.
         - There are lots of complexities when it comes to mutation
@@ -574,9 +483,7 @@ class RelationalLineaDB(LineaDB):
         :return: string containing the code for generating the artifact.
         """
         artifacts = self.find_artifact_by_name(artifact_name)
-        assert (
-            len(artifacts) == 1
-        ), "Should only be one artifact with this name"
+        assert len(artifacts) == 1, "Should only be one artifact with this name"
         return self.get_code_from_artifact_id(artifacts[0].id)
 
     def find_all_artifacts_derived_from_data_source(
