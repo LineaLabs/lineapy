@@ -8,7 +8,6 @@ session = SessionContext(
     environment_type=SessionType.STATIC,
     creation_time=datetime.datetime(1, 1, 1, 0, 0),
     working_directory="dummy_linea_repo/",
-    libraries=[],
 )
 source_1 = SourceCode(
     id=get_new_id(),
