@@ -74,7 +74,7 @@ setup(
             "mypy",
             "pytest",
             "matplotlib",
-            "coverage[toml]<5.0",
+            "coverage[toml]",
             "pytest-cov",
             "coveralls",
         ],
