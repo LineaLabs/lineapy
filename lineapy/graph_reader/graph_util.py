@@ -3,7 +3,6 @@ from typing import Iterator, cast, List, Dict, Optional, Any
 from lineapy.data.types import (
     ArgumentNode,
     CallNode,
-    FunctionDefinitionNode,
     Node,
     NodeType,
     DirectedEdge,
@@ -57,16 +56,6 @@ def get_parents_from_node(node: Node) -> Iterator[LineaID]:
         node = cast(ArgumentNode, node)
         if node.value_node_id is not None:
             yield node.value_node_id
-    elif node.node_type in [
-        NodeType.LoopNode,
-        NodeType.ConditionNode,
-        NodeType.FunctionDefinitionNode,
-    ]:
-        node = cast(SideEffectsNode, node)
-        if node.import_nodes is not None:
-            yield from node.import_nodes
-        if node.input_state_change_nodes is not None:
-            yield from node.input_state_change_nodes
     elif node.node_type is NodeType.StateChangeNode:
         node = cast(StateChangeNode, node)
         if node.state_dependency_type is StateDependencyType.Write:

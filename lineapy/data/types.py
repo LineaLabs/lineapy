@@ -107,9 +107,6 @@ class NodeType(Enum):
     ArgumentNode = 2
     CallNode = 3
     LiteralNode = 4
-    FunctionDefinitionNode = 5
-    ConditionNode = 6
-    LoopNode = 7
     WithNode = 8
     ImportNode = 9
     StateChangeNode = 10
@@ -380,6 +377,20 @@ class ArgumentNode(Node):
     positional_order: Optional[int] = None
     value_node_id: LineaID
 
+    def __lt__(self, other: object) -> bool:
+        """
+        Overloading this less than so that the graph_printer could generate
+          deterministic ordering, just going to use the positional order
+          and then the keyword
+        """
+        if not isinstance(other, ArgumentNode):
+            # defer to above
+            return super().__lt__(other)
+        return (self.positional_order or -1, self.keyword or "") < (
+            other.positional_order or -1,
+            other.keyword or "",
+        )
+
 
 class CallNode(Node):
     """
@@ -436,20 +447,6 @@ class VariableNode(Node):
     value: Optional[Any]  # loaded at run time
 
 
-class FunctionDefinitionNode(SideEffectsNode):
-    """
-    TODO: should we track if its an recursive function?
-    """
-
-    node_type: NodeType = NodeType.FunctionDefinitionNode
-    function_name: str
-    value: Optional[Any]  # loaded at run time
-
-
-class ConditionNode(SideEffectsNode):
-    node_type: NodeType = NodeType.ConditionNode
-
-
 class StateDependencyType(Enum):
     Read = 1
     Write = 2
@@ -475,17 +472,6 @@ class StateChangeNode(Node):
     initial_value_node_id: LineaID
     state_dependency_type: StateDependencyType
     value: Optional[NodeValueType]
-
-
-class LoopNode(SideEffectsNode):
-    """
-    We do not care about the intermediate states, but rather just what state has
-      changed. It's conceptually similar to representing loops in a more
-      functional way (such as map and reduce).  We do this by treating
-      the LoopNode as a node similar to "CallNode".
-    """
-
-    node_type: NodeType = NodeType.LoopNode
 
 
 class DataSourceNode(Node):

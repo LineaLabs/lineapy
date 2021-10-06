@@ -29,7 +29,8 @@ STRING_FORMAT = """a = '{{ {0} }}'.format('foo')"""
 
 
 PANDAS_RANDOM_CODE = """from pandas import DataFrame
-df = DataFrame([[1,2], [3,4]])
+v = 4
+df = DataFrame([[1,2], [3,v]])
 df[0].astype(str)
 assert df.size == 4
 new_df = df.iloc[:, 1]
@@ -60,6 +61,9 @@ b = a
 ALIAS_BY_REFERENCE = """a = [1,2,3]
 b = a
 a.append(4)
+c = 2
+r1 = c in a
+r2 = c not in a
 s = sum(b)
 """
 
@@ -86,6 +90,7 @@ lineapy.linea_publish(f, 'f')
 FUNCTION_DEFINITION_CODE = """def foo(a, b):
     return a - b
 c = foo(b=1, a=2)
+d = foo(5,1)
 """
 
 CONDITIONALS_CODE = """bs = [1,2]
@@ -102,8 +107,8 @@ a = 0
 def my_function():
     global a
     a = math.factorial(5)
-res = my_function()
-lineapy.linea_publish(res, 'res')
+my_function()
+lineapy.linea_publish(a, 'mutated a')
 """
 
 LOOP_CODE = """import lineapy
@@ -125,8 +130,44 @@ b
 lineapy.linea_publish(c, 'c')
 """
 
+SUBSCRIPT = """
+ls = [1,2,3,4]
+ls[0] = 1
+a = 4
+ls[1] = a
+ls[2:3] = [30]
+ls[3:a] = [40]
+"""
+
 
 NESTED_CALL = "a = min(abs(11), 10)"
+
+BINOPS = """a = 11
+b = 2
+
+r1 = a + b
+r2 = a - b
+r3 =a * b
+r4 =a / b
+r5 =a // b
+r6 =a % b
+r7 =a ** b
+r8 =a << b
+r9 =a >> b
+r10 =a | b
+r11 =a ^ b
+r12 =a & b
+"""
+
+LOGICAL_BINOPS = """a = 1
+b = 2
+r1 = a == b
+r2 = a != b
+r3 = a < b
+r4 = a <= b
+r5 = a > b
+r6 = a >= b
+"""
 
 
 class TestEndToEnd:
@@ -155,6 +196,58 @@ class TestEndToEnd:
         reset_test_db(config.database_uri)
         self.db = RelationalLineaDB()
         self.db.init_db(config)
+
+    @pytest.mark.parametrize(
+        "session_type",
+        [
+            SessionType.STATIC,
+            SessionType.SCRIPT,
+        ],
+    )
+    def test_function_definition_without_side_effect(
+        self, session_type: SessionType, execute
+    ):
+        res = execute(FUNCTION_DEFINITION_CODE, session_type=session_type)
+        if session_type == SessionType.SCRIPT:
+            assert res.values["c"] == 1
+            assert res.values["d"] == 4
+
+    @pytest.mark.xfail(reason="exec scope is weird")
+    def test_function_definition_global(self, execute):
+        res = execute(FUNCTION_DEFINITION_GLOBAL_CODE)
+        assert res.values["a"] == 120
+
+    @pytest.mark.xfail
+    def test_function_definition_global_slice(self, execute, python_snapshot):
+        """
+        Verify code is the same
+        """
+        res = execute(
+            FUNCTION_DEFINITION_GLOBAL_CODE,
+            compare_snapshot=False,
+        )
+        assert res.slice("a") == python_snapshot
+
+    def test_loop_code(self, execute):
+        res = execute(LOOP_CODE)
+
+        assert len(res.values["a"]) == 9
+        assert res.values["x"] == 36
+        assert res.values["b"] == 36
+        assert res.values["y"] == 72
+
+    def test_loop_code_slice(self, execute, python_snapshot):
+        res = execute(
+            LOOP_CODE,
+            compare_snapshot=False,
+        )
+
+        assert res.slice("y") == python_snapshot
+
+    def test_conditionals(self, execute):
+        res = execute(CONDITIONALS_CODE)
+        assert res.stdout == "False\n"
+        assert res.values["bs"] == [1, 2, 3]
 
     def test_pandas(self, execute):
         res = execute(PANDAS_RANDOM_CODE)
@@ -222,21 +315,6 @@ class TestEndToEnd:
             assert result.exit_code == 0
             return tmp_file_name
 
-    @pytest.mark.parametrize(
-        "session_type",
-        [
-            SessionType.SCRIPT,
-            SessionType.STATIC,
-        ],
-    )
-    def test_function_definition_without_side_effect(
-        self, session_type: SessionType, execute
-    ):
-        res = execute(FUNCTION_DEFINITION_CODE, session_type=session_type)
-        if session_type == SessionType.SCRIPT:
-            assert res.values["c"] == 1
-
-    @pytest.mark.xfail(reason="Mutations ##221")
     def test_dictionary_support(self, execute):
         res = execute(DICTIONARY_SUPPORT)
 
@@ -280,12 +358,36 @@ class TestEndToEnd:
         execute(code)
 
     def test_binops(self, execute):
-        code = "b = 1 + 2\nassert b == 3"
-        execute(code)
+        res = execute(BINOPS)
+        assert res.values["r1"] == 13
+        assert res.values["r2"] == 9
+        assert res.values["r3"] == 22
+        assert res.values["r4"] == 5.5
+        assert res.values["r5"] == 5
+        assert res.values["r6"] == 1
+        assert res.values["r7"] == 121
+        assert res.values["r8"] == 44
+        assert res.values["r9"] == 2
+        assert res.values["r10"] == 11
+        assert res.values["r11"] == 9
+        assert res.values["r12"] == 2
+
+    def test_logical_binops(self, execute):
+        res = execute(LOGICAL_BINOPS)
+        assert res.values["r1"] == False
+        assert res.values["r2"] == True
+        assert res.values["r3"] == True
+        assert res.values["r4"] == True
+        assert res.values["r5"] == False
+        assert res.values["r6"] == False
 
     def test_subscript(self, execute):
-        code = "ls = [1,2]\nassert ls[0] == 1"
-        execute(code)
+        res = execute(SUBSCRIPT)
+        assert len(res.values["ls"]) == 4
+        assert res.values["ls"][0] == 1
+        assert res.values["ls"][1] == 4
+        assert res.values["ls"][2] == 30
+        assert res.values["ls"][3] == 40
 
     def test_simple(self, execute):
         assert execute("a = abs(11)").values["a"] == 11
@@ -314,11 +416,11 @@ class TestEndToEnd:
     def test_subscript_call(self, execute):
         execute("[0][abs(0)]", session_type=SessionType.STATIC)
 
-    # @pytest.mark.xfail(reason="Mutations #197")
     def test_alias_by_reference(self, execute):
         res = execute(ALIAS_BY_REFERENCE)
-        print(res)
         assert res.values["s"] == 10
+        assert res.values["r1"] == True
+        assert res.values["r2"] == False
 
     def test_alias_by_value(self, execute):
         res = execute(ALIAS_BY_VALUE)
@@ -338,45 +440,6 @@ class TestEndToEnd:
     def test_messy_nodes_slice(self, execute, python_snapshot):
         res = execute(MESSY_NODES, compare_snapshot=False)
         assert res.slice("f") == python_snapshot
-
-    @pytest.mark.xfail
-    def test_conditionals(self, execute):
-        res = execute(CONDITIONALS_CODE)
-        assert res.stdout == "False\n"
-        assert res.values["bs"] == [1, 2, 3]
-
-    @pytest.mark.xfail
-    def test_function_definition_global(self, execute):
-        res = execute(FUNCTION_DEFINITION_GLOBAL_CODE)
-        assert res.values["a"] == 120
-
-    @pytest.mark.xfail
-    def test_function_definition_global_slice(self, execute):
-        """
-        Verify code is the same
-        """
-        res = execute(
-            FUNCTION_DEFINITION_GLOBAL_CODE,
-            compare_snapshot=False,
-        )
-        assert res.slice("res") == FUNCTION_DEFINITION_GLOBAL_CODE
-
-    @pytest.mark.xfail
-    def test_loop_code(self, execute):
-        res = execute(LOOP_CODE)
-
-        assert len(res.values["a"]) == 9
-        assert res.values["y"] == 72
-        assert res.values["x"] == 36
-
-    @pytest.mark.xfail
-    def test_loop_code_slice(self, execute):
-        res = execute(
-            LOOP_CODE,
-            compare_snapshot=False,
-        )
-
-        assert res.slice("y") == LOOP_CODE
 
     def test_simple_slice(self, execute, python_snapshot):
         res = execute(

@@ -11,50 +11,30 @@ session = SessionContext(
 )
 source_1 = SourceCode(
     id=get_new_id(),
-    code="""ls=[1,2,3]
-a=1
-ls[0]""",
+    code="""bs = [1,2]
+if len(bs) > 4:
+    print("True")
+else:
+    bs.append(3)
+    print("False")
+""",
     location=PosixPath("[source file path]"),
-)
-variable_2 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
-    source_location=SourceLocation(
-        lineno=2,
-        col_offset=0,
-        end_lineno=2,
-        end_col_offset=3,
-        source_code=source_1.id,
-    ),
-    source_node_id=LiteralNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=2,
-            col_offset=2,
-            end_lineno=2,
-            end_col_offset=3,
-            source_code=source_1.id,
-        ),
-        value=1,
-    ).id,
-    assigned_variable_name="a",
 )
 call_2 = CallNode(
     id=get_new_id(),
     session_id=session.id,
     source_location=SourceLocation(
-        lineno=3,
+        lineno=2,
         col_offset=0,
-        end_lineno=3,
-        end_col_offset=5,
+        end_lineno=6,
+        end_col_offset=18,
         source_code=source_1.id,
     ),
     arguments=[
         ArgumentNode(
             id=get_new_id(),
             session_id=session.id,
-            positional_order=0,
+            keyword="bs",
             value_node_id=VariableNode(
                 id=get_new_id(),
                 session_id=session.id,
@@ -70,7 +50,7 @@ call_2 = CallNode(
                     session_id=session.id,
                     source_location=SourceLocation(
                         lineno=1,
-                        col_offset=3,
+                        col_offset=5,
                         end_lineno=1,
                         end_col_offset=10,
                         source_code=source_1.id,
@@ -85,9 +65,9 @@ call_2 = CallNode(
                                 session_id=session.id,
                                 source_location=SourceLocation(
                                     lineno=1,
-                                    col_offset=4,
+                                    col_offset=6,
                                     end_lineno=1,
-                                    end_col_offset=5,
+                                    end_col_offset=7,
                                     source_code=source_1.id,
                                 ),
                                 value=1,
@@ -102,29 +82,12 @@ call_2 = CallNode(
                                 session_id=session.id,
                                 source_location=SourceLocation(
                                     lineno=1,
-                                    col_offset=6,
-                                    end_lineno=1,
-                                    end_col_offset=7,
-                                    source_code=source_1.id,
-                                ),
-                                value=2,
-                            ).id,
-                        ).id,
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            positional_order=2,
-                            value_node_id=LiteralNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                source_location=SourceLocation(
-                                    lineno=1,
                                     col_offset=8,
                                     end_lineno=1,
                                     end_col_offset=9,
                                     source_code=source_1.id,
                                 ),
-                                value=3,
+                                value=2,
                             ).id,
                         ).id,
                     ],
@@ -134,7 +97,41 @@ call_2 = CallNode(
                         name="__build_list__",
                     ).id,
                 ).id,
-                assigned_variable_name="ls",
+                assigned_variable_name="bs",
+            ).id,
+        ).id,
+        ArgumentNode(
+            id=get_new_id(),
+            session_id=session.id,
+            keyword="len",
+            value_node_id=LookupNode(
+                id=get_new_id(),
+                session_id=session.id,
+                name="len",
+            ).id,
+        ).id,
+        ArgumentNode(
+            id=get_new_id(),
+            session_id=session.id,
+            keyword="print",
+            value_node_id=LookupNode(
+                id=get_new_id(),
+                session_id=session.id,
+                name="print",
+            ).id,
+        ).id,
+        ArgumentNode(
+            id=get_new_id(),
+            session_id=session.id,
+            positional_order=0,
+            value_node_id=LiteralNode(
+                id=get_new_id(),
+                session_id=session.id,
+                value="""if len(bs) > 4:
+    print("True")
+else:
+    bs.append(3)
+    print("False")""",
             ).id,
         ).id,
         ArgumentNode(
@@ -144,13 +141,6 @@ call_2 = CallNode(
             value_node_id=LiteralNode(
                 id=get_new_id(),
                 session_id=session.id,
-                source_location=SourceLocation(
-                    lineno=3,
-                    col_offset=3,
-                    end_lineno=3,
-                    end_col_offset=4,
-                    source_code=source_1.id,
-                ),
                 value=0,
             ).id,
         ).id,
@@ -158,6 +148,6 @@ call_2 = CallNode(
     function_id=LookupNode(
         id=get_new_id(),
         session_id=session.id,
-        name="getitem",
+        name="__exec__",
     ).id,
 )

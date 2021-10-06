@@ -14,10 +14,98 @@ source_1 = SourceCode(
     code="""def foo(a, b):
     return a - b
 c = foo(b=1, a=2)
+d = foo(5,1)
 """,
     location=PosixPath("[source file path]"),
 )
 variable_1 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=16,
+        source_code=source_1.id,
+    ),
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=CallNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    source_location=SourceLocation(
+                        lineno=1,
+                        col_offset=0,
+                        end_lineno=2,
+                        end_col_offset=16,
+                        source_code=source_1.id,
+                    ),
+                    arguments=[
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=0,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                value="""def foo(a, b):
+    return a - b""",
+                            ).id,
+                        ).id,
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=1,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                value=0,
+                            ).id,
+                        ).id,
+                        ArgumentNode(
+                            id=get_new_id(),
+                            session_id=session.id,
+                            positional_order=2,
+                            value_node_id=LiteralNode(
+                                id=get_new_id(),
+                                session_id=session.id,
+                                value="foo",
+                            ).id,
+                        ).id,
+                    ],
+                    function_id=LookupNode(
+                        id=get_new_id(),
+                        session_id=session.id,
+                        name="__exec__",
+                    ).id,
+                ).id,
+            ).id,
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=1,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    value=0,
+                ).id,
+            ).id,
+        ],
+        function_id=LookupNode(
+            id=get_new_id(),
+            session_id=session.id,
+            name="getitem",
+        ).id,
+    ).id,
+    assigned_variable_name="foo",
+)
+variable_2 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
     source_location=SourceLocation(
@@ -73,21 +161,67 @@ variable_1 = VariableNode(
                 ).id,
             ).id,
         ],
-        function_id=FunctionDefinitionNode(
-            id=get_new_id(),
-            session_id=session.id,
-            source_location=SourceLocation(
-                lineno=1,
-                col_offset=0,
-                end_lineno=2,
-                end_col_offset=16,
-                source_code=source_1.id,
-            ),
-            output_state_change_nodes=[],
-            input_state_change_nodes=[],
-            import_nodes=[],
-            function_name="foo",
-        ).id,
+        function_id=variable_1.id,
     ).id,
     assigned_variable_name="c",
+)
+variable_3 = VariableNode(
+    id=get_new_id(),
+    session_id=session.id,
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=0,
+        end_lineno=4,
+        end_col_offset=12,
+        source_code=source_1.id,
+    ),
+    source_node_id=CallNode(
+        id=get_new_id(),
+        session_id=session.id,
+        source_location=SourceLocation(
+            lineno=4,
+            col_offset=4,
+            end_lineno=4,
+            end_col_offset=12,
+            source_code=source_1.id,
+        ),
+        arguments=[
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=0,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    source_location=SourceLocation(
+                        lineno=4,
+                        col_offset=8,
+                        end_lineno=4,
+                        end_col_offset=9,
+                        source_code=source_1.id,
+                    ),
+                    value=5,
+                ).id,
+            ).id,
+            ArgumentNode(
+                id=get_new_id(),
+                session_id=session.id,
+                positional_order=1,
+                value_node_id=LiteralNode(
+                    id=get_new_id(),
+                    session_id=session.id,
+                    source_location=SourceLocation(
+                        lineno=4,
+                        col_offset=10,
+                        end_lineno=4,
+                        end_col_offset=11,
+                        source_code=source_1.id,
+                    ),
+                    value=1,
+                ).id,
+            ).id,
+        ],
+        function_id=variable_1.id,
+    ).id,
+    assigned_variable_name="d",
 )

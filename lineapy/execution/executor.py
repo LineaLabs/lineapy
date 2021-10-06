@@ -4,10 +4,10 @@ from os import chdir, getcwd
 import io
 import subprocess
 import sys
-from typing import Any, Optional, Dict, cast
+from typing import Any, Dict, cast
 import time
 
-from lineapy.utils import InternalLogicError, debug_log
+from lineapy.utils import InternalLogicError
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -18,9 +18,6 @@ from lineapy.data.types import (
     CallNode,
     ImportNode,
     LiteralNode,
-    SideEffectsNode,
-    StateChangeNode,
-    FunctionDefinitionNode,
     LineaID,
     VariableNode,
 )
@@ -110,59 +107,6 @@ class Executor:
         self.teardown()
         return end - start
 
-    def setup_context_for_node(
-        self,
-        node: SideEffectsNode,
-        program: Graph,
-        scoped_locals: Dict[str, Any],
-    ) -> None:
-        if node.input_state_change_nodes is not None:
-            for state_var_id in node.input_state_change_nodes:
-                state_var = cast(
-                    StateChangeNode, program.get_node(state_var_id)
-                )
-                initial_state = program.get_node(
-                    state_var.initial_value_node_id
-                )
-                if initial_state is not None and initial_state.node_type in [
-                    NodeType.CallNode,
-                    NodeType.LiteralNode,
-                    NodeType.StateChangeNode,
-                ]:
-                    scoped_locals[state_var.variable_name] = initial_state.value  # type: ignore
-
-        if node.import_nodes is not None:
-            for import_node_id in node.import_nodes:
-                import_node = cast(
-                    ImportNode, program.get_node(import_node_id)
-                )
-                import_node.module = importlib.import_module(import_node.library.name)  # type: ignore
-                scoped_locals[import_node.library.name] = import_node.module
-
-    def update_node_side_effects(
-        self,
-        node: Optional[Node],
-        program: Graph,
-        scoped_locals: Dict[str, Any],
-    ) -> None:
-        if node is None:
-            return
-
-        local_vars = scoped_locals
-        node = cast(SideEffectsNode, node)
-        if node.output_state_change_nodes is not None:
-            for state_var_id in node.output_state_change_nodes:
-                state_var = cast(
-                    StateChangeNode, program.get_node(state_var_id)
-                )
-
-                state_var.value = local_vars[state_var.variable_name]
-
-                if state_var.variable_name is not None:
-                    self._variable_values[
-                        state_var.variable_name
-                    ] = state_var.value
-
     def walk(self, program: Graph) -> None:
         """
         FIXME: side effect evaluation is currently not supported
@@ -173,7 +117,7 @@ class Executor:
             if getattr(node, "value", None) is not None:
                 continue
 
-            scoped_locals = locals()
+            # scoped_locals = locals()
 
             # all of these have to be in the same scope in order to read
             # and write to scoped_locals properly using Python exec
@@ -195,26 +139,6 @@ class Executor:
             elif node.node_type == NodeType.ImportNode:
                 node = cast(ImportNode, node)
                 node.module = importlib.import_module(node.library.name)
-
-            elif node.node_type in [NodeType.LoopNode, NodeType.ConditionNode]:
-                node = cast(SideEffectsNode, node)
-                # set up vars and imports
-                self.setup_context_for_node(node, program, scoped_locals)
-                source_location = node.source_location
-                assert source_location
-                exec(get_segment_from_source_location(source_location))
-                self.update_node_side_effects(node, program, scoped_locals)
-
-            elif node.node_type == NodeType.FunctionDefinitionNode:
-                node = cast(FunctionDefinitionNode, node)
-                source_location = node.source_location
-                assert source_location
-                self.setup_context_for_node(node, program, scoped_locals)
-                exec(
-                    get_segment_from_source_location(source_location),
-                    scoped_locals,
-                )
-                node.value = scoped_locals[node.function_name]
 
             elif node.node_type == NodeType.LiteralNode:
                 node = cast(LiteralNode, node)

@@ -9,7 +9,6 @@ from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.lineabuiltins import __exec__, __build_tuple__
 from lineapy.data.types import (
     CallNode,
-    FunctionDefinitionNode,
     ImportNode,
     Library,
     LineaID,
@@ -353,23 +352,6 @@ class Tracer:
         self.variable_name_to_node[variable_name] = new_node
         return
 
-    def define_function(
-        self,
-        function_name: str,
-        source_location: Optional[SourceLocation] = None,
-    ) -> None:
-        """
-        TODO: see limitations in `visit_FunctionDef` about function being pure
-        """
-        node = FunctionDefinitionNode(
-            id=get_new_id(),
-            session_id=self.session_context.id,
-            function_name=function_name,
-            source_location=source_location,
-        )
-        self.variable_name_to_node[function_name] = node
-        self.add_unevaluated_node(node)
-
     def loop(self) -> None:
         """
         Handles both for and while loops. Since we are treating it like a black
@@ -389,30 +371,6 @@ class Tracer:
         """
         pass
 
-    # Overload when is expression, returns Node
-    @overload
-    def exec(
-        self,
-        code: str,
-        is_expression: Literal[True],
-        output_variables: list[str],
-        input_values: dict[str, Node],
-        source_location: Optional[SourceLocation] = None,
-    ) -> Node:
-        ...
-
-    # Overload when is statement, returns None
-    @overload
-    def exec(
-        self,
-        code: str,
-        is_expression: Literal[False],
-        output_variables: list[str],
-        input_values: dict[str, Node],
-        source_location: Optional[SourceLocation] = None,
-    ) -> None:
-        ...
-
     def exec(
         self,
         code: str,
@@ -431,6 +389,8 @@ class Tracer:
         If is_expression is True, it will return the result of the expression, otherwise
         it will return None.
         """
+        # make sure it's sorted so that the printer will be consistent
+        output_variables.sort()
         res = self.call(
             self.lookup_node(__exec__.__name__),
             source_location,

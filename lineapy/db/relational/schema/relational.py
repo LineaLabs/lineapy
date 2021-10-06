@@ -63,7 +63,6 @@ ArgumentNode
 CallNode
 - ArgumentNode (One to Many)
 - ImportNode/CallNode (function_module) (One to One)
-- FunctionDefinitionNode (One to One)
 
 LiteralNode
 - ValueNode (One to One)
@@ -354,21 +353,6 @@ class LiteralNodeORM(NodeORM):
         return NodeORM.__table__.c.get("value", Column(String))
 
 
-class FunctionDefinitionNodeORM(SideEffectsNodeORM):
-    __tablename__ = "function_definition_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.FunctionDefinitionNode}
-
-    id = Column(String, ForeignKey("side_effects_node.id"), primary_key=True)
-
-    @declared_attr
-    def value(cls):
-        return NodeORM.__table__.c.get("value", Column(String))
-
-    @declared_attr
-    def function_name(cls):
-        return NodeORM.__table__.c.get("function_name", Column(String))
-
-
 class VariableNodeORM(NodeORM):
     __tablename__ = "variable_alias_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.VariableNode}
@@ -377,20 +361,6 @@ class VariableNodeORM(NodeORM):
 
     source_node_id = Column(String)
     assigned_variable_name = Column(String, nullable=True)
-
-
-class LoopNodeORM(SideEffectsNodeORM):
-    __tablename__ = "loop_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.LoopNode}
-
-    id = Column(String, ForeignKey("side_effects_node.id"), primary_key=True)
-
-
-class ConditionNodeORM(SideEffectsNodeORM):
-    __tablename__ = "condition_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.ConditionNode}
-
-    id = Column(String, ForeignKey("side_effects_node.id"), primary_key=True)
 
 
 class DataSourceNodeORM(NodeORM):
