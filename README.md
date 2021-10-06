@@ -4,6 +4,8 @@ Lineapy is a Python library for analyzing data science workflows.
 
 ## Features
 
+### CLI
+
 Currently, you can run Linea as CLI command to slice your Python code to extract
 only the code that is neccesary to recompute some result. Along the way, Linea
 stores the semantics of your code into a database, which we are working on exposing
@@ -30,6 +32,39 @@ $ lineapy --print-source --print-graph tests/simple.py
 # Use --slice to slice the code to that which is needed to recompute an artifact
 $ lineapy --print-source tests/tests/housing.py --slice 'p value'
 ...
+```
+
+### Interactive
+
+You can also run Linea from an Juptyer notebook or IPython.
+
+First, import linea and start the tracing:
+
+```python
+import lineapy.ipython
+lineapy.ipython.start()
+```
+
+Now, ever subsequent cell will be traced. Let's say you run a few more lines
+and publish a result:
+
+```python
+import lineapy
+
+x = 100
+y = x + 500
+z = x - 10
+lineapy.linea_publish(z, "z")
+```
+
+Then you can stop tracing and slice the code:
+
+```python
+res = lineapy.ipython.stop()
+print(res.slice("z"))
+# Prints out
+# x = 100
+# z = x - 10
 ```
 
 ### Installing
