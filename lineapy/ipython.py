@@ -56,6 +56,8 @@ def stop() -> Tracer:
 
     input_transformers_post = ipython.input_transformers_post
 
+    # get the first valid input transformer and raise an error if there are more
+    # than one
     (input_transformer,) = [
         it
         for it in input_transformers_post
