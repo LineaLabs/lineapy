@@ -15,7 +15,6 @@ def test_empty_cell(run_cell):
 def test_result(run_cell):
     assert run_cell("10") == 10
 
-
     assert run_cell("a = 10") is None
     assert run_cell("a") == 10
 
