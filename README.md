@@ -67,6 +67,8 @@ print(res.slice("z"))
 # z = x - 10
 ```
 
+For a full example, you can look at [`tests/test_notebook.ipynb`](./tests/test_notebook.ipynb)
+
 ### Installing
 
 You can run linea either by cloning the repository or by using our Docker image.
