@@ -94,7 +94,6 @@ class LineaInputTransformer:
         ):
             return lines
 
-        ends_with_semicolon = lines and lines[-1].endswith(";")
         code = "".join(lines)
         location = JupyterCell(
             execution_count=self.ipython.execution_count,
@@ -115,6 +114,7 @@ class LineaInputTransformer:
 
         # Return the last value so it will be printed, if we don't end
         # in a semicolon
+        ends_with_semicolon = lines and lines[-1].endswith(";")
         if not ends_with_semicolon and node_transformer.last_statement_result:
             self.last_value = node_transformer.last_statement_result.value  # type: ignore
             return [
