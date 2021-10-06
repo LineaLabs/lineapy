@@ -63,6 +63,7 @@ setup(
         "black",
         "rich",
         "astpretty",
+        "attrs",
     ],
     extras_require={
         "dev": [
@@ -73,8 +74,11 @@ setup(
             "mypy",
             "pytest",
             "matplotlib",
-            "coverage[toml]",
+            # Coveralls doesn't work with 6.0
+            # https://github.com/TheKevJames/coveralls-python/issues/326
+            "coverage[toml]<6.0",
             "pytest-cov",
+            "coveralls",
         ],
         "server": [
             "flask",

@@ -23,6 +23,12 @@ jobs:
       - name: Test with pytest
         run: |
           pytest
+      # https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
+      - name: Upload coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          coveralls --service=github
   black:
     runs-on: ubuntu-latest
     steps:

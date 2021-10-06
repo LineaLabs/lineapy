@@ -11,3 +11,4 @@ profile = "black"
 branch = true
 # Ignore coverage on app, since we are letting it rot
 omit = ["lineapy/app/*"]
+relative_files = true
