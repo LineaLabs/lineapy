@@ -93,7 +93,6 @@ class SessionContext(BaseModel):
     session_name: Optional[str]
     user_name: Optional[str] = None
     hardware_spec: Optional[HardwareSpec] = None
-    libraries: List[Library] = []
 
     class Config:
         orm_mode = True

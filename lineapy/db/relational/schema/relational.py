@@ -110,7 +110,6 @@ class SessionContextORM(Base):  # type: ignore
     session_name = Column(String, nullable=True)
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)
-    libraries = relationship("LibraryORM", backref="session")
     code = Column(String)
 
 

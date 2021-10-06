@@ -39,36 +39,6 @@ class Executor:
         self._old_stdout = sys.stdout
         self._stdout = io.StringIO()
 
-    # TODO when we implement caching
-    # @property
-    # def data_asset_manager(self) -> DataAssetManager:
-    #     pass
-
-    @staticmethod
-    def install(package):
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", package]
-        )
-
-    def setup(self, context: SessionContext) -> None:
-        """
-        Set up the execution environment by installing the necessary libraries.
-
-        :param context: `SessionContext` including the necessary libraries.
-        """
-        self.prev_working_dir = getcwd()
-        chdir(context.working_directory)
-        if context.libraries is not None:
-            for library in context.libraries:
-                try:
-                    if importlib.util.find_spec(library.name) is None:
-                        Executor.install(library.name)
-                except ModuleNotFoundError:
-                    # Note: look out for errors when handling imports with
-                    #   multiple levels of parent packages
-                    #   (e.g. from x.y.z import a)
-                    Executor.install(library.name.split(".")[0])
-
     def teardown(self) -> None:
         chdir(self.prev_working_dir)
 

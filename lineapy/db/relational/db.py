@@ -167,16 +167,6 @@ class RelationalLineaDB(LineaDB):
     def write_context(self, context: SessionContext) -> None:
         args = context.dict()
 
-        if context.libraries:
-            for i in range(len(args["libraries"])):
-                library_orm = self.write_library(
-                    context.libraries[i],
-                    context.id,
-                )
-                args["libraries"][i] = library_orm
-        else:
-            args["libraries"] = []
-
         context_orm = SessionContextORM(**args)
 
         self.session.add(context_orm)

@@ -205,7 +205,6 @@ class Tracer:
             creation_time=datetime.now(),
             working_directory=working_directory,
             session_name=session_name,
-            libraries=[],
         )
         self.records_manager.write_session_context(session_context)
         return session_context
