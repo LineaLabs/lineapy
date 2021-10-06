@@ -39,6 +39,20 @@ class Executor:
         self._old_stdout = sys.stdout
         self._stdout = io.StringIO()
 
+    # TODO when we implement caching
+    # @property
+    # def data_asset_manager(self) -> DataAssetManager:
+    #     pass
+
+    def setup(self, context: SessionContext) -> None:
+        """
+        Set up the execution environment by installing the necessary libraries.
+
+        :param context: `SessionContext` including the necessary libraries.
+        """
+        self.prev_working_dir = getcwd()
+        chdir(context.working_directory)
+
     def teardown(self) -> None:
         chdir(self.prev_working_dir)
 
