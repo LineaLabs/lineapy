@@ -122,30 +122,6 @@ class Executor:
         self.teardown()
         return end - start
 
-    # def update_node_side_effects(
-    #     self,
-    #     node: Optional[Node],
-    #     program: Graph,
-    #     scoped_locals: Dict[str, Any],
-    # ) -> None:
-    #     if node is None:
-    #         return
-
-    #     local_vars = scoped_locals
-    #     node = cast(SideEffectsNode, node)
-    #     if node.output_state_change_nodes is not None:
-    #         for state_var_id in node.output_state_change_nodes:
-    #             state_var = cast(
-    #                 StateChangeNode, program.get_node(state_var_id)
-    #             )
-
-    #             state_var.value = local_vars[state_var.variable_name]
-
-    #             if state_var.variable_name is not None:
-    #                 self._variable_values[
-    #                     state_var.variable_name
-    #                 ] = state_var.value
-
     def walk(self, program: Graph) -> None:
         """
         FIXME: side effect evaluation is currently not supported

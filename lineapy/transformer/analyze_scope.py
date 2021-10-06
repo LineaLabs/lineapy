@@ -46,8 +46,8 @@ class Scope:
 
 
 # for the ones in override, they can bypass the function scope
-GLOBAL_STORE = ["STORE_GLOBAL"]
-STORE = ["STORE_NAME"] + GLOBAL_STORE
+GLOBAL_STORE = {"STORE_GLOBAL"}
+STORE = {"STORE_NAME"}.union(GLOBAL_STORE)
 # Note that for internally defined variables are accessed as "LOAD_FAST"
 LOAD = ["LOAD_GLOBAL", "LOAD_NAME"]
 REST_SCOPE = ["POP_JUMP_IF_FALSE", "JUMP_FORWARD"]

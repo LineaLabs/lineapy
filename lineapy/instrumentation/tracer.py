@@ -379,30 +379,6 @@ class Tracer:
         """
         pass
 
-    # Overload when is expression, returns Node
-    # @overload
-    # def exec(
-    #     self,
-    #     code: str,
-    #     is_expression: Literal[True],
-    #     output_variables: list[str],
-    #     input_values: dict[str, Node],
-    #     syntax_dictionary: SyntaxDictionary,
-    # ) -> Node:
-    #     ...
-
-    # # Overload when is statement, returns None
-    # @overload
-    # def exec(
-    #     self,
-    #     code: str,
-    #     is_expression: Literal[False],
-    #     output_variables: list[str],
-    #     input_values: dict[str, Node],
-    #     syntax_dictionary: SyntaxDictionary,
-    # ) -> None:
-    #     ...
-
     def exec(
         self,
         code: str,
