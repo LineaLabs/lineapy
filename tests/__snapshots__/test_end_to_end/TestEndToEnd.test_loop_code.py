@@ -117,7 +117,7 @@ call_2 = CallNode(
             value_node_id=LiteralNode(
                 id=get_new_id(),
                 session_id=session.id,
-                value="x",
+                value="b",
             ).id,
         ).id,
         ArgumentNode(
@@ -127,7 +127,7 @@ call_2 = CallNode(
             value_node_id=LiteralNode(
                 id=get_new_id(),
                 session_id=session.id,
-                value="b",
+                value="x",
             ).id,
         ).id,
     ],
@@ -137,7 +137,7 @@ call_2 = CallNode(
         name="__exec__",
     ).id,
 )
-variable_3 = VariableNode(
+variable_4 = VariableNode(
     id=get_new_id(),
     session_id=session.id,
     source_node_id=CallNode(
@@ -161,7 +161,7 @@ variable_3 = VariableNode(
                 value_node_id=LiteralNode(
                     id=get_new_id(),
                     session_id=session.id,
-                    value=0,
+                    value=1,
                 ).id,
             ).id,
         ],
@@ -243,7 +243,7 @@ variable_6 = VariableNode(
                                 value_node_id=LiteralNode(
                                     id=get_new_id(),
                                     session_id=session.id,
-                                    value=1,
+                                    value=0,
                                 ).id,
                             ).id,
                         ],

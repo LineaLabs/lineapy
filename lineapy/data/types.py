@@ -282,6 +282,20 @@ class ArgumentNode(Node):
     value_node_id: Optional[LineaID] = None
     value_literal: Optional[Any] = None
 
+    def __lt__(self, other: object) -> bool:
+        """
+        Overloading this less than so that the graph_printer could generate
+          deterministic ordering, just going to use the positional order
+          and then the keyword
+        """
+        if not isinstance(other, ArgumentNode):
+            # defer to above
+            return super().__lt__(other)
+        return (self.positional_order or -1, self.keyword or "") < (
+            other.positional_order or -1,
+            other.keyword or "",
+        )
+
 
 class CallNode(Node):
     """
