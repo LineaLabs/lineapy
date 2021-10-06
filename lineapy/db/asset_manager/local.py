@@ -1,5 +1,4 @@
 from typing import Optional, cast
-from pickle import PicklingError
 from sqlalchemy import and_
 from sqlalchemy.orm import scoped_session
 

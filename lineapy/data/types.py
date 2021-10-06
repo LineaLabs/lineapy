@@ -116,9 +116,6 @@ class NodeType(Enum):
     ArgumentNode = 2
     CallNode = 3
     LiteralNode = 4
-    # FunctionDefinitionNode = 5
-    # ConditionNode = 6
-    # LoopNode = 7
     WithNode = 8
     ImportNode = 9
     StateChangeNode = 10

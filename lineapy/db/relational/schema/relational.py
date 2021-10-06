@@ -334,20 +334,6 @@ class VariableNodeORM(NodeORM):
     assigned_variable_name = Column(String, nullable=True)
 
 
-# class LoopNodeORM(SideEffectsNodeORM):
-#     __tablename__ = "loop_node"
-#     __mapper_args__ = {"polymorphic_identity": NodeType.LoopNode}
-
-#     id = Column(String, ForeignKey("side_effects_node.id"), primary_key=True)
-
-
-# class ConditionNodeORM(SideEffectsNodeORM):
-#     __tablename__ = "condition_node"
-#     __mapper_args__ = {"polymorphic_identity": NodeType.ConditionNode}
-
-#     id = Column(String, ForeignKey("side_effects_node.id"), primary_key=True)
-
-
 class DataSourceNodeORM(NodeORM):
     __tablename__ = "data_source_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.DataSourceNode}

@@ -42,7 +42,9 @@ class Executor:
 
     @staticmethod
     def install(package):
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", package]
+        )
 
     def setup(self, context: SessionContext) -> None:
         """

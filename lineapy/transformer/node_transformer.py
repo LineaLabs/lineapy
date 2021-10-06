@@ -85,7 +85,9 @@ class NodeTransformer(ast.NodeTransformer):
         except Exception as e:
             code_context = self._get_code_from_node(node)
             if code_context:
-                info_log(f"Error while transforming code: \n\n{code_context}\n")
+                info_log(
+                    f"Error while transforming code: \n\n{code_context}\n"
+                )
             raise e
 
     def generic_visit(self, node: ast.AST) -> ast.AST:
@@ -413,7 +415,9 @@ class NodeTransformer(ast.NodeTransformer):
         return left
 
     def visit_Slice(self, node: ast.Slice) -> CallNode:
-        stop_node = self.visit(node.upper) if node.upper else self.tracer.none()
+        stop_node = (
+            self.visit(node.upper) if node.upper else self.tracer.none()
+        )
         # From https://docs.python.org/3/library/functions.html?highlight=slice#slice
         # slice can be called in two ways:
         # 1. slice(stop) when the start and step are None
@@ -477,7 +481,9 @@ class NodeTransformer(ast.NodeTransformer):
         code = self._get_code_from_node(node)
         if code is not None:
             scope = analyze_code_scope(code)
-            input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
+            input_values = {
+                v: self.tracer.lookup_node(v) for v in scope.loaded
+            }
             if code is None:
                 raise InternalLogicError("Code block should not be empty")
 
