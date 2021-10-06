@@ -183,6 +183,12 @@ class RelationalLineaDB(LineaDB):
         self.session.commit()
 
     def write_source_code(self, source_code: SourceCode) -> None:
+        """
+        Writes a source code object to the database.
+
+        It first has to convert it to a SourceCodeORM object, which has the fields
+        inlined instead of a union
+        """
         source_code_orm = SourceCodeORM(
             id=source_code.id, code=source_code.code
         )
