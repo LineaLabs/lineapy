@@ -229,7 +229,7 @@ class RelationalLineaDB(LineaDB):
             node = cast(ImportNodeORM, node)
             args["library_id"] = node.library.id
             del args["library"]
-            del args["module"]
+            del args["value"]
 
         elif node.node_type is NodeType.StateChangeNode:
             del args["value"]

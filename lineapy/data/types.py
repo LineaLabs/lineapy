@@ -361,7 +361,7 @@ class ImportNode(Node):
     alias: Optional[str] = None
 
     # run time value
-    module: Any = None
+    value: Any = None
 
 
 class ArgumentNode(Node):

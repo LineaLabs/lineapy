@@ -138,7 +138,7 @@ class Executor:
 
             elif node.node_type == NodeType.ImportNode:
                 node = cast(ImportNode, node)
-                node.module = importlib.import_module(node.library.name)
+                node.value = importlib.import_module(node.library.name)
 
             elif node.node_type == NodeType.LiteralNode:
                 node = cast(LiteralNode, node)

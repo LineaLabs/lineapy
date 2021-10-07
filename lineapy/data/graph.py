@@ -173,7 +173,7 @@ class Graph(object):
 
         elif node.node_type is NodeType.ImportNode:
             node = cast(ImportNode, node)
-            return node.module
+            return node.value
         else:
             return node.value  # type: ignore
 
