@@ -2,7 +2,7 @@ import io
 import os
 import re
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 LONG_DESCRIPTION = """"""
 DESCRIPTION = ""
@@ -63,7 +63,6 @@ setup(
         "black",
         "rich",
         "astpretty",
-        "attrs",
     ],
     extras_require={
         "dev": [
@@ -83,11 +82,7 @@ setup(
             "nbval",
             "SQLAlchemy[mypy]",
             "coveralls",
-        ],
-        "server": [
-            "flask",
-            "flask-cors",
-        ],
+        ]
     },
     include_package_data=True,
 )
