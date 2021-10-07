@@ -198,7 +198,7 @@ class RelationalLineaDB(LineaDB):
         self.write_node_values(nodes)
 
     def write_single_node(self, node: Node) -> None:
-        args = node.dict(exclude={"source_location"})
+        args = node.dict(exclude={"source_location", "value"})
         # Map source location sub model in memory node, to inlined attributes
         # in ORM and map source code to foreign key
         source_location = node.source_location
@@ -223,16 +223,11 @@ class RelationalLineaDB(LineaDB):
                     params={"call_node_id": node.id, "argument_node_id": arg},
                 )
             del args["arguments"]
-            del args["value"]
 
         elif node.node_type is NodeType.ImportNode:
             node = cast(ImportNodeORM, node)
             args["library_id"] = node.library.id
             del args["library"]
-            del args["value"]
-
-        elif node.node_type is NodeType.StateChangeNode:
-            del args["value"]
 
         elif node.node_type is NodeType.LiteralNode:
             node = cast(LiteralNodeORM, node)
@@ -240,16 +235,7 @@ class RelationalLineaDB(LineaDB):
                 args[
                     "value_type"
                 ] = RelationalLineaDB.get_type_of_literal_value(node.value)
-
-        elif node.node_type is NodeType.LookupNode:
-            del args["value"]
-
-        elif node.node_type is NodeType.VariableNode:
-            """
-            The value is just for run time information
-            """
-            del args["value"]
-
+                args["value"] = node.value
         node_orm = RelationalLineaDB.get_orm(node)(**args)
 
         self.session.add(node_orm)

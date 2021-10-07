@@ -155,28 +155,6 @@ class Graph(object):
             return self.ids[node_id]
         return None
 
-    def get_node_value(self, node: Node) -> object:
-        # find the original source node in a chain of aliases
-        if isinstance(node, VariableNode):
-            # Stop once we have a value for this node.
-            if node.value is not None:
-                return node.value
-            return self.get_node_value(self.ids[node.source_node_id])
-
-        elif node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNode, node)
-            return self.get_node_value(self.ids[node.value_node_id])
-
-        elif node.node_type is NodeType.DataSourceNode:
-            node = cast(DataSourceNode, node)
-            return node.access_path
-
-        elif node.node_type is NodeType.ImportNode:
-            node = cast(ImportNode, node)
-            return node.value
-        else:
-            return node.value  # type: ignore
-
     def get_arguments_from_call_node(
         self, node: CallNode
     ) -> tuple[List[NodeValueType], dict[str, NodeValueType]]:
@@ -190,15 +168,17 @@ class Graph(object):
         for arg in node.arguments:
             argument_node = cast(ArgumentNode, self.ids[arg])
             if argument_node.keyword is not None:
-                kwarg_values[argument_node.keyword] = self.get_node_value(
-                    argument_node
-                )
+                kwarg_values[argument_node.keyword] = self.ids[
+                    argument_node.value_node_id
+                ].value
             else:
                 arg_nodes.append(argument_node)
 
         arg_nodes.sort(key=get_arg_position)
 
-        return [self.get_node_value(a) for a in arg_nodes], kwarg_values
+        return [
+            self.ids[a.value_node_id].value for a in arg_nodes
+        ], kwarg_values
 
     def get_subgraph(self, nodes: List[Node]) -> "Graph":
         """

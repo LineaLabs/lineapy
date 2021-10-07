@@ -299,6 +299,11 @@ class Node(BaseModel):
     node_type: NodeType = NodeType.Node
     source_location: Optional[SourceLocation]
 
+    # run time value
+    # TODO: This doesn't currently make sense on the ArgumentNode, StateChangeNode,
+    # DataSourceNode, and WithNode, but we can remove those node types.
+    value: Any = None
+
     class Config:
         orm_mode = True
 
@@ -360,9 +365,6 @@ class ImportNode(Node):
     attributes: Optional[Dict[str, str]] = None
     alias: Optional[str] = None
 
-    # run time value
-    value: Any = None
-
 
 class ArgumentNode(Node):
     """
@@ -406,17 +408,10 @@ class CallNode(Node):
     # These IDs point to argument nodes
     arguments: List[LineaID]
     function_id: LineaID
-    # TODO: We can refactor the next three into one function_id
-    # function_name: str
-    # function_module: Optional[LineaID] = None
-    # locally_defined_function_id: Optional[LineaID] = None
-    # assigned_variable_name: Optional[str] = None
-    value: Optional[NodeValueType] = None
 
 
 class LiteralNode(Node):
     node_type: NodeType = NodeType.LiteralNode
-    value: NodeValueType
 
 
 class LookupNode(Node):
@@ -426,7 +421,6 @@ class LookupNode(Node):
 
     node_type = NodeType.LookupNode
     name: str
-    value: Optional[Any]
 
 
 # TODO: Rename to AssignmentNode?
@@ -444,7 +438,6 @@ class VariableNode(Node):
     node_type: NodeType = NodeType.VariableNode
     source_node_id: LineaID
     assigned_variable_name: str
-    value: Optional[Any]  # loaded at run time
 
 
 class StateDependencyType(Enum):
@@ -471,7 +464,6 @@ class StateChangeNode(Node):
     #   change (can be another state change node)
     initial_value_node_id: LineaID
     state_dependency_type: StateDependencyType
-    value: Optional[NodeValueType]
 
 
 class DataSourceNode(Node):

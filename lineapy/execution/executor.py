@@ -145,9 +145,7 @@ class Executor:
 
             elif node.node_type == NodeType.VariableNode:
                 node = cast(VariableNode, node)
-                node.value = program.get_node_value(
-                    program.ids[node.source_node_id]
-                )
+                node.value = program.ids[node.source_node_id].value
 
                 self._variable_values[node.assigned_variable_name] = node.value
 
