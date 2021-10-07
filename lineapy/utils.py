@@ -1,102 +1,11 @@
 import sys
-from typing import Any, Callable, Optional, TypeVar
-from uuid import uuid4
 from time import time
+from typing import Any, Callable, Optional, TypeVar, cast
+from uuid import uuid4
 
 import black
 
-from lineapy.data.types import (
-    LineaID,
-    LiteralType,
-    ValueType,
-)
-
-
-"""
-Error logging utils
-"""
-
-
-class bcolors:
-    HEADER = "\033[95m"
-    BLUE = "\033[94m"
-    GREEN = "\033[92m"
-    WARNING = "\033[93m"
-    GREY = "\033[37m"
-    FAIL = "\033[91m"
-    ENDC = "\033[0m"
-    BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
-
-
-class InternalLogicError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class FunctionShouldNotBeCalled(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class WrongTypeError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class CaseNotHandledError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class UserError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class NullValueError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class InvalidStateError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-class ValueNotFoundError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
-def check_not_null(val: Any, err_msg: Optional[str] = None):
-    if val is None:
-        raise NullValueError(err_msg)
-
-
-def type_check_with_warning(val: Any, t: Any):
-    if not (isinstance(val, t)):
-        err_msg = f"expected variable to be {t} but got {val} instead"
-        raise WrongTypeError(err_msg)
-
-
-def report_error_to_user(msg: str):
-    print(bcolors.WARNING + "[Warning] " + msg + bcolors.ENDC)
-
-
-def internal_warning_log(*args):
-    print(bcolors.WARNING + "🔥", *args, "🔥", bcolors.ENDC)
-
-
-def info_log(*args):
-    if IS_DEBUG:
-        print(bcolors.GREEN + "[Info] ", *args, "\n" + bcolors.ENDC)
-
-
-def debug_log(*args):
-    if IS_DEBUG:
-        print(bcolors.WARNING, *args, bcolors.ENDC)
-
+from lineapy.data.types import LineaID, LiteralType, ValueType
 
 """
 Data gen utils
@@ -106,19 +15,11 @@ Data gen utils
 def get_new_id() -> LineaID:
     # https://docs.python.org/3/library/uuid.html#module-uuid seems to use str
     #   instead of hex, so that's why
-    return str(uuid4())
+    return LineaID(str(uuid4()))
 
 
 def get_current_time():
     return time()
-
-
-IS_DEBUG = True
-
-
-def set_debug(is_debug: bool):
-    global IS_DEBUG
-    IS_DEBUG = is_debug
 
 
 """
@@ -134,7 +35,9 @@ def is_integer(val):
     return True
 
 
-def get_literal_value_from_string(val: str, literal_type: LiteralType) -> Any:
+def get_literal_value_from_string(
+    val: str, literal_type: Optional[LiteralType]
+) -> Any:
     if literal_type is LiteralType.Integer:
         try:
             return int(val)
@@ -143,17 +46,6 @@ def get_literal_value_from_string(val: str, literal_type: LiteralType) -> Any:
     elif literal_type is LiteralType.Boolean:
         return val == "True"
     return val
-
-
-def jsonify_value(value: Any, value_type: ValueType) -> str:
-    if value_type == ValueType.dataset:
-        return value.to_csv(index=False)
-    if value_type == ValueType.value:
-        return str(value)
-
-    raise CaseNotHandledError(
-        f"Was not able to jsonify value of type {value_type}"
-    )
 
 
 def get_value_type(val: Any) -> Optional[ValueType]:
@@ -224,4 +116,4 @@ def listify(fn: T) -> T:
     def wrapper(*args, **kwargs):
         return list(fn(*args, **kwargs))
 
-    return wrapper
+    return cast(T, wrapper)

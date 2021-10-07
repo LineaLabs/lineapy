@@ -1,7 +1,6 @@
 from __future__ import annotations
-import datetime
+
 import dataclasses
-from lineapy.graph_reader.program_slice import get_program_slice
 import os
 import pathlib
 import typing
@@ -14,20 +13,24 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
-from lineapy.data.types import Artifact, SessionType
-from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.data.types import SessionType
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.logging import configure_logging
 from lineapy.transformer.transformer import Transformer
-from lineapy.graph_reader.program_slice import get_program_slice
-from tests.util import get_project_directory
 from lineapy.utils import prettify
+from tests.util import get_project_directory
 
 # Based off of unmerged JSON extension
 # Writes each snapshot to its own Python file
 # https://github.com/tophat/syrupy/pull/552/files#diff-9bab2a0973c5e73c86ed7042300befcaa5a034df17cea4d013eeaece6af66979
 
 DUMMY_WORKING_DIR = "dummy_linea_repo/"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_logging():
+    configure_logging("INFO")
 
 
 class PythonSnapshotExtension(SingleFileSnapshotExtension):
@@ -75,10 +78,10 @@ def python_snapshot(request):
     """
     Copied from the default fixture, but updating the extension class to be Python
     """
-    return syrupy.SnapshotAssertion(
+    return syrupy.SnapshotAssertion(  # type: ignore
         update_snapshots=request.config.option.update_snapshots,
         extension_class=PythonSnapshotExtension,
-        test_location=syrupy.PyTestLocation(request.node),
+        test_location=syrupy.PyTestLocation(request.node),  # type: ignore
         session=request.session.config._syrupy,
     )
 
@@ -112,16 +115,10 @@ class ExecuteFixture:
         self,
         code: str,
         *,
-        session_type: SessionType = SessionType.SCRIPT,
         compare_snapshot: bool = True,
     ) -> Tracer:
         """
         Tests trace, graph, and executes code on init.
-
-        All kwargs are keyword only (`*`)
-
-        :param session_type:  If you don't want to execute, you can set the
-        `session_type` to STATIC
 
         :param compare_snapshot:  If you don't want to compare the snapshots,
         just execute the code then set `compare_snapshot` to False.
@@ -139,7 +136,7 @@ class ExecuteFixture:
         transformer = Transformer()
         tracer = transformer.transform(
             code,
-            session_type=session_type,
+            session_type=SessionType.SCRIPT,
             path=session_name,
             execution_mode=ExecutionMode.MEMORY,
         )
@@ -151,23 +148,25 @@ class ExecuteFixture:
         graph = Graph(nodes, context)
         # Verify snapshot of graph
         if compare_snapshot:
-            assert (
-                # Prettify again in case replacements cause line wraps
-                prettify(
-                    graph.print(include_imports=True, include_id_field=True)
-                    .replace(str(source_code_path), "[source file path]")
-                    .replace(
-                        repr(context.creation_time),
-                        repr(datetime.datetime.fromordinal(1)),
-                    )
-                    .replace(
-                        context.working_directory,
-                        DUMMY_WORKING_DIR,
-                    )
+            graph_str = (
+                graph.print(
+                    include_imports=True,
+                    include_id_field=False,
+                    include_session=False,
+                    include_timing=False,
                 )
-                == self.snapshot
+                .replace(str(source_code_path), "[source file path]")
+                .replace(
+                    context.working_directory,
+                    DUMMY_WORKING_DIR,
+                )
             )
-
+            # Prettify again in case replacements cause line wraps
+            assert prettify(graph_str) == self.snapshot
+        # Verify that execution works again, loading from the DB, in a new dir
+        new_executor = Executor()
+        os.chdir(self.tmp_path)
+        new_executor.execute_graph(tracer.graph)
         return tracer
 
 

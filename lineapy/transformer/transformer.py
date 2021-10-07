@@ -1,13 +1,11 @@
 import ast
-
-from lineapy.constants import (
-    ExecutionMode,
-)
-from lineapy.instrumentation.tracer import Tracer
-from lineapy.data.types import SessionType, SourceCodeLocation
-from lineapy.transformer.node_transformer import NodeTransformer
-from lineapy.utils import CaseNotHandledError
 from pathlib import Path
+
+from lineapy.constants import ExecutionMode
+from lineapy.data.types import SessionType
+from lineapy.instrumentation.tracer import Tracer
+from lineapy.transformer.node_transformer import NodeTransformer
+
 
 # TODO: We should probably just remove this class, and use the NodeTransformer
 # directly
@@ -31,8 +29,5 @@ class Transformer:
         node_transformer = NodeTransformer(code, Path(path), tracer)
         tree = ast.parse(code)
         node_transformer.visit(tree)
-        if session_type in [SessionType.SCRIPT, SessionType.STATIC]:
-            tracer.exit()
-        else:
-            raise CaseNotHandledError(f"{session_type.name} not supported")
+        tracer.exit()
         return tracer

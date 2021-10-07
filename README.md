@@ -22,11 +22,12 @@ Usage: lineapy [OPTIONS] FILE_NAME
 
 Options:
   --mode TEXT     Either `memory`, `dev`, `test`, or `prod` mode
-  --session TEXT  Either `STATIC`,or `SCRIPT` mode
   --slice TEXT    Print the sliced code that this artifact depends on
   --print-source  Whether to print the source code
   --print-graph   Whether to print the generated graph code
+  --verbose       Print out logging for graph creation and execution
   --help          Show this message and exit.
+
 # Run linea on a Python file to analyze it.
 # Use --print-graph to print out the graph it creates
 $ lineapy --print-source --print-graph tests/simple.py

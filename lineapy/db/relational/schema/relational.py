@@ -1,36 +1,28 @@
 from __future__ import annotations
+
 import json
 from datetime import datetime
+from typing import Union
 
 from sqlalchemy import (
     CheckConstraint,
     Column,
-    UniqueConstraint,
-    Integer,
-    String,
-    Enum,
-    ForeignKey,
-    Table,
     DateTime,
-    PickleType,
+    Enum,
     Float,
+    ForeignKey,
+    Integer,
+    PickleType,
+    String,
+    Table,
+    UniqueConstraint,
     types,
 )
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import (
-    relationship,
-    declared_attr,  # type: ignore
-)
-from sqlalchemy.sql.sqltypes import Boolean, Float, Text
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.sqltypes import Boolean, Text
 
-from lineapy.data.types import (
-    SessionType,
-    ValueType,
-    NodeType,
-    StateDependencyType,
-    StorageType,
-    LiteralType,
-)
+from lineapy.data.types import LiteralType, NodeType, SessionType, ValueType
 
 """ 
 This file contains the ORM versions of the graph node in types.py.
@@ -50,29 +42,11 @@ SessionContext
 Node
 - SessionContext (Many to One)
 
-SideEffectsNode
-- StateChangeNode (One to Many)
-- ImportNode (Many to Many)
-
 ImportNode
 - Library (Many to One)
 
-ArgumentNode
-- Node (One to One)
-
 CallNode
-- ArgumentNode (One to Many)
-- ImportNode/CallNode (function_module) (One to One)
-
-LiteralNode
-- ValueNode (One to One)
-
-VariableNode
-- VariableNode/CallNode (Many to One)
-
-StateChangeNode
-- SideEffectsNode (One to One)
-- Node (Many to One)
+- Node (Many to Many)
 """
 
 Base = declarative_base()
@@ -155,7 +129,6 @@ class ExecutionORM(Base):  # type: ignore
     artifact_id = Column(String, ForeignKey("artifact.id"), primary_key=True)
     version = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
-    execution_time = Column(Float)
 
 
 class NodeValueORM(Base):  # type: ignore
@@ -165,10 +138,11 @@ class NodeValueORM(Base):  # type: ignore
     value = Column(PickleType, nullable=True)
     value_type = Column(Enum(ValueType))
     virtual = Column(Boolean)  # if True, value is not materialized in cache
-    timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
+    start_time = Column(DateTime, nullable=True)
+    end_time = Column(DateTime, nullable=True)
 
 
-class NodeORM(Base):  # type: ignore
+class BaseNodeORM(Base):  # type: ignore
     __tablename__ = "node"
     id = Column(String, primary_key=True)
     session_id = Column(String)
@@ -191,7 +165,7 @@ class NodeORM(Base):  # type: ignore
             "(end_col_offset is NULL) = (source_code_id is NULL)"
         ),
     )
-
+    # https://docs.sqlalchemy.org/en/14/orm/inheritance.html#joined-table-inheritance
     __mapper_args__ = {
         "polymorphic_on": node_type,
         "polymorphic_identity": NodeType.Node,
@@ -211,7 +185,8 @@ class SourceCodeORM(Base):
     __table_args__ = (
         # Either path is set or jupyter_execution_count and jupyter_session_id are set
         CheckConstraint(
-            "(path IS NOT NULL) != ((jupyter_execution_count IS NOT NULL) AND (jupyter_execution_count IS NOT NULL))"
+            "(path IS NOT NULL) != ((jupyter_execution_count IS NOT NULL) AND "
+            "(jupyter_execution_count IS NOT NULL))"
         ),
         # If one jupyter arg is provided, both must be
         CheckConstraint(
@@ -220,49 +195,7 @@ class SourceCodeORM(Base):
     )
 
 
-side_effects_output_state_change_association_table = Table(
-    "side_effects_output_state_change_association",
-    Base.metadata,
-    Column(
-        "side_effects_node_id",
-        ForeignKey("side_effects_node.id"),
-        primary_key=True,
-    ),
-    Column(
-        "output_state_change_node_id",
-        ForeignKey("state_change_node.id"),
-        primary_key=True,
-    ),
-)
-
-side_effects_input_state_change_association_table = Table(
-    "side_effects_input_state_change_association",
-    Base.metadata,
-    Column(
-        "side_effects_node_id",
-        ForeignKey("side_effects_node.id"),
-        primary_key=True,
-    ),
-    Column(
-        "input_state_change_node_id",
-        ForeignKey("state_change_node.id"),
-        primary_key=True,
-    ),
-)
-
-side_effects_import_association_table = Table(
-    "side_effects_import_association",
-    Base.metadata,
-    Column(
-        "side_effects_node_id",
-        ForeignKey("side_effects_node.id"),
-        primary_key=True,
-    ),
-    Column("import_node_id", ForeignKey("import_node.id"), primary_key=True),
-)
-
-
-class LookupNodeORM(NodeORM):
+class LookupNodeORM(BaseNodeORM):
     __tablename__ = "lookup"
     __mapper_args__ = {"polymorphic_identity": NodeType.LookupNode}
 
@@ -271,14 +204,7 @@ class LookupNodeORM(NodeORM):
     name = Column(String, nullable=False)
 
 
-class SideEffectsNodeORM(NodeORM):
-    __tablename__ = "side_effects_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.SideEffectsNode}
-
-    id = Column(String, ForeignKey("node.id"), primary_key=True)
-
-
-class ImportNodeORM(NodeORM):
+class ImportNodeORM(BaseNodeORM):
     __tablename__ = "import_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.ImportNode}
 
@@ -289,52 +215,56 @@ class ImportNodeORM(NodeORM):
     alias = Column(String, nullable=True)
 
 
-class StateChangeNodeORM(NodeORM):
-    __tablename__ = "state_change_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.StateChangeNode}
-
-    id = Column(String, ForeignKey("node.id"), primary_key=True)
-
-    variable_name = Column(String)
-    associated_node_id = Column(String)
-    initial_value_node_id = Column(String)
-    state_dependency_type = Column(Enum(StateDependencyType))
+# Use associations for many to many relationship between calls and args
+# https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html#association-object
 
 
-call_node_association_table = Table(
-    "call_node_association",
-    Base.metadata,
-    Column("call_node_id", ForeignKey("call_node.id"), primary_key=True),
-    Column(
-        "argument_node_id", ForeignKey("argument_node.id"), primary_key=True
-    ),
-)
+class PositionalArgORM(Base):
+    __tablename__ = "positional_arg"
+    call_node_id: str = Column(
+        ForeignKey("call_node.id"), primary_key=True, nullable=False
+    )
+    arg_node_id: str = Column(
+        ForeignKey("node.id"), primary_key=True, nullable=False
+    )
+    index = Column(Integer, primary_key=True, nullable=False)
+    argument = relationship(BaseNodeORM, uselist=False)
 
 
-class CallNodeORM(NodeORM):
+class KeywordArgORM(Base):
+    __tablename__ = "keyword_arg"
+    call_node_id: str = Column(
+        ForeignKey("call_node.id"), primary_key=True, nullable=False
+    )
+    arg_node_id: str = Column(
+        ForeignKey("node.id"), primary_key=True, nullable=False
+    )
+    name = Column(String, primary_key=True, nullable=False)
+    argument = relationship(BaseNodeORM, uselist=False)
+
+
+class CallNodeORM(BaseNodeORM):
     __tablename__ = "call_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.CallNode}
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
-    # FIXME: add ForeignKey("node.id") back in!!!!
-    function_id = Column(String, nullable=False)
+    function_id = Column(String, ForeignKey("node.id"))
+
+    positional_args = relationship(
+        PositionalArgORM, collection_class=set, lazy="joined"
+    )
+    keyword_args = relationship(
+        KeywordArgORM, collection_class=set, lazy="joined"
+    )
+    __mapper_args__ = {
+        "polymorphic_identity": NodeType.CallNode,
+        # Need this so that sqlalchemy doesn't get confused about additional
+        # foreign key from function_id
+        # https://stackoverflow.com/a/39518177/907060
+        "inherit_condition": id == BaseNodeORM.id,
+    }
 
 
-class ArgumentNodeORM(NodeORM):
-    __tablename__ = "argument_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.ArgumentNode}
-
-    id = Column(String, ForeignKey("node.id"), primary_key=True)
-
-    keyword = Column(String, nullable=True)
-    positional_order = Column(Integer, nullable=True)
-
-    @declared_attr
-    def value_node_id(cls):
-        return NodeORM.__table__.c.get("value_node_id", Column(String))
-
-
-class LiteralNodeORM(NodeORM):
+class LiteralNodeORM(BaseNodeORM):
     __tablename__ = "literal_assign_node"
     __mapper_args__ = {"polymorphic_identity": NodeType.LiteralNode}
 
@@ -342,33 +272,11 @@ class LiteralNodeORM(NodeORM):
 
     value_type = Column(Enum(LiteralType))
 
-    @declared_attr
-    def assigned_variable_name(cls):
-        return NodeORM.__table__.c.get(
-            "assigned_variable_name", Column(String, nullable=True)
-        )
-
-    @declared_attr
+    @declared_attr  # type: ignore
     def value(cls):
-        return NodeORM.__table__.c.get("value", Column(String))
+        return BaseNodeORM.__table__.c.get("value", Column(String))
 
 
-class VariableNodeORM(NodeORM):
-    __tablename__ = "variable_alias_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.VariableNode}
-
-    id = Column(String, ForeignKey("node.id"), primary_key=True)
-
-    source_node_id = Column(String)
-    assigned_variable_name = Column(String, nullable=True)
-
-
-class DataSourceNodeORM(NodeORM):
-    __tablename__ = "data_source_node"
-    __mapper_args__ = {"polymorphic_identity": NodeType.DataSourceNode}
-
-    id = Column(String, ForeignKey("node.id"), primary_key=True)
-
-    storage_type = Column(Enum(StorageType))
-    access_path = Column(String)
-    name = Column(String, nullable=True)
+# Explicitly define all subclasses of NodeORM, so that if we use this as a type
+# we can accurately know if we cover all cases
+NodeORM = Union[LookupNodeORM, ImportNodeORM, CallNodeORM, LiteralNodeORM]

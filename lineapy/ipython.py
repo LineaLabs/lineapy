@@ -2,16 +2,15 @@
 Code to transform inputs when running in IPython, to trace them.
 """
 from __future__ import annotations
-from dataclasses import field, dataclass
-from typing import TYPE_CHECKING, Callable, ClassVar, Literal, Optional
+
+import ast
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, ClassVar, Literal, Optional
 
 from lineapy.constants import ExecutionMode
-import ast
 from lineapy.data.types import JupyterCell, LineaID, SessionType
-
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.node_transformer import NodeTransformer
-
 
 if TYPE_CHECKING:
     from IPython.core import InteractiveShell
@@ -109,9 +108,6 @@ class LineaInputTransformer:
         )
         node_transformer = NodeTransformer(code, location, self.tracer)
         node_transformer.visit(ast.parse(code))
-        # If we hit some error while evalling, clean ourselves up and untrace
-        # TODO: If linea has an error, it should unmount
-        self.tracer.evaluate_records_so_far()
 
         self.tracer.records_manager.flush_records()
 

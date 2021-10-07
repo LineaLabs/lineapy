@@ -1,16 +1,16 @@
 from typing import List, Optional
 
 from lineapy.data.types import (
+    Library,
     LineaID,
     Node,
+    Node,
     SessionContext,
-    Library,
     SourceCode,
 )
 from lineapy.db.base import LineaDBConfig
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.utils import get_current_time
-
 
 # TODO: add another ORM type where it's just the ID and the table.
 
@@ -18,10 +18,9 @@ from lineapy.utils import get_current_time
 class RecordsManager:
     def __init__(self, config: LineaDBConfig):
         self.records_pool: List[Node] = []
-        self.db = RelationalLineaDB()
-        self.db.init_db(config)
+        self.db = RelationalLineaDB(config)
 
-    def add_evaluated_nodes(self, nodes: List[Node]) -> None:
+    def add_evaluated_nodes(self, *nodes: Node) -> None:
         self.records_pool += nodes
         return
 
@@ -44,14 +43,11 @@ class RecordsManager:
         self,
         node_id: LineaID,
         name: Optional[str] = None,
-        execution_time: Optional[float] = None,
     ):
         # need to flush all to DB since it's accessing its values at runtime
         self.flush_records()
         date_created = get_current_time()
-        self.db.add_node_id_to_artifact_table(
-            node_id, date_created, name, execution_time
-        )
+        self.db.add_node_id_to_artifact_table(node_id, date_created, name)
 
     """
     Pass through functions to the db

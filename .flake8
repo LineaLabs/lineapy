@@ -3,4 +3,6 @@ exclude = __snapshots__
 per-file-ignores =
     # ignore get_ipython missing 
     lineapy/ipython.py: F821
-
+# for black https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#configuration
+max-line-length = 120
+extend-ignore = E203

@@ -3,11 +3,10 @@ Utility for analyzing python AST scoping.
 """
 
 from __future__ import annotations
-from typing import List, Union
-import types
-import dis
-from dataclasses import dataclass, field
 
+import dis
+import types
+from dataclasses import dataclass, field
 
 __all__ = ["Scope", "analyze_code_scope"]
 
