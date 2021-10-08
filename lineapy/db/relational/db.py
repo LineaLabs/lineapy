@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, List, Optional, Sequence, cast
+from typing import Any, List, Optional, cast
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -139,7 +139,7 @@ class RelationalLineaDB:
         self.write_library(library, context_id)
         self.session.commit()
 
-    def write_nodes(self, nodes: Sequence[Node]) -> None:
+    def write_nodes(self, nodes: List[Node]) -> None:
         for n in nodes:
             self.write_single_node(n)
         self.write_node_values(nodes)
@@ -193,7 +193,7 @@ class RelationalLineaDB:
 
     def write_node_values(
         self,
-        nodes: Sequence[Node],
+        nodes: List[Node],
         version: Optional[int] = None,
     ) -> None:
         # Lookup version if we don't know
