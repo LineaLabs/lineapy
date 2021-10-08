@@ -24,6 +24,9 @@ black --line-length 79 --check .
 pytest
 ```
 
+## Debugging (in VSC)
+`.vscode/launch.json` has a VSC debug configuration for `lineapy` which executes `lineapy --slice "p value" tests/housing.py` through VSC "Run and Debug" dialog.
+
 ### Snapshots
 
 Some tests use use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test, to make it easier to update generate code and graphs.

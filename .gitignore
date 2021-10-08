@@ -102,7 +102,8 @@ celerybeat-schedule
 celerybeat.pid
 
 # Editors
-.vscode
+.vscode/*.json
+!.vscode/launch.json
 
 # SageMath parsed files
 *.sage.py
