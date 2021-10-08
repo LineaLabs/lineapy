@@ -82,6 +82,7 @@ setup(
             "nbval",
             "SQLAlchemy[mypy]",
             "coveralls",
+            "seaborn",
         ]
     },
     include_package_data=True,
