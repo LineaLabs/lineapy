@@ -24,6 +24,7 @@ from sqlalchemy.sql.sqltypes import Boolean, Text
 
 from lineapy.data.types import LiteralType, NodeType, SessionType, ValueType
 
+
 """ 
 This file contains the ORM versions of the graph node in types.py.
   Pydantic allows us to extract out a Dataclass like object from the ORM,

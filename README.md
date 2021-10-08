@@ -33,7 +33,7 @@ Options:
 $ lineapy --print-source --print-graph tests/simple.py
 ...
 # Use --slice to slice the code to that which is needed to recompute an artifact
-$ lineapy --print-source tests/tests/housing.py --slice 'p value'
+$ lineapy --print-source tests/housing.py --slice 'p value'
 ...
 ```
 

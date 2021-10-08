@@ -15,6 +15,11 @@ conda activate lineapy-env
 pip install -e .[dev] --user
 ```
 
+
+## Debugging (in VSC)
+`.vscode/launch.json` has a VSC debug configuration for `lineapy` which executes `lineapy --slice "p value" tests/housing.py` through VSC "Run and Debug" dialog.
+
+
 ## Tests
 
 ```bash
@@ -69,7 +74,7 @@ jupyter nbconvert --to notebook --execute tests/test_notebook.ipynb --inplace --
 Or you can open it in a notebook UI (JupyterLab, JupyterNotebook, VS Code, etc.)
 and re-run it manually
 
-### Inpsecting AST
+## Inpsecting AST
 
 If you want to inspect the AST of some Python code for debugging, you can run:
 
@@ -77,7 +82,7 @@ If you want to inspect the AST of some Python code for debugging, you can run:
 ./tests/tools/print_ast.py 'hi(a=10)'
 ```
 
-### Github Actions
+## Github Actions
 
 The tests are run on Github Actions. If you are trying to debug a failure that happens on Github Actions, you can try using [`act`](https://github.com/nektos/act), which will run it locally through docker:
 
