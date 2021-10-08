@@ -17,10 +17,8 @@ from sqlalchemy import (
     types,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import (
-    relationship,
-    declared_attr,  # type: ignore
-)
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Boolean, Float, Text
 
 from lineapy.data.types import (
