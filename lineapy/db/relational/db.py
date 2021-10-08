@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from typing import Any, List, Optional, Sequence, cast
 
-from numpy import source
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -47,10 +46,7 @@ from lineapy.db.relational.schema.relational import (
     SourceCodeORM,
 )
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.utils import (
-    get_literal_value_from_string,
-    is_integer,
-)
+from lineapy.utils import get_literal_value_from_string, is_integer
 
 logger = logging.getLogger(__name__)
 
@@ -192,9 +188,6 @@ class RelationalLineaDB:
         else:
             node_orm = LookupNodeORM(**args, name=node.name)
 
-        # logger.info(
-        #     "Saving %s to %s %s", node, type(node_orm), node_orm.__dict__
-        # )
         self.session.add(node_orm)
         self.session.commit()
 
