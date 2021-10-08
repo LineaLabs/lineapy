@@ -17,7 +17,6 @@ from lineapy.data.types import (
     LookupNode,
     Node,
     NodeType,
-    SessionContext,
 )
 
 logger = logging.getLogger(__name__)
