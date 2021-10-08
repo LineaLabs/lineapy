@@ -3,12 +3,11 @@
 Pretty prints the AST of some Python code you pass in from the CLI
 """
 
-from astpretty import pprint
 import ast
 import dis
+
 import click
-from lineapy.transformer.node_transformer import NodeTransformer
-import astor
+from astpretty import pprint
 
 
 @click.command()

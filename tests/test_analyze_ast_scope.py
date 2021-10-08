@@ -1,9 +1,6 @@
-import ast
-from lineapy.transformer.analyze_scope import (
-    analyze_code_scope,
-    Scope,
-)
 import pytest
+
+from lineapy.transformer.analyze_scope import Scope, analyze_code_scope
 
 ParameterType = list[tuple[str, Scope]]
 

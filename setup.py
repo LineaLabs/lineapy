@@ -69,8 +69,10 @@ setup(
             "altair",
             "pandas",
             "sklearn",
+            "flake8",
             "syrupy==1.4.5",
             "mypy",
+            "isort",
             "pytest",
             "matplotlib",
             # Coveralls doesn't work with 6.0
