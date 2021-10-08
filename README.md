@@ -72,7 +72,7 @@ print(res.slice("z"))
 
 For a full example, you can look at [`tests/test_notebook.ipynb`](./tests/test_notebook.ipynb)
 
-### Installing
+## Installing
 
 You can run linea either by cloning the repository or by using our Docker image.
 
