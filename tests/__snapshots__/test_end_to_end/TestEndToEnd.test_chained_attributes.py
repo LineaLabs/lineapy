@@ -3,20 +3,11 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
-session = SessionContext(
-    id=get_new_id(),
-    environment_type=SessionType.SCRIPT,
-    creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    working_directory="dummy_linea_repo/",
-)
 source_1 = SourceCode(
-    id=get_new_id(),
     code="import altair; altair.data_transformers.enable('json')",
     location=PosixPath("[source file path]"),
 )
 call_3 = CallNode(
-    id=get_new_id(),
-    session_id=session.id,
     source_location=SourceLocation(
         lineno=1,
         col_offset=15,
@@ -24,28 +15,7 @@ call_3 = CallNode(
         end_col_offset=54,
         source_code=source_1.id,
     ),
-    arguments=[
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=0,
-            value_node_id=LiteralNode(
-                id=get_new_id(),
-                session_id=session.id,
-                source_location=SourceLocation(
-                    lineno=1,
-                    col_offset=47,
-                    end_lineno=1,
-                    end_col_offset=53,
-                    source_code=source_1.id,
-                ),
-                value="json",
-            ).id,
-        ).id
-    ],
     function_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
         source_location=SourceLocation(
             lineno=1,
             col_offset=15,
@@ -53,75 +23,57 @@ call_3 = CallNode(
             end_col_offset=46,
             source_code=source_1.id,
         ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=CallNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    source_location=SourceLocation(
-                        lineno=1,
-                        col_offset=15,
-                        end_lineno=1,
-                        end_col_offset=39,
-                        source_code=source_1.id,
-                    ),
-                    arguments=[
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            positional_order=0,
-                            value_node_id=ImportNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                source_location=SourceLocation(
-                                    lineno=1,
-                                    col_offset=0,
-                                    end_lineno=1,
-                                    end_col_offset=13,
-                                    source_code=source_1.id,
-                                ),
-                                library=Library(
-                                    id=get_new_id(),
-                                    name="altair",
-                                ),
-                            ).id,
-                        ).id,
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            positional_order=1,
-                            value_node_id=LiteralNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                value="data_transformers",
-                            ).id,
-                        ).id,
-                    ],
-                    function_id=LookupNode(
-                        id=get_new_id(),
-                        session_id=session.id,
-                        name="getattr",
-                    ).id,
-                ).id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=LiteralNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    value="enable",
-                ).id,
-            ).id,
-        ],
         function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
             name="getattr",
         ).id,
+        positional_args=[
+            CallNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=15,
+                    end_lineno=1,
+                    end_col_offset=39,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="getattr",
+                ).id,
+                positional_args=[
+                    ImportNode(
+                        source_location=SourceLocation(
+                            lineno=1,
+                            col_offset=0,
+                            end_lineno=1,
+                            end_col_offset=13,
+                            source_code=source_1.id,
+                        ),
+                        library=Library(
+                            name="altair",
+                        ),
+                    ).id,
+                    LiteralNode(
+                        value="data_transformers",
+                    ).id,
+                ],
+                keyword_args={},
+            ).id,
+            LiteralNode(
+                value="enable",
+            ).id,
+        ],
+        keyword_args={},
     ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=1,
+                col_offset=47,
+                end_lineno=1,
+                end_col_offset=53,
+                source_code=source_1.id,
+            ),
+            value="json",
+        ).id
+    ],
+    keyword_args={},
 )

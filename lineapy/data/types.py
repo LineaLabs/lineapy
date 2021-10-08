@@ -1,13 +1,11 @@
 from __future__ import annotations
-from dataclasses import dataclass
-import datetime
-from enum import Enum
-from typing import TYPE_CHECKING, Any, NewType, Optional, List, Dict, Union
-from pydantic import BaseModel
-from pathlib import Path
 
-if TYPE_CHECKING:
-    from db.relational import NodeORM
+import datetime
+from enum import Enum, auto
+from pathlib import Path
+from typing import Any, Dict, Iterable, NewType, Optional, Union
+
+from pydantic import BaseModel
 
 
 class SessionType(Enum):
@@ -15,18 +13,10 @@ class SessionType(Enum):
     Session types allow the tracer to know what to expect
     - JUPYTER: the tracer need to progressively add more nodes to the graph
     - SCRIPT: the easiest case, run everything until the end
-    - STATIC: does doesn't actually invoke the Executor
     """
 
     JUPYTER = 1
     SCRIPT = 2
-    STATIC = 3
-
-
-class StorageType(Enum):
-    LOCAL_FILE_SYSTEM = 1
-    S3 = 2
-    DATABASE = 3
 
 
 """
@@ -40,26 +30,10 @@ The orm_mode allows us to use from_orm to convert ORM
 """
 
 
-# Use a NewType instead of a string so that we can look at annotations of fields in pydantic models
-# that use this to differentiate between strings and IDs when pretty printing
+# Use a NewType instead of a string so that we can look at annotations of
+# fields in pydantic models that use this to differentiate between strings and
+# IDs when pretty printing
 LineaID = NewType("LineaID", str)
-
-
-@dataclass
-class DirectedEdge:
-    """
-    `DirectedEdge` is only used by the Graph to constructure dependencies
-      so that we can use `networkx` directly.
-    """
-
-    source_node_id: LineaID
-    sink_node_id: LineaID
-
-
-class HardwareSpec(BaseModel):
-    # TODO: information about the machine the code is run on.
-    class Config:
-        orm_mode = True
 
 
 class Library(BaseModel):
@@ -92,7 +66,6 @@ class SessionContext(BaseModel):
     working_directory: str  # must be passed in for now
     session_name: Optional[str]
     user_name: Optional[str] = None
-    hardware_spec: Optional[HardwareSpec] = None
 
     class Config:
         orm_mode = True
@@ -103,25 +76,19 @@ NodeValueType = Any
 
 
 class NodeType(Enum):
-    Node = 1
-    ArgumentNode = 2
-    CallNode = 3
-    LiteralNode = 4
-    WithNode = 8
-    ImportNode = 9
-    StateChangeNode = 10
-    DataSourceNode = 11
-    VariableNode = 12
-    ClassDefinitionNode = 13
-    SideEffectsNode = 14
-    LookupNode = 15
+    Node = auto()
+    CallNode = auto()
+    LiteralNode = auto()
+    ImportNode = auto()
+    LookupNode = auto()
 
 
 class LiteralType(Enum):
-    String = 1
-    Integer = 2
-    Float = 3
-    Boolean = 4
+    String = auto()
+    Integer = auto()
+    Float = auto()
+    Boolean = auto()
+    NoneType = auto()
 
 
 class ValueType(Enum):
@@ -156,7 +123,6 @@ class Execution(BaseModel):
     artifact_id: LineaID
     version: str
     timestamp: Optional[datetime.datetime]
-    execution_time: float
 
     class Config:
         orm_mode = True
@@ -282,7 +248,7 @@ class SourceLocation(BaseModel):
         orm_mode = True
 
 
-class Node(BaseModel):
+class BaseNode(BaseModel):
     """
     - id: string version of UUID, which we chose because
         we do not need to coordinate to make it unique
@@ -299,6 +265,13 @@ class Node(BaseModel):
     node_type: NodeType = NodeType.Node
     source_location: Optional[SourceLocation]
 
+    # The start and end time, if this node was executed
+    start_time: Optional[datetime.datetime] = None
+    end_time: Optional[datetime.datetime] = None
+
+    # The runtime value, if the node was executed
+    value: Any = None
+
     class Config:
         orm_mode = True
 
@@ -309,7 +282,7 @@ class Node(BaseModel):
 
         Used to break ties in topological node ordering.
         """
-        if not isinstance(other, Node):
+        if not isinstance(other, BaseNode):
             return NotImplemented
 
         if not other.source_location:
@@ -319,32 +292,16 @@ class Node(BaseModel):
 
         return self.source_location < other.source_location
 
+    def parents(self) -> Iterable[LineaID]:
+        """
+        Returns the parents of this node.
+        """
+        # Make an empty generator by yielding from an empty list
 
-class SideEffectsNode(Node):
-    """
-    This is a class of nodes, and the following nodes inherits from it:
-    - LoopNode
-    - ConditionNode
-    - FunctionDefinitionNode
-
-    All side effect nodes are handled currently as a black box
-      The tracer would look into the definition to construct the input/output
-      changes.
-
-    Entries
-    - `output_state_change_nodes`: IDs of the nodes that are modified, e.g.,
-       `def foo:\n    global a\n    a = 1`
-    - `input_state_change_nodes`: the nodes that reads, e.g.,
-       `a = 1\ndef foo:\n    print(a)`
-    - `import_nodes`: modules required to run node code
-    """
-
-    output_state_change_nodes: Optional[List[LineaID]]
-    input_state_change_nodes: Optional[List[LineaID]]
-    import_nodes: Optional[List[LineaID]]
+        yield from []
 
 
-class ImportNode(Node):
+class ImportNode(BaseNode):
     """
     Example 1: import pandas as pd---library: pandas
     Example 2: from math import ceil
@@ -360,39 +317,8 @@ class ImportNode(Node):
     attributes: Optional[Dict[str, str]] = None
     alias: Optional[str] = None
 
-    # run time value
-    module: Any = None
 
-
-class ArgumentNode(Node):
-    """
-    Each call may have arguments, and the arguments are stored in ArgumentNode
-    Each argument could be
-    - keyword or positional (hence the optional)
-    """
-
-    node_type: NodeType = NodeType.ArgumentNode
-    # Either keyword or positional_order is required, but not both
-    keyword: Optional[str] = None
-    positional_order: Optional[int] = None
-    value_node_id: LineaID
-
-    def __lt__(self, other: object) -> bool:
-        """
-        Overloading this less than so that the graph_printer could generate
-          deterministic ordering, just going to use the positional order
-          and then the keyword
-        """
-        if not isinstance(other, ArgumentNode):
-            # defer to above
-            return super().__lt__(other)
-        return (self.positional_order or -1, self.keyword or "") < (
-            other.positional_order or -1,
-            other.keyword or "",
-        )
-
-
-class CallNode(Node):
+class CallNode(BaseNode):
     """
     - `function_id`: node containing the value of the function call, which
       could be from various places: (1) locally defined, (2) imported, and
@@ -403,102 +329,30 @@ class CallNode(Node):
     """
 
     node_type: NodeType = NodeType.CallNode
-    # These IDs point to argument nodes
-    arguments: List[LineaID]
+
     function_id: LineaID
-    # TODO: We can refactor the next three into one function_id
-    # function_name: str
-    # function_module: Optional[LineaID] = None
-    # locally_defined_function_id: Optional[LineaID] = None
-    # assigned_variable_name: Optional[str] = None
-    value: Optional[NodeValueType] = None
+    positional_args: list[LineaID]
+    keyword_args: dict[str, LineaID]
+
+    def parents(self) -> Iterable[LineaID]:
+        yield self.function_id
+        yield from self.positional_args
+        yield from self.keyword_args.values()
 
 
-class LiteralNode(Node):
+class LiteralNode(BaseNode):
     node_type: NodeType = NodeType.LiteralNode
-    value: NodeValueType
 
 
-class LookupNode(Node):
+class LookupNode(BaseNode):
     """
     For unknown/undefined variables e.g. SQLcontext, get_ipython, int.
     """
 
     node_type = NodeType.LookupNode
     name: str
-    value: Optional[Any]
 
 
-# TODO: Rename to AssignmentNode?
-class VariableNode(Node):
-    """
-    Supports the following cases
-    ```
-    > b
-    > a = b
-    ```
-    `b` would be the `source_node_id` in both cases,
-    and `a` is the `assigned_variable_id` in the second case.
-    """
-
-    node_type: NodeType = NodeType.VariableNode
-    source_node_id: LineaID
-    assigned_variable_name: str
-    value: Optional[Any]  # loaded at run time
-
-
-class StateDependencyType(Enum):
-    Read = 1
-    Write = 2
-
-
-class StateChangeNode(Node):
-    """
-    This type of node is to capture the state changes caused by "black boxes"
-      such as loops.
-    Each "black box" SideEffectsNode will have two types of StateChangeNodes
-      for each variable. One for the variables read, and one variables written
-      to.
-    The `state_dependency_type` is used in the Graph class
-      (`get_parents_from_node`) to identify how to construct the dependencies
-    """
-
-    node_type: NodeType = NodeType.StateChangeNode
-    variable_name: str
-    # this could be call id or loop id, or any code blocks
-    associated_node_id: LineaID
-    # points to a node that represents the value of the node before the
-    #   change (can be another state change node)
-    initial_value_node_id: LineaID
-    state_dependency_type: StateDependencyType
-    value: Optional[NodeValueType]
-
-
-class DataSourceNode(Node):
-    """
-    NOTE:
-    - The goal of identifying data source node is that we can start associating
-      them even if they are accessed in slightly different ways.
-    - Possible data sources:
-        - CSV/S3
-        - DB
-    - For now we are just going to deal with local file systems and not
-      support DB. Will add in the future.
-    - Also the access_path should be assumed to be unrolled to an absolute path
-      so that it is resilient to where the execution happens.
-      but it can be a LOCAL access path, which means that it
-      alone is not re-produceable.
-
-    FIXME: this is currently conflated with all file paths, including
-      generated files
-    """
-
-    node_type: NodeType = NodeType.DataSourceNode
-    storage_type: StorageType
-    access_path: str
-    name: Optional[str]  # user defined
-
-
-class WithNode(Node):
-    node_type: NodeType = NodeType.WithNode
-    # TODO
+# We can use this for more precise type definitions, to make sure we hit
+# all the node cases
+Node = Union[ImportNode, CallNode, LiteralNode, LookupNode]

@@ -1,57 +1,36 @@
 import builtins
 import importlib.util
-from os import chdir, getcwd
 import io
-import subprocess
-import sys
-from typing import Any, Dict, cast
-import time
+import logging
+from contextlib import redirect_stdout
+from dataclasses import dataclass, field
+from datetime import datetime
+from os import chdir, getcwd
+from typing import Callable, cast
 
-from lineapy.utils import InternalLogicError
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    LookupNode,
-    SessionContext,
-    NodeType,
-    Node,
     CallNode,
     ImportNode,
-    LiteralNode,
     LineaID,
-    VariableNode,
+    LookupNode,
+    Node,
+    NodeType,
 )
-from lineapy.graph_reader.graph_util import get_segment_from_source_location
+
+logger = logging.getLogger(__name__)
 
 
+@dataclass
 class Executor:
-    def __init__(self):
-        """
-        TODO: documentation
-        """
-        self._variable_values: dict[str, object] = {}
+    """
+    An executor that is responsible for executing a graph, either node by
+    node as it is created, or in a batch, after the fact.
+    """
 
-        # Note: no output will be shown in Terminal because it is
-        #       being redirected here
-        self._old_stdout = sys.stdout
-        self._stdout = io.StringIO()
-
-    # TODO when we implement caching
-    # @property
-    # def data_asset_manager(self) -> DataAssetManager:
-    #     pass
-
-    def setup(self, context: SessionContext) -> None:
-        """
-        Set up the execution environment by installing the necessary libraries.
-
-        :param context: `SessionContext` including the necessary libraries.
-        """
-        self.prev_working_dir = getcwd()
-        chdir(context.working_directory)
-
-    def teardown(self) -> None:
-        chdir(self.prev_working_dir)
+    _id_to_value: dict[LineaID, object] = field(default_factory=dict)
+    _stdout: io.StringIO = field(default_factory=io.StringIO)
 
     def get_stdout(self) -> str:
         """
@@ -68,95 +47,50 @@ class Executor:
         val = self._stdout.getvalue()
         return val
 
-    def get_value_by_variable_name(self, name: str) -> Any:
-        if name in self._variable_values:
-            return self._variable_values[name]
-        else:
-            # throwing internal logic error because this is only called
-            #   for testing right now
-            raise InternalLogicError(f"Cannot find variable {name}")
-
-    def execute_program_with_inputs(
-        self, program: Graph, inputs: Dict[LineaID, Any]
-    ) -> Any:
+    def execute_node(self, node: Node) -> None:
         """
-        Execute the `program` with specific `inputs`.
-        Note: the inputs do not have to be root nodes in `program`. For
-          a non-root node input, we should cut its dependencies.
-          For example `a = foo(), b = a + 1`, if `a` is passed
-          in as an input with value `2`, we should skip `foo()`.
-
-        TODO:
-        :param program: program to be run.
-        :param inputs: mapping for node id to values for a set of input nodes.
-        :return: result of the program run with specified inputs.
+        Executes a node, records its value and execution time.
         """
-        ...
+        logger.info("Executing node %s", node)
+        if isinstance(node, LookupNode):
+            node.value = lookup_value(node.name)
+        elif isinstance(node, CallNode):
+            fn = cast(Callable, self._id_to_value[node.function_id])
 
-    def execute_program(self, program: Graph) -> float:
-        """
-        Returns how long the program took
-        TODO:
-        - we should probably also return the stdout and any error messages
-          as well in the near future
-        """
-        self.setup(program.session_context)
-        start = time.time()
-        self.walk(program)
-        end = time.time()
-        self.teardown()
-        return end - start
+            args = [
+                self._id_to_value[arg_id] for arg_id in node.positional_args
+            ]
+            kwargs = {
+                k: self._id_to_value[arg_id]
+                for k, arg_id in node.keyword_args.items()
+            }
+            logger.info("Calling function %s %s %s", fn, args, kwargs)
 
-    def walk(self, program: Graph) -> None:
-        """
-        FIXME: side effect evaluation is currently not supported
-        """
-        for node in program.visit_order():
-            # If we have already executed this node, dont do it again
-            # This shows up during jupyter cell exection
-            if getattr(node, "value", None) is not None:
-                continue
+            with redirect_stdout(self._stdout):
+                node.start_time = datetime.now()
+                node.value = fn(*args, **kwargs)
+                node.end_time = datetime.now()
 
-            # scoped_locals = locals()
+        elif node.node_type == NodeType.ImportNode:
+            node = cast(ImportNode, node)
+            with redirect_stdout(self._stdout):
+                node.start_time = datetime.now()
+                node.value = importlib.import_module(node.library.name)
+                node.end_time = datetime.now()
+        self._id_to_value[node.id] = node.value
 
-            # all of these have to be in the same scope in order to read
-            # and write to scoped_locals properly using Python exec
-            if node.node_type == NodeType.LookupNode:
-                node = cast(LookupNode, node)
-                node.value = lookup_value(node.name)
-            elif node.node_type == NodeType.CallNode:
-                node = cast(CallNode, node)
-                fn = program.get_node(node.function_id).value  # type: ignore
+    def execute_graph(self, graph: Graph) -> None:
+        logger.info("Executing graph %s", graph)
+        prev_working_dir = getcwd()
+        chdir(graph.session_context.working_directory)
 
-                args, kwargs = program.get_arguments_from_call_node(node)
-
-                sys.stdout = self._stdout
-                val = fn(*args, **kwargs)
-                sys.stdout = self._old_stdout
-
-                node.value = val
-
-            elif node.node_type == NodeType.ImportNode:
-                node = cast(ImportNode, node)
-                node.module = importlib.import_module(node.library.name)
-
-            elif node.node_type == NodeType.LiteralNode:
-                node = cast(LiteralNode, node)
-
-            elif node.node_type == NodeType.VariableNode:
-                node = cast(VariableNode, node)
-                node.value = program.get_node_value(
-                    program.ids[node.source_node_id]
-                )
-
-                self._variable_values[node.assigned_variable_name] = node.value
-
-            # not all node cases are handled, including
-            # - DataSourceNode
-            # - ArgumentNode
-
-    def validate(self, program: Graph) -> None:
-        raise NotImplementedError("validate is not implemented!")
+        for node in graph.visit_order():
+            # # If we have already executed this node, dont do it again
+            # # This shows up during jupyter cell exection
+            # if node.value is not None:
+            #     continue
+            self.execute_node(node)
+        chdir(prev_working_dir)
 
 
 def lookup_value(name: str) -> object:

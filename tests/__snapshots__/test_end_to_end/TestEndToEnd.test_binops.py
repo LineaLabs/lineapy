@@ -3,14 +3,7 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
-session = SessionContext(
-    id=get_new_id(),
-    environment_type=SessionType.SCRIPT,
-    creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    working_directory="dummy_linea_repo/",
-)
 source_1 = SourceCode(
-    id=get_new_id(),
     code="""a = 11
 b = 2
 
@@ -29,555 +22,191 @@ r12 =a & b
 """,
     location=PosixPath("[source file path]"),
 )
-variable_1 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+literal_1 = LiteralNode(
     source_location=SourceLocation(
         lineno=1,
-        col_offset=0,
+        col_offset=4,
         end_lineno=1,
         end_col_offset=6,
         source_code=source_1.id,
     ),
-    source_node_id=LiteralNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=1,
-            col_offset=4,
-            end_lineno=1,
-            end_col_offset=6,
-            source_code=source_1.id,
-        ),
-        value=11,
-    ).id,
-    assigned_variable_name="a",
+    value=11,
 )
-variable_2 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+literal_2 = LiteralNode(
     source_location=SourceLocation(
         lineno=2,
-        col_offset=0,
+        col_offset=4,
         end_lineno=2,
         end_col_offset=5,
         source_code=source_1.id,
     ),
-    source_node_id=LiteralNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=2,
-            col_offset=4,
-            end_lineno=2,
-            end_col_offset=5,
-            source_code=source_1.id,
-        ),
-        value=2,
-    ).id,
-    assigned_variable_name="b",
+    value=2,
 )
-variable_3 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_1 = CallNode(
     source_location=SourceLocation(
         lineno=4,
-        col_offset=0,
+        col_offset=5,
         end_lineno=4,
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=4,
-            col_offset=5,
-            end_lineno=4,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="add",
-        ).id,
+    function_id=LookupNode(
+        name="add",
     ).id,
-    assigned_variable_name="r1",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_4 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_2 = CallNode(
     source_location=SourceLocation(
         lineno=5,
-        col_offset=0,
+        col_offset=5,
         end_lineno=5,
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=5,
-            col_offset=5,
-            end_lineno=5,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="sub",
-        ).id,
+    function_id=LookupNode(
+        name="sub",
     ).id,
-    assigned_variable_name="r2",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_5 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_3 = CallNode(
     source_location=SourceLocation(
         lineno=6,
-        col_offset=0,
+        col_offset=4,
         end_lineno=6,
         end_col_offset=9,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=6,
-            col_offset=4,
-            end_lineno=6,
-            end_col_offset=9,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="mul",
-        ).id,
+    function_id=LookupNode(
+        name="mul",
     ).id,
-    assigned_variable_name="r3",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_6 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_4 = CallNode(
     source_location=SourceLocation(
         lineno=7,
-        col_offset=0,
+        col_offset=4,
         end_lineno=7,
         end_col_offset=9,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=7,
-            col_offset=4,
-            end_lineno=7,
-            end_col_offset=9,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="truediv",
-        ).id,
+    function_id=LookupNode(
+        name="truediv",
     ).id,
-    assigned_variable_name="r4",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_7 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_5 = CallNode(
     source_location=SourceLocation(
         lineno=8,
-        col_offset=0,
+        col_offset=4,
         end_lineno=8,
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=8,
-            col_offset=4,
-            end_lineno=8,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="floordiv",
-        ).id,
+    function_id=LookupNode(
+        name="floordiv",
     ).id,
-    assigned_variable_name="r5",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_8 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=9,
-        col_offset=0,
+        col_offset=4,
         end_lineno=9,
         end_col_offset=9,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=9,
-            col_offset=4,
-            end_lineno=9,
-            end_col_offset=9,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="mod",
-        ).id,
+    function_id=LookupNode(
+        name="mod",
     ).id,
-    assigned_variable_name="r6",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_9 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=10,
-        col_offset=0,
+        col_offset=4,
         end_lineno=10,
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=10,
-            col_offset=4,
-            end_lineno=10,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="pow",
-        ).id,
+    function_id=LookupNode(
+        name="pow",
     ).id,
-    assigned_variable_name="r7",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_10 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_8 = CallNode(
     source_location=SourceLocation(
         lineno=11,
-        col_offset=0,
+        col_offset=4,
         end_lineno=11,
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=11,
-            col_offset=4,
-            end_lineno=11,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="lshift",
-        ).id,
+    function_id=LookupNode(
+        name="lshift",
     ).id,
-    assigned_variable_name="r8",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_11 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_9 = CallNode(
     source_location=SourceLocation(
         lineno=12,
-        col_offset=0,
+        col_offset=4,
         end_lineno=12,
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=12,
-            col_offset=4,
-            end_lineno=12,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="rshift",
-        ).id,
+    function_id=LookupNode(
+        name="rshift",
     ).id,
-    assigned_variable_name="r9",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_12 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_10 = CallNode(
     source_location=SourceLocation(
         lineno=13,
-        col_offset=0,
+        col_offset=5,
         end_lineno=13,
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=13,
-            col_offset=5,
-            end_lineno=13,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="or_",
-        ).id,
+    function_id=LookupNode(
+        name="or_",
     ).id,
-    assigned_variable_name="r10",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_13 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_11 = CallNode(
     source_location=SourceLocation(
         lineno=14,
-        col_offset=0,
+        col_offset=5,
         end_lineno=14,
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=14,
-            col_offset=5,
-            end_lineno=14,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="xor",
-        ).id,
+    function_id=LookupNode(
+        name="xor",
     ).id,
-    assigned_variable_name="r11",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )
-variable_14 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_12 = CallNode(
     source_location=SourceLocation(
         lineno=15,
-        col_offset=0,
+        col_offset=5,
         end_lineno=15,
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=15,
-            col_offset=5,
-            end_lineno=15,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=variable_1.id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=variable_2.id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="and_",
-        ).id,
+    function_id=LookupNode(
+        name="and_",
     ).id,
-    assigned_variable_name="r12",
+    positional_args=[literal_1.id, literal_2.id],
+    keyword_args={},
 )

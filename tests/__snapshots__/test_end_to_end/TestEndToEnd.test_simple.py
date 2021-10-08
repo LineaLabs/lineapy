@@ -3,61 +3,32 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
-session = SessionContext(
-    id=get_new_id(),
-    environment_type=SessionType.SCRIPT,
-    creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    working_directory="dummy_linea_repo/",
-)
 source_1 = SourceCode(
-    id=get_new_id(),
     code="a = abs(11)",
     location=PosixPath("[source file path]"),
 )
-variable_1 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
+call_1 = CallNode(
     source_location=SourceLocation(
         lineno=1,
-        col_offset=0,
+        col_offset=4,
         end_lineno=1,
         end_col_offset=11,
         source_code=source_1.id,
     ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        source_location=SourceLocation(
-            lineno=1,
-            col_offset=4,
-            end_lineno=1,
-            end_col_offset=11,
-            source_code=source_1.id,
-        ),
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=LiteralNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    source_location=SourceLocation(
-                        lineno=1,
-                        col_offset=8,
-                        end_lineno=1,
-                        end_col_offset=10,
-                        source_code=source_1.id,
-                    ),
-                    value=11,
-                ).id,
-            ).id
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="abs",
-        ).id,
+    function_id=LookupNode(
+        name="abs",
     ).id,
-    assigned_variable_name="a",
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=1,
+                col_offset=8,
+                end_lineno=1,
+                end_col_offset=10,
+                source_code=source_1.id,
+            ),
+            value=11,
+        ).id
+    ],
+    keyword_args={},
 )

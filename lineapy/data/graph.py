@@ -1,33 +1,11 @@
 from queue import PriorityQueue, Queue
-from typing import Iterator, TypeVar, cast, List, Dict, Optional, Any, Callable
+from typing import Callable, Dict, Iterator, List, Optional, TypeVar
 
 import networkx as nx
 
+from lineapy.data.types import LineaID, Node, SessionContext
 from lineapy.graph_reader.graph_printer import GraphPrinter
-from lineapy.data.types import (
-    LineaID,
-    Node,
-    ArgumentNode,
-    NodeValueType,
-    NodeType,
-    CallNode,
-    SessionContext,
-    VariableNode,
-    DataSourceNode,
-    ImportNode,
-    DirectedEdge,
-)
-from lineapy.graph_reader.graph_util import (
-    get_arg_position,
-    get_edges_from_nodes,
-    sort_node_by_position,
-)
-from lineapy.utils import (
-    InternalLogicError,
-    NullValueError,
-    debug_log,
-    listify,
-)
+from lineapy.utils import listify
 
 
 class Graph(object):
@@ -51,15 +29,17 @@ class Graph(object):
 
         self.nx_graph.add_edges_from(
             [
-                (edge.source_node_id, edge.sink_node_id)
-                for edge in get_edges_from_nodes(nodes)
+                (parent_id, node.id)
+                for node in nodes
+                for parent_id in node.parents()
             ]
         )
+
         self.session_context = session_context
 
         # validation
         if not nx.is_directed_acyclic_graph(self.nx_graph):
-            raise InternalLogicError("Graph should not be cyclic")
+            raise AssertionError("Graph should not be cyclic")
 
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
@@ -154,51 +134,6 @@ class Graph(object):
         if node_id is not None and node_id in self.ids:
             return self.ids[node_id]
         return None
-
-    def get_node_value(self, node: Node) -> object:
-        # find the original source node in a chain of aliases
-        if isinstance(node, VariableNode):
-            # Stop once we have a value for this node.
-            if node.value is not None:
-                return node.value
-            return self.get_node_value(self.ids[node.source_node_id])
-
-        elif node.node_type is NodeType.ArgumentNode:
-            node = cast(ArgumentNode, node)
-            return self.get_node_value(self.ids[node.value_node_id])
-
-        elif node.node_type is NodeType.DataSourceNode:
-            node = cast(DataSourceNode, node)
-            return node.access_path
-
-        elif node.node_type is NodeType.ImportNode:
-            node = cast(ImportNode, node)
-            return node.module
-        else:
-            return node.value  # type: ignore
-
-    def get_arguments_from_call_node(
-        self, node: CallNode
-    ) -> tuple[List[NodeValueType], dict[str, NodeValueType]]:
-        """
-        FIXME: rather than using our loop comprehension, we should rely
-          on database joins
-        """
-        arg_nodes = []
-        kwarg_values = {}
-        # Iterate through arguments and append to args/kwargs
-        for arg in node.arguments:
-            argument_node = cast(ArgumentNode, self.ids[arg])
-            if argument_node.keyword is not None:
-                kwarg_values[argument_node.keyword] = self.get_node_value(
-                    argument_node
-                )
-            else:
-                arg_nodes.append(argument_node)
-
-        arg_nodes.sort(key=get_arg_position)
-
-        return [self.get_node_value(a) for a in arg_nodes], kwarg_values
 
     def get_subgraph(self, nodes: List[Node]) -> "Graph":
         """

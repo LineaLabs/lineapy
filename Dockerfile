@@ -8,7 +8,7 @@ WORKDIR /usr/src/base
 
 COPY . .
 
-RUN pip install -e .
+RUN pip install -e .[dev]
 
 ENTRYPOINT [ "lineapy" ]
 

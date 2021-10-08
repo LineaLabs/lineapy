@@ -1,50 +1,57 @@
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional, cast, Any
+from typing import Any, List, Optional, cast
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
 from lineapy.constants import SQLALCHEMY_ECHO
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    ArgumentNode,
     Artifact,
+    CallNode,
+    ImportNode,
     JupyterCell,
     Library,
     LineaID,
+    LiteralNode,
+    LiteralType,
     LookupNode,
+    Node,
     NodeValue,
     SessionContext,
-    CallNode,
-    ImportNode,
-    LiteralNode,
-    DataSourceNode,
     SourceCode,
     SourceLocation,
-    StateChangeNode,
-    VariableNode,
-    Node,
 )
-from lineapy.db.asset_manager.local import (
-    LocalDataAssetManager,
-    DataAssetManager,
+from lineapy.db.asset_manager.local import LocalDataAssetManager
+from lineapy.db.base import LineaDBConfig
+from lineapy.db.relational.schema.relational import (
+    ArtifactORM,
+    Base,
+    BaseNodeORM,
+    CallNodeORM,
+    ExecutionORM,
+    ImportNodeORM,
+    KeywordArgORM,
+    LibraryORM,
+    LiteralNodeORM,
+    LookupNodeORM,
+    NodeORM,
+    NodeValueORM,
+    PositionalArgORM,
+    SessionContextORM,
+    SourceCodeORM,
 )
-from lineapy.db.base import LineaDBConfig, LineaDB
-from lineapy.db.relational.schema.relational import *
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.utils import (
-    CaseNotHandledError,
-    NullValueError,
-    is_integer,
-    get_literal_value_from_string,
-)
+from lineapy.utils import get_literal_value_from_string, is_integer
+
+logger = logging.getLogger(__name__)
 
 
-class RelationalLineaDB(LineaDB):
+class RelationalLineaDB:
     """
     - Note that LineaDB coordinates with assset manager and relational db.
       - The asset manager deals with binaries (e.g., cached values)
@@ -55,29 +62,11 @@ class RelationalLineaDB(LineaDB):
         loaded, but that's low priority.
     """
 
-    def __init__(self):
-        self._data_asset_manager: Optional[DataAssetManager] = None
-        self._session: Optional[scoped_session] = None
-
-    @property
-    def session(self) -> scoped_session:
-        if self._session is not None:
-            return self._session
-        raise NullValueError("db should have been initialized")
-
-    @session.setter
-    def session(self, value):
-        self._session = value
-
-    def init_db(self, config: LineaDBConfig):
+    def __init__(self, config: LineaDBConfig):
         # TODO: we eventually need some configurations
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
-        echo = os.getenv(SQLALCHEMY_ECHO, default=False)
-        if not isinstance(echo, bool):
-            echo = (
-                str.lower(os.getenv(SQLALCHEMY_ECHO, default=True)) == "true"
-            )
+        echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
         logging.info(f"Starting DB at {config.database_uri}")
         engine = create_engine(
             config.database_uri,
@@ -89,37 +78,7 @@ class RelationalLineaDB(LineaDB):
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
 
-        self._data_asset_manager = LocalDataAssetManager(self.session)
-
-    @staticmethod
-    def get_orm(node: Node) -> NodeORM:
-        pydantic_to_orm = {
-            NodeType.ArgumentNode: ArgumentNodeORM,
-            NodeType.CallNode: CallNodeORM,
-            NodeType.ImportNode: ImportNodeORM,
-            NodeType.LiteralNode: LiteralNodeORM,
-            NodeType.DataSourceNode: DataSourceNodeORM,
-            NodeType.StateChangeNode: StateChangeNodeORM,
-            NodeType.VariableNode: VariableNodeORM,
-            NodeType.LookupNode: LookupNodeORM,
-        }
-
-        return pydantic_to_orm[node.node_type]  # type: ignore
-
-    @staticmethod
-    def get_pydantic(node: NodeORM) -> Node:
-        orm_to_pydantic = {
-            NodeType.ArgumentNode: ArgumentNode,
-            NodeType.CallNode: CallNode,
-            NodeType.ImportNode: ImportNode,
-            NodeType.LiteralNode: LiteralNode,
-            NodeType.DataSourceNode: DataSourceNode,
-            NodeType.StateChangeNode: StateChangeNode,
-            NodeType.VariableNode: VariableNode,
-            NodeType.LookupNode: LookupNode,
-        }
-
-        return orm_to_pydantic[node.node_type]  # type: ignore
+        self.data_asset_manager = LocalDataAssetManager(self.session)
 
     @staticmethod
     def get_type_of_literal_value(val: Any) -> LiteralType:
@@ -130,21 +89,9 @@ class RelationalLineaDB(LineaDB):
             return LiteralType.Integer
         elif isinstance(val, bool):
             return LiteralType.Boolean
-        raise CaseNotHandledError(f"Literal {val} is of type {type(val)}.")
-
-    """
-    Writers
-    """
-
-    @property
-    def data_asset_manager(self) -> DataAssetManager:
-        if self._data_asset_manager:
-            return self._data_asset_manager
-        raise NullValueError("data asset manager should have been initialized")
-
-    @data_asset_manager.setter
-    def data_asset_manager(self, value: DataAssetManager) -> None:
-        self._data_asset_manager = value
+        elif val is None:
+            return LiteralType.NoneType
+        raise NotImplementedError(f"Literal {val} is of type {type(val)}.")
 
     def write_library(
         self, library: Library, context_id: LineaID
@@ -189,7 +136,7 @@ class RelationalLineaDB(LineaDB):
     def add_lib_to_session_context(
         self, context_id: LineaID, library: Library
     ):
-        library_orm = self.write_library(library, context_id)
+        self.write_library(library, context_id)
         self.session.commit()
 
     def write_nodes(self, nodes: List[Node]) -> None:
@@ -198,59 +145,48 @@ class RelationalLineaDB(LineaDB):
         self.write_node_values(nodes)
 
     def write_single_node(self, node: Node) -> None:
-        args = node.dict(exclude={"source_location"})
-        # Map source location sub model in memory node, to inlined attributes
-        # in ORM and map source code to foreign key
-        source_location = node.source_location
-        if source_location is not None:
-            args["lineno"] = source_location.lineno
-            args["col_offset"] = source_location.col_offset
-            args["end_lineno"] = source_location.end_lineno
-            args["end_col_offset"] = source_location.end_col_offset
-            args["source_code_id"] = source_location.source_code.id
+        args = node.dict(include={"id", "session_id", "node_type"})
+        s = node.source_location
+        if s:
+            args["lineno"] = s.lineno
+            args["col_offset"] = s.col_offset
+            args["end_lineno"] = s.end_lineno
+            args["end_col_offset"] = s.end_col_offset
+            args["source_code_id"] = s.source_code.id
+
+        node_orm: NodeORM
+        if isinstance(node, CallNode):
+            node_orm = CallNodeORM(
+                **args,
+                function_id=node.function_id,
+                positional_args={
+                    PositionalArgORM(index=i, arg_node_id=v)
+                    for i, v in enumerate(node.positional_args)
+                },
+                keyword_args={
+                    KeywordArgORM(name=k, arg_node_id=v)
+                    for k, v in node.keyword_args.items()
+                },
+            )
+        elif isinstance(node, ImportNode):
+            node_orm = ImportNodeORM(
+                **args,
+                library_id=node.library.id,
+            )
+
+        elif isinstance(node, LiteralNode):
+            # Not sure why we are passing in value ot the literal node,
+            # since it isnt a field in the ORM?
+            # We were previously so I kept it, confused by this!
+            node_orm = LiteralNodeORM(  # type: ignore
+                **args,
+                value_type=RelationalLineaDB.get_type_of_literal_value(
+                    node.value
+                ),
+                value=node.value,
+            )
         else:
-            args["lineno"] = None
-            args["col_offset"] = None
-            args["end_lineno"] = None
-            args["end_col_offset"] = None
-            args["source_code_id"] = None
-
-        if node.node_type is NodeType.CallNode:
-            node = cast(CallNodeORM, node)
-            for arg in node.arguments:
-                self.session.execute(
-                    call_node_association_table.insert(),
-                    params={"call_node_id": node.id, "argument_node_id": arg},
-                )
-            del args["arguments"]
-            del args["value"]
-
-        elif node.node_type is NodeType.ImportNode:
-            node = cast(ImportNodeORM, node)
-            args["library_id"] = node.library.id
-            del args["library"]
-            del args["module"]
-
-        elif node.node_type is NodeType.StateChangeNode:
-            del args["value"]
-
-        elif node.node_type is NodeType.LiteralNode:
-            node = cast(LiteralNodeORM, node)
-            if node.value is not None:
-                args[
-                    "value_type"
-                ] = RelationalLineaDB.get_type_of_literal_value(node.value)
-
-        elif node.node_type is NodeType.LookupNode:
-            del args["value"]
-
-        elif node.node_type is NodeType.VariableNode:
-            """
-            The value is just for run time information
-            """
-            del args["value"]
-
-        node_orm = RelationalLineaDB.get_orm(node)(**args)
+            node_orm = LookupNodeORM(**args, name=node.name)
 
         self.session.add(node_orm)
         self.session.commit()
@@ -288,7 +224,6 @@ class RelationalLineaDB(LineaDB):
         node_id: LineaID,
         date_created: float,
         name: Optional[str] = None,
-        execution_time: Optional[float] = None,
     ) -> None:
         """
         Given that whether something is an artifact is just a human annotation,
@@ -308,7 +243,6 @@ class RelationalLineaDB(LineaDB):
         execution = ExecutionORM(
             artifact_id=artifact.id,
             version=1,
-            execution_time=execution_time,
         )
         self.session.add(execution)
         self.session.commit()
@@ -341,48 +275,75 @@ class RelationalLineaDB(LineaDB):
         Returns the node by looking up the database by ID
         SQLAlchemy is able to translate between the two types on demand
         """
-        node = self.session.query(NodeORM).filter(NodeORM.id == linea_id).one()
+        node = (
+            self.session.query(BaseNodeORM)
+            .filter(BaseNodeORM.id == linea_id)
+            .one()
+        )
         return self.map_orm_to_pydantic(node)
 
     def map_orm_to_pydantic(self, node: NodeORM) -> Node:
-        # If we have source locations, save those on the node.
-        if node.source_code_id != None:
-            node.source_code.location = (  # type: ignore
-                Path(node.source_code.path)
-                if node.source_code.path
-                else JupyterCell(
-                    execution_count=node.source_code.jupyter_execution_count,
-                    session_id=node.source_code.jupyter_session_id,
-                )
+        args: dict[str, Any] = {
+            "id": node.id,
+            "session_id": node.session_id,
+            "node_type": node.node_type,
+        }
+        if node.source_code:
+            source_code = SourceCode(
+                id=node.source_code_id,
+                code=node.source_code.code,
+                location=(
+                    Path(node.source_code.path)
+                    if node.source_code.path
+                    else JupyterCell(
+                        execution_count=node.source_code.jupyter_execution_count,
+                        session_id=node.source_code.jupyter_session_id,
+                    )
+                ),
             )
-            # Call from_orm on itself, because it contains all the line number
-            # calls on the ORM
-            node.source_location = SourceLocation.from_orm(node)  # type: ignore
-
+            args["source_location"] = SourceLocation(
+                lineno=node.lineno,
+                col_offset=node.col_offset,
+                end_lineno=node.end_lineno,
+                end_col_offset=node.end_col_offset,
+                source_code=source_code,
+            )
         # cast string serialized values to their appropriate types
-        if node.node_type is NodeType.LiteralNode:
-            node = cast(LiteralNodeORM, node)
-            node.value = get_literal_value_from_string(
-                node.value, node.value_type
+        if isinstance(node, LiteralNodeORM):
+            return LiteralNode(
+                value=get_literal_value_from_string(
+                    node.value, node.value_type
+                ),
+                **args,
             )
-        elif node.node_type is NodeType.ImportNode:
-            node = cast(ImportNodeORM, node)
+        if isinstance(node, ImportNodeORM):
             library_orm = (
                 self.session.query(LibraryORM)
                 .filter(LibraryORM.id == node.library_id)
                 .one()
             )
-            node.library = Library.from_orm(library_orm)
-        elif node.node_type is NodeType.CallNode:
-            node = cast(CallNodeORM, node)
-            arguments = (
-                self.session.query(call_node_association_table)
-                .filter(call_node_association_table.c.call_node_id == node.id)
-                .all()
+            return ImportNode(library=Library.from_orm(library_orm), **args)
+        if isinstance(node, CallNodeORM):
+            positional_args = [
+                v
+                for _, v in sorted(
+                    (
+                        # Not sure why we need cast here, index field isn't optional
+                        # but mypy thinks it is
+                        (cast(int, p.index), p.arg_node_id)
+                        for p in node.positional_args
+                    ),
+                    key=lambda p: p[0],
+                )
+            ]
+            keyword_args = {n.name: n.arg_node_id for n in node.keyword_args}
+            return CallNode(
+                function_id=node.function_id,
+                positional_args=positional_args,
+                keyword_args=keyword_args,
+                **args,
             )
-            node.arguments = [a.argument_node_id for a in arguments]
-
-        return RelationalLineaDB.get_pydantic(node).from_orm(node)
+        return LookupNode(name=node.name, **args)
 
     def get_node_value_from_db(
         self, node_id: LineaID, version: int
@@ -427,8 +388,8 @@ class RelationalLineaDB(LineaDB):
          NOT include things like SessionContext
         """
         node_orms = (
-            self.session.query(NodeORM)
-            .filter(NodeORM.session_id == session_id)
+            self.session.query(BaseNodeORM)
+            .filter(BaseNodeORM.session_id == session_id)
             .all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
@@ -438,7 +399,7 @@ class RelationalLineaDB(LineaDB):
     # ) -> Graph:
     #     """ """
     def get_all_nodes(self) -> List[Node]:
-        node_orms = self.session.query(NodeORM).all()
+        node_orms = self.session.query(BaseNodeORM).all()
         return [self.map_orm_to_pydantic(node) for node in node_orms]
 
     def get_session_graph_from_artifact_id(
@@ -491,30 +452,6 @@ class RelationalLineaDB(LineaDB):
             len(artifacts) == 1
         ), "Should only be one artifact with this name"
         return self.get_code_from_artifact_id(artifacts[0].id)
-
-    def find_all_artifacts_derived_from_data_source(
-        self, program: Graph, data_source_node: DataSourceNode
-    ) -> List[Node]:
-        """
-        Gets all of the artifacts contained in the input program graph that are
-        descendents of data_source_node.
-
-        :param program: a Graph object representing the program
-        :param data_source_node: a node in program
-        :return: nodes in program that are descendents of data_source_node.
-        """
-        descendants = program.get_descendants(data_source_node)
-        artifacts = []
-        for d_id in descendants:
-            descendant_is_artifact = (
-                self.session.query(ArtifactORM)
-                .filter(ArtifactORM.id == d_id)
-                .first()
-            ) is not None
-            descendant = program.get_node(d_id)
-            if descendant_is_artifact and descendant is not None:
-                artifacts.append(descendant)
-        return artifacts
 
     def find_artifact_by_name(self, artifact_name: str) -> List[Artifact]:
         """

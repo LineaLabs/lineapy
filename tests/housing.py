@@ -1,24 +1,20 @@
-import lineapy
-
 import altair as alt
 import pandas as pd
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 
+import lineapy
+
 alt.data_transformers.enable("json")
 alt.renderers.enable("mimetype")
 
-assets = pd.read_csv("ames_train_cleaned.csv")
+assets = pd.read_csv("tests/ames_train_cleaned.csv")
 
 sns.relplot(data=assets, x="Year_Built", y="SalePrice", size="Lot_Area")
 
 
-def get_threshold():
-    return 1970
-
-
 def is_new(col):
-    return col > get_threshold()
+    return col > 1970
 
 
 assets["is_new"] = is_new(assets["Year_Built"])

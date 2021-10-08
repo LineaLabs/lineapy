@@ -1,40 +1,19 @@
 import os.path as path
 from ast import AST, dump
 from datetime import datetime
-from os import remove
-from typing import Optional, List
+from os import getcwd, remove
 from re import sub
 from tempfile import NamedTemporaryFile
-from pydantic import BaseModel
-from os import getcwd
+from typing import List, Optional
 
-from lineapy.transformer.transformer import ExecutionMode, Transformer
-from lineapy.data.types import (
-    SessionContext,
-    SessionType,
-)
+from pydantic import BaseModel
+
+from lineapy.data.types import SessionContext, SessionType
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.utils import get_new_id, internal_warning_log
+from lineapy.transformer.transformer import ExecutionMode, Transformer
 
 TEST_ARTIFACT_NAME = "Graph With CSV Import"
-
-
-def compare_pydantic_objects_without_keys(
-    a: BaseModel,
-    b: BaseModel,
-    keys: List[str],
-    log_diff=False,
-):
-    a_d = a.dict()
-    b_d = b.dict()
-    for k in keys:
-        del a_d[k]
-        del b_d[k]
-    diff = a_d == b_d
-    if log_diff:
-        internal_warning_log(f"{a_d}\ndifferent from\n{b_d}")
-    return diff
 
 
 def strip_non_letter_num(s: str):
@@ -121,8 +100,7 @@ def setup_db(mode: ExecutionMode, reset: bool) -> RelationalLineaDB:
     run_code(CSV_CODE, mode)
     run_code(IMAGE_CODE, mode)
 
-    db = RelationalLineaDB()
-    db.init_db(db_config)
+    db = RelationalLineaDB(db_config)
     return db
 
 

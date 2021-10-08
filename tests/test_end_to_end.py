@@ -1,22 +1,15 @@
 from tempfile import NamedTemporaryFile
-from click.testing import CliRunner
+
 import pytest
-from os import chdir, getcwd
+from click.testing import CliRunner
 
 import lineapy
-from lineapy.execution.executor import Executor
 from lineapy.cli.cli import linea_cli
-from lineapy.data.types import SessionType
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.transformer.transformer import ExecutionMode
-from lineapy.utils import get_current_time, info_log
-
-from tests.util import (
-    IMAGE_CODE,
-    CSV_CODE,
-    reset_test_db,
-)
+from lineapy.utils import get_current_time
+from tests.util import CSV_CODE, IMAGE_CODE, reset_test_db
 
 publish_name = "testing artifact publish"
 PUBLISH_CODE = f"""import {lineapy.__name__}
@@ -194,23 +187,12 @@ class TestEndToEnd:
         config = get_default_config_by_environment(ExecutionMode.DEV)
         # also reset the file
         reset_test_db(config.database_uri)
-        self.db = RelationalLineaDB()
-        self.db.init_db(config)
+        self.db = RelationalLineaDB(config)
 
-    @pytest.mark.parametrize(
-        "session_type",
-        [
-            SessionType.STATIC,
-            SessionType.SCRIPT,
-        ],
-    )
-    def test_function_definition_without_side_effect(
-        self, session_type: SessionType, execute
-    ):
-        res = execute(FUNCTION_DEFINITION_CODE, session_type=session_type)
-        if session_type == SessionType.SCRIPT:
-            assert res.values["c"] == 1
-            assert res.values["d"] == 4
+    def test_function_definition_without_side_effect(self, execute):
+        res = execute(FUNCTION_DEFINITION_CODE)
+        assert res.values["c"] == 1
+        assert res.values["d"] == 4
 
     @pytest.mark.xfail(reason="exec scope is weird")
     def test_function_definition_global(self, execute):
@@ -257,17 +239,9 @@ class TestEndToEnd:
         res = execute(STRING_FORMAT)
         assert res.values["a"] == "{ foo }"
 
-    @pytest.mark.parametrize(
-        "session_type",
-        [
-            SessionType.SCRIPT,
-            SessionType.STATIC,
-        ],
-    )
-    def test_end_to_end_simple_graph(self, session_type, execute):
-        res = execute(PUBLISH_CODE, session_type=session_type)
-        if session_type == SessionType.SCRIPT:
-            assert res.values["a"] == 11
+    def test_end_to_end_simple_graph(self, execute):
+        res = execute(PUBLISH_CODE)
+        assert res.values["a"] == 11
         # TODO: testing publish artifact
 
     def test_variable_alias(self, execute):
@@ -286,7 +260,7 @@ class TestEndToEnd:
     def test_fake_attribute(self, execute):
         code = "a = 1\nb=a.imag == 1"
         res = execute(code)
-        assert res.values["b"] == False
+        assert res.values["b"] is False
 
     def test_publish(self, execute):
         """
@@ -316,28 +290,10 @@ class TestEndToEnd:
             return tmp_file_name
 
     def test_dictionary_support(self, execute):
-        res = execute(DICTIONARY_SUPPORT)
+        execute(DICTIONARY_SUPPORT)
 
-    def test_graph_with_basic_image(self, execute, tmpdir):
-        """
-        Changes the directory of the execution to make sure things are working.
-
-            NOTE:
-        - We cannot assert on the nodes being equal to what's generated yet
-          because DataSourceSode is not yet implemented.
-        """
-
-        res = execute(IMAGE_CODE)
-
-        # TODO: Verify artifact was added as well
-
-        # Then try in a random directory, to make sure its preserved when executing
-        chdir(tmpdir.mkdir("tmp"))
-        e = Executor()
-        e.execute_program(res.graph)
-
-        # TODO: add some assertion, but for now it's sufficient that it's
-        #       working
+    def test_graph_with_basic_image(self, execute):
+        execute(IMAGE_CODE)
 
     def test_import(self, execute):
         res = execute(IMPORT_CODE)
@@ -374,12 +330,12 @@ class TestEndToEnd:
 
     def test_logical_binops(self, execute):
         res = execute(LOGICAL_BINOPS)
-        assert res.values["r1"] == False
-        assert res.values["r2"] == True
-        assert res.values["r3"] == True
-        assert res.values["r4"] == True
-        assert res.values["r5"] == False
-        assert res.values["r6"] == False
+        assert res.values["r1"] is False
+        assert res.values["r2"] is True
+        assert res.values["r3"] is True
+        assert res.values["r4"] is True
+        assert res.values["r5"] is False
+        assert res.values["r6"] is False
 
     def test_subscript(self, execute):
         res = execute(SUBSCRIPT)
@@ -402,25 +358,26 @@ class TestEndToEnd:
         import altair
 
         assert altair.data_transformers.active != "json"
-        res = execute("import altair; altair.data_transformers.enable('json')")
+        execute("import altair; altair.data_transformers.enable('json')")
         assert altair.data_transformers.active == "json"
 
+    @pytest.mark.xfail(reason="get_ipython not defined in tests")
     def test_lookup_undefined_global_call(self, execute):
         """
         Even though get_ipython isn't defined when executing normally,
         we can still create a graph for it if we don't try to execute it
         outside of ipython.
         """
-        execute("get_ipython().system('')", session_type=SessionType.STATIC)
+        execute("get_ipython().system('')")
 
     def test_subscript_call(self, execute):
-        execute("[0][abs(0)]", session_type=SessionType.STATIC)
+        execute("[0][abs(0)]")
 
     def test_alias_by_reference(self, execute):
         res = execute(ALIAS_BY_REFERENCE)
         assert res.values["s"] == 10
-        assert res.values["r1"] == True
-        assert res.values["r2"] == False
+        assert res.values["r1"] is True
+        assert res.values["r2"] is False
 
     def test_alias_by_value(self, execute):
         res = execute(ALIAS_BY_VALUE)
@@ -468,7 +425,7 @@ class TestUnaryOp:
         """
         Weird test case from https://stackoverflow.com/a/16819334/907060
         """
-        res = execute(
+        execute(
             """from decimal import Decimal
 obj = Decimal('3.1415926535897932384626433832795028841971')
 assert +obj != obj"""
@@ -533,7 +490,9 @@ class TestListComprehension:
             compare_snapshot=False,
         )
         # Verify that i isn't set in the local scope
-        assert res.values == {"x": [1, 2, 3], "y": range(3)}
+        assert res.values["x"] == [1, 2, 3]
+        assert res.values["y"] == range(3)
+        assert "i" not in res.values
         sliced_code = res.slice("x")
         assert execute(sliced_code).values["x"] == [1, 2, 3]
 

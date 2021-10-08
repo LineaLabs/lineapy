@@ -3,144 +3,67 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
-session = SessionContext(
-    id=get_new_id(),
-    environment_type=SessionType.SCRIPT,
-    creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    working_directory="dummy_linea_repo/",
-)
 source_1 = SourceCode(
-    id=get_new_id(),
     code="""y = range(3)
 x = [i + 1 for i in y]
 """,
     location=PosixPath("[source file path]"),
 )
-variable_2 = VariableNode(
-    id=get_new_id(),
-    session_id=session.id,
-    source_location=SourceLocation(
-        lineno=2,
-        col_offset=0,
-        end_lineno=2,
-        end_col_offset=22,
-        source_code=source_1.id,
-    ),
-    source_node_id=CallNode(
-        id=get_new_id(),
-        session_id=session.id,
-        arguments=[
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=0,
-                value_node_id=CallNode(
-                    id=get_new_id(),
-                    session_id=session.id,
+call_3 = CallNode(
+    function_id=LookupNode(
+        name="getitem",
+    ).id,
+    positional_args=[
+        CallNode(
+            source_location=SourceLocation(
+                lineno=2,
+                col_offset=4,
+                end_lineno=2,
+                end_col_offset=22,
+                source_code=source_1.id,
+            ),
+            function_id=LookupNode(
+                name="__exec__",
+            ).id,
+            positional_args=[
+                LiteralNode(
+                    value="[i + 1 for i in y]",
+                ).id,
+                LiteralNode(
+                    value=1,
+                ).id,
+            ],
+            keyword_args={
+                "y": CallNode(
                     source_location=SourceLocation(
-                        lineno=2,
+                        lineno=1,
                         col_offset=4,
-                        end_lineno=2,
-                        end_col_offset=22,
+                        end_lineno=1,
+                        end_col_offset=12,
                         source_code=source_1.id,
                     ),
-                    arguments=[
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            keyword="y",
-                            value_node_id=VariableNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                source_location=SourceLocation(
-                                    lineno=1,
-                                    col_offset=0,
-                                    end_lineno=1,
-                                    end_col_offset=12,
-                                    source_code=source_1.id,
-                                ),
-                                source_node_id=CallNode(
-                                    id=get_new_id(),
-                                    session_id=session.id,
-                                    source_location=SourceLocation(
-                                        lineno=1,
-                                        col_offset=4,
-                                        end_lineno=1,
-                                        end_col_offset=12,
-                                        source_code=source_1.id,
-                                    ),
-                                    arguments=[
-                                        ArgumentNode(
-                                            id=get_new_id(),
-                                            session_id=session.id,
-                                            positional_order=0,
-                                            value_node_id=LiteralNode(
-                                                id=get_new_id(),
-                                                session_id=session.id,
-                                                source_location=SourceLocation(
-                                                    lineno=1,
-                                                    col_offset=10,
-                                                    end_lineno=1,
-                                                    end_col_offset=11,
-                                                    source_code=source_1.id,
-                                                ),
-                                                value=3,
-                                            ).id,
-                                        ).id
-                                    ],
-                                    function_id=LookupNode(
-                                        id=get_new_id(),
-                                        session_id=session.id,
-                                        name="range",
-                                    ).id,
-                                ).id,
-                                assigned_variable_name="y",
-                            ).id,
-                        ).id,
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            positional_order=0,
-                            value_node_id=LiteralNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                value="[i + 1 for i in y]",
-                            ).id,
-                        ).id,
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            positional_order=1,
-                            value_node_id=LiteralNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                value=1,
-                            ).id,
-                        ).id,
-                    ],
                     function_id=LookupNode(
-                        id=get_new_id(),
-                        session_id=session.id,
-                        name="__exec__",
+                        name="range",
                     ).id,
-                ).id,
-            ).id,
-            ArgumentNode(
-                id=get_new_id(),
-                session_id=session.id,
-                positional_order=1,
-                value_node_id=LiteralNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    value=0,
-                ).id,
-            ).id,
-        ],
-        function_id=LookupNode(
-            id=get_new_id(),
-            session_id=session.id,
-            name="getitem",
+                    positional_args=[
+                        LiteralNode(
+                            source_location=SourceLocation(
+                                lineno=1,
+                                col_offset=10,
+                                end_lineno=1,
+                                end_col_offset=11,
+                                source_code=source_1.id,
+                            ),
+                            value=3,
+                        ).id
+                    ],
+                    keyword_args={},
+                ).id
+            },
         ).id,
-    ).id,
-    assigned_variable_name="x",
+        LiteralNode(
+            value=0,
+        ).id,
+    ],
+    keyword_args={},
 )

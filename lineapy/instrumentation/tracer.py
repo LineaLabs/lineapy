@@ -1,12 +1,10 @@
+import logging
 from datetime import datetime
-from typing import Dict, Literal, Optional, List, cast, overload
 from os import getcwd
+from typing import Dict, Optional, cast
 
 from lineapy.constants import GET_ITEM, GETATTR, ExecutionMode
 from lineapy.data.graph import Graph
-from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.lineabuiltins import __exec__, __build_tuple__
 from lineapy.data.types import (
     CallNode,
     ImportNode,
@@ -18,20 +16,16 @@ from lineapy.data.types import (
     SessionContext,
     SessionType,
     SourceLocation,
-    VariableNode,
 )
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.execution.executor import Executor
+from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.instrumentation.inspect_function import inspect_function
 from lineapy.instrumentation.records_manager import RecordsManager
-from lineapy.instrumentation.tracer_util import (
-    create_argument_nodes,
-)
-from lineapy.utils import (
-    CaseNotHandledError,
-    InternalLogicError,
-    internal_warning_log,
-    get_new_id,
-)
+from lineapy.lineabuiltins import __build_tuple__, __exec__
+from lineapy.utils import get_new_id
+
+logger = logging.getLogger(__name__)
 
 
 class Tracer:
@@ -53,7 +47,6 @@ class Tracer:
         - Executes the program, using the `Executor`.
         """
         self.session_type = session_type
-        self.nodes_to_be_evaluated: List[Node] = []
         # TODO: we should probably poll from the local linea config file
         #   what this configuration should be
         config = get_default_config_by_environment(execution_mode)
@@ -73,7 +66,6 @@ class Tracer:
 
     @property
     def graph(self) -> Graph:
-        # TODO: persist this instead on the tracer and keep nodes there
         nodes = self.records_manager.db.get_nodes_for_session(
             self.session_context.id
         )
@@ -81,7 +73,7 @@ class Tracer:
 
     @property
     def values(self) -> dict[str, object]:
-        return self.executor._variable_values
+        return {k: n.value for k, n in self.variable_name_to_node.items()}
 
     @property
     def stdout(self) -> str:
@@ -94,59 +86,22 @@ class Tracer:
         artifact = self.db.get_artifact_by_name(artifact_name)
         return get_program_slice(self.graph, [LineaID(cast(str, artifact.id))])
 
-    def add_unevaluated_node(
-        self, record: Node, source_location: Optional[SourceLocation] = None
-    ):
-        if source_location:
-            record.source_location = source_location
-        self.nodes_to_be_evaluated.append(record)
-
-    def evaluate_records_so_far(self) -> Optional[float]:
+    def process_node(self, node: Node) -> None:
         """
-        For JUPYTER & SCRIPT
-        - Evaluate everything in the execution_pool
-        - Pipe the records with their values to the records_manager
-        - Then remove them (so that the runtime could reclaim space)
-        For STATIC, same post-fix but without the evaluation
+        Execute a node, and adds it to the database.
         """
-
-        if (
-            self.session_type == SessionType.SCRIPT
-            or self.session_type == SessionType.JUPYTER
-        ):
-            # Include all the variable nodess we have as well, since
-            # we could have executed some previous expressions, and then later
-            # executed another one that dependened on those variables
-            graph = Graph(
-                self.nodes_to_be_evaluated
-                + list(self.variable_name_to_node.values()),
-                self.session_context,
-            )
-
-            time = self.executor.execute_program(graph)
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
-            # reset
-            self.nodes_to_be_evaluated = []
-            return time
-        elif self.session_type == SessionType.STATIC:
-            # Same flow as SCRIPT but without the executor
-            # In the future, we can potentially do something fancy with
-            #   importing and doing analysis there
-            self.records_manager.add_evaluated_nodes(
-                self.nodes_to_be_evaluated
-            )
-            # reset
-            self.nodes_to_be_evaluated = []
-            return None
-
-        raise CaseNotHandledError(f"Case {self.session_type} is unsupported")
+        self.executor.execute_node(node)
+        self.records_manager.add_evaluated_nodes(node)
 
     def exit(self):
-        self.evaluate_records_so_far()
-        self.records_manager.exit()
-        pass
+        nodes = self.records_manager.records_pool
+        try:
+            self.records_manager.exit()
+        except Exception:
+            logger.exception(
+                "Error writing nodes %s", Graph(nodes, self.session_context)
+            )
+            raise
 
     def lookup_node(self, variable_name: str) -> Node:
         """
@@ -167,25 +122,16 @@ class Tracer:
                 session_id=self.session_context.id,
                 name=variable_name,
             )
-            self.add_unevaluated_node(new_node)
+            self.process_node(new_node)
             return new_node
-
-    def look_up_node_id_by_variable_name(self, variable_name: str) -> LineaID:
-        return self.lookup_node(variable_name).id
 
     # TODO: Refactor to take in node id
     def publish(
         self, variable_name: str, description: Optional[str] = None
     ) -> None:
-        # we'd have to do some introspection here to know what the ID is
-        # then we can create a new ORM node (not our IR node, which is a
-        #   little confusing)
-        # TODO: look up node_id base on variable_name
-        # need to force an eval
-        execution_time = self.evaluate_records_so_far()
-        node_id = self.look_up_node_id_by_variable_name(variable_name)
+        node_id = self.lookup_node(variable_name).id
         self.records_manager.add_node_id_to_artifact_table(
-            node_id, description, execution_time
+            node_id, description
         )
 
     def create_session_context(
@@ -238,6 +184,7 @@ class Tracer:
             self.variable_name_to_node[alias] = node
         else:
             self.variable_name_to_node[name] = node
+        self.process_node(node)
 
         # for the attributes imported, we need to add them to the local lookup
         #  that yields the importnode's id for the `function_module` field,
@@ -262,7 +209,6 @@ class Tracer:
         self.records_manager.add_lib_to_session_context(
             self.session_context.id, library
         )
-        self.add_unevaluated_node(node)
         return
 
     def literal(
@@ -277,7 +223,7 @@ class Tracer:
             value=value,
             source_location=source_location,
         )
-        self.add_unevaluated_node(node)
+        self.process_node(node)
         return node
 
     def call(
@@ -300,76 +246,41 @@ class Tracer:
           e.g., for the assignment call to modify the previous call node.
         - The call looks up if it's a locally defined function. We decided
           that this is better for program slicing.
-
-        TODO:
-        - the way we look up the function module is a little confusing, maybe
-          decouple it from variable_name_to_id?
         """
-
-        argument_nodes = create_argument_nodes(
-            list(arguments),
-            keyword_arguments,
-            self.session_context.id,
-        )
-        argument_node_ids = []
-        for n in argument_nodes:
-            argument_node_ids.append(n.id)
-            self.add_unevaluated_node(n)
-
         node = CallNode(
             id=get_new_id(),
             session_id=self.session_context.id,
             function_id=function_node.id,
-            arguments=argument_node_ids,
+            positional_args=[n.id for n in arguments],
+            keyword_args={k: n.id for k, n, in keyword_arguments.items()},
             source_location=source_location,
         )
-        self.add_unevaluated_node(node)
-        # info_log("call invoked from tracer", function_name,
-        #   function_module, arguments)
+        self.process_node(node)
+
+        _resulting_spec = inspect_function(
+            function_node.value,
+            [n.value for n in arguments],
+            {k: v.value for k, v in keyword_arguments.items()},
+            node.value,
+        )
+        # TODO: Process spec and add mutations
         return node
 
     def assign(
         self,
         variable_name: str,
         value_node: Node,
-        source_location: Optional[SourceLocation] = None,
     ) -> None:
         """
-        Assign modifies the call node, with:
-        - assigned variable name
-        - the code segment for assign subsume the expression it's assigned from
-          that's why we need to update
-        This is not the most functional/pure but it gets the job done for now.
+        Assign updates a local mapping of variable nodes.
+
+        It doesn't save this to the graph, and currently the source
+        location for the assignment is discarded. In the future, if we need
+        to trace where in some code a node is assigned, we can record that again.
         """
-        new_node = VariableNode(
-            id=get_new_id(),
-            session_id=self.session_context.id,
-            assigned_variable_name=variable_name,
-            source_node_id=value_node.id,
-            source_location=source_location,
-        )
-        self.add_unevaluated_node(new_node)
-        self.variable_name_to_node[variable_name] = new_node
+        logger.info("assigning %s = %s", variable_name, value_node)
+        self.variable_name_to_node[variable_name] = value_node
         return
-
-    def loop(self) -> None:
-        """
-        Handles both for and while loops. Since we are treating it like a black
-          box, we don't really need to know much about it at this point
-
-        TODO: define input arguments
-
-        TODO: append records
-        """
-        pass
-
-    def cond(self) -> None:
-        """
-        TODO: define input arguments
-
-        TODO: append records
-        """
-        pass
 
     def exec(
         self,
@@ -410,7 +321,6 @@ class Tracer:
                     res,
                     self.literal(i),
                 ),
-                source_location,
             )
         if is_expression:
             return self.call(

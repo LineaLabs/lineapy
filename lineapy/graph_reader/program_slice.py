@@ -1,8 +1,11 @@
+import logging
 from collections import defaultdict
 from typing import List, Set
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID, SourceCode, SourceLocation
+from lineapy.data.types import LineaID, SourceCode
+
+logger = logging.getLogger(__name__)
 
 
 def get_slice_graph(graph: Graph, sinks: List[LineaID]) -> Graph:
@@ -66,5 +69,7 @@ def get_program_slice(graph: Graph, sinks: List[LineaID]) -> str:
     :return: string containing the necessary and sufficient code for
     computing sinks.
     """
+    logger.info("Slicing graph %s", graph)
     subgraph = get_slice_graph(graph, sinks)
+    logger.info("Subgraph %s", subgraph)
     return get_source_code_from_graph(subgraph)

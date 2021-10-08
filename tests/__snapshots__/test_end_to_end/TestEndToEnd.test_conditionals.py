@@ -3,14 +3,7 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
-session = SessionContext(
-    id=get_new_id(),
-    environment_type=SessionType.SCRIPT,
-    creation_time=datetime.datetime(1, 1, 1, 0, 0),
-    working_directory="dummy_linea_repo/",
-)
 source_1 = SourceCode(
-    id=get_new_id(),
     code="""bs = [1,2]
 if len(bs) > 4:
     print("True")
@@ -21,8 +14,6 @@ else:
     location=PosixPath("[source file path]"),
 )
 call_2 = CallNode(
-    id=get_new_id(),
-    session_id=session.id,
     source_location=SourceLocation(
         lineno=2,
         col_offset=0,
@@ -30,124 +21,62 @@ call_2 = CallNode(
         end_col_offset=18,
         source_code=source_1.id,
     ),
-    arguments=[
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            keyword="bs",
-            value_node_id=VariableNode(
-                id=get_new_id(),
-                session_id=session.id,
-                source_location=SourceLocation(
-                    lineno=1,
-                    col_offset=0,
-                    end_lineno=1,
-                    end_col_offset=10,
-                    source_code=source_1.id,
-                ),
-                source_node_id=CallNode(
-                    id=get_new_id(),
-                    session_id=session.id,
-                    source_location=SourceLocation(
-                        lineno=1,
-                        col_offset=5,
-                        end_lineno=1,
-                        end_col_offset=10,
-                        source_code=source_1.id,
-                    ),
-                    arguments=[
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            positional_order=0,
-                            value_node_id=LiteralNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                source_location=SourceLocation(
-                                    lineno=1,
-                                    col_offset=6,
-                                    end_lineno=1,
-                                    end_col_offset=7,
-                                    source_code=source_1.id,
-                                ),
-                                value=1,
-                            ).id,
-                        ).id,
-                        ArgumentNode(
-                            id=get_new_id(),
-                            session_id=session.id,
-                            positional_order=1,
-                            value_node_id=LiteralNode(
-                                id=get_new_id(),
-                                session_id=session.id,
-                                source_location=SourceLocation(
-                                    lineno=1,
-                                    col_offset=8,
-                                    end_lineno=1,
-                                    end_col_offset=9,
-                                    source_code=source_1.id,
-                                ),
-                                value=2,
-                            ).id,
-                        ).id,
-                    ],
-                    function_id=LookupNode(
-                        id=get_new_id(),
-                        session_id=session.id,
-                        name="__build_list__",
-                    ).id,
-                ).id,
-                assigned_variable_name="bs",
-            ).id,
-        ).id,
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            keyword="len",
-            value_node_id=LookupNode(
-                id=get_new_id(),
-                session_id=session.id,
-                name="len",
-            ).id,
-        ).id,
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            keyword="print",
-            value_node_id=LookupNode(
-                id=get_new_id(),
-                session_id=session.id,
-                name="print",
-            ).id,
-        ).id,
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=0,
-            value_node_id=LiteralNode(
-                id=get_new_id(),
-                session_id=session.id,
-                value="""if len(bs) > 4:
+    function_id=LookupNode(
+        name="__exec__",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="""if len(bs) > 4:
     print("True")
 else:
     bs.append(3)
     print("False")""",
-            ).id,
         ).id,
-        ArgumentNode(
-            id=get_new_id(),
-            session_id=session.id,
-            positional_order=1,
-            value_node_id=LiteralNode(
-                id=get_new_id(),
-                session_id=session.id,
-                value=0,
-            ).id,
+        LiteralNode(
+            value=0,
         ).id,
     ],
-    function_id=LookupNode(
-        id=get_new_id(),
-        session_id=session.id,
-        name="__exec__",
-    ).id,
+    keyword_args={
+        "bs": CallNode(
+            source_location=SourceLocation(
+                lineno=1,
+                col_offset=5,
+                end_lineno=1,
+                end_col_offset=10,
+                source_code=source_1.id,
+            ),
+            function_id=LookupNode(
+                name="__build_list__",
+            ).id,
+            positional_args=[
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=1,
+                        col_offset=6,
+                        end_lineno=1,
+                        end_col_offset=7,
+                        source_code=source_1.id,
+                    ),
+                    value=1,
+                ).id,
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=1,
+                        col_offset=8,
+                        end_lineno=1,
+                        end_col_offset=9,
+                        source_code=source_1.id,
+                    ),
+                    value=2,
+                ).id,
+            ],
+            keyword_args={},
+        ).id,
+        "len": LookupNode(
+            name="len",
+        ).id,
+        "print": LookupNode(
+            name="print",
+        ).id,
+    },
 )

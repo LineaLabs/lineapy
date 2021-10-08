@@ -1,19 +1,21 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
+
 import collections
-from xml.dom import SyntaxErr
-from lineapy.transformer.transformer_util import SYNTAX_KEY
-from typing import TYPE_CHECKING, Iterable
-from pydantic import BaseModel
-import collections
+import datetime
 import enum
 import re
-from pydantic.fields import SHAPE_LIST
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Iterable, cast
 
+from pydantic import BaseModel
+from pydantic.fields import SHAPE_DICT, SHAPE_LIST
+
+from lineapy.transformer.transformer_util import SYNTAX_KEY
 
 if TYPE_CHECKING:
     from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID, NodeType, SourceCode, SourceLocation
+
+from lineapy.data.types import LineaID, NodeType, SourceCode
 from lineapy.utils import prettify
 
 
@@ -29,12 +31,14 @@ class GraphPrinter:
 
     # Whether to include the source locations from the graph
     include_source_location: bool = field(default=True)
-    # Whether to include the ID fields for nodes in generation
-    include_id_field: bool = field(default=False)
+    # Whether to print the ID fields for nodes
+    include_id_field: bool = field(default=True)
     # Whether to include the session
     include_session: bool = field(default=True)
     # Whether to include the imports needed to run the file
     include_imports: bool = field(default=False)
+    # Whether to include timing information
+    include_timing: bool = field(default=True)
 
     # Set to True to nest node strings, when they only have one successor.
     nest_nodes: bool = field(default=True)
@@ -133,25 +137,30 @@ class GraphPrinter:
                 continue
             if k in SYNTAX_KEY and not self.include_source_location:
                 continue
-            elif k == "id":
-                if not self.include_id_field:
-                    continue
-                v_str = "get_new_id()"
-            elif k == "session_id":
-                if not self.include_session:
-                    continue
-                v_str = "session.id"
-            elif tp == LineaID and shape == SHAPE_LIST and v is not None:
+            if k == "id" and not self.include_id_field:
+                continue
+            if k == "session_id" and not self.include_session:
+                continue
+            if tp == LineaID and shape == SHAPE_LIST:
                 args = [self.lookup_id(id_) for id_ in v]
                 # Arguments are unordered and we need to sort them to
                 #   make sure that the diffing do not create false negatives
-                if k == "arguments":
-                    args.sort()
                 v_str = "[" + ", ".join(args) + "]"
+            elif tp == LineaID and shape == SHAPE_DICT:
+                # Sort kwargs on printing for consistant ordering
+                args = [
+                    f"{repr(k)}: {self.lookup_id(id_)}"
+                    for k, id_ in sorted(
+                        cast(dict[str, LineaID], v).items(), key=lambda x: x[0]
+                    )
+                ]
+                v_str = "{" + ", ".join(args) + "}"
             # Singleton NewTypes get cast to str by pydantic, so we can't differentiate at the field
             # level between them and strings, so we just see if can look up the ID
             elif isinstance(v, str) and v in self.id_to_attribute_name:  # type: ignore
                 v_str = self.lookup_id(v)  # type: ignore
+            elif isinstance(v, datetime.datetime) and not self.include_timing:
+                continue
             else:
                 v_str = "\n".join(self.pretty_print_value(v))
             yield f"{k}={v_str},"

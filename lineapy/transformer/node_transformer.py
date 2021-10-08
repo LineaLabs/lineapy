@@ -1,6 +1,43 @@
 import ast
-from lineapy.transformer.analyze_scope import analyze_code_scope
+import logging
+from typing import Any, Optional, Union, cast
+
 import lineapy
+from lineapy import linea_publish
+from lineapy.constants import (
+    ADD,
+    BITAND,
+    BITOR,
+    BITXOR,
+    DEL_ATTR,
+    DEL_ITEM,
+    DIV,
+    EQ,
+    FLOORDIV,
+    GET_ITEM,
+    GETATTR,
+    GT,
+    GTE,
+    IN,
+    INVERT,
+    IS,
+    ISNOT,
+    LSHIFT,
+    LT,
+    LTE,
+    MATMUL,
+    MOD,
+    MULT,
+    NEG,
+    NOT,
+    NOTEQ,
+    POS,
+    POW,
+    RSHIFT,
+    SET_ATTR,
+    SET_ITEM,
+    SUB,
+)
 from lineapy.data.types import (
     CallNode,
     Node,
@@ -8,63 +45,18 @@ from lineapy.data.types import (
     SourceCodeLocation,
     SourceLocation,
 )
-from typing import Optional, Union, cast, Any
-
-
-from lineapy import linea_publish
-from lineapy.constants import (
-    DEL_ATTR,
-    DEL_ITEM,
-    ADD,
-    SET_ATTR,
-    SUB,
-    MULT,
-    DIV,
-    FLOORDIV,
-    MOD,
-    POW,
-    LSHIFT,
-    RSHIFT,
-    BITOR,
-    BITXOR,
-    BITAND,
-    MATMUL,
-    EQ,
-    NOTEQ,
-    LT,
-    LTE,
-    GT,
-    GTE,
-    IS,
-    NOT,
-    ISNOT,
-    IN,
-    GET_ITEM,
-    SET_ITEM,
-    GETATTR,
-    POS,
-    NEG,
-    INVERT,
-)
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.lineabuiltins import (
-    __build_list__,
     __assert__,
-    __build_tuple__,
     __build_dict__,
     __build_dict_kwargs_sentinel__,
+    __build_list__,
 )
-from lineapy.transformer.transformer_util import (
-    create_lib_attributes,
-    extract_concrete_syntax_from_node,
-)
-from lineapy.utils import (
-    InternalLogicError,
-    UserError,
-    InvalidStateError,
-    get_new_id,
-    info_log,
-)
+from lineapy.transformer.analyze_scope import analyze_code_scope
+from lineapy.transformer.transformer_util import create_lib_attributes
+from lineapy.utils import get_new_id
+
+logger = logging.getLogger(__name__)
 
 
 class NodeTransformer(ast.NodeTransformer):
@@ -87,7 +79,7 @@ class NodeTransformer(ast.NodeTransformer):
         self.last_statement_result: Optional[Node] = None
 
     def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
-        return ast.get_source_segment(self.source_code.code, node)
+        return ast.get_source_segment(self.source_code.code, node, padded=True)
 
     def visit(self, node: ast.AST) -> Any:
         """
@@ -96,13 +88,10 @@ class NodeTransformer(ast.NodeTransformer):
         """
         try:
             return super().visit(node)
-        except Exception as e:
+        except Exception:
             code_context = self._get_code_from_node(node)
-            if code_context:
-                info_log(
-                    f"Error while transforming code: \n\n{code_context}\n"
-                )
-            raise e
+            logger.exception("Error while transforming code: %s", code_context)
+            raise
 
     def generic_visit(self, node: ast.AST) -> ast.AST:
         raise NotImplementedError(
@@ -168,24 +157,24 @@ class NodeTransformer(ast.NodeTransformer):
         ):
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:
-                raise UserError(
+                raise TypeError(
                     "Linea publish requires at least the variable that you wish"
                     " to publish"
                 )
             if len(node.args) > 2:
-                raise UserError(
+                raise TypeError(
                     "Linea publish can take at most the variable name and the"
                     " description"
                 )
             if not isinstance(node.args[0], ast.Name):
-                raise UserError(
+                raise TypeError(
                     "Please pass a variable as the first argument to"
                     f" `{linea_publish.__name__}`"
                 )
             var_node = cast(ast.Name, node.args[0])
             if len(node.args) == 2:
                 if not isinstance(node.args[1], ast.Constant):
-                    raise UserError(
+                    raise TypeError(
                         "Please pass a string for the description as the"
                         " second argument to"
                         f" `{linea_publish.__name__}`, you gave"
@@ -212,7 +201,6 @@ class NodeTransformer(ast.NodeTransformer):
     def visit_Delete(self, node: ast.Delete) -> None:
         target = node.targets[0]
 
-        syntax_dictionary = extract_concrete_syntax_from_node(node)
         if isinstance(target, ast.Name):
             raise NotImplementedError(
                 "We do not support unassigning a variable"
@@ -315,7 +303,6 @@ class NodeTransformer(ast.NodeTransformer):
             self.tracer.assign(
                 variable_name,
                 value_node,
-                source_location,
             )
         else:
             raise NotImplementedError(
@@ -468,7 +455,7 @@ class NodeTransformer(ast.NodeTransformer):
                 "Subscript with ctx=ast.Del() not supported."
             )
         else:
-            raise InvalidStateError(
+            raise ValueError(
                 "Subscript with ctx=ast.Load() should have been handled by"
                 " visit_Assign."
             )
@@ -498,7 +485,7 @@ class NodeTransformer(ast.NodeTransformer):
                 v: self.tracer.lookup_node(v) for v in scope.loaded
             }
             if code is None:
-                raise InternalLogicError("Code block should not be empty")
+                raise ValueError("Code block should not be empty")
 
             return self.tracer.exec(
                 code=code,
@@ -507,7 +494,7 @@ class NodeTransformer(ast.NodeTransformer):
                 input_values=input_values,
                 output_variables=list(scope.stored),
             )
-        raise InternalLogicError(f"Cannod find code for node {node}")
+        raise ValueError(f"Cannod find code for node {node}")
 
     def visit_ListComp(self, node: ast.ListComp) -> Node:
         return self._visit_black_box(node)  # type: ignore
