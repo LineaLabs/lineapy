@@ -5,7 +5,7 @@ import networkx as nx
 
 from lineapy.data.types import LineaID, Node, SessionContext
 from lineapy.graph_reader.graph_printer import GraphPrinter
-from lineapy.utils import listify
+from lineapy.utils import listify, prettify
 
 
 class Graph(object):
@@ -142,10 +142,10 @@ class Graph(object):
         return Graph(nodes, self.session_context)
 
     def __str__(self):
-        return self.print()
+        return prettify(self.print())
 
     def __repr__(self):
-        return self.print()
+        return prettify(self.print())
 
 
 T = TypeVar("T")

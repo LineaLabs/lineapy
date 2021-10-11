@@ -53,7 +53,7 @@ class GraphPrinter:
     source_code_count: int = field(default=0)
 
     def print(self) -> str:
-        return prettify("\n".join(self.lines()))
+        return "\n".join(self.lines())
 
     def get_node_type_count(self, node_type: NodeType) -> int:
         prev = self.node_type_to_count[node_type]
