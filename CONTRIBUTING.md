@@ -24,7 +24,7 @@ pip install -e .[dev] --user
 ```bash
 mypy -p lineapy
 black --line-length 79 --check .
-pytest
+pytest tests/
 ```
 
 ### Logging
