@@ -8,7 +8,7 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
-from typing import Callable, Union, cast, overload
+from typing import Callable, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
@@ -23,6 +23,12 @@ from lineapy.data.types import (
     NodeValue,
 )
 from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.instrumentation.inspect_function import (
+    KeywordArg,
+    PositionalArg,
+    ResultType,
+    inspect_function,
+)
 from lineapy.utils import get_new_id, get_value_type
 
 logger = logging.getLogger(__name__)
@@ -68,23 +74,7 @@ class Executor:
     def get_value(self, node: Node) -> object:
         return self._id_to_value[node.id]
 
-    @overload
-    def execute_node(self, node: LiteralNode) -> LiteralExecution:
-        ...
-
-    @overload
-    def execute_node(self, node: CallNode) -> CallExecution:
-        ...
-
-    @overload
-    def execute_node(self, node: ImportNode) -> ImportExecution:
-        ...
-
-    @overload
-    def execute_node(self, node: LookupNode) -> LookupExecution:
-        ...
-
-    def execute_node(self, node: Node) -> NodeExecution:
+    def execute_node(self, node: Node) -> SideEffects:
         """
         Executes a node, records its value and execution time.
 
@@ -95,7 +85,7 @@ class Executor:
             value = lookup_value(node.name)
             self._id_to_value[node.id] = value
 
-            return LookupExecution(value=value, name=node.name)
+            return SideEffects()
         elif isinstance(node, CallNode):
             fn = cast(Callable, self._id_to_value[node.function_id])
 
@@ -123,16 +113,41 @@ class Executor:
                 )
             )
             self._id_to_value[node.id] = res
-            return CallExecution(fn=fn, args=args, kwargs=kwargs, res=res)
+            inspect_function_res = inspect_function(fn, args, kwargs, res)
+
+            def from_inspect_pointer(
+                pointer: Union[PositionalArg, KeywordArg, ResultType],
+                node=node,
+            ) -> LineaID:
+                if isinstance(pointer, PositionalArg):
+                    return node.positional_args[pointer.index].id
+                elif isinstance(pointer, KeywordArg):
+                    return node.keyword_args[pointer.name].id
+                elif isinstance(pointer, ResultType):
+                    return node.id
+
+            return SideEffects(
+                mutated={
+                    from_inspect_pointer(m)
+                    for m in inspect_function_res.mutated
+                },
+                views={
+                    (
+                        from_inspect_pointer(v.source),
+                        from_inspect_pointer(v.viewer),
+                    )
+                    for v in inspect_function_res.views
+                },
+            )
 
         elif isinstance(node, ImportNode):
             with redirect_stdout(self._stdout):
                 value = importlib.import_module(node.library.name)
             self._id_to_value[node.id] = value
-            return ImportExecution(value=value, name=node.library.name)
+            return SideEffects()
         elif isinstance(node, LiteralNode):
             self._id_to_value[node.id] = node.value
-            return LiteralExecution(value=node.value)
+            return SideEffects()
 
     def execute_graph(self, graph: Graph) -> None:
         logger.info("Executing graph %s", graph)
@@ -145,34 +160,18 @@ class Executor:
         self.db.session.commit()
 
 
-@dataclass
-class LookupExecution:
-    name: str
-    value: object
+@dataclass(frozen=True)
+class SideEffects:
+    """
+    The side effects from executing a node,
+    """
 
-
-@dataclass
-class CallExecution:
-    fn: Callable
-    args: list[object]
-    kwargs: dict[str, object]
-    res: object
-
-
-@dataclass
-class ImportExecution:
-    name: str
-    value: object
-
-
-@dataclass
-class LiteralExecution:
-    value: object
-
-
-NodeExecution = Union[
-    LookupExecution, CallExecution, ImportExecution, LiteralExecution
-]
+    # Set of linea IDs which were mutated by executing this node.
+    mutated: set[LineaID] = field(default_factory=set)
+    # Set of mappings from the ID of a source node to the ID of a new node
+    # which is now a view of that node
+    # This means that now whenever the source is mutated, the viewer is also mutated.
+    views: set[tuple[LineaID, LineaID]] = field(default_factory=set)
 
 
 def lookup_value(name: str) -> object:

@@ -2,7 +2,7 @@ import logging
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from os import getcwd
-from typing import Dict, Optional, cast, overload
+from typing import Dict, Optional, cast
 
 from lineapy.constants import GET_ITEM, GETATTR
 from lineapy.data.graph import Graph
@@ -20,16 +20,8 @@ from lineapy.data.types import (
     SourceLocation,
 )
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.execution.executor import (
-    CallExecution,
-    Executor,
-    ImportExecution,
-    LiteralExecution,
-    LookupExecution,
-    NodeExecution,
-)
+from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.instrumentation.inspect_function import inspect_function
 from lineapy.lineabuiltins import __build_tuple__, __exec__
 from lineapy.utils import get_new_id
 
@@ -103,28 +95,14 @@ class Tracer:
         artifact = self.db.get_artifact_by_name(artifact_name)
         return get_program_slice(self.graph, [LineaID(cast(str, artifact.id))])
 
-    @overload
-    def process_node(self, node: LiteralNode) -> LiteralExecution:
-        ...
-
-    @overload
-    def process_node(self, node: CallNode) -> CallExecution:
-        ...
-
-    @overload
-    def process_node(self, node: ImportNode) -> ImportExecution:
-        ...
-
-    @overload
-    def process_node(self, node: LookupNode) -> LookupExecution:
-        ...
-
-    def process_node(self, node: Node) -> NodeExecution:
+    def process_node(self, node: Node) -> None:
         """
         Execute a node, and adds it to the database.
         """
         self.db.write_node(node)
-        return self.executor.execute_node(node)
+        # TODO: Process spec and add mutations
+
+        self.executor.execute_node(node)
 
     def lookup_node(self, variable_name: str) -> Node:
         """
@@ -252,12 +230,7 @@ class Tracer:
             keyword_args={k: n.id for k, n, in keyword_arguments.items()},
             source_location=source_location,
         )
-        res = self.process_node(node)
-
-        _resulting_spec = inspect_function(
-            res.fn, res.args, res.kwargs, res.res
-        )
-        # TODO: Process spec and add mutations
+        self.process_node(node)
         return node
 
     def assign(
