@@ -1,5 +1,4 @@
 import sys
-from time import time
 from typing import Any, Callable, Optional, TypeVar, cast
 from uuid import uuid4
 

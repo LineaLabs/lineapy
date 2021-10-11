@@ -1,13 +1,6 @@
 import os.path as path
 from ast import AST, dump
 from os import remove
-from re import sub
-from tempfile import NamedTemporaryFile
-
-from lineapy.constants import ExecutionMode
-from lineapy.data.types import SessionType
-from lineapy.db.base import get_default_config_by_environment
-from lineapy.db.relational.db import RelationalLineaDB
 
 
 def reset_test_db(sqlite_uri: str):
