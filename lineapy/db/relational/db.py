@@ -9,7 +9,6 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
 from lineapy.constants import SQLALCHEMY_ECHO, ExecutionMode
-from lineapy.data.graph import Graph
 from lineapy.data.types import (
     Artifact,
     CallNode,
@@ -45,7 +44,6 @@ from lineapy.db.relational.schema.relational import (
     SessionContextORM,
     SourceCodeORM,
 )
-from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.utils import get_literal_value_from_string
 
 logger = logging.getLogger(__name__)

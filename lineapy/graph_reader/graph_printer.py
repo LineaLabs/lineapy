@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from lineapy.data.graph import Graph
 
 from lineapy.data.types import LineaID, NodeType, SourceCode
-from lineapy.utils import prettify
 
 
 @dataclass
