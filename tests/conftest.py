@@ -135,8 +135,8 @@ class ExecuteFixture:
         tracer = Tracer(db, SessionType.SCRIPT)
         transform(code, source_code_path, tracer)
 
-        nodes = db.get_all_nodes()
         context = tracer.session_context
+        nodes = db.get_nodes_for_session(context.id)
         graph = Graph(nodes, context)
         # Verify snapshot of graph
         if compare_snapshot:

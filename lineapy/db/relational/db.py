@@ -88,7 +88,6 @@ class RelationalLineaDB:
 
     @staticmethod
     def get_type_of_literal_value(val: Any) -> LiteralType:
-
         if isinstance(val, str):
             return LiteralType.String
         elif isinstance(val, bool):
@@ -234,27 +233,6 @@ class RelationalLineaDB:
     Readers
     """
 
-    def get_context(self, linea_id: str) -> SessionContext:
-        query_obj = (
-            self.session.query(SessionContextORM)
-            .filter(SessionContextORM.id == linea_id)
-            .one()
-        )
-        obj = SessionContext.from_orm(query_obj)
-        return obj
-
-    def get_node_by_id(self, linea_id: LineaID) -> Node:
-        """
-        Returns the node by looking up the database by ID
-        SQLAlchemy is able to translate between the two types on demand
-        """
-        node = (
-            self.session.query(BaseNodeORM)
-            .filter(BaseNodeORM.id == linea_id)
-            .one()
-        )
-        return self.map_orm_to_pydantic(node)
-
     def map_orm_to_pydantic(self, node: NodeORM) -> Node:
         args: dict[str, Any] = {
             "id": node.id,
@@ -333,13 +311,6 @@ class RelationalLineaDB:
         )
         return value_orm
 
-    def get_artifact(self, artifact_id: LineaID) -> Optional[Artifact]:
-        return Artifact.from_orm(
-            self.session.query(ArtifactORM)
-            .filter(ArtifactORM.id == artifact_id)
-            .first()
-        )
-
     def get_artifact_by_name(self, artifact_name: str) -> ArtifactORM:
         """
         Gets a code slice for an artifact by name, assuming there is only
@@ -350,10 +321,6 @@ class RelationalLineaDB:
             .filter(ArtifactORM.name == artifact_name)
             .one()
         )
-
-    def get_all_artifacts(self) -> List[Artifact]:
-        results = self.session.query(ArtifactORM).all()
-        return [Artifact.from_orm(r) for r in results]
 
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         """
@@ -366,79 +333,3 @@ class RelationalLineaDB:
             .all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
-
-    # def get_session_graph_from_artifact_id(
-    #     self, artifact_id: LineaID
-    # ) -> Graph:
-    #     """ """
-    def get_all_nodes(self) -> List[Node]:
-        node_orms = self.session.query(BaseNodeORM).all()
-        return [self.map_orm_to_pydantic(node) for node in node_orms]
-
-    def get_session_graph_from_artifact_id(
-        self, artifact_id: LineaID
-    ) -> Graph:
-        """
-        - This is program slicing over database data.
-        - There are lots of complexities when it comes to mutation
-          - Examples:
-            - Third party libraries have functions that mutate some global or
-              variable state.
-          - Strategy for now
-            - definitely take care of the simple cases, like `VariableNode`
-            - simple heuristics that may create false positives
-              (include things not necessary)
-            - but definitely NOT false negatives (then the program
-              CANNOT be executed)
-        """
-        node = self.get_node_by_id(artifact_id)
-        nodes = self.get_nodes_for_session(node.session_id)
-        return Graph(nodes, self.get_context(node.session_id))
-
-    def get_code_from_artifact_id(self, artifact_id: LineaID) -> str:
-        """
-        Get all the code associated with an artifact by retrieving the Graph
-        associated with the artifact from the database and piecing together the
-        code from the nodes. Note: The code is the program slice for the
-        artifact, not all code associated with the session in which the
-        artifact was generated.
-
-        :param artifact_id: UUID for the artifact
-        :return: string containing the code for generating the artifact.
-        """
-        graph = self.get_session_graph_from_artifact_id(artifact_id)
-        return get_program_slice(graph, [artifact_id])
-
-    def get_code_from_artifact_name(self, artifact_name: str) -> str:
-        """
-        Get all the code associated with an artifact by retrieving the Graph
-        associated with the artifact from the database and piecing together the
-        code from the nodes. Note: The code is the program slice for the
-        artifact, not all code associated with the session in which the
-        artifact was generated.
-
-        :param artifact_name: Name of the artifact
-        :return: string containing the code for generating the artifact.
-        """
-        artifacts = self.find_artifact_by_name(artifact_name)
-        assert (
-            len(artifacts) == 1
-        ), "Should only be one artifact with this name"
-        return self.get_code_from_artifact_id(artifacts[0].id)
-
-    def find_artifact_by_name(self, artifact_name: str) -> List[Artifact]:
-        """
-        Find artifacts from the database with `artifact_name` as specified by
-        the user via `linea_publish`. Note: multiple artifacts can have the
-        same name, hence the result can be a list instead of a single artifact.
-
-        :param artifact_name: string containing the name of the artifact
-        given by the user via `linea_publish`
-        :return: a list of Artifact objects with artifact_name as its name.
-        """
-        query_result = (
-            self.session.query(ArtifactORM)
-            .filter(ArtifactORM.name == artifact_name)
-            .all()
-        )
-        return [Artifact.from_orm(query_row) for query_row in query_result]

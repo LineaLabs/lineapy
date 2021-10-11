@@ -72,8 +72,8 @@ def linea_cli(
     transform(code, file_name, tracer)
 
     db = tracer.db
-    nodes = db.get_all_nodes()
     context = tracer.session_context
+    nodes = db.get_nodes_for_session(context.id)
     graph = Graph(nodes, context)
 
     if slice:
