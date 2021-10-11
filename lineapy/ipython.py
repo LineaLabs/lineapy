@@ -58,6 +58,7 @@ def stop() -> Tracer:
         for it in input_transformers_post
         if isinstance(it, LineaInputTransformer)
     ]
+    input_transformer.tracer.db.close()
     input_transformers_post.remove(input_transformer)
     return input_transformer.tracer
 

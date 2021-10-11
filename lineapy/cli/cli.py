@@ -86,6 +86,7 @@ def linea_cli(
             )
         )
 
+    db.close()
     if print_graph:
         graph_code = graph.print(
             include_source_location=False,
