@@ -33,7 +33,7 @@ else:
     print("False")""",
         ).id,
         LiteralNode(
-            value=0,
+            value=False,
         ).id,
     ],
     keyword_args={

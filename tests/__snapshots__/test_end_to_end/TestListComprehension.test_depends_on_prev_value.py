@@ -30,7 +30,7 @@ call_3 = CallNode(
                     value="[i + 1 for i in y]",
                 ).id,
                 LiteralNode(
-                    value=1,
+                    value=True,
                 ).id,
             ],
             keyword_args={

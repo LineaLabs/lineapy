@@ -7,11 +7,14 @@ import rich
 import rich.syntax
 import rich.tree
 
+from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID, SessionType
+from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
-from lineapy.transformer.transformer import ExecutionMode, Transformer
+from lineapy.transformer.node_transformer import transform
 
 """
 We are using click because our package will likely already have a dependency on
@@ -45,20 +48,19 @@ logger = logging.getLogger(__name__)
     help="Print out logging for graph creation and execution",
     is_flag=True,
 )
-@click.argument("file_name")
-def linea_cli(mode, file_name, slice, print_source, print_graph, verbose):
+@click.argument(
+    "file_name",
+    type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
+)
+def linea_cli(
+    file_name: pathlib.Path, mode, slice, print_source, print_graph, verbose
+):
     configure_logging("INFO" if verbose else "WARNING")
     tree = rich.tree.Tree(f"📄 {file_name}")
 
     execution_mode = ExecutionMode.__getitem__(str.upper(mode))
-
-    transformer = Transformer()
-
-    try:
-        code = pathlib.Path(file_name).read_text()
-    except IOError:
-        logger.exception("Error: File does not appear to exist.")
-        return
+    db = RelationalLineaDB.from_environment(execution_mode)
+    code = file_name.read_text()
 
     if print_source:
         tree.add(
@@ -66,15 +68,10 @@ def linea_cli(mode, file_name, slice, print_source, print_graph, verbose):
                 "Source code", rich.syntax.Syntax(code, "python")
             )
         )
+    tracer = Tracer(db, SessionType.SCRIPT)
+    transform(code, file_name, tracer)
 
-    tracer = transformer.transform(
-        code,
-        session_type=SessionType.SCRIPT,
-        path=file_name,
-        execution_mode=ExecutionMode.MEMORY,
-    )
-
-    db = tracer.records_manager.db
+    db = tracer.db
     nodes = db.get_all_nodes()
     context = tracer.session_context
     graph = Graph(nodes, context)

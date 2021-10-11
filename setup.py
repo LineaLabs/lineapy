@@ -56,7 +56,7 @@ setup(
     install_requires=[
         "Pillow",
         "astor",
-        "click",
+        "click>=8.0.0",
         "pydantic",
         "SQLAlchemy",
         "networkx",

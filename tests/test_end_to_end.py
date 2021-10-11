@@ -1,3 +1,4 @@
+import datetime
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -5,10 +6,9 @@ from click.testing import CliRunner
 
 import lineapy
 from lineapy.cli.cli import linea_cli
+from lineapy.constants import ExecutionMode
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.transformer.transformer import ExecutionMode
-from lineapy.utils import get_current_time
 from tests.util import CSV_CODE, IMAGE_CODE, reset_test_db
 
 publish_name = "testing artifact publish"
@@ -271,8 +271,8 @@ class TestEndToEnd:
         artifact = res.db.get_artifact_by_name(publish_name)
 
         assert artifact.name == publish_name
-        time_diff = get_current_time() - artifact.date_created
-        assert time_diff < 1000
+        time_diff = (datetime.datetime.now() - artifact.date_created).total_seconds()
+        assert time_diff < 1
 
     def test_publish_via_cli(self):
         """

@@ -14,10 +14,11 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType
+from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
-from lineapy.transformer.transformer import Transformer
+from lineapy.transformer.node_transformer import transform
 from lineapy.utils import prettify
 from tests.util import get_project_directory
 
@@ -130,18 +131,9 @@ class ExecuteFixture:
         source_code_path.write_text(code)
 
         # Verify snapshot of source of user transformed code
-
-        session_name = str(source_code_path)
-
-        transformer = Transformer()
-        tracer = transformer.transform(
-            code,
-            session_type=SessionType.SCRIPT,
-            path=session_name,
-            execution_mode=ExecutionMode.MEMORY,
-        )
-
-        db = tracer.records_manager.db
+        db = RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
+        tracer = Tracer(db, SessionType.SCRIPT)
+        transform(code, source_code_path, tracer)
 
         nodes = db.get_all_nodes()
         context = tracer.session_context
@@ -164,7 +156,7 @@ class ExecuteFixture:
             # Prettify again in case replacements cause line wraps
             assert prettify(graph_str) == self.snapshot
         # Verify that execution works again, loading from the DB, in a new dir
-        new_executor = Executor()
+        new_executor = Executor(db)
         os.chdir(self.tmp_path)
         new_executor.execute_graph(tracer.graph)
         return tracer

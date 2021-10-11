@@ -8,11 +8,12 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
-from lineapy.constants import SQLALCHEMY_ECHO
+from lineapy.constants import SQLALCHEMY_ECHO, ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     Artifact,
     CallNode,
+    Execution,
     ImportNode,
     JupyterCell,
     Library,
@@ -26,8 +27,7 @@ from lineapy.data.types import (
     SourceCode,
     SourceLocation,
 )
-from lineapy.db.asset_manager.local import LocalDataAssetManager
-from lineapy.db.base import LineaDBConfig
+from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
 from lineapy.db.relational.schema.relational import (
     ArtifactORM,
     Base,
@@ -46,7 +46,7 @@ from lineapy.db.relational.schema.relational import (
     SourceCodeORM,
 )
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.utils import get_literal_value_from_string, is_integer
+from lineapy.utils import get_literal_value_from_string
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +61,14 @@ class RelationalLineaDB:
         don't have to go to the database if it's already
         loaded, but that's low priority.
     """
+
+    @classmethod
+    def from_environment(cls, mode: ExecutionMode) -> "RelationalLineaDB":
+        """
+        Creates a new database connection from the environment variables.
+        """
+        config = get_default_config_by_environment(mode)
+        return cls(config)
 
     def __init__(self, config: LineaDBConfig):
         # TODO: we eventually need some configurations
@@ -78,17 +86,17 @@ class RelationalLineaDB:
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
 
-        self.data_asset_manager = LocalDataAssetManager(self.session)
-
     @staticmethod
     def get_type_of_literal_value(val: Any) -> LiteralType:
 
         if isinstance(val, str):
             return LiteralType.String
-        elif is_integer(val):
-            return LiteralType.Integer
         elif isinstance(val, bool):
             return LiteralType.Boolean
+        elif isinstance(val, int):
+            return LiteralType.Integer
+        elif isinstance(val, float):
+            return LiteralType.Float
         elif val is None:
             return LiteralType.NoneType
         raise NotImplementedError(f"Literal {val} is of type {type(val)}.")
@@ -108,7 +116,23 @@ class RelationalLineaDB:
         context_orm = SessionContextORM(**args)
 
         self.session.add(context_orm)
+
+    def commit(self) -> None:
+        """
+        End the transaction and commit the changes.
+        """
         self.session.commit()
+
+    def close(self):
+        """
+        Close the database connection.
+        """
+        # Always close, even if error is raised
+        # https://docs.sqlalchemy.org/en/14/orm/session_api.html#sqlalchemy.orm.sessionmaker
+        try:
+            self.commit()
+        finally:
+            self.session.close()
 
     def write_source_code(self, source_code: SourceCode) -> None:
         """
@@ -131,20 +155,13 @@ class RelationalLineaDB:
             source_code_orm.jupyter_session_id = location.session_id
 
         self.session.add(source_code_orm)
-        self.session.commit()
 
     def add_lib_to_session_context(
         self, context_id: LineaID, library: Library
     ):
         self.write_library(library, context_id)
-        self.session.commit()
 
-    def write_nodes(self, nodes: List[Node]) -> None:
-        for n in nodes:
-            self.write_single_node(n)
-        self.write_node_values(nodes)
-
-    def write_single_node(self, node: Node) -> None:
+    def write_node(self, node: Node) -> None:
         args = node.dict(include={"id", "session_id", "node_type"})
         s = node.source_location
         if s:
@@ -183,79 +200,35 @@ class RelationalLineaDB:
                 value_type=RelationalLineaDB.get_type_of_literal_value(
                     node.value
                 ),
-                value=node.value,
+                value=str(node.value),
             )
         else:
             node_orm = LookupNodeORM(**args, name=node.name)
 
         self.session.add(node_orm)
-        self.session.commit()
 
-    def write_node_values(
+    def write_node_value(
         self,
-        nodes: List[Node],
-        version: Optional[int] = None,
+        node_value: NodeValue,
     ) -> None:
-        # Lookup version if we don't know
-        if version is None:
-            # TODO: look up
-            version = 1  # eff it...
-        for n in nodes:
-            graph_cache_veto = False
-            if isinstance(n, CallNode):
-                # look up the function_id
-                fun_node = next(x for x in nodes if x.id == n.function_id)
-                if isinstance(fun_node, LookupNode):
-                    if fun_node.name == "__exec__":
-                        graph_cache_veto = True
-            else:
-                graph_cache_veto = True
-            self.write_single_node_value(n, version, graph_cache_veto)
+        self.session.add(NodeValueORM(**node_value.dict()))
 
-    def write_single_node_value(
-        self, node: Node, version: int, graph_cache_veto: bool
-    ) -> None:
-        self.data_asset_manager.write_node_value(
-            node, version, graph_cache_veto
+    def write_artifact(self, artifact: Artifact) -> None:
+
+        artifact_orm = ArtifactORM(
+            id=artifact.id,
+            name=artifact.name,
+            date_created=artifact.date_created,
         )
+        self.session.add(artifact_orm)
 
-    def add_node_id_to_artifact_table(
-        self,
-        node_id: LineaID,
-        date_created: float,
-        name: Optional[str] = None,
-    ) -> None:
-        """
-        Given that whether something is an artifact is just a human annotation,
-        we are going to _exclude_ the information from the Graph Node types and
-        just have a table that tracks what Node IDs are deemed as artifacts.
-        """
+    def write_execution(self, execution: Execution) -> None:
 
-        artifact = ArtifactORM(
-            id=node_id,
-            name=name,
-            date_created=date_created,
+        execution_orm = ExecutionORM(
+            id=execution.id,
+            timestamp=execution.timestamp,
         )
-        self.session.add(artifact)
-
-        # Currently each execution maps to exactly one artifact,
-        # so for now we add a new execution every time we publish an artifact
-        execution = ExecutionORM(
-            artifact_id=artifact.id,
-            version=1,
-        )
-        self.session.add(execution)
-        self.session.commit()
-
-    def remove_node_id_from_artifact_table(self, node_id: LineaID) -> None:
-        """
-        The opposite of write_node_is_artifact
-        - for now we can just delete it directly
-        """
-        self.session.query(ArtifactORM).filter(
-            ArtifactORM.id == node_id
-        ).delete()
-        self.session.commit()
+        self.session.add(execution_orm)
 
     """
     Readers
@@ -346,14 +319,14 @@ class RelationalLineaDB:
         return LookupNode(name=node.name, **args)
 
     def get_node_value_from_db(
-        self, node_id: LineaID, version: int
+        self, node_id: LineaID, execution_id: LineaID
     ) -> Optional[NodeValue]:
         value_orm = (
             self.session.query(NodeValueORM)
             .filter(
                 and_(
                     NodeValueORM.node_id == node_id,
-                    NodeValueORM.version == version,
+                    NodeValueORM.execution_id == execution_id,
                 )
             )
             .first()

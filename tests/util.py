@@ -4,36 +4,10 @@ from os import remove
 from re import sub
 from tempfile import NamedTemporaryFile
 
+from lineapy.constants import ExecutionMode
 from lineapy.data.types import SessionType
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.transformer.transformer import ExecutionMode, Transformer
-
-TEST_ARTIFACT_NAME = "Graph With CSV Import"
-
-
-def strip_non_letter_num(s: str):
-    return sub("[\\s+]", "", s)
-
-
-def are_str_equal(
-    s1: str,
-    s2: str,
-    remove_all_non_letter=False,
-    find_diff=False,
-):
-    if remove_all_non_letter:
-        return strip_non_letter_num(s1) == strip_non_letter_num(s2)
-    if s1.strip() == s2.strip():
-        return True
-    if find_diff:
-        splitS1 = set(s1.split("\n"))
-        splitS2 = set(s2.split("\n"))
-
-        diff = splitS2.difference(splitS1)
-        diff = ", ".join(diff)
-        print("Difference:", diff)
-        return False
 
 
 def reset_test_db(sqlite_uri: str):
@@ -86,34 +60,6 @@ img = img.resize([200, 200])
 
 lineapy.linea_publish(img, "Graph With Image")
 """
-
-
-def setup_db(mode: ExecutionMode, reset: bool) -> RelationalLineaDB:
-    db_config = get_default_config_by_environment(mode)
-    if reset:
-        reset_test_db(db_config.database_uri)
-
-    run_code(CSV_CODE, mode)
-    run_code(IMAGE_CODE, mode)
-
-    db = RelationalLineaDB(db_config)
-    return db
-
-
-def run_code(code: str, mode: ExecutionMode):
-    """
-    Saves code in a temporary file and executes it
-    """
-    with NamedTemporaryFile() as tmp:
-        tmp.write(str.encode(code))
-        tmp.flush()
-        transformer = Transformer()
-        transformer.transform(
-            code,
-            session_type=SessionType.SCRIPT,
-            session_name=tmp.name,
-            execution_mode=mode,
-        )
 
 
 def get_project_directory():

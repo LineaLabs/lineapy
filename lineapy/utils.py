@@ -18,34 +18,25 @@ def get_new_id() -> LineaID:
     return LineaID(str(uuid4()))
 
 
-def get_current_time():
-    return time()
-
-
 """
 Type checking utils
 """
 
 
-def is_integer(val):
-    try:
-        int(val)
-    except Exception:
-        return False
-    return True
-
-
 def get_literal_value_from_string(
-    val: str, literal_type: Optional[LiteralType]
-) -> Any:
-    if literal_type is LiteralType.Integer:
-        try:
-            return int(val)
-        except ValueError:
-            return float(val)
-    elif literal_type is LiteralType.Boolean:
+    val: str, literal_type: LiteralType
+) -> object:
+    if literal_type == LiteralType.Integer:
+        return int(val)
+    if literal_type == LiteralType.Float:
+        return float(val)
+    if literal_type == LiteralType.Boolean:
         return val == "True"
-    return val
+    if literal_type == LiteralType.NoneType:
+        return None
+    if literal_type == LiteralType.String:
+        return val
+    raise NotImplementedError(f"Unsupported literal type: {literal_type}")
 
 
 def get_value_type(val: Any) -> Optional[ValueType]:
@@ -59,24 +50,8 @@ def get_value_type(val: Any) -> Optional[ValueType]:
     TODO
     - We currently just silently ignore cases we cant handle
     """
-    if is_integer(val):
-        return ValueType.value
-    if isinstance(val, str):
-        return ValueType.value
-    if isinstance(val, list):
+    if isinstance(val, (list, str, int)):
         return ValueType.array
-    if "matplotlib" in sys.modules:
-        from matplotlib.figure import Figure
-
-        if isinstance(val, Figure):
-            raise NotImplementedError(
-                "We have yet to support dealing with matplotlib figs."
-            )
-    if "numpy" in sys.modules:
-        import numpy
-
-        if isinstance(val, numpy.ndarray):
-            raise NotImplementedError("We have yet to support numpy arrays.")
     if "pandas" in sys.modules:
         import pandas  # this import should be a no-op
 

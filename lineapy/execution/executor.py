@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import builtins
 import importlib.util
 import io
@@ -6,18 +8,22 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
-from typing import Callable, cast
+from typing import Callable, Union, cast, overload
 
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
+    Execution,
     ImportNode,
     LineaID,
+    LiteralNode,
     LookupNode,
     Node,
-    NodeType,
+    NodeValue,
 )
+from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.utils import get_new_id, get_value_type
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +35,20 @@ class Executor:
     node as it is created, or in a batch, after the fact.
     """
 
+    # The database to use for saving the execution
+    db: RelationalLineaDB
+    # The execution to record the values in
+    execution: Execution = field(init=False)
+
     _id_to_value: dict[LineaID, object] = field(default_factory=dict)
     _stdout: io.StringIO = field(default_factory=io.StringIO)
+
+    def __post_init__(self):
+        self.execution = Execution(
+            id=get_new_id(),
+            timestamp=datetime.now(),
+        )
+        self.db.write_execution(self.execution)
 
     def get_stdout(self) -> str:
         """
@@ -47,13 +65,37 @@ class Executor:
         val = self._stdout.getvalue()
         return val
 
-    def execute_node(self, node: Node) -> None:
+    def get_value(self, node: Node) -> object:
+        return self._id_to_value[node.id]
+
+    @overload
+    def execute_node(self, node: LiteralNode) -> LiteralExecution:
+        ...
+
+    @overload
+    def execute_node(self, node: CallNode) -> CallExecution:
+        ...
+
+    @overload
+    def execute_node(self, node: ImportNode) -> ImportExecution:
+        ...
+
+    @overload
+    def execute_node(self, node: LookupNode) -> LookupExecution:
+        ...
+
+    def execute_node(self, node: Node) -> NodeExecution:
         """
         Executes a node, records its value and execution time.
+
+        Only writes values for call nodes currently.
         """
         logger.info("Executing node %s", node)
         if isinstance(node, LookupNode):
-            node.value = lookup_value(node.name)
+            value = lookup_value(node.name)
+            self._id_to_value[node.id] = value
+
+            return LookupExecution(value=value, name=node.name)
         elif isinstance(node, CallNode):
             fn = cast(Callable, self._id_to_value[node.function_id])
 
@@ -67,30 +109,70 @@ class Executor:
             logger.info("Calling function %s %s %s", fn, args, kwargs)
 
             with redirect_stdout(self._stdout):
-                node.start_time = datetime.now()
-                node.value = fn(*args, **kwargs)
-                node.end_time = datetime.now()
+                start_time = datetime.now()
+                res = fn(*args, **kwargs)
+                end_time = datetime.now()
+            self.db.write_node_value(
+                NodeValue(
+                    node_id=node.id,
+                    value=res,
+                    execution_id=self.execution.id,
+                    start_time=start_time,
+                    end_time=end_time,
+                    value_type=get_value_type(res),
+                )
+            )
+            self._id_to_value[node.id] = res
+            return CallExecution(fn=fn, args=args, kwargs=kwargs, res=res)
 
-        elif node.node_type == NodeType.ImportNode:
-            node = cast(ImportNode, node)
+        elif isinstance(node, ImportNode):
             with redirect_stdout(self._stdout):
-                node.start_time = datetime.now()
-                node.value = importlib.import_module(node.library.name)
-                node.end_time = datetime.now()
-        self._id_to_value[node.id] = node.value
+                value = importlib.import_module(node.library.name)
+            self._id_to_value[node.id] = value
+            return ImportExecution(value=value, name=node.library.name)
+        elif isinstance(node, LiteralNode):
+            self._id_to_value[node.id] = node.value
+            return LiteralExecution(value=node.value)
 
     def execute_graph(self, graph: Graph) -> None:
         logger.info("Executing graph %s", graph)
         prev_working_dir = getcwd()
         chdir(graph.session_context.working_directory)
-
         for node in graph.visit_order():
-            # # If we have already executed this node, dont do it again
-            # # This shows up during jupyter cell exection
-            # if node.value is not None:
-            #     continue
             self.execute_node(node)
         chdir(prev_working_dir)
+        # Add executed nodes to DB
+        self.db.session.commit()
+
+
+@dataclass
+class LookupExecution:
+    name: str
+    value: object
+
+
+@dataclass
+class CallExecution:
+    fn: Callable
+    args: list[object]
+    kwargs: dict[str, object]
+    res: object
+
+
+@dataclass
+class ImportExecution:
+    name: str
+    value: object
+
+
+@dataclass
+class LiteralExecution:
+    value: object
+
+
+NodeExecution = Union[
+    LookupExecution, CallExecution, ImportExecution, LiteralExecution
+]
 
 
 def lookup_value(name: str) -> object:
