@@ -271,7 +271,9 @@ class TestEndToEnd:
         artifact = res.db.get_artifact_by_name(publish_name)
 
         assert artifact.name == publish_name
-        time_diff = (datetime.datetime.now() - artifact.date_created).total_seconds()
+        time_diff = (
+            datetime.datetime.now() - artifact.date_created
+        ).total_seconds()
         assert time_diff < 1
 
     def test_publish_via_cli(self):
