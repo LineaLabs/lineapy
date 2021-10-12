@@ -1,6 +1,5 @@
 import logging
 import pathlib
-from typing import cast
 
 import click
 import rich
@@ -8,10 +7,8 @@ import rich.syntax
 import rich.tree
 
 from lineapy.constants import ExecutionMode
-from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID, SessionType
+from lineapy.data.types import SessionType
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
@@ -71,24 +68,17 @@ def linea_cli(
     tracer = Tracer(db, SessionType.SCRIPT)
     transform(code, file_name, tracer)
 
-    db = tracer.db
-    context = tracer.session_context
-    nodes = db.get_nodes_for_session(context.id)
-    graph = Graph(nodes, context)
-
     if slice:
-        artifact = db.get_artifact_by_name(slice)
-        sliced_code = get_program_slice(graph, [cast(LineaID, artifact.id)])
         tree.add(
             rich.console.Group(
                 f"Slice of {repr(slice)}",
-                rich.syntax.Syntax(sliced_code, "python"),
+                rich.syntax.Syntax(tracer.slice(slice), "python"),
             )
         )
 
-    db.close()
+    tracer.db.close()
     if print_graph:
-        graph_code = graph.print(
+        graph_code = tracer.graph.print(
             include_source_location=False,
             include_id_field=False,
             include_session=False,
