@@ -14,7 +14,7 @@ from tests.util import CSV_CODE, IMAGE_CODE, reset_test_db
 publish_name = "testing artifact publish"
 PUBLISH_CODE = f"""import {lineapy.__name__}
 a = abs(11)
-{lineapy.__name__}.{lineapy.linea_publish.__name__}(a, '{publish_name}')
+{lineapy.__name__}.{lineapy.save.__name__}(a, '{publish_name}')
 """
 
 
@@ -65,7 +65,7 @@ b = a
 a = 2
 """
 
-MESSY_NODES = """import lineapy
+MESSY_NODES = f"""import lineapy
 a = 1
 b = a + 2
 c = 2
@@ -76,7 +76,7 @@ f = a * b * c
 e
 g = e
 
-lineapy.linea_publish(f, 'f')
+lineapy.{lineapy.save.__name__}(f, 'f')
 """
 
 
@@ -94,17 +94,17 @@ else:
     print("False")
 """
 
-FUNCTION_DEFINITION_GLOBAL_CODE = """import math
+FUNCTION_DEFINITION_GLOBAL_CODE = f"""import math
 import lineapy
 a = 0
 def my_function():
     global a
     a = math.factorial(5)
 my_function()
-lineapy.linea_publish(a, 'mutated a')
+lineapy.{lineapy.save.__name__}(a, 'mutated a')
 """
 
-LOOP_CODE = """import lineapy
+LOOP_CODE = f"""import lineapy
 a = []
 b = 0
 for x in range(9):
@@ -112,15 +112,15 @@ for x in range(9):
     b+=x
 x = sum(a)
 y = x + b
-lineapy.linea_publish(y, 'y')
+lineapy.{lineapy.save.__name__}(y, 'y')
 """
 
-SIMPLE_SLICE = """import lineapy
+SIMPLE_SLICE = f"""import lineapy
 a = 2
 b = 2
 c = min(b,5)
 b
-lineapy.linea_publish(c, 'c')
+lineapy.{lineapy.save.__name__}(c, 'c')
 """
 
 SUBSCRIPT = """

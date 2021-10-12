@@ -15,7 +15,7 @@ f = a * b * c
 e
 g = e
 
-lineapy.linea_publish(f, \'f\')
+lineapy.save(f, \'f\')
 """,
     location=PosixPath("[source file path]"),
 )

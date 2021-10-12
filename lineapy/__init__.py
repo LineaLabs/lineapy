@@ -8,7 +8,7 @@ __version__ = "0.0.1"
 from typing import Any, Optional
 
 
-def linea_publish(variable: Any, description: Optional[str] = None) -> None:
+def save(variable: Any, description: Optional[str] = None) -> None:
     """
     Publishes artifact to the linea repo
     """
@@ -26,7 +26,7 @@ def linea_publish(variable: Any, description: Optional[str] = None) -> None:
 __all__ = [
     "Graph",
     "Tracer",
-    "linea_publish",
+    "save",
     "SessionType",
     "ExecutionMode",
     "__version__",

@@ -11,6 +11,7 @@ import syrupy
 from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
+from lineapy import save
 from lineapy.constants import ExecutionMode
 from lineapy.data.types import SessionType
 from lineapy.db.relational.db import RelationalLineaDB
@@ -131,7 +132,7 @@ class ExecuteFixture:
             code = "import lineapy\n" + code + "\n"
             for artifact in artifacts:
                 code += (
-                    f"lineapy.linea_publish({artifact}, {repr(artifact)})\n"
+                    f"lineapy.{save.__name__}({artifact}, {repr(artifact)})\n"
                 )
 
         # These temp filenames are unique per test function.

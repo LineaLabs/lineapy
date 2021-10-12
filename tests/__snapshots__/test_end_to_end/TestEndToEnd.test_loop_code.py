@@ -12,7 +12,7 @@ for x in range(9):
     b+=x
 x = sum(a)
 y = x + b
-lineapy.linea_publish(y, \'y\')
+lineapy.save(y, \'y\')
 """,
     location=PosixPath("[source file path]"),
 )

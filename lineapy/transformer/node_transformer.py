@@ -3,7 +3,7 @@ import logging
 from typing import Any, Optional, Union, cast
 
 import lineapy
-from lineapy import linea_publish
+from lineapy import save
 from lineapy.constants import (
     ADD,
     BITAND,
@@ -162,17 +162,11 @@ class NodeTransformer(ast.NodeTransformer):
         """
         Returns None if visiting special publish linea publish, which cannot be chained
         """
-        # function_name, function_module = self.get_call_function_name(node)
-
-        # a little hacky, assume no one else would have a function name
-        #   called linea_publish
-
         if (
             isinstance(node.func, ast.Attribute)
             and isinstance(node.func.value, ast.Name)
-            # TODO: Rename linea publish and possibly make more robust
-            # to allow import from
-            and node.func.attr == linea_publish.__name__
+            # TODO: make more robust to allow import from
+            and node.func.attr == save.__name__
             and node.func.value.id == lineapy.__name__
         ):
             # assume that we have two string inputs, else yell at the user
@@ -189,7 +183,7 @@ class NodeTransformer(ast.NodeTransformer):
             if not isinstance(node.args[0], ast.Name):
                 raise TypeError(
                     "Please pass a variable as the first argument to"
-                    f" `{linea_publish.__name__}`"
+                    f" `{save.__name__}`"
                 )
             var_node = self.visit(node.args[0])
             if len(node.args) == 2:
@@ -197,7 +191,7 @@ class NodeTransformer(ast.NodeTransformer):
                     raise TypeError(
                         "Please pass a string for the description as the"
                         " second argument to"
-                        f" `{linea_publish.__name__}`, you gave"
+                        f" `{save.__name__}`, you gave"
                         f" {type(node.args[1])}"
                     )
                 self.tracer.publish(var_node, node.args[1].value)
