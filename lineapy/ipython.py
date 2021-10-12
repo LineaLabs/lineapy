@@ -116,6 +116,10 @@ class LineaInputTransformer:
         ends_with_semicolon = lines and lines[-1].endswith(";")
         if not ends_with_semicolon and last_node:
             self.last_value = self.tracer.executor.get_value(last_node)
+            # We are adding the following lines to the transpiled python code
+            #   it's a little hacky right now since we rely on others not
+            #   having any input_transformers (hence the `[0]`).
+            # The `last_value` is tracked by this class, `LineaInputTransformer`.
             lines = [
                 "get_ipython().input_transformers_post[0].last_value\n",
             ]

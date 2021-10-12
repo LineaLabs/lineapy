@@ -154,9 +154,10 @@ class NodeValueORM(Base):
     """
     A node value represents the value of a node during some execution.
 
-    It is uniquely identified by the node and execution.
+    It is uniquely identified by the `node_id` and `execution_id`.
 
-    value.node.sesion == value.execution.session
+    The following invariant holds:
+    `value.node.session == value.execution.session`
     """
 
     __tablename__ = "node_value"
