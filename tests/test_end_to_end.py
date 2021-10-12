@@ -487,9 +487,9 @@ class TestListComprehension:
 
     def test_depends_on_prev_value(self, execute):
         res = execute(
-            "import lineapy\ny = range(3)\nx = [i + 1 for i in"
-            " y]\nlineapy.linea_publish(x, 'x')",
+            "y = range(3)\nx = [i + 1 for i in y]",
             compare_snapshot=False,
+            artifacts=["x"],
         )
         # Verify that i isn't set in the local scope
         assert res.values["x"] == [1, 2, 3]

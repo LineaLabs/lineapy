@@ -12,7 +12,6 @@ from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy.constants import ExecutionMode
-from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
@@ -117,13 +116,24 @@ class ExecuteFixture:
         code: str,
         *,
         compare_snapshot: bool = True,
+        artifacts: typing.Iterable[str] = (),
     ) -> Tracer:
         """
         Tests trace, graph, and executes code on init.
 
         :param compare_snapshot:  If you don't want to compare the snapshots,
         just execute the code then set `compare_snapshot` to False.
+        :param artifacts:  A list of artifacts that should be published and
+        sliced based on. It assumes the artifact names are variables in the
+        code.
         """
+        if artifacts:
+            code = "import lineapy\n" + code + "\n"
+            for artifact in artifacts:
+                code += (
+                    f"lineapy.linea_publish({artifact}, {repr(artifact)})\n"
+                )
+
         # These temp filenames are unique per test function.
         # If `execute` is called twice in a test, it will overwrite the
         # previous paths
@@ -135,13 +145,10 @@ class ExecuteFixture:
         tracer = Tracer(db, SessionType.SCRIPT)
         transform(code, source_code_path, tracer)
 
-        context = tracer.session_context
-        nodes = db.get_nodes_for_session(context.id)
-        graph = Graph(nodes, context)
         # Verify snapshot of graph
         if compare_snapshot:
             graph_str = (
-                graph.print(
+                tracer.graph.print(
                     include_imports=True,
                     include_id_field=False,
                     include_session=False,
@@ -149,16 +156,18 @@ class ExecuteFixture:
                 )
                 .replace(str(source_code_path), "[source file path]")
                 .replace(
-                    context.working_directory,
+                    tracer.session_context.working_directory,
                     DUMMY_WORKING_DIR,
                 )
             )
             # Prettify again in case replacements cause line wraps
             assert prettify(graph_str) == self.snapshot
+
         # Verify that execution works again, loading from the DB, in a new dir
         new_executor = Executor(db)
         os.chdir(self.tmp_path)
         new_executor.execute_graph(tracer.graph)
+
         return tracer
 
 

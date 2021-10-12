@@ -21,7 +21,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import Text
 
-from lineapy.data.types import LiteralType, NodeType, SessionType, ValueType
+from lineapy.data.types import (
+    LineaID,
+    LiteralType,
+    NodeType,
+    SessionType,
+    ValueType,
+)
 
 """
 This file contains the ORM versions of the graph node in types.py.
@@ -125,9 +131,13 @@ class ArtifactORM(Base):
     """
 
     __tablename__ = "artifact"
-    id = Column(String, ForeignKey("node.id"), primary_key=True)
+    id: LineaID = Column(String, ForeignKey("node.id"), primary_key=True)
     name = Column(String, nullable=True)
     date_created = Column(DateTime, nullable=False)
+
+    node: BaseNodeORM = relationship(
+        "BaseNodeORM", uselist=False, lazy="joined"
+    )
 
 
 class ExecutionORM(Base):

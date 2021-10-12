@@ -1,8 +1,9 @@
 import logging
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
+from functools import cached_property
 from os import getcwd
-from typing import Dict, Optional, cast
+from typing import Dict, Optional
 
 from lineapy.constants import GET_ITEM, GETATTR
 from lineapy.data.graph import Graph
@@ -11,7 +12,6 @@ from lineapy.data.types import (
     CallNode,
     ImportNode,
     Library,
-    LineaID,
     LiteralNode,
     LookupNode,
     Node,
@@ -65,7 +65,7 @@ class Tracer:
         )
         self.db.write_context(self.session_context)
 
-    @property
+    @cached_property
     def graph(self) -> Graph:
         """
         Creates a graph by fetching all the nodes about this session from the DB.
@@ -73,7 +73,7 @@ class Tracer:
         nodes = self.db.get_nodes_for_session(self.session_context.id)
         return Graph(nodes, self.session_context)
 
-    @property
+    @cached_property
     def values(self) -> dict[str, object]:
         """
         Returns a mapping of variable names to their values, by joining
@@ -84,16 +84,26 @@ class Tracer:
             for k, n in self.variable_name_to_node.items()
         }
 
+    @cached_property
+    def artifacts(self) -> dict[str, str]:
+        """
+        Returns a mapping of artifact names to their sliced code.
+        """
+
+        return {
+            artifact.name: get_program_slice(self.graph, [artifact.id])
+            for artifact in self.db.get_artifacts_for_session(
+                self.session_context.id
+            )
+            if artifact.name is not None
+        }
+
+    def slice(self, name: str) -> str:
+        return self.artifacts[name]
+
     @property
     def stdout(self) -> str:
         return self.executor.get_stdout()
-
-    def slice(self, artifact_name: str) -> str:
-        """
-        Gets the code for a slice of the graph from an artifact
-        """
-        artifact = self.db.get_artifact_by_name(artifact_name)
-        return get_program_slice(self.graph, [LineaID(cast(str, artifact.id))])
 
     def process_node(self, node: Node) -> None:
         """
