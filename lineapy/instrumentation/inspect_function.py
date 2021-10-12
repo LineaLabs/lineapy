@@ -1,5 +1,5 @@
-from typing import Callable, Union
 from dataclasses import dataclass, field
+from typing import Callable, Union
 
 
 @dataclass(frozen=True)

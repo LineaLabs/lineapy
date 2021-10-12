@@ -1,14 +1,10 @@
 import os.path as path
 from ast import AST, dump
-from datetime import datetime
-from os import getcwd, remove
+from os import remove
 from re import sub
 from tempfile import NamedTemporaryFile
-from typing import List, Optional
 
-from pydantic import BaseModel
-
-from lineapy.data.types import SessionContext, SessionType
+from lineapy.data.types import SessionType
 from lineapy.db.base import get_default_config_by_environment
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.transformer.transformer import ExecutionMode, Transformer
@@ -46,7 +42,7 @@ def reset_test_db(sqlite_uri: str):
         r = sqlite_uri.split("///")
         remove(r[1])
         return True
-    except:
+    except Exception:
         return False
 
 

@@ -1,5 +1,6 @@
-from typing import List, Literal, Optional, Union, Mapping, TypeVar
-from operator import *  # Keep unused import for transitive import by Executor
+# Keep unused import for transitive import by Executor
+from operator import *  # noqa: F403,F401
+from typing import List, Mapping, Optional, TypeVar, Union
 
 # NOTE: previous attempt at some import issues with the operator model
 #   from operator import *

@@ -1,7 +1,9 @@
-from typing import Callable
-from IPython.core.interactiveshell import InteractiveShell, ExecutionResult
-import pytest
 import functools
+from typing import Callable
+
+import pytest
+from IPython.core.interactiveshell import InteractiveShell
+
 from lineapy.instrumentation.tracer import Tracer
 
 

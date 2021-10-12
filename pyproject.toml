@@ -4,6 +4,9 @@ exclude = '__snapshots__'
 
 [tool.isort]
 profile = "black"
+skip_gitignore = true
+skip = ["tests/__snapshots__"]
+line_length = 79
 
 [tool.coverage.run]
 # Trace which side of branches were taken

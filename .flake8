@@ -3,6 +3,15 @@ exclude = __snapshots__
 per-file-ignores =
     # ignore get_ipython missing 
     lineapy/ipython.py: F821
-# for black https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#configuration
-max-line-length = 120
-extend-ignore = E203
+
+# E203 is for compat with black
+# (https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#configuration)
+
+# E501 is line length, which is already covered by black, and was raising
+# errors on string/comment lines that were too long
+
+# W291 is for trailing whitespace, which is also already covered by black
+# besides in this case we want to ignore trailing whitespace in docstrings
+
+# F841 is raised on unused local variables, which sometimes we don't mind
+extend-ignore = E203,E501,W291,F841

@@ -4,7 +4,6 @@ from lineapy.data.types import (
     Library,
     LineaID,
     Node,
-    Node,
     SessionContext,
     SourceCode,
 )
