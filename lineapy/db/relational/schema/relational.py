@@ -136,7 +136,7 @@ class ArtifactORM(Base):
     date_created = Column(DateTime, nullable=False)
 
     node: BaseNodeORM = relationship(
-        "BaseNodeORM", uselist=False, lazy="joined"
+        "BaseNodeORM", uselist=False, lazy="joined", innerjoin=True
     )
 
 
@@ -317,6 +317,21 @@ class LiteralNodeORM(BaseNodeORM):
     value: str = Column(String, nullable=False)
 
 
+class MutateNodeORM(BaseNodeORM):
+    __tablename__ = "mutate_node"
+
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
+    source_id = Column(String, ForeignKey("node.id"))
+    call_id = Column(String, ForeignKey("node.id"))
+
+    __mapper_args__ = {
+        "polymorphic_identity": NodeType.MutateNode,
+        "inherit_condition": id == BaseNodeORM.id,
+    }
+
+
 # Explicitly define all subclasses of NodeORM, so that if we use this as a type
 # we can accurately know if we cover all cases
-NodeORM = Union[LookupNodeORM, ImportNodeORM, CallNodeORM, LiteralNodeORM]
+NodeORM = Union[
+    LookupNodeORM, ImportNodeORM, CallNodeORM, LiteralNodeORM, MutateNodeORM
+]

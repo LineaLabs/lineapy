@@ -533,3 +533,73 @@ class TestDictionary:
     def test_splatting(self, execute):
         res = execute("x = {1: 2, 2:2, **{1: 3, 2: 3}, 1: 4}")
         assert res.values["x"] == {1: 4, 2: 3}
+
+
+class TestFunctionMutations:
+    def test_mutation(self, execute):
+        """
+        Verify that mutating an item wil cause a dependency on the mutation.
+        """
+        source = "x = {}\nx['a'] = 3\n"
+        res = execute(source, artifacts=["x"])
+        assert res.artifacts["x"] == source
+
+    def test_mutation_of_view(self, execute):
+        """
+        Verify that mutating a view will update the original.
+        """
+        source = """x = {}
+y = {}
+x['y'] = y
+y['a'] = 1
+"""
+        res = execute(source, artifacts=["x"])
+        assert res.artifacts["x"] == source
+        # assert res.artifacts["y"] == "y = {}\ny['a'] = 1\n"
+
+    def test_before_after_mutation(self, execute):
+        """
+        Verify that references to an object before its mutated are different
+        than after
+        """
+        source = """x = {}
+before = str(x)
+x['a'] = 1
+after = str(x)
+"""
+        res = execute(source, artifacts=["x", "before", "after"])
+        assert res.artifacts == {
+            "x": "x = {}\nx['a'] = 1\n",
+            "before": "x = {}\nbefore = str(x)\n",
+            "after": "x = {}\nx['a'] = 1\nafter = str(x)\n",
+        }
+
+    def test_view_of_view(self, execute):
+        """
+        Verify that mutating a view of a view will update the original.
+        """
+        source = """x = {}
+y = {}
+z = {}
+x['y'] = y
+y['z'] = z
+z['a'] = 1
+"""
+        res = execute(source, artifacts=["x", "y", "z"])
+
+        assert res.artifacts == {
+            "x": source,
+            "y": "y = {}\nz = {}\ny['z'] = z\nz['a'] = 1\n",
+            "z": "z = {}\nz['a'] = 1\n",
+        }
+
+    def test_delitem(self, execute):
+        """
+        Verify that mutating a view of a view will update the original.
+        """
+        source = """x = {1: 1}
+del x[1]
+"""
+        res = execute(source, artifacts=["x"])
+
+        assert res.artifacts["x"] == source

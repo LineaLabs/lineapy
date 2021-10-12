@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, List, Optional, cast
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
@@ -20,6 +20,7 @@ from lineapy.data.types import (
     LiteralNode,
     LiteralType,
     LookupNode,
+    MutateNode,
     Node,
     NodeValue,
     SessionContext,
@@ -38,6 +39,7 @@ from lineapy.db.relational.schema.relational import (
     LibraryORM,
     LiteralNodeORM,
     LookupNodeORM,
+    MutateNodeORM,
     NodeORM,
     NodeValueORM,
     PositionalArgORM,
@@ -199,6 +201,12 @@ class RelationalLineaDB:
                 ),
                 value=str(node.value),
             )
+        elif isinstance(node, MutateNode):
+            node_orm = MutateNodeORM(
+                **args,
+                call_id=node.call_id,
+                source_id=node.source_id,
+            )
         else:
             node_orm = LookupNodeORM(**args, name=node.name)
 
@@ -292,6 +300,12 @@ class RelationalLineaDB:
                 keyword_args=keyword_args,
                 **args,
             )
+        if isinstance(node, MutateNodeORM):
+            return MutateNode(
+                call_id=node.call_id,
+                source_id=node.source_id,
+                **args,
+            )
         return LookupNode(name=node.name, **args)
 
     def get_node_value_from_db(
@@ -319,6 +333,12 @@ class RelationalLineaDB:
         return (
             self.session.query(ArtifactORM)
             .filter(BaseNodeORM.session_id == session_id)
+            # Don't include source code in query, since it's not needed
+            .options(
+                defaultload(ArtifactORM.node).raiseload(
+                    BaseNodeORM.source_code
+                )
+            )
             .all()
         )
 

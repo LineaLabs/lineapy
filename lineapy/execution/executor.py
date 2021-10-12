@@ -19,6 +19,7 @@ from lineapy.data.types import (
     LineaID,
     LiteralNode,
     LookupNode,
+    MutateNode,
     Node,
 )
 from lineapy.db.relational.db import RelationalLineaDB
@@ -127,12 +128,12 @@ class Executor:
 
             def get_node_id(
                 pointer: Union[PositionalArg, KeywordArg, Result],
-                node=node,
+                node: CallNode = cast(CallNode, node),
             ) -> LineaID:
                 if isinstance(pointer, PositionalArg):
-                    return node.positional_args[pointer.index].id
+                    return node.positional_args[pointer.index]
                 elif isinstance(pointer, KeywordArg):
-                    return node.keyword_args[pointer.name].id
+                    return node.keyword_args[pointer.name]
                 elif isinstance(pointer, Result):
                     return node.id
 
@@ -155,6 +156,10 @@ class Executor:
         elif isinstance(node, LiteralNode):
             self._id_to_value[node.id] = node.value
             return SideEffects()
+        elif isinstance(node, MutateNode):
+            # Copy the value from the source value node
+            self._id_to_value[node.id] = self._id_to_value[node.source_id]
+            return SideEffects()
 
     def execute_graph(self, graph: Graph) -> None:
         logger.info("Executing graph %s", graph)
@@ -170,14 +175,17 @@ class Executor:
 @dataclass(frozen=True)
 class SideEffects:
     """
-    The side effects from executing a node,
+    The side effects from executing a node.
+
+    This dataclass is used as the return value for executing a node, to provide
+    more explicit names and types for the results.
     """
 
     # Set of linea IDs which were mutated by executing this node.
     mutated: set[LineaID] = field(default_factory=set)
-    # Set of mappings from the ID of a source node to the ID of a new node
-    # which is now a view of that node
-    # This means that now whenever the source is mutated, the viewer is also mutated.
+    # Set of tuples mapping the ID of a source node to the ID of the node which
+    # views it. This means that now whenever the source is mutated, the viewer
+    # is also mutated.
     views: set[tuple[LineaID, LineaID]] = field(default_factory=set)
 
 
