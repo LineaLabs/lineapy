@@ -60,7 +60,7 @@ call_2 = CallNode(
     b+=x""",
         ).id,
         LiteralNode(
-            value=0,
+            value=False,
         ).id,
         LiteralNode(
             value="b",

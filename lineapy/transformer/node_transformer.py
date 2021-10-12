@@ -59,6 +59,23 @@ from lineapy.utils import get_new_id
 logger = logging.getLogger(__name__)
 
 
+def transform(
+    code: str, location: SourceCodeLocation, tracer: Tracer
+) -> Optional[Node]:
+    """
+    Traces the given code, executing it and writing the results to the DB.
+
+    It returns the node corresponding to the last statement in the code,
+    if it exists.
+    """
+
+    node_transformer = NodeTransformer(code, location, tracer)
+    tree = ast.parse(code)
+    node_transformer.visit(tree)
+    tracer.db.commit()
+    return node_transformer.last_statement_result
+
+
 class NodeTransformer(ast.NodeTransformer):
     """
     Notes:
@@ -67,12 +84,15 @@ class NodeTransformer(ast.NodeTransformer):
     """
 
     def __init__(
-        self, code: str, location: SourceCodeLocation, tracer: Tracer
+        self,
+        code: str,
+        location: SourceCodeLocation,
+        tracer: Tracer,
     ):
         self.source_code = SourceCode(
             id=get_new_id(), code=code, location=location
         )
-        tracer.records_manager.write_source_code(self.source_code)
+        tracer.db.write_source_code(self.source_code)
         self.tracer = tracer
         # The result of the last line, a node if it was an expression,
         # None if it was a statement. Used by ipython to grab the last value
@@ -171,7 +191,7 @@ class NodeTransformer(ast.NodeTransformer):
                     "Please pass a variable as the first argument to"
                     f" `{linea_publish.__name__}`"
                 )
-            var_node = cast(ast.Name, node.args[0])
+            var_node = self.visit(node.args[0])
             if len(node.args) == 2:
                 if not isinstance(node.args[1], ast.Constant):
                     raise TypeError(
@@ -180,9 +200,9 @@ class NodeTransformer(ast.NodeTransformer):
                         f" `{linea_publish.__name__}`, you gave"
                         f" {type(node.args[1])}"
                     )
-                self.tracer.publish(var_node.id, node.args[1].value)
+                self.tracer.publish(var_node, node.args[1].value)
             else:
-                self.tracer.publish(var_node.id)
+                self.tracer.publish(var_node, None)
             return None
         # this is the normal case, non-publish
         argument_nodes = [self.visit(arg) for arg in node.args]

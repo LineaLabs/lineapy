@@ -3,14 +3,14 @@ Code to transform inputs when running in IPython, to trace them.
 """
 from __future__ import annotations
 
-import ast
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar, Literal, Optional
 
 from lineapy.constants import ExecutionMode
 from lineapy.data.types import JupyterCell, LineaID, SessionType
+from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.transformer.node_transformer import NodeTransformer
+from lineapy.transformer.node_transformer import transform
 
 if TYPE_CHECKING:
     from IPython.core import InteractiveShell
@@ -35,11 +35,8 @@ def start(
     # TODO: Support pause/resume tracing
     assert not linea_input_transformers, "Already tracing"
 
-    tracer = Tracer(
-        SessionType.JUPYTER,
-        execution_mode=execution_mode,
-        session_name=session_name,
-    )
+    db = RelationalLineaDB.from_environment(execution_mode)
+    tracer = Tracer(db, SessionType.JUPYTER, session_name)
     active_input_transformer = LineaInputTransformer(
         tracer, tracer.session_context.id, ipython
     )
@@ -61,6 +58,7 @@ def stop() -> Tracer:
         for it in input_transformers_post
         if isinstance(it, LineaInputTransformer)
     ]
+    input_transformer.tracer.db.close()
     input_transformers_post.remove(input_transformer)
     return input_transformer.tracer
 
@@ -106,10 +104,7 @@ class LineaInputTransformer:
             execution_count=execution_count,
             session_id=self.session_id,
         )
-        node_transformer = NodeTransformer(code, location, self.tracer)
-        node_transformer.visit(ast.parse(code))
-
-        self.tracer.records_manager.flush_records()
+        last_node = transform(code, location, self.tracer)
 
         # TODO: write to existing stdout as well when executing
         # more like tee, instead of having to write at end
@@ -119,8 +114,12 @@ class LineaInputTransformer:
         # Return the last value so it will be printed, if we don't end
         # in a semicolon
         ends_with_semicolon = lines and lines[-1].endswith(";")
-        if not ends_with_semicolon and node_transformer.last_statement_result:
-            self.last_value = node_transformer.last_statement_result.value  # type: ignore
+        if not ends_with_semicolon and last_node:
+            self.last_value = self.tracer.executor.get_value(last_node)
+            # We are adding the following lines to the transpiled python code
+            #   it's a little hacky right now since we rely on others not
+            #   having any input_transformers (hence the `[0]`).
+            # The `last_value` is tracked by this class, `LineaInputTransformer`.
             lines = [
                 "get_ipython().input_transformers_post[0].last_value\n",
             ]

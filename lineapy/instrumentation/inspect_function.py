@@ -13,7 +13,11 @@ class KeywordArg:
 
 
 @dataclass(frozen=True)
-class ResultType:
+class Result:
+    """
+    The result of a function call, used to describe a View.
+    """
+
     pass
 
 
@@ -23,8 +27,8 @@ class View:
     Represents that the viewer is mutated whenever the source is mutated.
     """
 
-    source: Union[PositionalArg, KeywordArg, ResultType]
-    viewer: Union[PositionalArg, KeywordArg, ResultType]
+    source: Union[PositionalArg, KeywordArg, Result]
+    viewer: Union[PositionalArg, KeywordArg, Result]
 
 
 @dataclass(frozen=True)

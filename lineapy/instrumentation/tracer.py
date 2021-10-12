@@ -1,39 +1,48 @@
 import logging
+from dataclasses import InitVar, dataclass, field
 from datetime import datetime
+from functools import cached_property
 from os import getcwd
-from typing import Dict, Optional, cast
+from typing import Dict, Optional
 
-from lineapy.constants import GET_ITEM, GETATTR, ExecutionMode
+from lineapy.constants import GET_ITEM, GETATTR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
+    Artifact,
     CallNode,
     ImportNode,
     Library,
-    LineaID,
     LiteralNode,
     LookupNode,
     Node,
+    NodeValue,
     SessionContext,
     SessionType,
     SourceLocation,
 )
-from lineapy.db.base import get_default_config_by_environment
+from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.instrumentation.inspect_function import inspect_function
-from lineapy.instrumentation.records_manager import RecordsManager
 from lineapy.lineabuiltins import __build_tuple__, __exec__
-from lineapy.utils import get_new_id
+from lineapy.utils import get_new_id, get_value_type
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
 class Tracer:
-    def __init__(
-        self,
-        session_type: SessionType,
-        execution_mode: ExecutionMode,
-        session_name: Optional[str] = None,
+    db: RelationalLineaDB
+
+    session_type: InitVar[SessionType]
+    session_name: InitVar[Optional[str]] = None
+
+    variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
+
+    session_context: SessionContext = field(init=False)
+    executor: Executor = field(init=False)
+
+    def __post_init__(
+        self, session_type: SessionType, session_name: Optional[str]
     ):
         """
         Tracer is internal to Linea and it implements the "hidden APIs"
@@ -46,62 +55,66 @@ class Tracer:
             to the ID responsible for its creation
         - Executes the program, using the `Executor`.
         """
-        self.session_type = session_type
-        # TODO: we should probably poll from the local linea config file
-        #   what this configuration should be
-        config = get_default_config_by_environment(execution_mode)
-        self.records_manager = RecordsManager(config)
-        self.db = self.records_manager.db
-        self.session_context = self.create_session_context(
-            session_type,
-            session_name,
+        self.executor = Executor(self.db)
+        self.session_context = SessionContext(
+            id=get_new_id(),
+            environment_type=session_type,
+            creation_time=datetime.now(),
+            working_directory=getcwd(),
+            session_name=session_name,
+            execution_id=self.executor.execution.id,
         )
-        self.executor = Executor()
-        # TODO: Either save mapping of variable ID to node, or save full graph....
+        self.db.write_context(self.session_context)
 
-        self.variable_name_to_node: Dict[str, Node] = {}
-        self.function_name_to_function_module_import_id: Dict[
-            str, LineaID
-        ] = {}
-
-    @property
+    @cached_property
     def graph(self) -> Graph:
-        nodes = self.records_manager.db.get_nodes_for_session(
-            self.session_context.id
-        )
+        """
+        Creates a graph by fetching all the nodes about this session from the DB.
+        """
+        nodes = self.db.get_nodes_for_session(self.session_context.id)
         return Graph(nodes, self.session_context)
 
-    @property
+    @cached_property
     def values(self) -> dict[str, object]:
-        return {k: n.value for k, n in self.variable_name_to_node.items()}
+        """
+        Returns a mapping of variable names to their values, by joining
+        the scoping information with the executor values.
+        """
+        return {
+            k: self.executor.get_value(n)
+            for k, n in self.variable_name_to_node.items()
+        }
+
+    @cached_property
+    def artifacts(self) -> dict[str, str]:
+        """
+        Returns a mapping of artifact names to their sliced code.
+        """
+
+        return {
+            artifact.name: get_program_slice(self.graph, [artifact.id])
+            for artifact in self.db.get_artifacts_for_session(
+                self.session_context.id
+            )
+            if artifact.name is not None
+        }
+
+    def slice(self, name: str) -> str:
+        artifact = self.db.get_artifact_by_name(name)
+        return get_program_slice(self.graph, [artifact.id])
 
     @property
     def stdout(self) -> str:
         return self.executor.get_stdout()
 
-    def slice(self, artifact_name: str) -> str:
-        """
-        Gets the code for a slice of the graph from an artifact
-        """
-        artifact = self.db.get_artifact_by_name(artifact_name)
-        return get_program_slice(self.graph, [LineaID(cast(str, artifact.id))])
-
     def process_node(self, node: Node) -> None:
         """
         Execute a node, and adds it to the database.
         """
-        self.executor.execute_node(node)
-        self.records_manager.add_evaluated_nodes(node)
+        self.db.write_node(node)
+        # TODO: Process spec and add mutations
 
-    def exit(self):
-        nodes = self.records_manager.records_pool
-        try:
-            self.records_manager.exit()
-        except Exception:
-            logger.exception(
-                "Error writing nodes %s", Graph(nodes, self.session_context)
-            )
-            raise
+        self.executor.execute_node(node)
 
     def lookup_node(self, variable_name: str) -> Node:
         """
@@ -125,34 +138,27 @@ class Tracer:
             self.process_node(new_node)
             return new_node
 
-    # TODO: Refactor to take in node id
-    def publish(
-        self, variable_name: str, description: Optional[str] = None
-    ) -> None:
-        node_id = self.lookup_node(variable_name).id
-        self.records_manager.add_node_id_to_artifact_table(
-            node_id, description
+    def publish(self, node: Node, description: Optional[str]) -> None:
+        self.db.write_artifact(
+            Artifact(id=node.id, date_created=datetime.now(), name=description)
         )
-
-    def create_session_context(
-        self,
-        session_type: SessionType,
-        session_name: Optional[str],
-    ):
-        """
-        Decided to read the code instead because it's more readable
-          than passing through the transformer
-        """
-        working_directory = getcwd()
-        session_context = SessionContext(
-            id=get_new_id(),
-            environment_type=session_type,
-            creation_time=datetime.now(),
-            working_directory=working_directory,
-            session_name=session_name,
+        # serialize to db
+        res = self.executor.get_value(node)
+        timing = self.executor.get_execution_time(node.id)
+        self.db.write_node_value(
+            NodeValue(
+                node_id=node.id,
+                value=res,
+                execution_id=self.executor.execution.id,
+                start_time=timing[0],
+                end_time=timing[1],
+                value_type=get_value_type(res),
+            )
         )
-        self.records_manager.write_session_context(session_context)
-        return session_context
+        # we have to commit eagerly because if we just add it
+        #   to the queue, the `res` value may have mutated
+        #   and that's incorrect.
+        self.db.commit()
 
     def trace_import(
         self,
@@ -206,9 +212,7 @@ class Tracer:
         #   requirement; should prob refactor later
         # and we cannot just modify the runtime value because
         #   it's already written to disk
-        self.records_manager.add_lib_to_session_context(
-            self.session_context.id, library
-        )
+        self.db.add_lib_to_session_context(self.session_context.id, library)
         return
 
     def literal(
@@ -256,14 +260,6 @@ class Tracer:
             source_location=source_location,
         )
         self.process_node(node)
-
-        _resulting_spec = inspect_function(
-            function_node.value,
-            [n.value for n in arguments],
-            {k: v.value for k, v in keyword_arguments.items()},
-            node.value,
-        )
-        # TODO: Process spec and add mutations
         return node
 
     def assign(

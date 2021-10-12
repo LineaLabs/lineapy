@@ -33,7 +33,7 @@ call_2 = CallNode(
     return a - b""",
                 ).id,
                 LiteralNode(
-                    value=0,
+                    value=False,
                 ).id,
                 LiteralNode(
                     value="foo",

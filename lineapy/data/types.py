@@ -48,14 +48,9 @@ class Library(BaseModel):
 
 class SessionContext(BaseModel):
     """
-    Each execution of a script/notebook is a "Session".
+    Each trace of a script/notebook is a "Session".
     :param working_directory: captures where the code ran by the user
 
-    The session context object provides important metadata used by
-    - executor to get the code from the syntax_dictionary
-    - route to supply the frontend, e.g., user_name and creation_time
-
-    TODO:
     - we should remove the dependency on the working_directory because
       its brittle
     """
@@ -66,13 +61,11 @@ class SessionContext(BaseModel):
     working_directory: str  # must be passed in for now
     session_name: Optional[str]
     user_name: Optional[str] = None
+    # The ID of the corresponding execution
+    execution_id: LineaID
 
     class Config:
         orm_mode = True
-
-
-# TODO: Use sentinel for empty type to differentiate between None and empty
-NodeValueType = Any
 
 
 class NodeType(Enum):
@@ -109,19 +102,24 @@ class ValueType(Enum):
 
 class NodeValue(BaseModel):
     node_id: LineaID
-    version: int
-    value: NodeValueType
-    value_type: ValueType
-    virtual: bool
-    timestamp: datetime.datetime
+    # A pointer to the current execution
+    execution_id: LineaID
+    value: Any
+    value_type: Optional[ValueType]
+
+    start_time: datetime.datetime
+    end_time: datetime.datetime
 
     class Config:
         orm_mode = True
 
 
 class Execution(BaseModel):
-    artifact_id: LineaID
-    version: str
+    """
+    An execution is one session of running many nodes and recording their values.
+    """
+
+    id: LineaID
     timestamp: Optional[datetime.datetime]
 
     class Config:
@@ -135,7 +133,7 @@ class Artifact(BaseModel):
     """
 
     id: LineaID
-    date_created: float
+    date_created: datetime.datetime
     name: Optional[str]
 
     class Config:
@@ -265,13 +263,6 @@ class BaseNode(BaseModel):
     node_type: NodeType = NodeType.Node
     source_location: Optional[SourceLocation]
 
-    # The start and end time, if this node was executed
-    start_time: Optional[datetime.datetime] = None
-    end_time: Optional[datetime.datetime] = None
-
-    # The runtime value, if the node was executed
-    value: Any = None
-
     class Config:
         orm_mode = True
 
@@ -342,6 +333,7 @@ class CallNode(BaseNode):
 
 class LiteralNode(BaseNode):
     node_type: NodeType = NodeType.LiteralNode
+    value: Any
 
 
 class LookupNode(BaseNode):

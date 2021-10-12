@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import pickle
 from datetime import datetime
 from typing import Union
 
@@ -9,20 +10,24 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
-    Float,
     ForeignKey,
     Integer,
     PickleType,
     String,
-    Table,
     UniqueConstraint,
     types,
 )
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.sqltypes import Boolean, Text
+from sqlalchemy.sql.sqltypes import Text
 
-from lineapy.data.types import LiteralType, NodeType, SessionType, ValueType
+from lineapy.data.types import (
+    LineaID,
+    LiteralType,
+    NodeType,
+    SessionType,
+    ValueType,
+)
 
 """
 This file contains the ORM versions of the graph node in types.py.
@@ -52,6 +57,23 @@ CallNode
 Base = declarative_base()
 
 
+class OptionalPickler:
+    """
+    Tries to pickle an object, and if it fails returns None.
+    """
+
+    @staticmethod
+    def dumps(value, protocol):
+        try:
+            return pickle.dumps(value, protocol)
+        except pickle.PicklingError:
+            return None
+
+    @staticmethod
+    def loads(value):
+        return pickle.loads(value)
+
+
 class AttributesDict(types.TypeDecorator):
     # FIXME: missing two inherited abstract methods that
     #        need to be implemented:
@@ -74,7 +96,7 @@ class AttributesDict(types.TypeDecorator):
         return value
 
 
-class SessionContextORM(Base):  # type: ignore
+class SessionContextORM(Base):
     __tablename__ = "session_context"
     id = Column(String, primary_key=True)
     environment_type = Column(Enum(SessionType))
@@ -83,10 +105,10 @@ class SessionContextORM(Base):  # type: ignore
     session_name = Column(String, nullable=True)
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)
-    code = Column(String)
+    execution_id = Column(String, ForeignKey("execution.id"))
 
 
-class LibraryORM(Base):  # type: ignore
+class LibraryORM(Base):
     __tablename__ = "library"
     __table_args__ = (
         UniqueConstraint(
@@ -103,46 +125,66 @@ class LibraryORM(Base):  # type: ignore
     path = Column(String)
 
 
-class ArtifactORM(Base):  # type: ignore
+class ArtifactORM(Base):
+    """
+    An artifact is a named pointer to a node.
+    """
+
     __tablename__ = "artifact"
-    id = Column(String, ForeignKey("node.id"), primary_key=True)
+    id: LineaID = Column(String, ForeignKey("node.id"), primary_key=True)
     name = Column(String, nullable=True)
-    date_created = Column(Float, nullable=False)
+    date_created = Column(DateTime, nullable=False)
+
+    node: BaseNodeORM = relationship(
+        "BaseNodeORM", uselist=False, lazy="joined"
+    )
 
 
-artifact_project_association_table = Table(
-    "artifact_project_association",
-    Base.metadata,
-    Column("artifact", ForeignKey("artifact.id"), primary_key=True),
-    Column("project", ForeignKey("project.id"), primary_key=True),
-)
+class ExecutionORM(Base):
+    """
+    An execution represents one Python interpreter invocation of some number of nodes
+    """
 
-
-class ProjectORM(Base):  # type: ignore
-    __tablename__ = "project"
-    id = Column(String, primary_key=True)
-    name = Column(String, nullable=False)
-
-
-class ExecutionORM(Base):  # type: ignore
     __tablename__ = "execution"
-    artifact_id = Column(String, ForeignKey("artifact.id"), primary_key=True)
-    version = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 
 
-class NodeValueORM(Base):  # type: ignore
+class NodeValueORM(Base):
+    """
+    A node value represents the value of a node during some execution.
+
+    It is uniquely identified by the `node_id` and `execution_id`.
+
+    The following invariant holds:
+    `value.node.session == value.execution.session`
+    """
+
     __tablename__ = "node_value"
     node_id = Column(String, ForeignKey("node.id"), primary_key=True)
-    version = Column(Integer, primary_key=True)
-    value = Column(PickleType, nullable=True)
+    execution_id = Column(String, ForeignKey("execution.id"), primary_key=True)
+    value = Column(PickleType(pickler=OptionalPickler), nullable=True)
     value_type = Column(Enum(ValueType))
-    virtual = Column(Boolean)  # if True, value is not materialized in cache
+
     start_time = Column(DateTime, nullable=True)
     end_time = Column(DateTime, nullable=True)
 
 
-class BaseNodeORM(Base):  # type: ignore
+class BaseNodeORM(Base):
+    """
+    node.source_code has a path value if node.session.environment_type == "script"
+    otherwise the environment type is "jupyter" and it has a jupyter execution
+    count and session id, which is equal to the node.session
+
+    NOTE:
+    - Because other nodes are inheriting from BaseNodeORM, finding a node
+      based on its id is easy (something like the following).
+      ```python
+       session.query(BaseNodeORM)
+       .filter(BaseNodeORM.id == linea_id)
+      ```
+    """
+
     __tablename__ = "node"
     id = Column(String, primary_key=True)
     session_id = Column(String)
@@ -270,11 +312,9 @@ class LiteralNodeORM(BaseNodeORM):
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 
-    value_type = Column(Enum(LiteralType))
-
-    @declared_attr  # type: ignore
-    def value(cls):
-        return BaseNodeORM.__table__.c.get("value", Column(String))
+    value_type: LiteralType = Column(Enum(LiteralType))
+    # The value of the literal serilaized as a string
+    value: str = Column(String, nullable=False)
 
 
 # Explicitly define all subclasses of NodeORM, so that if we use this as a type

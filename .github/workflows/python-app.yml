@@ -22,7 +22,7 @@ jobs:
           pip install -e .[dev]
       - name: Test with pytest
         run: |
-          pytest -vv
+          pytest -vv tests/
       # https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
       - name: Upload coverage
         env:

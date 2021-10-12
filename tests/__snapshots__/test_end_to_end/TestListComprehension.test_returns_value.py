@@ -28,7 +28,7 @@ call_2 = CallNode(
                     value="[i + 1 for i in range(3)]",
                 ).id,
                 LiteralNode(
-                    value=1,
+                    value=True,
                 ).id,
             ],
             keyword_args={
