@@ -8,7 +8,7 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
-from typing import Callable, Union, cast
+from typing import Callable, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
@@ -20,16 +20,15 @@ from lineapy.data.types import (
     LiteralNode,
     LookupNode,
     Node,
-    NodeValue,
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.instrumentation.inspect_function import (
     KeywordArg,
     PositionalArg,
-    ResultType,
+    Result,
     inspect_function,
 )
-from lineapy.utils import get_new_id, get_value_type
+from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +47,9 @@ class Executor:
 
     _id_to_value: dict[LineaID, object] = field(default_factory=dict)
     _stdout: io.StringIO = field(default_factory=io.StringIO)
+    _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
+        default_factory=dict
+    )
 
     def __post_init__(self):
         self.execution = Execution(
@@ -71,14 +73,24 @@ class Executor:
         val = self._stdout.getvalue()
         return val
 
+    def get_execution_time(self, node_id: LineaID) -> Tuple[datetime, datetime]:
+        """
+        Returns the (startime, endtime), only applies for function call nodes.
+        """
+        return self._execution_time[node_id]
+
     def get_value(self, node: Node) -> object:
         return self._id_to_value[node.id]
 
     def execute_node(self, node: Node) -> SideEffects:
         """
-        Executes a node, records its value and execution time.
+        Does the following:
+        - Executes a node
+        - And records
+          - value (currently: only for call nodes and all call nodes)
+          - execution time
 
-        Only writes values for call nodes currently.
+        - Returns the `SideEffects` of this node that's analyzed at runtime (hence in the executor).
         """
         logger.info("Executing node %s", node)
         if isinstance(node, LookupNode):
@@ -87,6 +99,8 @@ class Executor:
 
             return SideEffects()
         elif isinstance(node, CallNode):
+            # execute the function
+            # ----------
             fn = cast(Callable, self._id_to_value[node.function_id])
 
             args = [
@@ -102,39 +116,30 @@ class Executor:
                 start_time = datetime.now()
                 res = fn(*args, **kwargs)
                 end_time = datetime.now()
-            self.db.write_node_value(
-                NodeValue(
-                    node_id=node.id,
-                    value=res,
-                    execution_id=self.execution.id,
-                    start_time=start_time,
-                    end_time=end_time,
-                    value_type=get_value_type(res),
-                )
-            )
+                self._execution_time[node.id] = (start_time, end_time)
+
+            # dependency analysis
+            # ----------
             self._id_to_value[node.id] = res
             inspect_function_res = inspect_function(fn, args, kwargs, res)
 
-            def from_inspect_pointer(
-                pointer: Union[PositionalArg, KeywordArg, ResultType],
+            def get_node_id(
+                pointer: Union[PositionalArg, KeywordArg, Result],
                 node=node,
             ) -> LineaID:
                 if isinstance(pointer, PositionalArg):
                     return node.positional_args[pointer.index].id
                 elif isinstance(pointer, KeywordArg):
                     return node.keyword_args[pointer.name].id
-                elif isinstance(pointer, ResultType):
+                elif isinstance(pointer, Result):
                     return node.id
 
             return SideEffects(
-                mutated={
-                    from_inspect_pointer(m)
-                    for m in inspect_function_res.mutated
-                },
+                mutated={get_node_id(m) for m in inspect_function_res.mutated},
                 views={
                     (
-                        from_inspect_pointer(v.source),
-                        from_inspect_pointer(v.viewer),
+                        get_node_id(v.source),
+                        get_node_id(v.viewer),
                     )
                     for v in inspect_function_res.views
                 },

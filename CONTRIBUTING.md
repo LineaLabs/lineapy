@@ -12,7 +12,8 @@ This repository contains a few different components:
 ```bash
 conda create --name lineapy-env python=3.9
 conda activate lineapy-env
-pip install -e .[dev] --user
+# added quotes to make zsh compliant
+pip install -e ".[dev]" --user
 ```
 
 ## Debugging (in VSC)

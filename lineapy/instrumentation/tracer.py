@@ -15,6 +15,7 @@ from lineapy.data.types import (
     LiteralNode,
     LookupNode,
     Node,
+    NodeValue,
     SessionContext,
     SessionType,
     SourceLocation,
@@ -23,7 +24,7 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.lineabuiltins import __build_tuple__, __exec__
-from lineapy.utils import get_new_id
+from lineapy.utils import get_new_id, get_value_type
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +142,23 @@ class Tracer:
         self.db.write_artifact(
             Artifact(id=node.id, date_created=datetime.now(), name=description)
         )
+        # serialize to db
+        res = self.executor.get_value(node)
+        timing = self.executor.get_execution_time(node.id)
+        self.db.write_node_value(
+            NodeValue(
+                node_id=node.id,
+                value=res,
+                execution_id=self.executor.execution.id,
+                start_time=timing[0],
+                end_time=timing[1],
+                value_type=get_value_type(res),
+            )
+        )
+        # we have to commit eagerly because if we just add it
+        #   to the queue, the `res` value may have mutated
+        #   and that's incorrect.
+        self.db.commit()
 
     def trace_import(
         self,
