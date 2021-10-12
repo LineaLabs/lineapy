@@ -99,7 +99,8 @@ class Tracer:
         }
 
     def slice(self, name: str) -> str:
-        return self.artifacts[name]
+        artifact = self.db.get_artifact_by_name(name)
+        return get_program_slice(self.graph, [artifact.id])
 
     @property
     def stdout(self) -> str:
