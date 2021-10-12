@@ -73,7 +73,9 @@ class Executor:
         val = self._stdout.getvalue()
         return val
 
-    def get_execution_time(self, node_id: LineaID) -> Tuple[datetime, datetime]:
+    def get_execution_time(
+        self, node_id: LineaID
+    ) -> Tuple[datetime, datetime]:
         """
         Returns the (startime, endtime), only applies for function call nodes.
         """

@@ -171,10 +171,17 @@ class NodeValueORM(Base):
 
 class BaseNodeORM(Base):
     """
-
     node.source_code has a path value if node.session.environment_type == "script"
-    otherwise the environment type is "jupyter" and it has a jupyter execution count and session id
-    which is equal to the node.session
+    otherwise the environment type is "jupyter" and it has a jupyter execution
+    count and session id, which is equal to the node.session
+
+    NOTE:
+    - Because other nodes are inheriting from BaseNodeORM, finding a node
+      based on its id is easy (something like the following).
+      ```python
+       session.query(BaseNodeORM)
+       .filter(BaseNodeORM.id == linea_id)
+      ```
     """
 
     __tablename__ = "node"
