@@ -45,7 +45,6 @@ call_9 = CallNode(
                     value=2,
                 ).id,
             ],
-            keyword_args={},
         ).id,
         CallNode(
             function_id=LookupNode(
@@ -73,7 +72,6 @@ call_9 = CallNode(
                     value=2,
                 ).id,
             ],
-            keyword_args={},
         ).id,
         CallNode(
             function_id=LookupNode(
@@ -84,8 +82,6 @@ call_9 = CallNode(
                     function_id=LookupNode(
                         name="__build_dict_kwargs_sentinel__",
                     ).id,
-                    positional_args=[],
-                    keyword_args={},
                 ).id,
                 CallNode(
                     source_location=SourceLocation(
@@ -125,7 +121,6 @@ call_9 = CallNode(
                                     value=3,
                                 ).id,
                             ],
-                            keyword_args={},
                         ).id,
                         CallNode(
                             function_id=LookupNode(
@@ -153,13 +148,10 @@ call_9 = CallNode(
                                     value=3,
                                 ).id,
                             ],
-                            keyword_args={},
                         ).id,
                     ],
-                    keyword_args={},
                 ).id,
             ],
-            keyword_args={},
         ).id,
         CallNode(
             function_id=LookupNode(
@@ -187,8 +179,6 @@ call_9 = CallNode(
                     value=4,
                 ).id,
             ],
-            keyword_args={},
         ).id,
     ],
-    keyword_args={},
 )

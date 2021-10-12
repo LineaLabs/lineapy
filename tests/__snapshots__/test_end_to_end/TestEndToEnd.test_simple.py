@@ -30,5 +30,4 @@ call_1 = CallNode(
             value=11,
         ).id
     ],
-    keyword_args={},
 )

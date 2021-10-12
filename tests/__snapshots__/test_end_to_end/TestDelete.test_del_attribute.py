@@ -43,10 +43,7 @@ call_2 = CallNode(
                 value="SimpleNamespace",
             ).id,
         ],
-        keyword_args={},
     ).id,
-    positional_args=[],
-    keyword_args={},
 )
 call_3 = CallNode(
     source_location=SourceLocation(
@@ -75,7 +72,6 @@ call_3 = CallNode(
             value=1,
         ).id,
     ],
-    keyword_args={},
 )
 call_4 = CallNode(
     source_location=SourceLocation(
@@ -94,5 +90,4 @@ call_4 = CallNode(
             value="hi",
         ).id,
     ],
-    keyword_args={},
 )

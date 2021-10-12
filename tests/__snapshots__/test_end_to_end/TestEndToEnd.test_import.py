@@ -40,7 +40,6 @@ call_4 = CallNode(
                 value="sqrt",
             ).id,
         ],
-        keyword_args={},
     ).id,
     positional_args=[
         CallNode(
@@ -61,7 +60,6 @@ call_4 = CallNode(
                         value="pow",
                     ).id,
                 ],
-                keyword_args={},
             ).id,
             positional_args=[
                 LiteralNode(
@@ -85,8 +83,6 @@ call_4 = CallNode(
                     value=2,
                 ).id,
             ],
-            keyword_args={},
         ).id
     ],
-    keyword_args={},
 )

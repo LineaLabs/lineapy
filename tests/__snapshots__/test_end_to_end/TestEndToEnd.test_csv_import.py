@@ -94,7 +94,6 @@ call_5 = CallNode(
                                     value="read_csv",
                                 ).id,
                             ],
-                            keyword_args={},
                         ).id,
                         positional_args=[
                             LiteralNode(
@@ -108,7 +107,6 @@ call_5 = CallNode(
                                 value="tests/simple_data.csv",
                             ).id
                         ],
-                        keyword_args={},
                     ).id,
                     LiteralNode(
                         source_location=SourceLocation(
@@ -121,14 +119,10 @@ call_5 = CallNode(
                         value="a",
                     ).id,
                 ],
-                keyword_args={},
             ).id,
             LiteralNode(
                 value="sum",
             ).id,
         ],
-        keyword_args={},
     ).id,
-    positional_args=[],
-    keyword_args={},
 )
