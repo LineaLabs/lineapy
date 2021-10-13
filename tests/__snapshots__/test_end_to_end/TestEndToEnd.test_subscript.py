@@ -67,7 +67,6 @@ call_1 = CallNode(
             value=4,
         ).id,
     ],
-    keyword_args={},
 )
 call_2 = CallNode(
     source_location=SourceLocation(
@@ -103,7 +102,6 @@ call_2 = CallNode(
             value=1,
         ).id,
     ],
-    keyword_args={},
 )
 literal_7 = LiteralNode(
     source_location=SourceLocation(
@@ -140,7 +138,6 @@ call_3 = CallNode(
         ).id,
         literal_7.id,
     ],
-    keyword_args={},
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -188,7 +185,6 @@ call_6 = CallNode(
                     value=3,
                 ).id,
             ],
-            keyword_args={},
         ).id,
         CallNode(
             source_location=SourceLocation(
@@ -213,10 +209,8 @@ call_6 = CallNode(
                     value=30,
                 ).id
             ],
-            keyword_args={},
         ).id,
     ],
-    keyword_args={},
 )
 call_9 = CallNode(
     source_location=SourceLocation(
@@ -255,7 +249,6 @@ call_9 = CallNode(
                 ).id,
                 literal_7.id,
             ],
-            keyword_args={},
         ).id,
         CallNode(
             source_location=SourceLocation(
@@ -280,8 +273,6 @@ call_9 = CallNode(
                     value=40,
                 ).id
             ],
-            keyword_args={},
         ).id,
     ],
-    keyword_args={},
 )

@@ -60,7 +60,6 @@ call_3 = CallNode(
                             value="__name__",
                         ).id,
                     ],
-                    keyword_args={},
                 ).id,
                 LiteralNode(
                     source_location=SourceLocation(
@@ -73,8 +72,6 @@ call_3 = CallNode(
                     value="pandas",
                 ).id,
             ],
-            keyword_args={},
         ).id
     ],
-    keyword_args={},
 )

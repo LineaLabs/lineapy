@@ -41,5 +41,4 @@ call_2 = CallNode(
             value=0,
         ).id,
     ],
-    keyword_args={},
 )

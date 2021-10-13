@@ -42,7 +42,6 @@ call_3 = CallNode(
                     value=0,
                 ).id
             ],
-            keyword_args={},
         ).id,
         CallNode(
             source_location=SourceLocation(
@@ -67,8 +66,6 @@ call_3 = CallNode(
                     value=0,
                 ).id
             ],
-            keyword_args={},
         ).id,
     ],
-    keyword_args={},
 )

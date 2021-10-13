@@ -39,8 +39,6 @@ call_1 = CallNode(
     function_id=LookupNode(
         name="__build_list__",
     ).id,
-    positional_args=[],
-    keyword_args={},
 )
 call_2 = CallNode(
     source_location=SourceLocation(
@@ -96,7 +94,6 @@ call_3 = CallNode(
             value=1,
         ).id,
     ],
-    keyword_args={},
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -122,7 +119,6 @@ call_6 = CallNode(
                 name="sum",
             ).id,
             positional_args=[call_1.id],
-            keyword_args={},
         ).id,
         CallNode(
             function_id=LookupNode(
@@ -134,8 +130,6 @@ call_6 = CallNode(
                     value=0,
                 ).id,
             ],
-            keyword_args={},
         ).id,
     ],
-    keyword_args={},
 )

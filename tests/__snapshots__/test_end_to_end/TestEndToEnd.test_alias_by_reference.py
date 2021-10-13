@@ -57,7 +57,6 @@ call_1 = CallNode(
             value=3,
         ).id,
     ],
-    keyword_args={},
 )
 call_3 = CallNode(
     source_location=SourceLocation(
@@ -84,7 +83,6 @@ call_3 = CallNode(
                 value="append",
             ).id,
         ],
-        keyword_args={},
     ).id,
     positional_args=[
         LiteralNode(
@@ -98,7 +96,6 @@ call_3 = CallNode(
             value=4,
         ).id
     ],
-    keyword_args={},
 )
 literal_6 = LiteralNode(
     source_location=SourceLocation(
@@ -122,7 +119,6 @@ call_4 = CallNode(
         name="contains",
     ).id,
     positional_args=[call_1.id, literal_6.id],
-    keyword_args={},
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -148,10 +144,8 @@ call_6 = CallNode(
                 name="contains",
             ).id,
             positional_args=[call_1.id, literal_6.id],
-            keyword_args={},
         ).id
     ],
-    keyword_args={},
 )
 call_7 = CallNode(
     source_location=SourceLocation(
@@ -165,5 +159,4 @@ call_7 = CallNode(
         name="sum",
     ).id,
     positional_args=[call_1.id],
-    keyword_args={},
 )

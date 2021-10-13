@@ -67,7 +67,6 @@ call_5 = CallNode(
                 value="imsave",
             ).id,
         ],
-        keyword_args={},
     ).id,
     positional_args=[
         LiteralNode(
@@ -116,7 +115,6 @@ call_5 = CallNode(
                         value="read_csv",
                     ).id,
                 ],
-                keyword_args={},
             ).id,
             positional_args=[
                 LiteralNode(
@@ -130,10 +128,8 @@ call_5 = CallNode(
                     value="tests/simple_data.csv",
                 ).id
             ],
-            keyword_args={},
         ).id,
     ],
-    keyword_args={},
 )
 call_9 = CallNode(
     source_location=SourceLocation(
@@ -184,7 +180,6 @@ call_9 = CallNode(
                             value="open",
                         ).id,
                     ],
-                    keyword_args={},
                 ).id,
                 positional_args=[
                     LiteralNode(
@@ -198,13 +193,11 @@ call_9 = CallNode(
                         value="simple_data.png",
                     ).id
                 ],
-                keyword_args={},
             ).id,
             LiteralNode(
                 value="resize",
             ).id,
         ],
-        keyword_args={},
     ).id,
     positional_args=[
         CallNode(
@@ -240,8 +233,6 @@ call_9 = CallNode(
                     value=200,
                 ).id,
             ],
-            keyword_args={},
         ).id
     ],
-    keyword_args={},
 )
