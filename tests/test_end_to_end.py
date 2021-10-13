@@ -1,4 +1,5 @@
 import datetime
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -417,6 +418,11 @@ class TestEndToEnd:
         assert res.values["a"] == 1
         assert res.values["b"] == 2
 
+    def test_housing(self, execute, python_snapshot):
+        code = (Path(__file__).parent / "housing.py").read_text()
+        res = execute(code)
+        assert res.slice("p value") == python_snapshot
+
 
 class TestUnaryOp:
     def test_sub(self, execute):
@@ -533,3 +539,93 @@ class TestDictionary:
     def test_splatting(self, execute):
         res = execute("x = {1: 2, 2:2, **{1: 3, 2: 3}, 1: 4}")
         assert res.values["x"] == {1: 4, 2: 3}
+
+
+class TestFunctionMutations:
+    def test_mutation(self, execute):
+        """
+        Verify that mutating an item wil cause a dependency on the mutation.
+        """
+        source = "x = {}\nx['a'] = 3\n"
+        res = execute(source, artifacts=["x"])
+        assert res.artifacts["x"] == source
+
+    def test_mutation_of_view(self, execute):
+        """
+        Verify that mutating a view will update the original.
+        """
+        source = """x = {}
+y = {}
+x['y'] = y
+y['a'] = 1
+"""
+        res = execute(source, artifacts=["x"])
+        assert res.artifacts["x"] == source
+        # assert res.artifacts["y"] == "y = {}\ny['a'] = 1\n"
+
+    def test_before_after_mutation(self, execute):
+        """
+        Verify that references to an object before its mutated are different
+        than after
+        """
+        source = """x = {}
+before = str(x)
+x['a'] = 1
+after = str(x)
+"""
+        res = execute(source, artifacts=["x", "before", "after"])
+        assert res.artifacts == {
+            "x": "x = {}\nx['a'] = 1\n",
+            "before": "x = {}\nbefore = str(x)\n",
+            "after": "x = {}\nx['a'] = 1\nafter = str(x)\n",
+        }
+
+    def test_view_of_view(self, execute):
+        """
+        Verify that mutating a view of a view will update the original.
+        """
+        source = """x = {}
+y = {}
+z = {}
+x['y'] = y
+y['z'] = z
+z['a'] = 1
+"""
+        res = execute(source, artifacts=["x", "y", "z"])
+
+        assert res.artifacts == {
+            "x": source,
+            "y": "y = {}\nz = {}\ny['z'] = z\nz['a'] = 1\n",
+            "z": "z = {}\nz['a'] = 1\n",
+        }
+
+    def test_delitem(self, execute):
+        """
+        Verify that mutating a view of a view will update the original.
+        """
+        source = """x = {1: 1}
+del x[1]
+"""
+        res = execute(source, artifacts=["x"])
+
+        assert res.artifacts["x"] == source
+
+    @pytest.mark.xfail(reason="some bug in view loops?")
+    def test_self_return_loop(self, execute):
+        """
+        Verifies that if we return a value that is the same as the self arg,
+        they will both be dependent on one another.
+        """
+        # From https://scikit-learn.org/stable/modules/generated/sklearn.dummy.DummyClassifier.html
+        code = """import numpy as np
+from sklearn.dummy import DummyClassifier
+X = np.array([-1, 1, 1, 1])
+y = np.array([0, 1, 1, 1])
+clf = DummyClassifier(strategy="most_frequent")
+new_clf = clf.fit(X, y)
+clf.fit(X, y)
+new_clf.fit(X, y)
+"""
+        res = execute(code, artifacts=["new_clf", "clf"])
+        assert res.artifacts["new_clf"] == code
+        assert res.artifacts["clf"] == code

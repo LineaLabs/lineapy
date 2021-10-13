@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from functools import cached_property
@@ -12,8 +13,10 @@ from lineapy.data.types import (
     CallNode,
     ImportNode,
     Library,
+    LineaID,
     LiteralNode,
     LookupNode,
+    MutateNode,
     Node,
     NodeValue,
     SessionContext,
@@ -37,6 +40,21 @@ class Tracer:
     session_name: InitVar[Optional[str]] = None
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
+
+    # Mapping of mutated nodes, from their original node id, to the mutated
+    # node id
+    node_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
+
+    # Mapping of each node, to every node that has a "view" of it,
+    # meaning that if that node is mutated, the view node will be as well
+    source_to_viewers: dict[LineaID, set[LineaID]] = field(
+        default_factory=lambda: defaultdict(set)
+    )
+
+    # Reverse mapping of node to viewers
+    viewer_to_sources: dict[LineaID, set[LineaID]] = field(
+        default_factory=lambda: defaultdict(set)
+    )
 
     session_context: SessionContext = field(init=False)
     executor: Executor = field(init=False)
@@ -112,9 +130,43 @@ class Tracer:
         Execute a node, and adds it to the database.
         """
         self.db.write_node(node)
-        # TODO: Process spec and add mutations
 
-        self.executor.execute_node(node)
+        side_effects = self.executor.execute_node(node)
+
+        # Update the graph from the side effects of the node,
+        # Creating additional views and mutate nodes
+
+        # The viewer mappings are transitive closures, so whenever we add
+        # a new view -> src, we have to traverse all of its parents and children
+        # and add them as well.
+
+        # Instead, we could have done the traversal when looking up the mutation
+        for source_id, view_id in side_effects.views:
+            self.source_to_viewers[source_id].add(view_id)
+            self.viewer_to_sources[view_id].add(source_id)
+
+            for parent_source in self.viewer_to_sources[source_id]:
+                self.source_to_viewers[parent_source].add(view_id)
+                self.viewer_to_sources[view_id].add(parent_source)
+
+            for child_viewer in self.source_to_viewers[view_id]:
+                self.source_to_viewers[source_id].add(child_viewer)
+                self.viewer_to_sources[child_viewer].add(source_id)
+
+        for original_source_id in side_effects.mutated:
+            # Create a mutation node for every node that was mutated,
+            # Which are all the views + the node itself
+            for source_id in self.source_to_viewers[original_source_id] | {
+                original_source_id
+            }:
+                mutate_node = MutateNode(
+                    id=get_new_id(),
+                    session_id=node.session_id,
+                    source_id=self.resolve_node(source_id),
+                    call_id=node.id,
+                )
+                self.node_to_mutate[source_id] = mutate_node.id
+                self.process_node(mutate_node)
 
     def lookup_node(self, variable_name: str) -> Node:
         """
@@ -138,9 +190,25 @@ class Tracer:
             self.process_node(new_node)
             return new_node
 
+    def resolve_node(self, node_id: LineaID) -> LineaID:
+        """
+        Resolve a node to find the latest mutate node, that refers to it.
+
+        Call this before creating a object based on another node.
+        """
+        # Keep looking up to see if their is a new mutated version of this
+        # node
+        while node_id in self.node_to_mutate:
+            node_id = self.node_to_mutate[node_id]
+        return node_id
+
     def publish(self, node: Node, description: Optional[str]) -> None:
         self.db.write_artifact(
-            Artifact(id=node.id, date_created=datetime.now(), name=description)
+            Artifact(
+                id=self.resolve_node(node.id),
+                date_created=datetime.now(),
+                name=description,
+            )
         )
         # serialize to db
         res = self.executor.get_value(node)
@@ -255,8 +323,11 @@ class Tracer:
             id=get_new_id(),
             session_id=self.session_context.id,
             function_id=function_node.id,
-            positional_args=[n.id for n in arguments],
-            keyword_args={k: n.id for k, n, in keyword_arguments.items()},
+            positional_args=[self.resolve_node(n.id) for n in arguments],
+            keyword_args={
+                k: self.resolve_node(n.id)
+                for k, n, in keyword_arguments.items()
+            },
             source_location=source_location,
         )
         self.process_node(node)

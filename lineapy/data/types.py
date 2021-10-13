@@ -74,6 +74,7 @@ class NodeType(Enum):
     LiteralNode = auto()
     ImportNode = auto()
     LookupNode = auto()
+    MutateNode = auto()
 
 
 class LiteralType(Enum):
@@ -345,6 +346,27 @@ class LookupNode(BaseNode):
     name: str
 
 
+class MutateNode(BaseNode):
+    """
+    Represents a mutation of a node's value.
+
+    After a call mutates a node then later references to that node will
+    instead refer to this mutate node.
+    """
+
+    node_type = NodeType.MutateNode
+
+    # Points to the original node that was mutated
+    source_id: LineaID
+
+    # Points to the CallNode that did the mutation
+    call_id: LineaID
+
+    def parents(self) -> Iterable[LineaID]:
+        yield self.source_id
+        yield self.call_id
+
+
 # We can use this for more precise type definitions, to make sure we hit
 # all the node cases
-Node = Union[ImportNode, CallNode, LiteralNode, LookupNode]
+Node = Union[ImportNode, CallNode, LiteralNode, LookupNode, MutateNode]
