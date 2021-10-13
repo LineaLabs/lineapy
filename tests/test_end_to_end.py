@@ -1,4 +1,5 @@
 import datetime
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -417,6 +418,11 @@ class TestEndToEnd:
         assert res.values["a"] == 1
         assert res.values["b"] == 2
 
+    def test_housing(self, execute, python_snapshot):
+        code = (Path(__file__).parent / "housing.py").read_text()
+        res = execute(code)
+        assert res.slice("p value") == python_snapshot
+
 
 class TestUnaryOp:
     def test_sub(self, execute):
@@ -603,3 +609,23 @@ del x[1]
         res = execute(source, artifacts=["x"])
 
         assert res.artifacts["x"] == source
+
+    @pytest.mark.xfail(reason="some bug in view loops?")
+    def test_self_return_loop(self, execute):
+        """
+        Verifies that if we return a value that is the same as the self arg,
+        they will both be dependent on one another.
+        """
+        # From https://scikit-learn.org/stable/modules/generated/sklearn.dummy.DummyClassifier.html
+        code = """import numpy as np
+from sklearn.dummy import DummyClassifier
+X = np.array([-1, 1, 1, 1])
+y = np.array([0, 1, 1, 1])
+clf = DummyClassifier(strategy="most_frequent")
+new_clf = clf.fit(X, y)
+clf.fit(X, y)
+new_clf.fit(X, y)
+"""
+        res = execute(code, artifacts=["new_clf", "clf"])
+        assert res.artifacts["new_clf"] == code
+        assert res.artifacts["clf"] == code

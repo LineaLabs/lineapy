@@ -24,6 +24,7 @@ from lineapy.data.types import (
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.instrumentation.inspect_function import (
+    BoundSelfOfFunction,
     KeywordArg,
     PositionalArg,
     Result,
@@ -51,6 +52,8 @@ class Executor:
     _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
     )
+    # Mapping of bound method node ids to the ID of the instance they are bound to
+    _node_to_bound_self: dict[LineaID, LineaID] = field(default_factory=dict)
 
     def __post_init__(self):
         self.execution = Execution(
@@ -106,6 +109,11 @@ class Executor:
             # ----------
             fn = cast(Callable, self._id_to_value[node.function_id])
 
+            # If we are getting an attribute, save the value in case
+            # we later call it as a bound method and need to track its mutations
+            if fn == getattr:
+                self._node_to_bound_self[node.id] = node.positional_args[0]
+
             args = [
                 self._id_to_value[arg_id] for arg_id in node.positional_args
             ]
@@ -127,7 +135,9 @@ class Executor:
             inspect_function_res = inspect_function(fn, args, kwargs, res)
 
             def get_node_id(
-                pointer: Union[PositionalArg, KeywordArg, Result],
+                pointer: Union[
+                    PositionalArg, KeywordArg, Result, BoundSelfOfFunction
+                ],
                 node: CallNode = cast(CallNode, node),
             ) -> LineaID:
                 if isinstance(pointer, PositionalArg):
@@ -136,6 +146,8 @@ class Executor:
                     return node.keyword_args[pointer.name]
                 elif isinstance(pointer, Result):
                     return node.id
+                elif isinstance(pointer, BoundSelfOfFunction):
+                    return self._node_to_bound_self[node.function_id]
 
             return SideEffects(
                 mutated={get_node_id(m) for m in inspect_function_res.mutated},

@@ -1,5 +1,6 @@
-# from inspect import BoundArguments, signature
 import operator
+import sys
+import types
 from dataclasses import dataclass, field
 from typing import Callable, Union
 
@@ -12,6 +13,11 @@ class PositionalArg:
 @dataclass(frozen=True)
 class KeywordArg:
     name: str
+
+
+@dataclass(frozen=True)
+class BoundSelfOfFunction:
+    pass
 
 
 @dataclass(frozen=True)
@@ -32,13 +38,15 @@ class View:
     provide more explicit names and types for the results.
     """
 
-    source: Union[PositionalArg, KeywordArg, Result]
-    viewer: Union[PositionalArg, KeywordArg, Result]
+    source: Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
+    viewer: Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
 
 
 @dataclass(frozen=True)
 class InspectFunctionResult:
-    mutated: set[Union[PositionalArg, KeywordArg]] = field(default_factory=set)
+    mutated: set[
+        Union[PositionalArg, KeywordArg, BoundSelfOfFunction]
+    ] = field(default_factory=set)
     views: set[View] = field(default_factory=set)
 
 
@@ -69,17 +77,32 @@ def inspect_function(
             # The first arg, the dict, is mutated
             mutated={PositionalArg(0)},
         )
-    # TODO: add special casing for different functions
-    # And then eventually probably try to specify most of it declaratively
-    # Or infer from docstrings/names, definitions, etc.
+    if imported_module("sklearn"):
+        from sklearn.base import BaseEstimator
+
+        if (
+            isinstance(function, types.MethodType)
+            and function.__name__ == "fit"
+            and isinstance(function.__self__, BaseEstimator)
+        ):
+            # In res = clf.fit(x, y)
+            # cff is mutated, and we say that the res and the clf
+            # are views of each other, since mutating one will mutate the other
+            # since they are the same object.
+            return InspectFunctionResult(
+                mutated={BoundSelfOfFunction()},
+                views={
+                    View(BoundSelfOfFunction(), Result()),
+                    View(Result(), BoundSelfOfFunction()),
+                },
+            )
+    # Note: Future functions might require normalizing the args/kwargs with
+    # inspect.signature.bind(args, kwargs) first
     return InspectFunctionResult()
 
-    # # Create a thunk for computing the bound arguments, since we can't get
-    # # the signature of all functions (some function defined in C don't provide
-    # # a signature).
-    # def bound(function=function, args=args, kwargs=kwargs) -> BoundArguments:
-    #     """
-    #     Returns the bound arguments for the function, to normalize args/kwargs
-    #     processing.
-    #     """
-    #     return signature(function).bind(*args, **kwargs)
+
+def imported_module(name: str) -> bool:
+    """
+    Returns true if we have imported this module before.
+    """
+    return name in sys.modules
