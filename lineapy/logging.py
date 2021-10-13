@@ -14,7 +14,14 @@ from rich.logging import RichHandler
 FORMAT = "%(message)s"
 
 
-def configure_logging(level="WARNING"):
+def configure_logging(level="WARNING", LOG_SQL=False):
+    # Disable black logging
+    # https://github.com/psf/black/issues/2058
+    logging.getLogger("blib2to3").setLevel(logging.ERROR)
+
+    if LOG_SQL:
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+
     logging.basicConfig(
         level=level,
         format=FORMAT,
