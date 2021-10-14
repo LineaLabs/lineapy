@@ -47,18 +47,6 @@ import_1 = ImportNode(
         name="altair",
     ),
 )
-import_5 = ImportNode(
-    source_location=SourceLocation(
-        lineno=6,
-        col_offset=0,
-        end_lineno=6,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    library=Library(
-        name="lineapy",
-    ),
-)
 call_4 = CallNode(
     source_location=SourceLocation(
         lineno=8,

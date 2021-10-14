@@ -14,18 +14,6 @@ lineapy.linea_publish(s, "Graph With CSV Import")
 """,
     location=PosixPath("[source file path]"),
 )
-import_2 = ImportNode(
-    source_location=SourceLocation(
-        lineno=2,
-        col_offset=0,
-        end_lineno=2,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    library=Library(
-        name="lineapy",
-    ),
-)
 call_5 = CallNode(
     source_location=SourceLocation(
         lineno=5,
