@@ -16,18 +16,6 @@ lineapy.linea_publish(y, \'y\')
 """,
     location=PosixPath("[source file path]"),
 )
-import_1 = ImportNode(
-    source_location=SourceLocation(
-        lineno=1,
-        col_offset=0,
-        end_lineno=1,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    library=Library(
-        name="lineapy",
-    ),
-)
 call_1 = CallNode(
     source_location=SourceLocation(
         lineno=2,
@@ -84,7 +72,7 @@ call_2 = CallNode(
         ).id,
     },
 )
-call_3 = CallNode(
+call_4 = CallNode(
     function_id=LookupNode(
         name="getitem",
     ).id,

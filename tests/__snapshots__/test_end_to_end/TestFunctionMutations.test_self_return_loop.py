@@ -21,18 +21,6 @@ lineapy.linea_publish(clf, \'clf\')
 )
 import_1 = ImportNode(
     source_location=SourceLocation(
-        lineno=1,
-        col_offset=0,
-        end_lineno=1,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    library=Library(
-        name="lineapy",
-    ),
-)
-import_2 = ImportNode(
-    source_location=SourceLocation(
         lineno=2,
         col_offset=0,
         end_lineno=2,
@@ -63,7 +51,7 @@ call_5 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_2.id,
+            import_1.id,
             LiteralNode(
                 value="array",
             ).id,
@@ -160,7 +148,7 @@ call_8 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_2.id,
+            import_1.id,
             LiteralNode(
                 value="array",
             ).id,
