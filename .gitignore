@@ -152,3 +152,5 @@ temp.py
 tmp_*
 housing.csv
 *.temp
+
+tracer.pdf

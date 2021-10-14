@@ -85,6 +85,7 @@ setup(
             "SQLAlchemy[mypy]",
             "coveralls",
             "seaborn",
+            "graphviz",
         ]
     },
     include_package_data=True,
