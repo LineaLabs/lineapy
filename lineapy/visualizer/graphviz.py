@@ -32,7 +32,9 @@ NODE_STYLE = {
     "style": "filled",
 }
 
-EDGE_STYLE = {"colorscheme": NODE_STYLE["colorscheme"]}
+EDGE_STYLE = {
+    "colorscheme": NODE_STYLE["colorscheme"],
+}
 
 ColorableType = Union[NodeType, ExtraLabelType, VisualEdgeType]
 
@@ -60,12 +62,12 @@ NODE_LABELS: dict[NodeType, str] = {
 }
 
 EXTRA_LABEL_LABELS: dict[ExtraLabelType, str] = {
-    ExtraLabelType.ARTIFACT: "Artifact",
-    ExtraLabelType.VARIABLE: "Variable",
+    ExtraLabelType.ARTIFACT: "Artifact Name",
+    ExtraLabelType.VARIABLE: "Variable Name",
 }
 
 EDGE_TYPE_TO_LABEL: dict[VisualEdgeType, str] = {
-    VisualEdgeType.LATEST_MUTATE_SOURCE: "Latest Mutate",
+    VisualEdgeType.LATEST_MUTATE_SOURCE: "Implied Mutate",
     VisualEdgeType.VIEW: "View",
 }
 
@@ -88,19 +90,25 @@ def get_color(tp: ColorableType) -> str:
 
 def tracer_to_graphviz(tracer: Tracer) -> graphviz.Digraph:
     dot = graphviz.Digraph()
+
+    dot.attr(newrank="true")
     dot.attr("node", **NODE_STYLE)
     dot.attr("edge", **EDGE_STYLE)
+
     add_legend(dot)
 
     vg = tracer_to_visual_graph(tracer)
+
     for node in vg.nodes:
         render_node(dot, node)
+
     for edge in vg.edges:
         dot.edge(
             pointer_to_id(edge.source),
             pointer_to_id(edge.target),
             **edge_type_to_kwargs(edge.type),
         )
+
     return dot
 
 
@@ -148,44 +156,55 @@ def edge_type_to_kwargs(edge_type: VisualEdgeType) -> dict[str, object]:
     }
 
 
-def add_legend(dot: graphviz.Digraph) -> None:
+def add_legend(dot: graphviz.Digraph):
     """
     Add a legend with nodes and edge styles
 
-    https://stackoverflow.com/a/52300532/907060
+    https://stackoverflow.com/a/52300532/907060.
     """
     with dot.subgraph(name="cluster_0") as c:
+
         c.attr(label="Legend")
         prev_id = None
-
-        edge_label_items = iter(EDGE_TYPE_TO_LABEL.items())
         for node_type, label in NODE_LABELS.items():
-            id_ = f"legend_{label}"
+            id_ = f"legend_node_{label}"
 
             extra_labels: ExtraLabels = []
             # Add sample edges for the different types of edges
             # Once we are done, make them invsible, so that nodes are still all aligned
             if prev_id:
-                try:
-                    edge_type, label = next(edge_label_items)
-                    kwargs = edge_type_to_kwargs(edge_type)
-                    kwargs["label"] = label
-                except StopIteration:
-                    kwargs = {"style": "invis"}
-                c.edge(prev_id, id_, **kwargs)
+                c.edge(prev_id, id_, style="invis")
             # If this is the first node, add sample extra labels
             else:
-                for v, label in EXTRA_LABEL_LABELS.items():
-                    extra_labels.append(ExtraLabel(label, v))
+                for v, extra_label_label in EXTRA_LABEL_LABELS.items():
+                    extra_labels.append(ExtraLabel(extra_label_label, v))
             render_node(
                 c,
                 VisualNode(id_, node_type, label, extra_labels),
             )
             prev_id = id_
 
+        # Keep adding invisible edges, so that all of the nodes are aligned vertically
+        id_ = "legend_edge"
+        c.node(id_, "", shape="box", style="invis")
+        c.edge(prev_id, id_, style="invis")
+        prev_id = id_
+        for edge_type, label in EDGE_TYPE_TO_LABEL.items():
+            id_ = f"legend_edge_{label}"
+            c.node(id_, "", shape="box", style="invis")
+            c.edge(
+                prev_id,
+                id_,
+                label=label,
+                **edge_type_to_kwargs(edge_type),
+            )
+            prev_id = id_
+    return id_
 
-def render_node(dot: graphviz.Digraph, node: VisualNode) -> None:
+
+def render_node(dot: graphviz.Digraph, node: VisualNode) -> str:
     kwargs = node_type_to_kwargs(node.type)
     if node.extra_labels:
         kwargs["xlabel"] = extra_labels_to_html(node.extra_labels)
     dot.node(node.id, contents_to_label(node.contents), **kwargs)
+    return node.id
