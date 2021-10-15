@@ -46,7 +46,6 @@ call_2 = CallNode(
                     value="imag",
                 ).id,
             ],
-            keyword_args={},
         ).id,
         LiteralNode(
             source_location=SourceLocation(
@@ -59,5 +58,4 @@ call_2 = CallNode(
             value=1,
         ).id,
     ],
-    keyword_args={},
 )

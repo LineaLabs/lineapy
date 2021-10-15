@@ -55,10 +55,7 @@ call_3 = CallNode(
                         value="SimpleNamespace",
                     ).id,
                 ],
-                keyword_args={},
             ).id,
-            positional_args=[],
-            keyword_args={},
         ).id,
         LiteralNode(
             value="hi",
@@ -74,5 +71,4 @@ call_3 = CallNode(
             value=1,
         ).id,
     ],
-    keyword_args={},
 )

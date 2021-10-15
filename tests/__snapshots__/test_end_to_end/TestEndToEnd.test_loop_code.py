@@ -16,18 +16,6 @@ lineapy.save(y, \'y\')
 """,
     location=PosixPath("[source file path]"),
 )
-import_1 = ImportNode(
-    source_location=SourceLocation(
-        lineno=1,
-        col_offset=0,
-        end_lineno=1,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    library=Library(
-        name="lineapy",
-    ),
-)
 call_1 = CallNode(
     source_location=SourceLocation(
         lineno=2,
@@ -39,8 +27,6 @@ call_1 = CallNode(
     function_id=LookupNode(
         name="__build_list__",
     ).id,
-    positional_args=[],
-    keyword_args={},
 )
 call_2 = CallNode(
     source_location=SourceLocation(
@@ -86,7 +72,7 @@ call_2 = CallNode(
         ).id,
     },
 )
-call_3 = CallNode(
+call_4 = CallNode(
     function_id=LookupNode(
         name="getitem",
     ).id,
@@ -96,7 +82,6 @@ call_3 = CallNode(
             value=1,
         ).id,
     ],
-    keyword_args={},
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -122,7 +107,6 @@ call_6 = CallNode(
                 name="sum",
             ).id,
             positional_args=[call_1.id],
-            keyword_args={},
         ).id,
         CallNode(
             function_id=LookupNode(
@@ -134,8 +118,6 @@ call_6 = CallNode(
                     value=0,
                 ).id,
             ],
-            keyword_args={},
         ).id,
     ],
-    keyword_args={},
 )

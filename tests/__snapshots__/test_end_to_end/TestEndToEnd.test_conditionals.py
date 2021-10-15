@@ -70,7 +70,6 @@ else:
                     value=2,
                 ).id,
             ],
-            keyword_args={},
         ).id,
         "len": LookupNode(
             name="len",

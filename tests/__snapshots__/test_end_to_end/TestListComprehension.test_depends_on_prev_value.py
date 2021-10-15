@@ -57,7 +57,6 @@ call_3 = CallNode(
                             value=3,
                         ).id
                     ],
-                    keyword_args={},
                 ).id
             },
         ).id,
@@ -65,5 +64,4 @@ call_3 = CallNode(
             value=0,
         ).id,
     ],
-    keyword_args={},
 )

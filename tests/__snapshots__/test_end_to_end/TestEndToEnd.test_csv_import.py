@@ -14,18 +14,6 @@ lineapy.save(s, "Graph With CSV Import")
 """,
     location=PosixPath("[source file path]"),
 )
-import_2 = ImportNode(
-    source_location=SourceLocation(
-        lineno=2,
-        col_offset=0,
-        end_lineno=2,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    library=Library(
-        name="lineapy",
-    ),
-)
 call_5 = CallNode(
     source_location=SourceLocation(
         lineno=5,
@@ -94,7 +82,6 @@ call_5 = CallNode(
                                     value="read_csv",
                                 ).id,
                             ],
-                            keyword_args={},
                         ).id,
                         positional_args=[
                             LiteralNode(
@@ -108,7 +95,6 @@ call_5 = CallNode(
                                 value="tests/simple_data.csv",
                             ).id
                         ],
-                        keyword_args={},
                     ).id,
                     LiteralNode(
                         source_location=SourceLocation(
@@ -121,14 +107,10 @@ call_5 = CallNode(
                         value="a",
                     ).id,
                 ],
-                keyword_args={},
             ).id,
             LiteralNode(
                 value="sum",
             ).id,
         ],
-        keyword_args={},
     ).id,
-    positional_args=[],
-    keyword_args={},
 )

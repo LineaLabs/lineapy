@@ -10,8 +10,6 @@ from typing import TYPE_CHECKING, Iterable, cast
 from pydantic import BaseModel
 from pydantic.fields import SHAPE_DICT, SHAPE_LIST
 
-from lineapy.transformer.transformer_util import SYNTAX_KEY
-
 if TYPE_CHECKING:
     from lineapy.data.graph import Graph
 
@@ -105,10 +103,10 @@ class GraphPrinter:
                 )
 
             else:
-                self.id_to_attribute_name[node_id] = attr_name
                 yield f"{attr_name} = ("
                 yield from self.pretty_print_model(node)
                 yield ")"
+                self.id_to_attribute_name[node_id] = attr_name
 
     def pretty_print_model(self, model: BaseModel) -> Iterable[str]:
         yield f"{type(model).__name__}("
@@ -134,11 +132,13 @@ class GraphPrinter:
             v_str: str
             if k == "node_type":
                 continue
-            if k in SYNTAX_KEY and not self.include_source_location:
+            if k == "source_location" and not self.include_source_location:
                 continue
             if k == "id" and not self.include_id_field:
                 continue
             if k == "session_id" and not self.include_session:
+                continue
+            if (k == "positional_args" or k == "keyword_args") and not v:
                 continue
             if tp == LineaID and shape == SHAPE_LIST:
                 args = [self.lookup_id(id_) for id_ in v]

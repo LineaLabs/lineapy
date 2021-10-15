@@ -142,7 +142,13 @@ class Graph(object):
         return Graph(nodes, self.session_context)
 
     def __str__(self):
-        return prettify(self.print())
+        return prettify(
+            self.print(
+                include_source_location=False,
+                include_id_field=True,
+                include_session=False,
+            )
+        )
 
     def __repr__(self):
         return prettify(self.print())

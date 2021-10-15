@@ -19,10 +19,12 @@ from lineapy.data.types import (
     LineaID,
     LiteralNode,
     LookupNode,
+    MutateNode,
     Node,
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.instrumentation.inspect_function import (
+    BoundSelfOfFunction,
     KeywordArg,
     PositionalArg,
     Result,
@@ -50,6 +52,8 @@ class Executor:
     _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
     )
+    # Mapping of bound method node ids to the ID of the instance they are bound to
+    _node_to_bound_self: dict[LineaID, LineaID] = field(default_factory=dict)
 
     def __post_init__(self):
         self.execution = Execution(
@@ -105,6 +109,11 @@ class Executor:
             # ----------
             fn = cast(Callable, self._id_to_value[node.function_id])
 
+            # If we are getting an attribute, save the value in case
+            # we later call it as a bound method and need to track its mutations
+            if fn == getattr:
+                self._node_to_bound_self[node.id] = node.positional_args[0]
+
             args = [
                 self._id_to_value[arg_id] for arg_id in node.positional_args
             ]
@@ -126,15 +135,19 @@ class Executor:
             inspect_function_res = inspect_function(fn, args, kwargs, res)
 
             def get_node_id(
-                pointer: Union[PositionalArg, KeywordArg, Result],
-                node=node,
+                pointer: Union[
+                    PositionalArg, KeywordArg, Result, BoundSelfOfFunction
+                ],
+                node: CallNode = cast(CallNode, node),
             ) -> LineaID:
                 if isinstance(pointer, PositionalArg):
-                    return node.positional_args[pointer.index].id
+                    return node.positional_args[pointer.index]
                 elif isinstance(pointer, KeywordArg):
-                    return node.keyword_args[pointer.name].id
+                    return node.keyword_args[pointer.name]
                 elif isinstance(pointer, Result):
                     return node.id
+                elif isinstance(pointer, BoundSelfOfFunction):
+                    return self._node_to_bound_self[node.function_id]
 
             return SideEffects(
                 mutated={get_node_id(m) for m in inspect_function_res.mutated},
@@ -155,6 +168,10 @@ class Executor:
         elif isinstance(node, LiteralNode):
             self._id_to_value[node.id] = node.value
             return SideEffects()
+        elif isinstance(node, MutateNode):
+            # Copy the value from the source value node
+            self._id_to_value[node.id] = self._id_to_value[node.source_id]
+            return SideEffects()
 
     def execute_graph(self, graph: Graph) -> None:
         logger.info("Executing graph %s", graph)
@@ -170,14 +187,17 @@ class Executor:
 @dataclass(frozen=True)
 class SideEffects:
     """
-    The side effects from executing a node,
+    The side effects from executing a node.
+
+    This dataclass is used as the return value for executing a node, to provide
+    more explicit names and types for the results.
     """
 
     # Set of linea IDs which were mutated by executing this node.
     mutated: set[LineaID] = field(default_factory=set)
-    # Set of mappings from the ID of a source node to the ID of a new node
-    # which is now a view of that node
-    # This means that now whenever the source is mutated, the viewer is also mutated.
+    # Set of tuples mapping the ID of a source node to the ID of the node which
+    # views it. This means that now whenever the source is mutated, the viewer
+    # is also mutated.
     views: set[tuple[LineaID, LineaID]] = field(default_factory=set)
 
 

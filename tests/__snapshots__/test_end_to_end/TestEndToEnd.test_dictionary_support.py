@@ -78,7 +78,6 @@ call_8 = CallNode(
                                     value="DataFrame",
                                 ).id,
                             ],
-                            keyword_args={},
                         ).id,
                         positional_args=[
                             CallNode(
@@ -141,16 +140,12 @@ call_8 = CallNode(
                                                         value=2,
                                                     ).id,
                                                 ],
-                                                keyword_args={},
                                             ).id,
                                         ],
-                                        keyword_args={},
                                     ).id
                                 ],
-                                keyword_args={},
                             ).id
                         ],
-                        keyword_args={},
                     ).id,
                     LiteralNode(
                         source_location=SourceLocation(
@@ -163,14 +158,10 @@ call_8 = CallNode(
                         value="id",
                     ).id,
                 ],
-                keyword_args={},
             ).id,
             LiteralNode(
                 value="sum",
             ).id,
         ],
-        keyword_args={},
     ).id,
-    positional_args=[],
-    keyword_args={},
 )

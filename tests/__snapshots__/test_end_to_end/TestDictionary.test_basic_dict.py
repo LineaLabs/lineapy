@@ -45,7 +45,6 @@ call_3 = CallNode(
                     value=1,
                 ).id,
             ],
-            keyword_args={},
         ).id,
         CallNode(
             function_id=LookupNode(
@@ -73,8 +72,6 @@ call_3 = CallNode(
                     value=2,
                 ).id,
             ],
-            keyword_args={},
         ).id,
     ],
-    keyword_args={},
 )

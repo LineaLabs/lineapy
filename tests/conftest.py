@@ -29,6 +29,15 @@ from tests.util import get_project_directory
 DUMMY_WORKING_DIR = "dummy_linea_repo/"
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--visualize",
+        action="store_true",
+        default=False,
+        help="Visualize the tracer sessions",
+    )
+
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_logging():
     configure_logging("INFO")
@@ -88,14 +97,14 @@ def python_snapshot(request):
 
 
 @pytest.fixture
-def execute(python_snapshot, tmp_path):
+def execute(python_snapshot, tmp_path, request):
     """
     :param snapshot: `snapshot` is a fixture from the syrupy library that's automatically injected by pytest.
     :param tmp_path: `tmp_path` is provided by the core pytest
+    :param request: `request` is provided by the core pytest
     """
     return ExecuteFixture(
-        python_snapshot,
-        tmp_path,
+        python_snapshot, tmp_path, request.config.getoption("--visualize")
     )
 
 
@@ -111,6 +120,8 @@ class ExecuteFixture:
 
     snapshot: syrupy.SnapshotAssertion
     tmp_path: pathlib.Path
+    # Whether to visualize the tracer graph after creating
+    visualize: bool
 
     def __call__(
         self,
@@ -145,6 +156,9 @@ class ExecuteFixture:
         db = RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
         tracer = Tracer(db, SessionType.SCRIPT)
         transform(code, source_code_path, tracer)
+
+        if self.visualize:
+            tracer.visualize()
 
         # Verify snapshot of graph
         if compare_snapshot:

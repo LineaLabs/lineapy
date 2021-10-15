@@ -19,18 +19,6 @@ lineapy.save(f, \'f\')
 """,
     location=PosixPath("[source file path]"),
 )
-import_1 = ImportNode(
-    source_location=SourceLocation(
-        lineno=1,
-        col_offset=0,
-        end_lineno=1,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    library=Library(
-        name="lineapy",
-    ),
-)
 literal_1 = LiteralNode(
     source_location=SourceLocation(
         lineno=2,
@@ -65,7 +53,6 @@ call_2 = CallNode(
         ).id,
         literal_1.id,
     ],
-    keyword_args={},
 )
 call_4 = CallNode(
     source_location=SourceLocation(
@@ -116,10 +103,8 @@ call_4 = CallNode(
                             value=2,
                         ).id,
                     ],
-                    keyword_args={},
                 ).id,
             ],
-            keyword_args={},
         ).id,
         LiteralNode(
             source_location=SourceLocation(
@@ -132,7 +117,6 @@ call_4 = CallNode(
             value=2,
         ).id,
     ],
-    keyword_args={},
 )
 literal_5 = LiteralNode(
     source_location=SourceLocation(

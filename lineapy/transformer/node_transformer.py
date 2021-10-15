@@ -141,6 +141,8 @@ class NodeTransformer(ast.NodeTransformer):
         Similar to `visit_ImportFrom`, slightly different class syntax
         """
         for lib in node.names:
+            if lib.name == "lineapy":
+                continue
             self.tracer.trace_import(
                 lib.name,
                 self.get_source(node),

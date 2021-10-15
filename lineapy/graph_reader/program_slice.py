@@ -49,6 +49,7 @@ def get_source_code_from_graph(program: Graph) -> str:
             )
         )
 
+    logger.info("Source code to lines: %s", source_code_to_lines)
     # Sort source codes (for jupyter cells), and select lines
     code = ""
     for source_code, lines in sorted(
@@ -72,5 +73,5 @@ def get_program_slice(graph: Graph, sinks: List[LineaID]) -> str:
     """
     logger.info("Slicing graph %s", graph)
     subgraph = get_slice_graph(graph, sinks)
-    logger.info("Subgraph %s", subgraph)
+    logger.info("Subgraph for %s: %s", sinks, subgraph)
     return get_source_code_from_graph(subgraph)
