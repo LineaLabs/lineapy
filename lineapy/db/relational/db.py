@@ -329,7 +329,7 @@ class RelationalLineaDB:
 
     def get_node_value_from_db(
         self, node_id: LineaID, execution_id: LineaID
-    ) -> Optional[NodeValue]:
+    ) -> Optional[NodeValueORM]:
         value_orm = (
             self.session.query(NodeValueORM)
             .filter(
