@@ -32,9 +32,10 @@ NODE_STYLE = {
     "style": "filled",
 }
 
-EDGE_STYLE = {
-    "colorscheme": NODE_STYLE["colorscheme"],
-}
+EDGE_STYLE = {"colorscheme": NODE_STYLE["colorscheme"]}
+
+DEFAULT_EDGE_COLOR = "/greys3/2"
+CLUSTER_EDGE_COLOR = "/greys3/3"
 
 ColorableType = Union[NodeType, ExtraLabelType, VisualEdgeType]
 
@@ -45,10 +46,10 @@ TYPES_FOR_COLOR: list[ColorableType] = [
     VisualEdgeType.VIEW,
     NodeType.CallNode,
     NodeType.LiteralNode,
-    NodeType.ImportNode,
-    NodeType.LookupNode,
     NodeType.MutateNode,
+    NodeType.ImportNode,
     ExtraLabelType.VARIABLE,
+    NodeType.LookupNode,
     ExtraLabelType.ARTIFACT,
 ]
 
@@ -120,7 +121,7 @@ def extra_labels_to_html(extra_labels: ExtraLabels) -> str:
     it in the xlabel and a table was an easy way to have multiple rows with different colors.
     """
     rows = [
-        f'<TR><TD BGCOLOR="{get_color(el.type)}"><FONT POINT-SIZE="10">{el.label}</FONT></TD></TR>'
+        f'<TR ><TD BGCOLOR="{get_color(el.type)}"><FONT POINT-SIZE="10">{el.label}</FONT></TD></TR>'
         for el in extra_labels
     ]
     return f'<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0">{"".join(rows)}</TABLE>>'
@@ -155,7 +156,9 @@ def node_type_to_kwargs(node_type: NodeType) -> dict[str, object]:
 
 def edge_type_to_kwargs(edge_type: VisualEdgeType) -> dict[str, object]:
     return {
-        "color": get_color(edge_type) if edge_type in TYPES_FOR_COLOR else None
+        "color": get_color(edge_type)
+        if edge_type in TYPES_FOR_COLOR
+        else DEFAULT_EDGE_COLOR
     }
 
 
@@ -173,7 +176,7 @@ def add_legend(dot: graphviz.Digraph):
     https://stackoverflow.com/a/52300532/907060.
     """
     with dot.subgraph(name="cluster_0") as c:
-
+        c.attr(color=CLUSTER_EDGE_COLOR)
         c.attr(label="Legend")
         # Save the previous ID so we can add an invisible edge.
         prev_id = None
