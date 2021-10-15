@@ -1,19 +1,35 @@
 # `lineapy`
 
-Lineapy is a Python library for analyzing data science workflows.
+Lineapy is a Python library for capturing, analyzing, and automating data science workflows.
 
 [![Coverage Status](https://coveralls.io/repos/github/LineaLabs/lineapy/badge.svg?t=jgH0YL)](https://coveralls.io/github/LineaLabs/lineapy)
 
 ## Features
 
+On a high-level, Linea traces the code executed to get an understanding of the code, persist the related code and variable state, and capture the execution context, such as who and when the code was executed.
+
+These understanding of your development process in turn allows Linea to provide a
+set of tools that help you get more values out of our work. 
+A natural unit of organization for these code are variables in the code---both their value and the code used to create them. Our features revolve around these units, which we call 
+_artifact_s.
+
+We currently support the following features:
+
+- Code cleanup: often when working with data, we don't know what efforts will pan out. When we do have something we want to keep, . This is called "Program Slicing" in the literature.
+Linea's slicing feature makes it easy to share and re-execute these work.
+
+There are many others on our road map. If you have any feedback for us, please get in touch! We are on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
+
+These features are currently exposed via two surfaces, one is the CLI and the 
+other is Jupyter (Lab/Notebook).
 ### CLI
 
 Currently, you can run Linea as CLI command to slice your Python code to extract
-only the code that is neccesary to recompute some result. Along the way, Linea
+only the code that is necessary to recompute some result. Along the way, Linea
 stores the semantics of your code into a database, which we are working on exposing
 as well.
 
-We are working to add support for more Python contructs. We currently don't support
+We are working to add support for more Python constructs. We currently don't support
 much control flow, function mutation, or all function definitions.
 
 ```bash
