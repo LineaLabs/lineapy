@@ -14,7 +14,13 @@ We currently support the following features:
 
 - Code cleanup: often when working with data, we don't know what efforts will pan out. When we do have something we want to keep, we can save it as an artifact and create a version of the code that only includes the pieces neccesary to recreate that artifact. This is called "Program Slicing" in the literature. Linea's slicing feature makes it easy to share and re-execute these work.
 
-There are many others on our road map. We have [created issues to describe some of them in Github, tagged with `User Story`](https://github.com/LineaLabs/lineapy/labels/User%20Story). If you have any feedback for us, please get in touch! We welcome feedback on Github, either by commenting on existing issues or creating new ones. You can also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
+We are working towards a number of other features and have [created issues to describe some of them in Github, tagged with `User Story`](https://github.com/LineaLabs/lineapy/labels/User%20Story), which include:
+
+- Automatic creation of [Airflow DAGs](https://github.com/LineaLabs/lineapy/issues/236) (and related systems) from Linea artifacts
+- Metadata search e.g. "Find all charts that use this column from this table" (see issues on analyzing data sources](https://github.com/LineaLabs/lineapy/issues/22) and [SQL](https://github.com/LineaLabs/lineapy/issues/272))
+- Hosted storage of Linea artifacts
+
+If you have any feedback for us, please get in touch! We welcome feedback on Github, either by commenting on existing issues or creating new ones. You can also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
 
 ## Python Language Support
 
