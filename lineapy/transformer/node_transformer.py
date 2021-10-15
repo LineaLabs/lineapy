@@ -3,7 +3,7 @@ import logging
 from typing import Any, Optional, Union, cast
 
 import lineapy
-from lineapy import save
+from lineapy import catalog, get, save
 from lineapy.constants import (
     ADD,
     BITAND,
@@ -162,44 +162,50 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Call(self, node: ast.Call) -> Optional[CallNode]:
         """
-        Returns None if visiting special publish linea publish, which cannot be chained
+        Returns None if visiting special publish linea publish,
+          which cannot be chained
         """
+        # checks for lineapy APIs
+        # TODO: make more robust to allow import from
         if (
             isinstance(node.func, ast.Attribute)
             and isinstance(node.func.value, ast.Name)
-            # TODO: make more robust to allow import from
-            and node.func.attr == save.__name__
             and node.func.value.id == lineapy.__name__
         ):
-            # assume that we have two string inputs, else yell at the user
-            if len(node.args) == 0:
-                raise TypeError(
-                    "Linea publish requires at least the variable that you wish"
-                    " to publish"
+            if node.func.attr in [catalog.__name__, get.__name__]:
+                raise RuntimeError(
+                    "These lineapy APIs cannot be used while being traced."
                 )
-            if len(node.args) > 2:
-                raise TypeError(
-                    "Linea publish can take at most the variable name and the"
-                    " description"
-                )
-            if not isinstance(node.args[0], ast.Name):
-                raise TypeError(
-                    "Please pass a variable as the first argument to"
-                    f" `{save.__name__}`"
-                )
-            var_node = self.visit(node.args[0])
-            if len(node.args) == 2:
-                if not isinstance(node.args[1], ast.Constant):
+            elif node.func.attr == save.__name__:
+                # assume that we have two string inputs, else yell at the user
+                if len(node.args) == 0:
                     raise TypeError(
-                        "Please pass a string for the description as the"
-                        " second argument to"
-                        f" `{save.__name__}`, you gave"
-                        f" {type(node.args[1])}"
+                        "Linea publish requires at least the variable that you"
+                        " wish to publish"
                     )
-                self.tracer.publish(var_node, node.args[1].value)
-            else:
-                self.tracer.publish(var_node, None)
-            return None
+                if len(node.args) > 2:
+                    raise TypeError(
+                        "Linea publish can take at most the variable name and"
+                        " the description"
+                    )
+                if not isinstance(node.args[0], ast.Name):
+                    raise TypeError(
+                        "Please pass a variable as the first argument to"
+                        f" `{save.__name__}`"
+                    )
+                var_node = self.visit(node.args[0])
+                if len(node.args) == 2:
+                    if not isinstance(node.args[1], ast.Constant):
+                        raise TypeError(
+                            "Please pass a string for the description as the"
+                            " second argument to"
+                            f" `{save.__name__}`, you gave"
+                            f" {type(node.args[1])}"
+                        )
+                    self.tracer.publish(var_node, node.args[1].value)
+                else:
+                    self.tracer.publish(var_node, None)
+                return None
         # this is the normal case, non-publish
         argument_nodes = [self.visit(arg) for arg in node.args]
         keyword_argument_nodes = {
@@ -497,9 +503,7 @@ class NodeTransformer(ast.NodeTransformer):
         code = self._get_code_from_node(node)
         if code is not None:
             scope = analyze_code_scope(code)
-            input_values = {
-                v: self.tracer.lookup_node(v) for v in scope.loaded
-            }
+            input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
             if code is None:
                 raise ValueError("Code block should not be empty")
 

@@ -18,6 +18,11 @@ a = abs(11)
 {lineapy.__name__}.{lineapy.save.__name__}(a, '{publish_name}')
 """
 
+alt_publish_name = "another_import_method"
+PUBLISH_ALT_FORMAT_CODE = f"""from {lineapy.__name__} import {lineapy.save.__name__}
+a = 1
+{lineapy.save.__name__}(a, '{alt_publish_name}')
+"""
 
 STRING_FORMAT = """a = '{{ {0} }}'.format('foo')"""
 
@@ -189,6 +194,12 @@ class TestEndToEnd:
         # also reset the file
         reset_test_db(config.database_uri)
         self.db = RelationalLineaDB(config)
+
+    @pytest.mark.xfail(reason="check for `save` is brittle, relies on Attribute")
+    def test_publish_format(self, execute):
+        res = execute(PUBLISH_ALT_FORMAT_CODE)
+        artifact = res.db.get_artifact_by_name(alt_publish_name)
+        assert artifact.name == alt_publish_name
 
     def test_function_definition_without_side_effect(self, execute):
         res = execute(FUNCTION_DEFINITION_CODE)

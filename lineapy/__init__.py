@@ -3,7 +3,8 @@ from typing import Any, Optional
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
-from lineapy.graph_reader.apis import LineaArtifact
+from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.tracer import Tracer
 
 __version__ = "0.0.1"
@@ -30,14 +31,37 @@ def save(variable: Any, description: Optional[str] = None) -> None:
         """This method should be intrusmented and not invoked."""
     )
 
-def get(artifact_name: str) -> LineaArtifact:
-    """
-    """
-    raise RuntimeError(
-        """This method should be intrusmented and not invoked."""
-    )
 
-def catalog()
+def get(artifact_name: str) -> LineaArtifact:
+    """get
+
+    Parameters
+    ----------
+    artifact_name: str
+        name of the artifact. Note that if you do not remember the artifact,
+        you can use the catalog to browse the options
+
+    Returns
+    -------
+    linea artifact
+        an object of the class `LineaArtifact`, which offers methods to access
+        information we have stored about the artifact
+    """
+    # FIXME: this ExecutionMode.DEV is a hack
+    db = RelationalLineaDB.from_environment(ExecutionMode.DEV)
+    return LineaArtifact(artifact_name, db)
+
+
+def catalog() -> LineaCatalog:
+    """catalog
+    Returns
+    -------
+    linea catalog
+        an object of the class `LineaCatalog`
+    """
+    db = RelationalLineaDB.from_environment(ExecutionMode.DEV)
+    return LineaCatalog(db)
+
 
 __all__ = [
     "Graph",

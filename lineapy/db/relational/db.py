@@ -155,9 +155,7 @@ class RelationalLineaDB:
 
         self.session.add(source_code_orm)
 
-    def add_lib_to_session_context(
-        self, context_id: LineaID, library: Library
-    ):
+    def add_lib_to_session_context(self, context_id: LineaID, library: Library):
         self.write_library(library, context_id)
 
     def write_node(self, node: Node) -> None:
@@ -308,6 +306,27 @@ class RelationalLineaDB:
             )
         return LookupNode(name=node.name, **args)
 
+    def get_node_by_id(self, linea_id: LineaID) -> Node:
+        """
+        Returns the node by looking up the database by ID
+        SQLAlchemy is able to translate between the two types on demand
+        """
+        node = (
+            self.session.query(BaseNodeORM)
+            .filter(BaseNodeORM.id == linea_id)
+            .one()
+        )
+        return self.map_orm_to_pydantic(node)
+
+    def get_session_context(self, linea_id: LineaID) -> SessionContext:
+        query_obj = (
+            self.session.query(SessionContextORM)
+            .filter(SessionContextORM.id == linea_id)
+            .one()
+        )
+        obj = SessionContext.from_orm(query_obj)
+        return obj
+
     def get_node_value_from_db(
         self, node_id: LineaID, execution_id: LineaID
     ) -> Optional[NodeValue]:
@@ -335,9 +354,7 @@ class RelationalLineaDB:
             .filter(BaseNodeORM.session_id == session_id)
             # Don't include source code in query, since it's not needed
             .options(
-                defaultload(ArtifactORM.node).raiseload(
-                    BaseNodeORM.source_code
-                )
+                defaultload(ArtifactORM.node).raiseload(BaseNodeORM.source_code)
             )
             .all()
         )
@@ -352,6 +369,13 @@ class RelationalLineaDB:
             .filter(ArtifactORM.name == artifact_name)
             .one()
         )
+
+    def get_all_artifacts(self) -> List[Artifact]:
+        """
+        Used by the catalog to get all the artifacts
+        """
+        results = self.session.query(ArtifactORM).all()
+        return [Artifact.from_orm(r) for r in results]
 
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         """
