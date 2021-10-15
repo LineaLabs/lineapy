@@ -115,6 +115,9 @@ def tracer_to_graphviz(tracer: Tracer) -> graphviz.Digraph:
 def extra_labels_to_html(extra_labels: ExtraLabels) -> str:
     """
     Convert extra labels into an HTML table, where each label is a row.
+    A single node could have multiple variables and artifacts pointing at it.
+    So we make a table with a row for each artifact. Why a table? Well we are putting
+    it in the xlabel and a table was an easy way to have multiple rows with different colors.
     """
     rows = [
         f'<TR><TD BGCOLOR="{get_color(el.type)}"><FONT POINT-SIZE="10">{el.label}</FONT></TD></TR>'
@@ -136,7 +139,7 @@ def contents_to_label(contents: Contents) -> str:
 def pointer_to_id(pointer: Pointer) -> str:
     """
     Maps from a pointer to a graphviz id to use in an edge, mapping nested
-    ids to struct pointers
+    ids to struct pointers: https://graphviz.org/doc/info/shapes.html#record
     """
     if isinstance(pointer, str):
         return pointer
@@ -158,20 +161,28 @@ def edge_type_to_kwargs(edge_type: VisualEdgeType) -> dict[str, object]:
 
 def add_legend(dot: graphviz.Digraph):
     """
-    Add a legend with nodes and edge styles
+    Add a legend with nodes and edge styles.
+
+    Creates one node for each node style and one edge for each edge style.
+
+    It was difficult to get it to appear in a way that didn't disrupt the  main
+    graph. It was easiest to get it to be a vertically aligned column of nodes,
+    on the left of the graph. To do this, I link all the nodes with invisible
+    edges so they stay vertically alligned.
 
     https://stackoverflow.com/a/52300532/907060.
     """
     with dot.subgraph(name="cluster_0") as c:
 
         c.attr(label="Legend")
+        # Save the previous ID so we can add an invisible edge.
         prev_id = None
         for node_type, label in NODE_LABELS.items():
             id_ = f"legend_node_{label}"
 
             extra_labels: ExtraLabels = []
-            # Add sample edges for the different types of edges
-            # Once we are done, make them invsible, so that nodes are still all aligned
+            # If this isn't in the first node, add an invisible edge from
+            # the previous node to it.
             if prev_id:
                 c.edge(prev_id, id_, style="invis")
             # If this is the first node, add sample extra labels
@@ -191,6 +202,7 @@ def add_legend(dot: graphviz.Digraph):
         prev_id = id_
         for edge_type, label in EDGE_TYPE_TO_LABEL.items():
             id_ = f"legend_edge_{label}"
+            # Add invisible nodes, so the edges have something to point to.
             c.node(id_, "", shape="box", style="invis")
             c.edge(
                 prev_id,
