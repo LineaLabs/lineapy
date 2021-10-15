@@ -5,8 +5,15 @@ from lineapy.utils import get_new_id
 
 source_1 = SourceCode(
     code="""from math import pow as power, sqrt as root
+from PIL.Image import open, new
+import pandas, numpy, os
 a = power(5, 2)
 b = root(a)
+c = pandas.DataFrame()
+d = numpy.array([1,2,3])
+new_img = new("RGB", (4,4))
+new_img.save("test.png", "PNG")
+e = open("test.png")
 """,
     location=PosixPath("[source file path]"),
 )
@@ -22,11 +29,35 @@ import_1 = ImportNode(
         name="math",
     ),
 )
-call_4 = CallNode(
+import_2 = ImportNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=31,
+        source_code=source_1.id,
+    ),
+    library=Library(
+        name="PIL.Image",
+    ),
+)
+import_4 = ImportNode(
     source_location=SourceLocation(
         lineno=3,
-        col_offset=4,
+        col_offset=0,
         end_lineno=3,
+        end_col_offset=24,
+        source_code=source_1.id,
+    ),
+    library=Library(
+        name="os",
+    ),
+)
+call_6 = CallNode(
+    source_location=SourceLocation(
+        lineno=5,
+        col_offset=4,
+        end_lineno=5,
         end_col_offset=11,
         source_code=source_1.id,
     ),
@@ -44,9 +75,9 @@ call_4 = CallNode(
     positional_args=[
         CallNode(
             source_location=SourceLocation(
-                lineno=2,
+                lineno=4,
                 col_offset=4,
-                end_lineno=2,
+                end_lineno=4,
                 end_col_offset=15,
                 source_code=source_1.id,
             ),
@@ -64,9 +95,9 @@ call_4 = CallNode(
             positional_args=[
                 LiteralNode(
                     source_location=SourceLocation(
-                        lineno=2,
+                        lineno=4,
                         col_offset=10,
-                        end_lineno=2,
+                        end_lineno=4,
                         end_col_offset=11,
                         source_code=source_1.id,
                     ),
@@ -74,15 +105,283 @@ call_4 = CallNode(
                 ).id,
                 LiteralNode(
                     source_location=SourceLocation(
-                        lineno=2,
+                        lineno=4,
                         col_offset=13,
-                        end_lineno=2,
+                        end_lineno=4,
                         end_col_offset=14,
                         source_code=source_1.id,
                     ),
                     value=2,
                 ).id,
             ],
+        ).id
+    ],
+)
+call_8 = CallNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=4,
+        end_lineno=6,
+        end_col_offset=22,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=6,
+            col_offset=4,
+            end_lineno=6,
+            end_col_offset=20,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            ImportNode(
+                source_location=SourceLocation(
+                    lineno=3,
+                    col_offset=0,
+                    end_lineno=3,
+                    end_col_offset=24,
+                    source_code=source_1.id,
+                ),
+                library=Library(
+                    name="pandas",
+                ),
+            ).id,
+            LiteralNode(
+                value="DataFrame",
+            ).id,
+        ],
+    ).id,
+)
+call_11 = CallNode(
+    source_location=SourceLocation(
+        lineno=7,
+        col_offset=4,
+        end_lineno=7,
+        end_col_offset=24,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=7,
+            col_offset=4,
+            end_lineno=7,
+            end_col_offset=15,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            ImportNode(
+                source_location=SourceLocation(
+                    lineno=3,
+                    col_offset=0,
+                    end_lineno=3,
+                    end_col_offset=24,
+                    source_code=source_1.id,
+                ),
+                library=Library(
+                    name="numpy",
+                ),
+            ).id,
+            LiteralNode(
+                value="array",
+            ).id,
+        ],
+    ).id,
+    positional_args=[
+        CallNode(
+            source_location=SourceLocation(
+                lineno=7,
+                col_offset=16,
+                end_lineno=7,
+                end_col_offset=23,
+                source_code=source_1.id,
+            ),
+            function_id=LookupNode(
+                name="__build_list__",
+            ).id,
+            positional_args=[
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=7,
+                        col_offset=17,
+                        end_lineno=7,
+                        end_col_offset=18,
+                        source_code=source_1.id,
+                    ),
+                    value=1,
+                ).id,
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=7,
+                        col_offset=19,
+                        end_lineno=7,
+                        end_col_offset=20,
+                        source_code=source_1.id,
+                    ),
+                    value=2,
+                ).id,
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=7,
+                        col_offset=21,
+                        end_lineno=7,
+                        end_col_offset=22,
+                        source_code=source_1.id,
+                    ),
+                    value=3,
+                ).id,
+            ],
+        ).id
+    ],
+)
+call_15 = CallNode(
+    source_location=SourceLocation(
+        lineno=9,
+        col_offset=0,
+        end_lineno=9,
+        end_col_offset=31,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=9,
+            col_offset=0,
+            end_lineno=9,
+            end_col_offset=12,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            CallNode(
+                source_location=SourceLocation(
+                    lineno=8,
+                    col_offset=10,
+                    end_lineno=8,
+                    end_col_offset=27,
+                    source_code=source_1.id,
+                ),
+                function_id=CallNode(
+                    function_id=LookupNode(
+                        name="getattr",
+                    ).id,
+                    positional_args=[
+                        import_2.id,
+                        LiteralNode(
+                            value="new",
+                        ).id,
+                    ],
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=8,
+                            col_offset=14,
+                            end_lineno=8,
+                            end_col_offset=19,
+                            source_code=source_1.id,
+                        ),
+                        value="RGB",
+                    ).id,
+                    CallNode(
+                        source_location=SourceLocation(
+                            lineno=8,
+                            col_offset=21,
+                            end_lineno=8,
+                            end_col_offset=26,
+                            source_code=source_1.id,
+                        ),
+                        function_id=LookupNode(
+                            name="__build_tuple__",
+                        ).id,
+                        positional_args=[
+                            LiteralNode(
+                                source_location=SourceLocation(
+                                    lineno=8,
+                                    col_offset=22,
+                                    end_lineno=8,
+                                    end_col_offset=23,
+                                    source_code=source_1.id,
+                                ),
+                                value=4,
+                            ).id,
+                            LiteralNode(
+                                source_location=SourceLocation(
+                                    lineno=8,
+                                    col_offset=24,
+                                    end_lineno=8,
+                                    end_col_offset=25,
+                                    source_code=source_1.id,
+                                ),
+                                value=4,
+                            ).id,
+                        ],
+                    ).id,
+                ],
+            ).id,
+            LiteralNode(
+                value="save",
+            ).id,
+        ],
+    ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=9,
+                col_offset=13,
+                end_lineno=9,
+                end_col_offset=23,
+                source_code=source_1.id,
+            ),
+            value="test.png",
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=9,
+                col_offset=25,
+                end_lineno=9,
+                end_col_offset=30,
+                source_code=source_1.id,
+            ),
+            value="PNG",
+        ).id,
+    ],
+)
+call_16 = CallNode(
+    source_location=SourceLocation(
+        lineno=10,
+        col_offset=4,
+        end_lineno=10,
+        end_col_offset=20,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            import_2.id,
+            LiteralNode(
+                value="open",
+            ).id,
+        ],
+    ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=10,
+                col_offset=9,
+                end_lineno=10,
+                end_col_offset=19,
+                source_code=source_1.id,
+            ),
+            value="test.png",
         ).id
     ],
 )
