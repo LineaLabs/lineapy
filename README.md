@@ -8,7 +8,7 @@ Lineapy is a Python library for capturing, analyzing, and automating data scienc
 
 On a high-level, Linea traces the code executed to get an understanding of the code, persist the related code and variable state, and capture the execution context, such as who and when the code was executed.
 
-These understanding of your development process in turn allows Linea to provide a set of tools that help you get more values out of our work. A natural unit of organization for these code are variables in the code---both their value and the code used to create them. Our features revolve around these units, which we call _artifacts_.
+These understanding of your development process in turn allows Linea to provide a set of tools that help you get more value out of our work. A natural unit of organization for these code are variables in the code---both their value and the code used to create them. Our features revolve around these units, which we call _artifacts_.
 
 We currently support the following features:
 
@@ -30,7 +30,6 @@ Currently, you can run Linea as CLI command to slice your Python code to extract
 only the code that is necessary to recompute some result. Along the way, Linea
 stores the semantics of your code into a database, which we are working on exposing
 as well.
-
 
 ```bash
 $ lineapy --help
@@ -57,7 +56,6 @@ $ lineapy --print-source tests/housing.py --slice 'p value'
 
 **⚠️ The user experience for the notebook is still very much in progress and will change in the near future.**
 We have opened [an issue](https://github.com/LineaLabs/lineapy/issues/298) to track some of these pain points. ⚠️
-
 
 You can also run Linea from an Juptyer notebook or IPython.
 
