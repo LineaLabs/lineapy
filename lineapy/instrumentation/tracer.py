@@ -24,10 +24,12 @@ from lineapy.data.types import (
     SourceLocation,
 )
 from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.db.relational.schema.relational import ArtifactORM
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.lineabuiltins import __build_tuple__, __exec__
 from lineapy.utils import get_new_id, get_value_type
+from lineapy.visualizer.graphviz import tracer_to_graphviz
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +43,9 @@ class Tracer:
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
-    # Mapping of mutated nodes, from their original node id, to the mutated
-    # node id
-    node_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
+    # Mapping of mutated nodes, from their original node id, to the latest
+    # mutate node id they are the source of
+    source_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
 
     # Mapping of each node, to every node that has a "view" of it,
     # meaning that if that node is mutated, the view node will be as well
@@ -111,15 +113,23 @@ class Tracer:
 
         return {
             artifact.name: get_program_slice(self.graph, [artifact.id])
-            for artifact in self.db.get_artifacts_for_session(
-                self.session_context.id
-            )
+            for artifact in self.session_artifacts()
             if artifact.name is not None
         }
+
+    def session_artifacts(self) -> list[ArtifactORM]:
+        return self.db.get_artifacts_for_session(self.session_context.id)
 
     def slice(self, name: str) -> str:
         artifact = self.db.get_artifact_by_name(name)
         return get_program_slice(self.graph, [artifact.id])
+
+    def visualize(self, filename="tracer") -> None:
+        """
+        Visualize the graph using GraphViz, writing to disk and trying to open.
+        """
+        dot = tracer_to_graphviz(self)
+        dot.render(filename, view=True, format="pdf")
 
     @property
     def stdout(self) -> str:
@@ -165,7 +175,7 @@ class Tracer:
                     source_id=self.resolve_node(source_id),
                     call_id=node.id,
                 )
-                self.node_to_mutate[source_id] = mutate_node.id
+                self.source_to_mutate[source_id] = mutate_node.id
                 self.process_node(mutate_node)
 
     def lookup_node(self, variable_name: str) -> Node:
@@ -198,8 +208,8 @@ class Tracer:
         """
         # Keep looking up to see if their is a new mutated version of this
         # node
-        while node_id in self.node_to_mutate:
-            node_id = self.node_to_mutate[node_id]
+        while node_id in self.source_to_mutate:
+            node_id = self.source_to_mutate[node_id]
         return node_id
 
     def publish(self, node: Node, description: Optional[str]) -> None:
