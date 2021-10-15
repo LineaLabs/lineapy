@@ -8,20 +8,22 @@ Lineapy is a Python library for capturing, analyzing, and automating data scienc
 
 On a high-level, Linea traces the code executed to get an understanding of the code, persist the related code and variable state, and capture the execution context, such as who and when the code was executed.
 
-These understanding of your development process in turn allows Linea to provide a
-set of tools that help you get more values out of our work. 
-A natural unit of organization for these code are variables in the code---both their value and the code used to create them. Our features revolve around these units, which we call 
-_artifact_s.
+These understanding of your development process in turn allows Linea to provide a set of tools that help you get more values out of our work. A natural unit of organization for these code are variables in the code---both their value and the code used to create them. Our features revolve around these units, which we call _artifacts_.
 
 We currently support the following features:
 
-- Code cleanup: often when working with data, we don't know what efforts will pan out. When we do have something we want to keep, . This is called "Program Slicing" in the literature.
-Linea's slicing feature makes it easy to share and re-execute these work.
+- Code cleanup: often when working with data, we don't know what efforts will pan out. When we do have something we want to keep, we can save it as an artifact and create a version of the code that only includes the pieces neccesary to recreate that artifact. This is called "Program Slicing" in the literature. Linea's slicing feature makes it easy to share and re-execute these work.
 
-There are many others on our road map. If you have any feedback for us, please get in touch! We are on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
+There are many others on our road map. We have [created issues to describe some of them in Github, tagged with `User Story`](https://github.com/LineaLabs/lineapy/labels/User%20Story). If you have any feedback for us, please get in touch! We welcome feedback on Github, either by commenting on existing issues or creating new ones. You can also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
 
-These features are currently exposed via two surfaces, one is the CLI and the 
-other is Jupyter (Lab/Notebook).
+## Python Language Support
+
+In order to properly slice your code, we have to understand different Python language features and libraries. We are working to add coverage to support all of Python, as well as make our analysis more accurate. We have [a number of open issues to track what things we know we don't support in Python, tagged under `Language Support`](https://github.com/LineaLabs/lineapy/labels/Language%20Support). Feel free to open more if come accross code that doesn't run or doesn't properly slice.
+
+## Usage
+
+These features are currently exposed via two surfaces, one is the CLI and the other is Jupyter, supporting all notebook interfaces.
+
 ### CLI
 
 Currently, you can run Linea as CLI command to slice your Python code to extract
@@ -29,8 +31,6 @@ only the code that is necessary to recompute some result. Along the way, Linea
 stores the semantics of your code into a database, which we are working on exposing
 as well.
 
-We are working to add support for more Python constructs. We currently don't support
-much control flow, function mutation, or all function definitions.
 
 ```bash
 $ lineapy --help
@@ -54,6 +54,10 @@ $ lineapy --print-source tests/housing.py --slice 'p value'
 ```
 
 ### Interactive
+
+**⚠️ The user experience for the notebook is still very much in progress and will change in the near future.**
+We have opened [an issue](https://github.com/LineaLabs/lineapy/issues/298) to track some of these pain points. ⚠️
+
 
 You can also run Linea from an Juptyer notebook or IPython.
 
@@ -87,6 +91,10 @@ print(res.slice("z"))
 ```
 
 For a full example, you can look at [`tests/test_notebook.ipynb`](./tests/test_notebook.ipynb)
+
+### Web UI
+
+We were previously working on a web based user interface to browse executions, but we are currently focusing on the Python and command line experience.
 
 ## Installing
 
