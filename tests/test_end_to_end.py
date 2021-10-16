@@ -228,7 +228,10 @@ class TestEndToEnd:
         """
         Verify code is the same
         """
-        res = execute(FUNCTION_DEFINITION_GLOBAL_CODE, compare_snapshot=False,)
+        res = execute(
+            FUNCTION_DEFINITION_GLOBAL_CODE,
+            compare_snapshot=False,
+        )
         assert res.slice("a") == python_snapshot
 
     def test_loop_code(self, execute):
@@ -240,7 +243,10 @@ class TestEndToEnd:
         assert res.values["y"] == 72
 
     def test_loop_code_slice(self, execute, python_snapshot):
-        res = execute(LOOP_CODE, compare_snapshot=False,)
+        res = execute(
+            LOOP_CODE,
+            compare_snapshot=False,
+        )
 
         assert res.slice("y") == python_snapshot
 
@@ -427,7 +433,10 @@ class TestEndToEnd:
         assert res.slice("f") == python_snapshot
 
     def test_simple_slice(self, execute, python_snapshot):
-        res = execute(SIMPLE_SLICE, compare_snapshot=False,)
+        res = execute(
+            SIMPLE_SLICE,
+            compare_snapshot=False,
+        )
 
         assert res.slice("c") == python_snapshot
 

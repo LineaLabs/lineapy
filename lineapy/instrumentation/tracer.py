@@ -306,7 +306,9 @@ class Tracer:
         return
 
     def literal(
-        self, value: object, source_location: Optional[SourceLocation] = None,
+        self,
+        value: object,
+        source_location: Optional[SourceLocation] = None,
     ):
         # this literal should be assigned or used later
         node = LiteralNode(
@@ -353,7 +355,11 @@ class Tracer:
         self.process_node(node)
         return node
 
-    def assign(self, variable_name: str, value_node: Node,) -> None:
+    def assign(
+        self,
+        variable_name: str,
+        value_node: Node,
+    ) -> None:
         """
         Assign updates a local mapping of variable nodes.
 
@@ -389,7 +395,9 @@ class Tracer:
             self.lookup_node(__exec__.__name__),
             source_location,
             self.literal(code),
-            self.literal(is_expression,),
+            self.literal(
+                is_expression,
+            ),
             *(self.literal(v) for v in output_variables),
             **input_values,
         )
@@ -397,7 +405,10 @@ class Tracer:
             self.assign(
                 v,
                 self.call(
-                    self.lookup_node(GET_ITEM), None, res, self.literal(i),
+                    self.lookup_node(GET_ITEM),
+                    None,
+                    res,
+                    self.literal(i),
                 ),
             )
         if is_expression:
@@ -413,5 +424,7 @@ class Tracer:
         self, *args: Node, source_location: Optional[SourceLocation] = None
     ) -> CallNode:
         return self.call(
-            self.lookup_node(__build_tuple__.__name__), source_location, *args,
+            self.lookup_node(__build_tuple__.__name__),
+            source_location,
+            *args,
         )
