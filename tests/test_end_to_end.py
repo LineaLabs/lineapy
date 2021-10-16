@@ -125,8 +125,7 @@ y = x + b
 lineapy.linea_publish(y, 'y')
 """
 
-LOOP_CODE_SLICED = """
-def loop():
+LOOP_CODE_SLICED = """def loop():
     a = []
     b = 0
     for x in range(9):
@@ -134,6 +133,7 @@ def loop():
         b += x
     x = sum(a)
     y = x + b
+
 
 if __name__ == "__main__":
     loop()
