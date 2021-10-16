@@ -30,6 +30,7 @@ from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.lineabuiltins import __build_tuple__, __exec__
 from lineapy.utils import get_new_id, get_value_type
 from lineapy.visualizer.graphviz import tracer_to_graphviz
+from lineapy.visualizer.visual_graph import VisualGraphOptions
 
 logger = logging.getLogger(__name__)
 
@@ -124,11 +125,15 @@ class Tracer:
         artifact = self.db.get_artifact_by_name(name)
         return get_program_slice(self.graph, [artifact.id])
 
-    def visualize(self, filename="tracer") -> None:
+    def visualize(
+        self,
+        filename="tracer",
+        options: VisualGraphOptions = VisualGraphOptions(),
+    ) -> None:
         """
         Visualize the graph using GraphViz, writing to disk and trying to open.
         """
-        dot = tracer_to_graphviz(self)
+        dot = tracer_to_graphviz(self, options)
         dot.render(filename, view=True, format="pdf")
 
     @property
