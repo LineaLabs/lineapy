@@ -6,6 +6,8 @@ from functools import cached_property
 from os import getcwd
 from typing import Dict, Optional
 
+from black import FileMode, format_str
+
 from lineapy.constants import GET_ITEM, GETATTR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -127,6 +129,10 @@ class Tracer:
             slice_lines, func_name
         )
         full_code = import_block + "\n\n" + code_block + "\n\n" + main_block
+        # Black lint
+        black_mode = FileMode()
+        black_mode.line_length = 79
+        full_code = format_str(full_code, mode=black_mode)
         return full_code
 
     def session_artifacts(self) -> list[ArtifactORM]:
