@@ -25,7 +25,10 @@ from lineapy.data.types import (
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.execution.executor import Executor
-from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.graph_reader.program_slice import (
+    get_program_slice,
+    split_code_blocks,
+)
 from lineapy.lineabuiltins import __build_tuple__, __exec__
 from lineapy.utils import get_new_id, get_value_type
 
@@ -116,6 +119,15 @@ class Tracer:
             )
             if artifact.name is not None
         }
+
+    def sliced_func(self, slice_name: str, func_name: str) -> str:
+        slice_lines = self.slice(slice_name).split("\n")
+        # We split the lines in import and code blocks and join them to full code test
+        import_block, code_block, main_block = split_code_blocks(
+            slice_lines, func_name
+        )
+        full_code = import_block + "\n\n" + code_block + "\n\n" + main_block
+        return full_code
 
     def slice(self, name: str) -> str:
         artifact = self.db.get_artifact_by_name(name)
@@ -284,9 +296,7 @@ class Tracer:
         return
 
     def literal(
-        self,
-        value: object,
-        source_location: Optional[SourceLocation] = None,
+        self, value: object, source_location: Optional[SourceLocation] = None,
     ):
         # this literal should be assigned or used later
         node = LiteralNode(
@@ -333,11 +343,7 @@ class Tracer:
         self.process_node(node)
         return node
 
-    def assign(
-        self,
-        variable_name: str,
-        value_node: Node,
-    ) -> None:
+    def assign(self, variable_name: str, value_node: Node,) -> None:
         """
         Assign updates a local mapping of variable nodes.
 
@@ -373,9 +379,7 @@ class Tracer:
             self.lookup_node(__exec__.__name__),
             source_location,
             self.literal(code),
-            self.literal(
-                is_expression,
-            ),
+            self.literal(is_expression,),
             *(self.literal(v) for v in output_variables),
             **input_values,
         )
@@ -383,10 +387,7 @@ class Tracer:
             self.assign(
                 v,
                 self.call(
-                    self.lookup_node(GET_ITEM),
-                    None,
-                    res,
-                    self.literal(i),
+                    self.lookup_node(GET_ITEM), None, res, self.literal(i),
                 ),
             )
         if is_expression:
@@ -402,7 +403,6 @@ class Tracer:
         self, *args: Node, source_location: Optional[SourceLocation] = None
     ) -> CallNode:
         return self.call(
-            self.lookup_node(__build_tuple__.__name__),
-            source_location,
-            *args,
+            self.lookup_node(__build_tuple__.__name__), source_location, *args,
         )
+

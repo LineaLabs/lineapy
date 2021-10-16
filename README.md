@@ -21,12 +21,14 @@ $ lineapy --help
 Usage: lineapy [OPTIONS] FILE_NAME
 
 Options:
-  --mode TEXT     Either `memory`, `dev`, `test`, or `prod` mode
-  --slice TEXT    Print the sliced code that this artifact depends on
-  --print-source  Whether to print the source code
-  --print-graph   Whether to print the generated graph code
-  --verbose       Print out logging for graph creation and execution
-  --help          Show this message and exit.
+  --mode TEXT          Either `memory`, `dev`, `test`, or `prod` mode
+  --slice TEXT         Print the sliced code that this artifact depends on
+  --export-slice TEXT  Requires --slice. Export the sliced code that {slice}
+                       depends on to {export_slice}.py
+  --print-source       Whether to print the source code
+  --print-graph        Whether to print the generated graph code
+  --verbose            Print out logging for graph creation and execution
+  --help               Show this message and exit.
 
 # Run linea on a Python file to analyze it.
 # Use --print-graph to print out the graph it creates

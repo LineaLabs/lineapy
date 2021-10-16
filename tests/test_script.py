@@ -15,3 +15,19 @@ def test_slice_housing():
     subprocess.check_call(
         ["lineapy", "tests/housing.py", "--slice", "p value"]
     )
+
+
+def test_export_slice_housing():
+    """
+    Verifies that the CLI command is aliased to the `lienapy` executable
+    """
+    subprocess.check_call(
+        [
+            "lineapy",
+            "tests/housing.py",
+            "--slice",
+            "p value",
+            "--export-slice",
+            "sliced_housing",
+        ]
+    )

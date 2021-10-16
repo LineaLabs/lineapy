@@ -116,6 +116,20 @@ y = x + b
 lineapy.linea_publish(y, 'y')
 """
 
+LOOP_CODE_SLICED = """
+def loop():
+    a = []
+    b = 0
+    for x in range(9):
+        a.append(x)
+        b += x
+    x = sum(a)
+    y = x + b
+
+if __name__ == "__main__":
+    loop()
+"""
+
 SIMPLE_SLICE = """import lineapy
 a = 2
 b = 2
@@ -205,10 +219,7 @@ class TestEndToEnd:
         """
         Verify code is the same
         """
-        res = execute(
-            FUNCTION_DEFINITION_GLOBAL_CODE,
-            compare_snapshot=False,
-        )
+        res = execute(FUNCTION_DEFINITION_GLOBAL_CODE, compare_snapshot=False,)
         assert res.slice("a") == python_snapshot
 
     def test_loop_code(self, execute):
@@ -220,12 +231,14 @@ class TestEndToEnd:
         assert res.values["y"] == 72
 
     def test_loop_code_slice(self, execute, python_snapshot):
-        res = execute(
-            LOOP_CODE,
-            compare_snapshot=False,
-        )
+        res = execute(LOOP_CODE, compare_snapshot=False,)
 
         assert res.slice("y") == python_snapshot
+
+    def test_loop_code_export_slice(self, execute):
+        res = execute(LOOP_CODE)
+
+        assert res.sliced_func("y", "loop") == LOOP_CODE_SLICED
 
     def test_conditionals(self, execute):
         res = execute(CONDITIONALS_CODE)
@@ -402,10 +415,7 @@ class TestEndToEnd:
         assert res.slice("f") == python_snapshot
 
     def test_simple_slice(self, execute, python_snapshot):
-        res = execute(
-            SIMPLE_SLICE,
-            compare_snapshot=False,
-        )
+        res = execute(SIMPLE_SLICE, compare_snapshot=False,)
 
         assert res.slice("c") == python_snapshot
 

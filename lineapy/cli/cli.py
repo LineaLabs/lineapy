@@ -33,6 +33,11 @@ logger = logging.getLogger(__name__)
     help="Print the sliced code that this artifact depends on",
 )
 @click.option(
+    "--export-slice",
+    default=None,
+    help="Requires --slice. Export the sliced code that {slice} depends on to {export_slice}.py",
+)
+@click.option(
     "--print-source", help="Whether to print the source code", is_flag=True
 )
 @click.option(
@@ -50,7 +55,13 @@ logger = logging.getLogger(__name__)
     type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
 )
 def linea_cli(
-    file_name: pathlib.Path, mode, slice, print_source, print_graph, verbose
+    file_name: pathlib.Path,
+    mode,
+    slice,
+    export_slice,
+    print_source,
+    print_graph,
+    verbose,
 ):
     configure_logging("INFO" if verbose else "WARNING")
     tree = rich.tree.Tree(f"📄 {file_name}")
@@ -68,13 +79,20 @@ def linea_cli(
     tracer = Tracer(db, SessionType.SCRIPT)
     transform(code, file_name, tracer)
 
-    if slice:
+    if slice and not export_slice:
         tree.add(
             rich.console.Group(
                 f"Slice of {repr(slice)}",
                 rich.syntax.Syntax(tracer.slice(slice), "python"),
             )
         )
+
+    if export_slice:
+        if not slice:
+            print("Please specify --slice. It is required for --export-slice")
+            exit(1)
+        full_code = tracer.sliced_func(slice, export_slice)
+        pathlib.Path(f"{export_slice}.py").write_text(full_code)
 
     tracer.db.close()
     if print_graph:
