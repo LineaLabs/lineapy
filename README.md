@@ -1,20 +1,41 @@
 # `lineapy`
 
-Lineapy is a Python library for analyzing data science workflows.
+Lineapy is a Python library for capturing, analyzing, and automating data science workflows.
 
 [![Coverage Status](https://coveralls.io/repos/github/LineaLabs/lineapy/badge.svg?t=jgH0YL)](https://coveralls.io/github/LineaLabs/lineapy)
 
 ## Features
 
+On a high-level, Linea traces the code executed to get an understanding of the code, persist the related code and variable state, and capture the execution context, such as who and when the code was executed.
+
+These understanding of your development process in turn allows Linea to provide a set of tools that help you get more value out of your work. A natural unit of organization for these code are variables in the code---both their value and the code used to create them. Our features revolve around these units, which we call _artifacts_.
+
+We currently support the following features:
+
+- Code cleanup: often when working with data, we don't know what efforts will pan out. When we do have something we want to keep, we can save it as an artifact and create a version of the code that only includes the pieces neccesary to recreate that artifact. This is called "Program Slicing" in the literature. Linea's slicing feature makes it easy to share and re-execute these work.
+
+We are working towards a number of other features and have [created issues to describe some of them in Github, tagged with `User Story`](https://github.com/LineaLabs/lineapy/labels/User%20Story), which include:
+
+- Automatic creation of [Airflow DAGs](https://github.com/LineaLabs/lineapy/issues/236) (and related systems) from Linea artifacts
+- Metadata search e.g. "Find all charts that use this column from this table" (see issues on analyzing data sources](https://github.com/LineaLabs/lineapy/issues/22) and [SQL](https://github.com/LineaLabs/lineapy/issues/272))
+- Hosted storage of Linea artifacts
+
+If you have any feedback for us, please get in touch! We welcome feedback on Github, either by commenting on existing issues or creating new ones. You can also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
+
+## Python Language Support
+
+In order to properly slice your code, we have to understand different Python language features and libraries. We are working to add coverage to support all of Python, as well as make our analysis more accurate. We have [a number of open issues to track what things we know we don't support in Python, tagged under `Language Support`](https://github.com/LineaLabs/lineapy/labels/Language%20Support). Feel free to open more if come accross code that doesn't run or doesn't properly slice.
+
+## Usage
+
+These features are currently exposed via two surfaces, one is the CLI and the other is Jupyter, supporting all notebook interfaces.
+
 ### CLI
 
 Currently, you can run Linea as CLI command to slice your Python code to extract
-only the code that is neccesary to recompute some result. Along the way, Linea
+only the code that is necessary to recompute some result. Along the way, Linea
 stores the semantics of your code into a database, which we are working on exposing
 as well.
-
-We are working to add support for more Python contructs. We currently don't support
-much control flow, function mutation, or all function definitions.
 
 ```bash
 $ lineapy --help
@@ -38,6 +59,9 @@ $ lineapy --print-source tests/housing.py --slice 'p value'
 ```
 
 ### Interactive
+
+**⚠️ The user experience for the notebook is still very much in progress and will change in the near future.**
+We have opened [an issue](https://github.com/LineaLabs/lineapy/issues/298) to track some of these pain points. ⚠️
 
 You can also run Linea from an Juptyer notebook or IPython.
 
@@ -71,6 +95,10 @@ print(res.slice("z"))
 ```
 
 For a full example, you can look at [`tests/test_notebook.ipynb`](./tests/test_notebook.ipynb)
+
+### Web UI
+
+We were previously working on a web based user interface to browse executions, but we are currently focusing on the Python and command line experience.
 
 ## Installing
 
