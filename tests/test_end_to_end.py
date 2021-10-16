@@ -2,6 +2,8 @@ import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+import pandas
+import PIL
 import pytest
 from click.testing import CliRunner
 
@@ -43,8 +45,15 @@ print(b)
 """
 
 IMPORT_CODE = """from math import pow as power, sqrt as root
+from PIL.Image import open, new
+import pandas, numpy, os
 a = power(5, 2)
 b = root(a)
+c = pandas.DataFrame()
+d = numpy.array([1,2,3])
+new_img = new("RGB", (4,4))
+new_img.save("test.png", "PNG")
+e = open("test.png")
 """
 
 # also tests for float
@@ -314,6 +323,9 @@ class TestEndToEnd:
     def test_import(self, execute):
         res = execute(IMPORT_CODE)
         assert res.values["b"] == 5
+        assert (res.values["d"] == [1, 2, 3]).all()
+        assert res.values["c"].__class__ == pandas.core.frame.DataFrame
+        assert res.values["e"].__class__ == PIL.PngImagePlugin.PngImageFile
 
     def test_no_script_error(self):
         # TODO

@@ -74,6 +74,13 @@ jupyter nbconvert --to notebook --execute tests/test_notebook.ipynb --inplace --
 Or you can open it in a notebook UI (JupyterLab, JupyterNotebook, VS Code, etc.)
 and re-run it manually
 
+## Visual Graphs
+
+Sometimes it's helpful to see a visual representation of the graph
+and the tracers state, while debugging a test. Run the tests with `--visualize`
+to have it save a `tracer.pdf` file whenever it run an execution.
+
+Note: This requires graphviz to be installed.
 
 ## Performance Profiling
 
@@ -98,8 +105,7 @@ Speedscope](https://www.speedscope.app/).
 In this example, we are inspecting calls to `transform`.
 We see that it cumulatively takes up 12% of total time and that most of the time inside of it is spent visiting imports, as well as commiting to the DB:
 
-<img width="2560" alt="Screen Shot 2021-10-12 at 2 29 10 PM" src="https://user-images.githubusercontent.com/1186124/137037002-18f29bd8-db02-4924-9855-5f3db9d2d0ee.png"> 
-
+<img width="2560" alt="Screen Shot 2021-10-12 at 2 29 10 PM" src="https://user-images.githubusercontent.com/1186124/137037002-18f29bd8-db02-4924-9855-5f3db9d2d0ee.png">
 
 ## Inpsecting AST
 
