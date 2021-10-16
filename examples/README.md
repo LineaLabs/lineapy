@@ -4,6 +4,7 @@ To validate our features, we downloaded some Kaggle notebook and added the two l
 
 ```python
 import lineapy
+... # user code
 lineapy.linea_publish(variable, "a description")
 ```
 
