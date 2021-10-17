@@ -2,3 +2,6 @@ version: "3.9"
 services:
   lineapy:
     build: .
+    volumnes:
+      - ./lineapy:/usr/src/base/lineapy
+      - ./tests:/usr/src/base/tests

@@ -12,3 +12,6 @@ lint:
 
 blackfix:
 	docker run --rm -v "${PWD}":/data cytopia/black .
+
+typecheck:
+	docker run --rm -v "${PWD}":/data cytopia/mypy .
