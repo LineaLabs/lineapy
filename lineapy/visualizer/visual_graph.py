@@ -53,6 +53,9 @@ class VisualGraphOptions:
     # and mutation tracking
     show_view_and_mutation_tracking: bool = field(default=False)
 
+    # Whether to show source code in the graph
+    show_code: bool = field(default=True)
+
 
 def tracer_to_visual_graph(
     tracer: Tracer, options: VisualGraphOptions
@@ -86,6 +89,8 @@ def tracer_to_visual_graph(
         vg.nodes.append(
             VisualNode(node.id, node.node_type, contents, extra_labels)
         )
+
+    # Then add the source code nodes
 
     # Then we can add all the additional information from the tracer
     if options.show_view_and_mutation_tracking:
