@@ -21,11 +21,6 @@ pip install -e ".[dev]" --user
 To build the container, run `make build`
 To open bash within the container, run `make bash`. One can either use bash for dev or can connect to remote runtimes inside a container using extensions available for the editor of choice.
 
-Before committing, please add appropriate tests and ensure all tests are working using
-`make test`. In case a snapshot needs updating, you can use `make test args="--snapshot-update"` to update snapshots.
-Individual tests can be run using `make test args="<path_to_test_file>"`.
-Additionally, linting and typechecks can be done using `make lint` and `make typecheck` respectively.
-
 
 ## Debugging (in VSC)
 
@@ -38,6 +33,9 @@ mypy -p lineapy
 black --line-length 79 --check .
 pytest tests/
 ```
+If using docker, please add appropriate tests and ensure all tests are working using
+`make test`. Any args to pytest can be passed using args="xxx". Eg, individual tests can be run using `make test args="<path_to_test_file>"`.
+
 
 ### Logging
 
@@ -60,6 +58,7 @@ pytest -p no:logging -s
 
 Some tests use use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test, to make it easier to update generate code and graphs.
 If you mean to change the tracing or graph spec, or added a new test that uses it, then run `pytest --snapshot-update` to update the saved snapshots.
+If using docker, you can use `make test args="--snapshot-update"` to update snapshots.
 
 ### Code Coverage
 
@@ -125,6 +124,11 @@ If you want to inspect the AST of some Python code for debugging, you can run:
 ```bash
 ./tests/tools/print_ast.py 'hi(a=10)'
 ```
+
+## Before Committing
+
+Please ensure linting and typechecks are done before opening a PR. When using docker, this can be done using `make lint` and `make typecheck` respectively. A precommit hook that runs `make blackfix lint typecheck build test` will fix any fixable issues and ensure build and test works.
+
 
 ## Github Actions
 
