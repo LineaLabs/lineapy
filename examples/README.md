@@ -8,12 +8,13 @@ import lineapy
 lineapy.linea_publish(variable, "a description")
 ```
 
+To fetch the data for the examples, you first have to install [Git LFS](https://git-lfs.github.com/)
+
 Currently we have a working example, `kaggle_example1.py` (the other example, `kaggle_example2.py` is [WIP due to a known bug](https://github.com/LineaLabs/lineapy/issues/204)).
 
 ```bash
 lineapy --print-source kaggle_example1.py --slice 'mushroom feature importance'
 ```
-
 
 ## Limitations
 
