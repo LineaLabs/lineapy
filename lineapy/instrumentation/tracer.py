@@ -124,13 +124,16 @@ class Tracer:
 
     def sliced_func(self, slice_name: str, func_name: str) -> str:
         artifact = self.db.get_artifact_by_name(slice_name)
-        _line_no = artifact.node.lineno - 1 if artifact.node.lineno else 0
+        _line_no = artifact.node.lineno if artifact.node.lineno else 0
         artifact_line = str(artifact.node.source_code.code).split("\n")[
-            _line_no
+            _line_no - 1
         ]
+        _col_offset = (
+            artifact.node.col_offset if artifact.node.col_offset else 0
+        )
         artifact_name = (
-            artifact_line[: artifact.node.col_offset - 3]
-            if artifact.node.col_offset >= 3
+            artifact_line[: _col_offset - 3]
+            if _col_offset >= 3
             else slice_name
         )
         slice_code = get_program_slice(self.graph, [artifact.id])
