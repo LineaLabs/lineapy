@@ -152,6 +152,10 @@ temp.py
 tmp_*
 housing.csv
 *.temp
+
+# Result of --export-slice
+sliced_housing.py
+
 tracer
 tracer.pdf
 devcontainer.json

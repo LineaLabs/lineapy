@@ -36,7 +36,26 @@ if TYPE_CHECKING:
     from lineapy.instrumentation.tracer import Tracer
 
 
-def tracer_to_visual_graph(tracer: Tracer) -> VisualGraph:
+@dataclass
+class VisualGraphOptions:
+    """
+    Class to store options for the visualizer, so that we can properly type them
+    as we pass this down the stack.
+
+    It would be nice if we could just use keyword arguments, and type this directly.
+
+    We can't use a TypedDict on **kwargs (see https://www.python.org/dev/peps/pep-0589/#rejected-alternatives)
+    In Python 3.10 we can maybe use https://www.python.org/dev/peps/pep-0612/.
+    """
+
+    # Whether to show edges for the state the tracer keeps about view
+    # and mutation tracking
+    show_view_and_mutation_tracking: bool = field(default=False)
+
+
+def tracer_to_visual_graph(
+    tracer: Tracer, options: VisualGraphOptions
+) -> VisualGraph:
     vg = VisualGraph()
 
     # We will create some mappings to start, so that we can add the
@@ -68,16 +87,18 @@ def tracer_to_visual_graph(tracer: Tracer) -> VisualGraph:
         )
 
     # Then we can add all the additional information from the tracer
-
-    # the mutate nodes
-    for source, mutate in tracer.source_to_mutate.items():
-        vg.edges.append(
-            VisualEdge(source, mutate, VisualEdgeType.LATEST_MUTATE_SOURCE)
-        )
-    # the view nodes
-    for source, viewers in tracer.source_to_viewers.items():
-        for viewer in viewers:
-            vg.edges.append(VisualEdge(source, viewer, VisualEdgeType.VIEW))
+    if options.show_view_and_mutation_tracking:
+        # the mutate nodes
+        for source, mutate in tracer.source_to_mutate.items():
+            vg.edges.append(
+                VisualEdge(source, mutate, VisualEdgeType.LATEST_MUTATE_SOURCE)
+            )
+        # the view nodes
+        for source, viewers in tracer.source_to_viewers.items():
+            for viewer in viewers:
+                vg.edges.append(
+                    VisualEdge(source, viewer, VisualEdgeType.VIEW)
+                )
     return vg
 
 
