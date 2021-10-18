@@ -1,5 +1,7 @@
 import subprocess
 
+import pytest
+
 
 def test_cli_entrypoint():
     """
@@ -29,5 +31,30 @@ def test_export_slice_housing():
             "p value",
             "--export-slice",
             "sliced_housing",
+        ]
+    )
+
+
+def test_kaggle_example1():
+
+    subprocess.check_call(
+        [
+            "lineapy",
+            "examples/kaggle_example1.py",
+            "--slice",
+            "mushroom feature importance",
+        ]
+    )
+
+
+@pytest.mark.xfail(reason="lambdas aren't supported")
+def test_kaggle_example2():
+
+    subprocess.check_call(
+        [
+            "lineapy",
+            "examples/kaggle_example2.py",
+            "--slice",
+            "nn for diabetes",
         ]
     )

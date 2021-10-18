@@ -1,4 +1,5 @@
 import datetime
+import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -435,7 +436,12 @@ class TestEndToEnd:
         assert res.values["b"] == 2
 
     def test_housing(self, execute, python_snapshot):
-        code = (Path(__file__).parent / "housing.py").read_text()
+        tests_dir = Path(__file__).parent
+
+        # Change directory to tests dir before executing
+        os.chdir(tests_dir)
+
+        code = (tests_dir / "housing.py").read_text()
         res = execute(code)
         assert res.slice("p value") == python_snapshot
 
