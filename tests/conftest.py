@@ -19,6 +19,7 @@ from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils import prettify
+from lineapy.visualizer.visual_graph import VisualGraphOptions
 from tests.util import get_project_directory
 
 # Based off of unmerged JSON extension
@@ -157,7 +158,11 @@ class ExecuteFixture:
         transform(code, source_code_path, tracer)
 
         if self.visualize:
-            tracer.visualize()
+            tracer.visualize(
+                options=VisualGraphOptions(
+                    show_view_and_mutation_tracking=True
+                )
+            )
 
         # Verify snapshot of graph
         if compare_snapshot:

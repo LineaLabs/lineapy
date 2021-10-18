@@ -47,11 +47,12 @@ Options:
   --print-source  Whether to print the source code
   --print-graph   Whether to print the generated graph code
   --verbose       Print out logging for graph creation and execution
+  --visualize     Visualize the resulting graph with Graphviz
   --help          Show this message and exit.
 
 # Run linea on a Python file to analyze it.
-# Use --print-graph to print out the graph it creates
-$ lineapy --print-source --print-graph tests/simple.py
+# --visualize creates a visual representaiton of the underlying graph and displays it
+$ lineapy --print-source --visualize tests/simple.py
 ...
 # Use --slice to slice the code to that which is needed to recompute an artifact
 $ lineapy --print-source tests/housing.py --slice 'p value'
