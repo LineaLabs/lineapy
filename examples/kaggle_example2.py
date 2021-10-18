@@ -20,6 +20,9 @@ warnings.filterwarnings("ignore")
 # plt.style.use('ggplot')
 # ggplot is R based visualisation package that provides better graphics with higher level of abstraction
 
+# Turn on interactive mode for now so figures don't block.
+plt.ion()
+
 
 # ## Basic Data Science and ML Pipeline
 
