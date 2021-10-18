@@ -1,11 +1,16 @@
 import logging
+import pathlib
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from functools import cached_property
+from importlib import import_module
 from os import getcwd
 from typing import Dict, Optional
 
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+from airflow.utils.dates import days_ago
 from black import FileMode, format_str
 
 from lineapy.constants import GET_ITEM, GETATTR
@@ -154,6 +159,30 @@ class Tracer:
         black_mode.line_length = 79
         full_code = format_str(full_code, mode=black_mode)
         return full_code
+
+    def sliced_aiflow_dag(self, slice_name: str, func_name: str) -> str:
+        _sliced_func_code = self.sliced_func(slice_name, func_name)
+        pathlib.Path(f"{func_name}.py").write_text(_sliced_func_code)
+        _sliced_func = getattr(import_module(func_name), func_name)
+        DEFAULT_ARGS = {
+            "start_date": days_ago(1),
+            "owner": "airflow",
+            "retries": 2,
+        }
+        dagargs = {
+            "default_args": DEFAULT_ARGS,
+            "schedule_interval": "0 7 * * *",
+            "catchup": False,
+            "max_active_runs": 1,
+            "concurrency": 5,
+        }
+        dag = DAG(func_name, **dagargs)
+        with dag as dag:
+            task_id = func_name
+            task = PythonOperator(
+                task_id=task_id, python_callable=func_name, dag=dag
+            )
+        return dag
 
     def session_artifacts(self) -> list[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)

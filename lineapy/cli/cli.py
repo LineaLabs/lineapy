@@ -38,6 +38,12 @@ logger = logging.getLogger(__name__)
     help="Requires --slice. Export the sliced code that {slice} depends on to {export_slice}.py",
 )
 @click.option(
+    "--export-slice-to-airflow-dag",
+    "--airflow",
+    default=None,
+    help="Requires --slice. Export the sliced code that {slice} depends on to an Airflow DAG {export_slice}.py",
+)
+@click.option(
     "--print-source", help="Whether to print the source code", is_flag=True
 )
 @click.option(
@@ -59,6 +65,7 @@ def linea_cli(
     mode,
     slice,
     export_slice,
+    export_slice_to_airflow_dag,
     print_source,
     print_graph,
     verbose,
@@ -79,7 +86,7 @@ def linea_cli(
     tracer = Tracer(db, SessionType.SCRIPT)
     transform(code, file_name, tracer)
 
-    if slice and not export_slice:
+    if slice and not export_slice and not export_slice_to_airflow_dag:
         tree.add(
             rich.console.Group(
                 f"Slice of {repr(slice)}",
@@ -92,6 +99,17 @@ def linea_cli(
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
         full_code = tracer.sliced_func(slice, export_slice)
+        pathlib.Path(f"{export_slice}.py").write_text(full_code)
+
+    if export_slice_to_airflow_dag:
+        if not slice:
+            print(
+                "Please specify --slice. It is required for --export-slice-to-airflow-dag"
+            )
+            exit(1)
+        full_code = tracer.sliced_aiflow_dag(
+            slice, export_slice_to_airflow_dag
+        )
         pathlib.Path(f"{export_slice}.py").write_text(full_code)
 
     tracer.db.close()
