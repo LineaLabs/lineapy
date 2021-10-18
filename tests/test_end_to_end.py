@@ -125,20 +125,6 @@ y = x + b
 lineapy.linea_publish(y, 'y')
 """
 
-LOOP_CODE_SLICED = """def loop():
-    a = []
-    b = 0
-    for x in range(9):
-        a.append(x)
-        b += x
-    x = sum(a)
-    y = x + b
-
-
-if __name__ == "__main__":
-    loop()
-"""
-
 SIMPLE_SLICE = """import lineapy
 a = 2
 b = 2
@@ -155,7 +141,6 @@ ls[1] = a
 ls[2:3] = [30]
 ls[3:a] = [40]
 """
-
 
 NESTED_CALL = "a = min(abs(11), 10)"
 
@@ -250,10 +235,10 @@ class TestEndToEnd:
 
         assert res.slice("y") == python_snapshot
 
-    def test_loop_code_export_slice(self, execute):
+    def test_loop_code_export_slice(self, execute, python_snapshot):
         res = execute(LOOP_CODE)
 
-        assert res.sliced_func("y", "loop") == LOOP_CODE_SLICED
+        assert res.sliced_func("y", "loop") == python_snapshot
 
     def test_conditionals(self, execute):
         res = execute(CONDITIONALS_CODE)

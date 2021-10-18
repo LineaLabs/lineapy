@@ -123,12 +123,24 @@ class Tracer:
         }
 
     def sliced_func(self, slice_name: str, func_name: str) -> str:
-        slice_lines = self.slice(slice_name).split("\n")
-        # We split the lines in import and code blocks and join them to full code test
+        artifact = self.db.get_artifact_by_name(slice_name)
+        artifact_line = artifact.node.source_code.code.split("\n")[
+            artifact.node.lineno - 1
+        ]
+        artifact_name = artifact_line[: artifact.node.col_offset - 3]
+        slice_code = get_program_slice(self.graph, [artifact.id])
+        # We split the code in import and code blocks and join them to full code test
         import_block, code_block, main_block = split_code_blocks(
-            slice_lines, func_name
+            slice_code, func_name
         )
-        full_code = import_block + "\n\n" + code_block + "\n\n" + main_block
+        full_code = (
+            import_block
+            + "\n\n"
+            + code_block
+            + f"\n\treturn {artifact_name}"
+            + "\n\n"
+            + main_block
+        )
         # Black lint
         black_mode = FileMode()
         black_mode.line_length = 79
