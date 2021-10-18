@@ -9,12 +9,23 @@ This repository contains a few different components:
 
 ## First-time Setup
 
+### Conda
 ```bash
 conda create --name lineapy-env python=3.9
 conda activate lineapy-env
 # added quotes to make zsh compliant
 pip install -e ".[dev]" --user
 ```
+
+### Docker + Makefile
+To build the container, run `make build`
+To open bash within the container, run `make bash`. One can either use bash for dev or can connect to remote runtimes inside a container using extensions available for the editor of choice.
+
+Before committing, please add appropriate tests and ensure all tests are working using
+`make test`. In case a snapshot needs updating, you can use `make test args="--snapshot-update"` to update snapshots.
+Individual tests can be run using `make test args="<path_to_test_file>"`.
+Additionally, linting and typechecks can be done using `make lint` and `make typecheck` respectively.
+
 
 ## Debugging (in VSC)
 
