@@ -180,7 +180,7 @@ class Tracer:
         with dag as dag:
             task_id = func_name
             task = PythonOperator(
-                task_id=task_id, python_callable=func_name, dag=dag
+                task_id=task_id, python_callable=_sliced_func, dag=dag
             )
         return dag
 
