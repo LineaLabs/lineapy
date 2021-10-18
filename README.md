@@ -17,7 +17,7 @@ We currently support the following features:
 We are working towards a number of other features and have [created issues to describe some of them in Github, tagged with `User Story`](https://github.com/LineaLabs/lineapy/labels/User%20Story), which include:
 
 - Automatic creation of [Airflow DAGs](https://github.com/LineaLabs/lineapy/issues/236) (and related systems) from Linea artifacts
-- Metadata search e.g. "Find all charts that use this column from this table" (see issues on analyzing data sources](https://github.com/LineaLabs/lineapy/issues/22) and [SQL](https://github.com/LineaLabs/lineapy/issues/272))
+- Metadata search e.g. "Find all charts that use this column from this table" [see issues on analyzing data sources](https://github.com/LineaLabs/lineapy/issues/22) and [analyzing SQL](https://github.com/LineaLabs/lineapy/issues/272))
 - Hosted storage of Linea artifacts
 
 If you have any feedback for us, please get in touch! We welcome feedback on Github, either by commenting on existing issues or creating new ones. You can also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
@@ -49,11 +49,12 @@ Options:
   --print-source       Whether to print the source code
   --print-graph        Whether to print the generated graph code
   --verbose            Print out logging for graph creation and execution
+  --visualize     Visualize the resulting graph with Graphviz
   --help               Show this message and exit.
 
 # Run linea on a Python file to analyze it.
-# Use --print-graph to print out the graph it creates
-$ lineapy --print-source --print-graph tests/simple.py
+# --visualize creates a visual representaiton of the underlying graph and displays it
+$ lineapy --print-source --visualize tests/simple.py
 ...
 # Use --slice to slice the code to that which is needed to recompute an artifact
 $ lineapy --print-source tests/housing.py --slice 'p value'
@@ -118,7 +119,7 @@ x = 1 + 2
 y = x + 3
 assert y == 4
 
-$ docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main my_script.py --print-graph
+$ docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main lineapy my_script.py --print-graph
 ...
 ```
 

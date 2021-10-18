@@ -12,6 +12,7 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils import prettify
 
 """
 We are using click because our package will likely already have a dependency on
@@ -56,6 +57,11 @@ logger = logging.getLogger(__name__)
     help="Print out logging for graph creation and execution",
     is_flag=True,
 )
+@click.option(
+    "--visualize",
+    help="Visualize the resulting graph with Graphviz",
+    is_flag=True,
+)
 @click.argument(
     "file_name",
     type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
@@ -69,6 +75,7 @@ def linea_cli(
     print_source,
     print_graph,
     verbose,
+    visualize,
 ):
     configure_logging("INFO" if verbose else "WARNING")
     tree = rich.tree.Tree(f"📄 {file_name}")
@@ -85,6 +92,9 @@ def linea_cli(
         )
     tracer = Tracer(db, SessionType.SCRIPT)
     transform(code, file_name, tracer)
+
+    if visualize:
+        tracer.visualize()
 
     if slice and not export_slice and not export_slice_to_airflow_dag:
         tree.add(
@@ -114,11 +124,13 @@ def linea_cli(
 
     tracer.db.close()
     if print_graph:
-        graph_code = tracer.graph.print(
-            include_source_location=False,
-            include_id_field=False,
-            include_session=False,
-            include_imports=False,
+        graph_code = prettify(
+            tracer.graph.print(
+                include_source_location=False,
+                include_id_field=False,
+                include_session=False,
+                include_imports=False,
+            )
         )
         tree.add(
             rich.console.Group(

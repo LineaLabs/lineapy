@@ -22,6 +22,7 @@ from lineapy.visualizer.visual_graph import (
     ExtraLabelType,
     Pointer,
     VisualEdgeType,
+    VisualGraphOptions,
     VisualNode,
     tracer_to_visual_graph,
 )
@@ -89,16 +90,18 @@ def get_color(tp: ColorableType) -> str:
     return str(TYPES_FOR_COLOR.index(tp) + 1)
 
 
-def tracer_to_graphviz(tracer: Tracer) -> graphviz.Digraph:
+def tracer_to_graphviz(
+    tracer: Tracer, options: VisualGraphOptions
+) -> graphviz.Digraph:
     dot = graphviz.Digraph()
 
     dot.attr(newrank="true")
     dot.attr("node", **NODE_STYLE)
     dot.attr("edge", **EDGE_STYLE)
 
-    add_legend(dot)
+    add_legend(dot, options)
 
-    vg = tracer_to_visual_graph(tracer)
+    vg = tracer_to_visual_graph(tracer, options)
 
     for node in vg.nodes:
         render_node(dot, node)
@@ -162,7 +165,7 @@ def edge_type_to_kwargs(edge_type: VisualEdgeType) -> dict[str, object]:
     }
 
 
-def add_legend(dot: graphviz.Digraph):
+def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
     """
     Add a legend with nodes and edge styles.
 
@@ -178,6 +181,11 @@ def add_legend(dot: graphviz.Digraph):
     with dot.subgraph(name="cluster_0") as c:
         c.attr(color=CLUSTER_EDGE_COLOR)
         c.attr(label="Legend")
+
+        ##
+        # Add nodes to legend
+        ##
+
         # Save the previous ID so we can add an invisible edge.
         prev_id = None
         for node_type, label in NODE_LABELS.items():
@@ -198,22 +206,27 @@ def add_legend(dot: graphviz.Digraph):
             )
             prev_id = id_
 
-        # Keep adding invisible edges, so that all of the nodes are aligned vertically
-        id_ = "legend_edge"
-        c.node(id_, "", shape="box", style="invis")
-        c.edge(prev_id, id_, style="invis")
-        prev_id = id_
-        for edge_type, label in EDGE_TYPE_TO_LABEL.items():
-            id_ = f"legend_edge_{label}"
-            # Add invisible nodes, so the edges have something to point to.
+        ##
+        # Add edges to legend
+        ##
+
+        if options.show_view_and_mutation_tracking:
+            # Keep adding invisible edges, so that all of the nodes are aligned vertically
+            id_ = "legend_edge"
             c.node(id_, "", shape="box", style="invis")
-            c.edge(
-                prev_id,
-                id_,
-                label=label,
-                **edge_type_to_kwargs(edge_type),
-            )
+            c.edge(prev_id, id_, style="invis")
             prev_id = id_
+            for edge_type, label in EDGE_TYPE_TO_LABEL.items():
+                id_ = f"legend_edge_{label}"
+                # Add invisible nodes, so the edges have something to point to.
+                c.node(id_, "", shape="box", style="invis")
+                c.edge(
+                    prev_id,
+                    id_,
+                    label=label,
+                    **edge_type_to_kwargs(edge_type),
+                )
+                prev_id = id_
     return id_
 
 
