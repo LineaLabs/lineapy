@@ -142,7 +142,6 @@ ls[2:3] = [30]
 ls[3:a] = [40]
 """
 
-
 NESTED_CALL = "a = min(abs(11), 10)"
 
 BINOPS = """a = 11
@@ -235,6 +234,11 @@ class TestEndToEnd:
         )
 
         assert res.slice("y") == python_snapshot
+
+    def test_loop_code_export_slice(self, execute, python_snapshot):
+        res = execute(LOOP_CODE)
+
+        assert res.sliced_func("y", "loop") == python_snapshot
 
     def test_conditionals(self, execute):
         res = execute(CONDITIONALS_CODE)

@@ -6,6 +6,8 @@ from functools import cached_property
 from os import getcwd
 from typing import Dict, Optional
 
+from black import FileMode, format_str
+
 from lineapy.constants import GET_ITEM, GETATTR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -26,7 +28,10 @@ from lineapy.data.types import (
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import ArtifactORM
 from lineapy.execution.executor import Executor
-from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.graph_reader.program_slice import (
+    get_program_slice,
+    split_code_blocks,
+)
 from lineapy.lineabuiltins import __build_tuple__, __exec__
 from lineapy.utils import get_new_id, get_value_type
 from lineapy.visualizer.graphviz import tracer_to_graphviz
@@ -117,6 +122,39 @@ class Tracer:
             for artifact in self.session_artifacts()
             if artifact.name is not None
         }
+
+    def sliced_func(self, slice_name: str, func_name: str) -> str:
+        artifact = self.db.get_artifact_by_name(slice_name)
+        if not artifact.node:
+            return "Unable to extract the slice"
+        _line_no = artifact.node.lineno if artifact.node.lineno else 0
+        artifact_line = str(artifact.node.source_code.code).split("\n")[
+            _line_no - 1
+        ]
+        _col_offset = (
+            artifact.node.col_offset if artifact.node.col_offset else 0
+        )
+        if _col_offset < 3:
+            return "Unable to extract the slice"
+        artifact_name = artifact_line[: _col_offset - 3]
+        slice_code = get_program_slice(self.graph, [artifact.id])
+        # We split the code in import and code blocks and join them to full code test
+        import_block, code_block, main_block = split_code_blocks(
+            slice_code, func_name
+        )
+        full_code = (
+            import_block
+            + "\n\n"
+            + code_block
+            + f"\n\treturn {artifact_name}"
+            + "\n\n"
+            + main_block
+        )
+        # Black lint
+        black_mode = FileMode()
+        black_mode.line_length = 79
+        full_code = format_str(full_code, mode=black_mode)
+        return full_code
 
     def session_artifacts(self) -> list[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)
