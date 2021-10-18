@@ -37,12 +37,11 @@ def test_export_slice_housing():
 
 
 def test_kaggle_example1():
-    os.chdir("examples")
 
     subprocess.check_call(
         [
             "lineapy",
-            "kaggle_example1.py",
+            "examples/kaggle_example1.py",
             "--slice",
             "mushroom feature importance",
         ]
@@ -51,12 +50,11 @@ def test_kaggle_example1():
 
 @pytest.mark.xfail(reason="lambdas aren't supported")
 def test_kaggle_example2():
-    os.chdir("examples")
 
     subprocess.check_call(
         [
             "lineapy",
-            "kaggle_example2.py",
+            "examples/kaggle_example2.py",
             "--slice",
             "nn for diabetes",
         ]
