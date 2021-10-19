@@ -214,5 +214,7 @@ def assertionist():
                 )
             elif asserttype == "valuearray":
                 assert (actual.values[varname] == expectedvalue).all()
+            elif asserttype == "artifact":
+                assert actual.artifacts[varname] == expectedvalue
 
     return _tester

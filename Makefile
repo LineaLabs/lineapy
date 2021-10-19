@@ -11,7 +11,8 @@ test:
 	docker-compose run --rm ${imagename} pytest ${args}
 
 lint:
-	docker run --rm -v "${PWD}":/apps alpine/flake8:latest --verbose .
+	docker run --rm -v "${PWD}":/apps alpine/flake8:latest --verbose . && \
+	docker-compose run --rm ${imagename} isort . --check
 
 blackfix:
 	docker run --rm -v "${PWD}":/data cytopia/black .
