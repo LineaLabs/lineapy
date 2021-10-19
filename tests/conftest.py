@@ -200,3 +200,19 @@ def chdir_test_file():
     os.chdir(get_project_directory())
     yield
     os.chdir(current_working_dir)
+
+
+@pytest.fixture
+def assertionist():
+    def _tester(actual, asserts):
+        for (asserttype, varname, expectedvalue) in asserts:
+            if asserttype == "value":
+                assert actual.values[varname] == expectedvalue
+            elif asserttype == "classname":
+                assert (
+                    actual.values[varname].__class__.__name__ == expectedvalue
+                )
+            elif asserttype == "valuearray":
+                assert (actual.values[varname] == expectedvalue).all()
+
+    return _tester

@@ -18,4 +18,4 @@ blackfix:
 
 typecheck:
 	#docker run --rm -v "${PWD}":/data cytopia/mypy .
-	docker-compose run --rm ${imagename} mypy .
+	docker-compose run --rm ${imagename} mypy -p lineapy

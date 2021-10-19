@@ -38,12 +38,6 @@ d = numpy.array([1,2,3])
 
 
 @pytest.mark.parametrize("_testname, code, asserts", TESTS_CASES)
-def test_import(execute, _testname, code, asserts):
+def test_import(execute, assertionist, _testname, code, asserts):
     res = execute(code[0])
-    for (asserttype, varname, expectedvalue) in asserts:
-        if asserttype == "value":
-            assert res.values[varname] == expectedvalue
-        elif asserttype == "classname":
-            assert res.values[varname].__class__.__name__ == expectedvalue
-        elif asserttype == "valuearray":
-            assert (res.values[varname] == expectedvalue).all()
+    assertionist(res, asserts)
