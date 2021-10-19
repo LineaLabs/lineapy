@@ -41,6 +41,46 @@ call_2 = CallNode(
     ).id,
     positional_args=[call_1.id],
 )
+literal_2 = LiteralNode(
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=9,
+        end_lineno=4,
+        end_col_offset=10,
+        source_code=source_1.id,
+    ),
+    value=1,
+)
+call_3 = CallNode(
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=0,
+        end_lineno=4,
+        end_col_offset=10,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="setitem",
+    ).id,
+    positional_args=[
+        call_1.id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=4,
+                col_offset=2,
+                end_lineno=4,
+                end_col_offset=5,
+                source_code=source_1.id,
+            ),
+            value="a",
+        ).id,
+        literal_2.id,
+    ],
+)
+mutate_2 = MutateNode(
+    source_id=literal_2.id,
+    call_id=call_3.id,
+)
 call_4 = CallNode(
     source_location=SourceLocation(
         lineno=5,
@@ -55,41 +95,7 @@ call_4 = CallNode(
     positional_args=[
         MutateNode(
             source_id=call_1.id,
-            call_id=CallNode(
-                source_location=SourceLocation(
-                    lineno=4,
-                    col_offset=0,
-                    end_lineno=4,
-                    end_col_offset=10,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="setitem",
-                ).id,
-                positional_args=[
-                    call_1.id,
-                    LiteralNode(
-                        source_location=SourceLocation(
-                            lineno=4,
-                            col_offset=2,
-                            end_lineno=4,
-                            end_col_offset=5,
-                            source_code=source_1.id,
-                        ),
-                        value="a",
-                    ).id,
-                    LiteralNode(
-                        source_location=SourceLocation(
-                            lineno=4,
-                            col_offset=9,
-                            end_lineno=4,
-                            end_col_offset=10,
-                            source_code=source_1.id,
-                        ),
-                        value=1,
-                    ).id,
-                ],
-            ).id,
+            call_id=call_3.id,
         ).id
     ],
 )

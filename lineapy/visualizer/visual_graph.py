@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Optional, Union
 from lineapy.data.types import (
     CallNode,
     ImportNode,
+    LineaID,
     LiteralNode,
     LookupNode,
     MutateNode,
@@ -93,12 +94,16 @@ def tracer_to_visual_graph(
             vg.edges.append(
                 VisualEdge(source, mutate, VisualEdgeType.LATEST_MUTATE_SOURCE)
             )
-        # the view nodes
-        for source, viewers in tracer.source_to_viewers.items():
-            for viewer in viewers:
-                vg.edges.append(
-                    VisualEdge(source, viewer, VisualEdgeType.VIEW)
-                )
+
+        # Create a set of unique pairs of viewers, where order doesn't matter
+        # Since they aren't directed
+        viewer_pairs: set[frozenset[LineaID]] = {
+            frozenset([source, viewer])
+            for source, viewers in tracer.viewers.items()
+            for viewer in viewers
+        }
+        # for source, target in viewer_pairs:
+        #     vg.edges.append(VisualEdge(source, target, VisualEdgeType.VIEW))
     return vg
 
 

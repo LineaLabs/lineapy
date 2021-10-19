@@ -81,6 +81,12 @@ NODE_SHAPES: dict[NodeType, str] = {
     NodeType.MutateNode: "record",
 }
 
+UNDIRECTED_EDGE_TYPES = {
+    VisualEdgeType.VIEW,
+}
+
+DASHED_EDGE_TYPES = {VisualEdgeType.MUTATE_SOURCE, VisualEdgeType.MUTATE_CALL}
+
 
 def get_color(tp: ColorableType) -> str:
     """
@@ -161,7 +167,9 @@ def edge_type_to_kwargs(edge_type: VisualEdgeType) -> dict[str, object]:
     return {
         "color": get_color(edge_type)
         if edge_type in TYPES_FOR_COLOR
-        else DEFAULT_EDGE_COLOR
+        else DEFAULT_EDGE_COLOR,
+        "dir": "none" if edge_type in UNDIRECTED_EDGE_TYPES else "forward",
+        "style": "dashed" if edge_type in DASHED_EDGE_TYPES else "solid",
     }
 
 

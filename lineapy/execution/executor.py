@@ -150,14 +150,11 @@ class Executor:
                     return self._node_to_bound_self[node.function_id]
 
             return SideEffects(
-                mutated={get_node_id(m) for m in inspect_function_res.mutated},
-                views={
-                    (
-                        get_node_id(v.source),
-                        get_node_id(v.viewer),
-                    )
+                mutated=[get_node_id(m) for m in inspect_function_res.mutated],
+                views=frozenset(
+                    frozenset(map(get_node_id, v))
                     for v in inspect_function_res.views
-                },
+                ),
             )
 
         elif isinstance(node, ImportNode):
@@ -171,7 +168,11 @@ class Executor:
         elif isinstance(node, MutateNode):
             # Copy the value from the source value node
             self._id_to_value[node.id] = self._id_to_value[node.source_id]
-            return SideEffects()
+
+            # The mutate node is a view of its source
+            return SideEffects(
+                views=frozenset({frozenset({node.id, node.source_id})})
+            )
 
     def execute_graph(self, graph: Graph) -> None:
         logger.info("Executing graph %s", graph)
@@ -194,11 +195,12 @@ class SideEffects:
     """
 
     # Set of linea IDs which were mutated by executing this node.
-    mutated: set[LineaID] = field(default_factory=set)
+    # Kept as a list for consistant ordering
+    mutated: list[LineaID] = field(default_factory=list)
     # Set of tuples mapping the ID of a source node to the ID of the node which
     # views it. This means that now whenever the source is mutated, the viewer
     # is also mutated.
-    views: set[tuple[LineaID, LineaID]] = field(default_factory=set)
+    views: frozenset[frozenset[LineaID]] = field(default_factory=frozenset)
 
 
 def lookup_value(name: str) -> object:

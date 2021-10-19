@@ -52,15 +52,15 @@ class Tracer:
     # Mapping of mutated nodes, from their original node id, to the latest
     # mutate node id they are the source of
     source_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
-
-    # Mapping of each node, to every node that has a "view" of it,
-    # meaning that if that node is mutated, the view node will be as well
-    source_to_viewers: dict[LineaID, set[LineaID]] = field(
+    # Inverse mapping of the source_to_mutate, need a set since
+    # multiple sources can point to the same mutate node
+    mutate_to_source: dict[LineaID, set[LineaID]] = field(
         default_factory=lambda: defaultdict(set)
     )
 
-    # Reverse mapping of node to viewers
-    viewer_to_sources: dict[LineaID, set[LineaID]] = field(
+    # Mapping from each node to every node which has a view of it,
+    # meaning that if that node is mutated, the view node will be as well
+    viewers: dict[LineaID, set[LineaID]] = field(
         default_factory=lambda: defaultdict(set)
     )
 
@@ -184,32 +184,29 @@ class Tracer:
         """
         self.db.write_node(node)
 
+        ##
+        # Update the graph from the side effects of the node,
+        ##
         side_effects = self.executor.execute_node(node)
 
-        # Update the graph from the side effects of the node,
-        # Creating additional views and mutate nodes
+        # The viewer mappings are bidirectional transitive closures and we keep
+        # the mapping updated with all views
 
-        # The viewer mappings are transitive closures, so whenever we add
-        # a new view -> src, we have to traverse all of its parents and children
-        # and add them as well.
+        for view_set in side_effects.views:
+            # First, iterate through all items in the view
+            # and create a complete view set adding all their views as well
+            complete_view_set = view_set.union(
+                *(self.viewers[id_] for id_ in view_set)
+            )
 
-        # Instead, we could have done the traversal when looking up the mutation
-        for source_id, view_id in side_effects.views:
-            self.source_to_viewers[source_id].add(view_id)
-            self.viewer_to_sources[view_id].add(source_id)
-
-            for parent_source in self.viewer_to_sources[source_id]:
-                self.source_to_viewers[parent_source].add(view_id)
-                self.viewer_to_sources[view_id].add(parent_source)
-
-            for child_viewer in self.source_to_viewers[view_id]:
-                self.source_to_viewers[source_id].add(child_viewer)
-                self.viewer_to_sources[child_viewer].add(source_id)
-
+            # Now iterate through all items in the complete view and
+            # make sure it contains all items
+            for id_ in complete_view_set:
+                self.viewers[id_] |= complete_view_set - {id_}
+        # Create a mutation node for every node that was mutated,
+        # Which are all the views + the node itself
         for original_source_id in side_effects.mutated:
-            # Create a mutation node for every node that was mutated,
-            # Which are all the views + the node itself
-            for source_id in self.source_to_viewers[original_source_id] | {
+            for source_id in self.viewers[original_source_id] | {
                 original_source_id
             }:
                 mutate_node = MutateNode(
@@ -218,7 +215,15 @@ class Tracer:
                     source_id=self.resolve_node(source_id),
                     call_id=node.id,
                 )
-                self.source_to_mutate[source_id] = mutate_node.id
+
+                mutated_sources = self.mutate_to_source[source_id] | {
+                    source_id
+                }
+                for mutate_source_id in mutated_sources:
+                    self.source_to_mutate[mutate_source_id] = mutate_node.id
+                self.mutate_to_source[mutate_node.id] |= mutated_sources
+
+                # Add the mutate node to the graph
                 self.process_node(mutate_node)
 
     def lookup_node(self, variable_name: str) -> Node:

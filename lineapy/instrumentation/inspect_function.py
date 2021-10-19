@@ -17,6 +17,11 @@ class KeywordArg:
 
 @dataclass(frozen=True)
 class BoundSelfOfFunction:
+    """
+    If the function is a bound method, this refers to the instance that was
+    bound of the method.
+    """
+
     pass
 
 
@@ -29,25 +34,25 @@ class Result:
     pass
 
 
-@dataclass(frozen=True)
-class View:
-    """
-    Represents that the viewer is mutated whenever the source is mutated.
-
-    This dataclass is used as the return value for inspecting a function, to
-    provide more explicit names and types for the results.
-    """
-
-    source: Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
-    viewer: Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
+# A set of values which all potentiall refer to shared pointers
+# So that if one is mutated, the rest might be as well.
+BidirectionalView = list[
+    Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
+]
 
 
 @dataclass(frozen=True)
 class InspectFunctionResult:
-    mutated: set[
+    # These are stored as lists for easier construction, but semantically they
+    # are frozensets. It is useful also to keep the mutated ordered, to have
+    # deterministic creation of mutated node order, without having to sort.
+
+    # A set of values which are mutated
+    mutated: list[
         Union[PositionalArg, KeywordArg, BoundSelfOfFunction]
-    ] = field(default_factory=set)
-    views: set[View] = field(default_factory=set)
+    ] = field(default_factory=list)
+    # A set of views, each of which represent a set of values which share poitners
+    views: list[BidirectionalView] = field(default_factory=list)
 
 
 def inspect_function(
@@ -67,15 +72,17 @@ def inspect_function(
         # setitem(dict, key, value)
         return InspectFunctionResult(
             # The first arg, the dict, is mutated
-            mutated={PositionalArg(0)},
-            # The first arg is now a view of the value
-            views={View(PositionalArg(2), PositionalArg(0))},
+            mutated=[PositionalArg(0)],
+            # The first arg is now a view of the value, if the first arg is muttable
+            views=[[PositionalArg(2), PositionalArg(0)]]
+            if not is_immutable(args[2])
+            else [],
         )
     if function == operator.delitem:
         # delitem(dict, key)
         return InspectFunctionResult(
             # The first arg, the dict, is mutated
-            mutated={PositionalArg(0)},
+            mutated=[PositionalArg(0)],
         )
     if imported_module("sklearn"):
         from sklearn.base import BaseEstimator
@@ -90,11 +97,8 @@ def inspect_function(
             # are views of each other, since mutating one will mutate the other
             # since they are the same object.
             return InspectFunctionResult(
-                mutated={BoundSelfOfFunction()},
-                views={
-                    View(BoundSelfOfFunction(), Result()),
-                    View(Result(), BoundSelfOfFunction()),
-                },
+                mutated=[BoundSelfOfFunction()],
+                views=[[BoundSelfOfFunction(), Result()]],
             )
     # Note: Future functions might require normalizing the args/kwargs with
     # inspect.signature.bind(args, kwargs) first
@@ -106,3 +110,15 @@ def imported_module(name: str) -> bool:
     Returns true if we have imported this module before.
     """
     return name in sys.modules
+
+
+def is_immutable(obj: object) -> bool:
+    """
+    Returns true if the object is immutable.
+    """
+    # Assume all hashable objects are immutable
+    try:
+        hash(obj)
+    except Exception:
+        return False
+    return True
