@@ -12,6 +12,28 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.instrumentation.tracer import Tracer
 
+AIRFLOW_IMPORTS_TEMPLATE = """
+from airflow import DAG
+from airflow.utils.dates import days_ago
+from airflow.operators.python_operator import PythonOperator
+"""
+
+AIRFLOW_MAIN_TEMPLATE = """
+default_dag_args = {"owner": "airflow", "retries": 2, "start_date": days_ago(1)}
+
+dag = DAG(
+    dag_id="DAG_NAME_dag",
+    schedule_interval="*/15 * * * *",  # Every 15 minutes
+    max_active_runs=1,
+    catchup=False,
+    default_args=default_dag_args,
+)
+
+DAG_NAME = PythonOperator(
+    dag=dag, task_id=f"DAG_NAME_task", python_callable=DAG_NAME,
+)
+"""
+
 
 def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     """
@@ -30,14 +52,15 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     import_block, code_block, main_block = split_code_blocks(
         slice_code, func_name
     )
-    # TODO Add DAG specific blocks
     full_code = (
         import_block
+        + "\n"
+        + AIRFLOW_IMPORTS_TEMPLATE
         + "\n\n"
         + code_block
-        + f"\n\treturn {artifact_var}"
+        + f"\n\tprint({artifact_var})"  # TODO What to do with artifact_var in a DAG?
         + "\n\n"
-        + main_block
+        + AIRFLOW_MAIN_TEMPLATE.replace("DAG_NAME", func_name)
     )
     # Black lint
     black_mode = FileMode()
