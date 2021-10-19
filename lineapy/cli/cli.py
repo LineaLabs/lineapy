@@ -11,6 +11,7 @@ from lineapy.data.types import SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
+from lineapy.plugins.airflow import sliced_aiflow_dag
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils import prettify
 
@@ -117,10 +118,10 @@ def linea_cli(
                 "Please specify --slice. It is required for --export-slice-to-airflow-dag"
             )
             exit(1)
-        full_code = tracer.sliced_aiflow_dag(
-            slice, export_slice_to_airflow_dag
+        full_code = sliced_aiflow_dag(
+            tracer, slice, export_slice_to_airflow_dag
         )
-        pathlib.Path(f"{export_slice}.py").write_text(full_code)
+        pathlib.Path(f"{export_slice_to_airflow_dag}.py").write_text(full_code)
 
     tracer.db.close()
     if print_graph:

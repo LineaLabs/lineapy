@@ -37,7 +37,7 @@
                 "--slice",
                 "p value",
                 "--airflow",
-                "sliced_housing",
+                "sliced_housing_dag",
                 "tests/housing.py",
             ],
         },

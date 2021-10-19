@@ -1,16 +1,11 @@
 import logging
-import pathlib
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from functools import cached_property
-from importlib import import_module
 from os import getcwd
 from typing import Dict, Optional
 
-from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
-from airflow.utils.dates import days_ago
 from black import FileMode, format_str
 
 from lineapy.constants import GET_ITEM, GETATTR
@@ -130,18 +125,9 @@ class Tracer:
 
     def sliced_func(self, slice_name: str, func_name: str) -> str:
         artifact = self.db.get_artifact_by_name(slice_name)
-        if not artifact.node:
+        artifact_var = self.slice_var_name(artifact)
+        if not artifact_var:
             return "Unable to extract the slice"
-        _line_no = artifact.node.lineno if artifact.node.lineno else 0
-        artifact_line = str(artifact.node.source_code.code).split("\n")[
-            _line_no - 1
-        ]
-        _col_offset = (
-            artifact.node.col_offset if artifact.node.col_offset else 0
-        )
-        if _col_offset < 3:
-            return "Unable to extract the slice"
-        artifact_name = artifact_line[: _col_offset - 3]
         slice_code = get_program_slice(self.graph, [artifact.id])
         # We split the code in import and code blocks and join them to full code test
         import_block, code_block, main_block = split_code_blocks(
@@ -151,7 +137,7 @@ class Tracer:
             import_block
             + "\n\n"
             + code_block
-            + f"\n\treturn {artifact_name}"
+            + f"\n\treturn {artifact_var}"
             + "\n\n"
             + main_block
         )
@@ -161,36 +147,30 @@ class Tracer:
         full_code = format_str(full_code, mode=black_mode)
         return full_code
 
-    def sliced_aiflow_dag(self, slice_name: str, func_name: str) -> str:
-        _sliced_func_code = self.sliced_func(slice_name, func_name)
-        pathlib.Path(f"{func_name}.py").write_text(_sliced_func_code)
-        _sliced_func = getattr(import_module(func_name), func_name)
-        DEFAULT_ARGS = {
-            "start_date": days_ago(1),
-            "owner": "airflow",
-            "retries": 2,
-        }
-        dagargs = {
-            "default_args": DEFAULT_ARGS,
-            "schedule_interval": "0 7 * * *",
-            "catchup": False,
-            "max_active_runs": 1,
-            "concurrency": 5,
-        }
-        dag = DAG(func_name, **dagargs)
-        with dag as dag:
-            task_id = func_name
-            task = PythonOperator(
-                task_id=task_id, python_callable=_sliced_func, dag=dag
-            )
-        return dag
-
     def session_artifacts(self) -> list[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)
 
     def slice(self, name: str) -> str:
         artifact = self.db.get_artifact_by_name(name)
         return get_program_slice(self.graph, [artifact.id])
+
+    def slice_var_name(self, artifact: ArtifactORM) -> str:
+        """
+        Returns the variable name for the given artifact.
+        i.e. in lineapy.linea_publish(p, "p value") "p" is returned
+        """
+        if not artifact.node:
+            return None
+        _line_no = artifact.node.lineno if artifact.node.lineno else 0
+        artifact_line = str(artifact.node.source_code.code).split("\n")[
+            _line_no - 1
+        ]
+        _col_offset = (
+            artifact.node.col_offset if artifact.node.col_offset else 0
+        )
+        if _col_offset < 3:
+            return None
+        return artifact_line[: _col_offset - 3]
 
     def visualize(
         self,
