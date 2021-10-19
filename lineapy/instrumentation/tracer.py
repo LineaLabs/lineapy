@@ -160,7 +160,7 @@ class Tracer:
         i.e. in lineapy.linea_publish(p, "p value") "p" is returned
         """
         if not artifact.node:
-            return None
+            return ""
         _line_no = artifact.node.lineno if artifact.node.lineno else 0
         artifact_line = str(artifact.node.source_code.code).split("\n")[
             _line_no - 1
@@ -169,7 +169,7 @@ class Tracer:
             artifact.node.col_offset if artifact.node.col_offset else 0
         )
         if _col_offset < 3:
-            return None
+            return ""
         return artifact_line[: _col_offset - 3]
 
     def visualize(
