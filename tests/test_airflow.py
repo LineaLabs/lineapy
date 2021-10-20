@@ -3,7 +3,7 @@ import subprocess
 
 def test_export_slice_housing_dag():
     """
-    Verifies that the "--export-slice" CLI command is aliased to the `lienapy` executable
+    Verifies that the "--airflow" CLI command produces a working Airflow DAG
     """
     subprocess.check_call(
         [
