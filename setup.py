@@ -86,7 +86,7 @@ setup(
             "coveralls",
             "seaborn",
             "graphviz",
-            "apache-airflow==2.2.0",
+            "apache-airflow",
         ]
     },
     include_package_data=True,
