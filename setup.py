@@ -71,7 +71,7 @@ setup(
             "sklearn",
             "flake8",
             "syrupy==1.4.5",
-            "mypy==0.770",
+            "mypy",
             "isort",
             "pytest",
             "matplotlib",
