@@ -80,6 +80,10 @@ call_4 = CallNode(
         call_2.id,
     ],
 )
+mutate_1 = MutateNode(
+    source_id=call_1.id,
+    call_id=call_4.id,
+)
 mutate_2 = MutateNode(
     source_id=call_2.id,
     call_id=call_4.id,
@@ -114,11 +118,12 @@ mutate_3 = MutateNode(
     source_id=call_3.id,
     call_id=call_5.id,
 )
-mutate_5 = MutateNode(
-    source_id=MutateNode(
-        source_id=call_1.id,
-        call_id=call_4.id,
-    ).id,
+mutate_4 = MutateNode(
+    source_id=mutate_1.id,
+    call_id=call_5.id,
+)
+mutate_6 = MutateNode(
+    source_id=mutate_2.id,
     call_id=call_5.id,
 )
 call_6 = CallNode(
@@ -157,45 +162,43 @@ call_6 = CallNode(
     ],
 )
 mutate_8 = MutateNode(
-    source_id=mutate_5.id,
+    source_id=mutate_4.id,
+    call_id=call_6.id,
+)
+mutate_9 = MutateNode(
+    source_id=MutateNode(
+        source_id=mutate_2.id,
+        call_id=call_5.id,
+    ).id,
+    call_id=call_6.id,
+)
+mutate_10 = MutateNode(
+    source_id=mutate_3.id,
     call_id=call_6.id,
 )
 mutate_11 = MutateNode(
-    source_id=MutateNode(
-        source_id=MutateNode(
-            source_id=mutate_2.id,
-            call_id=call_5.id,
-        ).id,
-        call_id=call_6.id,
-    ).id,
-    call_id=call_6.id,
-)
-mutate_12 = MutateNode(
-    source_id=mutate_5.id,
+    source_id=mutate_4.id,
     call_id=call_6.id,
 )
 mutate_13 = MutateNode(
+    source_id=mutate_3.id,
+    call_id=call_6.id,
+)
+mutate_14 = MutateNode(
     source_id=MutateNode(
-        source_id=MutateNode(
-            source_id=mutate_2.id,
-            call_id=call_5.id,
-        ).id,
+        source_id=mutate_6.id,
         call_id=call_6.id,
     ).id,
     call_id=call_6.id,
 )
-mutate_14 = MutateNode(
-    source_id=mutate_3.id,
-    call_id=call_6.id,
-)
 mutate_16 = MutateNode(
-    source_id=mutate_3.id,
+    source_id=mutate_6.id,
     call_id=call_6.id,
 )
 mutate_17 = MutateNode(
     source_id=MutateNode(
         source_id=MutateNode(
-            source_id=mutate_5.id,
+            source_id=mutate_1.id,
             call_id=call_5.id,
         ).id,
         call_id=call_6.id,

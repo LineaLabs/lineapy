@@ -21,16 +21,17 @@ from lineapy.visualizer.visual_graph import (
     ExtraLabels,
     ExtraLabelType,
     Pointer,
+    SourceLineType,
     VisualEdgeType,
     VisualGraphOptions,
     VisualNode,
+    VisualNodeType,
     tracer_to_visual_graph,
 )
 
 NODE_STYLE = {
     # https://graphviz.org/doc/info/colors.html#brewer
     "colorscheme": "pastel19",
-    "style": "filled",
 }
 
 EDGE_STYLE = {"colorscheme": NODE_STYLE["colorscheme"]}
@@ -85,7 +86,12 @@ UNDIRECTED_EDGE_TYPES = {
     VisualEdgeType.VIEW,
 }
 
-DASHED_EDGE_TYPES = {VisualEdgeType.MUTATE_SOURCE, VisualEdgeType.MUTATE_CALL}
+
+EDGE_STYLES = {
+    VisualEdgeType.MUTATE_SOURCE: "dashed",
+    VisualEdgeType.MUTATE_CALL: "dashed",
+    VisualEdgeType.NEXT_LINE: "invis",
+}
 
 
 def get_color(tp: ColorableType) -> str:
@@ -156,10 +162,13 @@ def pointer_to_id(pointer: Pointer) -> str:
     return ":".join(pointer)
 
 
-def node_type_to_kwargs(node_type: NodeType) -> dict[str, object]:
+def node_type_to_kwargs(node_type: VisualNodeType) -> dict[str, object]:
+    if isinstance(node_type, SourceLineType):
+        return {"shape": "plaintext"}
     return {
         "color": get_color(node_type),
         "shape": NODE_SHAPES[node_type],
+        "style": "filled",
     }
 
 
@@ -169,7 +178,7 @@ def edge_type_to_kwargs(edge_type: VisualEdgeType) -> dict[str, object]:
         if edge_type in TYPES_FOR_COLOR
         else DEFAULT_EDGE_COLOR,
         "dir": "none" if edge_type in UNDIRECTED_EDGE_TYPES else "forward",
-        "style": "dashed" if edge_type in DASHED_EDGE_TYPES else "solid",
+        "style": EDGE_STYLES.get(edge_type, "solid"),
     }
 
 
