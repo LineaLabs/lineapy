@@ -71,7 +71,7 @@ setup(
             "sklearn",
             "flake8",
             "syrupy==1.4.5",
-            "mypy",
+            "mypy==0.770",
             "isort",
             "pytest",
             "matplotlib",
@@ -86,7 +86,7 @@ setup(
             "coveralls",
             "seaborn",
             "graphviz",
-            "apache-airflow==2.0.1",
+            "apache-airflow==2.2.0",
         ]
     },
     include_package_data=True,
