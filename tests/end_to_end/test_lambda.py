@@ -91,26 +91,26 @@ c = b(10)
 
 
 @pytest.mark.parametrize("code, asserts", TESTS_CASES)
-def test_lambda(execute, assertionist, code, asserts):
+def test_lambda(execute, assertion_helper, code, asserts):
     res = execute(code[0])
-    assertionist(res, asserts)
+    assertion_helper(res, asserts)
 
 
 @pytest.mark.xfail
 @pytest.mark.parametrize("code, asserts", TEST_CASES_FAILING)
-def test_lambda_failing(execute, assertionist, code, asserts):
+def test_lambda_failing(execute, assertion_helper, code, asserts):
     res = execute(code[0])
-    assertionist(res, asserts)
+    assertion_helper(res, asserts)
 
 
 @pytest.mark.parametrize("code, asserts", TESTS_CASES_ARTIFACTS)
-def test_lambda_artifacts(execute, assertionist, code, asserts):
+def test_lambda_artifacts(execute, assertion_helper, code, asserts):
     res = execute(code[0], artifacts=["c"])
-    assertionist(res, asserts)
+    assertion_helper(res, asserts)
 
 
 @pytest.mark.xfail
 @pytest.mark.parametrize("code, asserts", TESTS_CASES_ARTIFACTS_FAILING)
-def test_lambda_artifacts_failing(execute, assertionist, code, asserts):
+def test_lambda_artifacts_failing(execute, assertion_helper, code, asserts):
     res = execute(code[0], artifacts=["c"])
-    assertionist(res, asserts)
+    assertion_helper(res, asserts)

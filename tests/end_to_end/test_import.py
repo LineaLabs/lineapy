@@ -38,6 +38,6 @@ d = numpy.array([1,2,3])
 
 
 @pytest.mark.parametrize("_testname, code, asserts", TESTS_CASES)
-def test_import(execute, assertionist, _testname, code, asserts):
+def test_import(execute, assertion_helper, _testname, code, asserts):
     res = execute(code[0])
-    assertionist(res, asserts)
+    assertion_helper(res, asserts)

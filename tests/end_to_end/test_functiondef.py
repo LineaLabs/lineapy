@@ -51,16 +51,16 @@ c = foo(15)
 
 @pytest.mark.parametrize("code, asserts", TESTS_CASES_ARTIFACTS)
 def test_function_definition_without_side_effect_artifacts(
-    execute, assertionist, code, asserts
+    execute, assertion_helper, code, asserts
 ):
     res = execute(code[0], artifacts=["c"])
-    assertionist(res, asserts)
+    assertion_helper(res, asserts)
 
 
 @pytest.mark.xfail
 @pytest.mark.parametrize("code, asserts", TESTS_CASES_ARTIFACTS_FAILING)
 def test_function_definition_with_globals(
-    execute, assertionist, code, asserts
+    execute, assertion_helper, code, asserts
 ):
     res = execute(code[0], artifacts=["c"])
-    assertionist(res, asserts)
+    assertion_helper(res, asserts)
