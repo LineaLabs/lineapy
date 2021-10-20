@@ -205,26 +205,26 @@ class Tracer:
                 self.viewers[id_] |= complete_view_set - {id_}
         # Create a mutation node for every node that was mutated,
         # Which are all the views + the node itself
-        for original_source_id in side_effects.mutated:
-            for source_id in self.viewers[original_source_id] | {
-                original_source_id
-            }:
-                mutate_node = MutateNode(
-                    id=get_new_id(),
-                    session_id=node.session_id,
-                    source_id=self.resolve_node(source_id),
-                    call_id=node.id,
-                )
+        all_mutated_ids = set[LineaID]().union(
+            *(self.viewers[id_] | {id_} for id_ in side_effects.mutated)
+        )
+        for source_id in all_mutated_ids:
+            mutate_node = MutateNode(
+                id=get_new_id(),
+                session_id=node.session_id,
+                source_id=self.resolve_node(source_id),
+                call_id=node.id,
+            )
 
-                mutated_sources = self.mutate_to_source[source_id] | {
-                    source_id
-                }
-                for mutate_source_id in mutated_sources:
-                    self.source_to_mutate[mutate_source_id] = mutate_node.id
-                self.mutate_to_source[mutate_node.id] |= mutated_sources
+            # Update the mutated sources, and then change all source
+            # of this mutation to now point to this mutate node
+            mutated_sources = self.mutate_to_source[source_id] | {source_id}
+            for mutate_source_id in mutated_sources:
+                self.source_to_mutate[mutate_source_id] = mutate_node.id
+            self.mutate_to_source[mutate_node.id] |= mutated_sources
 
-                # Add the mutate node to the graph
-                self.process_node(mutate_node)
+            # Add the mutate node to the graph
+            self.process_node(mutate_node)
 
     def lookup_node(self, variable_name: str) -> Node:
         """
