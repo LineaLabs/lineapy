@@ -84,6 +84,19 @@ jupyter nbconvert --to notebook --execute tests/test_notebook.ipynb --inplace --
 Or you can open it in a notebook UI (JupyterLab, JupyterNotebook, VS Code, etc.)
 and re-run it manually
 
+### Airflow
+
+Sliced code can be exported to an Airflow DAG using the following command:
+
+```
+lineapy tests/housing.py --slice "p value" --airflow sliced_housing_dag
+```
+This creates a `sliced_housing_dag.py` file in the current dir. It can be executed with:
+
+```
+airflow db init
+airflow dags test sliced_housing_dag_dag $(date '+%Y-%m-%d') -S .
+```
 ## Visual Graphs
 
 Sometimes it's helpful to see a visual representation of the graph
