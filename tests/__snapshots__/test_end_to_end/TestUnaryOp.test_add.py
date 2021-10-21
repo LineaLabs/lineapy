@@ -38,6 +38,7 @@ call_2 = CallNode(
                 value="Decimal",
             ).id,
         ],
+        global_reads={},
     ).id,
     positional_args=[
         LiteralNode(
@@ -51,6 +52,7 @@ call_2 = CallNode(
             value="3.1415926535897932384626433832795028841971",
         ).id
     ],
+    global_reads={},
 )
 call_5 = CallNode(
     source_location=SourceLocation(
@@ -88,9 +90,12 @@ call_5 = CallNode(
                         name="pos",
                     ).id,
                     positional_args=[call_2.id],
+                    global_reads={},
                 ).id,
                 call_2.id,
             ],
+            global_reads={},
         ).id
     ],
+    global_reads={},
 )

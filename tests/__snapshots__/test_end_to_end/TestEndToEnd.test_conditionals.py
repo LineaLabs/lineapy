@@ -70,6 +70,7 @@ else:
                     value=2,
                 ).id,
             ],
+            global_reads={},
         ).id,
         "len": LookupNode(
             name="len",
@@ -78,4 +79,5 @@ else:
             name="print",
         ).id,
     },
+    global_reads={},
 )

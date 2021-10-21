@@ -57,11 +57,14 @@ call_3 = CallNode(
                             value=3,
                         ).id
                     ],
+                    global_reads={},
                 ).id
             },
+            global_reads={},
         ).id,
         LiteralNode(
             value=0,
         ).id,
     ],
+    global_reads={},
 )

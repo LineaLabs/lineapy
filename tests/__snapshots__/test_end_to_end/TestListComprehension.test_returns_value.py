@@ -36,9 +36,11 @@ call_2 = CallNode(
                     name="range",
                 ).id
             },
+            global_reads={},
         ).id,
         LiteralNode(
             value=0,
         ).id,
     ],
+    global_reads={},
 )

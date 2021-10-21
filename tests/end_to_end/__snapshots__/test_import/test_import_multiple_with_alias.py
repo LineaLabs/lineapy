@@ -40,6 +40,7 @@ call_4 = CallNode(
                 value="sqrt",
             ).id,
         ],
+        global_reads={},
     ).id,
     positional_args=[
         CallNode(
@@ -60,6 +61,7 @@ call_4 = CallNode(
                         value="pow",
                     ).id,
                 ],
+                global_reads={},
             ).id,
             positional_args=[
                 LiteralNode(
@@ -83,6 +85,8 @@ call_4 = CallNode(
                     value=2,
                 ).id,
             ],
+            global_reads={},
         ).id
     ],
+    global_reads={},
 )

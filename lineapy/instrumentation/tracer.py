@@ -4,7 +4,7 @@ from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from functools import cached_property
 from os import getcwd
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional, overload
 
 from black import FileMode, format_str
 
@@ -62,6 +62,12 @@ class Tracer:
     # Reverse mapping of node to viewers
     viewer_to_sources: dict[LineaID, set[LineaID]] = field(
         default_factory=lambda: defaultdict(set)
+    )
+
+    # Mapping from a node ID, which is the function node in a call node,
+    # to a list of global variables that need to be set before it is called
+    function_node_id_to_global_reads: dict[LineaID, list[str]] = field(
+        default_factory=lambda: defaultdict(list)
     )
 
     session_context: SessionContext = field(init=False)
@@ -382,6 +388,12 @@ class Tracer:
                 for k, n, in keyword_arguments.items()
             },
             source_location=source_location,
+            global_reads={
+                name: self.variable_name_to_node[name].id
+                for name in self.function_node_id_to_global_reads[
+                    function_node.id
+                ]
+            },
         )
         self.process_node(node)
         return node
@@ -401,6 +413,28 @@ class Tracer:
         logger.info("assigning %s = %s", variable_name, value_node)
         self.variable_name_to_node[variable_name] = value_node
         return
+
+    @overload
+    def exec(
+        self,
+        code: str,
+        is_expression: Literal[True],
+        output_variables: list[str],
+        input_values: dict[str, Node],
+        source_location: Optional[SourceLocation] = None,
+    ) -> Node:
+        ...
+
+    @overload
+    def exec(
+        self,
+        code: str,
+        is_expression: Literal[False],
+        output_variables: list[str],
+        input_values: dict[str, Node],
+        source_location: Optional[SourceLocation] = None,
+    ) -> None:
+        ...
 
     def exec(
         self,

@@ -94,6 +94,9 @@ def __assert__(v: object, message: Optional[str] = None) -> None:
 _EXPRESSION_SAVED_NAME = "__linea_expresion__"
 
 
+EXEC_GLOBALS: dict[str, object] = dict(globals())
+
+
 def __exec__(
     code: str, is_expr: bool, *output_locals: str, **input_locals: object
 ) -> list[Union[object, _VariableNotSetSentinel]]:
@@ -107,7 +110,7 @@ def __exec__(
     if is_expr:
         code = f"{_EXPRESSION_SAVED_NAME} = {code}"
     bytecode = compile(code, "<string>", "exec")
-    exec(bytecode, globals(), input_locals)
+    exec(bytecode, EXEC_GLOBALS, input_locals)
     returned_locals = [
         input_locals.get(name, _VariableNotSetSentinel())
         for name in output_locals

@@ -557,8 +557,22 @@ class NodeTransformer(ast.NodeTransformer):
             ),
         )
 
-    def visit_Lambda(self, node: ast.Lambda) -> Any:
-        return self._visit_black_box(node)  # type: ignore
+    def visit_Lambda(self, ast_node: ast.Lambda) -> Node:
+        code = self._get_code_from_node(ast_node)
+        if code is None:
+            raise ValueError("Code block should not be empty")
+        scope = analyze_code_scope(code)
+        # input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
+
+        node = self.tracer.exec(
+            code=code,
+            is_expression=True,
+            source_location=self.get_source(ast_node),
+            input_values={},
+            output_variables=[],
+        )
+        self.tracer.function_node_id_to_global_reads[node.id] = list(scope.loaded)
+        return node
 
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):

@@ -54,6 +54,7 @@ call_1 = CallNode(
         name="add",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_2 = CallNode(
     source_location=SourceLocation(
@@ -67,6 +68,7 @@ call_2 = CallNode(
         name="sub",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_3 = CallNode(
     source_location=SourceLocation(
@@ -80,6 +82,7 @@ call_3 = CallNode(
         name="mul",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_4 = CallNode(
     source_location=SourceLocation(
@@ -93,6 +96,7 @@ call_4 = CallNode(
         name="truediv",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_5 = CallNode(
     source_location=SourceLocation(
@@ -106,6 +110,7 @@ call_5 = CallNode(
         name="floordiv",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -119,6 +124,7 @@ call_6 = CallNode(
         name="mod",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_7 = CallNode(
     source_location=SourceLocation(
@@ -132,6 +138,7 @@ call_7 = CallNode(
         name="pow",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_8 = CallNode(
     source_location=SourceLocation(
@@ -145,6 +152,7 @@ call_8 = CallNode(
         name="lshift",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_9 = CallNode(
     source_location=SourceLocation(
@@ -158,6 +166,7 @@ call_9 = CallNode(
         name="rshift",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_10 = CallNode(
     source_location=SourceLocation(
@@ -171,6 +180,7 @@ call_10 = CallNode(
         name="or_",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_11 = CallNode(
     source_location=SourceLocation(
@@ -184,6 +194,7 @@ call_11 = CallNode(
         name="xor",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_12 = CallNode(
     source_location=SourceLocation(
@@ -197,4 +208,5 @@ call_12 = CallNode(
         name="and_",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )

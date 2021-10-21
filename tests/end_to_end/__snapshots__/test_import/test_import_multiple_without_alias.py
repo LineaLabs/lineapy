@@ -46,7 +46,9 @@ call_2 = CallNode(
                 value="DataFrame",
             ).id,
         ],
+        global_reads={},
     ).id,
+    global_reads={},
 )
 call_5 = CallNode(
     source_location=SourceLocation(
@@ -84,6 +86,7 @@ call_5 = CallNode(
                 value="array",
             ).id,
         ],
+        global_reads={},
     ).id,
     positional_args=[
         CallNode(
@@ -129,6 +132,8 @@ call_5 = CallNode(
                     value=3,
                 ).id,
             ],
+            global_reads={},
         ).id
     ],
+    global_reads={},
 )

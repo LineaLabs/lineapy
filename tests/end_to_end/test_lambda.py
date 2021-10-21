@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_lambda_with_primitives(execute):
     code = """a = 10
 b = lambda x: x + 10
@@ -10,7 +7,6 @@ c = b(a)
     assert res.values["c"] == 20
 
 
-@pytest.mark.xfail
 def test_lambda_with_external_vars(execute):
     code = """a = 10
 b = lambda x: x + a
@@ -18,6 +14,15 @@ c = b(10)
 """
     res = execute(code)
     assert res.values["c"] == 20
+
+
+def test_lambda_late_binding(execute):
+    code = """a = 10
+b = lambda: a
+a = 11
+c = b()"""
+    res = execute(code)
+    assert res.values["c"] == 11
 
 
 def test_lambda_as_filter_w_primites(execute):
@@ -44,7 +49,6 @@ c = b(a)
     assert res.artifacts["c"] == code
 
 
-@pytest.mark.xfail
 def test_lambda_slicing_creates_correct_artifact_w_external_vars(execute):
     code = """a = 10
 b = lambda x: x + a

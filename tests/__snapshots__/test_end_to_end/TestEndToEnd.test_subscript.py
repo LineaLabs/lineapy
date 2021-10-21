@@ -67,6 +67,7 @@ call_1 = CallNode(
             value=4,
         ).id,
     ],
+    global_reads={},
 )
 mutate_1 = MutateNode(
     source_id=call_1.id,
@@ -104,6 +105,7 @@ mutate_1 = MutateNode(
                 value=1,
             ).id,
         ],
+        global_reads={},
     ).id,
 )
 literal_7 = LiteralNode(
@@ -143,6 +145,7 @@ mutate_2 = MutateNode(
             ).id,
             literal_7.id,
         ],
+        global_reads={},
     ).id,
 )
 mutate_3 = MutateNode(
@@ -193,6 +196,7 @@ mutate_3 = MutateNode(
                         value=3,
                     ).id,
                 ],
+                global_reads={},
             ).id,
             CallNode(
                 source_location=SourceLocation(
@@ -217,8 +221,10 @@ mutate_3 = MutateNode(
                         value=30,
                     ).id
                 ],
+                global_reads={},
             ).id,
         ],
+        global_reads={},
     ).id,
 )
 mutate_4 = MutateNode(
@@ -260,6 +266,7 @@ mutate_4 = MutateNode(
                     ).id,
                     literal_7.id,
                 ],
+                global_reads={},
             ).id,
             CallNode(
                 source_location=SourceLocation(
@@ -284,7 +291,9 @@ mutate_4 = MutateNode(
                         value=40,
                     ).id
                 ],
+                global_reads={},
             ).id,
         ],
+        global_reads={},
     ).id,
 )

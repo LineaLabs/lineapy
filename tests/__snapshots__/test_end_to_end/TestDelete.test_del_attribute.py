@@ -43,7 +43,9 @@ call_2 = CallNode(
                 value="SimpleNamespace",
             ).id,
         ],
+        global_reads={},
     ).id,
+    global_reads={},
 )
 call_3 = CallNode(
     source_location=SourceLocation(
@@ -72,6 +74,7 @@ call_3 = CallNode(
             value=1,
         ).id,
     ],
+    global_reads={},
 )
 call_4 = CallNode(
     source_location=SourceLocation(
@@ -90,4 +93,5 @@ call_4 = CallNode(
             value="hi",
         ).id,
     ],
+    global_reads={},
 )

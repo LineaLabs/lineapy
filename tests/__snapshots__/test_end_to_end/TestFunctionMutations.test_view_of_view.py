@@ -29,6 +29,7 @@ call_1 = CallNode(
     function_id=LookupNode(
         name="__build_dict__",
     ).id,
+    global_reads={},
 )
 call_2 = CallNode(
     source_location=SourceLocation(
@@ -41,6 +42,7 @@ call_2 = CallNode(
     function_id=LookupNode(
         name="__build_dict__",
     ).id,
+    global_reads={},
 )
 call_3 = CallNode(
     source_location=SourceLocation(
@@ -53,6 +55,7 @@ call_3 = CallNode(
     function_id=LookupNode(
         name="__build_dict__",
     ).id,
+    global_reads={},
 )
 call_5 = CallNode(
     source_location=SourceLocation(
@@ -79,6 +82,7 @@ call_5 = CallNode(
         ).id,
         call_3.id,
     ],
+    global_reads={},
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -114,6 +118,7 @@ call_6 = CallNode(
             value=1,
         ).id,
     ],
+    global_reads={},
 )
 mutate_4 = MutateNode(
     source_id=call_3.id,
@@ -155,6 +160,7 @@ mutate_6 = MutateNode(
                     ).id,
                     call_2.id,
                 ],
+                global_reads={},
             ).id,
         ).id,
         call_id=call_5.id,

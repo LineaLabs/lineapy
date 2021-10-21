@@ -62,6 +62,7 @@ call_3 = CallNode(
                     value=3,
                 ).id,
             ],
+            global_reads={},
         ).id,
         CallNode(
             source_location=SourceLocation(
@@ -75,6 +76,8 @@ call_3 = CallNode(
                 name="slice",
             ).id,
             positional_args=[LiteralNode().id],
+            global_reads={},
         ).id,
     ],
+    global_reads={},
 )

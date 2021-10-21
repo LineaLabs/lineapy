@@ -5,8 +5,8 @@ from lineapy.utils import get_new_id
 
 source_1 = SourceCode(
     code="""a = 10
-b = lambda x: x + 10
-c = b(a)
+b = lambda x: x + a
+c = b(10)
 """,
     location=PosixPath("[source file path]"),
 )
@@ -15,7 +15,7 @@ call_3 = CallNode(
         lineno=3,
         col_offset=4,
         end_lineno=3,
-        end_col_offset=8,
+        end_col_offset=9,
         source_code=source_1.id,
     ),
     function_id=CallNode(
@@ -28,7 +28,7 @@ call_3 = CallNode(
                     lineno=2,
                     col_offset=4,
                     end_lineno=2,
-                    end_col_offset=20,
+                    end_col_offset=19,
                     source_code=source_1.id,
                 ),
                 function_id=LookupNode(
@@ -36,7 +36,7 @@ call_3 = CallNode(
                 ).id,
                 positional_args=[
                     LiteralNode(
-                        value="lambda x: x + 10",
+                        value="lambda x: x + a",
                     ).id,
                     LiteralNode(
                         value=True,
@@ -53,6 +53,18 @@ call_3 = CallNode(
     positional_args=[
         LiteralNode(
             source_location=SourceLocation(
+                lineno=3,
+                col_offset=6,
+                end_lineno=3,
+                end_col_offset=8,
+                source_code=source_1.id,
+            ),
+            value=10,
+        ).id
+    ],
+    global_reads={
+        "a": LiteralNode(
+            source_location=SourceLocation(
                 lineno=1,
                 col_offset=4,
                 end_lineno=1,
@@ -61,6 +73,5 @@ call_3 = CallNode(
             ),
             value=10,
         ).id
-    ],
-    global_reads={},
+    },
 )

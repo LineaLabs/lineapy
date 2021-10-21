@@ -78,6 +78,7 @@ call_8 = CallNode(
                                     value="DataFrame",
                                 ).id,
                             ],
+                            global_reads={},
                         ).id,
                         positional_args=[
                             CallNode(
@@ -140,12 +141,16 @@ call_8 = CallNode(
                                                         value=2,
                                                     ).id,
                                                 ],
+                                                global_reads={},
                                             ).id,
                                         ],
+                                        global_reads={},
                                     ).id
                                 ],
+                                global_reads={},
                             ).id
                         ],
+                        global_reads={},
                     ).id,
                     LiteralNode(
                         source_location=SourceLocation(
@@ -158,10 +163,13 @@ call_8 = CallNode(
                         value="id",
                     ).id,
                 ],
+                global_reads={},
             ).id,
             LiteralNode(
                 value="sum",
             ).id,
         ],
+        global_reads={},
     ).id,
+    global_reads={},
 )

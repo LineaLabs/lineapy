@@ -60,6 +60,7 @@ call_6 = CallNode(
                             value="new",
                         ).id,
                     ],
+                    global_reads={},
                 ).id,
                 positional_args=[
                     LiteralNode(
@@ -105,13 +106,16 @@ call_6 = CallNode(
                                 value=4,
                             ).id,
                         ],
+                        global_reads={},
                     ).id,
                 ],
+                global_reads={},
             ).id,
             LiteralNode(
                 value="save",
             ).id,
         ],
+        global_reads={},
     ).id,
     positional_args=[
         LiteralNode(
@@ -135,6 +139,7 @@ call_6 = CallNode(
             value="PNG",
         ).id,
     ],
+    global_reads={},
 )
 call_7 = CallNode(
     source_location=SourceLocation(
@@ -154,6 +159,7 @@ call_7 = CallNode(
                 value="open",
             ).id,
         ],
+        global_reads={},
     ).id,
     positional_args=[
         LiteralNode(
@@ -167,4 +173,5 @@ call_7 = CallNode(
             value="test.png",
         ).id
     ],
+    global_reads={},
 )

@@ -43,6 +43,7 @@ call_5 = CallNode(
                 value="DataFrame",
             ).id,
         ],
+        global_reads={},
     ).id,
     positional_args=[
         CallNode(
@@ -90,6 +91,7 @@ call_5 = CallNode(
                             value=2,
                         ).id,
                     ],
+                    global_reads={},
                 ).id,
                 CallNode(
                     source_location=SourceLocation(
@@ -124,10 +126,13 @@ call_5 = CallNode(
                             value=4,
                         ).id,
                     ],
+                    global_reads={},
                 ).id,
             ],
+            global_reads={},
         ).id
     ],
+    global_reads={},
 )
 call_8 = CallNode(
     source_location=SourceLocation(
@@ -173,17 +178,20 @@ call_8 = CallNode(
                         value=0,
                     ).id,
                 ],
+                global_reads={},
             ).id,
             LiteralNode(
                 value="astype",
             ).id,
         ],
+        global_reads={},
     ).id,
     positional_args=[
         LookupNode(
             name="str",
         ).id
     ],
+    global_reads={},
 )
 call_11 = CallNode(
     source_location=SourceLocation(
@@ -226,6 +234,7 @@ call_11 = CallNode(
                             value="size",
                         ).id,
                     ],
+                    global_reads={},
                 ).id,
                 LiteralNode(
                     source_location=SourceLocation(
@@ -238,8 +247,10 @@ call_11 = CallNode(
                     value=4,
                 ).id,
             ],
+            global_reads={},
         ).id
     ],
+    global_reads={},
 )
 call_18 = CallNode(
     source_location=SourceLocation(
@@ -306,6 +317,7 @@ call_18 = CallNode(
                                             value="iloc",
                                         ).id,
                                     ],
+                                    global_reads={},
                                 ).id,
                                 CallNode(
                                     source_location=SourceLocation(
@@ -331,6 +343,7 @@ call_18 = CallNode(
                                                 name="slice",
                                             ).id,
                                             positional_args=[LiteralNode().id],
+                                            global_reads={},
                                         ).id,
                                         LiteralNode(
                                             source_location=SourceLocation(
@@ -343,13 +356,16 @@ call_18 = CallNode(
                                             value=1,
                                         ).id,
                                     ],
+                                    global_reads={},
                                 ).id,
                             ],
+                            global_reads={},
                         ).id,
                         LiteralNode(
                             value="size",
                         ).id,
                     ],
+                    global_reads={},
                 ).id,
                 LiteralNode(
                     source_location=SourceLocation(
@@ -362,6 +378,8 @@ call_18 = CallNode(
                     value=2,
                 ).id,
             ],
+            global_reads={},
         ).id
     ],
+    global_reads={},
 )

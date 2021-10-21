@@ -30,6 +30,7 @@ from lineapy.instrumentation.inspect_function import (
     Result,
     inspect_function,
 )
+from lineapy.lineabuiltins import EXEC_GLOBALS
 from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
@@ -122,6 +123,9 @@ class Executor:
                 for k, arg_id in node.keyword_args.items()
             }
             logger.info("Calling function %s %s %s", fn, args, kwargs)
+
+            for k, id_ in node.global_reads.items():
+                EXEC_GLOBALS[k] = self._id_to_value[id_]
 
             with redirect_stdout(self._stdout):
                 start_time = datetime.now()

@@ -47,6 +47,7 @@ call_1 = CallNode(
         name="eq",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_2 = CallNode(
     source_location=SourceLocation(
@@ -60,6 +61,7 @@ call_2 = CallNode(
         name="ne",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_3 = CallNode(
     source_location=SourceLocation(
@@ -73,6 +75,7 @@ call_3 = CallNode(
         name="lt",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_4 = CallNode(
     source_location=SourceLocation(
@@ -86,6 +89,7 @@ call_4 = CallNode(
         name="le",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_5 = CallNode(
     source_location=SourceLocation(
@@ -99,6 +103,7 @@ call_5 = CallNode(
         name="gt",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -112,4 +117,5 @@ call_6 = CallNode(
         name="ge",
     ).id,
     positional_args=[literal_1.id, literal_2.id],
+    global_reads={},
 )

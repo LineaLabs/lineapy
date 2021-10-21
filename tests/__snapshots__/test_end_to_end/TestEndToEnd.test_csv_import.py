@@ -82,6 +82,7 @@ call_5 = CallNode(
                                     value="read_csv",
                                 ).id,
                             ],
+                            global_reads={},
                         ).id,
                         positional_args=[
                             LiteralNode(
@@ -95,6 +96,7 @@ call_5 = CallNode(
                                 value="tests/simple_data.csv",
                             ).id
                         ],
+                        global_reads={},
                     ).id,
                     LiteralNode(
                         source_location=SourceLocation(
@@ -107,10 +109,13 @@ call_5 = CallNode(
                         value="a",
                     ).id,
                 ],
+                global_reads={},
             ).id,
             LiteralNode(
                 value="sum",
             ).id,
         ],
+        global_reads={},
     ).id,
+    global_reads={},
 )

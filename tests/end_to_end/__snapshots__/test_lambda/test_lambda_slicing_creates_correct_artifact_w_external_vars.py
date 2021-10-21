@@ -4,18 +4,21 @@ from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
 source_1 = SourceCode(
-    code="""a = 10
-b = lambda x: x + 10
-c = b(a)
+    code="""import lineapy
+a = 10
+b = lambda x: x + a
+c = b(10)
+
+lineapy.linea_publish(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )
 call_3 = CallNode(
     source_location=SourceLocation(
-        lineno=3,
+        lineno=4,
         col_offset=4,
-        end_lineno=3,
-        end_col_offset=8,
+        end_lineno=4,
+        end_col_offset=9,
         source_code=source_1.id,
     ),
     function_id=CallNode(
@@ -25,10 +28,10 @@ call_3 = CallNode(
         positional_args=[
             CallNode(
                 source_location=SourceLocation(
-                    lineno=2,
+                    lineno=3,
                     col_offset=4,
-                    end_lineno=2,
-                    end_col_offset=20,
+                    end_lineno=3,
+                    end_col_offset=19,
                     source_code=source_1.id,
                 ),
                 function_id=LookupNode(
@@ -36,7 +39,7 @@ call_3 = CallNode(
                 ).id,
                 positional_args=[
                     LiteralNode(
-                        value="lambda x: x + 10",
+                        value="lambda x: x + a",
                     ).id,
                     LiteralNode(
                         value=True,
@@ -53,14 +56,25 @@ call_3 = CallNode(
     positional_args=[
         LiteralNode(
             source_location=SourceLocation(
-                lineno=1,
-                col_offset=4,
-                end_lineno=1,
-                end_col_offset=6,
+                lineno=4,
+                col_offset=6,
+                end_lineno=4,
+                end_col_offset=8,
                 source_code=source_1.id,
             ),
             value=10,
         ).id
     ],
-    global_reads={},
+    global_reads={
+        "a": LiteralNode(
+            source_location=SourceLocation(
+                lineno=2,
+                col_offset=4,
+                end_lineno=2,
+                end_col_offset=6,
+                source_code=source_1.id,
+            ),
+            value=10,
+        ).id
+    },
 )
