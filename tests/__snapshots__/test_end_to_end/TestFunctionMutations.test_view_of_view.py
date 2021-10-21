@@ -54,35 +54,6 @@ call_3 = CallNode(
         name="__build_dict__",
     ).id,
 )
-mutate_1 = MutateNode(
-    source_id=call_1.id,
-    call_id=CallNode(
-        source_location=SourceLocation(
-            lineno=5,
-            col_offset=0,
-            end_lineno=5,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        function_id=LookupNode(
-            name="setitem",
-        ).id,
-        positional_args=[
-            call_1.id,
-            LiteralNode(
-                source_location=SourceLocation(
-                    lineno=5,
-                    col_offset=2,
-                    end_lineno=5,
-                    end_col_offset=5,
-                    source_code=source_1.id,
-                ),
-                value="y",
-            ).id,
-            call_2.id,
-        ],
-    ).id,
-)
 call_5 = CallNode(
     source_location=SourceLocation(
         lineno=6,
@@ -108,14 +79,6 @@ call_5 = CallNode(
         ).id,
         call_3.id,
     ],
-)
-mutate_2 = MutateNode(
-    source_id=call_2.id,
-    call_id=call_5.id,
-)
-mutate_3 = MutateNode(
-    source_id=mutate_1.id,
-    call_id=call_5.id,
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -153,33 +116,63 @@ call_6 = CallNode(
     ],
 )
 mutate_5 = MutateNode(
-    source_id=mutate_3.id,
-    call_id=call_6.id,
-)
-mutate_6 = MutateNode(
-    source_id=mutate_2.id,
-    call_id=call_6.id,
-)
-mutate_7 = MutateNode(
-    source_id=mutate_2.id,
-    call_id=call_6.id,
-)
-mutate_8 = MutateNode(
-    source_id=mutate_3.id,
+    source_id=call_3.id,
     call_id=call_6.id,
 )
 mutate_9 = MutateNode(
-    source_id=mutate_3.id,
-    call_id=call_6.id,
-)
-mutate_10 = MutateNode(
-    source_id=call_3.id,
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=call_2.id,
+            call_id=call_5.id,
+        ).id,
+        call_id=call_6.id,
+    ).id,
     call_id=call_6.id,
 )
 mutate_11 = MutateNode(
     source_id=MutateNode(
-        source_id=mutate_1.id,
-        call_id=call_5.id,
+        source_id=MutateNode(
+            source_id=MutateNode(
+                source_id=MutateNode(
+                    source_id=MutateNode(
+                        source_id=MutateNode(
+                            source_id=call_1.id,
+                            call_id=CallNode(
+                                source_location=SourceLocation(
+                                    lineno=5,
+                                    col_offset=0,
+                                    end_lineno=5,
+                                    end_col_offset=10,
+                                    source_code=source_1.id,
+                                ),
+                                function_id=LookupNode(
+                                    name="setitem",
+                                ).id,
+                                positional_args=[
+                                    call_1.id,
+                                    LiteralNode(
+                                        source_location=SourceLocation(
+                                            lineno=5,
+                                            col_offset=2,
+                                            end_lineno=5,
+                                            end_col_offset=5,
+                                            source_code=source_1.id,
+                                        ),
+                                        value="y",
+                                    ).id,
+                                    call_2.id,
+                                ],
+                            ).id,
+                        ).id,
+                        call_id=call_5.id,
+                    ).id,
+                    call_id=call_5.id,
+                ).id,
+                call_id=call_6.id,
+            ).id,
+            call_id=call_6.id,
+        ).id,
+        call_id=call_6.id,
     ).id,
     call_id=call_6.id,
 )
