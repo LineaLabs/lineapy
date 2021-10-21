@@ -56,7 +56,6 @@ call_5 = CallNode(
                 value="array",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[
         CallNode(
@@ -94,7 +93,6 @@ call_5 = CallNode(
                             value=1,
                         ).id
                     ],
-                    global_reads={},
                 ).id,
                 LiteralNode(
                     source_location=SourceLocation(
@@ -127,10 +125,8 @@ call_5 = CallNode(
                     value=1,
                 ).id,
             ],
-            global_reads={},
         ).id
     ],
-    global_reads={},
 )
 call_8 = CallNode(
     source_location=SourceLocation(
@@ -157,7 +153,6 @@ call_8 = CallNode(
                 value="array",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[
         CallNode(
@@ -213,10 +208,8 @@ call_8 = CallNode(
                     value=1,
                 ).id,
             ],
-            global_reads={},
         ).id
     ],
-    global_reads={},
 )
 call_9 = CallNode(
     source_location=SourceLocation(
@@ -247,7 +240,6 @@ call_9 = CallNode(
                 value="DummyClassifier",
             ).id,
         ],
-        global_reads={},
     ).id,
     keyword_args={
         "strategy": LiteralNode(
@@ -261,7 +253,6 @@ call_9 = CallNode(
             value="most_frequent",
         ).id
     },
-    global_reads={},
 )
 call_11 = CallNode(
     source_location=SourceLocation(
@@ -288,10 +279,8 @@ call_11 = CallNode(
                 value="fit",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[call_5.id, call_8.id],
-    global_reads={},
 )
 mutate_1 = MutateNode(
     source_id=call_9.id,
@@ -326,10 +315,8 @@ call_13 = CallNode(
                 value="fit",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[call_5.id, call_8.id],
-    global_reads={},
 )
 mutate_3 = MutateNode(
     source_id=mutate_1.id,
@@ -364,10 +351,8 @@ call_15 = CallNode(
                 value="fit",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[call_5.id, call_8.id],
-    global_reads={},
 )
 mutate_5 = MutateNode(
     source_id=mutate_2.id,

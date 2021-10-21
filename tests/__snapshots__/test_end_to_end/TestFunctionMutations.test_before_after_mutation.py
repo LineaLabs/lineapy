@@ -27,7 +27,6 @@ call_1 = CallNode(
     function_id=LookupNode(
         name="__build_dict__",
     ).id,
-    global_reads={},
 )
 call_2 = CallNode(
     source_location=SourceLocation(
@@ -41,7 +40,6 @@ call_2 = CallNode(
         name="str",
     ).id,
     positional_args=[call_1.id],
-    global_reads={},
 )
 call_4 = CallNode(
     source_location=SourceLocation(
@@ -91,9 +89,7 @@ call_4 = CallNode(
                         value=1,
                     ).id,
                 ],
-                global_reads={},
             ).id,
         ).id
     ],
-    global_reads={},
 )

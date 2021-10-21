@@ -31,5 +31,4 @@ call_1 = CallNode(
             value=1,
         ).id
     ],
-    global_reads={},
 )

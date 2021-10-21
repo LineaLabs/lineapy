@@ -42,13 +42,11 @@ call_3 = CallNode(
                         value=True,
                     ).id,
                 ],
-                global_reads={},
             ).id,
             LiteralNode(
                 value=0,
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[
         LiteralNode(
@@ -62,5 +60,4 @@ call_3 = CallNode(
             value=10,
         ).id
     ],
-    global_reads={},
 )

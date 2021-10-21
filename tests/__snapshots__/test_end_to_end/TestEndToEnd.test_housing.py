@@ -84,13 +84,11 @@ call_4 = CallNode(
                         value="data_transformers",
                     ).id,
                 ],
-                global_reads={},
             ).id,
             LiteralNode(
                 value="enable",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[
         LiteralNode(
@@ -104,7 +102,6 @@ call_4 = CallNode(
             value="json",
         ).id
     ],
-    global_reads={},
 )
 call_7 = CallNode(
     source_location=SourceLocation(
@@ -143,13 +140,11 @@ call_7 = CallNode(
                         value="renderers",
                     ).id,
                 ],
-                global_reads={},
             ).id,
             LiteralNode(
                 value="enable",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[
         LiteralNode(
@@ -163,7 +158,6 @@ call_7 = CallNode(
             value="mimetype",
         ).id
     ],
-    global_reads={},
 )
 call_9 = CallNode(
     source_location=SourceLocation(
@@ -201,7 +195,6 @@ call_9 = CallNode(
                 value="read_csv",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[
         LiteralNode(
@@ -215,7 +208,6 @@ call_9 = CallNode(
             value="ames_train_cleaned.csv",
         ).id
     ],
-    global_reads={},
 )
 call_11 = CallNode(
     source_location=SourceLocation(
@@ -253,7 +245,6 @@ call_11 = CallNode(
                 value="relplot",
             ).id,
         ],
-        global_reads={},
     ).id,
     keyword_args={
         "data": call_9.id,
@@ -288,7 +279,6 @@ call_11 = CallNode(
             value="SalePrice",
         ).id,
     },
-    global_reads={},
 )
 mutate_1 = MutateNode(
     source_id=call_9.id,
@@ -351,13 +341,11 @@ mutate_1 = MutateNode(
                                     value="is_new",
                                 ).id,
                             ],
-                            global_reads={},
                         ).id,
                         LiteralNode(
                             value=0,
                         ).id,
                     ],
-                    global_reads={},
                 ).id,
                 positional_args=[
                     CallNode(
@@ -384,13 +372,10 @@ mutate_1 = MutateNode(
                                 value="Year_Built",
                             ).id,
                         ],
-                        global_reads={},
                     ).id
                 ],
-                global_reads={},
             ).id,
         ],
-        global_reads={},
     ).id,
 )
 call_17 = CallNode(
@@ -422,7 +407,6 @@ call_17 = CallNode(
                 value="RandomForestClassifier",
             ).id,
         ],
-        global_reads={},
     ).id,
     keyword_args={
         "random_state": LiteralNode(
@@ -436,7 +420,6 @@ call_17 = CallNode(
             value=0,
         ).id
     },
-    global_reads={},
 )
 call_22 = CallNode(
     source_location=SourceLocation(
@@ -463,7 +446,6 @@ call_22 = CallNode(
                 value="fit",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[
         CallNode(
@@ -522,10 +504,8 @@ call_22 = CallNode(
                             value="Garage_Area",
                         ).id,
                     ],
-                    global_reads={},
                 ).id,
             ],
-            global_reads={},
         ).id,
         CallNode(
             source_location=SourceLocation(
@@ -551,10 +531,8 @@ call_22 = CallNode(
                     value="is_new",
                 ).id,
             ],
-            global_reads={},
         ).id,
     ],
-    global_reads={},
 )
 mutate_3 = MutateNode(
     source_id=call_22.id,
@@ -588,7 +566,6 @@ call_27 = CallNode(
                 value="predict",
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[
         CallNode(
@@ -648,7 +625,6 @@ call_27 = CallNode(
                                     value=1000,
                                 ).id,
                             ],
-                            global_reads={},
                         ).id,
                         LiteralNode(
                             source_location=SourceLocation(
@@ -671,11 +647,8 @@ call_27 = CallNode(
                             value=4,
                         ).id,
                     ],
-                    global_reads={},
                 ).id
             ],
-            global_reads={},
         ).id
     ],
-    global_reads={},
 )

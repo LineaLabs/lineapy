@@ -50,13 +50,11 @@ call_3 = CallNode(
                         value="foo",
                     ).id,
                 ],
-                global_reads={},
             ).id,
             LiteralNode(
                 value=0,
             ).id,
         ],
-        global_reads={},
     ).id,
     positional_args=[
         LiteralNode(

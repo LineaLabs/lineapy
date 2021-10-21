@@ -57,7 +57,6 @@ call_3 = CallNode(
                             value=11,
                         ).id
                     ],
-                    global_reads={},
                 ).id,
                 LiteralNode(
                     source_location=SourceLocation(
@@ -70,8 +69,6 @@ call_3 = CallNode(
                     value=10,
                 ).id,
             ],
-            global_reads={},
         ).id
     ],
-    global_reads={},
 )

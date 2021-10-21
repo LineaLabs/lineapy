@@ -52,7 +52,6 @@ call_1 = CallNode(
             value="my_function",
         ).id,
     ],
-    global_reads={},
 )
 call_3 = CallNode(
     function_id=LookupNode(
@@ -64,7 +63,6 @@ call_3 = CallNode(
             value=0,
         ).id,
     ],
-    global_reads={},
 )
 call_4 = CallNode(
     source_location=SourceLocation(
@@ -84,7 +82,6 @@ call_4 = CallNode(
                 value=1,
             ).id,
         ],
-        global_reads={},
     ).id,
     global_reads={
         "math": ImportNode(

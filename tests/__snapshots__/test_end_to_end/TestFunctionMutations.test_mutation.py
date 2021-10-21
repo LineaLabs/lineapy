@@ -23,7 +23,6 @@ call_1 = CallNode(
     function_id=LookupNode(
         name="__build_dict__",
     ).id,
-    global_reads={},
 )
 mutate_1 = MutateNode(
     source_id=call_1.id,
@@ -61,6 +60,5 @@ mutate_1 = MutateNode(
                 value=3,
             ).id,
         ],
-        global_reads={},
     ).id,
 )

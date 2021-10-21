@@ -55,9 +55,7 @@ call_3 = CallNode(
                         value="SimpleNamespace",
                     ).id,
                 ],
-                global_reads={},
             ).id,
-            global_reads={},
         ).id,
         LiteralNode(
             value="hi",
@@ -73,5 +71,4 @@ call_3 = CallNode(
             value=1,
         ).id,
     ],
-    global_reads={},
 )

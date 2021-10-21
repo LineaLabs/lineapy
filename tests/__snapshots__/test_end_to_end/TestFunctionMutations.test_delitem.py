@@ -50,10 +50,8 @@ call_2 = CallNode(
                     value=1,
                 ).id,
             ],
-            global_reads={},
         ).id
     ],
-    global_reads={},
 )
 mutate_1 = MutateNode(
     source_id=call_2.id,
@@ -81,6 +79,5 @@ mutate_1 = MutateNode(
                 value=1,
             ).id,
         ],
-        global_reads={},
     ).id,
 )

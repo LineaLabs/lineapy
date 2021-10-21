@@ -40,7 +40,6 @@ call_1 = CallNode(
             value=2,
         ).id,
     ],
-    global_reads={},
 )
 call_2 = CallNode(
     function_id=LookupNode(
@@ -52,7 +51,6 @@ call_2 = CallNode(
             value=0,
         ).id,
     ],
-    global_reads={},
 )
 call_3 = CallNode(
     function_id=LookupNode(
@@ -64,5 +62,4 @@ call_3 = CallNode(
             value=1,
         ).id,
     ],
-    global_reads={},
 )
