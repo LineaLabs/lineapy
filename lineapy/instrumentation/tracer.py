@@ -3,8 +3,9 @@ from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from functools import cached_property
+from itertools import chain
 from os import getcwd
-from typing import Dict, Optional
+from typing import Dict, Iterable, Optional, TypeVar
 
 from black import FileMode, format_str
 
@@ -52,16 +53,19 @@ class Tracer:
     # Mapping of mutated nodes, from their original node id, to the latest
     # mutate node id they are the source of
     source_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
-    # Inverse mapping of the source_to_mutate, need a set since
+    # Inverse mapping of the source_to_mutate, need a list since
     # multiple sources can point to the same mutate node
-    mutate_to_source: dict[LineaID, set[LineaID]] = field(
-        default_factory=lambda: defaultdict(set)
+    # Conceptually this is a set, but using a list to preserve ordering
+    mutate_to_source: dict[LineaID, list[LineaID]] = field(
+        default_factory=lambda: defaultdict(list)
     )
 
     # Mapping from each node to every node which has a view of it,
     # meaning that if that node is mutated, the view node will be as well
-    viewers: dict[LineaID, set[LineaID]] = field(
-        default_factory=lambda: defaultdict(set)
+    # The value is a list so that ordering is deterministic,
+    # but conceptually it is a set
+    viewers: dict[LineaID, list[LineaID]] = field(
+        default_factory=lambda: defaultdict(list)
     )
 
     session_context: SessionContext = field(init=False)
@@ -198,22 +202,28 @@ class Tracer:
             else:
                 self._process_mutate_node(e.id, node.id, node.session_id)
 
-    def _process_view_of_nodes(self, ids: frozenset[LineaID]) -> None:
+    def _process_view_of_nodes(self, ids: list[LineaID]) -> None:
         # First, iterate through all items in the view
         # and create a complete view set adding all their views as well
-        complete_ids = ids.union(*(self.viewers[id_] for id_ in ids))
+        complete_ids = list(
+            remove_duplicates(chain(ids, *(self.viewers[id_] for id_ in ids)))
+        )
 
         # Now iterate through all items in the complete view and
         # make sure it contains all items
         for id_ in complete_ids:
-            self.viewers[id_] |= complete_ids - {id_}
+            self.viewers[id_] = list(
+                remove_duplicates(
+                    chain(self.viewers[id_], remove(complete_ids, id_))
+                )
+            )
 
     def _process_mutate_node(
         self, source_id: LineaID, call_id: LineaID, session_id: LineaID
     ) -> None:
         # Create a mutation node for every node that was mutated,
         # Which are all the views + the node itself
-        source_ids = self.viewers[source_id] | {source_id}
+        source_ids = remove_duplicates([*self.viewers[source_id], source_id])
         for source_id in source_ids:
             mutate_node = MutateNode(
                 id=get_new_id(),
@@ -224,10 +234,16 @@ class Tracer:
 
             # Update the mutated sources, and then change all source
             # of this mutation to now point to this mutate node
-            mutated_sources = self.mutate_to_source[source_id] | {source_id}
+            mutated_sources = [*self.mutate_to_source[source_id], source_id]
             for mutate_source_id in mutated_sources:
                 self.source_to_mutate[mutate_source_id] = mutate_node.id
-            self.mutate_to_source[mutate_node.id] |= mutated_sources
+            self.mutate_to_source[mutate_node.id] = list(
+                remove_duplicates(
+                    chain(
+                        mutated_sources, self.mutate_to_source[mutate_node.id]
+                    )
+                )
+            )
 
             # Add the mutate node to the graph
             self.process_node(mutate_node)
@@ -470,3 +486,28 @@ class Tracer:
             source_location,
             *args,
         )
+
+
+T = TypeVar("T")
+
+
+def remove_duplicates(xs: Iterable[T]) -> Iterable[T]:
+    """
+    Remove all duplicate items, maintaining order.
+    """
+    seen_: set[int] = set()
+    for x in xs:
+        h = hash(x)
+        if h in seen_:
+            continue
+        seen_.add(h)
+        yield x
+
+
+def remove(xs: Iterable[T], x: T) -> Iterable[T]:
+    """
+    Remove all items equal to x.
+    """
+    for y in xs:
+        if x != y:
+            yield y

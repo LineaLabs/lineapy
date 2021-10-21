@@ -196,10 +196,11 @@ class ViewOfNodes:
     if any are mutated they all could be mutated.
     """
 
-    ids: frozenset[LineaID]
+    # An ordered set
+    ids: list[LineaID]
 
     def __init__(self, *ids: LineaID):
-        self.ids = frozenset(ids)
+        self.ids = list(ids)
 
 
 SideEffects = Iterable[Union[MutatedNode, ViewOfNodes]]

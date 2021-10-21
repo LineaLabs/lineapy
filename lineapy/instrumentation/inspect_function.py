@@ -43,10 +43,11 @@ class ViewOfPointers:
     So that if one is mutated, the rest might be as well.
     """
 
-    pointers: frozenset[Pointer]
+    # They are unique, like a set, but ordered for deterministc behaviour
+    pointers: list[Pointer]
 
     def __init__(self, *xs: Pointer) -> None:
-        self.pointers = frozenset(xs)
+        self.pointers = list(xs)
 
 
 @dataclass(frozen=True)
