@@ -1,62 +1,10 @@
+from __future__ import annotations
+
 import operator
 import sys
 import types
 from dataclasses import dataclass
 from typing import Callable, Iterable, Union
-
-
-@dataclass(frozen=True)
-class PositionalArg:
-    index: int
-
-
-@dataclass(frozen=True)
-class KeywordArg:
-    name: str
-
-
-@dataclass(frozen=True)
-class BoundSelfOfFunction:
-    """
-    If the function is a bound method, this refers to the instance that was
-    bound of the method.
-    """
-
-    pass
-
-
-@dataclass(frozen=True)
-class Result:
-    """
-    The result of a function call, used to describe a View.
-    """
-
-    pass
-
-
-Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
-
-
-class ViewOfPointers:
-    """
-    A set of values which all potentially refer to shared pointers
-    So that if one is mutated, the rest might be as well.
-    """
-
-    # They are unique, like a set, but ordered for deterministc behaviour
-    pointers: list[Pointer]
-
-    def __init__(self, *xs: Pointer) -> None:
-        self.pointers = list(xs)
-
-
-@dataclass(frozen=True)
-class MutatedPointer:
-    """
-    A value that is mutated when the function is called
-    """
-
-    pointer: Pointer
 
 
 def inspect_function(
@@ -119,3 +67,57 @@ def is_immutable(obj: object) -> bool:
     except Exception:
         return False
     return True
+
+
+@dataclass(frozen=True)
+class PositionalArg:
+    index: int
+
+
+@dataclass(frozen=True)
+class KeywordArg:
+    name: str
+
+
+@dataclass(frozen=True)
+class BoundSelfOfFunction:
+    """
+    If the function is a bound method, this refers to the instance that was
+    bound of the method.
+    """
+
+    pass
+
+
+@dataclass(frozen=True)
+class Result:
+    """
+    The result of a function call, used to describe a View.
+    """
+
+    pass
+
+
+Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
+
+
+class ViewOfPointers:
+    """
+    A set of values which all potentially refer to shared pointers
+    So that if one is mutated, the rest might be as well.
+    """
+
+    # They are unique, like a set, but ordered for deterministc behaviour
+    pointers: list[Pointer]
+
+    def __init__(self, *xs: Pointer) -> None:
+        self.pointers = list(xs)
+
+
+@dataclass(frozen=True)
+class MutatedPointer:
+    """
+    A value that is mutated when the function is called
+    """
+
+    pointer: Pointer
