@@ -49,9 +49,11 @@ class VisualGraphOptions:
     In Python 3.10 we can maybe use https://www.python.org/dev/peps/pep-0612/.
     """
 
-    # Whether to show edges for the state the tracer keeps about view
-    # and mutation tracking
-    show_view_and_mutation_tracking: bool = field(default=False)
+    # Whether to add edges for the implied views in the tracer
+    show_implied_mutations: bool = field(default=False)
+
+    # Whether to add edges for the views kept in the tracer
+    show_views: bool = field(default=False)
 
     # Whether to show source code in the graph
     show_code: bool = field(default=True)
@@ -137,13 +139,14 @@ def tracer_to_visual_graph(
             )
         )
     # Then we can add all the additional information from the tracer
-    if options.show_view_and_mutation_tracking:
+    if options.show_implied_mutations:
         # the mutate nodes
         for source, mutate in tracer.source_to_mutate.items():
             vg.edges.append(
                 VisualEdge(source, mutate, VisualEdgeType.LATEST_MUTATE_SOURCE)
             )
 
+    if options.show_views:
         # Create a set of unique pairs of viewers, where order doesn't matter
         # Since they aren't directed
         viewer_pairs: set[frozenset[LineaID]] = {
@@ -151,8 +154,8 @@ def tracer_to_visual_graph(
             for source, viewers in tracer.viewers.items()
             for viewer in viewers
         }
-        # for source, target in viewer_pairs:
-        #     vg.edges.append(VisualEdge(source, target, VisualEdgeType.VIEW))
+        for source, target in viewer_pairs:
+            vg.edges.append(VisualEdge(source, target, VisualEdgeType.VIEW))
     return vg
 
 

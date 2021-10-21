@@ -88,7 +88,6 @@ UNDIRECTED_EDGE_TYPES = {
 
 
 EDGE_STYLES = {
-    VisualEdgeType.MUTATE_SOURCE: "dashed",
     VisualEdgeType.MUTATE_CALL: "dashed",
     VisualEdgeType.NEXT_LINE: "invis",
 }
@@ -227,7 +226,7 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
         # Add edges to legend
         ##
 
-        if options.show_view_and_mutation_tracking:
+        if options.show_implied_mutations:
             # Keep adding invisible edges, so that all of the nodes are aligned vertically
             id_ = "legend_edge"
             c.node(id_, "", shape="box", style="invis")
