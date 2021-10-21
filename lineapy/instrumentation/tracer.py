@@ -414,28 +414,6 @@ class Tracer:
         self.variable_name_to_node[variable_name] = value_node
         return
 
-    @overload
-    def exec(
-        self,
-        code: str,
-        is_expression: Literal[True],
-        output_variables: list[str],
-        input_values: dict[str, Node],
-        source_location: Optional[SourceLocation] = None,
-    ) -> Node:
-        ...
-
-    @overload
-    def exec(
-        self,
-        code: str,
-        is_expression: Literal[False],
-        output_variables: list[str],
-        input_values: dict[str, Node],
-        source_location: Optional[SourceLocation] = None,
-    ) -> None:
-        ...
-
     def exec(
         self,
         code: str,

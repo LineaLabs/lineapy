@@ -1,6 +1,6 @@
 import ast
 import logging
-from typing import Any, Optional, Union, cast
+from typing import Any, Literal, Optional, Union, cast, overload
 
 import lineapy
 from lineapy import linea_publish
@@ -491,38 +491,77 @@ class NodeTransformer(ast.NodeTransformer):
             self.visit(ast.Constant(value=node.attr)),
         )
 
+    @overload
     def _visit_black_box(
         self,
-        node: Union[
-            ast.ListComp, ast.If, ast.For, ast.FunctionDef, ast.Lambda
-        ],
-    ):
+        node: ast.AST,
+        is_expression: Literal[True],
+        late_binding: bool = False,
+        function_name: Optional[str] = None,
+    ) -> Node:
+
+        ...
+
+    @overload
+    def _visit_black_box(
+        self,
+        node: ast.AST,
+        is_expression: Literal[False],
+        late_binding: bool = False,
+        function_name: Optional[str] = None,
+    ) -> None:
+
+        ...
+
+    def _visit_black_box(
+        self,
+        node: ast.AST,
+        is_expression: bool,
+        # If late late binding is enabled, don't lookup the loaded nodes
+        # till its called.
+        late_binding: bool = False,
+        # If this defines a function, pass in the name of it to find the node
+        # to set the late biding variables
+        function_name: Optional[str] = None,
+    ) -> Optional[Node]:
         code = self._get_code_from_node(node)
         if code is not None:
             scope = analyze_code_scope(code)
-            input_values = {
-                v: self.tracer.lookup_node(v) for v in scope.loaded
-            }
-            if code is None:
-                raise ValueError("Code block should not be empty")
+            if late_binding:
+                input_values = {}
+            else:
+                input_values = {
+                    v: self.tracer.lookup_node(v) for v in scope.loaded
+                }
 
-            return self.tracer.exec(
+            res = self.tracer.exec(
                 code=code,
-                is_expression=isinstance(node, (ast.ListComp, ast.Lambda)),
+                is_expression=is_expression,
                 source_location=self.get_source(node),
                 input_values=input_values,
                 output_variables=list(scope.stored),
             )
+            if late_binding:
+                if function_name:
+                    function_id = self.tracer.variable_name_to_node[
+                        function_name
+                    ].id
+                else:
+                    function_id = cast(Node, res).id
+                self.tracer.function_node_id_to_global_reads[
+                    function_id
+                ] = list(scope.loaded)
+            return res
         raise ValueError(f"Cannod find code for node {node}")
 
     def visit_ListComp(self, node: ast.ListComp) -> Node:
-        return self._visit_black_box(node)  # type: ignore
+        return self._visit_black_box(node, is_expression=True)
 
     def visit_If(self, node: ast.If) -> None:
-        return self._visit_black_box(node)  # type: ignore
+        return self._visit_black_box(node, is_expression=False)
 
     def visit_For(self, node: ast.For) -> None:
-        return self._visit_black_box(node)  # type: ignore
+        return self._visit_black_box(node, is_expression=False)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """
@@ -531,7 +570,12 @@ class NodeTransformer(ast.NodeTransformer):
         - no writing to variables defined outside the scope
         """
 
-        return self._visit_black_box(node)  # type: ignore
+        return self._visit_black_box(
+            node,
+            is_expression=False,
+            late_binding=True,
+            function_name=node.name,
+        )
 
     def visit_Dict(self, node: ast.Dict) -> CallNode:
         keys = node.keys
@@ -558,21 +602,9 @@ class NodeTransformer(ast.NodeTransformer):
         )
 
     def visit_Lambda(self, ast_node: ast.Lambda) -> Node:
-        code = self._get_code_from_node(ast_node)
-        if code is None:
-            raise ValueError("Code block should not be empty")
-        scope = analyze_code_scope(code)
-        # input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
-
-        node = self.tracer.exec(
-            code=code,
-            is_expression=True,
-            source_location=self.get_source(ast_node),
-            input_values={},
-            output_variables=[],
+        return self._visit_black_box(
+            ast_node, is_expression=True, late_binding=True
         )
-        self.tracer.function_node_id_to_global_reads[node.id] = list(scope.loaded)
-        return node
 
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):
