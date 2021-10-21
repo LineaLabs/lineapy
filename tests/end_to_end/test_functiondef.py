@@ -1,66 +1,24 @@
 import pytest
 
-TESTS_CASES_ARTIFACTS = [
-    (
-        [
-            """b=30
+
+def test_function_definition_without_side_effect_artifacts(execute):
+    code = """b=30
 def foo(a):
     return a - 10
 c = foo(b)
 """
-        ],
-        [
-            ("value", "c", 20),
-            (
-                "artifact",
-                "c",
-                """b=30
-def foo(a):
-    return a - 10
-c = foo(b)
-""",
-            ),
-        ],
-    ),
-]
-
-TESTS_CASES_ARTIFACTS_FAILING = [
-    (
-        [
-            """b=10
-def foo(a):
-    return a - b
-c = foo(15)
-"""
-        ],
-        [
-            ("value", "c", 5),
-            (
-                "artifact",
-                "c",
-                """b=10
-def foo(a):
-    return a - b
-c = foo(15)
-""",
-            ),
-        ],
-    ),
-]
-
-
-@pytest.mark.parametrize("code, asserts", TESTS_CASES_ARTIFACTS)
-def test_function_definition_without_side_effect_artifacts(
-    execute, assertion_helper, code, asserts
-):
-    res = execute(code[0], artifacts=["c"])
-    assertion_helper(res, asserts)
+    res = execute(code, artifacts=["c"])
+    assert res.values["c"] == 20
+    assert res.artifacts["c"] == code
 
 
 @pytest.mark.xfail
-@pytest.mark.parametrize("code, asserts", TESTS_CASES_ARTIFACTS_FAILING)
-def test_function_definition_with_globals(
-    execute, assertion_helper, code, asserts
-):
-    res = execute(code[0], artifacts=["c"])
-    assertion_helper(res, asserts)
+def test_function_definition_with_globals(execute):
+    code = """b=10
+def foo(a):
+    return a - b
+c = foo(15)
+"""
+    res = execute(code, artifacts=["c"])
+    assert res.values["c"] == 5
+    assert res.artifacts["c"] == code

@@ -1,43 +1,27 @@
-import pytest
-
-# SS: small hack to prevent syrupy from using the entire code inside filename:
-# SS: pass the code as a list of string of length 1
-# list of the format: (testname,[code],[(asserttype,varname,expectedvalue)])
-TESTS_CASES = [
-    (
-        "import_multiple_with_alias",
-        [
-            """from math import pow as power, sqrt as root
+def test_import_multiple_with_alias(execute):
+    code = """from math import pow as power, sqrt as root
 a = power(5, 2)
 b = root(a)
 """
-        ],
-        [("value", "a", 25), ("value", "b", 5)],
-    ),
-    (
-        "PIL_import_issue",
-        [
-            """from PIL.Image import open, new
+    res = execute(code)
+    assert res.values["a"] == 25
+    assert res.values["b"] == 5
+
+
+def test_PIL_import_issue(execute):
+    code = """from PIL.Image import open, new
 new_img = new("RGB", (4,4))
 new_img.save("test.png", "PNG")
 e = open("test.png")"""
-        ],
-        [("classname", "e", "PngImageFile")],
-    ),
-    (
-        "import_multiple_without_alias",
-        [
-            """import pandas, numpy
+    res = execute(code)
+    assert res.values["e"].__class__.__name__ == "PngImageFile"
+
+
+def test_import_multiple_without_alias(execute):
+    code = """import pandas, numpy
 c = pandas.DataFrame()
 d = numpy.array([1,2,3])
 """
-        ],
-        [("classname", "c", "DataFrame"), ("valuearray", "d", [1, 2, 3])],
-    ),
-]
-
-
-@pytest.mark.parametrize("_testname, code, asserts", TESTS_CASES)
-def test_import(execute, assertion_helper, _testname, code, asserts):
-    res = execute(code[0])
-    assertion_helper(res, asserts)
+    res = execute(code)
+    assert res.values["c"].__class__.__name__ == "DataFrame"
+    assert (res.values["d"] == [1, 2, 3]).all()
