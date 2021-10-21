@@ -1,6 +1,6 @@
 import ast
 import logging
-from typing import Any, Literal, Optional, cast, overload
+from typing import Any, Literal, Optional, Union, cast, overload
 
 import lineapy
 from lineapy import linea_publish
@@ -492,83 +492,66 @@ class NodeTransformer(ast.NodeTransformer):
         )
 
     @overload
-    def _visit_black_box(
-        self,
-        node: ast.AST,
-        is_expression: Literal[True],
-        late_binding: bool = False,
-        function_name: Optional[str] = None,
-    ) -> Node:
+    def _visit_black_box(self, node: Union[ast.ListComp, ast.Lambda]) -> Node:
 
         ...
 
     @overload
     def _visit_black_box(
-        self,
-        node: ast.AST,
-        is_expression: Literal[False],
-        late_binding: bool = False,
-        function_name: Optional[str] = None,
+        self, node: Union[ast.FunctionDef, ast.For, ast.If]
     ) -> None:
 
         ...
 
-    def _visit_black_box(
-        self,
-        node: ast.AST,
-        is_expression: bool,
-        # If late late binding is enabled, don't lookup the loaded nodes
-        # till its called.
-        late_binding: bool = False,
-        # If this defines a function, pass in the name of it to find the node
-        # to set the late biding variables
-        function_name: Optional[str] = None,
-    ) -> Optional[Node]:
+    def _visit_black_box(self, node: ast.AST) -> Optional[Node]:
         code = self._get_code_from_node(node)
-        if code is not None:
-            scope = analyze_code_scope(code)
-            # If we are late binding the inputs, dont pass them in as values
-            # to the exec, but instead save their names to be looked up when
-            # we call this function
-            if late_binding:
-                input_values = {}
-            else:
-                input_values = {
-                    v: self.tracer.lookup_node(v) for v in scope.loaded
-                }
+        if code is None:
+            raise ValueError(f"Cannod find code for node {node}")
 
-            res = self.tracer.exec(
-                code=code,
-                is_expression=is_expression,
-                source_location=self.get_source(node),
-                input_values=input_values,
-                output_variables=list(scope.stored),
+        scope = analyze_code_scope(code)
+
+        # If we are late binding the inputs, dont pass them in as values
+        # to the exec, but instead save their names to be looked up when
+        # we call this function
+        if isinstance(node, (ast.FunctionDef, ast.Lambda)):
+            input_values = {}
+        else:
+            input_values = {
+                v: self.tracer.lookup_node(v) for v in scope.loaded
+            }
+
+        res = self.tracer.exec(
+            code=code,
+            is_expression=isinstance(node, (ast.ListComp, ast.Lambda)),
+            source_location=self.get_source(node),
+            input_values=input_values,
+            output_variables=list(scope.stored),
+        )
+
+        # If we are late binding the inputs, save them as global reads
+        if isinstance(node, (ast.FunctionDef, ast.Lambda)):
+            # For a lambda function, the function id is just the id of the
+            # resulting node.
+            # However, for a function, we need to lookup the node ID
+            # by the variable name of the function
+            if isinstance(node, ast.FunctionDef):
+                function_id = self.tracer.variable_name_to_node[node.name].id
+            else:
+                function_id = cast(Node, res).id
+            self.tracer.function_node_id_to_global_reads[function_id] = list(
+                scope.loaded
             )
-            if late_binding:
-                # For a lambda function, the function id is just the id of the
-                # resulting node.
-                # However, for a function, we need to lookup the node ID
-                # by the variable name of the function
-                if function_name:
-                    function_id = self.tracer.variable_name_to_node[
-                        function_name
-                    ].id
-                else:
-                    function_id = cast(Node, res).id
-                self.tracer.function_node_id_to_global_reads[
-                    function_id
-                ] = list(scope.loaded)
-            return res
-        raise ValueError(f"Cannod find code for node {node}")
+
+        return res
 
     def visit_ListComp(self, node: ast.ListComp) -> Node:
-        return self._visit_black_box(node, is_expression=True)
+        return self._visit_black_box(node)
 
     def visit_If(self, node: ast.If) -> None:
-        return self._visit_black_box(node, is_expression=False)
+        return self._visit_black_box(node)
 
     def visit_For(self, node: ast.For) -> None:
-        return self._visit_black_box(node, is_expression=False)
+        return self._visit_black_box(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """
@@ -577,12 +560,7 @@ class NodeTransformer(ast.NodeTransformer):
         - no writing to variables defined outside the scope
         """
 
-        return self._visit_black_box(
-            node,
-            is_expression=False,
-            late_binding=True,
-            function_name=node.name,
-        )
+        return self._visit_black_box(node)
 
     def visit_Dict(self, node: ast.Dict) -> CallNode:
         keys = node.keys
@@ -609,9 +587,7 @@ class NodeTransformer(ast.NodeTransformer):
         )
 
     def visit_Lambda(self, ast_node: ast.Lambda) -> Node:
-        return self._visit_black_box(
-            ast_node, is_expression=True, late_binding=True
-        )
+        return self._visit_black_box(ast_node)
 
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):
