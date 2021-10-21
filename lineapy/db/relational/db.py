@@ -304,7 +304,8 @@ class RelationalLineaDB:
             ]
             keyword_args = {n.name: n.arg_node_id for n in node.keyword_args}
             global_reads = {
-                gr.variable_name: gr.variable_node_id for gr in node.global_reads
+                gr.variable_name: gr.variable_node_id
+                for gr in node.global_reads
             }
             return CallNode(
                 function_id=node.function_id,
