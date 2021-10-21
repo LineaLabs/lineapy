@@ -4,6 +4,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import pandas
+import PIL
 import pytest
 from click.testing import CliRunner
 
