@@ -494,10 +494,7 @@ class NodeTransformer(ast.NodeTransformer):
     def _visit_black_box(
         self,
         node: Union[
-            ast.ListComp,
-            ast.If,
-            ast.For,
-            ast.FunctionDef,
+            ast.ListComp, ast.If, ast.For, ast.FunctionDef, ast.Lambda
         ],
     ):
         code = self._get_code_from_node(node)
@@ -511,7 +508,7 @@ class NodeTransformer(ast.NodeTransformer):
 
             return self.tracer.exec(
                 code=code,
-                is_expression=isinstance(node, ast.ListComp),
+                is_expression=isinstance(node, (ast.ListComp, ast.Lambda)),
                 source_location=self.get_source(node),
                 input_values=input_values,
                 output_variables=list(scope.stored),
@@ -559,6 +556,9 @@ class NodeTransformer(ast.NodeTransformer):
                 for k, v in zip(keys, values)
             ),
         )
+
+    def visit_Lambda(self, node: ast.Lambda) -> Any:
+        return self._visit_black_box(node)  # type: ignore
 
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):
