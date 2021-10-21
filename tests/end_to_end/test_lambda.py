@@ -27,12 +27,12 @@ list_2 = list(filter(lambda x: x%2==0, list_1))
     res = execute(code)
     assert res.values["list_2"] == [2, 4, 6, 8]
 
-    code2 = """list_1 = [1,2,3,4,5,6,7,8,9]
+    code2 = """list_1 = [1,2,3,4]
 cubed = map(lambda x: pow(x,3), list_1)
 final_value = list(cubed)"""
 
     res2 = execute(code2)
-    assert res2.values["final_value"] == [1, 8, 27, 64, 125, 216, 343, 512, 729]
+    assert res2.values["final_value"] == [1, 8, 27, 64]
 
 
 @pytest.mark.skip

@@ -4,7 +4,7 @@ from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
 source_1 = SourceCode(
-    code="""list_1 = [1,2,3,4,5,6,7,8,9]
+    code="""list_1 = [1,2,3,4]
 cubed = map(lambda x: pow(x,3), list_1)
 final_value = list(cubed)""",
     location=PosixPath("[source file path]"),
@@ -73,7 +73,7 @@ call_5 = CallNode(
                         lineno=1,
                         col_offset=9,
                         end_lineno=1,
-                        end_col_offset=28,
+                        end_col_offset=18,
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
@@ -119,56 +119,6 @@ call_5 = CallNode(
                                 source_code=source_1.id,
                             ),
                             value=4,
-                        ).id,
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=1,
-                                col_offset=18,
-                                end_lineno=1,
-                                end_col_offset=19,
-                                source_code=source_1.id,
-                            ),
-                            value=5,
-                        ).id,
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=1,
-                                col_offset=20,
-                                end_lineno=1,
-                                end_col_offset=21,
-                                source_code=source_1.id,
-                            ),
-                            value=6,
-                        ).id,
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=1,
-                                col_offset=22,
-                                end_lineno=1,
-                                end_col_offset=23,
-                                source_code=source_1.id,
-                            ),
-                            value=7,
-                        ).id,
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=1,
-                                col_offset=24,
-                                end_lineno=1,
-                                end_col_offset=25,
-                                source_code=source_1.id,
-                            ),
-                            value=8,
-                        ).id,
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=1,
-                                col_offset=26,
-                                end_lineno=1,
-                                end_col_offset=27,
-                                source_code=source_1.id,
-                            ),
-                            value=9,
                         ).id,
                     ],
                 ).id,
