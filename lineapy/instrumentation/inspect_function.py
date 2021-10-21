@@ -1,8 +1,8 @@
 import operator
 import sys
 import types
-from dataclasses import dataclass, field
-from typing import Callable, Union
+from dataclasses import dataclass
+from typing import Callable, Iterable, Union
 
 
 @dataclass(frozen=True)
@@ -34,25 +34,28 @@ class Result:
     pass
 
 
-# A set of values which all potentiall refer to shared pointers
-# So that if one is mutated, the rest might be as well.
-BidirectionalView = list[
-    Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
-]
+Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
+
+
+class ViewOfPointers:
+    """
+    A set of values which all potentially refer to shared pointers
+    So that if one is mutated, the rest might be as well.
+    """
+
+    pointers: frozenset[Pointer]
+
+    def __init__(self, *xs: Pointer) -> None:
+        self.pointers = frozenset(xs)
 
 
 @dataclass(frozen=True)
-class InspectFunctionResult:
-    # These are stored as lists for easier construction, but semantically they
-    # are frozensets. It is useful also to keep the mutated ordered, to have
-    # deterministic creation of mutated node order, without having to sort.
+class MutatedPointer:
+    """
+    A value that is mutated when the function is called
+    """
 
-    # A set of values which are mutated
-    mutated: list[
-        Union[PositionalArg, KeywordArg, BoundSelfOfFunction]
-    ] = field(default_factory=list)
-    # A set of views, each of which represent a set of values which share poitners
-    views: list[BidirectionalView] = field(default_factory=list)
+    pointer: Pointer
 
 
 def inspect_function(
@@ -60,7 +63,7 @@ def inspect_function(
     args: list[object],
     kwargs: dict[str, object],
     result: object,
-) -> InspectFunctionResult:
+) -> Iterable[Union[ViewOfPointers, MutatedPointer]]:
     """
     Inspects a function and returns how calling it mutates the args/result and
     creates view relationships between them.
@@ -70,20 +73,14 @@ def inspect_function(
     # __setitem__ for class so we can differentiate based on type more easily?
     if function == operator.setitem:
         # setitem(dict, key, value)
-        return InspectFunctionResult(
-            # The first arg, the dict, is mutated
-            mutated=[PositionalArg(0)],
-            # The first arg is now a view of the value, if the first arg is muttable
-            views=[[PositionalArg(2), PositionalArg(0)]]
-            if not is_immutable(args[2])
-            else [],
-        )
+        yield MutatedPointer(PositionalArg(0))
+        if not is_immutable(args[2]):
+            yield ViewOfPointers(PositionalArg(2), PositionalArg(0))
+        return
     if function == operator.delitem:
         # delitem(dict, key)
-        return InspectFunctionResult(
-            # The first arg, the dict, is mutated
-            mutated=[PositionalArg(0)],
-        )
+        yield MutatedPointer(PositionalArg(0))
+        return
     if imported_module("sklearn"):
         from sklearn.base import BaseEstimator
 
@@ -96,13 +93,12 @@ def inspect_function(
             # cff is mutated, and we say that the res and the clf
             # are views of each other, since mutating one will mutate the other
             # since they are the same object.
-            return InspectFunctionResult(
-                mutated=[BoundSelfOfFunction()],
-                views=[[BoundSelfOfFunction(), Result()]],
-            )
+            yield MutatedPointer(BoundSelfOfFunction())
+            yield ViewOfPointers(BoundSelfOfFunction(), Result())
+            return
     # Note: Future functions might require normalizing the args/kwargs with
     # inspect.signature.bind(args, kwargs) first
-    return InspectFunctionResult()
+    return []
 
 
 def imported_module(name: str) -> bool:

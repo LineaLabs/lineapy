@@ -314,19 +314,12 @@ call_13 = CallNode(
     ).id,
     positional_args=[call_5.id, call_8.id],
 )
+mutate_2 = MutateNode(
+    source_id=call_11.id,
+    call_id=call_13.id,
+)
 mutate_3 = MutateNode(
     source_id=mutate_1.id,
-    call_id=call_13.id,
-)
-mutate_6 = MutateNode(
-    source_id=MutateNode(
-        source_id=call_11.id,
-        call_id=call_11.id,
-    ).id,
-    call_id=call_13.id,
-)
-mutate_7 = MutateNode(
-    source_id=mutate_6.id,
     call_id=call_13.id,
 )
 call_15 = CallNode(
@@ -349,7 +342,7 @@ call_15 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            mutate_7.id,
+            mutate_2.id,
             LiteralNode(
                 value="fit",
             ).id,
@@ -357,43 +350,11 @@ call_15 = CallNode(
     ).id,
     positional_args=[call_5.id, call_8.id],
 )
-mutate_10 = MutateNode(
-    source_id=call_15.id,
+mutate_5 = MutateNode(
+    source_id=mutate_2.id,
     call_id=call_15.id,
 )
-mutate_11 = MutateNode(
-    source_id=MutateNode(
-        source_id=MutateNode(
-            source_id=call_13.id,
-            call_id=call_13.id,
-        ).id,
-        call_id=call_15.id,
-    ).id,
-    call_id=call_15.id,
-)
-mutate_12 = MutateNode(
-    source_id=MutateNode(
-        source_id=mutate_6.id,
-        call_id=call_15.id,
-    ).id,
-    call_id=call_15.id,
-)
-mutate_13 = MutateNode(
-    source_id=MutateNode(
-        source_id=mutate_3.id,
-        call_id=call_13.id,
-    ).id,
-    call_id=call_15.id,
-)
-mutate_15 = MutateNode(
-    source_id=mutate_7.id,
-    call_id=call_15.id,
-)
-mutate_17 = MutateNode(
-    source_id=mutate_6.id,
-    call_id=call_15.id,
-)
-mutate_18 = MutateNode(
+mutate_8 = MutateNode(
     source_id=MutateNode(
         source_id=MutateNode(
             source_id=mutate_3.id,
@@ -401,5 +362,20 @@ mutate_18 = MutateNode(
         ).id,
         call_id=call_15.id,
     ).id,
+    call_id=call_15.id,
+)
+mutate_9 = MutateNode(
+    source_id=mutate_2.id,
+    call_id=call_15.id,
+)
+mutate_10 = MutateNode(
+    source_id=MutateNode(
+        source_id=mutate_3.id,
+        call_id=call_13.id,
+    ).id,
+    call_id=call_15.id,
+)
+mutate_11 = MutateNode(
+    source_id=call_13.id,
     call_id=call_15.id,
 )

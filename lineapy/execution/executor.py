@@ -8,7 +8,7 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
-from typing import Callable, Tuple, Union, cast
+from typing import Callable, Iterable, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
@@ -26,6 +26,8 @@ from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.instrumentation.inspect_function import (
     BoundSelfOfFunction,
     KeywordArg,
+    MutatedPointer,
+    Pointer,
     PositionalArg,
     Result,
     inspect_function,
@@ -103,7 +105,7 @@ class Executor:
             value = lookup_value(node.name)
             self._id_to_value[node.id] = value
 
-            return SideEffects()
+            return ()
         elif isinstance(node, CallNode):
             # execute the function
             # ----------
@@ -132,12 +134,10 @@ class Executor:
             # dependency analysis
             # ----------
             self._id_to_value[node.id] = res
-            inspect_function_res = inspect_function(fn, args, kwargs, res)
+            side_effects = inspect_function(fn, args, kwargs, res)
 
             def get_node_id(
-                pointer: Union[
-                    PositionalArg, KeywordArg, Result, BoundSelfOfFunction
-                ],
+                pointer: Pointer,
                 node: CallNode = cast(CallNode, node),
             ) -> LineaID:
                 if isinstance(pointer, PositionalArg):
@@ -149,30 +149,26 @@ class Executor:
                 elif isinstance(pointer, BoundSelfOfFunction):
                     return self._node_to_bound_self[node.function_id]
 
-            return SideEffects(
-                mutated=[get_node_id(m) for m in inspect_function_res.mutated],
-                views=frozenset(
-                    frozenset(map(get_node_id, v))
-                    for v in inspect_function_res.views
-                ),
-            )
+            for e in side_effects:
+                if isinstance(e, MutatedPointer):
+                    yield MutatedNode(get_node_id(e.pointer))
+                else:
+                    yield ViewOfNodes(*map(get_node_id, e.pointers))
 
         elif isinstance(node, ImportNode):
             with redirect_stdout(self._stdout):
                 value = importlib.import_module(node.library.name)
             self._id_to_value[node.id] = value
-            return SideEffects()
+            return []
         elif isinstance(node, LiteralNode):
             self._id_to_value[node.id] = node.value
-            return SideEffects()
+            return []
         elif isinstance(node, MutateNode):
             # Copy the value from the source value node
             self._id_to_value[node.id] = self._id_to_value[node.source_id]
 
             # The mutate node is a view of its source
-            return SideEffects(
-                views=frozenset({frozenset({node.id, node.source_id})})
-            )
+            yield ViewOfNodes(node.id, node.source_id)
 
     def execute_graph(self, graph: Graph) -> None:
         logger.info("Executing graph %s", graph)
@@ -186,21 +182,27 @@ class Executor:
 
 
 @dataclass(frozen=True)
-class SideEffects:
+class MutatedNode:
     """
-    The side effects from executing a node.
-
-    This dataclass is used as the return value for executing a node, to provide
-    more explicit names and types for the results.
+    Represents that a node has been mutated.
     """
 
-    # Set of linea IDs which were mutated by executing this node.
-    # Kept as a list for consistant ordering
-    mutated: list[LineaID] = field(default_factory=list)
-    # Set of tuples mapping the ID of a source node to the ID of the node which
-    # views it. This means that now whenever the source is mutated, the viewer
-    # is also mutated.
-    views: frozenset[frozenset[LineaID]] = field(default_factory=frozenset)
+    id: LineaID
+
+
+class ViewOfNodes:
+    """
+    Represents that a set of nodes are now "views" of each other, meaning that
+    if any are mutated they all could be mutated.
+    """
+
+    ids: frozenset[LineaID]
+
+    def __init__(self, *ids: LineaID):
+        self.ids = frozenset(ids)
+
+
+SideEffects = Iterable[Union[MutatedNode, ViewOfNodes]]
 
 
 def lookup_value(name: str) -> object:

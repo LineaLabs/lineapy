@@ -27,7 +27,7 @@ from lineapy.data.types import (
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import ArtifactORM
-from lineapy.execution.executor import Executor
+from lineapy.execution.executor import Executor, ViewOfNodes
 from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
@@ -192,28 +192,34 @@ class Tracer:
         # The viewer mappings are bidirectional transitive closures and we keep
         # the mapping updated with all views
 
-        for view_set in side_effects.views:
-            # First, iterate through all items in the view
-            # and create a complete view set adding all their views as well
-            complete_view_set = view_set.union(
-                *(self.viewers[id_] for id_ in view_set)
-            )
+        for e in side_effects:
+            if isinstance(e, ViewOfNodes):
+                self._process_view_of_nodes(e.ids)
+            else:
+                self._process_mutate_node(e.id, node.id, node.session_id)
 
-            # Now iterate through all items in the complete view and
-            # make sure it contains all items
-            for id_ in complete_view_set:
-                self.viewers[id_] |= complete_view_set - {id_}
+    def _process_view_of_nodes(self, ids: frozenset[LineaID]) -> None:
+        # First, iterate through all items in the view
+        # and create a complete view set adding all their views as well
+        complete_ids = ids.union(*(self.viewers[id_] for id_ in ids))
+
+        # Now iterate through all items in the complete view and
+        # make sure it contains all items
+        for id_ in complete_ids:
+            self.viewers[id_] |= complete_ids - {id_}
+
+    def _process_mutate_node(
+        self, source_id: LineaID, call_id: LineaID, session_id: LineaID
+    ) -> None:
         # Create a mutation node for every node that was mutated,
         # Which are all the views + the node itself
-        all_mutated_ids = set[LineaID]().union(
-            *(self.viewers[id_] | {id_} for id_ in side_effects.mutated)
-        )
-        for source_id in all_mutated_ids:
+        source_ids = self.viewers[source_id] | {source_id}
+        for source_id in source_ids:
             mutate_node = MutateNode(
                 id=get_new_id(),
-                session_id=node.session_id,
+                session_id=session_id,
                 source_id=self.resolve_node(source_id),
-                call_id=node.id,
+                call_id=call_id,
             )
 
             # Update the mutated sources, and then change all source
