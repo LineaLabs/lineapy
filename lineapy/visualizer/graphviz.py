@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Union
 
 import graphviz
-from click import option
 
 from lineapy.data.types import NodeType
 
