@@ -488,6 +488,9 @@ class Tracer:
         )
 
 
+# These are some helper functions we need since we are using lists as ordered
+# sets.
+
 T = TypeVar("T")
 
 
