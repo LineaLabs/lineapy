@@ -35,13 +35,6 @@ final_value = list(cubed)"""
     assert res2.values["final_value"] == [1, 8, 27, 64]
 
 
-@pytest.mark.skip
-def test_lambda_as_filter_w_external_vars(execute):
-    code = ""
-    res = execute(code)
-    assert 0 == 1
-
-
 def test_lambda_slicing_creates_correct_artifact_w_primitives(execute):
     code = """a = 10
 b = lambda x: x + 10
