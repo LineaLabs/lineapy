@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Union
 
 import graphviz
+from click import option
 
 from lineapy.data.types import NodeType
 
@@ -225,14 +226,18 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
         ##
         # Add edges to legend
         ##
-
-        if options.show_implied_mutations:
+        legend_items = dict(EDGE_TYPE_TO_LABEL)
+        if not options.show_implied_mutations:
+            del legend_items[VisualEdgeType.LATEST_MUTATE_SOURCE]
+        if not options.show_views:
+            del legend_items[VisualEdgeType.VIEW]
+        if legend_items:
             # Keep adding invisible edges, so that all of the nodes are aligned vertically
             id_ = "legend_edge"
             c.node(id_, "", shape="box", style="invis")
             c.edge(prev_id, id_, style="invis")
             prev_id = id_
-            for edge_type, label in EDGE_TYPE_TO_LABEL.items():
+            for edge_type, label in legend_items.items():
                 id_ = f"legend_edge_{label}"
                 # Add invisible nodes, so the edges have something to point to.
                 c.node(id_, "", shape="box", style="invis")
