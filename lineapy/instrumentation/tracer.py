@@ -390,9 +390,9 @@ class Tracer:
             source_location=source_location,
             global_reads={
                 name: self.variable_name_to_node[name].id
-                for name in self.function_node_id_to_global_reads[
-                    function_node.id
-                ]
+                for name in sorted(
+                    self.function_node_id_to_global_reads[function_node.id]
+                )
             },
         )
         self.process_node(node)

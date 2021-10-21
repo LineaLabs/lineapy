@@ -1,6 +1,6 @@
 import ast
 import logging
-from typing import Any, Literal, Optional, Union, cast, overload
+from typing import Any, Literal, Optional, cast, overload
 
 import lineapy
 from lineapy import linea_publish
@@ -527,6 +527,9 @@ class NodeTransformer(ast.NodeTransformer):
         code = self._get_code_from_node(node)
         if code is not None:
             scope = analyze_code_scope(code)
+            # If we are late binding the inputs, dont pass them in as values
+            # to the exec, but instead save their names to be looked up when
+            # we call this function
             if late_binding:
                 input_values = {}
             else:
@@ -542,6 +545,10 @@ class NodeTransformer(ast.NodeTransformer):
                 output_variables=list(scope.stored),
             )
             if late_binding:
+                # For a lambda function, the function id is just the id of the
+                # resulting node.
+                # However, for a function, we need to lookup the node ID
+                # by the variable name of the function
                 if function_name:
                     function_id = self.tracer.variable_name_to_node[
                         function_name
