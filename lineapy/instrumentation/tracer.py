@@ -103,7 +103,7 @@ class Tracer:
         )
         self.db.write_context(self.session_context)
 
-    @cached_property
+    @property
     def graph(self) -> Graph:
         """
         Creates a graph by fetching all the nodes about this session from the DB.
@@ -111,7 +111,7 @@ class Tracer:
         nodes = self.db.get_nodes_for_session(self.session_context.id)
         return Graph(nodes, self.session_context)
 
-    @cached_property
+    @property
     def values(self) -> dict[str, object]:
         """
         Returns a mapping of variable names to their values, by joining
@@ -122,7 +122,7 @@ class Tracer:
             for k, n in self.variable_name_to_node.items()
         }
 
-    @cached_property
+    @property
     def artifacts(self) -> dict[str, str]:
         """
         Returns a mapping of artifact names to their sliced code.

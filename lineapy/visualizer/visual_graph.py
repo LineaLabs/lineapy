@@ -249,6 +249,10 @@ class VisualGraph:
     edges: list[VisualEdge] = field(default_factory=list)
 
 
+def get_node_id(id: str) -> str:
+    return id.split(":")[0]
+
+
 ExtraLabels = list["ExtraLabel"]
 
 
