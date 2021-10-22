@@ -58,6 +58,9 @@ class VisualGraphOptions:
     # Whether to show source code in the graph
     show_code: bool = field(default=True)
 
+    # Whether to add edges for global variable reads in calls
+    show_global_reads: bool = field(default=True)
+
 
 def tracer_to_visual_graph(
     tracer: Tracer, options: VisualGraphOptions
@@ -86,7 +89,7 @@ def tracer_to_visual_graph(
             ExtraLabel(v, ExtraLabelType.VARIABLE)
             for v in id_to_variables[node.id]
         ]
-        contents, edges = contents_and_edges(node)
+        contents, edges = contents_and_edges(node, options)
         vg.edges.extend(edges)
         vg.nodes.append(
             VisualNode(node.id, node.node_type, contents, extra_labels)
@@ -159,7 +162,9 @@ def tracer_to_visual_graph(
     return vg
 
 
-def contents_and_edges(node: Node) -> tuple[Contents, list[VisualEdge]]:
+def contents_and_edges(
+    node: Node, options: VisualGraphOptions
+) -> tuple[str, list[VisualEdge]]:
     """
     Get the contents and a list of edges from the node, depending on its type
     """
@@ -167,22 +172,50 @@ def contents_and_edges(node: Node) -> tuple[Contents, list[VisualEdge]]:
     if isinstance(node, ImportNode):
         return node.library.name, []
     if isinstance(node, CallNode):
-        contents: list[tuple[str, str]] = [("fn", "fn")]
+        # The call node body is in struct format to allow pointing to each
+        # variable independently
+        # https://graphviz.readthedocs.io/en/stable/examples.html#structs-revisited-py
+        contents = "<fn> fn"
         edges: list[VisualEdge] = [
-            VisualEdge(node.function_id, (n_id, "fn"), VisualEdgeType.FUNCTION)
+            VisualEdge(node.function_id, f"{n_id}:fn", VisualEdgeType.FUNCTION)
         ]
-        for i, a_id in enumerate(node.positional_args):
-            sub_id = f"positional_{i}"
-            contents.append((sub_id, str(i)))
-            edges.append(
-                VisualEdge(a_id, (n_id, sub_id), VisualEdgeType.POSITIONAL_ARG)
-            )
-        for k, a_id in node.keyword_args.items():
-            sub_id = f"keyword_{k}"
-            contents.append((sub_id, k))
-            edges.append(
-                VisualEdge(a_id, (n_id, sub_id), VisualEdgeType.KEYWORD_ARG)
-            )
+        if node.positional_args:
+            args_contents: list[str] = []
+            for i, a_id in enumerate(node.positional_args):
+                sub_id = f"p_{i}"
+                args_contents.append(f"<{sub_id}> {i}")
+                edges.append(
+                    VisualEdge(
+                        a_id, f"{n_id}:{sub_id}", VisualEdgeType.POSITIONAL_ARG
+                    )
+                )
+            contents += "| {{" + "|".join(args_contents) + "} | args }"
+
+        if node.keyword_args:
+            kwargs_contents: list[str] = []
+            for k, a_id in node.keyword_args.items():
+                sub_id = f"k_{k}"
+                kwargs_contents.append(f"<{sub_id}> {k}")
+                edges.append(
+                    VisualEdge(
+                        a_id, f"{n_id}:{sub_id}", VisualEdgeType.KEYWORD_ARG
+                    )
+                )
+            contents += "| {{" + "|".join(kwargs_contents) + "} | kwargs }"
+
+        if options.show_global_reads and node.global_reads:
+            global_reads_contents: list[str] = []
+
+            for k, v in node.global_reads.items():
+                sub_id = f"v_{k}"
+                global_reads_contents.append(f"<{sub_id}> {k}")
+
+                edges.append(
+                    VisualEdge(
+                        v, f"{n_id}:{sub_id}", VisualEdgeType.GLOBAL_READ
+                    )
+                )
+            contents += "| {{" + "|".join(global_reads_contents) + "} | vars }"
 
         return contents, edges
     if isinstance(node, LiteralNode):
@@ -190,16 +223,16 @@ def contents_and_edges(node: Node) -> tuple[Contents, list[VisualEdge]]:
     if isinstance(node, LookupNode):
         return node.name, []
     if isinstance(node, MutateNode):
-        contents = [("src", "src"), ("call", "call")]
+        contents = "<src> src|<call> call"
         edges = [
             VisualEdge(
                 node.source_id,
-                (n_id, "src"),
+                f"{n_id}:src",
                 VisualEdgeType.MUTATE_SOURCE,
             ),
             VisualEdge(
                 node.call_id,
-                (n_id, "call"),
+                f"{n_id}:call",
                 VisualEdgeType.MUTATE_CALL,
             ),
         ]
@@ -216,7 +249,6 @@ class VisualGraph:
     edges: list[VisualEdge] = field(default_factory=list)
 
 
-Contents = Union[str, list[tuple[str, str]]]
 ExtraLabels = list["ExtraLabel"]
 
 
@@ -238,9 +270,10 @@ class VisualNode:
     id: str
     # The type of the node, used for coloring
     type: VisualNodeType
-    # Either a label, or a list of tuples corresponding to sub_id, label
-    # for it as a "struct"
-    contents: Contents
+    # The contents of the cell, either a string for its label
+    # or a string in the struct format
+    # https://graphviz.readthedocs.io/en/stable/examples.html#structs-revisited-py
+    contents: str
 
     # A list of "extra labels" that are associated with the node
     extra_labels: ExtraLabels
@@ -257,15 +290,10 @@ class ExtraLabelType(Enum):
     ARTIFACT = auto()
 
 
-# Either a string pointing to another node, or a pair of strings, the first
-# representing the id of another node, and the second the id of its sub part
-Pointer = Union[str, tuple[str, str]]
-
-
 @dataclass
 class VisualEdge:
-    source: Pointer
-    target: Pointer
+    source: str
+    target: str
     type: VisualEdgeType
 
 
@@ -281,6 +309,8 @@ class VisualEdgeType(Enum):
     POSITIONAL_ARG = auto()
     # From a node to the call node that uses it as keyword arg
     KEYWORD_ARG = auto()
+    # From a node to a call node which reads it from globals
+    GLOBAL_READ = auto()
 
     # From a source node to the mutate node which represents a mutated
     # version of it

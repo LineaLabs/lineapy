@@ -16,11 +16,9 @@ if TYPE_CHECKING:
     from lineapy.instrumentation.tracer import Tracer
 
 from lineapy.visualizer.visual_graph import (
-    Contents,
     ExtraLabel,
     ExtraLabels,
     ExtraLabelType,
-    Pointer,
     SourceLineType,
     VisualEdgeType,
     VisualGraphOptions,
@@ -34,7 +32,11 @@ NODE_STYLE = {
     "colorscheme": "pastel19",
 }
 
-EDGE_STYLE = {"colorscheme": NODE_STYLE["colorscheme"]}
+EDGE_STYLE = {
+    "colorscheme": NODE_STYLE["colorscheme"],
+    "arrowhead": "vee",
+    "arrowsize": "0.7",
+}
 
 DEFAULT_EDGE_COLOR = "/greys3/2"
 CLUSTER_EDGE_COLOR = "/greys3/3"
@@ -90,6 +92,7 @@ UNDIRECTED_EDGE_TYPES = {
 EDGE_STYLES = {
     VisualEdgeType.MUTATE_CALL: "dashed",
     VisualEdgeType.NEXT_LINE: "invis",
+    VisualEdgeType.SOURCE_CODE: "dotted",
 }
 
 
@@ -119,8 +122,8 @@ def tracer_to_graphviz(
 
     for edge in vg.edges:
         dot.edge(
-            pointer_to_id(edge.source),
-            pointer_to_id(edge.target),
+            edge.source,
+            edge.target,
             **edge_type_to_kwargs(edge.type),
         )
 
@@ -139,26 +142,6 @@ def extra_labels_to_html(extra_labels: ExtraLabels) -> str:
         for el in extra_labels
     ]
     return f'<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0">{"".join(rows)}</TABLE>>'
-
-
-def contents_to_label(contents: Contents) -> str:
-    """
-    Converts a contents into a label, mapping nested contents into records.
-    """
-    if isinstance(contents, str):
-        return contents
-    # https://graphviz.readthedocs.io/en/stable/examples.html#structs-revisited-py
-    return "|".join(f"<{id_}> {label}" for id_, label in contents)
-
-
-def pointer_to_id(pointer: Pointer) -> str:
-    """
-    Maps from a pointer to a graphviz id to use in an edge, mapping nested
-    ids to struct pointers: https://graphviz.org/doc/info/shapes.html#record
-    """
-    if isinstance(pointer, str):
-        return pointer
-    return ":".join(pointer)
 
 
 def node_type_to_kwargs(node_type: VisualNodeType) -> dict[str, object]:
@@ -225,18 +208,18 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
         ##
         # Add edges to legend
         ##
-        legend_items = dict(EDGE_TYPE_TO_LABEL)
+        edges_for_legend = dict(EDGE_TYPE_TO_LABEL)
         if not options.show_implied_mutations:
-            del legend_items[VisualEdgeType.LATEST_MUTATE_SOURCE]
+            del edges_for_legend[VisualEdgeType.LATEST_MUTATE_SOURCE]
         if not options.show_views:
-            del legend_items[VisualEdgeType.VIEW]
-        if legend_items:
+            del edges_for_legend[VisualEdgeType.VIEW]
+        if edges_for_legend:
             # Keep adding invisible edges, so that all of the nodes are aligned vertically
             id_ = "legend_edge"
             c.node(id_, "", shape="box", style="invis")
             c.edge(prev_id, id_, style="invis")
             prev_id = id_
-            for edge_type, label in legend_items.items():
+            for edge_type, label in edges_for_legend.items():
                 id_ = f"legend_edge_{label}"
                 # Add invisible nodes, so the edges have something to point to.
                 c.node(id_, "", shape="box", style="invis")
@@ -254,5 +237,5 @@ def render_node(dot: graphviz.Digraph, node: VisualNode) -> str:
     kwargs = node_type_to_kwargs(node.type)
     if node.extra_labels:
         kwargs["xlabel"] = extra_labels_to_html(node.extra_labels)
-    dot.node(node.id, contents_to_label(node.contents), **kwargs)
+    dot.node(node.id, node.contents, **kwargs)
     return node.id
