@@ -1,6 +1,6 @@
 import ast
 import logging
-from typing import Any, Literal, Optional, Union, cast, overload
+from typing import Any, Optional, Union, cast, overload
 
 import lineapy
 from lineapy import linea_publish
