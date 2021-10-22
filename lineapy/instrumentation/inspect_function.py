@@ -6,6 +6,8 @@ import types
 from dataclasses import dataclass
 from typing import Callable, Iterable, Union
 
+from lineapy import lineabuiltins
+
 
 def inspect_function(
     function: Callable,
@@ -26,10 +28,39 @@ def inspect_function(
         if not is_immutable(args[2]):
             yield ViewOfPointers(PositionalArg(2), PositionalArg(0))
         return
+
+    if function == operator.getitem:
+        # getitem(dict, key)
+        # If both are mutable, they are now views of one another!
+        if not is_immutable(args[0]) and not is_immutable(result):
+            yield ViewOfPointers(PositionalArg(0), Result())
+            return
     if function == operator.delitem:
         # delitem(dict, key)
         yield MutatedPointer(PositionalArg(0))
         return
+    if function == lineabuiltins.__build_list__:
+        # __build_list__(x1, x2, ...)
+        yield ViewOfPointers(
+            Result(),
+            *(
+                PositionalArg(i)
+                for i, a in enumerate(args)
+                if not is_immutable(a)
+            )
+        )
+        return
+    if (
+        isinstance(function, types.BuiltinMethodType)
+        and function.__name__ == "append"
+        and isinstance(function.__self__, list)
+    ):
+        # list.append(value)
+        yield MutatedPointer(BoundSelfOfFunction())
+        if not is_immutable(args[0]):
+            yield ViewOfPointers(BoundSelfOfFunction(), PositionalArg(0))
+        return
+
     if imported_module("sklearn"):
         from sklearn.base import BaseEstimator
 
@@ -101,6 +132,7 @@ class Result:
 Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
 
 
+@dataclass
 class ViewOfPointers:
     """
     A set of values which all potentially refer to shared pointers
