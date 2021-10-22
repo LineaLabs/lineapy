@@ -2,7 +2,6 @@ import logging
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
-from functools import cached_property
 from itertools import chain
 from os import getcwd
 from typing import Dict, Iterable, Optional, TypeVar

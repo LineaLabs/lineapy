@@ -58,44 +58,47 @@ call_1 = CallNode(
         ).id,
     ],
 )
-call_3 = CallNode(
-    source_location=SourceLocation(
-        lineno=3,
-        col_offset=0,
-        end_lineno=3,
-        end_col_offset=11,
-        source_code=source_1.id,
-    ),
-    function_id=CallNode(
+mutate_1 = MutateNode(
+    source_id=call_1.id,
+    call_id=CallNode(
         source_location=SourceLocation(
             lineno=3,
             col_offset=0,
             end_lineno=3,
-            end_col_offset=8,
+            end_col_offset=11,
             source_code=source_1.id,
         ),
-        function_id=LookupNode(
-            name="getattr",
-        ).id,
-        positional_args=[
-            call_1.id,
-            LiteralNode(
-                value="append",
-            ).id,
-        ],
-    ).id,
-    positional_args=[
-        LiteralNode(
+        function_id=CallNode(
             source_location=SourceLocation(
                 lineno=3,
-                col_offset=9,
+                col_offset=0,
                 end_lineno=3,
-                end_col_offset=10,
+                end_col_offset=8,
                 source_code=source_1.id,
             ),
-            value=4,
-        ).id
-    ],
+            function_id=LookupNode(
+                name="getattr",
+            ).id,
+            positional_args=[
+                call_1.id,
+                LiteralNode(
+                    value="append",
+                ).id,
+            ],
+        ).id,
+        positional_args=[
+            LiteralNode(
+                source_location=SourceLocation(
+                    lineno=3,
+                    col_offset=9,
+                    end_lineno=3,
+                    end_col_offset=10,
+                    source_code=source_1.id,
+                ),
+                value=4,
+            ).id
+        ],
+    ).id,
 )
 literal_6 = LiteralNode(
     source_location=SourceLocation(
@@ -118,7 +121,7 @@ call_4 = CallNode(
     function_id=LookupNode(
         name="contains",
     ).id,
-    positional_args=[call_1.id, literal_6.id],
+    positional_args=[mutate_1.id, literal_6.id],
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -143,7 +146,7 @@ call_6 = CallNode(
             function_id=LookupNode(
                 name="contains",
             ).id,
-            positional_args=[call_1.id, literal_6.id],
+            positional_args=[mutate_1.id, literal_6.id],
         ).id
     ],
 )
@@ -158,5 +161,5 @@ call_7 = CallNode(
     function_id=LookupNode(
         name="sum",
     ).id,
-    positional_args=[call_1.id],
+    positional_args=[mutate_1.id],
 )
