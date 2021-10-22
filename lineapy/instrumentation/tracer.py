@@ -7,6 +7,7 @@ from itertools import chain
 from os import getcwd
 from typing import Dict, Iterable, Optional, TypeVar
 
+import graphviz
 from black import FileMode, format_str
 
 from lineapy.constants import GET_ITEM, GETATTR
@@ -181,8 +182,13 @@ class Tracer:
         """
         Visualize the graph using GraphViz, writing to disk and trying to open.
         """
-        dot = tracer_to_graphviz(self, options)
+        dot = self.graphviz(options)
         dot.render(filename, view=True, format="pdf")
+
+    def graphviz(
+        self, options: VisualGraphOptions = VisualGraphOptions()
+    ) -> graphviz.Digraph:
+        return tracer_to_graphviz(self, options)
 
     @property
     def stdout(self) -> str:
