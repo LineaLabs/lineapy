@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Optional, Union
 from lineapy.data.types import (
     CallNode,
     ImportNode,
+    LineaID,
     LiteralNode,
     LookupNode,
     MutateNode,
@@ -48,9 +49,14 @@ class VisualGraphOptions:
     In Python 3.10 we can maybe use https://www.python.org/dev/peps/pep-0612/.
     """
 
-    # Whether to show edges for the state the tracer keeps about view
-    # and mutation tracking
-    show_view_and_mutation_tracking: bool = field(default=False)
+    # Whether to add edges for the implied views in the tracer
+    show_implied_mutations: bool = field(default=False)
+
+    # Whether to add edges for the views kept in the tracer
+    show_views: bool = field(default=False)
+
+    # Whether to show source code in the graph
+    show_code: bool = field(default=True)
 
 
 def tracer_to_visual_graph(
@@ -86,19 +92,70 @@ def tracer_to_visual_graph(
             VisualNode(node.id, node.node_type, contents, extra_labels)
         )
 
+    # For now, our algorithm for making nodes based on source locations is:
+    # 1. Whenever we encounter a node, if we havent made a source code node
+    #    for that pair of start and end lines, make one and add an edge
+    #    from the previous to it.
+    # 2. We add an edge from that source node to the node.
+
+    # This assumes that we iterate through nodes in line order, and that
+    #  we skip printing any lines that don't appear in nodes.
+    # It also assumes that we have no overlapping line number ranges,
+    # i.e. a node that is from lines 1-3 and another node just on line 3
+    # If this doesn occur, we will end up print line 3's source code twice.
+
+    added_source_ids: set[str] = set()
+    last_added_source_id: Optional[str] = None
+
+    # Then add the source code nodes
+    for n in tracer.graph.nodes:
+        source_location = n.source_location
+        if not source_location:
+            continue
+        id_ = f"{source_location.source_code.id}-{source_location.lineno}-{source_location.end_lineno}"
+        if id_ not in added_source_ids:
+            added_source_ids.add(id_)
+            contents = "\n".join(
+                source_location.source_code.code.splitlines()[
+                    source_location.lineno - 1 : source_location.end_lineno
+                ]
+            )
+            vg.nodes.append(VisualNode(id_, SourceLineType(), contents, []))
+
+            if last_added_source_id:
+                vg.edges.append(
+                    VisualEdge(
+                        last_added_source_id,
+                        id_,
+                        VisualEdgeType.NEXT_LINE,
+                    )
+                )
+            last_added_source_id = id_
+        vg.edges.append(
+            VisualEdge(
+                id_,
+                n.id,
+                VisualEdgeType.SOURCE_CODE,
+            )
+        )
     # Then we can add all the additional information from the tracer
-    if options.show_view_and_mutation_tracking:
+    if options.show_implied_mutations:
         # the mutate nodes
         for source, mutate in tracer.source_to_mutate.items():
             vg.edges.append(
                 VisualEdge(source, mutate, VisualEdgeType.LATEST_MUTATE_SOURCE)
             )
-        # the view nodes
-        for source, viewers in tracer.source_to_viewers.items():
-            for viewer in viewers:
-                vg.edges.append(
-                    VisualEdge(source, viewer, VisualEdgeType.VIEW)
-                )
+
+    if options.show_views:
+        # Create a set of unique pairs of viewers, where order doesn't matter
+        # Since they aren't directed
+        viewer_pairs: set[frozenset[LineaID]] = {
+            frozenset([source, viewer])
+            for source, viewers in tracer.viewers.items()
+            for viewer in viewers
+        }
+        for source, target in viewer_pairs:
+            vg.edges.append(VisualEdge(source, target, VisualEdgeType.VIEW))
     return vg
 
 
@@ -164,11 +221,23 @@ ExtraLabels = list["ExtraLabel"]
 
 
 @dataclass
+class SourceLineType:
+    """
+    Type used to represent a source code line
+    """
+
+    pass
+
+
+VisualNodeType = Union[NodeType, SourceLineType]
+
+
+@dataclass
 class VisualNode:
     # A unique ID for the node
     id: str
     # The type of the node, used for coloring
-    type: NodeType
+    type: VisualNodeType
     # Either a label, or a list of tuples corresponding to sub_id, label
     # for it as a "struct"
     contents: Contents
@@ -223,3 +292,8 @@ class VisualEdgeType(Enum):
     LATEST_MUTATE_SOURCE = auto()
     # Mapping from a source node to a node that has a view of it
     VIEW = auto()
+
+    # Edge from a line of source to the next line
+    NEXT_LINE = auto()
+    # Edge from a line of source to a node that results from it
+    SOURCE_CODE = auto()

@@ -77,35 +77,38 @@ mutate_2 = MutateNode(
     source_id=call_2.id,
     call_id=call_4.id,
 )
-mutate_3 = MutateNode(
+mutate_4 = MutateNode(
     source_id=MutateNode(
-        source_id=call_1.id,
-        call_id=CallNode(
-            source_location=SourceLocation(
-                lineno=4,
-                col_offset=0,
-                end_lineno=4,
-                end_col_offset=10,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="setitem",
-            ).id,
-            positional_args=[
-                call_1.id,
-                LiteralNode(
-                    source_location=SourceLocation(
-                        lineno=4,
-                        col_offset=2,
-                        end_lineno=4,
-                        end_col_offset=5,
-                        source_code=source_1.id,
-                    ),
-                    value="y",
+        source_id=MutateNode(
+            source_id=call_1.id,
+            call_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=4,
+                    col_offset=0,
+                    end_lineno=4,
+                    end_col_offset=10,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="setitem",
                 ).id,
-                call_2.id,
-            ],
+                positional_args=[
+                    call_1.id,
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=4,
+                            col_offset=2,
+                            end_lineno=4,
+                            end_col_offset=5,
+                            source_code=source_1.id,
+                        ),
+                        value="y",
+                    ).id,
+                    call_2.id,
+                ],
+            ).id,
         ).id,
+        call_id=call_4.id,
     ).id,
     call_id=call_4.id,
 )

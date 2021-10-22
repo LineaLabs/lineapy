@@ -611,7 +611,6 @@ del x[1]
 
         assert res.artifacts["x"] == source
 
-    @pytest.mark.xfail(reason="some bug in view loops?")
     def test_self_return_loop(self, execute):
         """
         Verifies that if we return a value that is the same as the self arg,

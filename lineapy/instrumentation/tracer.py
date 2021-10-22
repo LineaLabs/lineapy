@@ -3,8 +3,9 @@ from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from functools import cached_property
+from itertools import chain
 from os import getcwd
-from typing import Dict, Optional
+from typing import Dict, Iterable, Optional, TypeVar
 
 from black import FileMode, format_str
 
@@ -27,7 +28,7 @@ from lineapy.data.types import (
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import ArtifactORM
-from lineapy.execution.executor import Executor
+from lineapy.execution.executor import Executor, ViewOfNodes
 from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
@@ -52,16 +53,19 @@ class Tracer:
     # Mapping of mutated nodes, from their original node id, to the latest
     # mutate node id they are the source of
     source_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
-
-    # Mapping of each node, to every node that has a "view" of it,
-    # meaning that if that node is mutated, the view node will be as well
-    source_to_viewers: dict[LineaID, set[LineaID]] = field(
-        default_factory=lambda: defaultdict(set)
+    # Inverse mapping of the source_to_mutate, need a list since
+    # multiple sources can point to the same mutate node
+    # Conceptually this is a set, but using a list to preserve ordering
+    mutate_to_source: dict[LineaID, list[LineaID]] = field(
+        default_factory=lambda: defaultdict(list)
     )
 
-    # Reverse mapping of node to viewers
-    viewer_to_sources: dict[LineaID, set[LineaID]] = field(
-        default_factory=lambda: defaultdict(set)
+    # Mapping from each node to every node which has a view of it,
+    # meaning that if that node is mutated, the view node will be as well
+    # The value is a list so that ordering is deterministic,
+    # but conceptually it is a set
+    viewers: dict[LineaID, list[LineaID]] = field(
+        default_factory=lambda: defaultdict(list)
     )
 
     # Mapping from a node ID, which is the function node in a call node,
@@ -190,42 +194,67 @@ class Tracer:
         """
         self.db.write_node(node)
 
+        ##
+        # Update the graph from the side effects of the node,
+        ##
         side_effects = self.executor.execute_node(node)
 
-        # Update the graph from the side effects of the node,
-        # Creating additional views and mutate nodes
+        # The viewer mappings are bidirectional transitive closures and we keep
+        # the mapping updated with all views
 
-        # The viewer mappings are transitive closures, so whenever we add
-        # a new view -> src, we have to traverse all of its parents and children
-        # and add them as well.
+        for e in side_effects:
+            if isinstance(e, ViewOfNodes):
+                self._process_view_of_nodes(e.ids)
+            else:
+                self._process_mutate_node(e.id, node.id, node.session_id)
 
-        # Instead, we could have done the traversal when looking up the mutation
-        for source_id, view_id in side_effects.views:
-            self.source_to_viewers[source_id].add(view_id)
-            self.viewer_to_sources[view_id].add(source_id)
+    def _process_view_of_nodes(self, ids: list[LineaID]) -> None:
+        # First, iterate through all items in the view
+        # and create a complete view set adding all their views as well
+        complete_ids = list(
+            remove_duplicates(chain(ids, *(self.viewers[id_] for id_ in ids)))
+        )
 
-            for parent_source in self.viewer_to_sources[source_id]:
-                self.source_to_viewers[parent_source].add(view_id)
-                self.viewer_to_sources[view_id].add(parent_source)
-
-            for child_viewer in self.source_to_viewers[view_id]:
-                self.source_to_viewers[source_id].add(child_viewer)
-                self.viewer_to_sources[child_viewer].add(source_id)
-
-        for original_source_id in side_effects.mutated:
-            # Create a mutation node for every node that was mutated,
-            # Which are all the views + the node itself
-            for source_id in self.source_to_viewers[original_source_id] | {
-                original_source_id
-            }:
-                mutate_node = MutateNode(
-                    id=get_new_id(),
-                    session_id=node.session_id,
-                    source_id=self.resolve_node(source_id),
-                    call_id=node.id,
+        # Now iterate through all items in the complete view and
+        # make sure it contains all items
+        for id_ in complete_ids:
+            self.viewers[id_] = list(
+                remove_duplicates(
+                    chain(self.viewers[id_], remove(complete_ids, id_))
                 )
-                self.source_to_mutate[source_id] = mutate_node.id
-                self.process_node(mutate_node)
+            )
+
+    def _process_mutate_node(
+        self, source_id: LineaID, call_id: LineaID, session_id: LineaID
+    ) -> None:
+        # Create a mutation node for every node that was mutated,
+        # Which are all the views + the node itself
+        source_ids = remove_duplicates(
+            map(self.resolve_node, [*self.viewers[source_id], source_id])
+        )
+        for source_id in source_ids:
+            mutate_node = MutateNode(
+                id=get_new_id(),
+                session_id=session_id,
+                source_id=(source_id),
+                call_id=call_id,
+            )
+
+            # Update the mutated sources, and then change all source
+            # of this mutation to now point to this mutate node
+            mutated_sources = [*self.mutate_to_source[source_id], source_id]
+            for mutate_source_id in mutated_sources:
+                self.source_to_mutate[mutate_source_id] = mutate_node.id
+            self.mutate_to_source[mutate_node.id] = list(
+                remove_duplicates(
+                    chain(
+                        mutated_sources, self.mutate_to_source[mutate_node.id]
+                    )
+                )
+            )
+
+            # Add the mutate node to the graph
+            self.process_node(mutate_node)
 
     def lookup_node(self, variable_name: str) -> Node:
         """
@@ -471,3 +500,31 @@ class Tracer:
             source_location,
             *args,
         )
+
+
+# These are some helper functions we need since we are using lists as ordered
+# sets.
+
+T = TypeVar("T")
+
+
+def remove_duplicates(xs: Iterable[T]) -> Iterable[T]:
+    """
+    Remove all duplicate items, maintaining order.
+    """
+    seen_: set[int] = set()
+    for x in xs:
+        h = hash(x)
+        if h in seen_:
+            continue
+        seen_.add(h)
+        yield x
+
+
+def remove(xs: Iterable[T], x: T) -> Iterable[T]:
+    """
+    Remove all items equal to x.
+    """
+    for y in xs:
+        if x != y:
+            yield y

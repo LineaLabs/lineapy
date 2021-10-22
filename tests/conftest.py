@@ -159,9 +159,7 @@ class ExecuteFixture:
 
         if self.visualize:
             tracer.visualize(
-                options=VisualGraphOptions(
-                    show_view_and_mutation_tracking=True
-                )
+                options=VisualGraphOptions(show_implied_mutations=True)
             )
 
         # Verify snapshot of graph
