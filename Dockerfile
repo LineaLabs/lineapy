@@ -3,6 +3,7 @@
 # https://docs.docker.com/language/python/build-images/#create-a-dockerfile-for-python
 FROM python:3.9.7-slim
 
+RUN apt-get update && apt-get -y install git && apt clean && apt-get autoclean && apt-get autoremove
 
 WORKDIR /usr/src/base
 

@@ -1,9 +1,8 @@
 import datetime
+import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-import pandas
-import PIL
 import pytest
 from click.testing import CliRunner
 
@@ -42,18 +41,6 @@ df["id"].sum()
 PRINT_CODE = """a = abs(11)
 b = min(a, 10)
 print(b)
-"""
-
-IMPORT_CODE = """from math import pow as power, sqrt as root
-from PIL.Image import open, new
-import pandas, numpy, os
-a = power(5, 2)
-b = root(a)
-c = pandas.DataFrame()
-d = numpy.array([1,2,3])
-new_img = new("RGB", (4,4))
-new_img.save("test.png", "PNG")
-e = open("test.png")
 """
 
 # also tests for float
@@ -311,13 +298,6 @@ class TestEndToEnd:
     def test_graph_with_basic_image(self, execute):
         execute(IMAGE_CODE)
 
-    def test_import(self, execute):
-        res = execute(IMPORT_CODE)
-        assert res.values["b"] == 5
-        assert (res.values["d"] == [1, 2, 3]).all()
-        assert res.values["c"].__class__ == pandas.core.frame.DataFrame
-        assert res.values["e"].__class__ == PIL.PngImagePlugin.PngImageFile
-
     def test_no_script_error(self):
         # TODO
         # from lineapy.cli import cli
@@ -435,7 +415,12 @@ class TestEndToEnd:
         assert res.values["b"] == 2
 
     def test_housing(self, execute, python_snapshot):
-        code = (Path(__file__).parent / "housing.py").read_text()
+        tests_dir = Path(__file__).parent
+
+        # Change directory to tests dir before executing
+        os.chdir(tests_dir)
+
+        code = (tests_dir / "housing.py").read_text()
         res = execute(code)
         assert res.slice("p value") == python_snapshot
 

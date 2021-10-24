@@ -14,7 +14,7 @@ import lineapy
 alt.data_transformers.enable("json")
 alt.renderers.enable("mimetype")
 
-assets = pd.read_csv("tests/ames_train_cleaned.csv")
+assets = pd.read_csv("ames_train_cleaned.csv")
 
 sns.relplot(data=assets, x="Year_Built", y="SalePrice", size="Lot_Area")
 
@@ -164,7 +164,7 @@ call_9 = CallNode(
         lineno=11,
         col_offset=9,
         end_lineno=11,
-        end_col_offset=52,
+        end_col_offset=46,
         source_code=source_1.id,
     ),
     function_id=CallNode(
@@ -202,10 +202,10 @@ call_9 = CallNode(
                 lineno=11,
                 col_offset=21,
                 end_lineno=11,
-                end_col_offset=51,
+                end_col_offset=45,
                 source_code=source_1.id,
             ),
-            value="tests/ames_train_cleaned.csv",
+            value="ames_train_cleaned.csv",
         ).id
     ],
 )

@@ -1,4 +1,5 @@
 import logging
+import os
 import pathlib
 
 import click
@@ -91,6 +92,11 @@ def linea_cli(
                 "Source code", rich.syntax.Syntax(code, "python")
             )
         )
+
+    # Change the working directory to that of the script,
+    # To pick up relative data paths
+    os.chdir(file_name.parent)
+
     tracer = Tracer(db, SessionType.SCRIPT)
     transform(code, file_name, tracer)
 
