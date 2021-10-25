@@ -29,6 +29,19 @@
             ],
         },
         {
+            "name": "lineapy --airflow",
+            "type": "python",
+            "request": "launch",
+            "module": "lineapy.cli.cli",
+            "args": [
+                "--slice",
+                "p value",
+                "--airflow",
+                "sliced_housing_dag",
+                "tests/housing.py",
+            ],
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
