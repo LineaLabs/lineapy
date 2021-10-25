@@ -82,7 +82,8 @@ setup(
             "jupyterlab",
             "ipython",
             "nbval",
-            "SQLAlchemy[mypy]",
+            # airflow requires older version of sqlalchemy, so we specify that directly to avoid backtracing
+            "SQLAlchemy<1.4.0",
             "coveralls",
             "seaborn",
             "graphviz",
