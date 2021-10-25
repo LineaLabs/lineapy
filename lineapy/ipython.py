@@ -41,11 +41,16 @@ def start(
 
     db = RelationalLineaDB.from_environment(execution_mode)
     tracer = Tracer(db, SessionType.JUPYTER, session_name)
+
+    # Create a display handler so that we can update the SVG visualization
+    # after each cell
+    # https://web.archive.org/web/20211025232037/https://mindtrove.info/jupyter-tidbit-display-handles/
     display_handle = (
         display(SVG(tracer.graphviz()._repr_svg_()), display_id=True)
         if visualize
         else None
     )
+
     active_input_transformer = LineaInputTransformer(
         tracer, tracer.session_context.id, ipython, display_handle
     )
