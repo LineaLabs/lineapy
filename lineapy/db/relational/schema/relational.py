@@ -285,7 +285,7 @@ class KeywordArgORM(Base):  # type: ignore
     argument = relationship(BaseNodeORM, uselist=False)
 
 
-class GlobalReferenceORM(Base):
+class GlobalReferenceORM(Base):  # type: ignore
     __tablename__ = "global_reference"
     call_node_id: str = Column(
         ForeignKey("call_node.id"), primary_key=True, nullable=False
