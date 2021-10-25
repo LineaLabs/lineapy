@@ -57,11 +57,6 @@ call_5 = CallNode(
                                     value=True,
                                 ).id,
                             ],
-                            keyword_args={
-                                "pow": LookupNode(
-                                    name="pow",
-                                ).id
-                            },
                         ).id,
                         LiteralNode(
                             value=0,

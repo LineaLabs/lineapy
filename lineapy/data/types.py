@@ -326,10 +326,14 @@ class CallNode(BaseNode):
     positional_args: list[LineaID]
     keyword_args: dict[str, LineaID]
 
+    # Mapping of global variables that need to be set to call this function
+    global_reads: dict[str, LineaID]
+
     def parents(self) -> Iterable[LineaID]:
         yield self.function_id
         yield from self.positional_args
         yield from self.keyword_args.values()
+        yield from self.global_reads.values()
 
 
 class LiteralNode(BaseNode):

@@ -10,7 +10,6 @@ c = b(a)
     assert res.values["c"] == 20
 
 
-@pytest.mark.xfail
 def test_lambda_with_external_vars(execute):
     code = """a = 10
 b = lambda x: x + a
@@ -18,6 +17,15 @@ c = b(10)
 """
     res = execute(code)
     assert res.values["c"] == 20
+
+
+def test_lambda_late_binding(execute):
+    code = """a = 10
+b = lambda: a
+a = 11
+c = b()"""
+    res = execute(code)
+    assert res.values["c"] == 11
 
 
 def test_lambda_as_filter_w_primites(execute):
@@ -44,7 +52,6 @@ c = b(a)
     assert res.artifacts["c"] == code
 
 
-@pytest.mark.xfail
 def test_lambda_slicing_creates_correct_artifact_w_external_vars(execute):
     code = """a = 10
 b = lambda x: x + a
@@ -52,3 +59,30 @@ c = b(10)
 """
     res = execute(code, artifacts=["c"])
     assert res.artifacts["c"] == code
+
+
+@pytest.mark.xfail
+def test_knows_map_calls(execute):
+    code = """a = 10
+fn = lambda: a
+r = sum(map(fn, [1]))
+"""
+    res = execute(code, artifacts=["r"])
+    assert res.values["r"] == 10
+    assert res.artifacts["r"] == code
+
+
+@pytest.mark.xfail
+def test_knows_call_list(execute):
+    code = """a = 10
+fn = lambda: a
+def sum_call_list(xs):
+    r = 0
+    for x in xs:
+        r += x()
+    return r
+r = sum_call_list([fn, fn])
+"""
+    res = execute(code, artifacts=["r"])
+    assert res.values["r"] == 20
+    assert res.artifacts["r"] == code

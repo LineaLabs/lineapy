@@ -8,6 +8,7 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
+from types import FunctionType
 from typing import Callable, Iterable, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
@@ -125,11 +126,21 @@ class Executor:
             }
             logger.info("Calling function %s %s %s", fn, args, kwargs)
 
+            # If this was a user defined function, and we know that some global
+            # variables need to be set before calling it, set those first
+            # by modifying the globals that is specific to this function
+            if isinstance(fn, FunctionType) and node.global_reads:
+                _globals = fn.__globals__
+                # Set all globals neccesary to call this node.
+                for k, id_ in node.global_reads.items():
+                    _globals[k] = self._id_to_value[id_]
+
             with redirect_stdout(self._stdout):
                 start_time = datetime.now()
                 res = fn(*args, **kwargs)
                 end_time = datetime.now()
-                self._execution_time[node.id] = (start_time, end_time)
+
+            self._execution_time[node.id] = (start_time, end_time)
 
             # dependency analysis
             # ----------

@@ -285,6 +285,18 @@ class KeywordArgORM(Base):  # type: ignore
     argument = relationship(BaseNodeORM, uselist=False)
 
 
+class GlobalReferenceORM(Base):  # type: ignore
+    __tablename__ = "global_reference"
+    call_node_id: str = Column(
+        ForeignKey("call_node.id"), primary_key=True, nullable=False
+    )
+    variable_node_id: str = Column(
+        ForeignKey("node.id"), primary_key=True, nullable=False
+    )
+    variable_name = Column(String, primary_key=True, nullable=False)
+    variable_node = relationship(BaseNodeORM, uselist=False)
+
+
 class CallNodeORM(BaseNodeORM):
     __tablename__ = "call_node"
 
@@ -297,6 +309,10 @@ class CallNodeORM(BaseNodeORM):
     keyword_args = relationship(
         KeywordArgORM, collection_class=set, lazy="joined"
     )
+    global_reads = relationship(
+        GlobalReferenceORM, collection_class=set, lazy="joined"
+    )
+
     __mapper_args__ = {
         "polymorphic_identity": NodeType.CallNode,
         # Need this so that sqlalchemy doesn't get confused about additional

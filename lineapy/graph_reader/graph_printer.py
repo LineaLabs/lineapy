@@ -138,7 +138,10 @@ class GraphPrinter:
                 continue
             if k == "session_id" and not self.include_session:
                 continue
-            if (k == "positional_args" or k == "keyword_args") and not v:
+            # don't print empty args, kwargs, or reads
+            if (
+                k in {"positional_args", "keyword_args", "global_reads"}
+            ) and not v:
                 continue
             if tp == LineaID and shape == SHAPE_LIST:
                 args = [self.lookup_id(id_) for id_ in v]
