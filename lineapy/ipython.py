@@ -6,6 +6,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar, Literal, Optional
 
+from IPython.display import SVG, DisplayHandle, display
+
 from lineapy.constants import ExecutionMode
 from lineapy.data.types import JupyterCell, LineaID, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
@@ -19,6 +21,7 @@ if TYPE_CHECKING:
 def start(
     session_name: Optional[str] = None,
     execution_mode: ExecutionMode = ExecutionMode.MEMORY,
+    visualize=False,
     ipython: Optional[InteractiveShell] = None,
 ) -> None:
     """
@@ -38,8 +41,18 @@ def start(
 
     db = RelationalLineaDB.from_environment(execution_mode)
     tracer = Tracer(db, SessionType.JUPYTER, session_name)
+
+    # Create a display handler so that we can update the SVG visualization
+    # after each cell
+    # https://web.archive.org/web/20211025232037/https://mindtrove.info/jupyter-tidbit-display-handles/
+    display_handle = (
+        display(SVG(tracer.graphviz()._repr_svg_()), display_id=True)
+        if visualize
+        else None
+    )
+
     active_input_transformer = LineaInputTransformer(
-        tracer, tracer.session_context.id, ipython
+        tracer, tracer.session_context.id, ipython, display_handle
     )
     input_transformers_post.append(active_input_transformer)
 
@@ -76,6 +89,9 @@ class LineaInputTransformer:
     tracer: Tracer
     session_id: LineaID
     ipython: InteractiveShell
+    # If passed in, is a Jupyter display handle which should be updated
+    # with the new graph SVG after each cell
+    visualize_display: DisplayHandle
 
     # Store the last execution count and last resulting codes lines
     # to avoid re-execution when working around an ipykernel bug
@@ -113,6 +129,10 @@ class LineaInputTransformer:
             session_id=self.session_id,
         )
         last_node = transform(code, location, self.tracer)
+        if self.visualize_display:
+            self.visualize_display.update(
+                SVG(self.tracer.graphviz()._repr_svg_())
+            )
 
         # TODO: write to existing stdout as well when executing
         # more like tee, instead of having to write at end

@@ -280,103 +280,107 @@ call_11 = CallNode(
         ).id,
     },
 )
-mutate_1 = MutateNode(
-    source_id=call_9.id,
-    call_id=CallNode(
-        source_location=SourceLocation(
-            lineno=20,
-            col_offset=0,
-            end_lineno=20,
-            end_col_offset=47,
-            source_code=source_1.id,
-        ),
-        function_id=LookupNode(
-            name="setitem",
+call_14 = CallNode(
+    source_location=SourceLocation(
+        lineno=20,
+        col_offset=26,
+        end_lineno=20,
+        end_col_offset=46,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getitem",
+    ).id,
+    positional_args=[
+        call_9.id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=20,
+                col_offset=33,
+                end_lineno=20,
+                end_col_offset=45,
+                source_code=source_1.id,
+            ),
+            value="Year_Built",
         ).id,
-        positional_args=[
-            call_9.id,
-            LiteralNode(
-                source_location=SourceLocation(
-                    lineno=20,
-                    col_offset=7,
-                    end_lineno=20,
-                    end_col_offset=15,
-                    source_code=source_1.id,
-                ),
-                value="is_new",
-            ).id,
-            CallNode(
-                source_location=SourceLocation(
-                    lineno=20,
-                    col_offset=19,
-                    end_lineno=20,
-                    end_col_offset=47,
-                    source_code=source_1.id,
-                ),
-                function_id=CallNode(
-                    function_id=LookupNode(
-                        name="getitem",
-                    ).id,
-                    positional_args=[
-                        CallNode(
-                            source_location=SourceLocation(
-                                lineno=16,
-                                col_offset=0,
-                                end_lineno=17,
-                                end_col_offset=21,
-                                source_code=source_1.id,
-                            ),
-                            function_id=LookupNode(
-                                name="__exec__",
-                            ).id,
-                            positional_args=[
-                                LiteralNode(
-                                    value="""def is_new(col):
-    return col > 1970""",
-                                ).id,
-                                LiteralNode(
-                                    value=False,
-                                ).id,
-                                LiteralNode(
-                                    value="is_new",
-                                ).id,
-                            ],
-                        ).id,
-                        LiteralNode(
-                            value=0,
-                        ).id,
-                    ],
+    ],
+)
+call_16 = CallNode(
+    source_location=SourceLocation(
+        lineno=20,
+        col_offset=0,
+        end_lineno=20,
+        end_col_offset=47,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="setitem",
+    ).id,
+    positional_args=[
+        call_9.id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=20,
+                col_offset=7,
+                end_lineno=20,
+                end_col_offset=15,
+                source_code=source_1.id,
+            ),
+            value="is_new",
+        ).id,
+        CallNode(
+            source_location=SourceLocation(
+                lineno=20,
+                col_offset=19,
+                end_lineno=20,
+                end_col_offset=47,
+                source_code=source_1.id,
+            ),
+            function_id=CallNode(
+                function_id=LookupNode(
+                    name="getitem",
                 ).id,
                 positional_args=[
                     CallNode(
                         source_location=SourceLocation(
-                            lineno=20,
-                            col_offset=26,
-                            end_lineno=20,
-                            end_col_offset=46,
+                            lineno=16,
+                            col_offset=0,
+                            end_lineno=17,
+                            end_col_offset=21,
                             source_code=source_1.id,
                         ),
                         function_id=LookupNode(
-                            name="getitem",
+                            name="__exec__",
                         ).id,
                         positional_args=[
-                            call_9.id,
                             LiteralNode(
-                                source_location=SourceLocation(
-                                    lineno=20,
-                                    col_offset=33,
-                                    end_lineno=20,
-                                    end_col_offset=45,
-                                    source_code=source_1.id,
-                                ),
-                                value="Year_Built",
+                                value="""def is_new(col):
+    return col > 1970""",
+                            ).id,
+                            LiteralNode(
+                                value=False,
+                            ).id,
+                            LiteralNode(
+                                value="is_new",
                             ).id,
                         ],
-                    ).id
+                    ).id,
+                    LiteralNode(
+                        value=0,
+                    ).id,
                 ],
             ).id,
-        ],
-    ).id,
+            positional_args=[call_14.id],
+        ).id,
+    ],
+)
+mutate_1 = MutateNode(
+    source_id=call_9.id,
+    call_id=call_16.id,
+)
+mutate_2 = MutateNode(
+    source_id=call_14.id,
+    call_id=call_16.id,
 )
 call_17 = CallNode(
     source_location=SourceLocation(

@@ -2,11 +2,11 @@ import logging
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
-from functools import cached_property
 from itertools import chain
 from os import getcwd
 from typing import Dict, Optional
 
+import graphviz
 from black import FileMode, format_str
 
 from lineapy.constants import GET_ITEM, GETATTR
@@ -119,7 +119,7 @@ class Tracer:
         )
         self.db.write_context(self.session_context)
 
-    @cached_property
+    @property
     def graph(self) -> Graph:
         """
         Creates a graph by fetching all the nodes about this session from the DB.
@@ -127,7 +127,7 @@ class Tracer:
         nodes = self.db.get_nodes_for_session(self.session_context.id)
         return Graph(nodes, self.session_context)
 
-    @cached_property
+    @property
     def values(self) -> dict[str, object]:
         """
         Returns a mapping of variable names to their values, by joining
@@ -138,7 +138,7 @@ class Tracer:
             for k, n in self.variable_name_to_node.items()
         }
 
-    @cached_property
+    @property
     def artifacts(self) -> dict[str, str]:
         """
         Returns a mapping of artifact names to their sliced code.
@@ -207,8 +207,13 @@ class Tracer:
         """
         Visualize the graph using GraphViz, writing to disk and trying to open.
         """
-        dot = tracer_to_graphviz(self, options)
+        dot = self.graphviz(options)
         dot.render(filename, view=True, format="pdf")
+
+    def graphviz(
+        self, options: VisualGraphOptions = VisualGraphOptions()
+    ) -> graphviz.Digraph:
+        return tracer_to_graphviz(self, options)
 
     @property
     def stdout(self) -> str:
