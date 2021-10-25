@@ -32,7 +32,7 @@ def inspect_function(
     if function == operator.getitem:
         # getitem(dict, key)
         # If both are mutable, they are now views of one another!
-        if not is_immutable(args[0]) and not is_immutable(result):
+        if is_mutable(args[0]) and is_mutable(result):
             yield ViewOfPointers(PositionalArg(0), Result())
             return
     if function == operator.delitem:
@@ -43,11 +43,7 @@ def inspect_function(
         # __build_list__(x1, x2, ...)
         yield ViewOfPointers(
             Result(),
-            *(
-                PositionalArg(i)
-                for i, a in enumerate(args)
-                if not is_immutable(a)
-            )
+            *(PositionalArg(i) for i, a in enumerate(args) if is_mutable(a))
         )
         return
     if (
@@ -57,7 +53,7 @@ def inspect_function(
     ):
         # list.append(value)
         yield MutatedPointer(BoundSelfOfFunction())
-        if not is_immutable(args[0]):
+        if is_mutable(args[0]):
             yield ViewOfPointers(BoundSelfOfFunction(), PositionalArg(0))
         return
 
