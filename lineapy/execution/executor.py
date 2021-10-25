@@ -190,6 +190,7 @@ class MutatedNode:
     id: LineaID
 
 
+@dataclass
 class ViewOfNodes:
     """
     Represents that a set of nodes are now "views" of each other, meaning that

@@ -101,6 +101,7 @@ class Result:
 Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
 
 
+@dataclass
 class ViewOfPointers:
     """
     A set of values which all potentially refer to shared pointers

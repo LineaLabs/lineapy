@@ -5,7 +5,7 @@ from datetime import datetime
 from functools import cached_property
 from itertools import chain
 from os import getcwd
-from typing import Dict, Iterable, Optional, TypeVar
+from typing import Dict, Optional
 
 from black import FileMode, format_str
 
