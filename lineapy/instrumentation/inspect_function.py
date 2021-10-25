@@ -23,7 +23,7 @@ def inspect_function(
     if function == operator.setitem:
         # setitem(dict, key, value)
         yield MutatedPointer(PositionalArg(0))
-        if not is_immutable(args[2]):
+        if is_mutable(args[2]):
             yield ViewOfPointers(PositionalArg(2), PositionalArg(0))
         return
     if function == operator.delitem:
@@ -57,16 +57,16 @@ def imported_module(name: str) -> bool:
     return name in sys.modules
 
 
-def is_immutable(obj: object) -> bool:
+def is_mutable(obj: object) -> bool:
     """
-    Returns true if the object is immutable.
+    Returns true if the object is mutable.
     """
     # Assume all hashable objects are immutable
     try:
         hash(obj)
     except Exception:
-        return False
-    return True
+        return True
+    return False
 
 
 @dataclass(frozen=True)
