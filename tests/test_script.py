@@ -66,7 +66,7 @@ def test_run_from_nbconvert():
     subprocess.check_call(["rm", "-f", "tests/tmp.pdf"])
     # Run the command that should populate the database
     subprocess.check_call(
-        "env LINEA_VISUALIZATION_NAME=tmp jupyter nbconvert --to notebook --execute tests/test_untraced_notebook.ipynb --inplace --ExecutePreprocessor.extra_arguments=--IPKernelApp.extensions=lineapy --debug".split(
+        "env LINEA_VISUALIZATION_NAME=tmp jupyter nbconvert --to notebook --execute tests/untraced_notebook.ipynb --inplace --ExecutePreprocessor.extra_arguments=--IPKernelApp.extensions=lineapy --debug".split(
             " "
         )
     )
