@@ -96,7 +96,7 @@ class AttributesDict(types.TypeDecorator):
         return value
 
 
-class SessionContextORM(Base):  # type: ignore
+class SessionContextORM(Base):
     __tablename__ = "session_context"
     id = Column(String, primary_key=True)
     environment_type = Column(Enum(SessionType))
@@ -108,7 +108,7 @@ class SessionContextORM(Base):  # type: ignore
     execution_id = Column(String, ForeignKey("execution.id"))
 
 
-class LibraryORM(Base):  # type: ignore
+class LibraryORM(Base):
     __tablename__ = "library"
     __table_args__ = (
         UniqueConstraint(
@@ -125,7 +125,7 @@ class LibraryORM(Base):  # type: ignore
     path = Column(String)
 
 
-class ArtifactORM(Base):  # type: ignore
+class ArtifactORM(Base):
     """
     An artifact is a named pointer to a node.
     """
@@ -140,7 +140,7 @@ class ArtifactORM(Base):  # type: ignore
     )
 
 
-class ExecutionORM(Base):  # type: ignore
+class ExecutionORM(Base):
     """
     An execution represents one Python interpreter invocation of some number of nodes
     """
@@ -150,7 +150,7 @@ class ExecutionORM(Base):  # type: ignore
     timestamp = Column(DateTime, nullable=True, default=datetime.utcnow)
 
 
-class NodeValueORM(Base):  # type: ignore
+class NodeValueORM(Base):
     """
     A node value represents the value of a node during some execution.
 
@@ -170,7 +170,7 @@ class NodeValueORM(Base):  # type: ignore
     end_time = Column(DateTime, nullable=True)
 
 
-class BaseNodeORM(Base):  # type: ignore
+class BaseNodeORM(Base):
     """
     node.source_code has a path value if node.session.environment_type == "script"
     otherwise the environment type is "jupyter" and it has a jupyter execution
@@ -214,7 +214,7 @@ class BaseNodeORM(Base):  # type: ignore
     }
 
 
-class SourceCodeORM(Base):  # type: ignore
+class SourceCodeORM(Base):
     __tablename__ = "source_code"
 
     id = Column(String, primary_key=True)
@@ -261,7 +261,7 @@ class ImportNodeORM(BaseNodeORM):
 # https://docs.sqlalchemy.org/en/14/orm/basic_relationships.html#association-object
 
 
-class PositionalArgORM(Base):  # type: ignore
+class PositionalArgORM(Base):
     __tablename__ = "positional_arg"
     call_node_id: str = Column(
         ForeignKey("call_node.id"), primary_key=True, nullable=False
@@ -273,7 +273,7 @@ class PositionalArgORM(Base):  # type: ignore
     argument = relationship(BaseNodeORM, uselist=False)
 
 
-class KeywordArgORM(Base):  # type: ignore
+class KeywordArgORM(Base):
     __tablename__ = "keyword_arg"
     call_node_id: str = Column(
         ForeignKey("call_node.id"), primary_key=True, nullable=False
