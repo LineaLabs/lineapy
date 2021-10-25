@@ -126,7 +126,7 @@ class Executor:
             }
             logger.info("Calling function %s %s %s", fn, args, kwargs)
 
-            # If this was a use defined function, and we know that some global
+            # If this was a user defined function, and we know that some global
             # variables need to be set before calling it, set those first
             # by modifying the globals that is specific to this function
             if isinstance(fn, FunctionType) and node.global_reads:
