@@ -34,7 +34,12 @@ from lineapy.graph_reader.program_slice import (
     split_code_blocks,
 )
 from lineapy.lineabuiltins import __build_tuple__, __exec__
-from lineapy.utils import get_new_id, get_value_type
+from lineapy.utils import (
+    get_new_id,
+    get_value_type,
+    remove_duplicates,
+    remove_value,
+)
 from lineapy.visualizer.graphviz import tracer_to_graphviz
 from lineapy.visualizer.visual_graph import VisualGraphOptions
 
@@ -214,7 +219,7 @@ class Tracer:
         for id_ in complete_ids:
             self.viewers[id_] = list(
                 remove_duplicates(
-                    chain(self.viewers[id_], remove(complete_ids, id_))
+                    chain(self.viewers[id_], remove_value(complete_ids, id_))
                 )
             )
 
@@ -488,31 +493,3 @@ class Tracer:
             source_location,
             *args,
         )
-
-
-# These are some helper functions we need since we are using lists as ordered
-# sets.
-
-T = TypeVar("T")
-
-
-def remove_duplicates(xs: Iterable[T]) -> Iterable[T]:
-    """
-    Remove all duplicate items, maintaining order.
-    """
-    seen_: set[int] = set()
-    for x in xs:
-        h = hash(x)
-        if h in seen_:
-            continue
-        seen_.add(h)
-        yield x
-
-
-def remove(xs: Iterable[T], x: T) -> Iterable[T]:
-    """
-    Remove all items equal to x.
-    """
-    for y in xs:
-        if x != y:
-            yield y
