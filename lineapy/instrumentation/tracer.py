@@ -125,18 +125,9 @@ class Tracer:
 
     def sliced_func(self, slice_name: str, func_name: str) -> str:
         artifact = self.db.get_artifact_by_name(slice_name)
-        if not artifact.node:
+        artifact_var = self.slice_var_name(artifact)
+        if not artifact_var:
             return "Unable to extract the slice"
-        _line_no = artifact.node.lineno if artifact.node.lineno else 0
-        artifact_line = str(artifact.node.source_code.code).split("\n")[
-            _line_no - 1
-        ]
-        _col_offset = (
-            artifact.node.col_offset if artifact.node.col_offset else 0
-        )
-        if _col_offset < 3:
-            return "Unable to extract the slice"
-        artifact_name = artifact_line[: _col_offset - 3]
         slice_code = get_program_slice(self.graph, [artifact.id])
         # We split the code in import and code blocks and join them to full code test
         import_block, code_block, main_block = split_code_blocks(
@@ -146,7 +137,7 @@ class Tracer:
             import_block
             + "\n\n"
             + code_block
-            + f"\n\treturn {artifact_name}"
+            + f"\n\treturn {artifact_var}"
             + "\n\n"
             + main_block
         )
@@ -162,6 +153,24 @@ class Tracer:
     def slice(self, name: str) -> str:
         artifact = self.db.get_artifact_by_name(name)
         return get_program_slice(self.graph, [artifact.id])
+
+    def slice_var_name(self, artifact: ArtifactORM) -> str:
+        """
+        Returns the variable name for the given artifact.
+        i.e. in lineapy.linea_publish(p, "p value") "p" is returned
+        """
+        if not artifact.node:
+            return ""
+        _line_no = artifact.node.lineno if artifact.node.lineno else 0
+        artifact_line = str(artifact.node.source_code.code).split("\n")[
+            _line_no - 1
+        ]
+        _col_offset = (
+            artifact.node.col_offset if artifact.node.col_offset else 0
+        )
+        if _col_offset < 3:
+            return ""
+        return artifact_line[: _col_offset - 3]
 
     def visualize(
         self,

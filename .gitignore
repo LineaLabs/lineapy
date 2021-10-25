@@ -156,6 +156,9 @@ housing.csv
 # Result of --export-slice
 sliced_housing.py
 
+# Result of --export-slice-to-airflow-dag
+sliced_housing_dag.py
+
 tracer
 tracer.pdf
 devcontainer.json
