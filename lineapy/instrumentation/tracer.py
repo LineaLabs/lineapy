@@ -237,6 +237,10 @@ class Tracer:
     def _process_mutate_node(
         self, source_id: LineaID, call_id: LineaID, session_id: LineaID
     ) -> None:
+        """
+        To process mutating a node, we create new mutate nodes for each views of
+        this node and update the source to view mapping to point to the new nodes.
+        """
         # Create a mutation node for every node that was mutated,
         # Which are all the views + the node itself
         source_ids = remove_duplicates(
@@ -246,22 +250,26 @@ class Tracer:
             mutate_node = MutateNode(
                 id=get_new_id(),
                 session_id=session_id,
-                source_id=(source_id),
+                source_id=source_id,
                 call_id=call_id,
             )
 
             # Update the mutated sources, and then change all source
             # of this mutation to now point to this mutate node
-            mutated_sources = [*self.mutate_to_sources[source_id], source_id]
-            for mutate_source_id in mutated_sources:
-                self.source_to_mutate[mutate_source_id] = mutate_node.id
-            self.mutate_to_sources[mutate_node.id] = list(
+
+            # Find all the mutate nodes that were pointing to the original source
+            mutated_sources: list[LineaID] = list(
                 remove_duplicates(
-                    chain(
-                        mutated_sources, self.mutate_to_sources[mutate_node.id]
-                    )
+                    chain([source_id], self.mutate_to_sources[source_id])
                 )
             )
+
+            # First we update the forward mapping, mapping them to the new mutate node
+            for mutate_source_id in mutated_sources:
+                self.source_to_mutate[mutate_source_id] = mutate_node.id
+
+            # Now we set the reverse mapping, to be all the nodes we mutated
+            self.mutate_to_sources[mutate_node.id] = mutated_sources
 
             # Add the mutate node to the graph
             self.process_node(mutate_node)
