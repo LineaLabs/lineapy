@@ -55,20 +55,32 @@ class Tracer:
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
+    ##
+    # We store information on two types of relationships between nodes:
+    #
+    # 1. Source -> Mutate nodes, which is a directed relationship meaning
+    #    whenever a new node is created that refers to the source node, it
+    #    instead should refer to the mutate node.
+    # 2. Undirected view relationships. If two nodes are a view of each other,
+    #    they a mutating one may mutate the other, so if one is mutated, mutate
+    #    nodes need to be made for all the other nodes that are views. This is
+    #    a transitive relationship.
+    #
+    # We use lists in the data structures to store these relationships, although
+    # they really should be ordered sets. Ordering is important not for correctness
+    # but for having deterministic node ordering, which is used for testing.
+    ##
+
     # Mapping of mutated nodes, from their original node id, to the latest
     # mutate node id they are the source of
     source_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
     # Inverse mapping of the source_to_mutate, need a list since
     # multiple sources can point to the same mutate node
-    # Conceptually this is a set, but using a list to preserve ordering
-    mutate_to_source: dict[LineaID, list[LineaID]] = field(
+    mutate_to_sources: dict[LineaID, list[LineaID]] = field(
         default_factory=lambda: defaultdict(list)
     )
-
     # Mapping from each node to every node which has a view of it,
     # meaning that if that node is mutated, the view node will be as well
-    # The value is a list so that ordering is deterministic,
-    # but conceptually it is a set
     viewers: dict[LineaID, list[LineaID]] = field(
         default_factory=lambda: defaultdict(list)
     )
@@ -198,9 +210,7 @@ class Tracer:
         ##
         side_effects = self.executor.execute_node(node)
 
-        # The viewer mappings are bidirectional transitive closures and we keep
-        # the mapping updated with all views
-
+        # Iterate through each side effect and process it, depending on its type
         for e in side_effects:
             if isinstance(e, ViewOfNodes):
                 self._process_view_of_nodes(e.ids)
@@ -208,20 +218,21 @@ class Tracer:
                 self._process_mutate_node(e.id, node.id, node.session_id)
 
     def _process_view_of_nodes(self, ids: list[LineaID]) -> None:
+        """
+        To process adding views between nodes, update the `viewers` data structure
+        with all new viewers.
+        """
         # First, iterate through all items in the view
         # and create a complete view set adding all their views as well
+        # since it is a transitivity relationionship.
         complete_ids = list(
             remove_duplicates(chain(ids, *(self.viewers[id_] for id_ in ids)))
         )
 
-        # Now iterate through all items in the complete view and
-        # make sure it contains all items
+        # Now update the viewers data structure to include all the viewers,
+        # apart the id itself, which is not kept in the mapping.
         for id_ in complete_ids:
-            self.viewers[id_] = list(
-                remove_duplicates(
-                    chain(self.viewers[id_], remove_value(complete_ids, id_))
-                )
-            )
+            self.viewers[id_] = list(remove_value(complete_ids, id_))
 
     def _process_mutate_node(
         self, source_id: LineaID, call_id: LineaID, session_id: LineaID
@@ -241,13 +252,13 @@ class Tracer:
 
             # Update the mutated sources, and then change all source
             # of this mutation to now point to this mutate node
-            mutated_sources = [*self.mutate_to_source[source_id], source_id]
+            mutated_sources = [*self.mutate_to_sources[source_id], source_id]
             for mutate_source_id in mutated_sources:
                 self.source_to_mutate[mutate_source_id] = mutate_node.id
-            self.mutate_to_source[mutate_node.id] = list(
+            self.mutate_to_sources[mutate_node.id] = list(
                 remove_duplicates(
                     chain(
-                        mutated_sources, self.mutate_to_source[mutate_node.id]
+                        mutated_sources, self.mutate_to_sources[mutate_node.id]
                     )
                 )
             )
