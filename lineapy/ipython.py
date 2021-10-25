@@ -64,12 +64,11 @@ def stop(
         if isinstance(it, LineaInputTransformer)
     ]
     tracer = input_transformer.tracer
-    print(visualization_filename)
     if visualization_filename:
         tracer.visualize(visualization_filename)
-    input_transformer.tracer.db.close()
+    tracer.db.close()
     input_transformers_post.remove(input_transformer)
-    return input_transformer.tracer
+    return tracer
 
 
 @dataclass
