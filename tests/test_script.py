@@ -60,6 +60,7 @@ def test_kaggle_example2():
     )
 
 
+@pytest.mark.skip(reason="https://github.com/LineaLabs/lineapy/issues/341")
 def test_run_from_nbconvert():
     # delete viz first, if it exists (-f exits cleanly either way)
     subprocess.check_call(["rm", "-f", "tests/tmp.pdf"])
