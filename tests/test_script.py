@@ -58,3 +58,17 @@ def test_kaggle_example2():
             "nn for diabetes",
         ]
     )
+
+
+@pytest.mark.skip(reason="https://github.com/LineaLabs/lineapy/issues/341")
+def test_run_from_nbconvert():
+    # delete viz first, if it exists (-f exits cleanly either way)
+    subprocess.check_call(["rm", "-f", "tests/tmp.pdf"])
+    # Run the command that should populate the database
+    subprocess.check_call(
+        "env LINEA_VISUALIZATION_NAME=tmp jupyter nbconvert --to notebook --execute tests/untraced_notebook.ipynb --inplace --ExecutePreprocessor.extra_arguments=--IPKernelApp.extensions=lineapy --debug".split(
+            " "
+        )
+    )
+    # Delete it after (will exit cleanly only if it existed)
+    subprocess.check_call(["rm", "tests/tmp.pdf"])
