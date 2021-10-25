@@ -3,6 +3,7 @@ from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from functools import cached_property
+from itertools import chain
 from os import getcwd
 from typing import Dict, Optional
 
@@ -27,13 +28,18 @@ from lineapy.data.types import (
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import ArtifactORM
-from lineapy.execution.executor import Executor
+from lineapy.execution.executor import Executor, ViewOfNodes
 from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
 )
 from lineapy.lineabuiltins import __build_tuple__, __exec__
-from lineapy.utils import get_new_id, get_value_type
+from lineapy.utils import (
+    get_new_id,
+    get_value_type,
+    remove_duplicates,
+    remove_value,
+)
 from lineapy.visualizer.graphviz import tracer_to_graphviz
 from lineapy.visualizer.visual_graph import VisualGraphOptions
 
@@ -49,19 +55,34 @@ class Tracer:
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
+    ##
+    # We store information on two types of relationships between nodes:
+    #
+    # 1. Source -> Mutate nodes, which is a directed relationship meaning
+    #    whenever a new node is created that refers to the source node, it
+    #    instead should refer to the mutate node.
+    # 2. Undirected view relationships. If two nodes are a view of each other,
+    #    they a mutating one may mutate the other, so if one is mutated, mutate
+    #    nodes need to be made for all the other nodes that are views. This is
+    #    a transitive relationship.
+    #
+    # We use lists in the data structures to store these relationships, although
+    # they really should be ordered sets. Ordering is important not for correctness
+    # but for having deterministic node ordering, which is used for testing.
+    ##
+
     # Mapping of mutated nodes, from their original node id, to the latest
     # mutate node id they are the source of
     source_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
-
-    # Mapping of each node, to every node that has a "view" of it,
-    # meaning that if that node is mutated, the view node will be as well
-    source_to_viewers: dict[LineaID, set[LineaID]] = field(
-        default_factory=lambda: defaultdict(set)
+    # Inverse mapping of the source_to_mutate, need a list since
+    # multiple sources can point to the same mutate node
+    mutate_to_sources: dict[LineaID, list[LineaID]] = field(
+        default_factory=lambda: defaultdict(list)
     )
-
-    # Reverse mapping of node to viewers
-    viewer_to_sources: dict[LineaID, set[LineaID]] = field(
-        default_factory=lambda: defaultdict(set)
+    # Mapping from each node to every node which has a view of it,
+    # meaning that if that node is mutated, the view node will be as well
+    viewers: dict[LineaID, list[LineaID]] = field(
+        default_factory=lambda: defaultdict(list)
     )
 
     session_context: SessionContext = field(init=False)
@@ -193,42 +214,74 @@ class Tracer:
         """
         self.db.write_node(node)
 
+        ##
+        # Update the graph from the side effects of the node,
+        ##
         side_effects = self.executor.execute_node(node)
 
-        # Update the graph from the side effects of the node,
-        # Creating additional views and mutate nodes
+        # Iterate through each side effect and process it, depending on its type
+        for e in side_effects:
+            if isinstance(e, ViewOfNodes):
+                self._process_view_of_nodes(e.ids)
+            else:
+                self._process_mutate_node(e.id, node.id, node.session_id)
 
-        # The viewer mappings are transitive closures, so whenever we add
-        # a new view -> src, we have to traverse all of its parents and children
-        # and add them as well.
+    def _process_view_of_nodes(self, ids: list[LineaID]) -> None:
+        """
+        To process adding views between nodes, update the `viewers` data structure
+        with all new viewers.
+        """
+        # First, iterate through all items in the view
+        # and create a complete view set adding all their views as well
+        # since it is a transitivity relationionship.
+        complete_ids = list(
+            remove_duplicates(chain(ids, *(self.viewers[id_] for id_ in ids)))
+        )
 
-        # Instead, we could have done the traversal when looking up the mutation
-        for source_id, view_id in side_effects.views:
-            self.source_to_viewers[source_id].add(view_id)
-            self.viewer_to_sources[view_id].add(source_id)
+        # Now update the viewers data structure to include all the viewers,
+        # apart the id itself, which is not kept in the mapping.
+        for id_ in complete_ids:
+            self.viewers[id_] = list(remove_value(complete_ids, id_))
 
-            for parent_source in self.viewer_to_sources[source_id]:
-                self.source_to_viewers[parent_source].add(view_id)
-                self.viewer_to_sources[view_id].add(parent_source)
+    def _process_mutate_node(
+        self, source_id: LineaID, call_id: LineaID, session_id: LineaID
+    ) -> None:
+        """
+        To process mutating a node, we create new mutate nodes for each views of
+        this node and update the source to view mapping to point to the new nodes.
+        """
+        # Create a mutation node for every node that was mutated,
+        # Which are all the views + the node itself
+        source_ids = remove_duplicates(
+            map(self.resolve_node, [*self.viewers[source_id], source_id])
+        )
+        for source_id in source_ids:
+            mutate_node = MutateNode(
+                id=get_new_id(),
+                session_id=session_id,
+                source_id=source_id,
+                call_id=call_id,
+            )
 
-            for child_viewer in self.source_to_viewers[view_id]:
-                self.source_to_viewers[source_id].add(child_viewer)
-                self.viewer_to_sources[child_viewer].add(source_id)
+            # Update the mutated sources, and then change all source
+            # of this mutation to now point to this mutate node
 
-        for original_source_id in side_effects.mutated:
-            # Create a mutation node for every node that was mutated,
-            # Which are all the views + the node itself
-            for source_id in self.source_to_viewers[original_source_id] | {
-                original_source_id
-            }:
-                mutate_node = MutateNode(
-                    id=get_new_id(),
-                    session_id=node.session_id,
-                    source_id=self.resolve_node(source_id),
-                    call_id=node.id,
+            # Find all the mutate nodes that were pointing to the original source
+            mutated_sources: list[LineaID] = list(
+                remove_duplicates(
+                    chain([source_id], self.mutate_to_sources[source_id])
                 )
-                self.source_to_mutate[source_id] = mutate_node.id
-                self.process_node(mutate_node)
+            )
+
+            # First we update the forward mapping, mapping them to the new mutate node
+            for mutate_source_id in mutated_sources:
+                self.source_to_mutate[mutate_source_id] = mutate_node.id
+
+            # Now we set the reverse mapping, to be all the nodes we mutated
+            self.mutate_to_sources[mutate_node.id] = mutated_sources
+
+            # Add the mutate node to the graph
+            self.process_node(mutate_node)
 
     def lookup_node(self, variable_name: str) -> Node:
         """

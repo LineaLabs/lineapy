@@ -115,49 +115,64 @@ call_6 = CallNode(
         ).id,
     ],
 )
-mutate_4 = MutateNode(
+mutate_5 = MutateNode(
     source_id=call_3.id,
     call_id=call_6.id,
 )
-mutate_5 = MutateNode(
+mutate_10 = MutateNode(
     source_id=MutateNode(
-        source_id=call_2.id,
-        call_id=call_5.id,
+        source_id=MutateNode(
+            source_id=call_2.id,
+            call_id=call_5.id,
+        ).id,
+        call_id=call_6.id,
     ).id,
     call_id=call_6.id,
 )
-mutate_6 = MutateNode(
+mutate_11 = MutateNode(
     source_id=MutateNode(
         source_id=MutateNode(
-            source_id=call_1.id,
-            call_id=CallNode(
-                source_location=SourceLocation(
-                    lineno=5,
-                    col_offset=0,
-                    end_lineno=5,
-                    end_col_offset=10,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="setitem",
-                ).id,
-                positional_args=[
-                    call_1.id,
-                    LiteralNode(
-                        source_location=SourceLocation(
-                            lineno=5,
-                            col_offset=2,
-                            end_lineno=5,
-                            end_col_offset=5,
-                            source_code=source_1.id,
-                        ),
-                        value="y",
+            source_id=MutateNode(
+                source_id=MutateNode(
+                    source_id=MutateNode(
+                        source_id=MutateNode(
+                            source_id=call_1.id,
+                            call_id=CallNode(
+                                source_location=SourceLocation(
+                                    lineno=5,
+                                    col_offset=0,
+                                    end_lineno=5,
+                                    end_col_offset=10,
+                                    source_code=source_1.id,
+                                ),
+                                function_id=LookupNode(
+                                    name="setitem",
+                                ).id,
+                                positional_args=[
+                                    call_1.id,
+                                    LiteralNode(
+                                        source_location=SourceLocation(
+                                            lineno=5,
+                                            col_offset=2,
+                                            end_lineno=5,
+                                            end_col_offset=5,
+                                            source_code=source_1.id,
+                                        ),
+                                        value="y",
+                                    ).id,
+                                    call_2.id,
+                                ],
+                            ).id,
+                        ).id,
+                        call_id=call_5.id,
                     ).id,
-                    call_2.id,
-                ],
+                    call_id=call_5.id,
+                ).id,
+                call_id=call_6.id,
             ).id,
+            call_id=call_6.id,
         ).id,
-        call_id=call_5.id,
+        call_id=call_6.id,
     ).id,
     call_id=call_6.id,
 )

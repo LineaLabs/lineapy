@@ -21,16 +21,17 @@ from lineapy.visualizer.visual_graph import (
     ExtraLabels,
     ExtraLabelType,
     Pointer,
+    SourceLineType,
     VisualEdgeType,
     VisualGraphOptions,
     VisualNode,
+    VisualNodeType,
     tracer_to_visual_graph,
 )
 
 NODE_STYLE = {
     # https://graphviz.org/doc/info/colors.html#brewer
     "colorscheme": "pastel19",
-    "style": "filled",
 }
 
 EDGE_STYLE = {"colorscheme": NODE_STYLE["colorscheme"]}
@@ -79,6 +80,16 @@ NODE_SHAPES: dict[NodeType, str] = {
     NodeType.ImportNode: "box",
     NodeType.LookupNode: "box",
     NodeType.MutateNode: "record",
+}
+
+UNDIRECTED_EDGE_TYPES = {
+    VisualEdgeType.VIEW,
+}
+
+
+EDGE_STYLES = {
+    VisualEdgeType.MUTATE_CALL: "dashed",
+    VisualEdgeType.NEXT_LINE: "invis",
 }
 
 
@@ -150,10 +161,13 @@ def pointer_to_id(pointer: Pointer) -> str:
     return ":".join(pointer)
 
 
-def node_type_to_kwargs(node_type: NodeType) -> dict[str, object]:
+def node_type_to_kwargs(node_type: VisualNodeType) -> dict[str, object]:
+    if isinstance(node_type, SourceLineType):
+        return {"shape": "plaintext"}
     return {
         "color": get_color(node_type),
         "shape": NODE_SHAPES[node_type],
+        "style": "filled",
     }
 
 
@@ -161,7 +175,9 @@ def edge_type_to_kwargs(edge_type: VisualEdgeType) -> dict[str, object]:
     return {
         "color": get_color(edge_type)
         if edge_type in TYPES_FOR_COLOR
-        else DEFAULT_EDGE_COLOR
+        else DEFAULT_EDGE_COLOR,
+        "dir": "none" if edge_type in UNDIRECTED_EDGE_TYPES else "forward",
+        "style": EDGE_STYLES.get(edge_type, "solid"),
     }
 
 
@@ -209,14 +225,18 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
         ##
         # Add edges to legend
         ##
-
-        if options.show_view_and_mutation_tracking:
+        legend_items = dict(EDGE_TYPE_TO_LABEL)
+        if not options.show_implied_mutations:
+            del legend_items[VisualEdgeType.LATEST_MUTATE_SOURCE]
+        if not options.show_views:
+            del legend_items[VisualEdgeType.VIEW]
+        if legend_items:
             # Keep adding invisible edges, so that all of the nodes are aligned vertically
             id_ = "legend_edge"
             c.node(id_, "", shape="box", style="invis")
             c.edge(prev_id, id_, style="invis")
             prev_id = id_
-            for edge_type, label in EDGE_TYPE_TO_LABEL.items():
+            for edge_type, label in legend_items.items():
                 id_ = f"legend_edge_{label}"
                 # Add invisible nodes, so the edges have something to point to.
                 c.node(id_, "", shape="box", style="invis")
