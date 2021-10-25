@@ -99,6 +99,13 @@ print(res.slice("z"))
 
 For a full example, you can look at [`tests/test_notebook.ipynb`](./tests/test_notebook.ipynb)
 
+If you have an existing notebook, you can try running it through linea, to see if it
+still works, and to save the resulting graph. For example:
+
+```bash
+env LINEA_VISUALIZATION_NAME=output_graph jupyter nbconvert --to notebook --execute notebook_name.ipynb --inplace --ExecutePreprocessor.extra_arguments=--IPKernelApp.extensions=lineapy
+```
+
 ### Web UI
 
 We were previously working on a web based user interface to browse executions, but we are currently focusing on the Python and command line experience.

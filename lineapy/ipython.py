@@ -22,11 +22,12 @@ def start(
     session_name: Optional[str] = None,
     execution_mode: ExecutionMode = ExecutionMode.MEMORY,
     visualize=False,
+    ipython: Optional[InteractiveShell] = None,
 ) -> None:
     """
     Trace any subsequent cells with linea.
     """
-    ipython = get_ipython()  # type: ignore
+    ipython = ipython or get_ipython()  # type: ignore
 
     input_transformers_post = ipython.input_transformers_post
 
@@ -51,11 +52,15 @@ def start(
     input_transformers_post.append(active_input_transformer)
 
 
-def stop() -> Tracer:
+def stop(
+    ipython: Optional[InteractiveShell] = None,
+    visualization_filename: Optional[str] = None,
+) -> Tracer:
     """
-    Stop tracing.
+    Stop tracing. If "visualization_filename" is passed, will use that as the filename
+    to save the visualization to, appending the file extension.
     """
-    ipython = get_ipython()  # type: ignore
+    ipython = ipython or get_ipython()  # type: ignore
 
     input_transformers_post = ipython.input_transformers_post
 
@@ -66,9 +71,12 @@ def stop() -> Tracer:
         for it in input_transformers_post
         if isinstance(it, LineaInputTransformer)
     ]
-    input_transformer.tracer.db.close()
+    tracer = input_transformer.tracer
+    if visualization_filename:
+        tracer.visualize(visualization_filename)
+    tracer.db.close()
     input_transformers_post.remove(input_transformer)
-    return input_transformer.tracer
+    return tracer
 
 
 @dataclass

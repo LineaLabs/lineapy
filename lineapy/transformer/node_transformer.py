@@ -2,8 +2,7 @@ import ast
 import logging
 from typing import Any, Optional, Union, cast, overload
 
-import lineapy
-from lineapy import linea_publish
+from lineapy.api import linea_publish
 from lineapy.constants import (
     ADD,
     BITAND,
@@ -175,7 +174,7 @@ class NodeTransformer(ast.NodeTransformer):
             # TODO: Rename linea publish and possibly make more robust
             # to allow import from
             and node.func.attr == linea_publish.__name__
-            and node.func.value.id == lineapy.__name__
+            and node.func.value.id == "lineapy"
         ):
             # assume that we have two string inputs, else yell at the user
             if len(node.args) == 0:

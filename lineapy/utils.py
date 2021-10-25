@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Callable, Optional, TypeVar, cast
+from typing import Any, Callable, Iterable, Optional, TypeVar, cast
 from uuid import uuid4
 
 import black
@@ -78,10 +78,10 @@ def prettify(code: str) -> str:
     )
 
 
-T = TypeVar("T", bound=Callable)
+CALLABLE = TypeVar("CALLABLE", bound=Callable)
 
 
-def listify(fn: T) -> T:
+def listify(fn: CALLABLE) -> CALLABLE:
     """
     TODO: Once we switch to Python 3.10, we can type this properly
     https://www.python.org/dev/peps/pep-0612/
@@ -90,4 +90,32 @@ def listify(fn: T) -> T:
     def wrapper(*args, **kwargs):
         return list(fn(*args, **kwargs))
 
-    return cast(T, wrapper)
+    return cast(CALLABLE, wrapper)
+
+
+# These are some helper functions we need since we are using lists as ordered
+# sets.
+
+T = TypeVar("T")
+
+
+def remove_duplicates(xs: Iterable[T]) -> Iterable[T]:
+    """
+    Remove all duplicate items, maintaining order.
+    """
+    seen_: set[int] = set()
+    for x in xs:
+        h = hash(x)
+        if h in seen_:
+            continue
+        seen_.add(h)
+        yield x
+
+
+def remove_value(xs: Iterable[T], x: T) -> Iterable[T]:
+    """
+    Remove all items equal to x.
+    """
+    for y in xs:
+        if x != y:
+            yield y

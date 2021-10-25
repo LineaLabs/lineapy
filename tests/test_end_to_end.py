@@ -6,7 +6,7 @@ from tempfile import NamedTemporaryFile
 import pytest
 from click.testing import CliRunner
 
-import lineapy
+from lineapy.api import linea_publish
 from lineapy.cli.cli import linea_cli
 from lineapy.constants import ExecutionMode
 from lineapy.db.base import get_default_config_by_environment
@@ -14,9 +14,9 @@ from lineapy.db.relational.db import RelationalLineaDB
 from tests.util import CSV_CODE, IMAGE_CODE, reset_test_db
 
 publish_name = "testing artifact publish"
-PUBLISH_CODE = f"""import {lineapy.__name__}
+PUBLISH_CODE = f"""import lineapy
 a = abs(11)
-{lineapy.__name__}.{lineapy.linea_publish.__name__}(a, '{publish_name}')
+lineapy.{linea_publish.__name__}(a, '{publish_name}')
 """
 
 
