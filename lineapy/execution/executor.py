@@ -215,7 +215,9 @@ class Executor:
         value = self._id_to_value[id]
         # If this is a user defined function, then wrap it, so we know if it was
         # called as an arg
-        if isinstance(value, FunctionType):
+        if isinstance(
+            value, FunctionType
+        ) and lineabuiltins.function_defined_in_exec(value):
             value = FunctionWrapper(value, id, recorded_calls)
         return value
 

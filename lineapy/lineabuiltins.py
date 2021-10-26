@@ -1,5 +1,6 @@
 # Keep unused import for transitive import by Executor
-from operator import *  # noqa: F403,F401
+from operator import *
+from types import FunctionType  # noqa: F403,F401
 from typing import List, Mapping, Optional, TypeVar, Union
 
 # NOTE: previous attempt at some import issues with the operator model
@@ -91,20 +92,27 @@ def __assert__(v: object, message: Optional[str] = None) -> None:
 # Magic variable name used internally in the `__exec__` function, when we
 # are execuing an expression and want to save its result. To do so, we have
 # to set it to a variable, then retrieve that variable from the scope.
-_EXPRESSION_SAVED_NAME = "__linea_expresion__"
+_EXEC_EXPRESSION_SAVED_NAME = "__linea_expresion__"
 
-_GLOBALS = {}
+
+# We use the same globals dict for all exec calls, so that we can set our scope
+# variables for any functions that are defined in the exec
+_exec_globals = {}
 
 
 def set_exec_globals(globals_: dict[str, object]) -> None:
     """
     Set the global environment for the `__exec__` function.
     """
-    _GLOBALS.update(globals_)
+    _exec_globals.update(globals_)
 
 
 def clear_exec_globals() -> None:
-    _GLOBALS.clear()
+    _exec_globals.clear()
+
+
+def function_defined_in_exec(fn: FunctionType) -> bool:
+    return fn.__globals__ is _exec_globals
 
 
 def __exec__(
@@ -118,13 +126,13 @@ def __exec__(
     argument.
     """
     if is_expr:
-        code = f"{_EXPRESSION_SAVED_NAME} = {code}"
+        code = f"{_EXEC_EXPRESSION_SAVED_NAME} = {code}"
     bytecode = compile(code, "<string>", "exec")
     # Only pass in "globals" so that globals and locals are equivalent,
     # which is the case when executing at the module level, and not at the
     # class body level, see https://docs.python.org/3/library/functions.html#exec
     set_exec_globals(input_locals)
-    exec(bytecode, _GLOBALS)
+    exec(bytecode, _exec_globals)
 
     # Iterate through the ouputs we should get back, and look them up in the
     # globals/locals. If they do not exist, return the _VariableNotSetSentinel
@@ -132,10 +140,11 @@ def __exec__(
     # code which could possibly set a variable, but might not, like in an if
     # statement branch
     returned_locals = [
-        _GLOBALS.get(name, _VariableNotSetSentinel()) for name in output_locals
+        _exec_globals.get(name, _VariableNotSetSentinel())
+        for name in output_locals
     ]
     if is_expr:
-        returned_locals.append(_GLOBALS[_EXPRESSION_SAVED_NAME])
+        returned_locals.append(_exec_globals[_EXEC_EXPRESSION_SAVED_NAME])
 
     clear_exec_globals()
 
