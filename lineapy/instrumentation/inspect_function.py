@@ -39,8 +39,8 @@ def inspect_function(
         # delitem(dict, key)
         yield MutatedPointer(PositionalArg(0))
         return
-    if function == lineabuiltins.__build_list__:
-        # __build_list__(x1, x2, ...)
+    if function == lineabuiltins.l_list:
+        # l_build_list(x1, x2, ...)
         yield ViewOfPointers(
             Result(),
             *(PositionalArg(i) for i, a in enumerate(args) if is_mutable(a))

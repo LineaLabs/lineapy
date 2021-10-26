@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_lambda_with_primitives(execute):
     code = """a = 10
 b = lambda x: x + 10
@@ -61,18 +58,18 @@ c = b(10)
     assert res.artifacts["c"] == code
 
 
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_knows_map_calls(execute):
     code = """a = 10
-fn = lambda: a
+fn = lambda x: a + x
 r = sum(map(fn, [1]))
 """
     res = execute(code, artifacts=["r"])
-    assert res.values["r"] == 10
+    assert res.values["r"] == 11
     assert res.artifacts["r"] == code
 
 
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_knows_call_list(execute):
     code = """a = 10
 fn = lambda: a

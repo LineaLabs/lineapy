@@ -46,10 +46,10 @@ from lineapy.data.types import (
 )
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.lineabuiltins import (
-    __assert__,
-    __build_dict__,
-    __build_dict_kwargs_sentinel__,
-    __build_list__,
+    l_assert,
+    l_dict,
+    l_dict_kwargs_sentinel,
+    l_list,
 )
 from lineapy.transformer.analyze_scope import analyze_code_scope
 from lineapy.transformer.transformer_util import create_lib_attributes
@@ -130,7 +130,7 @@ class NodeTransformer(ast.NodeTransformer):
         if node.msg:
             args.append(self.visit(node.msg))
         self.tracer.call(
-            self.tracer.lookup_node(__assert__.__name__),
+            self.tracer.lookup_node(l_assert.__name__),
             self.get_source(node),
             *args,
         )
@@ -350,7 +350,7 @@ class NodeTransformer(ast.NodeTransformer):
     def visit_List(self, node: ast.List) -> CallNode:
         elem_nodes = [self.visit(elem) for elem in node.elts]
         return self.tracer.call(
-            self.tracer.lookup_node(__build_list__.__name__),
+            self.tracer.lookup_node(l_list.__name__),
             self.get_source(node),
             *elem_nodes,
         )
@@ -567,7 +567,7 @@ class NodeTransformer(ast.NodeTransformer):
         # Build a dict call from a list of tuples of each key, mapping to each value
         # If the key is None, use a sentinel value
         return self.tracer.call(
-            self.tracer.lookup_node(__build_dict__.__name__),
+            self.tracer.lookup_node(l_dict.__name__),
             self.get_source(node),
             *(
                 self.tracer.tuple(
@@ -575,7 +575,7 @@ class NodeTransformer(ast.NodeTransformer):
                     if k is not None
                     else self.tracer.call(
                         self.tracer.lookup_node(
-                            __build_dict_kwargs_sentinel__.__name__
+                            l_dict_kwargs_sentinel.__name__
                         ),
                         None,
                     ),

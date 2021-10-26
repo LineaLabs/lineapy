@@ -1,14 +1,22 @@
 # Keep unused import for transitive import by Executor
-from operator import *
+import dataclasses
+from functools import update_wrapper
 from types import FunctionType  # noqa: F403,F401
 from typing import Iterable, List, Mapping, Optional, TypeVar, Union
 
-# NOTE: previous attempt at some import issues with the operator model
-#   from operator import *
+from typer import Option
+
+from lineapy.data.types import LineaID
+
+# Keep a list of builtin functions we want to expose to the user as globals
+_builtin_functions: list[FunctionType] = []
 
 
-def __build_list__(*items) -> List:
+def l_list(*items) -> List:
     return list(items)
+
+
+_builtin_functions.append(l_list)
 
 
 class _DictKwargsSentinel(object):
@@ -43,15 +51,18 @@ class _VariableNotSetSentinel(object):
     pass
 
 
-def __build_dict_kwargs_sentinel__() -> _DictKwargsSentinel:
+def l_dict_kwargs_sentinel() -> _DictKwargsSentinel:
     return _DictKwargsSentinel()
+
+
+_builtin_functions.append(l_dict_kwargs_sentinel)
 
 
 K = TypeVar("K")
 V = TypeVar("V")
 
 
-def __build_dict__(
+def l_dict(
     *keys_and_values: Union[
         tuple[K, V], tuple[_DictKwargsSentinel, Mapping[K, V]]
     ]
@@ -78,15 +89,24 @@ def __build_dict__(
     return d
 
 
-def __build_tuple__(*items) -> tuple:
+_builtin_functions.append(l_dict)
+
+
+def l_tuple(*items) -> tuple:
     return items
 
 
-def __assert__(v: object, message: Optional[str] = None) -> None:
+_builtin_functions.append(l_tuple)
+
+
+def l_assert(v: object, message: Optional[str] = None) -> None:
     if message is None:
         assert v
     else:
         assert v, message
+
+
+_builtin_functions.append(l_assert)
 
 
 # Magic variable name used internally in the `__exec__` function, when we
@@ -117,8 +137,12 @@ def function_defined_in_exec(fn: FunctionType) -> bool:
     return fn.__globals__ is _exec_globals
 
 
-def __exec__(
-    code: str, is_expr: bool, *output_locals: str, **input_locals: object
+# TODO: pass in input locals as a list of vars for functions
+def l_exec(
+    code: str,
+    is_expr: bool,
+    *output_locals: str,
+    **input_locals: object,
 ) -> list[Union[object, _VariableNotSetSentinel]]:
     """
     Execute the `code` with `input_locals` set as locals,
@@ -151,3 +175,47 @@ def __exec__(
     clear_exec_globals(input_locals.keys())
 
     return returned_locals
+
+
+_builtin_functions.append(l_exec)
+
+
+def l_exec_fn(
+    code: str, name: Optional[str], *global_variables: str
+) -> object:
+    """
+    Executes some code that creates a function, wraps it, and returns it.
+
+    If the name is provided, it is a named function definition. Otherwise its a lambda.
+    """
+    ...
+
+
+_builtin_functions.append(l_exec_fn)
+
+
+@dataclasses
+class FunctionWrapper:
+    """
+    Wraps a user defined function, so we can record when it was called
+    """
+
+    # The original function value
+    fn: FunctionType
+    # The ID of the function node
+    id: LineaID
+    # Our list of calls, which we should add this ID to when it is called,
+    # unless it has already been added
+    recorded_calls: list[LineaID]
+
+    def __post_init__(self):
+        # Update this callable to use the functions docstrings and such
+        update_wrapper(self, self.fn)
+
+    def __call__(self, *args, **kwds):
+        if self.id not in self.recorded_calls:
+            self.recorded_calls.append(self.id)
+        return self.fn(*args, **kwds)
+
+
+LINEA_BUILTINS = {f.__name__: f for f in _builtin_functions}

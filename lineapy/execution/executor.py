@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import builtins
 import importlib.util
 import io
 import logging
 from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
-from functools import update_wrapper
 from os import chdir, getcwd
 from types import FunctionType
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
@@ -34,7 +32,7 @@ from lineapy.instrumentation.inspect_function import (
     Result,
     inspect_function,
 )
-from lineapy.utils import get_new_id
+from lineapy.utils import get_new_id, lookup_value
 
 logger = logging.getLogger(__name__)
 
@@ -267,38 +265,3 @@ class UsedDefinedFunctionsCalled:
 SideEffects = Iterable[
     Union[MutatedNode, ViewOfNodes, UsedDefinedFunctionsCalled]
 ]
-
-
-def lookup_value(name: str) -> object:
-    """
-    Lookup a value from a string identifier.
-    """
-    if hasattr(builtins, name):
-        return getattr(builtins, name)
-    if hasattr(lineabuiltins, name):
-        return getattr(lineabuiltins, name)
-    return globals()[name]
-
-
-@dataclass
-class FunctionWrapper:
-    """
-    Wraps a user defined function, so we can record when it was called
-    """
-
-    # The original function value
-    fn: FunctionType
-    # The ID of the function node
-    id: LineaID
-    # Our list of calls, which we should add this ID to when it is called,
-    # unless it has already been added
-    recorded_calls: list[LineaID]
-
-    def __post_init__(self):
-        # Update this callable to use the functions docstrings and such
-        update_wrapper(self, self.fn)
-
-    def __call__(self, *args, **kwds):
-        if self.id not in self.recorded_calls:
-            self.recorded_calls.append(self.id)
-        return self.fn(*args, **kwds)

@@ -37,7 +37,7 @@ from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
 )
-from lineapy.lineabuiltins import __build_tuple__, __exec__
+from lineapy.lineabuiltins import l_tuple, l_exec
 from lineapy.utils import (
     get_new_id,
     get_value_type,
@@ -527,7 +527,7 @@ class Tracer:
         # make sure it's sorted so that the printer will be consistent
         output_variables.sort()
         res = self.call(
-            self.lookup_node(__exec__.__name__),
+            self.lookup_node(l_exec.__name__),
             source_location,
             self.literal(code),
             self.literal(
@@ -559,7 +559,7 @@ class Tracer:
         self, *args: Node, source_location: Optional[SourceLocation] = None
     ) -> CallNode:
         return self.call(
-            self.lookup_node(__build_tuple__.__name__),
+            self.lookup_node(l_tuple.__name__),
             source_location,
             *args,
         )
