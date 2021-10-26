@@ -534,11 +534,11 @@ class NodeTransformer(ast.NodeTransformer):
             # However, for a function, we need to lookup the node ID
             # by the variable name of the function
             if isinstance(node, ast.FunctionDef):
-                function_id = self.tracer.variable_name_to_node[node.name].id
+                function_node = self.tracer.variable_name_to_node[node.name]
             else:
-                function_id = cast(Node, res).id
-            self.tracer.function_node_id_to_global_reads[function_id] = list(
-                scope.loaded
+                function_node = cast(Node, res)
+            self.tracer.record_function_globals(
+                function_node, list(scope.loaded)
             )
 
         return res

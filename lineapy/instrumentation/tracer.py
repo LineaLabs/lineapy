@@ -465,6 +465,13 @@ class Tracer:
         self.process_node(node)
         return node
 
+    def record_function_globals(
+        self,
+        function_node: Node,
+        global_reads: list[str],
+    ) -> None:
+        self.function_node_id_to_global_reads[function_node.id] = global_reads
+
     def assign(
         self,
         variable_name: str,
