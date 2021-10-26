@@ -10,7 +10,7 @@ def foo(a):
     return a - 10
 c = foo(b)
 
-lineapy.linea_publish(c, \'c\')
+lineapy.save(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )

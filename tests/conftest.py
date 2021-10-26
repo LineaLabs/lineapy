@@ -11,6 +11,7 @@ import syrupy
 from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
+from lineapy import save
 from lineapy.constants import ExecutionMode
 from lineapy.data.types import SessionType
 from lineapy.db.relational.db import RelationalLineaDB
@@ -143,7 +144,7 @@ class ExecuteFixture:
             code = "import lineapy\n" + code + "\n"
             for artifact in artifacts:
                 code += (
-                    f"lineapy.linea_publish({artifact}, {repr(artifact)})\n"
+                    f"lineapy.{save.__name__}({artifact}, {repr(artifact)})\n"
                 )
 
         # These temp filenames are unique per test function.
@@ -182,8 +183,12 @@ class ExecuteFixture:
 
         # Verify that execution works again, loading from the DB, in a new dir
         new_executor = Executor(db)
+
+        current_working_dir = os.getcwd()
+
         os.chdir(self.tmp_path)
         new_executor.execute_graph(tracer.graph)
+        os.chdir(current_working_dir)
 
         return tracer
 
@@ -198,3 +203,13 @@ def chdir_test_file():
     os.chdir(get_project_directory())
     yield
     os.chdir(current_working_dir)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def remove_dev_db():
+    """
+    Remove dev before all tests
+    """
+    p = Path("dev.sqlite")
+    if p.exists():
+        p.unlink()

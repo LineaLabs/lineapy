@@ -14,8 +14,8 @@ new_clf = clf.fit(X, y)
 clf.fit(X, y)
 new_clf.fit(X, y)
 
-lineapy.linea_publish(new_clf, \'new_clf\')
-lineapy.linea_publish(clf, \'clf\')
+lineapy.save(new_clf, \'new_clf\')
+lineapy.save(clf, \'clf\')
 """,
     location=PosixPath("[source file path]"),
 )

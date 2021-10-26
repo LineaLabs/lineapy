@@ -519,7 +519,7 @@ plt.xlabel("Predicted label")
 from sklearn.metrics import classification_report
 
 report = classification_report(y_test, y_pred)
-lineapy.linea_publish(report, "classification_report")
+lineapy.save(report, "classification_report")
 
 
 # ## 3. ROC - AUC
@@ -590,7 +590,7 @@ knn_cv = GridSearchCV(knn, param_grid, cv=5)
 knn_cv.fit(X, y)
 print("Best Score:" + str(knn_cv.best_score_))
 print("Best Parameters: " + str(knn_cv.best_params_))
-lineapy.linea_publish(knn_cv, "nn for diabetes")
+lineapy.save(knn_cv, "nn for diabetes")
 
 
 # In[36]:

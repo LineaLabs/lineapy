@@ -11,7 +11,7 @@ def my_function():
     global a
     a = math.factorial(5)
 my_function()
-lineapy.linea_publish(a, \'mutated a\')
+lineapy.save(a, \'mutated a\')
 """,
     location=PosixPath("[source file path]"),
 )

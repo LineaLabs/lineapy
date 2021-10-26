@@ -9,7 +9,7 @@ y = []
 x = [y]
 y.append(10)
 
-lineapy.linea_publish(x, \'x\')
+lineapy.save(x, \'x\')
 """,
     location=PosixPath("[source file path]"),
 )

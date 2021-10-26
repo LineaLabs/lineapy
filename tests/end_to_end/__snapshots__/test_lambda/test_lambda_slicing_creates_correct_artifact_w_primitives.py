@@ -9,7 +9,7 @@ a = 10
 b = lambda x: x + 10
 c = b(a)
 
-lineapy.linea_publish(c, \'c\')
+lineapy.save(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )

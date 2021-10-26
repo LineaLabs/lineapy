@@ -12,9 +12,9 @@ x[\'y\'] = y
 y[\'z\'] = z
 z[\'a\'] = 1
 
-lineapy.linea_publish(x, \'x\')
-lineapy.linea_publish(y, \'y\')
-lineapy.linea_publish(z, \'z\')
+lineapy.save(x, \'x\')
+lineapy.save(y, \'y\')
+lineapy.save(z, \'z\')
 """,
     location=PosixPath("[source file path]"),
 )

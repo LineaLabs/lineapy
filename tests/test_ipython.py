@@ -4,6 +4,7 @@ from typing import Callable
 import pytest
 from IPython.core.interactiveshell import InteractiveShell
 
+from lineapy import save
 from lineapy.instrumentation.tracer import Tracer
 
 
@@ -30,7 +31,7 @@ def test_slice(run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]") is None
     assert run_cell("y = 10") is None
-    assert run_cell("x=a[0]\nlineapy.linea_publish(x, 'x')") is None
+    assert run_cell(f"x=a[0]\nlineapy.{save.__name__}(x, 'x')") is None
     assert (
         run_cell("tracer = lineapy.ipython.stop()\ntracer.slice('x')")
         == "a = [1, 2, 3]\nx=a[0]\n"
