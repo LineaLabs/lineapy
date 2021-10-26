@@ -223,12 +223,13 @@ class Tracer:
         """
         Execute a node, and adds it to the database.
         """
-        self.db.write_node(node)
 
         ##
         # Update the graph from the side effects of the node,
         ##
         side_effects = self.executor.execute_node(node)
+
+        self.db.write_node(node)
 
         # Iterate through each side effect and process it, depending on its type
         for e in side_effects:
