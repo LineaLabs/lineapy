@@ -28,7 +28,11 @@ from lineapy.data.types import (
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import ArtifactORM
-from lineapy.execution.executor import Executor, ViewOfNodes
+from lineapy.execution.executor import (
+    Executor,
+    UsedDefinedFunctionsCalled,
+    ViewOfNodes,
+)
 from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
@@ -227,7 +231,9 @@ class Tracer:
         ##
         # Update the graph from the side effects of the node,
         ##
-        side_effects = self.executor.execute_node(node)
+        side_effects = self.executor.execute_node(
+            node, {k: v.id for k, v in self.variable_name_to_node.items()}
+        )
 
         self.db.write_node(node)
 
@@ -235,8 +241,24 @@ class Tracer:
         for e in side_effects:
             if isinstance(e, ViewOfNodes):
                 self._process_view_of_nodes(e.ids)
+            elif isinstance(e, UsedDefinedFunctionsCalled):
+                self._process_used_defined_functions_called(node, e.ids)
             else:
                 self._process_mutate_node(e.id, node.id, node.session_id)
+
+    def _process_used_defined_functions_called(
+        self, node: Node, ids: list[LineaID]
+    ) -> None:
+        # We should have only called functions in a call node
+        assert isinstance(node, CallNode)
+
+        # Set the global reads to the union of all global reads from all
+        # the functions that were called
+        node.global_reads = {
+            var: self.resolve_node(self.variable_name_to_node[var].id)
+            for fn_id in ids
+            for var in self.function_node_id_to_global_reads[fn_id]
+        }
 
     def _process_view_of_nodes(self, ids: list[LineaID]) -> None:
         """
@@ -456,12 +478,7 @@ class Tracer:
                 for k, n, in keyword_arguments.items()
             },
             source_location=source_location,
-            global_reads={
-                name: self.variable_name_to_node[name].id
-                for name in sorted(
-                    self.function_node_id_to_global_reads[function_node.id]
-                )
-            },
+            global_reads={},
         )
         self.process_node(node)
         return node

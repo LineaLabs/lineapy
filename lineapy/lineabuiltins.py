@@ -93,6 +93,19 @@ def __assert__(v: object, message: Optional[str] = None) -> None:
 # to set it to a variable, then retrieve that variable from the scope.
 _EXPRESSION_SAVED_NAME = "__linea_expresion__"
 
+_GLOBALS = {}
+
+
+def set_exec_globals(globals_: dict[str, object]) -> None:
+    """
+    Set the global environment for the `__exec__` function.
+    """
+    _GLOBALS.update(globals_)
+
+
+def clear_exec_globals() -> None:
+    _GLOBALS.clear()
+
 
 def __exec__(
     code: str, is_expr: bool, *output_locals: str, **input_locals: object
@@ -110,7 +123,8 @@ def __exec__(
     # Only pass in "globals" so that globals and locals are equivalent,
     # which is the case when executing at the module level, and not at the
     # class body level, see https://docs.python.org/3/library/functions.html#exec
-    exec(bytecode, input_locals)
+    set_exec_globals(input_locals)
+    exec(bytecode, _GLOBALS)
 
     # Iterate through the ouputs we should get back, and look them up in the
     # globals/locals. If they do not exist, return the _VariableNotSetSentinel
@@ -118,9 +132,11 @@ def __exec__(
     # code which could possibly set a variable, but might not, like in an if
     # statement branch
     returned_locals = [
-        input_locals.get(name, _VariableNotSetSentinel())
-        for name in output_locals
+        _GLOBALS.get(name, _VariableNotSetSentinel()) for name in output_locals
     ]
     if is_expr:
-        returned_locals.append(input_locals[_EXPRESSION_SAVED_NAME])
+        returned_locals.append(_GLOBALS[_EXPRESSION_SAVED_NAME])
+
+    clear_exec_globals()
+
     return returned_locals

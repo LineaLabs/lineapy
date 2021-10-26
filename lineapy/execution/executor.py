@@ -7,9 +7,10 @@ import logging
 from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import update_wrapper
 from os import chdir, getcwd
 from types import FunctionType
-from typing import Callable, Iterable, Tuple, Union, cast
+from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
@@ -91,8 +92,17 @@ class Executor:
     def get_value(self, node: Node) -> object:
         return self._id_to_value[node.id]
 
-    def execute_node(self, node: Node) -> SideEffects:
+    def execute_node(
+        self, node: Node, variables: Optional[dict[str, LineaID]]
+    ) -> SideEffects:
         """
+
+        Variables is the mapping from local variable names to their nodes. It
+        is passed in on the first execution, but on re-executions it is empty.
+
+        At that point we know which variables each call node depends on, since
+        the first time we executed we captured that.
+
         Does the following:
         - Executes a node
         - And records
@@ -108,9 +118,13 @@ class Executor:
 
             return ()
         elif isinstance(node, CallNode):
+            recorded_calls: list[LineaID] = []
+
             # execute the function
             # ----------
-            fn = cast(Callable, self._id_to_value[node.function_id])
+            fn = cast(
+                Callable, self._lookup_value(node.function_id, recorded_calls)
+            )
 
             # If we are getting an attribute, save the value in case
             # we later call it as a bound method and need to track its mutations
@@ -118,10 +132,11 @@ class Executor:
                 self._node_to_bound_self[node.id] = node.positional_args[0]
 
             args = [
-                self._id_to_value[arg_id] for arg_id in node.positional_args
+                self._lookup_value(arg_id, recorded_calls)
+                for arg_id in node.positional_args
             ]
             kwargs = {
-                k: self._id_to_value[arg_id]
+                k: self._lookup_value(arg_id, recorded_calls)
                 for k, arg_id in node.keyword_args.items()
             }
             logger.info("Calling function %s %s %s", fn, args, kwargs)
@@ -129,19 +144,28 @@ class Executor:
             # If this was a user defined function, and we know that some global
             # variables need to be set before calling it, set those first
             # by modifying the globals that is specific to this function
-            if isinstance(fn, FunctionType) and node.global_reads:
-                _globals = fn.__globals__
-                # Set all globals neccesary to call this node.
-                for k, id_ in node.global_reads.items():
-                    _globals[k] = self._id_to_value[id_]
+
+            # The first time this is run, variables is set, and we know
+            # the scoping, so we set all of the variables we know.
+
+            # The subsequent times, we only use those that were recorded
+            node_variables = {
+                k: self._id_to_value[id_]
+                for k, id_ in (variables or node.global_reads).items()
+            }
+            lineabuiltins.set_exec_globals(node_variables)
 
             with redirect_stdout(self._stdout):
                 start_time = datetime.now()
                 res = fn(*args, **kwargs)
                 end_time = datetime.now()
 
+            lineabuiltins.clear_exec_globals()
+
             self._execution_time[node.id] = (start_time, end_time)
 
+            if recorded_calls:
+                yield UsedDefinedFunctionsCalled(recorded_calls)
             # dependency analysis
             # ----------
             self._id_to_value[node.id] = res
@@ -181,12 +205,26 @@ class Executor:
             # The mutate node is a view of its source
             yield ViewOfNodes(node.id, node.source_id)
 
+    def _lookup_value(
+        self, id: LineaID, recorded_calls: list[LineaID]
+    ) -> object:
+        """
+        Looks up a value, and if it is a use defined function, wrap it so
+        we know when it is called
+        """
+        value = self._id_to_value[id]
+        # If this is a user defined function, then wrap it, so we know if it was
+        # called as an arg
+        if isinstance(value, FunctionType):
+            value = FunctionWrapper(value, id, recorded_calls)
+        return value
+
     def execute_graph(self, graph: Graph) -> None:
         logger.info("Executing graph %s", graph)
         prev_working_dir = getcwd()
         chdir(graph.session_context.working_directory)
         for node in graph.visit_order():
-            self.execute_node(node)
+            self.execute_node(node, variables=None)
         chdir(prev_working_dir)
         # Add executed nodes to DB
         self.db.session.commit()
@@ -215,7 +253,18 @@ class ViewOfNodes:
         self.ids = list(ids)
 
 
-SideEffects = Iterable[Union[MutatedNode, ViewOfNodes]]
+@dataclass
+class UsedDefinedFunctionsCalled:
+    """
+    Represents that a number of user defined function were called
+    """
+
+    ids: list[LineaID]
+
+
+SideEffects = Iterable[
+    Union[MutatedNode, ViewOfNodes, UsedDefinedFunctionsCalled]
+]
 
 
 def lookup_value(name: str) -> object:
@@ -227,3 +276,27 @@ def lookup_value(name: str) -> object:
     if hasattr(lineabuiltins, name):
         return getattr(lineabuiltins, name)
     return globals()[name]
+
+
+@dataclass
+class FunctionWrapper:
+    """
+    Wraps a user defined function, so we can record when it was called
+    """
+
+    # The original function value
+    fn: FunctionType
+    # The ID of the function node
+    id: LineaID
+    # Our list of calls, which we should add this ID to when it is called,
+    # unless it has already been added
+    recorded_calls: list[LineaID]
+
+    def __post_init__(self):
+        # Update this callable to use the functions docstrings and such
+        update_wrapper(self, self.fn)
+
+    def __call__(self, *args, **kwds):
+        if self.id not in self.recorded_calls:
+            self.recorded_calls.append(self.id)
+        return self.fn(*args, **kwds)

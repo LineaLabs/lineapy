@@ -20,6 +20,16 @@ literal_4 = LiteralNode(
     ),
     value=10,
 )
+literal_5 = LiteralNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=4,
+        end_lineno=3,
+        end_col_offset=6,
+        source_code=source_1.id,
+    ),
+    value=11,
+)
 call_3 = CallNode(
     source_location=SourceLocation(
         lineno=4,
@@ -58,16 +68,4 @@ call_3 = CallNode(
             ).id,
         ],
     ).id,
-    global_reads={
-        "a": LiteralNode(
-            source_location=SourceLocation(
-                lineno=3,
-                col_offset=4,
-                end_lineno=3,
-                end_col_offset=6,
-                source_code=source_1.id,
-            ),
-            value=11,
-        ).id
-    },
 )

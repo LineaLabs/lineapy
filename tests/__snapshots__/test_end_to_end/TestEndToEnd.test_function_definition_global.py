@@ -15,6 +15,18 @@ lineapy.linea_publish(a, \'mutated a\')
 """,
     location=PosixPath("[source file path]"),
 )
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=11,
+        source_code=source_1.id,
+    ),
+    library=Library(
+        name="math",
+    ),
+)
 literal_7 = LiteralNode(
     source_location=SourceLocation(
         lineno=3,
@@ -83,18 +95,4 @@ call_4 = CallNode(
             ).id,
         ],
     ).id,
-    global_reads={
-        "math": ImportNode(
-            source_location=SourceLocation(
-                lineno=1,
-                col_offset=0,
-                end_lineno=1,
-                end_col_offset=11,
-                source_code=source_1.id,
-            ),
-            library=Library(
-                name="math",
-            ),
-        ).id
-    },
 )
