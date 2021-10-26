@@ -1,7 +1,7 @@
 # Keep unused import for transitive import by Executor
 from operator import *
 from types import FunctionType  # noqa: F403,F401
-from typing import List, Mapping, Optional, TypeVar, Union
+from typing import Iterable, List, Mapping, Optional, TypeVar, Union
 
 # NOTE: previous attempt at some import issues with the operator model
 #   from operator import *
@@ -107,8 +107,10 @@ def set_exec_globals(globals_: dict[str, object]) -> None:
     _exec_globals.update(globals_)
 
 
-def clear_exec_globals() -> None:
-    _exec_globals.clear()
+def clear_exec_globals(vars_to_clear: Iterable[str]) -> None:
+    for v in vars_to_clear:
+        if v in _exec_globals:
+            del _exec_globals[v]
 
 
 def function_defined_in_exec(fn: FunctionType) -> bool:
@@ -146,6 +148,6 @@ def __exec__(
     if is_expr:
         returned_locals.append(_exec_globals[_EXEC_EXPRESSION_SAVED_NAME])
 
-    clear_exec_globals()
+    clear_exec_globals(input_locals.keys())
 
     return returned_locals

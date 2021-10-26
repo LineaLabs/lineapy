@@ -160,7 +160,7 @@ class Executor:
                 res = fn(*args, **kwargs)
                 end_time = datetime.now()
 
-            lineabuiltins.clear_exec_globals()
+            lineabuiltins.clear_exec_globals(node_variables.keys())
 
             self._execution_time[node.id] = (start_time, end_time)
 
