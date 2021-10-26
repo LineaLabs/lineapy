@@ -20,6 +20,7 @@ from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils import prettify
+from lineapy.visualizer.visual_graph import VisualGraphOptions
 from tests.util import get_project_directory
 
 # Based off of unmerged JSON extension
@@ -158,7 +159,9 @@ class ExecuteFixture:
         transform(code, source_code_path, tracer)
 
         if self.visualize:
-            tracer.visualize()
+            tracer.visualize(
+                options=VisualGraphOptions(show_implied_mutations=True)
+            )
 
         # Verify snapshot of graph
         if compare_snapshot:
@@ -180,8 +183,12 @@ class ExecuteFixture:
 
         # Verify that execution works again, loading from the DB, in a new dir
         new_executor = Executor(db)
+
+        current_working_dir = os.getcwd()
+
         os.chdir(self.tmp_path)
         new_executor.execute_graph(tracer.graph)
+        os.chdir(current_working_dir)
 
         return tracer
 
@@ -196,3 +203,13 @@ def chdir_test_file():
     os.chdir(get_project_directory())
     yield
     os.chdir(current_working_dir)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def remove_dev_db():
+    """
+    Remove dev before all tests
+    """
+    p = Path("dev.sqlite")
+    if p.exists():
+        p.unlink()

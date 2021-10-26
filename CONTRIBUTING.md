@@ -9,12 +9,18 @@ This repository contains a few different components:
 
 ## First-time Setup
 
+### Conda
 ```bash
 conda create --name lineapy-env python=3.9
 conda activate lineapy-env
 # added quotes to make zsh compliant
 pip install -e ".[dev]" --user
 ```
+
+### Docker + Makefile
+To build the container, run `make build`
+To open bash within the container, run `make bash`. One can either use bash for dev or can connect to remote runtimes inside a container using extensions available for the editor of choice.
+
 
 ## Debugging (in VSC)
 
@@ -27,6 +33,9 @@ mypy -p lineapy
 black --line-length 79 --check .
 pytest tests/
 ```
+If using docker, please add appropriate tests and ensure all tests are working using
+`make test`. Any args to pytest can be passed using args="xxx". Eg, individual tests can be run using `make test args="<path_to_test_file>"`.
+
 
 ### Logging
 
@@ -49,6 +58,7 @@ pytest -p no:logging -s
 
 Some tests use use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test, to make it easier to update generate code and graphs.
 If you mean to change the tracing or graph spec, or added a new test that uses it, then run `pytest --snapshot-update` to update the saved snapshots.
+If using docker, you can use `make test args="--snapshot-update"` to update snapshots.
 
 ### Code Coverage
 
@@ -74,6 +84,19 @@ jupyter nbconvert --to notebook --execute tests/test_notebook.ipynb --inplace --
 Or you can open it in a notebook UI (JupyterLab, JupyterNotebook, VS Code, etc.)
 and re-run it manually
 
+### Airflow
+
+Sliced code can be exported to an Airflow DAG using the following command:
+
+```
+lineapy tests/housing.py --slice "p value" --airflow sliced_housing_dag
+```
+This creates a `sliced_housing_dag.py` file in the current dir. It can be executed with:
+
+```
+airflow db init
+airflow dags test sliced_housing_dag_dag $(date '+%Y-%m-%d') -S .
+```
 ## Visual Graphs
 
 Sometimes it's helpful to see a visual representation of the graph
@@ -114,6 +137,11 @@ If you want to inspect the AST of some Python code for debugging, you can run:
 ```bash
 ./tests/tools/print_ast.py 'hi(a=10)'
 ```
+
+## Before Committing
+
+Please ensure linting and typechecks are done before opening a PR. When using docker, this can be done using `make lint` and `make typecheck` respectively. A precommit hook that runs `make blackfix lint typecheck build test` will fix any fixable issues and ensure build and test works.
+
 
 ## Github Actions
 

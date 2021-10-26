@@ -8,7 +8,7 @@ import lineapy
 alt.data_transformers.enable("json")
 alt.renderers.enable("mimetype")
 
-assets = pd.read_csv("tests/ames_train_cleaned.csv")
+assets = pd.read_csv("ames_train_cleaned.csv")
 
 sns.relplot(data=assets, x="Year_Built", y="SalePrice", size="Lot_Area")
 

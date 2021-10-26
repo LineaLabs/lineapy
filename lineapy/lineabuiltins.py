@@ -107,7 +107,16 @@ def __exec__(
     if is_expr:
         code = f"{_EXPRESSION_SAVED_NAME} = {code}"
     bytecode = compile(code, "<string>", "exec")
-    exec(bytecode, globals(), input_locals)
+    # Only pass in "globals" so that globals and locals are equivalent,
+    # which is the case when executing at the module level, and not at the
+    # class body level, see https://docs.python.org/3/library/functions.html#exec
+    exec(bytecode, input_locals)
+
+    # Iterate through the ouputs we should get back, and look them up in the
+    # globals/locals. If they do not exist, return the _VariableNotSetSentinel
+    # to represent that that variable was not set. This is used for execing
+    # code which could possibly set a variable, but might not, like in an if
+    # statement branch
     returned_locals = [
         input_locals.get(name, _VariableNotSetSentinel())
         for name in output_locals

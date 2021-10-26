@@ -1,9 +1,8 @@
 import ast
 import logging
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union, cast, overload
 
-import lineapy
-from lineapy import catalog, get, save
+from lineapy.api import catalog, get, save
 from lineapy.constants import (
     ADD,
     BITAND,
@@ -170,7 +169,8 @@ class NodeTransformer(ast.NodeTransformer):
         if (
             isinstance(node.func, ast.Attribute)
             and isinstance(node.func.value, ast.Name)
-            and node.func.value.id == lineapy.__name__
+            and node.func.attr == save.__name__
+            and node.func.value.id == "lineapy"
         ):
             if node.func.attr in [catalog.__name__, get.__name__]:
                 raise RuntimeError(
@@ -491,41 +491,67 @@ class NodeTransformer(ast.NodeTransformer):
             self.visit(ast.Constant(value=node.attr)),
         )
 
+    @overload
+    def _visit_black_box(self, node: Union[ast.ListComp, ast.Lambda]) -> Node:
+
+        ...
+
+    @overload
     def _visit_black_box(
-        self,
-        node: Union[
-            ast.ListComp,
-            ast.If,
-            ast.For,
-            ast.FunctionDef,
-        ],
-    ):
+        self, node: Union[ast.FunctionDef, ast.For, ast.If]
+    ) -> None:
+
+        ...
+
+    def _visit_black_box(self, node: ast.AST) -> Optional[Node]:
         code = self._get_code_from_node(node)
-        if code is not None:
-            scope = analyze_code_scope(code)
+        if code is None:
+            raise ValueError(f"Cannod find code for node {node}")
+
+        scope = analyze_code_scope(code)
+
+        # If we are late binding the inputs, dont pass them in as values
+        # to the exec, but instead save their names to be looked up when
+        # we call this function
+        if isinstance(node, (ast.FunctionDef, ast.Lambda)):
+            input_values = {}
+        else:
             input_values = {
                 v: self.tracer.lookup_node(v) for v in scope.loaded
             }
-            if code is None:
-                raise ValueError("Code block should not be empty")
 
-            return self.tracer.exec(
-                code=code,
-                is_expression=isinstance(node, ast.ListComp),
-                source_location=self.get_source(node),
-                input_values=input_values,
-                output_variables=list(scope.stored),
+        res = self.tracer.exec(
+            code=code,
+            is_expression=isinstance(node, (ast.ListComp, ast.Lambda)),
+            source_location=self.get_source(node),
+            input_values=input_values,
+            output_variables=list(scope.stored),
+        )
+
+        # If we are late binding the inputs, save them as global reads
+        if isinstance(node, (ast.FunctionDef, ast.Lambda)):
+            # For a lambda function, the function id is just the id of the
+            # resulting node.
+            # However, for a function, we need to lookup the node ID
+            # by the variable name of the function
+            if isinstance(node, ast.FunctionDef):
+                function_id = self.tracer.variable_name_to_node[node.name].id
+            else:
+                function_id = cast(Node, res).id
+            self.tracer.function_node_id_to_global_reads[function_id] = list(
+                scope.loaded
             )
-        raise ValueError(f"Cannod find code for node {node}")
+
+        return res
 
     def visit_ListComp(self, node: ast.ListComp) -> Node:
-        return self._visit_black_box(node)  # type: ignore
+        return self._visit_black_box(node)
 
     def visit_If(self, node: ast.If) -> None:
-        return self._visit_black_box(node)  # type: ignore
+        return self._visit_black_box(node)
 
     def visit_For(self, node: ast.For) -> None:
-        return self._visit_black_box(node)  # type: ignore
+        return self._visit_black_box(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """
@@ -534,7 +560,7 @@ class NodeTransformer(ast.NodeTransformer):
         - no writing to variables defined outside the scope
         """
 
-        return self._visit_black_box(node)  # type: ignore
+        return self._visit_black_box(node)
 
     def visit_Dict(self, node: ast.Dict) -> CallNode:
         keys = node.keys
@@ -559,6 +585,9 @@ class NodeTransformer(ast.NodeTransformer):
                 for k, v in zip(keys, values)
             ),
         )
+
+    def visit_Lambda(self, ast_node: ast.Lambda) -> Node:
+        return self._visit_black_box(ast_node)
 
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):

@@ -64,6 +64,13 @@ FUNCTION_SCOPE_EXAMPLES: ParameterType = [
     ("def foo():\n  global a\n  a=1\n  b=2", Scope(stored={"foo", "a"})),
 ]
 
+LAMBDA_EXAMPLES: ParameterType = [
+    (
+        """lambda x: x + a""",
+        Scope(loaded={"a"}),
+    )
+]
+
 
 def _helper(code: str, scope: Scope):
     # a = ast.parse(code).body[0]
@@ -92,4 +99,9 @@ def test_if(code: str, scope: Scope):
 
 @pytest.mark.parametrize("code,scope", LIST_COMP_EXAMPLES)
 def test_list_comprehension(code: str, scope: Scope):
+    _helper(code, scope)
+
+
+@pytest.mark.parametrize("code,scope", LAMBDA_EXAMPLES)
+def test_lambda(code: str, scope: Scope):
     _helper(code, scope)

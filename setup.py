@@ -58,7 +58,8 @@ setup(
         "astor",
         "click>=8.0.0",
         "pydantic",
-        "SQLAlchemy",
+        # airflow requires older version of sqlalchemy, so we specify that directly to avoid backtracing
+        "SQLAlchemy<1.4.0",
         "networkx",
         "black",
         "rich",
@@ -82,10 +83,10 @@ setup(
             "jupyterlab",
             "ipython",
             "nbval",
-            "SQLAlchemy[mypy]",
             "coveralls",
             "seaborn",
             "graphviz",
+            "apache-airflow==2.2.0",
         ]
     },
     include_package_data=True,

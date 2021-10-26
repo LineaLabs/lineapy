@@ -1,4 +1,5 @@
 import logging
+import os
 import pathlib
 
 import click
@@ -11,7 +12,9 @@ from lineapy.data.types import SessionType
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
+from lineapy.plugins.airflow import sliced_aiflow_dag
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils import prettify
 
 """
 We are using click because our package will likely already have a dependency on
@@ -33,6 +36,17 @@ logger = logging.getLogger(__name__)
     help="Print the sliced code that this artifact depends on",
 )
 @click.option(
+    "--export-slice",
+    default=None,
+    help="Requires --slice. Export the sliced code that {slice} depends on to {export_slice}.py",
+)
+@click.option(
+    "--export-slice-to-airflow-dag",
+    "--airflow",
+    default=None,
+    help="Requires --slice. Export the sliced code that {slice} depends on to an Airflow DAG {export_slice}.py",
+)
+@click.option(
     "--print-source", help="Whether to print the source code", is_flag=True
 )
 @click.option(
@@ -45,12 +59,25 @@ logger = logging.getLogger(__name__)
     help="Print out logging for graph creation and execution",
     is_flag=True,
 )
+@click.option(
+    "--visualize",
+    help="Visualize the resulting graph with Graphviz",
+    is_flag=True,
+)
 @click.argument(
     "file_name",
     type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
 )
 def linea_cli(
-    file_name: pathlib.Path, mode, slice, print_source, print_graph, verbose
+    file_name: pathlib.Path,
+    mode,
+    slice,
+    export_slice,
+    export_slice_to_airflow_dag,
+    print_source,
+    print_graph,
+    verbose,
+    visualize,
 ):
     configure_logging("INFO" if verbose else "WARNING")
     tree = rich.tree.Tree(f"📄 {file_name}")
@@ -65,10 +92,18 @@ def linea_cli(
                 "Source code", rich.syntax.Syntax(code, "python")
             )
         )
+
+    # Change the working directory to that of the script,
+    # To pick up relative data paths
+    os.chdir(file_name.parent)
+
     tracer = Tracer(db, SessionType.SCRIPT)
     transform(code, file_name, tracer)
 
-    if slice:
+    if visualize:
+        tracer.visualize()
+
+    if slice and not export_slice and not export_slice_to_airflow_dag:
         tree.add(
             rich.console.Group(
                 f"Slice of {repr(slice)}",
@@ -76,13 +111,33 @@ def linea_cli(
             )
         )
 
+    if export_slice:
+        if not slice:
+            print("Please specify --slice. It is required for --export-slice")
+            exit(1)
+        full_code = tracer.sliced_func(slice, export_slice)
+        pathlib.Path(f"{export_slice}.py").write_text(full_code)
+
+    if export_slice_to_airflow_dag:
+        if not slice:
+            print(
+                "Please specify --slice. It is required for --export-slice-to-airflow-dag"
+            )
+            exit(1)
+        full_code = sliced_aiflow_dag(
+            tracer, slice, export_slice_to_airflow_dag
+        )
+        pathlib.Path(f"{export_slice_to_airflow_dag}.py").write_text(full_code)
+
     tracer.db.close()
     if print_graph:
-        graph_code = tracer.graph.print(
-            include_source_location=False,
-            include_id_field=False,
-            include_session=False,
-            include_imports=False,
+        graph_code = prettify(
+            tracer.graph.print(
+                include_source_location=False,
+                include_id_field=False,
+                include_session=False,
+                include_imports=False,
+            )
         )
         tree.add(
             rich.console.Group(

@@ -1,11 +1,12 @@
 import datetime
+import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import pytest
 from click.testing import CliRunner
 
-import lineapy
+from lineapy.api import save
 from lineapy.cli.cli import linea_cli
 from lineapy.constants import ExecutionMode
 from lineapy.db.base import get_default_config_by_environment
@@ -13,15 +14,15 @@ from lineapy.db.relational.db import RelationalLineaDB
 from tests.util import CSV_CODE, IMAGE_CODE, reset_test_db
 
 publish_name = "testing artifact publish"
-PUBLISH_CODE = f"""import {lineapy.__name__}
+PUBLISH_CODE = f"""import lineapy
 a = abs(11)
-{lineapy.__name__}.{lineapy.save.__name__}(a, '{publish_name}')
+lineapy.{save.__name__}(a, '{publish_name}')
 """
 
 alt_publish_name = "another_import_method"
-PUBLISH_ALT_FORMAT_CODE = f"""from {lineapy.__name__} import {lineapy.save.__name__}
+PUBLISH_ALT_FORMAT_CODE = f"""from lineapy import {save.__name__}
 a = 1
-{lineapy.save.__name__}(a, '{alt_publish_name}')
+{save.__name__}(a, '{alt_publish_name}')
 """
 
 STRING_FORMAT = """a = '{{ {0} }}'.format('foo')"""
@@ -45,11 +46,6 @@ df["id"].sum()
 PRINT_CODE = """a = abs(11)
 b = min(a, 10)
 print(b)
-"""
-
-IMPORT_CODE = """from math import pow as power, sqrt as root
-a = power(5, 2)
-b = root(a)
 """
 
 # also tests for float
@@ -82,7 +78,7 @@ f = a * b * c
 e
 g = e
 
-lineapy.{lineapy.save.__name__}(f, 'f')
+lineapy.{save.__name__}(f, 'f')
 """
 
 
@@ -107,7 +103,7 @@ def my_function():
     global a
     a = math.factorial(5)
 my_function()
-lineapy.{lineapy.save.__name__}(a, 'mutated a')
+lineapy.{save.__name__}(a, 'mutated a')
 """
 
 LOOP_CODE = f"""import lineapy
@@ -118,7 +114,7 @@ for x in range(9):
     b+=x
 x = sum(a)
 y = x + b
-lineapy.{lineapy.save.__name__}(y, 'y')
+lineapy.{save.__name__}(y, 'y')
 """
 
 SIMPLE_SLICE = f"""import lineapy
@@ -126,7 +122,7 @@ a = 2
 b = 2
 c = min(b,5)
 b
-lineapy.{lineapy.save.__name__}(c, 'c')
+lineapy.{save.__name__}(c, 'c')
 """
 
 SUBSCRIPT = """
@@ -137,7 +133,6 @@ ls[1] = a
 ls[2:3] = [30]
 ls[3:a] = [40]
 """
-
 
 NESTED_CALL = "a = min(abs(11), 10)"
 
@@ -240,6 +235,11 @@ class TestEndToEnd:
 
         assert res.slice("y") == python_snapshot
 
+    def test_loop_code_export_slice(self, execute, python_snapshot):
+        res = execute(LOOP_CODE)
+
+        assert res.sliced_func("y", "loop") == python_snapshot
+
     def test_conditionals(self, execute):
         res = execute(CONDITIONALS_CODE)
         assert res.stdout == "False\n"
@@ -310,10 +310,6 @@ class TestEndToEnd:
 
     def test_graph_with_basic_image(self, execute):
         execute(IMAGE_CODE)
-
-    def test_import(self, execute):
-        res = execute(IMPORT_CODE)
-        assert res.values["b"] == 5
 
     def test_no_script_error(self):
         # TODO
@@ -432,7 +428,12 @@ class TestEndToEnd:
         assert res.values["b"] == 2
 
     def test_housing(self, execute, python_snapshot):
-        code = (Path(__file__).parent / "housing.py").read_text()
+        tests_dir = Path(__file__).parent
+
+        # Change directory to tests dir before executing
+        os.chdir(tests_dir)
+
+        code = (tests_dir / "housing.py").read_text()
         res = execute(code)
         assert res.slice("p value") == python_snapshot
 
@@ -623,7 +624,6 @@ del x[1]
 
         assert res.artifacts["x"] == source
 
-    @pytest.mark.xfail(reason="some bug in view loops?")
     def test_self_return_loop(self, execute):
         """
         Verifies that if we return a value that is the same as the self arg,

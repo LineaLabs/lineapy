@@ -34,6 +34,7 @@ from lineapy.db.relational.schema.relational import (
     BaseNodeORM,
     CallNodeORM,
     ExecutionORM,
+    GlobalReferenceORM,
     ImportNodeORM,
     KeywordArgORM,
     LibraryORM,
@@ -183,6 +184,14 @@ class RelationalLineaDB:
                     KeywordArgORM(name=k, arg_node_id=v)
                     for k, v in node.keyword_args.items()
                 },
+                global_reads={
+                    GlobalReferenceORM(
+                        call_node_id=node.id,
+                        variable_name=k,
+                        variable_node_id=id_,
+                    )
+                    for k, id_ in node.global_reads.items()
+                },
             )
         elif isinstance(node, ImportNode):
             node_orm = ImportNodeORM(
@@ -294,10 +303,15 @@ class RelationalLineaDB:
                 )
             ]
             keyword_args = {n.name: n.arg_node_id for n in node.keyword_args}
+            global_reads = {
+                gr.variable_name: gr.variable_node_id
+                for gr in node.global_reads
+            }
             return CallNode(
                 function_id=node.function_id,
                 positional_args=positional_args,
                 keyword_args=keyword_args,
+                global_reads=global_reads,
                 **args,
             )
         if isinstance(node, MutateNodeORM):
