@@ -25,3 +25,21 @@ d = numpy.array([1,2,3])
     res = execute(code)
     assert res.values["c"].__class__.__name__ == "DataFrame"
     assert (res.values["d"] == [1, 2, 3]).all()
+
+
+def test_repeat_imports(execute):
+    code = """from math import pow
+from math import sqrt
+a=pow(5,2)
+b=sqrt(a)
+"""
+    res = execute(code, artifacts=["a", "b"])
+    assert res.values["a"] == 25
+    assert res.values["b"] == 5
+    assert res.artifacts["b"] == code
+    assert (
+        res.artifacts["a"]
+        == """from math import pow
+a=pow(5,2)
+"""
+    )
