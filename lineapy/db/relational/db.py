@@ -155,7 +155,9 @@ class RelationalLineaDB:
 
         self.session.add(source_code_orm)
 
-    def add_lib_to_session_context(self, context_id: LineaID, library: Library):
+    def add_lib_to_session_context(
+        self, context_id: LineaID, library: Library
+    ):
         self.write_library(library, context_id)
 
     def write_node(self, node: Node) -> None:
@@ -354,7 +356,9 @@ class RelationalLineaDB:
             .filter(BaseNodeORM.session_id == session_id)
             # Don't include source code in query, since it's not needed
             .options(
-                defaultload(ArtifactORM.node).raiseload(BaseNodeORM.source_code)
+                defaultload(ArtifactORM.node).raiseload(
+                    BaseNodeORM.source_code
+                )
             )
             .all()
         )

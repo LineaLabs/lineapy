@@ -503,7 +503,9 @@ class NodeTransformer(ast.NodeTransformer):
         code = self._get_code_from_node(node)
         if code is not None:
             scope = analyze_code_scope(code)
-            input_values = {v: self.tracer.lookup_node(v) for v in scope.loaded}
+            input_values = {
+                v: self.tracer.lookup_node(v) for v in scope.loaded
+            }
             if code is None:
                 raise ValueError("Code block should not be empty")
 
