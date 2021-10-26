@@ -1,12 +1,11 @@
 import os
 
+from lineapy.api import catalog, get, save
 from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.ipython import start, stop
-
-from .api import catalog, get, save
 
 __all__ = [
     "Graph",
