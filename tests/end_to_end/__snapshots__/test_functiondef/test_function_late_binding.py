@@ -14,16 +14,6 @@ lineapy.linea_publish(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )
-literal_5 = LiteralNode(
-    source_location=SourceLocation(
-        lineno=4,
-        col_offset=2,
-        end_lineno=4,
-        end_col_offset=4,
-        source_code=source_1.id,
-    ),
-    value=10,
-)
 call_3 = CallNode(
     source_location=SourceLocation(
         lineno=5,
@@ -78,4 +68,16 @@ call_3 = CallNode(
             value=15,
         ).id
     ],
+    global_reads={
+        "b": LiteralNode(
+            source_location=SourceLocation(
+                lineno=4,
+                col_offset=2,
+                end_lineno=4,
+                end_col_offset=4,
+                source_code=source_1.id,
+            ),
+            value=10,
+        ).id
+    },
 )

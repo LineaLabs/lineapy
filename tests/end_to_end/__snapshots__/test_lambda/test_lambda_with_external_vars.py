@@ -10,16 +10,6 @@ c = b(10)
 """,
     location=PosixPath("[source file path]"),
 )
-literal_4 = LiteralNode(
-    source_location=SourceLocation(
-        lineno=1,
-        col_offset=4,
-        end_lineno=1,
-        end_col_offset=6,
-        source_code=source_1.id,
-    ),
-    value=10,
-)
 call_3 = CallNode(
     source_location=SourceLocation(
         lineno=3,
@@ -70,4 +60,16 @@ call_3 = CallNode(
             value=10,
         ).id
     ],
+    global_reads={
+        "a": LiteralNode(
+            source_location=SourceLocation(
+                lineno=1,
+                col_offset=4,
+                end_lineno=1,
+                end_col_offset=6,
+                source_code=source_1.id,
+            ),
+            value=10,
+        ).id
+    },
 )

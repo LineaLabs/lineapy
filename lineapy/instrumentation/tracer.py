@@ -235,8 +235,6 @@ class Tracer:
             node, {k: v.id for k, v in self.variable_name_to_node.items()}
         )
 
-        self.db.write_node(node)
-
         # Iterate through each side effect and process it, depending on its type
         for e in side_effects:
             if isinstance(e, ViewOfNodes):
@@ -245,6 +243,8 @@ class Tracer:
                 self._process_used_defined_functions_called(node, e.ids)
             else:
                 self._process_mutate_node(e.id, node.id, node.session_id)
+
+        self.db.write_node(node)
 
     def _process_used_defined_functions_called(
         self, node: Node, ids: list[LineaID]
