@@ -1,5 +1,6 @@
 import ast
 import logging
+import traceback
 from typing import Any, Optional, Union, cast, overload
 
 from lineapy.api import linea_publish
@@ -53,7 +54,7 @@ from lineapy.lineabuiltins import (
 )
 from lineapy.transformer.analyze_scope import analyze_code_scope
 from lineapy.transformer.transformer_util import create_lib_attributes
-from lineapy.utils import get_new_id
+from lineapy.utils import UserException, get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +70,16 @@ def transform(
     """
 
     node_transformer = NodeTransformer(code, location, tracer)
-    tree = ast.parse(code)
-    node_transformer.visit(tree)
+    try:
+        tree = ast.parse(code)
+        node_transformer.visit(tree)
+    # TODO : catch user exception separately
+    except UserException as ue:
+        logger.exception("Caught exception in code")
+        raise Exception(ue.__cause__)
+    # finally:
+    #     print("caught something")
+
     tracer.db.commit()
     return node_transformer.last_statement_result
 
@@ -107,7 +116,7 @@ class NodeTransformer(ast.NodeTransformer):
         """
         try:
             return super().visit(node)
-        except Exception:
+        except Exception as e:
             code_context = self._get_code_from_node(node)
             logger.exception("Error while transforming code: %s", code_context)
             raise
@@ -116,6 +125,9 @@ class NodeTransformer(ast.NodeTransformer):
         raise NotImplementedError(
             f"Don't know how to transform {type(node).__name__}"
         )
+
+    def visit_Raise(self, node: ast.Raise) -> None:
+        return super().visit_Raise(node)
 
     def visit_Module(self, node: ast.Module) -> Any:
         for stmt in node.body:

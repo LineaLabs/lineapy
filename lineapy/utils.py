@@ -119,3 +119,7 @@ def remove_value(xs: Iterable[T], x: T) -> Iterable[T]:
     for y in xs:
         if x != y:
             yield y
+
+
+class UserException(Exception):
+    pass

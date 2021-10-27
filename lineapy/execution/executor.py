@@ -33,7 +33,7 @@ from lineapy.instrumentation.inspect_function import (
     Result,
     inspect_function,
 )
-from lineapy.utils import get_new_id
+from lineapy.utils import UserException, get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,15 @@ class Executor:
 
             with redirect_stdout(self._stdout):
                 start_time = datetime.now()
-                res = fn(*args, **kwargs)
+                res = None
+                try:
+                    res = fn(*args, **kwargs)
+                # track user exceptions separate from linea stack's exceptions.
+                # This way we can preserve their stack without poisoning it with linea lines.
+                except Exception as e:
+                    # use the catchall to raise a custom exception
+                    raise UserException(e.args) from e
+
                 end_time = datetime.now()
 
             self._execution_time[node.id] = (start_time, end_time)
