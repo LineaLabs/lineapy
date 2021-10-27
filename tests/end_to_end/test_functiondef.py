@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_function_definition_without_side_effect_artifacts(execute):
     code = """b=30
 def foo(a):
@@ -130,3 +133,15 @@ def my_function():
 my_function()
 """
     )
+
+
+@pytest.mark.xfail
+def test_mutate_in_fn(execute):
+    code = """def f():
+    a.append(1)
+a = []
+f()
+"""
+    res = execute(code, artifacts=["a"])
+    assert res.values["a"] == [1]
+    assert res.artifacts["a"] == code
