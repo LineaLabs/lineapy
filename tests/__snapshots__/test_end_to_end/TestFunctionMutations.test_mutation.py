@@ -8,7 +8,7 @@ source_1 = SourceCode(
 x = {}
 x[\'a\'] = 3
 
-lineapy.linea_publish(x, \'x\')
+lineapy.save(x, \'x\')
 """,
     location=PosixPath("[source file path]"),
 )

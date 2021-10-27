@@ -10,7 +10,7 @@ import lineapy
 df = pd.read_csv(\'tests/simple_data.csv\')
 s = df[\'a\'].sum()
 
-lineapy.linea_publish(s, "Graph With CSV Import")
+lineapy.save(s, "Graph With CSV Import")
 """,
     location=PosixPath("[source file path]"),
 )

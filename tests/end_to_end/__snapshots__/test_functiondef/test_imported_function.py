@@ -12,7 +12,7 @@ def my_function():
     a = math.factorial(5)
 my_function()
 
-lineapy.linea_publish(a, \'a\')
+lineapy.save(a, \'a\')
 """,
     location=PosixPath("[source file path]"),
 )

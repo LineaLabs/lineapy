@@ -334,9 +334,30 @@ class RelationalLineaDB:
             )
         return LookupNode(name=node.name, **args)
 
+    def get_node_by_id(self, linea_id: LineaID) -> Node:
+        """
+        Returns the node by looking up the database by ID
+        SQLAlchemy is able to translate between the two types on demand
+        """
+        node = (
+            self.session.query(BaseNodeORM)
+            .filter(BaseNodeORM.id == linea_id)
+            .one()
+        )
+        return self.map_orm_to_pydantic(node)
+
+    def get_session_context(self, linea_id: LineaID) -> SessionContext:
+        query_obj = (
+            self.session.query(SessionContextORM)
+            .filter(SessionContextORM.id == linea_id)
+            .one()
+        )
+        obj = SessionContext.from_orm(query_obj)
+        return obj
+
     def get_node_value_from_db(
         self, node_id: LineaID, execution_id: LineaID
-    ) -> Optional[NodeValue]:
+    ) -> Optional[NodeValueORM]:
         value_orm = (
             self.session.query(NodeValueORM)
             .filter(
@@ -378,6 +399,13 @@ class RelationalLineaDB:
             .filter(ArtifactORM.name == artifact_name)
             .one()
         )
+
+    def get_all_artifacts(self) -> List[Artifact]:
+        """
+        Used by the catalog to get all the artifacts
+        """
+        results = self.session.query(ArtifactORM).all()
+        return [Artifact.from_orm(r) for r in results]
 
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         """

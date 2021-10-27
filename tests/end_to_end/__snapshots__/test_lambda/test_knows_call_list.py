@@ -14,7 +14,7 @@ def sum_call_list(xs):
     return r
 r = sum_call_list([fn, fn])
 
-lineapy.linea_publish(r, \'r\')
+lineapy.save(r, \'r\')
 """,
     location=PosixPath("[source file path]"),
 )

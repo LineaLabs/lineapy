@@ -10,9 +10,9 @@ before = str(x)
 x[\'a\'] = 1
 after = str(x)
 
-lineapy.linea_publish(x, \'x\')
-lineapy.linea_publish(before, \'before\')
-lineapy.linea_publish(after, \'after\')
+lineapy.save(x, \'x\')
+lineapy.save(before, \'before\')
+lineapy.save(after, \'after\')
 """,
     location=PosixPath("[source file path]"),
 )

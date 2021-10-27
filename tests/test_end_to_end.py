@@ -6,7 +6,7 @@ from tempfile import NamedTemporaryFile
 import pytest
 from click.testing import CliRunner
 
-from lineapy.api import linea_publish
+from lineapy.api import save
 from lineapy.cli.cli import linea_cli
 from lineapy.constants import ExecutionMode
 from lineapy.db.base import get_default_config_by_environment
@@ -16,9 +16,14 @@ from tests.util import CSV_CODE, IMAGE_CODE, reset_test_db
 publish_name = "testing artifact publish"
 PUBLISH_CODE = f"""import lineapy
 a = abs(11)
-lineapy.{linea_publish.__name__}(a, '{publish_name}')
+lineapy.{save.__name__}(a, '{publish_name}')
 """
 
+alt_publish_name = "another_import_method"
+PUBLISH_ALT_FORMAT_CODE = f"""from lineapy import {save.__name__}
+a = 1
+{save.__name__}(a, '{alt_publish_name}')
+"""
 
 STRING_FORMAT = """a = '{{ {0} }}'.format('foo')"""
 
@@ -62,7 +67,7 @@ b = a
 a = 2
 """
 
-MESSY_NODES = """import lineapy
+MESSY_NODES = f"""import lineapy
 a = 1
 b = a + 2
 c = 2
@@ -73,7 +78,7 @@ f = a * b * c
 e
 g = e
 
-lineapy.linea_publish(f, 'f')
+lineapy.{save.__name__}(f, 'f')
 """
 
 
@@ -91,8 +96,7 @@ else:
     print("False")
 """
 
-
-LOOP_CODE = """import lineapy
+LOOP_CODE = f"""import lineapy
 a = []
 b = 0
 for x in range(9):
@@ -100,15 +104,15 @@ for x in range(9):
     b+=x
 x = sum(a)
 y = x + b
-lineapy.linea_publish(y, 'y')
+lineapy.{save.__name__}(y, 'y')
 """
 
-SIMPLE_SLICE = """import lineapy
+SIMPLE_SLICE = f"""import lineapy
 a = 2
 b = 2
 c = min(b,5)
 b
-lineapy.linea_publish(c, 'c')
+lineapy.{save.__name__}(c, 'c')
 """
 
 SUBSCRIPT = """
@@ -175,6 +179,14 @@ class TestEndToEnd:
         # also reset the file
         reset_test_db(config.database_uri)
         self.db = RelationalLineaDB(config)
+
+    @pytest.mark.xfail(
+        reason="check for `save` is brittle, relies on Attribute"
+    )
+    def test_publish_format(self, execute):
+        res = execute(PUBLISH_ALT_FORMAT_CODE)
+        artifact = res.db.get_artifact_by_name(alt_publish_name)
+        assert artifact.name == alt_publish_name
 
     def test_function_definition_without_side_effect(self, execute):
         res = execute(FUNCTION_DEFINITION_CODE)

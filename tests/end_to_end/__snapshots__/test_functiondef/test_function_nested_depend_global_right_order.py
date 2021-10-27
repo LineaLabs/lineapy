@@ -14,7 +14,7 @@ fn = foo()
 a = 12
 c = fn()
 
-lineapy.linea_publish(c, \'c\')
+lineapy.save(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )

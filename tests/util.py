@@ -2,6 +2,8 @@ import os.path as path
 from ast import AST, dump
 from os import remove
 
+from lineapy import save
+
 
 def reset_test_db(sqlite_uri: str):
     """ """
@@ -31,16 +33,16 @@ def compare_code_via_ast(code: str, expected: str) -> bool:
     return compare_ast(ast.parse(code), ast.parse(expected))
 
 
-CSV_CODE = """import pandas as pd
+CSV_CODE = f"""import pandas as pd
 import lineapy
 
 df = pd.read_csv('tests/simple_data.csv')
 s = df['a'].sum()
 
-lineapy.linea_publish(s, "Graph With CSV Import")
+lineapy.{save.__name__}(s, "Graph With CSV Import")
 """
 
-IMAGE_CODE = """import lineapy
+IMAGE_CODE = f"""import lineapy
 import pandas as pd
 import matplotlib.pyplot as plt
 from PIL.Image import open
@@ -51,7 +53,7 @@ plt.imsave('simple_data.png', df)
 img = open('simple_data.png')
 img = img.resize([200, 200])
 
-lineapy.linea_publish(img, "Graph With Image")
+lineapy.{save.__name__}(img, "Graph With Image")
 """
 
 

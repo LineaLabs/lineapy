@@ -6,7 +6,7 @@ from lineapy.utils import get_new_id
 source_1 = SourceCode(
     code="""import lineapy
 a = abs(11)
-lineapy.linea_publish(a, \'testing artifact publish\')
+lineapy.save(a, \'testing artifact publish\')
 """,
     location=PosixPath("[source file path]"),
 )

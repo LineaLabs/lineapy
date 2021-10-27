@@ -80,11 +80,12 @@ and publish a result:
 
 ```python
 import lineapy
+# please follow the `import lineapy` import pattern
 
 x = 100
 y = x + 500
 z = x - 10
-lineapy.linea_publish(z, "z")
+lineapy.save(z, "z")
 ```
 
 Then you can stop tracing and slice the code:

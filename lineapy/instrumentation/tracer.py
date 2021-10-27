@@ -185,7 +185,7 @@ class Tracer:
     def slice_var_name(self, artifact: ArtifactORM) -> str:
         """
         Returns the variable name for the given artifact.
-        i.e. in lineapy.linea_publish(p, "p value") "p" is returned
+        i.e. in lineapy.save(p, "p value") "p" is returned
         """
         if not artifact.node:
             return ""

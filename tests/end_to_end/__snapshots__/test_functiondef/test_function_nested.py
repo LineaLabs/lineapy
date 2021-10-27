@@ -11,7 +11,7 @@ def foo():
     return inner
 c = foo()()
 
-lineapy.linea_publish(c, \'c\')
+lineapy.save(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )
