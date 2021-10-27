@@ -190,7 +190,6 @@ class ExecuteFixture:
 
         # Verify snapshot of graph
         if compare_snapshot:
-            assert tracer.graphviz()._repr_svg_() == self.svg_snapshot
             graph_str = (
                 tracer.graph.print(
                     include_imports=True,
@@ -206,6 +205,15 @@ class ExecuteFixture:
             )
             # Prettify again in case replacements cause line wraps
             assert prettify(graph_str) == self.snapshot
+            # If this graph string snapshot was updated, then also update the SVG
+            # snapshot. We don't want to always update the SVG snapshot, because
+            # it has lots of random IDs in it. We want to use it not for testing,
+            # but for better PR diffs
+            res = self.snapshot._execution_results[
+                self.snapshot._executions - 1
+            ]
+            if res.created or res.updated:
+                tracer.graphviz()._repr_svg_() == self.svg_snapshot
 
         # Verify that execution works again, loading from the DB, in a new dir
         new_executor = Executor(db)
