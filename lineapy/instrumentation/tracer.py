@@ -86,12 +86,6 @@ class Tracer:
         default_factory=lambda: defaultdict(list)
     )
 
-    # Mapping from a node ID, which is the function node in a call node,
-    # to a list of global variables that need to be set before it is called
-    function_node_id_to_global_reads: dict[LineaID, list[str]] = field(
-        default_factory=lambda: defaultdict(list)
-    )
-
     session_context: SessionContext = field(init=False)
     executor: Executor = field(init=False)
 
@@ -502,13 +496,6 @@ class Tracer:
         )
         self.process_node(node)
         return node
-
-    def record_function_globals(
-        self,
-        function_node: Node,
-        global_reads: list[str],
-    ) -> None:
-        self.function_node_id_to_global_reads[function_node.id] = global_reads
 
     def assign(
         self,
