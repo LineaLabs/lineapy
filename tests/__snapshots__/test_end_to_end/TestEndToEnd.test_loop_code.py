@@ -28,26 +28,6 @@ call_1 = CallNode(
         name="l_list",
     ).id,
 )
-global_1 = GlobalNode(
-    name="foo",
-    call_id=call_1.id,
-)
-global_2 = GlobalNode(
-    name="c",
-    call_id=call_1.id,
-)
-global_3 = GlobalNode(
-    name="math",
-    call_id=call_1.id,
-)
-global_4 = GlobalNode(
-    name="a",
-    call_id=call_1.id,
-)
-global_5 = GlobalNode(
-    name="my_function",
-    call_id=call_1.id,
-)
 call_2 = CallNode(
     source_location=SourceLocation(
         lineno=4,
@@ -80,7 +60,7 @@ call_2 = CallNode(
         ).id,
     },
 )
-global_7 = GlobalNode(
+global_2 = GlobalNode(
     name="x",
     call_id=call_2.id,
 )

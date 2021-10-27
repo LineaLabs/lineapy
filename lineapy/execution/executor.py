@@ -150,6 +150,7 @@ class Executor:
                 k: self._id_to_value[id_]
                 for k, id_ in original_variables.items()
             }
+            lineabuiltins._exec_globals.clear()
             lineabuiltins._exec_globals.update(node_variables)
 
             # Do an empty exec, in order to fill node variables with the builtins
