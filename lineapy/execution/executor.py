@@ -142,6 +142,9 @@ class Executor:
             # Setup our globals
             ##
 
+            lineabuiltins._exec_globals.clear()
+            lineabuiltins._exec_globals._getitems.clear()
+
             input_globals = {
                 k: self._id_to_value[id_]
                 for k, id_ in (
@@ -182,12 +185,6 @@ class Executor:
             added_or_updated = list(changed_globals.keys())
 
             yield AccessedGlobals(retrieved, added_or_updated)
-
-            ##
-            # Teardown globals
-            ##
-            lineabuiltins._exec_globals.clear()
-            lineabuiltins._exec_globals._getitems.clear()
 
             # dependency analysis
             # ----------
