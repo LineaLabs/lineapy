@@ -190,12 +190,10 @@ class TestEndToEnd:
         assert res.values["c"] == 1
         assert res.values["d"] == 4
 
-    @pytest.mark.xfail(reason="exec scope is weird")
     def test_function_definition_global(self, execute):
         res = execute(FUNCTION_DEFINITION_GLOBAL_CODE)
         assert res.values["a"] == 120
 
-    @pytest.mark.xfail
     def test_function_definition_global_slice(self, execute, python_snapshot):
         """
         Verify code is the same

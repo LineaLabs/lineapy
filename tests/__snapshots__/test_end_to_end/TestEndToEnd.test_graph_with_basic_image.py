@@ -19,6 +19,80 @@ lineapy.linea_publish(img, "Graph With Image")
 """,
     location=PosixPath("[source file path]"),
 )
+call_1 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        ImportNode(
+            source_location=SourceLocation(
+                lineno=4,
+                col_offset=0,
+                end_lineno=4,
+                end_col_offset=26,
+                source_code=source_1.id,
+            ),
+            library=Library(
+                name="PIL.Image",
+            ),
+        ).id,
+        LiteralNode(
+            value="open",
+        ).id,
+    ],
+)
+global_1 = GlobalNode(
+    name="foo",
+    call_id=call_1.id,
+)
+global_2 = GlobalNode(
+    name="math",
+    call_id=call_1.id,
+)
+global_3 = GlobalNode(
+    name="my_function",
+    call_id=call_1.id,
+)
+global_4 = GlobalNode(
+    name="b",
+    call_id=call_1.id,
+)
+global_5 = GlobalNode(
+    name="a",
+    call_id=call_1.id,
+)
+global_6 = GlobalNode(
+    name="c",
+    call_id=call_1.id,
+)
+global_7 = GlobalNode(
+    name="v",
+    call_id=call_1.id,
+)
+global_8 = GlobalNode(
+    name="new_df",
+    call_id=call_1.id,
+)
+global_9 = GlobalNode(
+    name="DataFrame",
+    call_id=call_1.id,
+)
+global_10 = GlobalNode(
+    name="df",
+    call_id=call_1.id,
+)
+global_11 = GlobalNode(
+    name="x",
+    call_id=call_1.id,
+)
+global_12 = GlobalNode(
+    name="pandas",
+    call_id=call_1.id,
+)
+global_13 = GlobalNode(
+    name="bs",
+    call_id=call_1.id,
+)
 call_5 = CallNode(
     source_location=SourceLocation(
         lineno=7,
@@ -147,28 +221,7 @@ call_9 = CallNode(
                     end_col_offset=29,
                     source_code=source_1.id,
                 ),
-                function_id=CallNode(
-                    function_id=LookupNode(
-                        name="getattr",
-                    ).id,
-                    positional_args=[
-                        ImportNode(
-                            source_location=SourceLocation(
-                                lineno=4,
-                                col_offset=0,
-                                end_lineno=4,
-                                end_col_offset=26,
-                                source_code=source_1.id,
-                            ),
-                            library=Library(
-                                name="PIL.Image",
-                            ),
-                        ).id,
-                        LiteralNode(
-                            value="open",
-                        ).id,
-                    ],
-                ).id,
+                function_id=call_1.id,
                 positional_args=[
                     LiteralNode(
                         source_location=SourceLocation(
@@ -197,7 +250,7 @@ call_9 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
-                name="__build_list__",
+                name="l_list",
             ).id,
             positional_args=[
                 LiteralNode(

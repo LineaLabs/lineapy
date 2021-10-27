@@ -1,6 +1,6 @@
 import ast
 import logging
-from typing import Any, Optional, Union, cast, overload
+from typing import Any, Optional, cast
 
 from lineapy.api import linea_publish
 from lineapy.constants import (
@@ -49,9 +49,10 @@ from lineapy.lineabuiltins import (
     l_assert,
     l_dict,
     l_dict_kwargs_sentinel,
+    l_exec_expr,
+    l_exec_statement,
     l_list,
 )
-from lineapy.transformer.analyze_scope import analyze_code_scope
 from lineapy.transformer.transformer_util import create_lib_attributes
 from lineapy.utils import get_new_id
 
@@ -100,18 +101,6 @@ class NodeTransformer(ast.NodeTransformer):
     def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
         return ast.get_source_segment(self.source_code.code, node, padded=True)
 
-    def visit(self, node: ast.AST) -> Any:
-        """
-        Should return a Node when visiting expressions, to chain them,
-        or a None when visiting statements.
-        """
-        try:
-            return super().visit(node)
-        except Exception:
-            code_context = self._get_code_from_node(node)
-            logger.exception("Error while transforming code: %s", code_context)
-            raise
-
     def generic_visit(self, node: ast.AST) -> ast.AST:
         raise NotImplementedError(
             f"Don't know how to transform {type(node).__name__}"
@@ -119,7 +108,16 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Module(self, node: ast.Module) -> Any:
         for stmt in node.body:
-            self.last_statement_result = self.visit(stmt)
+            try:
+                self.last_statement_result = self.visit(stmt)
+            except Exception:
+                code_context = self._get_code_from_node(node)
+
+                logger.exception(
+                    "Error while transforming code: %s", code_context
+                )
+                raise
+            code_context = self._get_code_from_node(node)
 
     def visit_Expr(self, node: ast.Expr) -> Node:
         return self.visit(node.value)
@@ -490,67 +488,32 @@ class NodeTransformer(ast.NodeTransformer):
             self.visit(ast.Constant(value=node.attr)),
         )
 
-    @overload
-    def _visit_black_box(self, node: Union[ast.ListComp, ast.Lambda]) -> Node:
-
-        ...
-
-    @overload
-    def _visit_black_box(
-        self, node: Union[ast.FunctionDef, ast.For, ast.If]
-    ) -> None:
-
-        ...
-
-    def _visit_black_box(self, node: ast.AST) -> Optional[Node]:
+    def _exec_statement(self, node: ast.AST) -> None:
         code = self._get_code_from_node(node)
-        if code is None:
-            raise ValueError(f"Cannod find code for node {node}")
-
-        scope = analyze_code_scope(code)
-
-        # If we are late binding the inputs, dont pass them in as values
-        # to the exec, but instead save their names to be looked up when
-        # we call this function
-        if isinstance(node, (ast.FunctionDef, ast.Lambda)):
-            input_values = {}
-        else:
-            input_values = {
-                v: self.tracer.lookup_node(v) for v in scope.loaded
-            }
-
-        res = self.tracer.exec(
-            code=code,
-            is_expression=isinstance(node, (ast.ListComp, ast.Lambda)),
-            source_location=self.get_source(node),
-            input_values=input_values,
-            output_variables=list(scope.stored),
+        assert code
+        self.tracer.call(
+            self.tracer.lookup_node(l_exec_statement.__name__),
+            self.get_source(node),
+            self.tracer.literal(code),
         )
 
-        # If we are late binding the inputs, save them as global reads
-        if isinstance(node, (ast.FunctionDef, ast.Lambda)):
-            # For a lambda function, the function id is just the id of the
-            # resulting node.
-            # However, for a function, we need to lookup the node ID
-            # by the variable name of the function
-            if isinstance(node, ast.FunctionDef):
-                function_node = self.tracer.variable_name_to_node[node.name]
-            else:
-                function_node = cast(Node, res)
-            self.tracer.record_function_globals(
-                function_node, list(scope.loaded)
-            )
-
-        return res
+    def _exec_expression(self, node: ast.AST) -> Node:
+        code = self._get_code_from_node(node)
+        assert code
+        return self.tracer.call(
+            self.tracer.lookup_node(l_exec_expr.__name__),
+            self.get_source(node),
+            self.tracer.literal(code),
+        )
 
     def visit_ListComp(self, node: ast.ListComp) -> Node:
-        return self._visit_black_box(node)
+        return self._exec_expression(node)
 
     def visit_If(self, node: ast.If) -> None:
-        return self._visit_black_box(node)
+        return self._exec_statement(node)
 
     def visit_For(self, node: ast.For) -> None:
-        return self._visit_black_box(node)
+        return self._exec_statement(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """
@@ -559,7 +522,7 @@ class NodeTransformer(ast.NodeTransformer):
         - no writing to variables defined outside the scope
         """
 
-        return self._visit_black_box(node)
+        return self._exec_statement(node)
 
     def visit_Dict(self, node: ast.Dict) -> CallNode:
         keys = node.keys
@@ -586,7 +549,7 @@ class NodeTransformer(ast.NodeTransformer):
         )
 
     def visit_Lambda(self, ast_node: ast.Lambda) -> Node:
-        return self._visit_black_box(ast_node)
+        return self._exec_expression(ast_node)
 
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):

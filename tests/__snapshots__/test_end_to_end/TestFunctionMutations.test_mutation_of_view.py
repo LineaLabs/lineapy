@@ -23,7 +23,7 @@ call_1 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_dict__",
+        name="l_dict",
     ).id,
 )
 call_2 = CallNode(
@@ -35,8 +35,34 @@ call_2 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_dict__",
+        name="l_dict",
     ).id,
+)
+call_3 = CallNode(
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=0,
+        end_lineno=4,
+        end_col_offset=10,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="setitem",
+    ).id,
+    positional_args=[
+        call_1.id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=4,
+                col_offset=2,
+                end_lineno=4,
+                end_col_offset=5,
+                source_code=source_1.id,
+            ),
+            value="y",
+        ).id,
+        call_2.id,
+    ],
 )
 call_4 = CallNode(
     source_location=SourceLocation(
@@ -73,40 +99,600 @@ call_4 = CallNode(
         ).id,
     ],
 )
-mutate_2 = MutateNode(
+mutate_49 = MutateNode(
     source_id=call_2.id,
     call_id=call_4.id,
 )
-mutate_4 = MutateNode(
+mutate_52 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="decimal",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_53 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r3",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_54 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="pandas",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_55 = MutateNode(
     source_id=MutateNode(
         source_id=MutateNode(
             source_id=call_1.id,
-            call_id=CallNode(
-                source_location=SourceLocation(
-                    lineno=4,
-                    col_offset=0,
-                    end_lineno=4,
-                    end_col_offset=10,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="setitem",
-                ).id,
-                positional_args=[
-                    call_1.id,
-                    LiteralNode(
-                        source_location=SourceLocation(
-                            lineno=4,
-                            col_offset=2,
-                            end_lineno=4,
-                            end_col_offset=5,
-                            source_code=source_1.id,
-                        ),
-                        value="y",
-                    ).id,
-                    call_2.id,
-                ],
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_61 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="sns",
+                call_id=call_1.id,
             ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_62 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="foo",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_63 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="math",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_64 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="a",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_65 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="bs",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_67 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="img",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_71 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r4",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_72 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="ls",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_73 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="types",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_80 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="obj",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_81 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r9",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_82 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="x",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_83 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="b",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_84 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="d",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_85 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="pd",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_91 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r6",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_92 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r10",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_93 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="open",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_94 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r8",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_95 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="e",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_101 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r2",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_102 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="c",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_103 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r7",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_104 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="assets",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_105 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="sklearn.ensemble",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_107 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="plt",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_113 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="PIL.Image",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_114 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="altair",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_115 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="Decimal",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_116 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="y",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_117 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="clf",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_119 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r1",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_121 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="is_new",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_126 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="my_function",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_127 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="v",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_128 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="DataFrame",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_129 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="df",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_131 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r11",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_134 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="r5",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_135 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="new_df",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_138 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="alt",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
+        ).id,
+        call_id=call_4.id,
+    ).id,
+    call_id=call_4.id,
+)
+mutate_139 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=GlobalNode(
+                name="RandomForestClassifier",
+                call_id=call_1.id,
+            ).id,
+            call_id=call_3.id,
         ).id,
         call_id=call_4.id,
     ).id,

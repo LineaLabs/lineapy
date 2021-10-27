@@ -7,7 +7,6 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
-from types import FunctionType
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
@@ -15,11 +14,11 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
     Execution,
+    GlobalNode,
     ImportNode,
     LineaID,
     LiteralNode,
     LookupNode,
-    MutateNode,
     Node,
 )
 from lineapy.db.relational.db import RelationalLineaDB
@@ -56,6 +55,11 @@ class Executor:
     )
     # Mapping of bound method node ids to the ID of the instance they are bound to
     _node_to_bound_self: dict[LineaID, LineaID] = field(default_factory=dict)
+
+    # Mapping of call node to the globals that were updated
+    _node_to_globals: dict[LineaID, dict[str, object]] = field(
+        default_factory=dict
+    )
 
     def __post_init__(self):
         self.execution = Execution(
@@ -113,16 +117,11 @@ class Executor:
         if isinstance(node, LookupNode):
             value = lookup_value(node.name)
             self._id_to_value[node.id] = value
-
-            return ()
         elif isinstance(node, CallNode):
-            recorded_calls: list[LineaID] = []
 
             # execute the function
             # ----------
-            fn = cast(
-                Callable, self._lookup_value(node.function_id, recorded_calls)
-            )
+            fn = cast(Callable, self._id_to_value[node.function_id])
 
             # If we are getting an attribute, save the value in case
             # we later call it as a bound method and need to track its mutations
@@ -130,11 +129,10 @@ class Executor:
                 self._node_to_bound_self[node.id] = node.positional_args[0]
 
             args = [
-                self._lookup_value(arg_id, recorded_calls)
-                for arg_id in node.positional_args
+                self._id_to_value[arg_id] for arg_id in node.positional_args
             ]
             kwargs = {
-                k: self._lookup_value(arg_id, recorded_calls)
+                k: self._id_to_value[arg_id]
                 for k, arg_id in node.keyword_args.items()
             }
             logger.info("Calling function %s %s %s", fn, args, kwargs)
@@ -147,23 +145,43 @@ class Executor:
             # the scoping, so we set all of the variables we know.
 
             # The subsequent times, we only use those that were recorded
+            original_variables = variables or node.global_reads
             node_variables = {
                 k: self._id_to_value[id_]
-                for k, id_ in (variables or node.global_reads).items()
+                for k, id_ in original_variables.items()
             }
-            lineabuiltins.set_exec_globals(node_variables)
+            lineabuiltins._exec_globals.update(node_variables)
+
+            # Do an empty exec, in order to fill node variables with the builtins
+            # so that when we compare later on to see whats added, we won't
+            # consider those as added
+            exec("", node_variables)
+            # The builtins that were added are all the keys, minus those that we set
+            # added_builtins = set(node_variables.keys()) - set(
+            #     original_variables.keys()
+            # )
+            lineabuiltins._exec_globals._getitems.clear()
 
             with redirect_stdout(self._stdout):
                 start_time = datetime.now()
                 res = fn(*args, **kwargs)
                 end_time = datetime.now()
-
-            lineabuiltins.clear_exec_globals(node_variables.keys())
-
             self._execution_time[node.id] = (start_time, end_time)
 
-            if recorded_calls:
-                yield UsedDefinedFunctionsCalled(recorded_calls)
+            changed_globals = {
+                k: v
+                for k, v, in lineabuiltins._exec_globals.items()
+                # The global was changed if it is new, i.e. was not in the our variables
+                if k not in node_variables
+                # Or if it is different
+                or node_variables[k] is not v
+            }
+            self._node_to_globals[node.id] = changed_globals
+
+            retrieved = lineabuiltins._exec_globals._getitems
+            added_or_updated = list(changed_globals.keys())
+            yield AccessedGlobals(retrieved, added_or_updated)
+
             # dependency analysis
             # ----------
             self._id_to_value[node.id] = res
@@ -192,32 +210,20 @@ class Executor:
             with redirect_stdout(self._stdout):
                 value = importlib.import_module(node.library.name)
             self._id_to_value[node.id] = value
-            return []
         elif isinstance(node, LiteralNode):
             self._id_to_value[node.id] = node.value
-            return []
-        elif isinstance(node, MutateNode):
+        elif isinstance(node, GlobalNode):
+            self._id_to_value[node.id] = self._node_to_globals[node.call_id][
+                node.name
+            ]
+            yield ViewOfNodes(node.id, node.call_id)
+
+        else:
             # Copy the value from the source value node
             self._id_to_value[node.id] = self._id_to_value[node.source_id]
 
             # The mutate node is a view of its source
             yield ViewOfNodes(node.id, node.source_id)
-
-    def _lookup_value(
-        self, id: LineaID, recorded_calls: list[LineaID]
-    ) -> object:
-        """
-        Looks up a value, and if it is a use defined function, wrap it so
-        we know when it is called
-        """
-        value = self._id_to_value[id]
-        # If this is a user defined function, then wrap it, so we know if it was
-        # called as an arg
-        if isinstance(
-            value, FunctionType
-        ) and lineabuiltins.function_defined_in_exec(value):
-            value = FunctionWrapper(value, id, recorded_calls)
-        return value
 
     def execute_graph(self, graph: Graph) -> None:
         logger.info("Executing graph %s", graph)
@@ -254,14 +260,13 @@ class ViewOfNodes:
 
 
 @dataclass
-class UsedDefinedFunctionsCalled:
+class AccessedGlobals:
     """
-    Represents that a number of user defined function were called
+    Represents some global variables that were retireved or changed during this call.
     """
 
-    ids: list[LineaID]
+    retrieved: list[str]
+    added_or_updated: list[str]
 
 
-SideEffects = Iterable[
-    Union[MutatedNode, ViewOfNodes, UsedDefinedFunctionsCalled]
-]
+SideEffects = Iterable[Union[MutatedNode, ViewOfNodes, AccessedGlobals]]

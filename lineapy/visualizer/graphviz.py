@@ -29,7 +29,7 @@ from lineapy.visualizer.visual_graph import (
 
 NODE_STYLE = {
     # https://graphviz.org/doc/info/colors.html#brewer
-    "colorscheme": "pastel19",
+    "colorscheme": "pastel19"
 }
 
 EDGE_STYLE = {
@@ -54,7 +54,7 @@ TYPES_FOR_COLOR: list[ColorableType] = [
     NodeType.ImportNode,
     ExtraLabelType.VARIABLE,
     NodeType.LookupNode,
-    ExtraLabelType.ARTIFACT,
+    NodeType.GlobalNode,
 ]
 
 # Labels for node types for legend
@@ -64,6 +64,7 @@ NODE_LABELS: dict[NodeType, str] = {
     NodeType.ImportNode: "Import",
     NodeType.LookupNode: "Lookup",
     NodeType.MutateNode: "Mutate",
+    NodeType.GlobalNode: "Global",
 }
 
 EXTRA_LABEL_LABELS: dict[ExtraLabelType, str] = {
@@ -74,6 +75,8 @@ EXTRA_LABEL_LABELS: dict[ExtraLabelType, str] = {
 EDGE_TYPE_TO_LABEL: dict[VisualEdgeType, str] = {
     VisualEdgeType.LATEST_MUTATE_SOURCE: "Implied Mutate",
     VisualEdgeType.VIEW: "View",
+    VisualEdgeType.SOURCE_CODE: "Source Code",
+    VisualEdgeType.MUTATE_CALL: "Mutate Call",
 }
 
 NODE_SHAPES: dict[NodeType, str] = {
@@ -82,6 +85,7 @@ NODE_SHAPES: dict[NodeType, str] = {
     NodeType.ImportNode: "box",
     NodeType.LookupNode: "box",
     NodeType.MutateNode: "record",
+    NodeType.GlobalNode: "box",
 }
 
 UNDIRECTED_EDGE_TYPES = {
@@ -101,7 +105,10 @@ def get_color(tp: ColorableType) -> str:
     Get the color for a type. Note that graphviz colorscheme indexing
     is 1 based
     """
-    return str(TYPES_FOR_COLOR.index(tp) + 1)
+    try:
+        return str(TYPES_FOR_COLOR.index(tp) + 1)
+    except ValueError:
+        return "/greys3/1"
 
 
 def tracer_to_graphviz(

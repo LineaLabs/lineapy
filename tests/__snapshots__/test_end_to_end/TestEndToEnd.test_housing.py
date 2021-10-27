@@ -47,6 +47,156 @@ import_1 = ImportNode(
         name="altair",
     ),
 )
+call_1 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        ImportNode(
+            source_location=SourceLocation(
+                lineno=4,
+                col_offset=0,
+                end_lineno=4,
+                end_col_offset=51,
+                source_code=source_1.id,
+            ),
+            library=Library(
+                name="sklearn.ensemble",
+            ),
+        ).id,
+        LiteralNode(
+            value="RandomForestClassifier",
+        ).id,
+    ],
+)
+global_1 = GlobalNode(
+    name="foo",
+    call_id=call_1.id,
+)
+global_2 = GlobalNode(
+    name="plt",
+    call_id=call_1.id,
+)
+global_3 = GlobalNode(
+    name="r5",
+    call_id=call_1.id,
+)
+global_4 = GlobalNode(
+    name="r9",
+    call_id=call_1.id,
+)
+global_5 = GlobalNode(
+    name="r11",
+    call_id=call_1.id,
+)
+global_6 = GlobalNode(
+    name="ls",
+    call_id=call_1.id,
+)
+global_7 = GlobalNode(
+    name="r10",
+    call_id=call_1.id,
+)
+global_8 = GlobalNode(
+    name="r6",
+    call_id=call_1.id,
+)
+global_9 = GlobalNode(
+    name="r7",
+    call_id=call_1.id,
+)
+global_10 = GlobalNode(
+    name="r8",
+    call_id=call_1.id,
+)
+global_11 = GlobalNode(
+    name="PIL.Image",
+    call_id=call_1.id,
+)
+global_12 = GlobalNode(
+    name="r1",
+    call_id=call_1.id,
+)
+global_13 = GlobalNode(
+    name="r3",
+    call_id=call_1.id,
+)
+global_14 = GlobalNode(
+    name="r4",
+    call_id=call_1.id,
+)
+global_15 = GlobalNode(
+    name="r2",
+    call_id=call_1.id,
+)
+global_16 = GlobalNode(
+    name="open",
+    call_id=call_1.id,
+)
+global_17 = GlobalNode(
+    name="img",
+    call_id=call_1.id,
+)
+global_18 = GlobalNode(
+    name="c",
+    call_id=call_1.id,
+)
+global_19 = GlobalNode(
+    name="b",
+    call_id=call_1.id,
+)
+global_20 = GlobalNode(
+    name="DataFrame",
+    call_id=call_1.id,
+)
+global_21 = GlobalNode(
+    name="df",
+    call_id=call_1.id,
+)
+global_22 = GlobalNode(
+    name="new_df",
+    call_id=call_1.id,
+)
+global_23 = GlobalNode(
+    name="v",
+    call_id=call_1.id,
+)
+global_24 = GlobalNode(
+    name="x",
+    call_id=call_1.id,
+)
+global_25 = GlobalNode(
+    name="bs",
+    call_id=call_1.id,
+)
+global_26 = GlobalNode(
+    name="pandas",
+    call_id=call_1.id,
+)
+global_27 = GlobalNode(
+    name="math",
+    call_id=call_1.id,
+)
+global_28 = GlobalNode(
+    name="a",
+    call_id=call_1.id,
+)
+global_29 = GlobalNode(
+    name="my_function",
+    call_id=call_1.id,
+)
+global_30 = GlobalNode(
+    name="altair",
+    call_id=call_1.id,
+)
+global_31 = GlobalNode(
+    name="d",
+    call_id=call_1.id,
+)
+global_32 = GlobalNode(
+    name="e",
+    call_id=call_1.id,
+)
 call_4 = CallNode(
     source_location=SourceLocation(
         lineno=8,
@@ -280,7 +430,7 @@ call_11 = CallNode(
         ).id,
     },
 )
-call_14 = CallNode(
+call_13 = CallNode(
     source_location=SourceLocation(
         lineno=20,
         col_offset=26,
@@ -305,7 +455,7 @@ call_14 = CallNode(
         ).id,
     ],
 )
-call_16 = CallNode(
+call_15 = CallNode(
     source_location=SourceLocation(
         lineno=20,
         col_offset=0,
@@ -336,53 +486,40 @@ call_16 = CallNode(
                 end_col_offset=47,
                 source_code=source_1.id,
             ),
-            function_id=CallNode(
-                function_id=LookupNode(
-                    name="getitem",
-                ).id,
-                positional_args=[
-                    CallNode(
-                        source_location=SourceLocation(
-                            lineno=16,
-                            col_offset=0,
-                            end_lineno=17,
-                            end_col_offset=21,
-                            source_code=source_1.id,
-                        ),
-                        function_id=LookupNode(
-                            name="__exec__",
-                        ).id,
-                        positional_args=[
-                            LiteralNode(
-                                value="""def is_new(col):
+            function_id=GlobalNode(
+                name="is_new",
+                call_id=CallNode(
+                    source_location=SourceLocation(
+                        lineno=16,
+                        col_offset=0,
+                        end_lineno=17,
+                        end_col_offset=21,
+                        source_code=source_1.id,
+                    ),
+                    function_id=LookupNode(
+                        name="l_exec_statement",
+                    ).id,
+                    positional_args=[
+                        LiteralNode(
+                            value="""def is_new(col):
     return col > 1970""",
-                            ).id,
-                            LiteralNode(
-                                value=False,
-                            ).id,
-                            LiteralNode(
-                                value="is_new",
-                            ).id,
-                        ],
-                    ).id,
-                    LiteralNode(
-                        value=0,
-                    ).id,
-                ],
+                        ).id
+                    ],
+                ).id,
             ).id,
-            positional_args=[call_14.id],
+            positional_args=[call_13.id],
         ).id,
     ],
 )
 mutate_1 = MutateNode(
     source_id=call_9.id,
-    call_id=call_16.id,
+    call_id=call_15.id,
 )
 mutate_2 = MutateNode(
-    source_id=call_14.id,
-    call_id=call_16.id,
+    source_id=call_13.id,
+    call_id=call_15.id,
 )
-call_17 = CallNode(
+call_16 = CallNode(
     source_location=SourceLocation(
         lineno=22,
         col_offset=6,
@@ -390,28 +527,7 @@ call_17 = CallNode(
         end_col_offset=44,
         source_code=source_1.id,
     ),
-    function_id=CallNode(
-        function_id=LookupNode(
-            name="getattr",
-        ).id,
-        positional_args=[
-            ImportNode(
-                source_location=SourceLocation(
-                    lineno=4,
-                    col_offset=0,
-                    end_lineno=4,
-                    end_col_offset=51,
-                    source_code=source_1.id,
-                ),
-                library=Library(
-                    name="sklearn.ensemble",
-                ),
-            ).id,
-            LiteralNode(
-                value="RandomForestClassifier",
-            ).id,
-        ],
-    ).id,
+    function_id=call_1.id,
     keyword_args={
         "random_state": LiteralNode(
             source_location=SourceLocation(
@@ -425,7 +541,7 @@ call_17 = CallNode(
         ).id
     },
 )
-call_27 = CallNode(
+call_26 = CallNode(
     source_location=SourceLocation(
         lineno=27,
         col_offset=4,
@@ -446,7 +562,7 @@ call_27 = CallNode(
         ).id,
         positional_args=[
             MutateNode(
-                source_id=call_17.id,
+                source_id=call_16.id,
                 call_id=CallNode(
                     source_location=SourceLocation(
                         lineno=26,
@@ -467,7 +583,7 @@ call_27 = CallNode(
                             name="getattr",
                         ).id,
                         positional_args=[
-                            call_17.id,
+                            call_16.id,
                             LiteralNode(
                                 value="fit",
                             ).id,
@@ -496,7 +612,7 @@ call_27 = CallNode(
                                         source_code=source_1.id,
                                     ),
                                     function_id=LookupNode(
-                                        name="__build_list__",
+                                        name="l_list",
                                     ).id,
                                     positional_args=[
                                         LiteralNode(
@@ -576,7 +692,7 @@ call_27 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
-                name="__build_list__",
+                name="l_list",
             ).id,
             positional_args=[
                 CallNode(
@@ -588,7 +704,7 @@ call_27 = CallNode(
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
-                        name="__build_list__",
+                        name="l_list",
                     ).id,
                     positional_args=[
                         CallNode(

@@ -10,6 +10,92 @@ df["id"].sum()
 """,
     location=PosixPath("[source file path]"),
 )
+call_2 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=25,
+        end_lineno=2,
+        end_col_offset=30,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_list",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=2,
+                col_offset=26,
+                end_lineno=2,
+                end_col_offset=27,
+                source_code=source_1.id,
+            ),
+            value=1,
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=2,
+                col_offset=28,
+                end_lineno=2,
+                end_col_offset=29,
+                source_code=source_1.id,
+            ),
+            value=2,
+        ).id,
+    ],
+)
+global_1 = GlobalNode(
+    name="foo",
+    call_id=call_2.id,
+)
+global_2 = GlobalNode(
+    name="bs",
+    call_id=call_2.id,
+)
+global_3 = GlobalNode(
+    name="pandas",
+    call_id=call_2.id,
+)
+global_4 = GlobalNode(
+    name="new_df",
+    call_id=call_2.id,
+)
+global_5 = GlobalNode(
+    name="v",
+    call_id=call_2.id,
+)
+global_6 = GlobalNode(
+    name="b",
+    call_id=call_2.id,
+)
+global_7 = GlobalNode(
+    name="x",
+    call_id=call_2.id,
+)
+global_8 = GlobalNode(
+    name="c",
+    call_id=call_2.id,
+)
+global_9 = GlobalNode(
+    name="a",
+    call_id=call_2.id,
+)
+global_10 = GlobalNode(
+    name="my_function",
+    call_id=call_2.id,
+)
+global_11 = GlobalNode(
+    name="math",
+    call_id=call_2.id,
+)
+global_12 = GlobalNode(
+    name="df",
+    call_id=call_2.id,
+)
+global_13 = GlobalNode(
+    name="DataFrame",
+    call_id=call_2.id,
+)
 call_8 = CallNode(
     source_location=SourceLocation(
         lineno=3,
@@ -89,12 +175,12 @@ call_8 = CallNode(
                                     source_code=source_1.id,
                                 ),
                                 function_id=LookupNode(
-                                    name="__build_dict__",
+                                    name="l_dict",
                                 ).id,
                                 positional_args=[
                                     CallNode(
                                         function_id=LookupNode(
-                                            name="__build_tuple__",
+                                            name="l_tuple",
                                         ).id,
                                         positional_args=[
                                             LiteralNode(
@@ -107,40 +193,7 @@ call_8 = CallNode(
                                                 ),
                                                 value="id",
                                             ).id,
-                                            CallNode(
-                                                source_location=SourceLocation(
-                                                    lineno=2,
-                                                    col_offset=25,
-                                                    end_lineno=2,
-                                                    end_col_offset=30,
-                                                    source_code=source_1.id,
-                                                ),
-                                                function_id=LookupNode(
-                                                    name="__build_list__",
-                                                ).id,
-                                                positional_args=[
-                                                    LiteralNode(
-                                                        source_location=SourceLocation(
-                                                            lineno=2,
-                                                            col_offset=26,
-                                                            end_lineno=2,
-                                                            end_col_offset=27,
-                                                            source_code=source_1.id,
-                                                        ),
-                                                        value=1,
-                                                    ).id,
-                                                    LiteralNode(
-                                                        source_location=SourceLocation(
-                                                            lineno=2,
-                                                            col_offset=28,
-                                                            end_lineno=2,
-                                                            end_col_offset=29,
-                                                            source_code=source_1.id,
-                                                        ),
-                                                        value=2,
-                                                    ).id,
-                                                ],
-                                            ).id,
+                                            call_2.id,
                                         ],
                                     ).id
                                 ],

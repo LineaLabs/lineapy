@@ -9,11 +9,12 @@ from typing import Dict, Optional
 import graphviz
 from black import FileMode, format_str
 
-from lineapy.constants import GET_ITEM, GETATTR
+from lineapy.constants import GETATTR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     Artifact,
     CallNode,
+    GlobalNode,
     ImportNode,
     Library,
     LineaID,
@@ -28,16 +29,12 @@ from lineapy.data.types import (
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import ArtifactORM
-from lineapy.execution.executor import (
-    Executor,
-    UsedDefinedFunctionsCalled,
-    ViewOfNodes,
-)
+from lineapy.execution.executor import AccessedGlobals, Executor, ViewOfNodes
 from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
 )
-from lineapy.lineabuiltins import l_tuple, l_exec
+from lineapy.lineabuiltins import l_tuple
 from lineapy.utils import (
     get_new_id,
     get_value_type,
@@ -239,26 +236,49 @@ class Tracer:
         for e in side_effects:
             if isinstance(e, ViewOfNodes):
                 self._process_view_of_nodes(e.ids)
-            elif isinstance(e, UsedDefinedFunctionsCalled):
-                self._process_used_defined_functions_called(node, e.ids)
+            elif isinstance(e, AccessedGlobals):
+                self._process_accessed_globals(
+                    node.session_id, node, e.retrieved, e.added_or_updated
+                )
             else:
                 self._process_mutate_node(e.id, node.id, node.session_id)
 
         self.db.write_node(node)
 
-    def _process_used_defined_functions_called(
-        self, node: Node, ids: list[LineaID]
+    def _process_accessed_globals(
+        self,
+        session_id: str,
+        node: Node,
+        retrieved: list[str],
+        added_or_updated: list[str],
     ) -> None:
-        # We should have only called functions in a call node
+
+        # Only call nodes can access globals and have the global_reads attribute
         assert isinstance(node, CallNode)
 
-        # Set the global reads to the union of all global reads from all
-        # the functions that were called
+        # Add the retrieved globals as global reads to the call node
+
+        # TODO: Add mutate nodes possibly for any reads as well, since we
+        # dont know if they are mutated
+
         node.global_reads = {
             var: self.resolve_node(self.variable_name_to_node[var].id)
-            for fn_id in ids
-            for var in self.function_node_id_to_global_reads[fn_id]
+            for var in retrieved
+            # Only save reads from variables that we have already saved variables for
+            # Assume that all other reads are for variables assigned inside
+            if var in self.variable_name_to_node
         }
+
+        # Create a new global node for each added/updated
+        for var in added_or_updated:
+            global_node = GlobalNode(
+                id=get_new_id(),
+                session_id=session_id,
+                name=var,
+                call_id=node.id,
+            )
+            self.process_node(global_node)
+            self.variable_name_to_node[var] = global_node
 
     def _process_view_of_nodes(self, ids: list[LineaID]) -> None:
         """
@@ -505,55 +525,6 @@ class Tracer:
         logger.info("assigning %s = %s", variable_name, value_node)
         self.variable_name_to_node[variable_name] = value_node
         return
-
-    def exec(
-        self,
-        code: str,
-        is_expression: bool,
-        output_variables: list[str],
-        input_values: dict[str, Node],
-        source_location: Optional[SourceLocation] = None,
-    ) -> Optional[Node]:
-        """
-        Builds a call node which will executes code statements
-        with the locals set to input_values.
-
-        For each variable in output_variables, it will create nodes which will
-        assign to those local variables after calling.
-
-        If is_expression is True, it will return the result of the expression, otherwise
-        it will return None.
-        """
-        # make sure it's sorted so that the printer will be consistent
-        output_variables.sort()
-        res = self.call(
-            self.lookup_node(l_exec.__name__),
-            source_location,
-            self.literal(code),
-            self.literal(
-                is_expression,
-            ),
-            *(self.literal(v) for v in output_variables),
-            **input_values,
-        )
-        for i, v in enumerate(output_variables):
-            self.assign(
-                v,
-                self.call(
-                    self.lookup_node(GET_ITEM),
-                    None,
-                    res,
-                    self.literal(i),
-                ),
-            )
-        if is_expression:
-            return self.call(
-                self.lookup_node(GET_ITEM),
-                None,
-                res,
-                self.literal(len(output_variables)),
-            )
-        return None
 
     def tuple(
         self, *args: Node, source_location: Optional[SourceLocation] = None

@@ -14,6 +14,60 @@ assert new_df.size == 2
 """,
     location=PosixPath("[source file path]"),
 )
+call_1 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        ImportNode(
+            source_location=SourceLocation(
+                lineno=1,
+                col_offset=0,
+                end_lineno=1,
+                end_col_offset=28,
+                source_code=source_1.id,
+            ),
+            library=Library(
+                name="pandas",
+            ),
+        ).id,
+        LiteralNode(
+            value="DataFrame",
+        ).id,
+    ],
+)
+global_1 = GlobalNode(
+    name="foo",
+    call_id=call_1.id,
+)
+global_2 = GlobalNode(
+    name="c",
+    call_id=call_1.id,
+)
+global_3 = GlobalNode(
+    name="a",
+    call_id=call_1.id,
+)
+global_4 = GlobalNode(
+    name="b",
+    call_id=call_1.id,
+)
+global_5 = GlobalNode(
+    name="x",
+    call_id=call_1.id,
+)
+global_6 = GlobalNode(
+    name="my_function",
+    call_id=call_1.id,
+)
+global_7 = GlobalNode(
+    name="math",
+    call_id=call_1.id,
+)
+global_8 = GlobalNode(
+    name="bs",
+    call_id=call_1.id,
+)
 call_5 = CallNode(
     source_location=SourceLocation(
         lineno=3,
@@ -22,28 +76,7 @@ call_5 = CallNode(
         end_col_offset=30,
         source_code=source_1.id,
     ),
-    function_id=CallNode(
-        function_id=LookupNode(
-            name="getattr",
-        ).id,
-        positional_args=[
-            ImportNode(
-                source_location=SourceLocation(
-                    lineno=1,
-                    col_offset=0,
-                    end_lineno=1,
-                    end_col_offset=28,
-                    source_code=source_1.id,
-                ),
-                library=Library(
-                    name="pandas",
-                ),
-            ).id,
-            LiteralNode(
-                value="DataFrame",
-            ).id,
-        ],
-    ).id,
+    function_id=call_1.id,
     positional_args=[
         CallNode(
             source_location=SourceLocation(
@@ -54,7 +87,7 @@ call_5 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
-                name="__build_list__",
+                name="l_list",
             ).id,
             positional_args=[
                 CallNode(
@@ -66,7 +99,7 @@ call_5 = CallNode(
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
-                        name="__build_list__",
+                        name="l_list",
                     ).id,
                     positional_args=[
                         LiteralNode(
@@ -100,7 +133,7 @@ call_5 = CallNode(
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
-                        name="__build_list__",
+                        name="l_list",
                     ).id,
                     positional_args=[
                         LiteralNode(
@@ -194,7 +227,7 @@ call_11 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__assert__",
+        name="l_assert",
     ).id,
     positional_args=[
         CallNode(
@@ -250,7 +283,7 @@ call_18 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__assert__",
+        name="l_assert",
     ).id,
     positional_args=[
         CallNode(
@@ -316,7 +349,7 @@ call_18 = CallNode(
                                         source_code=source_1.id,
                                     ),
                                     function_id=LookupNode(
-                                        name="__build_tuple__",
+                                        name="l_tuple",
                                     ).id,
                                     positional_args=[
                                         CallNode(
