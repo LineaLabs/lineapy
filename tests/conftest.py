@@ -205,6 +205,7 @@ class ExecuteFixture:
             )
             # Prettify again in case replacements cause line wraps
             assert prettify(graph_str) == self.snapshot
+
             # If this graph string snapshot was updated, then also update the SVG
             # snapshot. We don't want to always update the SVG snapshot, because
             # it has lots of random IDs in it. We want to use it not for testing,
