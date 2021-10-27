@@ -81,18 +81,3 @@ r = sum_call_list([fn, fn])
     res = execute(code, artifacts=["r"])
     assert res.values["r"] == 20
     assert res.artifacts["r"] == code
-
-
-def test_knows_call_list(execute):
-    code = """a = 10
-fn = lambda: a
-def sum_call_list(xs):
-    r = 0
-    for x in xs:
-        r += x()
-    return r
-r = sum_call_list([fn, fn])
-"""
-    res = execute(code, artifacts=["r"])
-    assert res.values["r"] == 20
-    assert res.artifacts["r"] == code
