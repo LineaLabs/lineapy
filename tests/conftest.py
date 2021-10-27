@@ -44,7 +44,7 @@ def setup_logging():
     configure_logging("INFO")
 
 
-class PythonSnapshotExtension(SingleFileSnapshotExtension):
+class TextSnapshotExtension(SingleFileSnapshotExtension):
     _file_extension = "py"
 
     def serialize(self, data: str, **kwargs) -> str:  # type: ignore
@@ -84,6 +84,14 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
         )
 
 
+class PythonSnapshotExtension(TextSnapshotExtension):
+    _file_extension = "py"
+
+
+class SVGSnapshotExtension(TextSnapshotExtension):
+    _file_extension = "svg"
+
+
 @pytest.fixture
 def python_snapshot(request):
     """
@@ -98,14 +106,30 @@ def python_snapshot(request):
 
 
 @pytest.fixture
-def execute(python_snapshot, tmp_path, request):
+def svg_snapshot(request):
+    """
+    Copied from the default fixture, but updating the extension class to be Python
+    """
+    return syrupy.SnapshotAssertion(  # type: ignore
+        update_snapshots=request.config.option.update_snapshots,
+        extension_class=SVGSnapshotExtension,
+        test_location=syrupy.PyTestLocation(request.node),  # type: ignore
+        session=request.session.config._syrupy,
+    )
+
+
+@pytest.fixture
+def execute(python_snapshot, tmp_path, request, svg_snapshot):
     """
     :param snapshot: `snapshot` is a fixture from the syrupy library that's automatically injected by pytest.
     :param tmp_path: `tmp_path` is provided by the core pytest
     :param request: `request` is provided by the core pytest
     """
     return ExecuteFixture(
-        python_snapshot, tmp_path, request.config.getoption("--visualize")
+        python_snapshot,
+        svg_snapshot,
+        tmp_path,
+        request.config.getoption("--visualize"),
     )
 
 
@@ -120,6 +144,7 @@ class ExecuteFixture:
     """
 
     snapshot: syrupy.SnapshotAssertion
+    svg_snapshot: syrupy.SnapshotAssertion
     tmp_path: pathlib.Path
     # Whether to visualize the tracer graph after creating
     visualize: bool
@@ -165,6 +190,7 @@ class ExecuteFixture:
 
         # Verify snapshot of graph
         if compare_snapshot:
+            assert tracer.graphviz()._repr_svg_() == self.svg_snapshot
             graph_str = (
                 tracer.graph.print(
                     include_imports=True,
