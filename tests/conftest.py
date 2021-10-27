@@ -202,25 +202,27 @@ class ExecuteFixture:
             # Prettify again in case replacements cause line wraps
             assert prettify(graph_str) == self.snapshot
 
-            # Only bother regenerating SVG if we are updating snapshots
-            if self.snapshot._update_snapshots:
-                # If this graph string snapshot was updated, then also update the SVG
-                # snapshot. We don't want to always update the SVG snapshot, because
-                # it has lots of random IDs in it. We want to use it not for testing,
-                # but for better PR diffs
-                res = self.snapshot._execution_results[
-                    self.snapshot._executions - 1
-                ]
+            # If this graph string snapshot was updated, then also update the SVG
+            # snapshot. We don't want to always update the SVG snapshot, because
+            # it has lots of random IDs in it. We want to use it not for testing,
+            # but for better PR diffs
+            res = self.snapshot._execution_results[
+                self.snapshot._executions - 1
+            ]
 
-                self.svg_snapshot._update_snapshots = (
-                    res.created or res.updated
-                )
-                tracer.graphviz()._repr_svg_() == self.svg_snapshot
+            self.svg_snapshot._update_snapshots = res.created or res.updated
+            # If we aren't updating snapshots, dont even bother trying to generate the SVG
+            svg_text = (
+                tracer.graphviz()._repr_svg_()
+                if self.snapshot._update_snapshots
+                else ""
+            )
+            svg_text == self.svg_snapshot
 
-                # Mark the SVG snapshot as always passing
-                self.svg_snapshot._execution_results[
-                    self.svg_snapshot._executions - 1
-                ].success = True
+            # Mark the SVG snapshot as always passing
+            self.svg_snapshot._execution_results[
+                self.svg_snapshot._executions - 1
+            ].success = True
 
             # Verify that execution works again, loading from the DB, in a new dir
         new_executor = Executor(db)
