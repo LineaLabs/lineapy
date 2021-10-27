@@ -25,7 +25,7 @@ call_1 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_dict__",
+        name="l_dict",
     ).id,
 )
 call_2 = CallNode(

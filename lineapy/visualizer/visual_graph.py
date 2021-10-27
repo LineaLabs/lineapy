@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Optional, Union
 
 from lineapy.data.types import (
     CallNode,
+    GlobalNode,
     ImportNode,
     LineaID,
     LiteralNode,
@@ -238,6 +239,13 @@ def contents_and_edges(
         ]
         return contents, edges
 
+    if isinstance(node, GlobalNode):
+        contents = node.name
+        edges = [
+            VisualEdge(node.call_id, n_id, VisualEdgeType.GLOBAL),
+        ]
+        return contents, edges
+
 
 @dataclass
 class VisualGraph:
@@ -331,3 +339,6 @@ class VisualEdgeType(Enum):
     NEXT_LINE = auto()
     # Edge from a line of source to a node that results from it
     SOURCE_CODE = auto()
+
+    # Edge from a node to global node that reads a value from it
+    GLOBAL = auto()

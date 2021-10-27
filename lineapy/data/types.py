@@ -75,6 +75,7 @@ class NodeType(Enum):
     ImportNode = auto()
     LookupNode = auto()
     MutateNode = auto()
+    GlobalNode = auto()
 
 
 class LiteralType(Enum):
@@ -371,6 +372,26 @@ class MutateNode(BaseNode):
         yield self.call_id
 
 
+class GlobalNode(BaseNode):
+    """
+    Represents a lookup of a global variable, that was set as a side effect
+    in another node.
+    """
+
+    node_type = NodeType.GlobalNode
+
+    # The name of the variable to look up from the result of the call
+    name: str
+
+    # Points to the call node that updated the global
+    call_id: LineaID
+
+    def parents(self) -> Iterable[LineaID]:
+        yield self.call_id
+
+
 # We can use this for more precise type definitions, to make sure we hit
 # all the node cases
-Node = Union[ImportNode, CallNode, LiteralNode, LookupNode, MutateNode]
+Node = Union[
+    ImportNode, CallNode, LiteralNode, LookupNode, MutateNode, GlobalNode
+]

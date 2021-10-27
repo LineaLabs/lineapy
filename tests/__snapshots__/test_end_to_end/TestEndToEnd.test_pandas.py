@@ -54,7 +54,7 @@ call_5 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
-                name="__build_list__",
+                name="l_list",
             ).id,
             positional_args=[
                 CallNode(
@@ -66,7 +66,7 @@ call_5 = CallNode(
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
-                        name="__build_list__",
+                        name="l_list",
                     ).id,
                     positional_args=[
                         LiteralNode(
@@ -100,7 +100,7 @@ call_5 = CallNode(
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
-                        name="__build_list__",
+                        name="l_list",
                     ).id,
                     positional_args=[
                         LiteralNode(
@@ -194,7 +194,7 @@ call_11 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__assert__",
+        name="l_assert",
     ).id,
     positional_args=[
         CallNode(
@@ -250,7 +250,7 @@ call_18 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__assert__",
+        name="l_assert",
     ).id,
     positional_args=[
         CallNode(
@@ -316,7 +316,7 @@ call_18 = CallNode(
                                         source_code=source_1.id,
                                     ),
                                     function_id=LookupNode(
-                                        name="__build_tuple__",
+                                        name="l_tuple",
                                     ).id,
                                     positional_args=[
                                         CallNode(

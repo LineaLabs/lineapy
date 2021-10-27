@@ -13,6 +13,7 @@ from lineapy.data.types import (
     Artifact,
     CallNode,
     Execution,
+    GlobalNode,
     ImportNode,
     JupyterCell,
     Library,
@@ -34,6 +35,7 @@ from lineapy.db.relational.schema.relational import (
     BaseNodeORM,
     CallNodeORM,
     ExecutionORM,
+    GlobalNodeORM,
     GlobalReferenceORM,
     ImportNodeORM,
     KeywordArgORM,
@@ -216,6 +218,10 @@ class RelationalLineaDB:
                 call_id=node.call_id,
                 source_id=node.source_id,
             )
+        elif isinstance(node, GlobalNode):
+            node_orm = GlobalNodeORM(
+                **args, call_id=node.call_id, name=node.name
+            )
         else:
             node_orm = LookupNodeORM(**args, name=node.name)
 
@@ -318,6 +324,12 @@ class RelationalLineaDB:
             return MutateNode(
                 call_id=node.call_id,
                 source_id=node.source_id,
+                **args,
+            )
+        if isinstance(node, GlobalNodeORM):
+            return GlobalNode(
+                call_id=node.call_id,
+                name=node.name,
                 **args,
             )
         return LookupNode(name=node.name, **args)
