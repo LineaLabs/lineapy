@@ -84,6 +84,10 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
         )
 
 
+class SVGSnapshotExtension(PythonSnapshotExtension):
+    _file_extension = "svg"
+
+
 @pytest.fixture
 def python_snapshot(request):
     """
@@ -98,14 +102,30 @@ def python_snapshot(request):
 
 
 @pytest.fixture
-def execute(python_snapshot, tmp_path, request):
+def svg_snapshot(request):
+    """
+    Copied from the default fixture, but updating the extension class to be Python
+    """
+    return syrupy.SnapshotAssertion(  # type: ignore
+        update_snapshots=request.config.option.update_snapshots,
+        extension_class=SVGSnapshotExtension,
+        test_location=syrupy.PyTestLocation(request.node),  # type: ignore
+        session=request.session.config._syrupy,
+    )
+
+
+@pytest.fixture
+def execute(python_snapshot, tmp_path, request, svg_snapshot):
     """
     :param snapshot: `snapshot` is a fixture from the syrupy library that's automatically injected by pytest.
     :param tmp_path: `tmp_path` is provided by the core pytest
     :param request: `request` is provided by the core pytest
     """
     return ExecuteFixture(
-        python_snapshot, tmp_path, request.config.getoption("--visualize")
+        python_snapshot,
+        svg_snapshot,
+        tmp_path,
+        request.config.getoption("--visualize"),
     )
 
 
@@ -120,6 +140,7 @@ class ExecuteFixture:
     """
 
     snapshot: syrupy.SnapshotAssertion
+    svg_snapshot: syrupy.SnapshotAssertion
     tmp_path: pathlib.Path
     # Whether to visualize the tracer graph after creating
     visualize: bool
@@ -182,6 +203,22 @@ class ExecuteFixture:
             )
             # Prettify again in case replacements cause line wraps
             assert prettify(graph_str) == self.snapshot
+
+            # If this graph string snapshot was updated, then also update the SVG
+            # snapshot. We don't want to always update the SVG snapshot, because
+            # it has lots of random IDs in it. We want to use it not for testing,
+            # but for better PR diffs
+            res = self.snapshot._execution_results[
+                self.snapshot._executions - 1
+            ]
+
+            self.svg_snapshot._update_snapshots = res.created or res.updated
+            tracer.graphviz()._repr_svg_() == self.svg_snapshot
+
+            # Mark the SVG snapshot as always passing
+            self.svg_snapshot._execution_results[
+                self.svg_snapshot._executions - 1
+            ].success = True
 
         # Verify that execution works again, loading from the DB, in a new dir
         new_executor = Executor(db)
