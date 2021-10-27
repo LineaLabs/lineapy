@@ -92,13 +92,19 @@ dag = DAG(
                        
 clean_data_dag = PythonOperator(
     dag=dag,
-    task_id=f"sliced_housing_dag_task",
+    task_id=f"clean",
     python_callable=sliced_housing_dag,
 )
 
 process_1_dag = PythonOperator(
     dag=dag,
-    task_id=f"sliced_housing_dag_task",
-    python_callable=sliced_housing_dag,
+    task_id=f"process_1_dag",
+    python_callable=process_1,
+)
+                       
+process_2_dag = PythonOperator(
+    dag=dag,
+    task_id=f"process_2_dag",
+    python_callable=process_2,
 )
 clean_data_dag >> (process_1_dag, process_2)
