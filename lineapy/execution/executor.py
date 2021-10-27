@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 import importlib.util
 import io
 import logging
@@ -145,23 +146,13 @@ class Executor:
             # the scoping, so we set all of the variables we know.
 
             # The subsequent times, we only use those that were recorded
-            original_variables = variables or node.global_reads
-            node_variables = {
+            input_globals = {
                 k: self._id_to_value[id_]
-                for k, id_ in original_variables.items()
+                for k, id_ in (variables or node.global_reads).items()
             }
-            lineabuiltins._exec_globals.clear()
-            lineabuiltins._exec_globals.update(node_variables)
+            input_globals["__builtins__"] = builtins
 
-            # Do an empty exec, in order to fill node variables with the builtins
-            # so that when we compare later on to see whats added, we won't
-            # consider those as added
-            exec("", node_variables)
-            # The builtins that were added are all the keys, minus those that we set
-            # added_builtins = set(node_variables.keys()) - set(
-            #     original_variables.keys()
-            # )
-            lineabuiltins._exec_globals._getitems.clear()
+            lineabuiltins._exec_globals.update(input_globals)
 
             with redirect_stdout(self._stdout):
                 start_time = datetime.now()
@@ -172,16 +163,22 @@ class Executor:
             changed_globals = {
                 k: v
                 for k, v, in lineabuiltins._exec_globals.items()
+                if
                 # The global was changed if it is new, i.e. was not in the our variables
-                if k not in node_variables
+                k not in input_globals
                 # Or if it is different
-                or node_variables[k] is not v
+                or input_globals[k] is not v
             }
             self._node_to_globals[node.id] = changed_globals
 
             retrieved = lineabuiltins._exec_globals._getitems
             added_or_updated = list(changed_globals.keys())
+
             yield AccessedGlobals(retrieved, added_or_updated)
+
+            # Cleanup globals for next time and for garbage collection
+            lineabuiltins._exec_globals.clear()
+            lineabuiltins._exec_globals._getitems.clear()
 
             # dependency analysis
             # ----------
