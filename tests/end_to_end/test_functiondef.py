@@ -90,3 +90,43 @@ f()
     res = execute(code, artifacts=["a"])
     assert res.values["a"] == 1
     assert res.artifacts["a"] == code
+
+
+def test_update_global(execute):
+    code = """a = 10
+def f():
+    global a
+    a = 1
+f()
+"""
+    res = execute(code, artifacts=["a"])
+    assert res.values["a"] == 1
+    assert (
+        res.artifacts["a"]
+        == """def f():
+    global a
+    a = 1
+f()
+"""
+    )
+
+
+def test_imported_function(execute):
+    code = """import math
+a = 0
+def my_function():
+    global a
+    a = math.factorial(5)
+my_function()
+"""
+    res = execute(code, artifacts=["a"])
+    assert res.values["a"] == 120
+    assert (
+        res.artifacts["a"]
+        == """import math
+def my_function():
+    global a
+    a = math.factorial(5)
+my_function()
+"""
+    )

@@ -4,14 +4,15 @@ from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
 source_1 = SourceCode(
-    code="""import math
-import lineapy
+    code="""import lineapy
+import math
 a = 0
 def my_function():
     global a
     a = math.factorial(5)
 my_function()
-lineapy.linea_publish(a, \'mutated a\')
+
+lineapy.linea_publish(a, \'a\')
 """,
     location=PosixPath("[source file path]"),
 )
@@ -60,9 +61,9 @@ global_2 = GlobalNode(
         global_reads={
             "math": ImportNode(
                 source_location=SourceLocation(
-                    lineno=1,
+                    lineno=2,
                     col_offset=0,
-                    end_lineno=1,
+                    end_lineno=2,
                     end_col_offset=11,
                     source_code=source_1.id,
                 ),

@@ -91,15 +91,6 @@ else:
     print("False")
 """
 
-FUNCTION_DEFINITION_GLOBAL_CODE = """import math
-import lineapy
-a = 0
-def my_function():
-    global a
-    a = math.factorial(5)
-my_function()
-lineapy.linea_publish(a, 'mutated a')
-"""
 
 LOOP_CODE = """import lineapy
 a = []
@@ -189,20 +180,6 @@ class TestEndToEnd:
         res = execute(FUNCTION_DEFINITION_CODE)
         assert res.values["c"] == 1
         assert res.values["d"] == 4
-
-    def test_function_definition_global(self, execute):
-        res = execute(FUNCTION_DEFINITION_GLOBAL_CODE)
-        assert res.values["a"] == 120
-
-    def test_function_definition_global_slice(self, execute, python_snapshot):
-        """
-        Verify code is the same
-        """
-        res = execute(
-            FUNCTION_DEFINITION_GLOBAL_CODE,
-            compare_snapshot=False,
-        )
-        assert res.slice("a") == python_snapshot
 
     def test_loop_code(self, execute):
         res = execute(LOOP_CODE)
