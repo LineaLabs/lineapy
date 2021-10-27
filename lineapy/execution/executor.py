@@ -138,18 +138,21 @@ class Executor:
             }
             logger.info("Calling function %s %s %s", fn, args, kwargs)
 
-            # If this was a user defined function, and we know that some global
-            # variables need to be set before calling it, set those first
-            # by modifying the globals that is specific to this function
+            ##
+            # Setup our globals
+            ##
 
-            # The first time this is run, variables is set, and we know
-            # the scoping, so we set all of the variables we know.
-
-            # The subsequent times, we only use those that were recorded
             input_globals = {
                 k: self._id_to_value[id_]
-                for k, id_ in (variables or node.global_reads).items()
+                for k, id_ in (
+                    # The first time this is run, variables is set, and we know
+                    # the scoping, so we set all of the variables we know.
+                    # The subsequent times, we only use those that were recorded
+                    variables
+                    or node.global_reads
+                ).items()
             }
+            # Set __builtins__ directly so functions still have access to those
             input_globals["__builtins__"] = builtins
 
             lineabuiltins._exec_globals.update(input_globals)
@@ -159,6 +162,10 @@ class Executor:
                 res = fn(*args, **kwargs)
                 end_time = datetime.now()
             self._execution_time[node.id] = (start_time, end_time)
+
+            ##
+            # Check what has been changed and accessed
+            ##
 
             changed_globals = {
                 k: v
@@ -176,7 +183,9 @@ class Executor:
 
             yield AccessedGlobals(retrieved, added_or_updated)
 
-            # Cleanup globals for next time and for garbage collection
+            ##
+            # Teardown globals
+            ##
             lineabuiltins._exec_globals.clear()
             lineabuiltins._exec_globals._getitems.clear()
 
