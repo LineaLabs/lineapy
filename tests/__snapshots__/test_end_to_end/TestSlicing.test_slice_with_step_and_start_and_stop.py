@@ -28,7 +28,7 @@ call_3 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
-                name="__build_list__",
+                name="l_list",
             ).id,
             positional_args=[
                 LiteralNode(

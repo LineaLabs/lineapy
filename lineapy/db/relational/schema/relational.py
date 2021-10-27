@@ -346,6 +346,19 @@ class MutateNodeORM(BaseNodeORM):
     }
 
 
+class GlobalNodeORM(BaseNodeORM):
+    __tablename__ = "global_node"
+
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
+    name = Column(String)
+    call_id = Column(String, ForeignKey("node.id"))
+
+    __mapper_args__ = {
+        "polymorphic_identity": NodeType.GlobalNode,
+        "inherit_condition": id == BaseNodeORM.id,
+    }
+
+
 # Explicitly define all subclasses of NodeORM, so that if we use this as a type
 # we can accurately know if we cover all cases
 NodeORM = Union[

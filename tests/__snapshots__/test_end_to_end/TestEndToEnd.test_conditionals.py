@@ -22,7 +22,7 @@ call_2 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__exec__",
+        name="l_exec_statement",
     ).id,
     positional_args=[
         LiteralNode(
@@ -31,12 +31,9 @@ call_2 = CallNode(
 else:
     bs.append(3)
     print("False")""",
-        ).id,
-        LiteralNode(
-            value=False,
-        ).id,
+        ).id
     ],
-    keyword_args={
+    global_reads={
         "bs": CallNode(
             source_location=SourceLocation(
                 lineno=1,
@@ -46,7 +43,7 @@ else:
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
-                name="__build_list__",
+                name="l_list",
             ).id,
             positional_args=[
                 LiteralNode(
@@ -70,12 +67,6 @@ else:
                     value=2,
                 ).id,
             ],
-        ).id,
-        "len": LookupNode(
-            name="len",
-        ).id,
-        "print": LookupNode(
-            name="print",
-        ).id,
+        ).id
     },
 )

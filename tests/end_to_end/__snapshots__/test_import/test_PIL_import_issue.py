@@ -81,7 +81,7 @@ call_6 = CallNode(
                             source_code=source_1.id,
                         ),
                         function_id=LookupNode(
-                            name="__build_tuple__",
+                            name="l_tuple",
                         ).id,
                         positional_args=[
                             LiteralNode(

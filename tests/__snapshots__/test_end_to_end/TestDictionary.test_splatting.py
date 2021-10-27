@@ -16,12 +16,12 @@ call_9 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_dict__",
+        name="l_dict",
     ).id,
     positional_args=[
         CallNode(
             function_id=LookupNode(
-                name="__build_tuple__",
+                name="l_tuple",
             ).id,
             positional_args=[
                 LiteralNode(
@@ -48,7 +48,7 @@ call_9 = CallNode(
         ).id,
         CallNode(
             function_id=LookupNode(
-                name="__build_tuple__",
+                name="l_tuple",
             ).id,
             positional_args=[
                 LiteralNode(
@@ -75,12 +75,12 @@ call_9 = CallNode(
         ).id,
         CallNode(
             function_id=LookupNode(
-                name="__build_tuple__",
+                name="l_tuple",
             ).id,
             positional_args=[
                 CallNode(
                     function_id=LookupNode(
-                        name="__build_dict_kwargs_sentinel__",
+                        name="l_dict_kwargs_sentinel",
                     ).id,
                 ).id,
                 CallNode(
@@ -92,12 +92,12 @@ call_9 = CallNode(
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
-                        name="__build_dict__",
+                        name="l_dict",
                     ).id,
                     positional_args=[
                         CallNode(
                             function_id=LookupNode(
-                                name="__build_tuple__",
+                                name="l_tuple",
                             ).id,
                             positional_args=[
                                 LiteralNode(
@@ -124,7 +124,7 @@ call_9 = CallNode(
                         ).id,
                         CallNode(
                             function_id=LookupNode(
-                                name="__build_tuple__",
+                                name="l_tuple",
                             ).id,
                             positional_args=[
                                 LiteralNode(
@@ -155,7 +155,7 @@ call_9 = CallNode(
         ).id,
         CallNode(
             function_id=LookupNode(
-                name="__build_tuple__",
+                name="l_tuple",
             ).id,
             positional_args=[
                 LiteralNode(

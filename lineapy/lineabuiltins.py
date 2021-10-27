@@ -1,13 +1,14 @@
-# Keep unused import for transitive import by Executor
-from operator import *  # noqa: F403,F401
-from typing import List, Mapping, Optional, TypeVar, Union
+from typing import Callable, List, Mapping, Optional, TypeVar, Union
 
-# NOTE: previous attempt at some import issues with the operator model
-#   from operator import *
+# Keep a list of builtin functions we want to expose to the user as globals
+_builtin_functions: list[Callable] = []
 
 
-def __build_list__(*items) -> List:
+def l_list(*items) -> List:
     return list(items)
+
+
+_builtin_functions.append(l_list)
 
 
 class _DictKwargsSentinel(object):
@@ -22,35 +23,18 @@ class _DictKwargsSentinel(object):
     pass
 
 
-class _VariableNotSetSentinel(object):
-    """
-    A sentinel object to let us know that an object is not set at runtime
-      this is useful when we do static analysis and do not know which
-      branch was executed, e.g. in
-      ```
-      if True:
-        c = 10
-        if True:
-          k = 6
-      else:
-        d = 5
-      ```
-      `c` and `k` will be set, but `d` will NOT be!
-
-    """
-
-    pass
-
-
-def __build_dict_kwargs_sentinel__() -> _DictKwargsSentinel:
+def l_dict_kwargs_sentinel() -> _DictKwargsSentinel:
     return _DictKwargsSentinel()
+
+
+_builtin_functions.append(l_dict_kwargs_sentinel)
 
 
 K = TypeVar("K")
 V = TypeVar("V")
 
 
-def __build_dict__(
+def l_dict(
     *keys_and_values: Union[
         tuple[K, V], tuple[_DictKwargsSentinel, Mapping[K, V]]
     ]
@@ -77,26 +61,60 @@ def __build_dict__(
     return d
 
 
-def __build_tuple__(*items) -> tuple:
+_builtin_functions.append(l_dict)
+
+
+def l_tuple(*items) -> tuple:
     return items
 
 
-def __assert__(v: object, message: Optional[str] = None) -> None:
+_builtin_functions.append(l_tuple)
+
+
+def l_assert(v: object, message: Optional[str] = None) -> None:
     if message is None:
         assert v
     else:
         assert v, message
 
 
+_builtin_functions.append(l_assert)
+
+
 # Magic variable name used internally in the `__exec__` function, when we
 # are execuing an expression and want to save its result. To do so, we have
 # to set it to a variable, then retrieve that variable from the scope.
-_EXPRESSION_SAVED_NAME = "__linea_expresion__"
+_EXEC_EXPRESSION_SAVED_NAME = "__linea_expresion__"
 
 
-def __exec__(
-    code: str, is_expr: bool, *output_locals: str, **input_locals: object
-) -> list[Union[object, _VariableNotSetSentinel]]:
+class RecordGetitemDict(dict):
+    """
+    A custom dict that records which keys have been succesfully accessed.
+
+    We cannot overload the `__setitem__` method, since Python will not respect
+    it for custom globals, but we can overload the __getitem__ method.
+
+    See https://stackoverflow.com/a/12185315/907060
+    which refers to https://bugs.python.org/issue14385
+    """
+
+    def __init__(self, *args, **kwargs):
+        self._getitems: list[str] = []
+        super().__init__(*args, **kwargs)
+
+    def __getitem__(self, k):
+        r = super().__getitem__(k)
+        if k not in self._getitems:
+            self._getitems.append(k)
+        return r
+
+
+# We use the same globals dict for all exec calls, so that we can set our scope
+# variables for any functions that are defined in the exec
+_exec_globals = RecordGetitemDict()
+
+
+def l_exec_statement(code: str) -> None:
     """
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
@@ -104,23 +122,31 @@ def __exec__(
     If the code is an expression, it will return the result as well as the last
     argument.
     """
-    if is_expr:
-        code = f"{_EXPRESSION_SAVED_NAME} = {code}"
     bytecode = compile(code, "<string>", "exec")
-    # Only pass in "globals" so that globals and locals are equivalent,
-    # which is the case when executing at the module level, and not at the
-    # class body level, see https://docs.python.org/3/library/functions.html#exec
-    exec(bytecode, input_locals)
+    exec(bytecode, _exec_globals)
 
-    # Iterate through the ouputs we should get back, and look them up in the
-    # globals/locals. If they do not exist, return the _VariableNotSetSentinel
-    # to represent that that variable was not set. This is used for execing
-    # code which could possibly set a variable, but might not, like in an if
-    # statement branch
-    returned_locals = [
-        input_locals.get(name, _VariableNotSetSentinel())
-        for name in output_locals
-    ]
-    if is_expr:
-        returned_locals.append(input_locals[_EXPRESSION_SAVED_NAME])
-    return returned_locals
+
+_builtin_functions.append(l_exec_statement)
+
+
+def l_exec_expr(code: str) -> object:
+    """
+    Execute the `code` with `input_locals` set as locals,
+    and returns a list of the `output_locals` pulled from the environment.
+
+    If the code is an expression, it will return the result as well as the last
+    argument.
+    """
+    statement_code = f"{_EXEC_EXPRESSION_SAVED_NAME} = {code}"
+    l_exec_statement(statement_code)
+
+    res = _exec_globals[_EXEC_EXPRESSION_SAVED_NAME]
+    del _exec_globals[_EXEC_EXPRESSION_SAVED_NAME]
+
+    return res
+
+
+_builtin_functions.append(l_exec_expr)
+
+
+LINEA_BUILTINS = {f.__name__: f for f in _builtin_functions}

@@ -13,7 +13,7 @@ lineapy.save(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_3 = CallNode(
+call_2 = CallNode(
     source_location=SourceLocation(
         lineno=4,
         col_offset=4,
@@ -22,33 +22,20 @@ call_3 = CallNode(
         source_code=source_1.id,
     ),
     function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=3,
+            col_offset=4,
+            end_lineno=3,
+            end_col_offset=20,
+            source_code=source_1.id,
+        ),
         function_id=LookupNode(
-            name="getitem",
+            name="l_exec_expr",
         ).id,
         positional_args=[
-            CallNode(
-                source_location=SourceLocation(
-                    lineno=3,
-                    col_offset=4,
-                    end_lineno=3,
-                    end_col_offset=20,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="__exec__",
-                ).id,
-                positional_args=[
-                    LiteralNode(
-                        value="lambda x: x + 10",
-                    ).id,
-                    LiteralNode(
-                        value=True,
-                    ).id,
-                ],
-            ).id,
             LiteralNode(
-                value=0,
-            ).id,
+                value="lambda x: x + 10",
+            ).id
         ],
     ).id,
     positional_args=[

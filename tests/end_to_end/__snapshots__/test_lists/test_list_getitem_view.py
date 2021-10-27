@@ -22,7 +22,7 @@ call_1 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_list__",
+        name="l_list",
     ).id,
 )
 call_4 = CallNode(
@@ -78,7 +78,7 @@ mutate_2 = MutateNode(
             source_code=source_1.id,
         ),
         function_id=LookupNode(
-            name="__build_list__",
+            name="l_list",
         ).id,
         positional_args=[call_1.id],
     ).id,

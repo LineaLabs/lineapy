@@ -8,19 +8,18 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
-from types import FunctionType
-from typing import Callable, Iterable, Tuple, Union, cast
+from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
     Execution,
+    GlobalNode,
     ImportNode,
     LineaID,
     LiteralNode,
     LookupNode,
-    MutateNode,
     Node,
 )
 from lineapy.db.relational.db import RelationalLineaDB
@@ -33,7 +32,7 @@ from lineapy.instrumentation.inspect_function import (
     Result,
     inspect_function,
 )
-from lineapy.utils import get_new_id
+from lineapy.utils import get_new_id, lookup_value
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +56,11 @@ class Executor:
     )
     # Mapping of bound method node ids to the ID of the instance they are bound to
     _node_to_bound_self: dict[LineaID, LineaID] = field(default_factory=dict)
+
+    # Mapping of call node to the globals that were updated
+    _node_to_globals: dict[LineaID, dict[str, object]] = field(
+        default_factory=dict
+    )
 
     def __post_init__(self):
         self.execution = Execution(
@@ -91,8 +95,17 @@ class Executor:
     def get_value(self, node: Node) -> object:
         return self._id_to_value[node.id]
 
-    def execute_node(self, node: Node) -> SideEffects:
+    def execute_node(
+        self, node: Node, variables: Optional[dict[str, LineaID]]
+    ) -> SideEffects:
         """
+
+        Variables is the mapping from local variable names to their nodes. It
+        is passed in on the first execution, but on re-executions it is empty.
+
+        At that point we know which variables each call node depends on, since
+        the first time we executed we captured that.
+
         Does the following:
         - Executes a node
         - And records
@@ -105,9 +118,8 @@ class Executor:
         if isinstance(node, LookupNode):
             value = lookup_value(node.name)
             self._id_to_value[node.id] = value
-
-            return ()
         elif isinstance(node, CallNode):
+
             # execute the function
             # ----------
             fn = cast(Callable, self._id_to_value[node.function_id])
@@ -126,21 +138,53 @@ class Executor:
             }
             logger.info("Calling function %s %s %s", fn, args, kwargs)
 
-            # If this was a user defined function, and we know that some global
-            # variables need to be set before calling it, set those first
-            # by modifying the globals that is specific to this function
-            if isinstance(fn, FunctionType) and node.global_reads:
-                _globals = fn.__globals__
-                # Set all globals neccesary to call this node.
-                for k, id_ in node.global_reads.items():
-                    _globals[k] = self._id_to_value[id_]
+            ##
+            # Setup our globals
+            ##
+
+            lineabuiltins._exec_globals.clear()
+            lineabuiltins._exec_globals._getitems.clear()
+
+            input_globals = {
+                k: self._id_to_value[id_]
+                for k, id_ in (
+                    # The first time this is run, variables is set, and we know
+                    # the scoping, so we set all of the variables we know.
+                    # The subsequent times, we only use those that were recorded
+                    variables
+                    or node.global_reads
+                ).items()
+            }
+            # Set __builtins__ directly so functions still have access to those
+            input_globals["__builtins__"] = builtins
+
+            lineabuiltins._exec_globals.update(input_globals)
 
             with redirect_stdout(self._stdout):
                 start_time = datetime.now()
                 res = fn(*args, **kwargs)
                 end_time = datetime.now()
-
             self._execution_time[node.id] = (start_time, end_time)
+
+            ##
+            # Check what has been changed and accessed
+            ##
+
+            changed_globals = {
+                k: v
+                for k, v, in lineabuiltins._exec_globals.items()
+                if
+                # The global was changed if it is new, i.e. was not in the our variables
+                k not in input_globals
+                # Or if it is different
+                or input_globals[k] is not v
+            }
+            self._node_to_globals[node.id] = changed_globals
+
+            retrieved = lineabuiltins._exec_globals._getitems
+            added_or_updated = list(changed_globals.keys())
+
+            yield AccessedGlobals(retrieved, added_or_updated)
 
             # dependency analysis
             # ----------
@@ -170,13 +214,24 @@ class Executor:
             with redirect_stdout(self._stdout):
                 value = importlib.import_module(node.library.name)
             self._id_to_value[node.id] = value
-            return []
         elif isinstance(node, LiteralNode):
             self._id_to_value[node.id] = node.value
-            return []
-        elif isinstance(node, MutateNode):
+        elif isinstance(node, GlobalNode):
+            self._id_to_value[node.id] = self._node_to_globals[node.call_id][
+                node.name
+            ]
+            # The execution time is the time for the call node
+
+            self._execution_time[node.id] = self._execution_time[node.call_id]
+
+            yield ViewOfNodes(node.id, node.call_id)
+
+        else:
             # Copy the value from the source value node
             self._id_to_value[node.id] = self._id_to_value[node.source_id]
+
+            # The execution time is the time for the call node
+            self._execution_time[node.id] = self._execution_time[node.call_id]
 
             # The mutate node is a view of its source
             yield ViewOfNodes(node.id, node.source_id)
@@ -186,7 +241,7 @@ class Executor:
         prev_working_dir = getcwd()
         chdir(graph.session_context.working_directory)
         for node in graph.visit_order():
-            self.execute_node(node)
+            self.execute_node(node, variables=None)
         chdir(prev_working_dir)
         # Add executed nodes to DB
         self.db.session.commit()
@@ -215,15 +270,14 @@ class ViewOfNodes:
         self.ids = list(ids)
 
 
-SideEffects = Iterable[Union[MutatedNode, ViewOfNodes]]
+@dataclass
+class AccessedGlobals:
+    """
+    Represents some global variables that were retireved or changed during this call.
+    """
+
+    retrieved: list[str]
+    added_or_updated: list[str]
 
 
-def lookup_value(name: str) -> object:
-    """
-    Lookup a value from a string identifier.
-    """
-    if hasattr(builtins, name):
-        return getattr(builtins, name)
-    if hasattr(lineabuiltins, name):
-        return getattr(lineabuiltins, name)
-    return globals()[name]
+SideEffects = Iterable[Union[MutatedNode, ViewOfNodes, AccessedGlobals]]
