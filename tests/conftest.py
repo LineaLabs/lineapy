@@ -213,14 +213,20 @@ class ExecuteFixture:
             ]
 
             self.svg_snapshot._update_snapshots = res.created or res.updated
-            tracer.graphviz()._repr_svg_() == self.svg_snapshot
+            # If we aren't updating snapshots, dont even bother trying to generate the SVG
+            svg_text = (
+                tracer.graphviz()._repr_svg_()
+                if self.snapshot._update_snapshots
+                else ""
+            )
+            svg_text == self.svg_snapshot
 
             # Mark the SVG snapshot as always passing
             self.svg_snapshot._execution_results[
                 self.svg_snapshot._executions - 1
             ].success = True
 
-        # Verify that execution works again, loading from the DB, in a new dir
+            # Verify that execution works again, loading from the DB, in a new dir
         new_executor = Executor(db)
 
         current_working_dir = os.getcwd()
