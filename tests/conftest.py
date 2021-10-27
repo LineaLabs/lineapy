@@ -44,7 +44,7 @@ def setup_logging():
     configure_logging("INFO")
 
 
-class TextSnapshotExtension(SingleFileSnapshotExtension):
+class PythonSnapshotExtension(SingleFileSnapshotExtension):
     _file_extension = "py"
 
     def serialize(self, data: str, **kwargs) -> str:  # type: ignore
@@ -84,11 +84,7 @@ class TextSnapshotExtension(SingleFileSnapshotExtension):
         )
 
 
-class PythonSnapshotExtension(TextSnapshotExtension):
-    _file_extension = "py"
-
-
-class SVGSnapshotExtension(TextSnapshotExtension):
+class SVGSnapshotExtension(PythonSnapshotExtension):
     _file_extension = "svg"
 
 
