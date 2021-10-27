@@ -212,8 +212,8 @@ class ExecuteFixture:
             res = self.snapshot._execution_results[
                 self.snapshot._executions - 1
             ]
-            if res.created or res.updated:
-                tracer.graphviz()._repr_svg_() == self.svg_snapshot
+            self.svg_snapshot._update_snapshots = res.created or res.updated
+            tracer.graphviz()._repr_svg_() == self.svg_snapshot
 
         # Verify that execution works again, loading from the DB, in a new dir
         new_executor = Executor(db)
