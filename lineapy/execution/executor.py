@@ -214,11 +214,18 @@ class Executor:
             self._id_to_value[node.id] = self._node_to_globals[node.call_id][
                 node.name
             ]
+            # The execution time is the time for the call node
+
+            self._execution_time[node.id] = self._execution_time[node.call_id]
+
             yield ViewOfNodes(node.id, node.call_id)
 
         else:
             # Copy the value from the source value node
             self._id_to_value[node.id] = self._id_to_value[node.source_id]
+
+            # The execution time is the time for the call node
+            self._execution_time[node.id] = self._execution_time[node.call_id]
 
             # The mutate node is a view of its source
             yield ViewOfNodes(node.id, node.source_id)

@@ -79,3 +79,14 @@ a = 12
 c = fn()
 """
     )
+
+
+def test_assign_global(execute):
+    code = """def f():
+    global a
+    a = 1
+f()
+"""
+    res = execute(code, artifacts=["a"])
+    assert res.values["a"] == 1
+    assert res.artifacts["a"] == code
