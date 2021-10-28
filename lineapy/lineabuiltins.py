@@ -1,4 +1,7 @@
+from pathlib import Path
 from typing import Callable, List, Mapping, Optional, TypeVar, Union
+
+from lineapy.data.types import SourceLocation
 
 # Keep a list of builtin functions we want to expose to the user as globals
 _builtin_functions: list[Callable] = []
@@ -109,6 +112,11 @@ class RecordGetitemDict(dict):
         return r
 
 
+# Before executing, we save the current source location, in this global,
+# So we can compile code with the proper traceback, by using the filename
+# and line number.
+CURRENT_SOURCE_LOCATION: Optional[SourceLocation] = None
+
 # We use the same globals dict for all exec calls, so that we can set our scope
 # variables for any functions that are defined in the exec
 _exec_globals = RecordGetitemDict()
@@ -122,7 +130,18 @@ def l_exec_statement(code: str) -> None:
     If the code is an expression, it will return the result as well as the last
     argument.
     """
-    bytecode = compile(code, "<string>", "exec")
+    if CURRENT_SOURCE_LOCATION:
+        location = CURRENT_SOURCE_LOCATION.source_code.location
+        if isinstance(location, Path):
+            path = str(location)
+            # Pad the code with extra lines, so that the linenumbers match up
+            code = (CURRENT_SOURCE_LOCATION.lineno - 1) * "\n" + code
+        else:
+            # TODO: handle jupyter notebook
+            path = "<jupyter cell>"
+    else:
+        path = "<unkown>"
+    bytecode = compile(code, path, "exec")
     exec(bytecode, _exec_globals)
 
 

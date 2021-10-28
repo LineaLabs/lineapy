@@ -8,6 +8,7 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
+from pathlib import Path
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
@@ -159,6 +160,8 @@ class Executor:
             input_globals["__builtins__"] = builtins
 
             lineabuiltins._exec_globals.update(input_globals)
+
+            lineabuiltins.CURRENT_SOURCE_LOCATION = node.source_location
 
             with redirect_stdout(self._stdout):
                 start_time = datetime.now()
