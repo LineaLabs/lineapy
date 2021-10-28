@@ -27,15 +27,17 @@ from lineapy.visualizer.visual_graph import (
     tracer_to_visual_graph,
 )
 
-NODE_STYLE = {
+GRAPH_STYLE = {"newrank": "true"}
+
+NODE_STYLE: dict[str, str] = {
     # https://graphviz.org/doc/info/colors.html#brewer
-    "colorscheme": "pastel19"
+    "colorscheme": "pastel19",
 }
 
 EDGE_STYLE = {
-    "colorscheme": NODE_STYLE["colorscheme"],
     "arrowhead": "vee",
     "arrowsize": "0.7",
+    "colorscheme": NODE_STYLE["colorscheme"],
 }
 
 DEFAULT_EDGE_COLOR = "/greys3/2"
@@ -114,11 +116,11 @@ def get_color(tp: ColorableType) -> str:
 def tracer_to_graphviz(
     tracer: Tracer, options: VisualGraphOptions
 ) -> graphviz.Digraph:
-    dot = graphviz.Digraph()
-
-    dot.attr(newrank="true")
-    dot.attr("node", **NODE_STYLE)
-    dot.attr("edge", **EDGE_STYLE)
+    dot = graphviz.Digraph(
+        graph_attr=GRAPH_STYLE, node_attr=NODE_STYLE, edge_attr=EDGE_STYLE
+    )
+    # for k, v in GRAPH_STYLE.items():
+    dot.attr(**GRAPH_STYLE)
 
     add_legend(dot, options)
 

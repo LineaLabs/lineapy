@@ -46,7 +46,7 @@ def start(
     # after each cell
     # https://web.archive.org/web/20211025232037/https://mindtrove.info/jupyter-tidbit-display-handles/
     display_handle = (
-        display(SVG(tracer.graphviz()._repr_svg_()), display_id=True)
+        display(SVG(tracer.visualize_to_svg()), display_id=True)
         if visualize
         else None
     )
@@ -130,9 +130,7 @@ class LineaInputTransformer:
         )
         last_node = transform(code, location, self.tracer)
         if self.visualize_display:
-            self.visualize_display.update(
-                SVG(self.tracer.graphviz()._repr_svg_())
-            )
+            self.visualize_display.update(SVG(self.tracer.visualize_to_svg()))
 
         # TODO: write to existing stdout as well when executing
         # more like tee, instead of having to write at end
