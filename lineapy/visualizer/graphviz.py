@@ -116,10 +116,7 @@ def get_color(tp: ColorableType) -> str:
 def tracer_to_graphviz(
     tracer: Tracer, options: VisualGraphOptions
 ) -> graphviz.Digraph:
-    dot = graphviz.Digraph(
-        graph_attr=GRAPH_STYLE, node_attr=NODE_STYLE, edge_attr=EDGE_STYLE
-    )
-    # for k, v in GRAPH_STYLE.items():
+    dot = graphviz.Digraph(node_attr=NODE_STYLE, edge_attr=EDGE_STYLE)
     dot.attr(**GRAPH_STYLE)
 
     add_legend(dot, options)
