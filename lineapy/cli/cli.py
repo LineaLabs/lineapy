@@ -1,7 +1,6 @@
 import logging
 import os
 import pathlib
-import sys
 
 import click
 import rich
@@ -11,6 +10,7 @@ import rich.tree
 from lineapy.constants import ExecutionMode
 from lineapy.data.types import SessionType
 from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.exceptions import set_custom_excepthook
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
 from lineapy.plugins.airflow import sliced_aiflow_dag
@@ -80,6 +80,7 @@ def linea_cli(
     verbose,
     visualize,
 ):
+    set_custom_excepthook()
     configure_logging("INFO" if verbose else "WARNING")
     tree = rich.tree.Tree(f"📄 {file_name}")
 
@@ -150,18 +151,5 @@ def linea_cli(
     console.print(tree)
 
 
-def custom_excepthook(exc_type, exc_value, traceback):
-    # exc_info = exc_type, exc_value, traceback
-    cause = exc_value.__cause__
-    # cause_info =
-    # import pdb
-
-    # pdb.set_trace()
-    # if not issubclass(exc_type, (KeyboardInterrupt, SystemExit)):
-    # logger.error('Unhandled exception', exc_info=exc_info)
-    sys.__excepthook__(type(cause), cause, cause.__traceback__)
-
-
-sys.excepthook = custom_excepthook
 if __name__ == "__main__":
     linea_cli()

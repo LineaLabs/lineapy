@@ -4,15 +4,11 @@ import builtins
 import importlib.util
 import io
 import logging
-import sys
-import traceback
 from contextlib import redirect_stdout
-from curses import nonl
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
 from pathlib import Path
-from types import TracebackType
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
@@ -28,6 +24,7 @@ from lineapy.data.types import (
     Node,
 )
 from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.exceptions import UserException
 from lineapy.instrumentation.inspect_function import (
     BoundSelfOfFunction,
     KeywordArg,
@@ -37,7 +34,7 @@ from lineapy.instrumentation.inspect_function import (
     Result,
     inspect_function,
 )
-from lineapy.utils import UserException, get_new_id, lookup_value
+from lineapy.utils import get_new_id, lookup_value
 
 logger = logging.getLogger(__name__)
 
@@ -167,50 +164,22 @@ class Executor:
 
             lineabuiltins.CURRENT_SOURCE_LOCATION = node.source_location
 
-            # with redirect_stdout(self._stdout):
-            start_time = datetime.now()
-            res = None
             try:
-                res = fn(*args, **kwargs)
-            except Exception as e:
-                # import pdb
-
-                old_tb = e.__traceback__
-
-                # Make a new traceback with all the lower tracebacks, replacing
-                # the top level with a new one.
-                e.__traceback__ = TracebackType(
-                    old_tb.tb_next,
-                    make_frame(
-                        compile(
-                            node.source_location.source_code.code,
-                            str(node.source_location.source_code.location),
-                            "exec",
+                with redirect_stdout(self._stdout):
+                    start_time = datetime.now()
+                    res = fn(*args, **kwargs)
+                    end_time = datetime.now()
+            except Exception as exc:
+                add_frame = None
+                if node.source_location:
+                    location = node.source_location.source_code.location
+                    if isinstance(location, Path):
+                        add_frame = (
+                            str(location.absolute()),
+                            node.source_location.lineno,
                         )
-                    ),
-                    old_tb.tb_lasti,
-                    node.source_location.lineno,
-                )
-                # import pdb
+                raise UserException(exc, skip_frames=1, add_frame=add_frame)
 
-                # pdb.set_trace()
-                raise UserException() from e
-            #     # traceback.
-            #     # e.
-            #     print(e.__traceback__)
-            #     sys.exit(1)
-            # import pdb
-
-            # pdb.set_trace()
-            # raise ValueError() from e
-
-            # track user exceptions separate from linea stack's exceptions.
-            # This way we can preserve their stack without poisoning it with linea lines.
-            # except Exception as e:
-            # use the catchall to raise a custom exception
-            # raise UserException(e.args) from e
-
-            end_time = datetime.now()
             self._execution_time[node.id] = (start_time, end_time)
 
             ##
@@ -328,36 +297,3 @@ class AccessedGlobals:
 
 
 SideEffects = Iterable[Union[MutatedNode, ViewOfNodes, AccessedGlobals]]
-
-
-import ctypes
-
-P_SIZE = ctypes.sizeof(ctypes.c_void_p)
-IS_X64 = P_SIZE == 8
-
-P_MEM_TYPE = ctypes.POINTER(ctypes.c_ulong if IS_X64 else ctypes.c_uint)
-
-ctypes.pythonapi.PyFrame_New.argtypes = (
-    P_MEM_TYPE,  # PyThreadState *tstate
-    P_MEM_TYPE,  # PyCodeObject *code
-    ctypes.py_object,  # PyObject *globals
-    ctypes.py_object,  # PyObject *locals
-)
-ctypes.pythonapi.PyFrame_New.restype = ctypes.py_object  # PyFrameObject*
-
-ctypes.pythonapi.PyThreadState_Get.argtypes = None
-ctypes.pythonapi.PyThreadState_Get.restype = P_MEM_TYPE
-
-
-# def greet():
-#     print("hello")
-
-
-def make_frame(code):
-
-    return ctypes.pythonapi.PyFrame_New(
-        ctypes.pythonapi.PyThreadState_Get(),  # thread state
-        ctypes.cast(id(code), P_MEM_TYPE),  # a code object
-        globals(),  # a dict of globals
-        locals(),  # a dict of locals
-    )

@@ -44,6 +44,7 @@ from lineapy.data.types import (
     SourceCodeLocation,
     SourceLocation,
 )
+from lineapy.exceptions import UserException
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.lineabuiltins import (
     l_assert,
@@ -54,7 +55,7 @@ from lineapy.lineabuiltins import (
     l_list,
 )
 from lineapy.transformer.transformer_util import create_lib_attributes
-from lineapy.utils import UserException, get_new_id
+from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -70,8 +71,10 @@ def transform(
     """
 
     node_transformer = NodeTransformer(code, location, tracer)
-    # try:
-    tree = ast.parse(code)
+    try:
+        tree = ast.parse(code, str(location.absolute()))
+    except SyntaxError as e:
+        raise UserException(e, skip_frames=2)
     node_transformer.visit(tree)
     # TODO : catch user exception separately
     # except UserException as ue:

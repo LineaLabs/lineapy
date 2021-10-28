@@ -124,10 +124,6 @@ def remove_value(xs: Iterable[T], x: T) -> Iterable[T]:
             yield y
 
 
-class UserException(Exception):
-    pass
-
-
 def lookup_value(name: str) -> object:
     """
     Lookup a value from a string identifier.
