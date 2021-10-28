@@ -1,0 +1,6 @@
+FROM ghcr.io/linealabs/lineapy:main
+
+RUN pip install apache-airflow==2.2.0
+RUN airflow db init
+
+CMD [ "airflow"]

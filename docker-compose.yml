@@ -1,8 +1,20 @@
 version: "3.9"
 services:
   lineapy:
+    image: ${IMAGE_NAME}
     build: .
     volumes:
       - ./lineapy:/usr/src/base/lineapy
       - ./tests:/usr/src/base/tests
       - ./pyproject.toml:/usr/src/base/pyproject.toml
+  lineapy-airflow:
+    image: ${IMAGE_NAME_AIRFLOW}
+    build:
+      context: .
+      dockerfile: Dockerfile-airflow
+    depends_on:
+      - lineapy
+    ports:
+      - 8080:8080
+    command: airflow standalone 
+
