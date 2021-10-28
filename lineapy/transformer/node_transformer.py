@@ -101,10 +101,20 @@ class NodeTransformer(ast.NodeTransformer):
     def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
         return ast.get_source_segment(self.source_code.code, node, padded=True)
 
-    def generic_visit(self, node: ast.AST) -> ast.AST:
-        raise NotImplementedError(
-            f"Don't know how to transform {type(node).__name__}"
-        )
+    def generic_visit(self, node: ast.AST):
+        """
+        This will capture any generic blackboxes. Now that we have a clean scope
+        handling, we can separate them out into two types: expressions that return
+        something and statements that return nothing
+        """
+        if isinstance(node, (ast.ClassDef, ast.If, ast.For, ast.FunctionDef)):
+            return self._exec_statement(node)
+        elif isinstance(node, (ast.ListComp, ast.Lambda)):
+            return self._exec_expression(node)
+        else:
+            raise NotImplementedError(
+                f"Don't know how to transform {type(node).__name__}"
+            )
 
     def visit_Module(self, node: ast.Module) -> Any:
         for stmt in node.body:
@@ -507,24 +517,6 @@ class NodeTransformer(ast.NodeTransformer):
             self.tracer.literal(code),
         )
 
-    def visit_ListComp(self, node: ast.ListComp) -> Node:
-        return self._exec_expression(node)
-
-    def visit_If(self, node: ast.If) -> None:
-        return self._exec_statement(node)
-
-    def visit_For(self, node: ast.For) -> None:
-        return self._exec_statement(node)
-
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        """
-        For now, assume the function is pure, i.e.:
-        - no globals
-        - no writing to variables defined outside the scope
-        """
-
-        return self._exec_statement(node)
-
     def visit_Dict(self, node: ast.Dict) -> CallNode:
         keys = node.keys
         values = node.values
@@ -548,9 +540,6 @@ class NodeTransformer(ast.NodeTransformer):
                 for k, v in zip(keys, values)
             ),
         )
-
-    def visit_Lambda(self, ast_node: ast.Lambda) -> Node:
-        return self._exec_expression(ast_node)
 
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):
