@@ -5,6 +5,13 @@ from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.python_operator import PythonOperator
 
+from pandas.api.types import CategoricalDtype
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.model_selection import train_test_split
+
+from sklearn.feature_extraction import DictVectorizer
+from sklearn import linear_model as lm
+
 
 default_dag_args = {
     "owner": "airflow",
@@ -28,8 +35,6 @@ def evalute_perf(model, val):
 def process_1(state, ti):
     assets = pd.read_csv("../ames_train_cleaned.csv")
 
-    from pandas.api.types import CategoricalDtype
-    from sklearn.feature_extraction import DictVectorizer
     cleaned_data = training_data.drop(['Pool_QC', 'Misc_Feature'], axis=1)
     cleaned_data = cleaned_data[cleaned_data['Garage_Area']  < 1250]
     vec_enc = DictVectorizer()
@@ -39,13 +44,8 @@ def process_1(state, ti):
     Neighborhood = pd.DataFrame(Neighborhood_data, columns=Neighborhood_cats)
     cleaned_data = pd.concat([cleaned_data, Neighborhood], axis=1)
     cleaned_data = cleaned_data.drop(columns=Neighborhood_cats[0])
-    ti.xcom_push(key='cleaned_data', value=cleaned_data)
     cleaned_data = cleaned_data.dropna()
-    from sklearn.model_selection import train_test_split
     train, val = train_test_split(cleaned_data, test_size=0.3, random_state=42)
-    
-    from sklearn.feature_extraction import DictVectorizer
-    from sklearn import linear_model as lm
     X_train = train.drop(['SalePrice'], axis = 1)
     y_train = train.loc[:, 'SalePrice']
     linear_model = lm.LinearRegression(fit_intercept=True)
