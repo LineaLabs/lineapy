@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
 from pathlib import Path
+from types import TracebackType
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
@@ -174,8 +175,16 @@ class Executor:
             except Exception as e:
                 # import pdb
 
-                # pdb.set_trace()
-                # e.__traceback__.tb_lineno = 10
+                old_tb = e.__traceback__
+
+                # Make a new traceback with all the lower tracebacks, replacing
+                # the top level with a new one.
+                e.__traceback__ = TracebackType(
+                    old_tb.tb_next,
+                    old_tb.tb_frame,
+                    old_tb.tb_lasti,
+                    old_tb.tb_lineno + 10,
+                )
                 raise UserException() from e
             #     # traceback.
             #     # e.
