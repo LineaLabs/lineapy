@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+import sys
 
 import click
 import rich
@@ -149,5 +150,18 @@ def linea_cli(
     console.print(tree)
 
 
+def custom_excepthook(exc_type, exc_value, traceback):
+    # exc_info = exc_type, exc_value, traceback
+    cause = exc_value.__cause__
+    # cause_info =
+    # import pdb
+
+    # pdb.set_trace()
+    # if not issubclass(exc_type, (KeyboardInterrupt, SystemExit)):
+    # logger.error('Unhandled exception', exc_info=exc_info)
+    sys.__excepthook__(type(cause), cause, cause.__traceback__)
+
+
+sys.excepthook = custom_excepthook
 if __name__ == "__main__":
     linea_cli()

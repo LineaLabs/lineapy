@@ -4,7 +4,10 @@ import builtins
 import importlib.util
 import io
 import logging
+import sys
+import traceback
 from contextlib import redirect_stdout
+from curses import nonl
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
@@ -163,18 +166,33 @@ class Executor:
 
             lineabuiltins.CURRENT_SOURCE_LOCATION = node.source_location
 
-            with redirect_stdout(self._stdout):
-                start_time = datetime.now()
-                res = None
-                try:
-                    res = fn(*args, **kwargs)
-                # track user exceptions separate from linea stack's exceptions.
-                # This way we can preserve their stack without poisoning it with linea lines.
-                except Exception as e:
-                    # use the catchall to raise a custom exception
-                    raise UserException(e.args) from e
+            # with redirect_stdout(self._stdout):
+            start_time = datetime.now()
+            res = None
+            try:
+                res = fn(*args, **kwargs)
+            except Exception as e:
+                # import pdb
 
-                end_time = datetime.now()
+                # pdb.set_trace()
+                # e.__traceback__.tb_lineno = 10
+                raise UserException() from e
+            #     # traceback.
+            #     # e.
+            #     print(e.__traceback__)
+            #     sys.exit(1)
+            # import pdb
+
+            # pdb.set_trace()
+            # raise ValueError() from e
+
+            # track user exceptions separate from linea stack's exceptions.
+            # This way we can preserve their stack without poisoning it with linea lines.
+            # except Exception as e:
+            # use the catchall to raise a custom exception
+            # raise UserException(e.args) from e
+
+            end_time = datetime.now()
             self._execution_time[node.id] = (start_time, end_time)
 
             ##

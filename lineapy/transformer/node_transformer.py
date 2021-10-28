@@ -70,13 +70,13 @@ def transform(
     """
 
     node_transformer = NodeTransformer(code, location, tracer)
-    try:
-        tree = ast.parse(code)
-        node_transformer.visit(tree)
+    # try:
+    tree = ast.parse(code)
+    node_transformer.visit(tree)
     # TODO : catch user exception separately
-    except UserException as ue:
-        logger.exception("Caught exception in code")
-        raise Exception(ue.__cause__)
+    # except UserException as ue:
+    #     logger.exception("Caught exception in code")
+    #     raise Exception(ue.__cause__)
     # finally:
     #     print("caught something")
 
@@ -130,16 +130,16 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Module(self, node: ast.Module) -> Any:
         for stmt in node.body:
-            try:
-                self.last_statement_result = self.visit(stmt)
-            except Exception:
-                code_context = self._get_code_from_node(node)
+            # try:
+            self.last_statement_result = self.visit(stmt)
+            # except Exception:
+            #     code_context = self._get_code_from_node(node)
 
-                logger.exception(
-                    "Error while transforming code: %s", code_context
-                )
-                raise
-            code_context = self._get_code_from_node(node)
+            #     logger.exception(
+            #         "Error while transforming code: %s", code_context
+            #     )
+            #     raise
+            # code_context = self._get_code_from_node(node)
 
     def visit_Expr(self, node: ast.Expr) -> Node:
         return self.visit(node.value)
