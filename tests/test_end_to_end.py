@@ -6,7 +6,7 @@ from tempfile import NamedTemporaryFile
 import pytest
 from click.testing import CliRunner
 
-from lineapy.api import linea_publish
+from lineapy.api import save
 from lineapy.cli.cli import linea_cli
 from lineapy.constants import ExecutionMode
 from lineapy.db.base import get_default_config_by_environment
@@ -16,9 +16,14 @@ from tests.util import CSV_CODE, IMAGE_CODE, reset_test_db
 publish_name = "testing artifact publish"
 PUBLISH_CODE = f"""import lineapy
 a = abs(11)
-lineapy.{linea_publish.__name__}(a, '{publish_name}')
+lineapy.{save.__name__}(a, '{publish_name}')
 """
 
+alt_publish_name = "another_import_method"
+PUBLISH_ALT_FORMAT_CODE = f"""from lineapy import {save.__name__}
+a = 1
+{save.__name__}(a, '{alt_publish_name}')
+"""
 
 STRING_FORMAT = """a = '{{ {0} }}'.format('foo')"""
 
@@ -62,7 +67,7 @@ b = a
 a = 2
 """
 
-MESSY_NODES = """import lineapy
+MESSY_NODES = f"""import lineapy
 a = 1
 b = a + 2
 c = 2
@@ -73,7 +78,7 @@ f = a * b * c
 e
 g = e
 
-lineapy.linea_publish(f, 'f')
+lineapy.{save.__name__}(f, 'f')
 """
 
 
@@ -91,17 +96,7 @@ else:
     print("False")
 """
 
-FUNCTION_DEFINITION_GLOBAL_CODE = """import math
-import lineapy
-a = 0
-def my_function():
-    global a
-    a = math.factorial(5)
-my_function()
-lineapy.linea_publish(a, 'mutated a')
-"""
-
-LOOP_CODE = """import lineapy
+LOOP_CODE = f"""import lineapy
 a = []
 b = 0
 for x in range(9):
@@ -109,15 +104,15 @@ for x in range(9):
     b+=x
 x = sum(a)
 y = x + b
-lineapy.linea_publish(y, 'y')
+lineapy.{save.__name__}(y, 'y')
 """
 
-SIMPLE_SLICE = """import lineapy
+SIMPLE_SLICE = f"""import lineapy
 a = 2
 b = 2
 c = min(b,5)
 b
-lineapy.linea_publish(c, 'c')
+lineapy.{save.__name__}(c, 'c')
 """
 
 SUBSCRIPT = """
@@ -185,26 +180,18 @@ class TestEndToEnd:
         reset_test_db(config.database_uri)
         self.db = RelationalLineaDB(config)
 
+    @pytest.mark.xfail(
+        reason="check for `save` is brittle, relies on Attribute"
+    )
+    def test_publish_format(self, execute):
+        res = execute(PUBLISH_ALT_FORMAT_CODE)
+        artifact = res.db.get_artifact_by_name(alt_publish_name)
+        assert artifact.name == alt_publish_name
+
     def test_function_definition_without_side_effect(self, execute):
         res = execute(FUNCTION_DEFINITION_CODE)
         assert res.values["c"] == 1
         assert res.values["d"] == 4
-
-    @pytest.mark.xfail(reason="exec scope is weird")
-    def test_function_definition_global(self, execute):
-        res = execute(FUNCTION_DEFINITION_GLOBAL_CODE)
-        assert res.values["a"] == 120
-
-    @pytest.mark.xfail
-    def test_function_definition_global_slice(self, execute, python_snapshot):
-        """
-        Verify code is the same
-        """
-        res = execute(
-            FUNCTION_DEFINITION_GLOBAL_CODE,
-            compare_snapshot=False,
-        )
-        assert res.slice("a") == python_snapshot
 
     def test_loop_code(self, execute):
         res = execute(LOOP_CODE)
@@ -232,6 +219,7 @@ class TestEndToEnd:
         assert res.stdout == "False\n"
         assert res.values["bs"] == [1, 2, 3]
 
+    @pytest.mark.slow
     def test_pandas(self, execute):
         res = execute(PANDAS_RANDOM_CODE)
         assert res.values["new_df"].size == 2
@@ -295,6 +283,7 @@ class TestEndToEnd:
     def test_dictionary_support(self, execute):
         execute(DICTIONARY_SUPPORT)
 
+    @pytest.mark.slow
     def test_graph_with_basic_image(self, execute):
         execute(IMAGE_CODE)
 
@@ -414,6 +403,7 @@ class TestEndToEnd:
         assert res.values["a"] == 1
         assert res.values["b"] == 2
 
+    @pytest.mark.slow
     def test_housing(self, execute, python_snapshot):
         tests_dir = Path(__file__).parent
 
@@ -611,6 +601,7 @@ del x[1]
 
         assert res.artifacts["x"] == source
 
+    @pytest.mark.slow
     def test_self_return_loop(self, execute):
         """
         Verifies that if we return a value that is the same as the self arg,

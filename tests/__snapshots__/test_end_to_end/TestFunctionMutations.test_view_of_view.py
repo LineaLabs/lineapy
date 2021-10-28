@@ -12,9 +12,9 @@ x[\'y\'] = y
 y[\'z\'] = z
 z[\'a\'] = 1
 
-lineapy.linea_publish(x, \'x\')
-lineapy.linea_publish(y, \'y\')
-lineapy.linea_publish(z, \'z\')
+lineapy.save(x, \'x\')
+lineapy.save(y, \'y\')
+lineapy.save(z, \'z\')
 """,
     location=PosixPath("[source file path]"),
 )
@@ -27,7 +27,7 @@ call_1 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_dict__",
+        name="l_dict",
     ).id,
 )
 call_2 = CallNode(
@@ -39,7 +39,7 @@ call_2 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_dict__",
+        name="l_dict",
     ).id,
 )
 call_3 = CallNode(
@@ -51,7 +51,7 @@ call_3 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_dict__",
+        name="l_dict",
     ).id,
 )
 call_5 = CallNode(

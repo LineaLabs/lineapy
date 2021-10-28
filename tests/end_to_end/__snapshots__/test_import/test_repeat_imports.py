@@ -10,8 +10,8 @@ from math import sqrt
 a=pow(5,2)
 b=sqrt(a)
 
-lineapy.linea_publish(a, \'a\')
-lineapy.linea_publish(b, \'b\')
+lineapy.save(a, \'a\')
+lineapy.save(b, \'b\')
 """,
     location=PosixPath("[source file path]"),
 )

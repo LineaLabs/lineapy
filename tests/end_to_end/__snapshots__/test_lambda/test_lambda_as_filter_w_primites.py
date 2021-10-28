@@ -9,7 +9,7 @@ list_2 = list(filter(lambda x: x%2==0, list_1))
 """,
     location=PosixPath("[source file path]"),
 )
-call_5 = CallNode(
+call_4 = CallNode(
     source_location=SourceLocation(
         lineno=2,
         col_offset=9,
@@ -34,33 +34,20 @@ call_5 = CallNode(
             ).id,
             positional_args=[
                 CallNode(
+                    source_location=SourceLocation(
+                        lineno=2,
+                        col_offset=21,
+                        end_lineno=2,
+                        end_col_offset=37,
+                        source_code=source_1.id,
+                    ),
                     function_id=LookupNode(
-                        name="getitem",
+                        name="l_exec_expr",
                     ).id,
                     positional_args=[
-                        CallNode(
-                            source_location=SourceLocation(
-                                lineno=2,
-                                col_offset=21,
-                                end_lineno=2,
-                                end_col_offset=37,
-                                source_code=source_1.id,
-                            ),
-                            function_id=LookupNode(
-                                name="__exec__",
-                            ).id,
-                            positional_args=[
-                                LiteralNode(
-                                    value="lambda x: x%2==0",
-                                ).id,
-                                LiteralNode(
-                                    value=True,
-                                ).id,
-                            ],
-                        ).id,
                         LiteralNode(
-                            value=0,
-                        ).id,
+                            value="lambda x: x%2==0",
+                        ).id
                     ],
                 ).id,
                 CallNode(
@@ -72,7 +59,7 @@ call_5 = CallNode(
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
-                        name="__build_list__",
+                        name="l_list",
                     ).id,
                     positional_args=[
                         LiteralNode(

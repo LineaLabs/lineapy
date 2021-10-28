@@ -8,7 +8,7 @@ source_1 = SourceCode(
 x = {}
 x[\'a\'] = 3
 
-lineapy.linea_publish(x, \'x\')
+lineapy.save(x, \'x\')
 """,
     location=PosixPath("[source file path]"),
 )
@@ -21,7 +21,7 @@ call_1 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_dict__",
+        name="l_dict",
     ).id,
 )
 mutate_1 = MutateNode(

@@ -17,7 +17,7 @@ call_3 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__assert__",
+        name="l_assert",
     ).id,
     positional_args=[
         CallNode(

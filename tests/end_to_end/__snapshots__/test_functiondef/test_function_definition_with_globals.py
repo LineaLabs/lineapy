@@ -10,11 +10,11 @@ def foo(a):
     return a - b
 c = foo(15)
 
-lineapy.linea_publish(c, \'c\')
+lineapy.save(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_3 = CallNode(
+call_2 = CallNode(
     source_location=SourceLocation(
         lineno=5,
         col_offset=4,
@@ -22,39 +22,26 @@ call_3 = CallNode(
         end_col_offset=11,
         source_code=source_1.id,
     ),
-    function_id=CallNode(
-        function_id=LookupNode(
-            name="getitem",
-        ).id,
-        positional_args=[
-            CallNode(
-                source_location=SourceLocation(
-                    lineno=3,
-                    col_offset=0,
-                    end_lineno=4,
-                    end_col_offset=16,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="__exec__",
-                ).id,
-                positional_args=[
-                    LiteralNode(
-                        value="""def foo(a):
+    function_id=GlobalNode(
+        name="foo",
+        call_id=CallNode(
+            source_location=SourceLocation(
+                lineno=3,
+                col_offset=0,
+                end_lineno=4,
+                end_col_offset=16,
+                source_code=source_1.id,
+            ),
+            function_id=LookupNode(
+                name="l_exec_statement",
+            ).id,
+            positional_args=[
+                LiteralNode(
+                    value="""def foo(a):
     return a - b""",
-                    ).id,
-                    LiteralNode(
-                        value=False,
-                    ).id,
-                    LiteralNode(
-                        value="foo",
-                    ).id,
-                ],
-            ).id,
-            LiteralNode(
-                value=0,
-            ).id,
-        ],
+                ).id
+            ],
+        ).id,
     ).id,
     positional_args=[
         LiteralNode(

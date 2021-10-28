@@ -11,41 +11,28 @@ d = foo(5,1)
 """,
     location=PosixPath("[source file path]"),
 )
-call_2 = CallNode(
-    function_id=LookupNode(
-        name="getitem",
-    ).id,
-    positional_args=[
-        CallNode(
-            source_location=SourceLocation(
-                lineno=1,
-                col_offset=0,
-                end_lineno=2,
-                end_col_offset=16,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="__exec__",
-            ).id,
-            positional_args=[
-                LiteralNode(
-                    value="""def foo(a, b):
+global_1 = GlobalNode(
+    name="foo",
+    call_id=CallNode(
+        source_location=SourceLocation(
+            lineno=1,
+            col_offset=0,
+            end_lineno=2,
+            end_col_offset=16,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="l_exec_statement",
+        ).id,
+        positional_args=[
+            LiteralNode(
+                value="""def foo(a, b):
     return a - b""",
-                ).id,
-                LiteralNode(
-                    value=False,
-                ).id,
-                LiteralNode(
-                    value="foo",
-                ).id,
-            ],
-        ).id,
-        LiteralNode(
-            value=0,
-        ).id,
-    ],
+            ).id
+        ],
+    ).id,
 )
-call_3 = CallNode(
+call_2 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=4,
@@ -53,7 +40,7 @@ call_3 = CallNode(
         end_col_offset=17,
         source_code=source_1.id,
     ),
-    function_id=call_2.id,
+    function_id=global_1.id,
     keyword_args={
         "a": LiteralNode(
             source_location=SourceLocation(
@@ -77,7 +64,7 @@ call_3 = CallNode(
         ).id,
     },
 )
-call_4 = CallNode(
+call_3 = CallNode(
     source_location=SourceLocation(
         lineno=4,
         col_offset=4,
@@ -85,7 +72,7 @@ call_4 = CallNode(
         end_col_offset=12,
         source_code=source_1.id,
     ),
-    function_id=call_2.id,
+    function_id=global_1.id,
     positional_args=[
         LiteralNode(
             source_location=SourceLocation(

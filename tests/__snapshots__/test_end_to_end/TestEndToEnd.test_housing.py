@@ -31,7 +31,7 @@ x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
 
 clf.fit(x, y)
 p = clf.predict([[100 * 1000, 10, 4]])
-lineapy.linea_publish(p, "p value")
+lineapy.save(p, "p value")
 """,
     location=PosixPath("[source file path]"),
 )
@@ -280,7 +280,7 @@ call_11 = CallNode(
         ).id,
     },
 )
-call_14 = CallNode(
+call_13 = CallNode(
     source_location=SourceLocation(
         lineno=20,
         col_offset=26,
@@ -305,7 +305,7 @@ call_14 = CallNode(
         ).id,
     ],
 )
-call_16 = CallNode(
+call_15 = CallNode(
     source_location=SourceLocation(
         lineno=20,
         col_offset=0,
@@ -336,53 +336,40 @@ call_16 = CallNode(
                 end_col_offset=47,
                 source_code=source_1.id,
             ),
-            function_id=CallNode(
-                function_id=LookupNode(
-                    name="getitem",
-                ).id,
-                positional_args=[
-                    CallNode(
-                        source_location=SourceLocation(
-                            lineno=16,
-                            col_offset=0,
-                            end_lineno=17,
-                            end_col_offset=21,
-                            source_code=source_1.id,
-                        ),
-                        function_id=LookupNode(
-                            name="__exec__",
-                        ).id,
-                        positional_args=[
-                            LiteralNode(
-                                value="""def is_new(col):
+            function_id=GlobalNode(
+                name="is_new",
+                call_id=CallNode(
+                    source_location=SourceLocation(
+                        lineno=16,
+                        col_offset=0,
+                        end_lineno=17,
+                        end_col_offset=21,
+                        source_code=source_1.id,
+                    ),
+                    function_id=LookupNode(
+                        name="l_exec_statement",
+                    ).id,
+                    positional_args=[
+                        LiteralNode(
+                            value="""def is_new(col):
     return col > 1970""",
-                            ).id,
-                            LiteralNode(
-                                value=False,
-                            ).id,
-                            LiteralNode(
-                                value="is_new",
-                            ).id,
-                        ],
-                    ).id,
-                    LiteralNode(
-                        value=0,
-                    ).id,
-                ],
+                        ).id
+                    ],
+                ).id,
             ).id,
-            positional_args=[call_14.id],
+            positional_args=[call_13.id],
         ).id,
     ],
 )
 mutate_1 = MutateNode(
     source_id=call_9.id,
-    call_id=call_16.id,
+    call_id=call_15.id,
 )
 mutate_2 = MutateNode(
-    source_id=call_14.id,
-    call_id=call_16.id,
+    source_id=call_13.id,
+    call_id=call_15.id,
 )
-call_17 = CallNode(
+call_16 = CallNode(
     source_location=SourceLocation(
         lineno=22,
         col_offset=6,
@@ -425,7 +412,7 @@ call_17 = CallNode(
         ).id
     },
 )
-call_27 = CallNode(
+call_26 = CallNode(
     source_location=SourceLocation(
         lineno=27,
         col_offset=4,
@@ -446,7 +433,7 @@ call_27 = CallNode(
         ).id,
         positional_args=[
             MutateNode(
-                source_id=call_17.id,
+                source_id=call_16.id,
                 call_id=CallNode(
                     source_location=SourceLocation(
                         lineno=26,
@@ -467,7 +454,7 @@ call_27 = CallNode(
                             name="getattr",
                         ).id,
                         positional_args=[
-                            call_17.id,
+                            call_16.id,
                             LiteralNode(
                                 value="fit",
                             ).id,
@@ -496,7 +483,7 @@ call_27 = CallNode(
                                         source_code=source_1.id,
                                     ),
                                     function_id=LookupNode(
-                                        name="__build_list__",
+                                        name="l_list",
                                     ).id,
                                     positional_args=[
                                         LiteralNode(
@@ -576,7 +563,7 @@ call_27 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
-                name="__build_list__",
+                name="l_list",
             ).id,
             positional_args=[
                 CallNode(
@@ -588,7 +575,7 @@ call_27 = CallNode(
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
-                        name="__build_list__",
+                        name="l_list",
                     ).id,
                     positional_args=[
                         CallNode(

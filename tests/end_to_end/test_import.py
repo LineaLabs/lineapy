@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_import_multiple_with_alias(execute):
     code = """from math import pow as power, sqrt as root
 a = power(5, 2)
@@ -8,6 +11,7 @@ b = root(a)
     assert res.values["b"] == 5
 
 
+@pytest.mark.slow
 def test_PIL_import_issue(execute):
     code = """from PIL.Image import open, new
 new_img = new("RGB", (4,4))

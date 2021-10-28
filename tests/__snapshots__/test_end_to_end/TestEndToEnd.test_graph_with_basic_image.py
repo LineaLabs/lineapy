@@ -15,7 +15,7 @@ plt.imsave(\'simple_data.png\', df)
 img = open(\'simple_data.png\')
 img = img.resize([200, 200])
 
-lineapy.linea_publish(img, "Graph With Image")
+lineapy.save(img, "Graph With Image")
 """,
     location=PosixPath("[source file path]"),
 )
@@ -197,7 +197,7 @@ call_9 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
-                name="__build_list__",
+                name="l_list",
             ).id,
             positional_args=[
                 LiteralNode(

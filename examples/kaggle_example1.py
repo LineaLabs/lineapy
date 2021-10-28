@@ -81,4 +81,4 @@ plt.figure(num=None, figsize=(10, 8), dpi=80, facecolor="w", edgecolor="k")
 feat_importances = pd.Series(clf.feature_importances_, index=X.columns)
 
 feat_importances.nlargest(7).plot(kind="barh")
-lineapy.linea_publish(feat_importances, "mushroom feature importance")
+lineapy.save(feat_importances, "mushroom feature importance")

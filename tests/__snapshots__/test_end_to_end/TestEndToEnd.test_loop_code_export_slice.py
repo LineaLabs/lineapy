@@ -12,7 +12,7 @@ for x in range(9):
     b+=x
 x = sum(a)
 y = x + b
-lineapy.linea_publish(y, \'y\')
+lineapy.save(y, \'y\')
 """,
     location=PosixPath("[source file path]"),
 )
@@ -25,7 +25,7 @@ call_1 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__build_list__",
+        name="l_list",
     ).id,
 )
 call_2 = CallNode(
@@ -37,25 +37,16 @@ call_2 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
-        name="__exec__",
+        name="l_exec_statement",
     ).id,
     positional_args=[
         LiteralNode(
             value="""for x in range(9):
     a.append(x)
     b+=x""",
-        ).id,
-        LiteralNode(
-            value=False,
-        ).id,
-        LiteralNode(
-            value="b",
-        ).id,
-        LiteralNode(
-            value="x",
-        ).id,
+        ).id
     ],
-    keyword_args={
+    global_reads={
         "a": call_1.id,
         "b": LiteralNode(
             source_location=SourceLocation(
@@ -67,23 +58,13 @@ call_2 = CallNode(
             ),
             value=0,
         ).id,
-        "range": LookupNode(
-            name="range",
-        ).id,
     },
 )
-call_4 = CallNode(
-    function_id=LookupNode(
-        name="getitem",
-    ).id,
-    positional_args=[
-        call_2.id,
-        LiteralNode(
-            value=1,
-        ).id,
-    ],
+global_2 = GlobalNode(
+    name="x",
+    call_id=call_2.id,
 )
-call_6 = CallNode(
+call_4 = CallNode(
     source_location=SourceLocation(
         lineno=8,
         col_offset=4,
@@ -108,16 +89,9 @@ call_6 = CallNode(
             ).id,
             positional_args=[call_1.id],
         ).id,
-        CallNode(
-            function_id=LookupNode(
-                name="getitem",
-            ).id,
-            positional_args=[
-                call_2.id,
-                LiteralNode(
-                    value=0,
-                ).id,
-            ],
+        GlobalNode(
+            name="b",
+            call_id=call_2.id,
         ).id,
     ],
 )

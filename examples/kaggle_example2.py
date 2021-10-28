@@ -179,7 +179,7 @@ diabetes_data.shape
 ## data type analysis
 # plt.figure(figsize=(5,5))
 # sns.set(font_scale=2)
-sns.countplot(y=diabetes_data.dtypes, data=diabetes_data)
+sns.countplot(data=diabetes_data)
 plt.xlabel("count of each data type")
 plt.ylabel("data types")
 plt.show()
@@ -211,7 +211,7 @@ p = diabetes_data.Outcome.value_counts().plot(kind="bar")
 # In[14]:
 
 
-from pandas.tools.plotting import scatter_matrix
+from pandas.plotting import scatter_matrix
 
 p = scatter_matrix(diabetes_data, figsize=(25, 25))
 
@@ -519,7 +519,7 @@ plt.xlabel("Predicted label")
 from sklearn.metrics import classification_report
 
 report = classification_report(y_test, y_pred)
-lineapy.linea_publish(report, "classification_report")
+lineapy.save(report, "classification_report")
 
 
 # ## 3. ROC - AUC
@@ -590,7 +590,7 @@ knn_cv = GridSearchCV(knn, param_grid, cv=5)
 knn_cv.fit(X, y)
 print("Best Score:" + str(knn_cv.best_score_))
 print("Best Parameters: " + str(knn_cv.best_params_))
-lineapy.linea_publish(knn_cv, "nn for diabetes")
+lineapy.save(knn_cv, "nn for diabetes")
 
 
 # In[36]:

@@ -11,6 +11,7 @@ import syrupy
 from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
+from lineapy import save
 from lineapy.constants import ExecutionMode
 from lineapy.data.types import SessionType
 from lineapy.db.relational.db import RelationalLineaDB
@@ -83,6 +84,10 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
         )
 
 
+class SVGSnapshotExtension(PythonSnapshotExtension):
+    _file_extension = "svg"
+
+
 @pytest.fixture
 def python_snapshot(request):
     """
@@ -97,14 +102,30 @@ def python_snapshot(request):
 
 
 @pytest.fixture
-def execute(python_snapshot, tmp_path, request):
+def svg_snapshot(request):
+    """
+    Copied from the default fixture, but updating the extension class to be Python
+    """
+    return syrupy.SnapshotAssertion(  # type: ignore
+        update_snapshots=request.config.option.update_snapshots,
+        extension_class=SVGSnapshotExtension,
+        test_location=syrupy.PyTestLocation(request.node),  # type: ignore
+        session=request.session.config._syrupy,
+    )
+
+
+@pytest.fixture
+def execute(python_snapshot, tmp_path, request, svg_snapshot):
     """
     :param snapshot: `snapshot` is a fixture from the syrupy library that's automatically injected by pytest.
     :param tmp_path: `tmp_path` is provided by the core pytest
     :param request: `request` is provided by the core pytest
     """
     return ExecuteFixture(
-        python_snapshot, tmp_path, request.config.getoption("--visualize")
+        python_snapshot,
+        svg_snapshot,
+        tmp_path,
+        request.config.getoption("--visualize"),
     )
 
 
@@ -119,6 +140,7 @@ class ExecuteFixture:
     """
 
     snapshot: syrupy.SnapshotAssertion
+    svg_snapshot: syrupy.SnapshotAssertion
     tmp_path: pathlib.Path
     # Whether to visualize the tracer graph after creating
     visualize: bool
@@ -143,7 +165,7 @@ class ExecuteFixture:
             code = "import lineapy\n" + code + "\n"
             for artifact in artifacts:
                 code += (
-                    f"lineapy.linea_publish({artifact}, {repr(artifact)})\n"
+                    f"lineapy.{save.__name__}({artifact}, {repr(artifact)})\n"
                 )
 
         # These temp filenames are unique per test function.
@@ -159,7 +181,9 @@ class ExecuteFixture:
 
         if self.visualize:
             tracer.visualize(
-                options=VisualGraphOptions(show_implied_mutations=True)
+                options=VisualGraphOptions(
+                    show_implied_mutations=True, show_views=True
+                )
             )
 
         # Verify snapshot of graph
@@ -180,10 +204,36 @@ class ExecuteFixture:
             # Prettify again in case replacements cause line wraps
             assert prettify(graph_str) == self.snapshot
 
-        # Verify that execution works again, loading from the DB, in a new dir
+            # If this graph string snapshot was updated, then also update the SVG
+            # snapshot. We don't want to always update the SVG snapshot, because
+            # it has lots of random IDs in it. We want to use it not for testing,
+            # but for better PR diffs
+            res = self.snapshot._execution_results[
+                self.snapshot._executions - 1
+            ]
+
+            self.svg_snapshot._update_snapshots = res.created or res.updated
+            # If we aren't updating snapshots, dont even bother trying to generate the SVG
+            svg_text = (
+                tracer.graphviz()._repr_svg_()
+                if self.snapshot._update_snapshots
+                else ""
+            )
+            svg_text == self.svg_snapshot
+
+            # Mark the SVG snapshot as always passing
+            self.svg_snapshot._execution_results[
+                self.svg_snapshot._executions - 1
+            ].success = True
+
+            # Verify that execution works again, loading from the DB, in a new dir
         new_executor = Executor(db)
+
+        current_working_dir = os.getcwd()
+
         os.chdir(self.tmp_path)
         new_executor.execute_graph(tracer.graph)
+        os.chdir(current_working_dir)
 
         return tracer
 
@@ -198,3 +248,13 @@ def chdir_test_file():
     os.chdir(get_project_directory())
     yield
     os.chdir(current_working_dir)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def remove_dev_db():
+    """
+    Remove dev before all tests
+    """
+    p = Path("dev.sqlite")
+    if p.exists():
+        p.unlink()

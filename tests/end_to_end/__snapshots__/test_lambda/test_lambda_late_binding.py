@@ -10,7 +10,7 @@ a = 11
 c = b()""",
     location=PosixPath("[source file path]"),
 )
-literal_4 = LiteralNode(
+literal_2 = LiteralNode(
     source_location=SourceLocation(
         lineno=1,
         col_offset=4,
@@ -20,7 +20,7 @@ literal_4 = LiteralNode(
     ),
     value=10,
 )
-call_3 = CallNode(
+call_2 = CallNode(
     source_location=SourceLocation(
         lineno=4,
         col_offset=4,
@@ -29,33 +29,20 @@ call_3 = CallNode(
         source_code=source_1.id,
     ),
     function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=2,
+            col_offset=4,
+            end_lineno=2,
+            end_col_offset=13,
+            source_code=source_1.id,
+        ),
         function_id=LookupNode(
-            name="getitem",
+            name="l_exec_expr",
         ).id,
         positional_args=[
-            CallNode(
-                source_location=SourceLocation(
-                    lineno=2,
-                    col_offset=4,
-                    end_lineno=2,
-                    end_col_offset=13,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="__exec__",
-                ).id,
-                positional_args=[
-                    LiteralNode(
-                        value="lambda: a",
-                    ).id,
-                    LiteralNode(
-                        value=True,
-                    ).id,
-                ],
-            ).id,
             LiteralNode(
-                value=0,
-            ).id,
+                value="lambda: a",
+            ).id
         ],
     ).id,
     global_reads={

@@ -1,3 +1,5 @@
+import builtins
+import operator
 import sys
 from typing import Any, Callable, Iterable, Optional, TypeVar, cast
 from uuid import uuid4
@@ -5,6 +7,7 @@ from uuid import uuid4
 import black
 
 from lineapy.data.types import LineaID, LiteralType, ValueType
+from lineapy.lineabuiltins import LINEA_BUILTINS
 
 """
 Data gen utils
@@ -123,3 +126,16 @@ def remove_value(xs: Iterable[T], x: T) -> Iterable[T]:
 
 class UserException(Exception):
     pass
+
+
+def lookup_value(name: str) -> object:
+    """
+    Lookup a value from a string identifier.
+    """
+    if hasattr(builtins, name):
+        return getattr(builtins, name)
+    if hasattr(operator, name):
+        return getattr(operator, name)
+    if name in LINEA_BUILTINS:
+        return LINEA_BUILTINS[name]
+    return globals()[name]
