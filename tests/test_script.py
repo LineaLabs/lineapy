@@ -3,6 +3,7 @@ import subprocess
 import pytest
 
 
+@pytest.mark.slow
 def test_cli_entrypoint():
     """
     Verifies that the "--help" CLI command is aliased to the `lienapy` executable
@@ -10,6 +11,7 @@ def test_cli_entrypoint():
     subprocess.check_call(["lineapy", "--help"])
 
 
+@pytest.mark.slow
 def test_slice_housing():
     """
     Verifies that the "--slice" CLI command is aliased to the `lienapy` executable
@@ -19,6 +21,7 @@ def test_slice_housing():
     )
 
 
+@pytest.mark.slow
 def test_export_slice_housing():
     """
     Verifies that the "--export-slice" CLI command is aliased to the `lienapy` executable
@@ -35,6 +38,7 @@ def test_export_slice_housing():
     )
 
 
+@pytest.mark.slow
 def test_kaggle_example1():
 
     subprocess.check_call(
@@ -47,7 +51,7 @@ def test_kaggle_example1():
     )
 
 
-@pytest.mark.xfail(reason="lambdas aren't supported")
+@pytest.mark.slow
 def test_kaggle_example2():
 
     subprocess.check_call(

@@ -38,6 +38,8 @@ pytest tests/
 If using docker, please add appropriate tests and ensure all tests are working using
 `make test`. Any args to pytest can be passed using args="xxx". Eg, individual tests can be run using `make test args="<path_to_test_file>"`.
 
+Some tests have been marked "slow". These typically take > 0.5s and can be skipped by passing the args `-m "not slow"` when running pytest.
+
 ### Logging
 
 We have logging set up as well, which can be printed while running the tests
