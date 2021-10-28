@@ -6,3 +6,4 @@ services:
       - ./lineapy:/usr/src/base/lineapy
       - ./tests:/usr/src/base/tests
       - ./pyproject.toml:/usr/src/base/pyproject.toml
+      - ./pytest.ini:/usr/src/base/pytest.ini
