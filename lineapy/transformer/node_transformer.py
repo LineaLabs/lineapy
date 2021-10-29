@@ -76,12 +76,6 @@ def transform(
     except SyntaxError as e:
         raise UserException(e, skip_frames=2)
     node_transformer.visit(tree)
-    # TODO : catch user exception separately
-    # except UserException as ue:
-    #     logger.exception("Caught exception in code")
-    #     raise Exception(ue.__cause__)
-    # finally:
-    #     print("caught something")
 
     tracer.db.commit()
     return node_transformer.last_statement_result
@@ -180,7 +174,7 @@ class NodeTransformer(ast.NodeTransformer):
         )
 
     def visit_Name(self, node: ast.Name) -> Node:
-        return self.tracer.lookup_node(node.id)
+        return self.tracer.lookup_node(node.id, self.get_source(node))
 
     def visit_Call(self, node: ast.Call) -> Optional[CallNode]:
         """

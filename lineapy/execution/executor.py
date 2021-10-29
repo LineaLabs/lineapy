@@ -117,8 +117,25 @@ class Executor:
         - Returns the `SideEffects` of this node that's analyzed at runtime (hence in the executor).
         """
         logger.info("Executing node %s", node)
+
+        # To use if we need to raise an exception and change the frame
+        add_frame = None
+        if node.source_location:
+            location = node.source_location.source_code.location
+            if isinstance(location, Path):
+                add_frame = (
+                    str(location.absolute()),
+                    node.source_location.lineno,
+                )
+
         if isinstance(node, LookupNode):
-            value = lookup_value(node.name)
+            # If we get a lookup error, change it to a name error to match python
+            try:
+                value = lookup_value(node.name)
+            except KeyError:
+                # Matches Python's message
+                message = f"name '{node.name}' is not defined"
+                raise UserException(NameError(message), add_frame=add_frame)
             self._id_to_value[node.id] = value
         elif isinstance(node, CallNode):
 
@@ -162,6 +179,7 @@ class Executor:
 
             lineabuiltins._exec_globals.update(input_globals)
 
+            # Set so that exec can set the source location properly
             lineabuiltins.CURRENT_SOURCE_LOCATION = node.source_location
 
             try:
@@ -170,14 +188,6 @@ class Executor:
                     res = fn(*args, **kwargs)
                     end_time = datetime.now()
             except Exception as exc:
-                add_frame = None
-                if node.source_location:
-                    location = node.source_location.source_code.location
-                    if isinstance(location, Path):
-                        add_frame = (
-                            str(location.absolute()),
-                            node.source_location.lineno,
-                        )
                 raise UserException(exc, skip_frames=1, add_frame=add_frame)
 
             self._execution_time[node.id] = (start_time, end_time)

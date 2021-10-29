@@ -12,7 +12,7 @@ class UserException(Exception):
         self,
         cause: Exception,
         *,
-        skip_frames: int,
+        skip_frames: int = 0,
         add_frame: Optional[tuple[str, int]] = None,
     ):
 

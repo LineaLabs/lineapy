@@ -65,7 +65,9 @@ def test_kaggle_example2():
 
 
 @pytest.mark.parametrize(
-    "code", ("+++", "1 / 0"), ids=("syntax error", "runtime error")
+    "code",
+    ("+++", "1 / 0", "1\nx"),
+    ids=("syntax error", "runtime error", "name error"),
 )
 def test_linea_python_equivalent(tmp_path, code):
     """
