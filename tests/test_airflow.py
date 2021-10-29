@@ -3,7 +3,7 @@ import subprocess
 import pytest
 
 
-@pytest.mark.slow
+@pytest.mark.airflowtest
 def test_export_slice_housing_dag():
     """
     Verifies that the "--airflow" CLI command produces a working Airflow DAG
