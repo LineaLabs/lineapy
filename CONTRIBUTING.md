@@ -20,8 +20,13 @@ pip install -e ".[dev]" --user
 
 ### Docker + Makefile
 
-To build the container, run `make build`
+To build the Lineapy container, run `make build` (you can pass in arguments with `args=`, i.e. `make build args=--no-cache`)
 To open bash within the container, run `make bash`. One can either use bash for dev or can connect to remote runtimes inside a container using extensions available for the editor of choice.
+`make tests` executes the test suite.
+
+To build Lineapy contained with Airflow, run `make build-airflow`. `make tests-airflow` runs airflow tests.
+`make airflow-up` is one command that will bring up a standalone local Airflow server on port 8080.
+Login and password will be printed on command line output. Please note that this mode used SQLite DB and is not ment for heavy workloads.
 
 ## Debugging (in VSC)
 
