@@ -1,5 +1,6 @@
 import ast
 import logging
+from pathlib import Path
 from typing import Any, Optional, cast
 
 from lineapy.api import catalog, get, save
@@ -44,7 +45,7 @@ from lineapy.data.types import (
     SourceCodeLocation,
     SourceLocation,
 )
-from lineapy.exceptions import UserException
+from lineapy.exceptions.user_exception import RemoveFrames, UserException
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.lineabuiltins import (
     l_assert,
@@ -72,9 +73,14 @@ def transform(
 
     node_transformer = NodeTransformer(code, location, tracer)
     try:
-        tree = ast.parse(code, str(location.absolute()))
+        tree = ast.parse(
+            code,
+            str(location.absolute())
+            if isinstance(location, Path)
+            else "<unknown>",
+        )
     except SyntaxError as e:
-        raise UserException(e, skip_frames=2)
+        raise UserException(e, RemoveFrames(2))
     node_transformer.visit(tree)
 
     tracer.db.commit()

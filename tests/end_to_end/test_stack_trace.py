@@ -3,7 +3,7 @@ from typing import cast
 
 import pytest
 
-from lineapy.exceptions import UserException
+from lineapy.exceptions.user_exception import UserException
 
 
 def test_basic_exception(execute):

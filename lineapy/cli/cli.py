@@ -10,7 +10,7 @@ import rich.tree
 from lineapy.constants import ExecutionMode
 from lineapy.data.types import SessionType
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.exceptions import set_custom_excepthook
+from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
 from lineapy.plugins.airflow import sliced_aiflow_dag

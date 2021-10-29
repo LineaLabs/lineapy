@@ -24,7 +24,12 @@ from lineapy.data.types import (
     Node,
 )
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.exceptions import UserException
+from lineapy.exceptions.user_exception import (
+    AddFrame,
+    RemoveFrames,
+    RemoveFramesWhile,
+    UserException,
+)
 from lineapy.instrumentation.inspect_function import (
     BoundSelfOfFunction,
     KeywordArg,
@@ -119,15 +124,16 @@ class Executor:
         logger.info("Executing node %s", node)
 
         # To use if we need to raise an exception and change the frame
-        add_frame = None
+        add_frame: list[AddFrame] = []
         if node.source_location:
             location = node.source_location.source_code.location
             if isinstance(location, Path):
-                add_frame = (
-                    str(location.absolute()),
-                    node.source_location.lineno,
+                add_frame.append(
+                    AddFrame(
+                        str(location.absolute()),
+                        node.source_location.lineno,
+                    )
                 )
-
         if isinstance(node, LookupNode):
             # If we get a lookup error, change it to a name error to match python
             try:
@@ -135,7 +141,8 @@ class Executor:
             except KeyError:
                 # Matches Python's message
                 message = f"name '{node.name}' is not defined"
-                raise UserException(NameError(message), add_frame=add_frame)
+
+                raise UserException(NameError(message), *add_frame)
             self._id_to_value[node.id] = value
         elif isinstance(node, CallNode):
 
@@ -188,7 +195,7 @@ class Executor:
                     res = fn(*args, **kwargs)
                     end_time = datetime.now()
             except Exception as exc:
-                raise UserException(exc, skip_frames=1, add_frame=add_frame)
+                raise UserException(exc, RemoveFrames(1), *add_frame)
 
             self._execution_time[node.id] = (start_time, end_time)
 
@@ -237,8 +244,26 @@ class Executor:
                     yield ViewOfNodes(*map(get_node_id, e.pointers))
 
         elif isinstance(node, ImportNode):
-            with redirect_stdout(self._stdout):
-                value = importlib.import_module(node.library.name)
+            try:
+                with redirect_stdout(self._stdout):
+                    value = importlib.import_module(node.library.name)
+            except Exception as exc:
+                # Remove all importlib frames
+                # There are a different number depending on whether the import
+                # can be resolved
+                filter = RemoveFramesWhile(
+                    lambda frame: frame.f_code.co_filename.startswith(
+                        "<frozen importlib"
+                    )
+                )
+                raise UserException(
+                    exc,
+                    # Remove the first two frames, which are always there
+                    RemoveFrames(2),
+                    # Then filter all frozen importlib frames
+                    filter,
+                    *add_frame,
+                )
             self._id_to_value[node.id] = value
         elif isinstance(node, LiteralNode):
             self._id_to_value[node.id] = node.value

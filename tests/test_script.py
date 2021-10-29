@@ -66,8 +66,20 @@ def test_kaggle_example2():
 
 @pytest.mark.parametrize(
     "code",
-    ("+++", "1 / 0", "1\nx"),
-    ids=("syntax error", "runtime error", "name error"),
+    (
+        "+++",
+        "1 / 0",
+        "1\nx",
+        "import lineapy.__error_on_load",
+        "import lineapy_xxx",
+    ),
+    ids=(
+        "syntax error",
+        "runtime error",
+        "name error",
+        "error in import",
+        "invalid import",
+    ),
 )
 def test_linea_python_equivalent(tmp_path, code):
     """
