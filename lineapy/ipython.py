@@ -12,10 +12,7 @@ from IPython.display import SVG, DisplayHandle, display
 from lineapy.constants import ExecutionMode
 from lineapy.data.types import JupyterCell, LineaID, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.exceptions.excepthook import (
-    set_custom_excepthook,
-    transform_except_hook_args,
-)
+from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
@@ -32,7 +29,6 @@ def start(
     """
     Trace any subsequent cells with linea.
     """
-    set_custom_excepthook()
 
     ipython = ipython or get_ipython()  # type: ignore
 
