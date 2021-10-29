@@ -151,9 +151,10 @@ If you want to inspect the AST of some Python code for debugging, you can run:
 
 ## Debug Flags
 
-By default, linea will rewrite any exceptions raised during the normal execution
-of users code to attempt to match Python's behavior. To disable this, set the
-`LINEA_NO_EXCEPTIONS` to any value.
+By default, linea will rewrite any exceptions raised during the normal
+execution of users code to attempt to match Python's behavior. To disable our
+custom exception handling, set the `LINEA_NO_EXCEPTIONS` environment variable
+to any value.
 
 ## Before Committing
 
