@@ -4,18 +4,23 @@ Code to transform inputs when running in IPython, to trace them.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, ClassVar, Literal, Optional
+from typing import ClassVar, Literal, Optional
 
+from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import SVG, DisplayHandle, display
 
 from lineapy.constants import ExecutionMode
 from lineapy.data.types import JupyterCell, LineaID, SessionType
 from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.exceptions.excepthook import (
+    set_custom_excepthook,
+    transform_except_hook_args,
+)
+from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
+from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.ipython_cell_storage import get_cell_path
 from lineapy.transformer.node_transformer import transform
-
-if TYPE_CHECKING:
-    from IPython.core import InteractiveShell
 
 
 def start(
@@ -27,7 +32,15 @@ def start(
     """
     Trace any subsequent cells with linea.
     """
+    set_custom_excepthook()
+
     ipython = ipython or get_ipython()  # type: ignore
+
+    # Ipython does not use exceptionhook, so instead we monkeypatch
+    # how it processes the exceptions, in order to add our handler
+    # that removes the outer frames.
+    if REWRITE_EXCEPTIONS:
+        InteractiveShell._get_exc_info = custom_get_exc_info
 
     input_transformers_post = ipython.input_transformers_post
 
@@ -128,6 +141,10 @@ class LineaInputTransformer:
             execution_count=execution_count,
             session_id=self.session_id,
         )
+
+        # Write the code text to a file for error reporting
+        get_cell_path(location).write_text(code)
+
         last_node = transform(code, location, self.tracer)
         if self.visualize_display:
             self.visualize_display.update(SVG(self.tracer.visualize_to_svg()))
@@ -153,3 +170,15 @@ class LineaInputTransformer:
             lines = []
         self.last_call = (execution_count, lines)
         return lines
+
+
+original_get_exc_info = InteractiveShell._get_exc_info
+
+
+def custom_get_exc_info(*args, **kwargs):
+    return transform_except_hook_args(
+        # Add an extra frame on top, since ipython will strip out the first
+        # one
+        original_get_exc_info(*args, **kwargs),
+        AddFrame("", 0),
+    )

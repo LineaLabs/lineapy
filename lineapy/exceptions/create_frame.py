@@ -29,6 +29,8 @@ def create_frame(code: CodeType) -> FrameType:
     return ctypes.pythonapi.PyFrame_New(
         ctypes.pythonapi.PyThreadState_Get(),  # thread state
         ctypes.cast(id(code), P_MEM_TYPE),  # a code object
-        globals(),  # a dict of globals
-        locals(),  # a dict of locals
+        # Make sure not to set __file__ in the globals,
+        # or else ipython will look at it and change the file name
+        {},  # a dict of globals
+        {},  # a dict of locals
     )

@@ -1,6 +1,5 @@
 import ast
 import logging
-from pathlib import Path
 from typing import Any, Optional, cast
 
 from lineapy.api import catalog, get, save
@@ -47,6 +46,7 @@ from lineapy.data.types import (
 )
 from lineapy.exceptions.user_exception import RemoveFrames, UserException
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.ipython_cell_storage import get_location_path
 from lineapy.lineabuiltins import (
     l_assert,
     l_dict,
@@ -75,9 +75,7 @@ def transform(
     try:
         tree = ast.parse(
             code,
-            str(location.absolute())
-            if isinstance(location, Path)
-            else "<unknown>",
+            str(get_location_path(location).absolute()),
         )
     except SyntaxError as e:
         raise UserException(e, RemoveFrames(2))
@@ -133,16 +131,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Module(self, node: ast.Module) -> Any:
         for stmt in node.body:
-            # try:
             self.last_statement_result = self.visit(stmt)
-            # except Exception:
-            #     code_context = self._get_code_from_node(node)
-
-            #     logger.exception(
-            #         "Error while transforming code: %s", code_context
-            #     )
-            #     raise
-            # code_context = self._get_code_from_node(node)
 
     def visit_Expr(self, node: ast.Expr) -> Node:
         return self.visit(node.value)

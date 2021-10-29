@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import FrameType, TracebackType
-from typing import Callable, Optional, Union
+from typing import Callable, Iterable, Optional, Union
 
 from lineapy.exceptions.create_frame import create_frame
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
@@ -14,14 +14,23 @@ class UserException(Exception):
     applied to it.
     """
 
+    __cause__: Exception
+
     def __init__(self, cause: Exception, *changes: TracebackChange):
-        tb = cause.__traceback__
         if REWRITE_EXCEPTIONS:
-            for change in changes:
-                tb = change.execute(tb)
-        cause.__traceback__ = tb
+            apply_changes(cause, changes)
 
         self.__cause__ = cause
+
+
+def apply_changes(exc: Exception, changes: Iterable[TracebackChange]) -> None:
+    """
+    Update an exception's traceback with the changes provided.
+    """
+    tb = exc.__traceback__
+    for change in changes:
+        tb = change.execute(tb)
+    exc.__traceback__ = tb
 
 
 @dataclass
@@ -52,6 +61,7 @@ class AddFrame:
 
     def execute(self, traceback: Optional[TracebackType]) -> TracebackType:
         code = compile("", self.filename, "exec")
+
         return TracebackType(
             traceback,
             create_frame(code),

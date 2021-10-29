@@ -8,7 +8,6 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
-from pathlib import Path
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
 import lineapy.lineabuiltins as lineabuiltins
@@ -39,6 +38,7 @@ from lineapy.instrumentation.inspect_function import (
     Result,
     inspect_function,
 )
+from lineapy.ipython_cell_storage import get_location_path
 from lineapy.utils import get_new_id, lookup_value
 
 logger = logging.getLogger(__name__)
@@ -127,13 +127,12 @@ class Executor:
         add_frame: list[AddFrame] = []
         if node.source_location:
             location = node.source_location.source_code.location
-            if isinstance(location, Path):
-                add_frame.append(
-                    AddFrame(
-                        str(location.absolute()),
-                        node.source_location.lineno,
-                    )
+            add_frame.append(
+                AddFrame(
+                    str(get_location_path(location).absolute()),
+                    node.source_location.lineno,
                 )
+            )
         if isinstance(node, LookupNode):
             # If we get a lookup error, change it to a name error to match python
             try:
