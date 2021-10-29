@@ -16,6 +16,13 @@ call_2 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
+        source_location=SourceLocation(
+            lineno=1,
+            col_offset=4,
+            end_lineno=1,
+            end_col_offset=7,
+            source_code=source_1.id,
+        ),
         name="min",
     ).id,
     positional_args=[
@@ -28,6 +35,13 @@ call_2 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=8,
+                    end_lineno=1,
+                    end_col_offset=11,
+                    source_code=source_1.id,
+                ),
                 name="abs",
             ).id,
             positional_args=[

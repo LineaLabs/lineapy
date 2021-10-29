@@ -149,6 +149,12 @@ If you want to inspect the AST of some Python code for debugging, you can run:
 ./tests/tools/print_ast.py 'hi(a=10)'
 ```
 
+## Debug Flags
+
+By default, linea will rewrite any exceptions raised during the normal execution
+of users code to attempt to match Python's behavior. To disable this, set the
+`LINEA_NO_EXCEPTIONS` to any value.
+
 ## Before Committing
 
 Please ensure linting and typechecks are done before opening a PR. When using docker, this can be done using `make lint` and `make typecheck` respectively. A precommit hook that runs `make blackfix lint typecheck build test` will fix any fixable issues and ensure build and test works.

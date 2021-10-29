@@ -5,6 +5,7 @@ from types import FrameType, TracebackType
 from typing import Callable, Optional, Union
 
 from lineapy.exceptions.create_frame import create_frame
+from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 
 
 class UserException(Exception):
@@ -15,8 +16,9 @@ class UserException(Exception):
 
     def __init__(self, cause: Exception, *changes: TracebackChange):
         tb = cause.__traceback__
-        for change in changes:
-            tb = change.execute(tb)
+        if REWRITE_EXCEPTIONS:
+            for change in changes:
+                tb = change.execute(tb)
         cause.__traceback__ = tb
 
         self.__cause__ = cause

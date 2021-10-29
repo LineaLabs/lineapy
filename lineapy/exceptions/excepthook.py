@@ -1,5 +1,6 @@
 import sys
 
+from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import UserException
 
 
@@ -16,4 +17,5 @@ def custom_excepthook(exc_type, exc_value, traceback):
 
 
 def set_custom_excepthook():
-    sys.excepthook = custom_excepthook
+    if REWRITE_EXCEPTIONS:
+        sys.excepthook = custom_excepthook
