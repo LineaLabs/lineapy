@@ -64,6 +64,37 @@ def test_kaggle_example2():
     )
 
 
+@pytest.mark.parametrize(
+    "code",
+    (
+        "+++",
+        "1 / 0",
+        "1\nx",
+        "import lineapy.__error_on_load",
+        "import lineapy_xxx",
+    ),
+    ids=(
+        "syntax error",
+        "runtime error",
+        "name error",
+        "error in import",
+        "invalid import",
+    ),
+)
+def test_linea_python_equivalent(tmp_path, code):
+    """
+    Verifies that Python and lineapy have the same output.
+    """
+    f = tmp_path / "script.py"
+    f.write_text(code)
+
+    linea_run = subprocess.run(["lineapy", str(f)], capture_output=True)
+    python_run = subprocess.run(["python", str(f)], capture_output=True)
+    assert linea_run.returncode == python_run.returncode
+    assert linea_run.stdout.decode() == python_run.stdout.decode()
+    assert linea_run.stderr.decode() == python_run.stderr.decode()
+
+
 @pytest.mark.skip(reason="https://github.com/LineaLabs/lineapy/issues/341")
 def test_run_from_nbconvert():
     # delete viz first, if it exists (-f exits cleanly either way)

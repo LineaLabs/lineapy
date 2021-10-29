@@ -44,7 +44,9 @@ from lineapy.data.types import (
     SourceCodeLocation,
     SourceLocation,
 )
+from lineapy.exceptions.user_exception import RemoveFrames, UserException
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.ipython_cell_storage import get_location_path
 from lineapy.lineabuiltins import (
     l_assert,
     l_dict,
@@ -70,8 +72,15 @@ def transform(
     """
 
     node_transformer = NodeTransformer(code, location, tracer)
-    tree = ast.parse(code)
+    try:
+        tree = ast.parse(
+            code,
+            str(get_location_path(location).absolute()),
+        )
+    except SyntaxError as e:
+        raise UserException(e, RemoveFrames(2))
     node_transformer.visit(tree)
+
     tracer.db.commit()
     return node_transformer.last_statement_result
 
@@ -107,6 +116,7 @@ class NodeTransformer(ast.NodeTransformer):
         handling, we can separate them out into two types: expressions that return
         something and statements that return nothing
         """
+
         if isinstance(node, (ast.ClassDef, ast.If, ast.For, ast.FunctionDef)):
             return self._exec_statement(node)
         elif isinstance(node, (ast.ListComp, ast.Lambda)):
@@ -116,18 +126,12 @@ class NodeTransformer(ast.NodeTransformer):
                 f"Don't know how to transform {type(node).__name__}"
             )
 
+    def visit_Raise(self, node: ast.Raise) -> None:
+        return super().visit_Raise(node)
+
     def visit_Module(self, node: ast.Module) -> Any:
         for stmt in node.body:
-            try:
-                self.last_statement_result = self.visit(stmt)
-            except Exception:
-                code_context = self._get_code_from_node(node)
-
-                logger.exception(
-                    "Error while transforming code: %s", code_context
-                )
-                raise
-            code_context = self._get_code_from_node(node)
+            self.last_statement_result = self.visit(stmt)
 
     def visit_Expr(self, node: ast.Expr) -> Node:
         return self.visit(node.value)
@@ -165,7 +169,7 @@ class NodeTransformer(ast.NodeTransformer):
         )
 
     def visit_Name(self, node: ast.Name) -> Node:
-        return self.tracer.lookup_node(node.id)
+        return self.tracer.lookup_node(node.id, self.get_source(node))
 
     def visit_Call(self, node: ast.Call) -> Optional[CallNode]:
         """
