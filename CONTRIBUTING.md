@@ -20,7 +20,7 @@ pip install -e ".[dev]" --user
 
 ### Docker + Makefile
 
-To build the Lineapy container, run `make build`
+To build the Lineapy container, run `make build` (you can pass in arguments with `args=`, i.e. `make build args=--no-cache`)
 To open bash within the container, run `make bash`. One can either use bash for dev or can connect to remote runtimes inside a container using extensions available for the editor of choice.
 `make tests` executes the test suite.
 
