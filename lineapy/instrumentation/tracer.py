@@ -203,7 +203,12 @@ class Tracer:
         Visualize the graph using GraphViz, writing to disk and trying to open.
         """
         dot = self.graphviz(options)
-        dot.render(filename, view=True, format="pdf")
+        dot.render(filename, view=True, format="pdf", quiet=True)
+
+    def visualize_to_svg(
+        self, options: VisualGraphOptions = VisualGraphOptions()
+    ) -> str:
+        return self.graphviz(options).pipe(format="svg", quiet=True).decode()
 
     def graphviz(
         self, options: VisualGraphOptions = VisualGraphOptions()

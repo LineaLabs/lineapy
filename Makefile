@@ -22,7 +22,7 @@ bash:
 	docker-compose run --rm ${service_name} /bin/bash
 
 test:
-	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov
+	docker-compose run --rm ${imagename} pytest ${args} --snapshot-update --no-cov -m "not slow" tests/
 
 lint:
 	docker run --rm -v "${PWD}":/apps alpine/flake8:latest --verbose . && \

@@ -219,6 +219,7 @@ class TestEndToEnd:
         assert res.stdout == "False\n"
         assert res.values["bs"] == [1, 2, 3]
 
+    @pytest.mark.slow
     def test_pandas(self, execute):
         res = execute(PANDAS_RANDOM_CODE)
         assert res.values["new_df"].size == 2
@@ -282,6 +283,7 @@ class TestEndToEnd:
     def test_dictionary_support(self, execute):
         execute(DICTIONARY_SUPPORT)
 
+    @pytest.mark.slow
     def test_graph_with_basic_image(self, execute):
         execute(IMAGE_CODE)
 
@@ -401,6 +403,7 @@ class TestEndToEnd:
         assert res.values["a"] == 1
         assert res.values["b"] == 2
 
+    @pytest.mark.slow
     def test_housing(self, execute, python_snapshot):
         tests_dir = Path(__file__).parent
 
@@ -598,6 +601,7 @@ del x[1]
 
         assert res.artifacts["x"] == source
 
+    @pytest.mark.slow
     def test_self_return_loop(self, execute):
         """
         Verifies that if we return a value that is the same as the self arg,

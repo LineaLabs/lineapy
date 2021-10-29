@@ -179,7 +179,7 @@ diabetes_data.shape
 ## data type analysis
 # plt.figure(figsize=(5,5))
 # sns.set(font_scale=2)
-sns.countplot(y=diabetes_data.dtypes, data=diabetes_data)
+sns.countplot(data=diabetes_data)
 plt.xlabel("count of each data type")
 plt.ylabel("data types")
 plt.show()
@@ -211,7 +211,7 @@ p = diabetes_data.Outcome.value_counts().plot(kind="bar")
 # In[14]:
 
 
-from pandas.tools.plotting import scatter_matrix
+from pandas.plotting import scatter_matrix
 
 p = scatter_matrix(diabetes_data, figsize=(25, 25))
 
