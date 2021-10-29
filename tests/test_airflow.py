@@ -22,13 +22,6 @@ def test_export_slice_housing_dag():
     subprocess.check_call(
         [
             "airflow",
-            "db",
-            "init",
-        ]
-    )
-    subprocess.check_call(
-        [
-            "airflow",
             "dags",
             "test",
             "sliced_housing_dag_dag",

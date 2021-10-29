@@ -22,6 +22,9 @@ pip install -e ".[dev]" --user
 
 To build the container, run `make build`
 To open bash within the container, run `make bash`. One can either use bash for dev or can connect to remote runtimes inside a container using extensions available for the editor of choice.
+To build a contained with Airflow, run `make build-airflow`.
+`make airflow-up` is one command that will bring up a standalone local Airflow server on port 8080.
+Login and password will be printed on command line output. Please note that this mode used SQLite DB and is not ment for heavy workloads.
 
 ## Debugging (in VSC)
 
