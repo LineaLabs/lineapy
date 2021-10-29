@@ -1,4 +1,5 @@
-FROM ghcr.io/linealabs/lineapy:main
+ARG IMAGE_NAME=ghcr.io/linealabs/lineapy:main
+FROM $IMAGE_NAME
 
 RUN pip install apache-airflow==2.2.0
 RUN airflow db init

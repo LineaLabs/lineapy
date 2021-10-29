@@ -11,6 +11,8 @@ services:
   lineapy-airflow:
     image: ${IMAGE_NAME_AIRFLOW}
     build:
+      args:
+        IMAGE_NAME: ${IMAGE_NAME}
       context: .
       dockerfile: Dockerfile-airflow
     depends_on:
