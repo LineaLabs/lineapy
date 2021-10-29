@@ -18,6 +18,13 @@ call_4 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
+        source_location=SourceLocation(
+            lineno=3,
+            col_offset=14,
+            end_lineno=3,
+            end_col_offset=18,
+            source_code=source_1.id,
+        ),
         name="list",
     ).id,
     positional_args=[
@@ -30,6 +37,13 @@ call_4 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
+                source_location=SourceLocation(
+                    lineno=2,
+                    col_offset=8,
+                    end_lineno=2,
+                    end_col_offset=11,
+                    source_code=source_1.id,
+                ),
                 name="map",
             ).id,
             positional_args=[

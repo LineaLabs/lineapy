@@ -336,7 +336,11 @@ class Tracer:
             # Add the mutate node to the graph
             self.process_node(mutate_node)
 
-    def lookup_node(self, variable_name: str) -> Node:
+    def lookup_node(
+        self,
+        variable_name: str,
+        source_location: Optional[SourceLocation] = None,
+    ) -> Node:
         """
         Cases:
         - user defined variable & function definitions
@@ -354,6 +358,7 @@ class Tracer:
                 id=get_new_id(),
                 session_id=self.session_context.id,
                 name=variable_name,
+                source_location=source_location,
             )
             self.process_node(new_node)
             return new_node
