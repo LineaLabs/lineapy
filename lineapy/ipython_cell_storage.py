@@ -10,7 +10,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Optional
 
-from lineapy.data.types import JupyterCell
+from lineapy.data.types import JupyterCell, SourceCodeLocation
 
 _temp_dir: Optional[TemporaryDirectory] = None
 
@@ -36,3 +36,9 @@ def get_cell_path(cell: JupyterCell) -> Path:
     return (
         Path(_temp_dir.name) / f"{cell.session_id}_{cell.execution_count}.py"
     )
+
+
+def get_location_path(location: SourceCodeLocation) -> Path:
+    if isinstance(location, JupyterCell):
+        return get_cell_path(location)
+    return location

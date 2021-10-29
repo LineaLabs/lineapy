@@ -1,20 +1,12 @@
 import builtins
 import operator
 import sys
-from pathlib import Path
 from typing import Any, Callable, Iterable, Optional, TypeVar, cast
 from uuid import uuid4
 
 import black
 
-from lineapy.data.types import (
-    JupyterCell,
-    LineaID,
-    LiteralType,
-    SourceCodeLocation,
-    ValueType,
-)
-from lineapy.ipython_cell_storage import get_cell_path
+from lineapy.data.types import LineaID, LiteralType, ValueType
 from lineapy.lineabuiltins import LINEA_BUILTINS
 
 """
@@ -143,13 +135,3 @@ def lookup_value(name: str) -> object:
     if name in LINEA_BUILTINS:
         return LINEA_BUILTINS[name]
     return globals()[name]
-
-
-def get_location_path(location: SourceCodeLocation) -> Path:
-    """
-    Returns the path for a source code location, if its an ipython cell
-    looks up our temporary path, otherwise just returns the path.
-    """
-    if isinstance(location, JupyterCell):
-        return get_cell_path(location)
-    return location

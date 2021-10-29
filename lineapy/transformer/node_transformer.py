@@ -46,6 +46,7 @@ from lineapy.data.types import (
 )
 from lineapy.exceptions.user_exception import RemoveFrames, UserException
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.ipython_cell_storage import get_location_path
 from lineapy.lineabuiltins import (
     l_assert,
     l_dict,
@@ -55,7 +56,7 @@ from lineapy.lineabuiltins import (
     l_list,
 )
 from lineapy.transformer.transformer_util import create_lib_attributes
-from lineapy.utils import get_location_path, get_new_id
+from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
