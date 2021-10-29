@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Callable, List, Mapping, Optional, TypeVar, Union
 
 from lineapy.data.types import SourceLocation
