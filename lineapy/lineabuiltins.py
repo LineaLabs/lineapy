@@ -1,7 +1,7 @@
 from typing import Callable, List, Mapping, Optional, TypeVar, Union
 
 from lineapy.data.types import SourceLocation
-from lineapy.ipython_cell_storage import get_location_path
+from lineapy.utils import get_location_path
 
 # Keep a list of builtin functions we want to expose to the user as globals
 _builtin_functions: list[Callable] = []

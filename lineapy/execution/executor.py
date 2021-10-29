@@ -38,8 +38,7 @@ from lineapy.instrumentation.inspect_function import (
     Result,
     inspect_function,
 )
-from lineapy.ipython_cell_storage import get_location_path
-from lineapy.utils import get_new_id, lookup_value
+from lineapy.utils import get_location_path, get_new_id, lookup_value
 
 logger = logging.getLogger(__name__)
 
