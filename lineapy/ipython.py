@@ -19,7 +19,7 @@ from lineapy.exceptions.excepthook import (
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.ipython_cell_storage import get_cell_path
+from lineapy.ipython_cell_storage import cleanup_cells, get_cell_path
 from lineapy.transformer.node_transformer import transform
 
 
@@ -94,6 +94,12 @@ def stop(
         tracer.visualize(visualization_filename)
     tracer.db.close()
     input_transformers_post.remove(input_transformer)
+
+    # Remove the cells we stored
+    cleanup_cells()
+    # Reset the exception handling
+    InteractiveShell._get_exc_info = original_get_exc_info
+
     return tracer
 
 
