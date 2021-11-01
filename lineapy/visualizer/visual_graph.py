@@ -20,7 +20,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Iterable, Optional, Union
+from typing import Dict, FrozenSet, Iterable, List, Optional, Set, Union
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -75,7 +75,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     # variables and artifacts to each node
 
     # First create a mapping of each node ID to all of its artifact names
-    id_to_artifacts: dict[str, list[Optional[str]]] = defaultdict(list)
+    id_to_artifacts: Dict[str, List[Optional[str]]] = defaultdict(list)
     if options.show_artifacts:
         if not tracer:
             raise RuntimeError("Cannot show artifacts without tracer")
@@ -83,7 +83,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
             id_to_artifacts[a.node_id].append(a.name)
 
     # Then create a mapping of each node to the variables which point to it
-    id_to_variables: dict[str, list[str]] = defaultdict(list)
+    id_to_variables: Dict[str, List[str]] = defaultdict(list)
     if options.show_variables:
         if not tracer:
             raise RuntimeError("Cannot show implied mutations without tracer")
@@ -114,7 +114,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     # i.e. a node that is from lines 1-3 and another node just on line 3
     # If this does occur, we will end up print line 3's source code twice.
 
-    added_source_ids: set[str] = set()
+    added_source_ids: Set[str] = set()
     last_added_source_id: Optional[str] = None
 
     # Then add the source code nodes
@@ -172,7 +172,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
 
         # Create a set of unique pairs of viewers, where order doesn't matter
         # Since they aren't directed
-        viewer_pairs: set[frozenset[LineaID]] = {
+        viewer_pairs: Set[FrozenSet[LineaID]] = {
             frozenset([source, viewer])
             for source, viewers in tracer.mutation_tracker.viewers.items()
             for viewer in viewers
@@ -213,7 +213,7 @@ def process_node(
             )
         )
         if node.positional_args:
-            args_contents: list[str] = []
+            args_contents: List[str] = []
             for i, a_id in enumerate(node.positional_args):
                 sub_id = f"p_{i}"
                 args_contents.append(f"<{sub_id}> {i}")
@@ -227,7 +227,7 @@ def process_node(
             contents += "| {{" + "|".join(args_contents) + "} | args }"
 
         if node.keyword_args:
-            kwargs_contents: list[str] = []
+            kwargs_contents: List[str] = []
             for k, a_id in node.keyword_args.items():
                 sub_id = f"k_{k}"
                 kwargs_contents.append(f"<{sub_id}> {k}")
@@ -241,7 +241,7 @@ def process_node(
             contents += "| {{" + "|".join(kwargs_contents) + "} | kwargs }"
 
         if node.global_reads:
-            global_reads_contents: list[str] = []
+            global_reads_contents: List[str] = []
 
             for k, v in node.global_reads.items():
                 sub_id = f"v_{k}"
@@ -308,15 +308,15 @@ class VisualGraph:
 
     # Make these private and add property lookups so that
     # we are forced to used helper methods to add edges and nodes
-    _nodes: list[VisualNode] = field(default_factory=list)
-    _edges: list[VisualEdge] = field(default_factory=list)
+    _nodes: List[VisualNode] = field(default_factory=list)
+    _edges: List[VisualEdge] = field(default_factory=list)
 
     # Keep these mappings for more performant traversal, when filtering to highlight ancestors
     # Mapping from each node id to all its parent edges
-    _node_id_to_parent_edges: dict[str, list[VisualEdge]] = field(
+    _node_id_to_parent_edges: Dict[str, List[VisualEdge]] = field(
         default_factory=lambda: defaultdict(list)
     )
-    _node_id_to_node: dict[str, VisualNode] = field(default_factory=dict)
+    _node_id_to_node: Dict[str, VisualNode] = field(default_factory=dict)
 
     @property
     def edges(self) -> Iterable[VisualEdge]:
@@ -358,7 +358,7 @@ class VisualGraph:
         # every time we encounter a node, set it to highlighted.
         # and then mark it to be traversed.
         frontier = {node_id}
-        seen: set[str] = set()
+        seen: Set[str] = set()
         while frontier:
             id_ = frontier.pop()
             seen.add(id_)
@@ -374,7 +374,7 @@ def get_node_id(id: str) -> str:
     return id.split(":")[0]
 
 
-ExtraLabels = list["ExtraLabel"]
+ExtraLabels = List["ExtraLabel"]
 
 
 @dataclass

@@ -1,5 +1,5 @@
 from queue import PriorityQueue, Queue
-from typing import Callable, Dict, Iterator, List, Optional, TypeVar
+from typing import Callable, Dict, Iterator, List, Optional, Set, TypeVar
 
 import networkx as nx
 
@@ -72,11 +72,11 @@ class Graph(object):
         # To do this, we do a breadth first traversal, keeping our queue ordered
         # by their line number. The sorting is done via the __lt__ method
         # of the Node
-        queue = PriorityQueue[Node]()
+        queue: "PriorityQueue[Node]" = PriorityQueue()
 
         # We also keep track of all nodes we have already added to the queue
         # so that we don't add them again
-        seen = set[LineaID]()
+        seen: "Set[LineaID]" = set()
 
         # We also keep a mapping of each node to the number of parents left
         # which have not been visited yet.
@@ -84,7 +84,7 @@ class Graph(object):
         # This can happen we evaluate part of a graph, then another part.
         # When evaluating the next part, we just have those nodes, so some
         # of the parents will be missing, we assume they are already executed
-        remaining_parents: dict[str, int] = {}
+        remaining_parents: Dict[str, int] = {}
 
         for node in self.nodes:
             n_remaining_parents = len(
@@ -164,7 +164,7 @@ class Graph(object):
 T = TypeVar("T")
 
 
-def queue_get_when(queue: Queue[T], filter_fn: Callable[[T], bool]) -> T:
+def queue_get_when(queue: "Queue[T]", filter_fn: Callable[[T], bool]) -> T:
     """
     Gets the first element in the queue that satisfies the filter function.
     """

@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Callable, Iterable, Optional, TypeVar, cast
+from typing import Any, Callable, Iterable, Optional, Set, TypeVar, cast
 from uuid import uuid4
 
 import black
@@ -103,7 +103,7 @@ def remove_duplicates(xs: Iterable[T]) -> Iterable[T]:
     """
     Remove all duplicate items, maintaining order.
     """
-    seen_: set[int] = set()
+    seen_: Set[int] = set()
     for x in xs:
         h = hash(x)
         if h in seen_:

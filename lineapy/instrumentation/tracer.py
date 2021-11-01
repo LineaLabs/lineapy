@@ -2,7 +2,7 @@ import logging
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from os import getcwd
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from black import FileMode, format_str
 
@@ -96,7 +96,7 @@ class Tracer:
         return Graph(nodes, self.session_context)
 
     @property
-    def values(self) -> dict[str, object]:
+    def values(self) -> Dict[str, object]:
         """
         Returns a mapping of variable names to their values, by joining
         the scoping information with the executor values.
@@ -107,7 +107,7 @@ class Tracer:
         }
 
     @property
-    def artifacts(self) -> dict[str, str]:
+    def artifacts(self) -> Dict[str, str]:
         """
         Returns a mapping of artifact names to their sliced code.
         """
@@ -142,7 +142,7 @@ class Tracer:
         full_code = format_str(full_code, mode=black_mode)
         return full_code
 
-    def session_artifacts(self) -> list[ArtifactORM]:
+    def session_artifacts(self) -> List[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)
 
     def slice(self, name: str) -> str:
@@ -245,8 +245,8 @@ class Tracer:
         self,
         session_id: str,
         node: Node,
-        retrieved: list[str],
-        added_or_updated: list[str],
+        retrieved: List[str],
+        added_or_updated: List[str],
     ) -> None:
 
         # Only call nodes can access globals and have the global_reads attribute

@@ -5,7 +5,7 @@ adding to input_transformers_post.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import DisplayHandle, DisplayObject, display
@@ -88,7 +88,7 @@ def start(
     STATE = StartedState(ipython, session_name=session_name, db_url=db_url)
 
 
-def input_transformer_post(lines: list[str]) -> list[str]:
+def input_transformer_post(lines: List[str]) -> List[str]:
     """
     Translate the lines of code for the cell provided by ipython.
     """
