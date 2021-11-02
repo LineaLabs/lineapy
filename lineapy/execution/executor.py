@@ -10,7 +10,7 @@ from datetime import datetime
 from os import chdir, getcwd
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
-import lineapy.lineabuiltins as lineabuiltins
+import lineapy.execution.context as execution_context
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
@@ -29,6 +29,7 @@ from lineapy.exceptions.user_exception import (
     RemoveFramesWhile,
     UserException,
 )
+from lineapy.execution.context import GLOBAL_VARIABLES
 from lineapy.instrumentation.inspect_function import (
     BoundSelfOfFunction,
     KeywordArg,
@@ -167,8 +168,8 @@ class Executor:
             # Setup our globals
             ##
 
-            lineabuiltins._exec_globals.clear()
-            lineabuiltins._exec_globals._getitems.clear()
+            GLOBAL_VARIABLES.clear()
+            GLOBAL_VARIABLES._getitems.clear()
 
             input_globals = {
                 k: self._id_to_value[id_]
@@ -183,10 +184,10 @@ class Executor:
             # Set __builtins__ directly so functions still have access to those
             input_globals["__builtins__"] = builtins
 
-            lineabuiltins._exec_globals.update(input_globals)
+            GLOBAL_VARIABLES.update(input_globals)
 
-            # Set so that exec can set the source location properly
-            lineabuiltins.CURRENT_SOURCE_LOCATION = node.source_location
+            execution_context.NODE = node
+            execution_context.EXECUTOR = self
 
             try:
                 with redirect_stdout(self._stdout):
@@ -204,7 +205,7 @@ class Executor:
 
             changed_globals = {
                 k: v
-                for k, v, in lineabuiltins._exec_globals.items()
+                for k, v, in GLOBAL_VARIABLES.items()
                 if
                 # The global was changed if it is new, i.e. was not in the our variables
                 k not in input_globals
@@ -213,7 +214,7 @@ class Executor:
             }
             self._node_to_globals[node.id] = changed_globals
 
-            retrieved = lineabuiltins._exec_globals._getitems
+            retrieved = GLOBAL_VARIABLES._getitems
             added_or_updated = list(changed_globals.keys())
 
             yield AccessedGlobals(retrieved, added_or_updated)

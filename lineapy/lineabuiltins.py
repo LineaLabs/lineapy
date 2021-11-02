@@ -1,6 +1,6 @@
 from typing import Callable, List, Mapping, Optional, TypeVar, Union
 
-from lineapy.data.types import SourceLocation
+from lineapy.execution.context import GLOBAL_VARIABLES, NODE
 from lineapy.ipython_cell_storage import get_location_path
 
 # Keep a list of builtin functions we want to expose to the user as globals
@@ -90,38 +90,6 @@ _builtin_functions.append(l_assert)
 _EXEC_EXPRESSION_SAVED_NAME = "__linea_expresion__"
 
 
-class RecordGetitemDict(dict):
-    """
-    A custom dict that records which keys have been succesfully accessed.
-
-    We cannot overload the `__setitem__` method, since Python will not respect
-    it for custom globals, but we can overload the __getitem__ method.
-
-    See https://stackoverflow.com/a/12185315/907060
-    which refers to https://bugs.python.org/issue14385
-    """
-
-    def __init__(self, *args, **kwargs):
-        self._getitems: list[str] = []
-        super().__init__(*args, **kwargs)
-
-    def __getitem__(self, k):
-        r = super().__getitem__(k)
-        if k not in self._getitems:
-            self._getitems.append(k)
-        return r
-
-
-# Before executing, we save the current source location, in this global,
-# So we can compile code with the proper traceback, by using the filename
-# and line number.
-CURRENT_SOURCE_LOCATION: Optional[SourceLocation] = None
-
-# We use the same globals dict for all exec calls, so that we can set our scope
-# variables for any functions that are defined in the exec
-_exec_globals = RecordGetitemDict()
-
-
 def l_exec_statement(code: str) -> None:
     """
     Execute the `code` with `input_locals` set as locals,
@@ -130,15 +98,21 @@ def l_exec_statement(code: str) -> None:
     If the code is an expression, it will return the result as well as the last
     argument.
     """
-    if CURRENT_SOURCE_LOCATION:
-        location = CURRENT_SOURCE_LOCATION.source_code.location
+    assert NODE
+    source_location = NODE.source_location
+    if source_location:
+        location = source_location.source_code.location
         # Pad the code with extra lines, so that the linenumbers match up
-        code = (CURRENT_SOURCE_LOCATION.lineno - 1) * "\n" + code
+        code = (source_location.lineno - 1) * "\n" + code
         path = str(get_location_path(location))
     else:
         path = "<unkown>"
     bytecode = compile(code, path, "exec")
-    exec(bytecode, _exec_globals)
+
+    # We use the same globals dict for all exec calls, so that when we update it
+    # in the executor, it will updates for all scopes that functions defined in exec
+    # have
+    exec(bytecode, GLOBAL_VARIABLES)
 
 
 _builtin_functions.append(l_exec_statement)
@@ -155,8 +129,8 @@ def l_exec_expr(code: str) -> object:
     statement_code = f"{_EXEC_EXPRESSION_SAVED_NAME} = {code}"
     l_exec_statement(statement_code)
 
-    res = _exec_globals[_EXEC_EXPRESSION_SAVED_NAME]
-    del _exec_globals[_EXEC_EXPRESSION_SAVED_NAME]
+    res = GLOBAL_VARIABLES[_EXEC_EXPRESSION_SAVED_NAME]
+    del GLOBAL_VARIABLES[_EXEC_EXPRESSION_SAVED_NAME]
 
     return res
 
