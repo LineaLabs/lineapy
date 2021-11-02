@@ -73,9 +73,9 @@ class Executor:
     )
 
     # Mapping of our implicit globals to their ids, if we have created them yet.
-    # _implicit_global_to_node: dict[object, LineaID] = field(
-    #     default_factory=dict
-    # )
+    _implicit_global_to_node: dict[object, LineaID] = field(
+        default_factory=dict
+    )
 
     def __post_init__(self):
         self.execution = Execution(
@@ -247,7 +247,9 @@ class Executor:
                 elif isinstance(pointer, BoundSelfOfFunction):
                     return self._node_to_bound_self[node.function_id]
                 elif isinstance(pointer, Global):
-                    return ...
+                    return self._get_implicit_global_node[
+                        node.implicit_dependencies[pointer.value]
+                    ]
 
             for e in side_effects:
                 if isinstance(e, MutatedPointer):
@@ -303,6 +305,9 @@ class Executor:
 
     def _get_implicit_global_node(self, obj: object) -> LineaID:
         if obj in self._implicit_global_to_node:
+            return self._implicit_global_to_node[obj]
+        else:
+            self._implicit_global_to_node[obj] = []
             return self._implicit_global_to_node[obj]
 
     def execute_graph(self, graph: Graph) -> None:

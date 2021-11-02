@@ -503,6 +503,7 @@ class Tracer:
             },
             source_location=source_location,
             global_reads={},
+            implicit_dependencies=[],
         )
         self.process_node(node)
         return node

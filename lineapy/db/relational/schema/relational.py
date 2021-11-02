@@ -297,6 +297,18 @@ class GlobalReferenceORM(Base):  # type: ignore
     variable_node = relationship(BaseNodeORM, uselist=False)
 
 
+class ImplicitDependencyORM(Base):  # type: ignore
+    __tablename__ = "implicit_dependency"
+    call_node_id: str = Column(
+        ForeignKey("call_node.id"), primary_key=True, nullable=False
+    )
+    arg_node_id: str = Column(
+        ForeignKey("node.id"), primary_key=True, nullable=False
+    )
+    index = Column(String, primary_key=True, nullable=False)
+    argument = relationship(BaseNodeORM, uselist=False)
+
+
 class CallNodeORM(BaseNodeORM):
     __tablename__ = "call_node"
 
@@ -311,6 +323,12 @@ class CallNodeORM(BaseNodeORM):
     )
     global_reads = relationship(
         GlobalReferenceORM, collection_class=set, lazy="joined"
+    )
+
+    implicit_dependencies = relationship(
+        ImplicitDependencyORM,
+        collection_class=set,
+        lazy="joined",
     )
 
     __mapper_args__ = {

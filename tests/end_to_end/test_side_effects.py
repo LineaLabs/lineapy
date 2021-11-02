@@ -1,6 +1,7 @@
-# import pytest
+import pytest
 
 
+@pytest.mark.xfail
 def test_PIL_import_fs_artifact(execute):
     code = """import lineapy
 
