@@ -115,7 +115,12 @@ def svg_snapshot(request):
 
 
 @pytest.fixture
-def execute(python_snapshot, tmp_path, request, svg_snapshot):
+def linea_db():
+    return RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
+
+
+@pytest.fixture
+def execute(python_snapshot, tmp_path, request, svg_snapshot, linea_db):
     """
     :param snapshot: `snapshot` is a fixture from the syrupy library that's automatically injected by pytest.
     :param tmp_path: `tmp_path` is provided by the core pytest
@@ -126,6 +131,7 @@ def execute(python_snapshot, tmp_path, request, svg_snapshot):
         svg_snapshot,
         tmp_path,
         request.config.getoption("--visualize"),
+        linea_db,
     )
 
 
@@ -144,6 +150,7 @@ class ExecuteFixture:
     tmp_path: pathlib.Path
     # Whether to visualize the tracer graph after creating
     visualize: bool
+    db: RelationalLineaDB
 
     def __call__(
         self,
@@ -175,8 +182,7 @@ class ExecuteFixture:
         source_code_path.write_text(code)
 
         # Verify snapshot of source of user transformed code
-        db = RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
-        tracer = Tracer(db, SessionType.SCRIPT)
+        tracer = Tracer(self.db, SessionType.SCRIPT)
         transform(code, source_code_path, tracer)
 
         if self.visualize:
@@ -227,7 +233,7 @@ class ExecuteFixture:
             ].success = True
 
             # Verify that execution works again, loading from the DB, in a new dir
-        new_executor = Executor(db)
+        new_executor = Executor(self.db)
 
         current_working_dir = os.getcwd()
 
