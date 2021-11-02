@@ -1,6 +1,7 @@
+from dataclasses import dataclass
 from typing import Callable, List, Mapping, Optional, TypeVar, Union
 
-from lineapy.data.types import SourceLocation
+from lineapy.data.types import CallNode, SourceLocation
 from lineapy.ipython_cell_storage import get_location_path
 
 # Keep a list of builtin functions we want to expose to the user as globals
@@ -162,6 +163,17 @@ def l_exec_expr(code: str) -> object:
 
 
 _builtin_functions.append(l_exec_expr)
+
+
+@dataclass(frozen=True)
+class FileSystem:
+    def make_node(self) -> CallNode:
+        return CallNode(
+            name="make_node",
+            args=[],
+            kwargs={},
+            source_location=CURRENT_SOURCE_LOCATION,
+        )
 
 
 LINEA_BUILTINS = {f.__name__: f for f in _builtin_functions}

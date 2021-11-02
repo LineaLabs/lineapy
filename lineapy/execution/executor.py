@@ -31,6 +31,8 @@ from lineapy.exceptions.user_exception import (
 )
 from lineapy.instrumentation.inspect_function import (
     BoundSelfOfFunction,
+    Global,
+    ImplicitDependencyPointer,
     KeywordArg,
     MutatedPointer,
     Pointer,
@@ -65,9 +67,15 @@ class Executor:
     _node_to_bound_self: dict[LineaID, LineaID] = field(default_factory=dict)
 
     # Mapping of call node to the globals that were updated
+    # TODO: rename to variable
     _node_to_globals: dict[LineaID, dict[str, object]] = field(
         default_factory=dict
     )
+
+    # Mapping of our implicit globals to their ids, if we have created them yet.
+    # _implicit_global_to_node: dict[object, LineaID] = field(
+    #     default_factory=dict
+    # )
 
     def __post_init__(self):
         self.execution = Execution(
@@ -103,7 +111,10 @@ class Executor:
         return self._id_to_value[node.id]
 
     def execute_node(
-        self, node: Node, variables: Optional[dict[str, LineaID]]
+        self,
+        node: Node,
+        variables: Optional[dict[str, LineaID]],
+        implicit_globals: Optional[dict[object, LineaID]] = None,
     ) -> SideEffects:
         """
 
@@ -235,10 +246,14 @@ class Executor:
                     return node.id
                 elif isinstance(pointer, BoundSelfOfFunction):
                     return self._node_to_bound_self[node.function_id]
+                elif isinstance(pointer, Global):
+                    return ...
 
             for e in side_effects:
                 if isinstance(e, MutatedPointer):
                     yield MutatedNode(get_node_id(e.pointer))
+                elif isinstance(e, ImplicitDependencyPointer):
+                    yield ImplicitDependency(get_node_id(e.pointer))
                 else:
                     yield ViewOfNodes(*map(get_node_id, e.pointers))
 
@@ -286,6 +301,10 @@ class Executor:
             # The mutate node is a view of its source
             yield ViewOfNodes(node.id, node.source_id)
 
+    def _get_implicit_global_node(self, obj: object) -> LineaID:
+        if obj in self._implicit_global_to_node:
+            return self._implicit_global_to_node[obj]
+
     def execute_graph(self, graph: Graph) -> None:
         logger.info("Executing graph %s", graph)
         prev_working_dir = getcwd()
@@ -321,6 +340,15 @@ class ViewOfNodes:
 
 
 @dataclass
+class ImplicitDependency:
+    """
+    Represents that the call node has an implicit dependency on another node.
+    """
+
+    id: LineaID
+
+
+@dataclass
 class AccessedGlobals:
     """
     Represents some global variables that were retireved or changed during this call.
@@ -330,4 +358,6 @@ class AccessedGlobals:
     added_or_updated: list[str]
 
 
-SideEffects = Iterable[Union[MutatedNode, ViewOfNodes, AccessedGlobals]]
+SideEffects = Iterable[
+    Union[MutatedNode, ViewOfNodes, AccessedGlobals, ImplicitDependency]
+]

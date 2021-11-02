@@ -14,12 +14,17 @@ def inspect_function(
     args: list[object],
     kwargs: dict[str, object],
     result: object,
-) -> Iterable[Union[ViewOfPointers, MutatedPointer]]:
+) -> Iterable[
+    Union[ViewOfPointers, MutatedPointer, ImplicitDependencyPointer]
+]:
     """
     Inspects a function and returns how calling it mutates the args/result and
     creates view relationships between them.
     """
-
+    if function == open:
+        yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+        yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
+        return
     # TODO: We should probably not use use setitem, but instead get particular
     # __setitem__ for class so we can differentiate based on type more easily?
     if function == operator.setitem:
@@ -125,7 +130,16 @@ class Result:
     pass
 
 
-Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
+@dataclass(frozen=True)
+class Global:
+    """
+    An internal implicit global used for side effects.
+    """
+
+    value: object
+
+
+Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction, Global]
 
 
 @dataclass
@@ -148,4 +162,9 @@ class MutatedPointer:
     A value that is mutated when the function is called
     """
 
+    pointer: Pointer
+
+
+@dataclass(frozen=True)
+class ImplicitDependencyPointer:
     pointer: Pointer
