@@ -181,6 +181,13 @@ call_8 = CallNode(
     ).id,
     positional_args=[
         LookupNode(
+            source_location=SourceLocation(
+                lineno=4,
+                col_offset=13,
+                end_lineno=4,
+                end_col_offset=16,
+                source_code=source_1.id,
+            ),
             name="str",
         ).id
     ],

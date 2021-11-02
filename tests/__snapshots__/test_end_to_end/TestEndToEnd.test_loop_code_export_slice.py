@@ -85,6 +85,13 @@ call_4 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
+                source_location=SourceLocation(
+                    lineno=7,
+                    col_offset=4,
+                    end_lineno=7,
+                    end_col_offset=7,
+                    source_code=source_1.id,
+                ),
                 name="sum",
             ).id,
             positional_args=[call_1.id],

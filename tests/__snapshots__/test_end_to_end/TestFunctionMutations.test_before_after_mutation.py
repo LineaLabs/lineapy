@@ -37,6 +37,13 @@ call_2 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
+        source_location=SourceLocation(
+            lineno=3,
+            col_offset=9,
+            end_lineno=3,
+            end_col_offset=12,
+            source_code=source_1.id,
+        ),
         name="str",
     ).id,
     positional_args=[call_1.id],
@@ -50,6 +57,13 @@ call_4 = CallNode(
         source_code=source_1.id,
     ),
     function_id=LookupNode(
+        source_location=SourceLocation(
+            lineno=5,
+            col_offset=8,
+            end_lineno=5,
+            end_col_offset=11,
+            source_code=source_1.id,
+        ),
         name="str",
     ).id,
     positional_args=[

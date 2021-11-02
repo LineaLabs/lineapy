@@ -146,6 +146,26 @@ env LINEA_VISUALIZATION_NAME=output_graph jupyter nbconvert --to notebook --exec
 
 We were previously working on a web based user interface to browse executions, but we are currently focusing on the API experience (in both Jupyter and the CLI).
 
+## Installing
+
+You can run linea either by cloning the repository or by using our Docker image.
+
+### Docker
+
+1. First install Docker and then authenticate to the [Github Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry)
+   so you can pull our private image.
+2. Now you can pull and run our image to slice Python code:
+
+```bash
+$ cat my_script.py
+x = 1 + 2
+y = x + 3
+assert y == 6
+
+$ docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main lineapy my_script.py --print-graph
+...
+```
+
 ## Known Bugs in Python Language Support
 
 In order to properly slice your code, we have to understand different Python language features and libraries. We are working to add coverage to support all of Python, as well as make our analysis more accurate. We have [a number of open issues to track what things we know we don't support in Python, tagged under `Language Support`](https://github.com/LineaLabs/lineapy/labels/Language%20Support). Feel free to open more if come accross code that doesn't run or doesn't properly slice.

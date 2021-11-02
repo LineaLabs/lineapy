@@ -4,6 +4,7 @@ import pytest
 
 
 @pytest.mark.slow
+@pytest.mark.airflowtest
 def test_export_slice_housing_dag():
     """
     Verifies that the "--airflow" CLI command produces a working Airflow DAG
@@ -16,13 +17,6 @@ def test_export_slice_housing_dag():
             "p value",
             "--airflow",
             "sliced_housing_dag",
-        ]
-    )
-    subprocess.check_call(
-        [
-            "airflow",
-            "db",
-            "init",
         ]
     )
     subprocess.check_call(

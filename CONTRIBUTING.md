@@ -20,8 +20,13 @@ pip install -e ".[dev]" --user
 
 ### Docker + Makefile
 
-To build the container, run `make build`
+To build the Lineapy container, run `make build` (you can pass in arguments with `args=`, i.e. `make build args=--no-cache`)
 To open bash within the container, run `make bash`. One can either use bash for dev or can connect to remote runtimes inside a container using extensions available for the editor of choice.
+`make tests` executes the test suite.
+
+To build Lineapy contained with Airflow, run `make build-airflow`. `make tests-airflow` runs airflow tests.
+`make airflow-up` is one command that will bring up a standalone local Airflow server on port 8080.
+Login and password will be printed on command line output. Please note that this mode used SQLite DB and is not ment for heavy workloads.
 
 ## Debugging (in VSC)
 
@@ -148,6 +153,13 @@ If you want to inspect the AST of some Python code for debugging, you can run:
 ```bash
 ./tests/tools/print_ast.py 'hi(a=10)'
 ```
+
+## Debug Flags
+
+By default, linea will rewrite any exceptions raised during the normal
+execution of users code to attempt to match Python's behavior. To disable our
+custom exception handling, set the `LINEA_NO_EXCEPTIONS` environment variable
+to any value.
 
 ## Before Committing
 
