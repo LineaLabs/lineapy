@@ -1,6 +1,6 @@
 from typing import Callable, List, Mapping, Optional, TypeVar, Union
 
-import lineapy.execution.context as execution_context
+from lineapy.execution.context import get_context
 from lineapy.ipython_cell_storage import get_location_path
 
 # Keep a list of builtin functions we want to expose to the user as globals
@@ -98,8 +98,8 @@ def l_exec_statement(code: str) -> None:
     If the code is an expression, it will return the result as well as the last
     argument.
     """
-    assert execution_context.NODE
-    source_location = execution_context.NODE.source_location
+    context = get_context()
+    source_location = context.node.source_location
     if source_location:
         location = source_location.source_code.location
         # Pad the code with extra lines, so that the linenumbers match up
@@ -112,7 +112,7 @@ def l_exec_statement(code: str) -> None:
     # We use the same globals dict for all exec calls, so that when we update it
     # in the executor, it will updates for all scopes that functions defined in exec
     # have
-    exec(bytecode, execution_context.GLOBAL_VARIABLES)
+    exec(bytecode, context.global_variables)
 
 
 _builtin_functions.append(l_exec_statement)
@@ -126,11 +126,13 @@ def l_exec_expr(code: str) -> object:
     If the code is an expression, it will return the result as well as the last
     argument.
     """
+    context = get_context()
+
     statement_code = f"{_EXEC_EXPRESSION_SAVED_NAME} = {code}"
     l_exec_statement(statement_code)
 
-    res = execution_context.GLOBAL_VARIABLES[_EXEC_EXPRESSION_SAVED_NAME]
-    del execution_context.GLOBAL_VARIABLES[_EXEC_EXPRESSION_SAVED_NAME]
+    res = context.global_variables[_EXEC_EXPRESSION_SAVED_NAME]
+    del context.global_variables[_EXEC_EXPRESSION_SAVED_NAME]
 
     return res
 
