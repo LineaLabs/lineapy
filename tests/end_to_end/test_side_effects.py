@@ -1,7 +1,6 @@
-import pytest
+# import pytest
 
 
-@pytest.mark.xfail
 def test_PIL_import_fs_artifact(execute):
     code = """import lineapy
 
@@ -14,6 +13,7 @@ e = open("test.png")
 lineapy.save(e, "testme")
 """
     res = execute(code)
+    print(res.artifacts["testme"])
     assert (
         res.artifacts["testme"]
         == """from PIL.Image import open, new

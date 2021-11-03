@@ -25,6 +25,30 @@ def inspect_function(
         yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
         yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
         return
+    if imported_module("PIL.Image"):
+        from PIL.Image import Image
+
+        # if (function.__name__ == "new") and (
+        #     function.__module__ == "PIL.Image"
+        # ):
+        #     yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+        #     yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
+        #     return
+        if (
+            isinstance(function, types.MethodType)
+            and function.__name__ == "save"
+            and isinstance(function.__self__, Image)
+        ):
+            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+            yield MutatedPointer(Global(lineabuiltins.FileSystem()))
+            return
+        if (function.__name__ == "open") and (
+            function.__module__ == "PIL.Image"
+        ):
+            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+            yield ViewOfPointers(Result(), Global(lineabuiltins.FileSystem()))
+            return
+
     # TODO: We should probably not use use setitem, but instead get particular
     # __setitem__ for class so we can differentiate based on type more easily?
     if function == operator.setitem:

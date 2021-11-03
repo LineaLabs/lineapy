@@ -29,7 +29,12 @@ from lineapy.data.types import (
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import ArtifactORM
-from lineapy.execution.executor import AccessedGlobals, Executor, ViewOfNodes
+from lineapy.execution.executor import (
+    AccessedGlobals,
+    Executor,
+    ImplicitDependency,
+    ViewOfNodes,
+)
 from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
@@ -233,7 +238,9 @@ class Tracer:
 
         # Iterate through each side effect and process it, depending on its type
         for e in side_effects:
-            if isinstance(e, ViewOfNodes):
+            if isinstance(e, ImplicitDependency):
+                self._process_implicit_dependency(node, e.id)
+            elif isinstance(e, ViewOfNodes):
                 self._process_view_of_nodes(e.ids)
             elif isinstance(e, AccessedGlobals):
                 self._process_accessed_globals(
@@ -243,6 +250,19 @@ class Tracer:
                 self._process_mutate_node(e.id, node.id, node.session_id)
 
         self.db.write_node(node)
+
+    def _process_implicit_dependency(
+        self, node: Node, implicit_dependency_id: LineaID
+    ) -> None:
+        """
+        Add dependency of a node on a global implicit dependency,
+        which is a dependency that lineapy has deemed essential in the
+        reproduction of an artifact but is not explicitly passed as arguments
+        """
+
+        # Only call nodes can refer to implicit dependencies
+        assert isinstance(node, CallNode)
+        node.implicit_dependencies.append(implicit_dependency_id)
 
     def _process_accessed_globals(
         self,

@@ -41,7 +41,7 @@ from lineapy.instrumentation.inspect_function import (
     inspect_function,
 )
 from lineapy.ipython_cell_storage import get_location_path
-from lineapy.utils import get_new_id, lookup_value
+from lineapy.utils import get_new_id, listify, lookup_value
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +110,7 @@ class Executor:
     def get_value(self, node: Node) -> object:
         return self._id_to_value[node.id]
 
+    @listify
     def execute_node(
         self,
         node: Node,
@@ -133,6 +134,7 @@ class Executor:
         - Returns the `SideEffects` of this node that's analyzed at runtime (hence in the executor).
         """
         logger.info("Executing node %s", node)
+        print(node.id)
 
         # To use if we need to raise an exception and change the frame
         add_frame: list[AddFrame] = []
@@ -172,6 +174,9 @@ class Executor:
                 k: self._id_to_value[arg_id]
                 for k, arg_id in node.keyword_args.items()
             }
+            # implicit_dependencies = [
+            #     self._id_to_value[arg_id] for arg_id in node.implicit_dependencies
+            # ]
             logger.info("Calling function %s %s %s", fn, args, kwargs)
 
             ##
@@ -247,9 +252,7 @@ class Executor:
                 elif isinstance(pointer, BoundSelfOfFunction):
                     return self._node_to_bound_self[node.function_id]
                 elif isinstance(pointer, Global):
-                    return self._get_implicit_global_node[
-                        node.implicit_dependencies[pointer.value]
-                    ]
+                    return self._get_implicit_global_node(node, pointer.value)
 
             for e in side_effects:
                 if isinstance(e, MutatedPointer):
@@ -303,11 +306,39 @@ class Executor:
             # The mutate node is a view of its source
             yield ViewOfNodes(node.id, node.source_id)
 
-    def _get_implicit_global_node(self, obj: object) -> LineaID:
+    def _get_implicit_global_node(self, callnode, obj: object) -> LineaID:
         if obj in self._implicit_global_to_node:
             return self._implicit_global_to_node[obj]
         else:
-            self._implicit_global_to_node[obj] = []
+            global_lookup = LookupNode(
+                id=get_new_id(),
+                session_id=callnode.session_id,
+                name=lineabuiltins.FileSystem.__name__,
+                source_location=None,
+            )
+            self.db.write_node(global_lookup)
+            self.execute_node(node=global_lookup, variables=None)
+
+            global_implicit_callnode = CallNode(
+                id=get_new_id(),
+                session_id=callnode.session_id,
+                function_id=global_lookup.id,
+                positional_args=[],
+                keyword_args={},
+                source_location=None,
+                global_reads={},
+                implicit_dependencies=[],
+            )
+            print(
+                f"global_implicit_callnode id : {global_implicit_callnode.id}"
+            )
+            print(f"global_ilookup_node id : {global_lookup.id}")
+            print(f"global_fs id : {obj}")
+
+            self.db.write_node(global_implicit_callnode)
+            self.execute_node(node=global_implicit_callnode, variables=None)
+
+            self._implicit_global_to_node[obj] = global_implicit_callnode.id
             return self._implicit_global_to_node[obj]
 
     def execute_graph(self, graph: Graph) -> None:

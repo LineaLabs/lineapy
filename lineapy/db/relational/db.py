@@ -318,7 +318,9 @@ class RelationalLineaDB:
                 gr.variable_name: gr.variable_node_id
                 for gr in node.global_reads
             }
-            implicit_dependencies = [n for n in node.implicit_dependencies]
+            implicit_dependencies = [
+                n.arg_node_id for n in node.implicit_dependencies
+            ]
             return CallNode(
                 function_id=node.function_id,
                 positional_args=positional_args,
