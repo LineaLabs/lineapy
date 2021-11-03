@@ -146,24 +146,18 @@ call_7 = CallNode(
         ).id
     ],
 )
-mutate_5 = MutateNode(
+mutate_3 = MutateNode(
     source_id=MutateNode(
-        source_id=mutate_2.id,
-        call_id=call_7.id,
+        source_id=call_1.id,
+        call_id=call_4.id,
     ).id,
     call_id=call_7.id,
 )
-mutate_6 = MutateNode(
+mutate_4 = MutateNode(
     source_id=call_5.id,
     call_id=call_7.id,
 )
-mutate_7 = MutateNode(
-    source_id=MutateNode(
-        source_id=MutateNode(
-            source_id=call_1.id,
-            call_id=call_4.id,
-        ).id,
-        call_id=call_7.id,
-    ).id,
+mutate_5 = MutateNode(
+    source_id=mutate_2.id,
     call_id=call_7.id,
 )

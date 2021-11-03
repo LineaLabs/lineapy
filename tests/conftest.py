@@ -182,7 +182,7 @@ class ExecuteFixture:
         if self.visualize:
             tracer.visualize(
                 options=VisualGraphOptions(
-                    show_implied_mutations=True, show_views=True
+                    show_implied_mutations=True, show_views=False
                 )
             )
 
