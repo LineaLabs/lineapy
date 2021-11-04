@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import builtins
 import importlib.util
 import io
 import logging
@@ -10,7 +9,6 @@ from datetime import datetime
 from os import chdir, getcwd
 from typing import Callable, Iterable, Optional, Tuple, Union, cast
 
-import lineapy.lineabuiltins as lineabuiltins
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
@@ -29,6 +27,7 @@ from lineapy.exceptions.user_exception import (
     RemoveFramesWhile,
     UserException,
 )
+from lineapy.execution.context import set_context, teardown_context
 from lineapy.instrumentation.inspect_function import (
     BoundSelfOfFunction,
     KeywordArg,
@@ -163,30 +162,8 @@ class Executor:
             }
             logger.info("Calling function %s %s %s", fn, args, kwargs)
 
-            ##
-            # Setup our globals
-            ##
-
-            lineabuiltins._exec_globals.clear()
-            lineabuiltins._exec_globals._getitems.clear()
-
-            input_globals = {
-                k: self._id_to_value[id_]
-                for k, id_ in (
-                    # The first time this is run, variables is set, and we know
-                    # the scoping, so we set all of the variables we know.
-                    # The subsequent times, we only use those that were recorded
-                    variables
-                    or node.global_reads
-                ).items()
-            }
-            # Set __builtins__ directly so functions still have access to those
-            input_globals["__builtins__"] = builtins
-
-            lineabuiltins._exec_globals.update(input_globals)
-
-            # Set so that exec can set the source location properly
-            lineabuiltins.CURRENT_SOURCE_LOCATION = node.source_location
+            # Set up our execution context, with our globals and node
+            set_context(self, variables, node)
 
             try:
                 with redirect_stdout(self._stdout):
@@ -195,28 +172,17 @@ class Executor:
                     end_time = datetime.now()
             except Exception as exc:
                 raise UserException(exc, RemoveFrames(1), *add_frame)
+            finally:
+                # Check what has been changed and accessed in the globals
+                # Do this in a finally, so its always torn down even after exceptions
+                changed_globals, retrieved_globals = teardown_context()
 
             self._execution_time[node.id] = (start_time, end_time)
 
-            ##
-            # Check what has been changed and accessed
-            ##
-
-            changed_globals = {
-                k: v
-                for k, v, in lineabuiltins._exec_globals.items()
-                if
-                # The global was changed if it is new, i.e. was not in the our variables
-                k not in input_globals
-                # Or if it is different
-                or input_globals[k] is not v
-            }
             self._node_to_globals[node.id] = changed_globals
-
-            retrieved = lineabuiltins._exec_globals._getitems
             added_or_updated = list(changed_globals.keys())
 
-            yield AccessedGlobals(retrieved, added_or_updated)
+            yield AccessedGlobals(retrieved_globals, added_or_updated)
 
             # dependency analysis
             # ----------
