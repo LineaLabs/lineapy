@@ -48,6 +48,7 @@ def save(value: object, /, description: Optional[str] = None) -> LineaArtifact:
     db.commit()
 
     # TODO: Make work with unnamed artifacts
+    assert description
     return LineaArtifact(description, db)
 
 
