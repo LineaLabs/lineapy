@@ -14,7 +14,7 @@ from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.utils import get_value_type
 
 
-def save(value: object, /, description: Optional[str] = None) -> LineaArtifact:
+def save(value: object, description: str, /) -> LineaArtifact:
     """
     Publishes artifact to the linea repo
     """
@@ -50,8 +50,6 @@ def save(value: object, /, description: Optional[str] = None) -> LineaArtifact:
     #   and that's incorrect.
     db.commit()
 
-    # TODO: Make work with unnamed artifacts
-    assert description
     return LineaArtifact(description, db)
 
 

@@ -358,58 +358,55 @@ call_15 = CallNode(
     ).id,
     positional_args=[call_5.id, call_8.id],
 )
-mutate_6 = MutateNode(
+mutate_5 = MutateNode(
     source_id=call_13.id,
     call_id=call_15.id,
 )
-mutate_12 = MutateNode(
-    source_id=import_1.id,
-    call_id=CallNode(
+call_17 = CallNode(
+    source_location=SourceLocation(
+        lineno=11,
+        col_offset=0,
+        end_lineno=11,
+        end_col_offset=32,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
         source_location=SourceLocation(
             lineno=11,
             col_offset=0,
             end_lineno=11,
-            end_col_offset=32,
+            end_col_offset=12,
             source_code=source_1.id,
         ),
-        function_id=CallNode(
-            source_location=SourceLocation(
-                lineno=11,
-                col_offset=0,
-                end_lineno=11,
-                end_col_offset=12,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="getattr",
-            ).id,
-            positional_args=[
-                import_1.id,
-                LiteralNode(
-                    value="save",
-                ).id,
-            ],
+        function_id=LookupNode(
+            name="getattr",
         ).id,
         positional_args=[
-            MutateNode(
-                source_id=MutateNode(
-                    source_id=mutate_2.id,
-                    call_id=call_15.id,
-                ).id,
-                call_id=call_15.id,
-            ).id,
+            import_1.id,
             LiteralNode(
-                source_location=SourceLocation(
-                    lineno=11,
-                    col_offset=22,
-                    end_lineno=11,
-                    end_col_offset=31,
-                    source_code=source_1.id,
-                ),
-                value="new_clf",
+                value="save",
             ).id,
         ],
     ).id,
+    positional_args=[
+        MutateNode(
+            source_id=MutateNode(
+                source_id=mutate_2.id,
+                call_id=call_15.id,
+            ).id,
+            call_id=call_15.id,
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=11,
+                col_offset=22,
+                end_lineno=11,
+                end_col_offset=31,
+                source_code=source_1.id,
+            ),
+            value="new_clf",
+        ).id,
+    ],
 )
 call_19 = CallNode(
     source_location=SourceLocation(
@@ -431,7 +428,7 @@ call_19 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            mutate_12.id,
+            import_1.id,
             LiteralNode(
                 value="save",
             ).id,
@@ -468,11 +465,4 @@ call_19 = CallNode(
             value="clf",
         ).id,
     ],
-)
-mutate_14 = MutateNode(
-    source_id=MutateNode(
-        source_id=mutate_12.id,
-        call_id=call_19.id,
-    ).id,
-    call_id=call_19.id,
 )

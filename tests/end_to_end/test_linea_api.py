@@ -35,8 +35,6 @@ lineapy.save(y, "y")
     assert (
         res.artifacts["y"]
         == """import lineapy
-x = 1
-lineapy.save(x, "x")
 res = lineapy.get("x")
 y = res.value + 1
 """

@@ -78,7 +78,7 @@ call_4 = CallNode(
         ).id
     ],
 )
-mutate_1 = MutateNode(
+mutate_2 = MutateNode(
     source_id=CallNode(
         source_location=SourceLocation(
             lineno=3,
@@ -106,7 +106,7 @@ call_5 = CallNode(
         name="getitem",
     ).id,
     positional_args=[
-        mutate_1.id,
+        mutate_2.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=5,
@@ -162,57 +162,54 @@ mutate_5 = MutateNode(
     source_id=call_5.id,
     call_id=call_7.id,
 )
-mutate_8 = MutateNode(
-    source_id=import_1.id,
-    call_id=CallNode(
+call_9 = CallNode(
+    source_location=SourceLocation(
+        lineno=7,
+        col_offset=0,
+        end_lineno=7,
+        end_col_offset=20,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
         source_location=SourceLocation(
             lineno=7,
             col_offset=0,
             end_lineno=7,
-            end_col_offset=20,
+            end_col_offset=12,
             source_code=source_1.id,
         ),
-        function_id=CallNode(
-            source_location=SourceLocation(
-                lineno=7,
-                col_offset=0,
-                end_lineno=7,
-                end_col_offset=12,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="getattr",
-            ).id,
-            positional_args=[
-                import_1.id,
-                LiteralNode(
-                    value="save",
-                ).id,
-            ],
+        function_id=LookupNode(
+            name="getattr",
         ).id,
         positional_args=[
-            MutateNode(
-                source_id=MutateNode(
-                    source_id=MutateNode(
-                        source_id=call_1.id,
-                        call_id=call_4.id,
-                    ).id,
-                    call_id=call_7.id,
-                ).id,
-                call_id=call_7.id,
-            ).id,
+            import_1.id,
             LiteralNode(
-                source_location=SourceLocation(
-                    lineno=7,
-                    col_offset=16,
-                    end_lineno=7,
-                    end_col_offset=19,
-                    source_code=source_1.id,
-                ),
-                value="x",
+                value="save",
             ).id,
         ],
     ).id,
+    positional_args=[
+        MutateNode(
+            source_id=MutateNode(
+                source_id=MutateNode(
+                    source_id=call_1.id,
+                    call_id=call_4.id,
+                ).id,
+                call_id=call_7.id,
+            ).id,
+            call_id=call_7.id,
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=7,
+                col_offset=16,
+                end_lineno=7,
+                end_col_offset=19,
+                source_code=source_1.id,
+            ),
+            value="x",
+        ).id,
+    ],
 )
 call_11 = CallNode(
     source_location=SourceLocation(
@@ -234,7 +231,7 @@ call_11 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            mutate_8.id,
+            import_1.id,
             LiteralNode(
                 value="save",
             ).id,
@@ -243,7 +240,7 @@ call_11 = CallNode(
     positional_args=[
         MutateNode(
             source_id=MutateNode(
-                source_id=mutate_1.id,
+                source_id=mutate_2.id,
                 call_id=call_7.id,
             ).id,
             call_id=call_7.id,
@@ -259,11 +256,4 @@ call_11 = CallNode(
             value="y",
         ).id,
     ],
-)
-mutate_10 = MutateNode(
-    source_id=MutateNode(
-        source_id=mutate_8.id,
-        call_id=call_11.id,
-    ).id,
-    call_id=call_11.id,
 )

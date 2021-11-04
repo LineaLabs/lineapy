@@ -26,57 +26,54 @@ import_1 = ImportNode(
         name="lineapy",
     ),
 )
-mutate_1 = MutateNode(
-    source_id=import_1.id,
-    call_id=CallNode(
+call_2 = CallNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=20,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
         source_location=SourceLocation(
             lineno=3,
             col_offset=0,
             end_lineno=3,
-            end_col_offset=20,
+            end_col_offset=12,
             source_code=source_1.id,
         ),
-        function_id=CallNode(
-            source_location=SourceLocation(
-                lineno=3,
-                col_offset=0,
-                end_lineno=3,
-                end_col_offset=12,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="getattr",
-            ).id,
-            positional_args=[
-                import_1.id,
-                LiteralNode(
-                    value="save",
-                ).id,
-            ],
+        function_id=LookupNode(
+            name="getattr",
         ).id,
         positional_args=[
+            import_1.id,
             LiteralNode(
-                source_location=SourceLocation(
-                    lineno=2,
-                    col_offset=4,
-                    end_lineno=2,
-                    end_col_offset=5,
-                    source_code=source_1.id,
-                ),
-                value=1,
-            ).id,
-            LiteralNode(
-                source_location=SourceLocation(
-                    lineno=3,
-                    col_offset=16,
-                    end_lineno=3,
-                    end_col_offset=19,
-                    source_code=source_1.id,
-                ),
-                value="x",
+                value="save",
             ).id,
         ],
     ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=2,
+                col_offset=4,
+                end_lineno=2,
+                end_col_offset=5,
+                source_code=source_1.id,
+            ),
+            value=1,
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=3,
+                col_offset=16,
+                end_lineno=3,
+                end_col_offset=19,
+                source_code=source_1.id,
+            ),
+            value="x",
+        ).id,
+    ],
 )
 call_8 = CallNode(
     source_location=SourceLocation(
@@ -98,7 +95,7 @@ call_8 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            mutate_1.id,
+            import_1.id,
             LiteralNode(
                 value="save",
             ).id,
@@ -149,7 +146,7 @@ call_8 = CallNode(
                                     name="getattr",
                                 ).id,
                                 positional_args=[
-                                    mutate_1.id,
+                                    import_1.id,
                                     LiteralNode(
                                         value="get",
                                     ).id,
@@ -196,11 +193,4 @@ call_8 = CallNode(
             value="y",
         ).id,
     ],
-)
-mutate_3 = MutateNode(
-    source_id=MutateNode(
-        source_id=mutate_1.id,
-        call_id=call_8.id,
-    ).id,
-    call_id=call_8.id,
 )

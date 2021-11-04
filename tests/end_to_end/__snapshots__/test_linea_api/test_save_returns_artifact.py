@@ -12,18 +12,6 @@ value = res.value
 """,
     location=PosixPath("[source file path]"),
 )
-import_1 = ImportNode(
-    source_location=SourceLocation(
-        lineno=1,
-        col_offset=0,
-        end_lineno=1,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    library=Library(
-        name="lineapy",
-    ),
-)
 call_2 = CallNode(
     source_location=SourceLocation(
         lineno=3,
@@ -44,7 +32,18 @@ call_2 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            ImportNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=14,
+                    source_code=source_1.id,
+                ),
+                library=Library(
+                    name="lineapy",
+                ),
+            ).id,
             LiteralNode(
                 value="save",
             ).id,
@@ -72,10 +71,6 @@ call_2 = CallNode(
             value="x",
         ).id,
     ],
-)
-mutate_1 = MutateNode(
-    source_id=import_1.id,
-    call_id=call_2.id,
 )
 call_3 = CallNode(
     source_location=SourceLocation(

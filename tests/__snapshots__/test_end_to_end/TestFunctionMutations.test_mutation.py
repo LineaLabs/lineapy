@@ -12,18 +12,6 @@ lineapy.save(x, \'x\')
 """,
     location=PosixPath("[source file path]"),
 )
-import_1 = ImportNode(
-    source_location=SourceLocation(
-        lineno=1,
-        col_offset=0,
-        end_lineno=1,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    library=Library(
-        name="lineapy",
-    ),
-)
 call_1 = CallNode(
     source_location=SourceLocation(
         lineno=2,
@@ -36,83 +24,91 @@ call_1 = CallNode(
         name="l_dict",
     ).id,
 )
-mutate_2 = MutateNode(
-    source_id=import_1.id,
-    call_id=CallNode(
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=5,
+        col_offset=0,
+        end_lineno=5,
+        end_col_offset=20,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
         source_location=SourceLocation(
             lineno=5,
             col_offset=0,
             end_lineno=5,
-            end_col_offset=20,
+            end_col_offset=12,
             source_code=source_1.id,
         ),
-        function_id=CallNode(
-            source_location=SourceLocation(
-                lineno=5,
-                col_offset=0,
-                end_lineno=5,
-                end_col_offset=12,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="getattr",
-            ).id,
-            positional_args=[
-                import_1.id,
-                LiteralNode(
-                    value="save",
-                ).id,
-            ],
+        function_id=LookupNode(
+            name="getattr",
         ).id,
         positional_args=[
-            MutateNode(
-                source_id=call_1.id,
-                call_id=CallNode(
-                    source_location=SourceLocation(
-                        lineno=3,
-                        col_offset=0,
-                        end_lineno=3,
-                        end_col_offset=10,
-                        source_code=source_1.id,
-                    ),
-                    function_id=LookupNode(
-                        name="setitem",
-                    ).id,
-                    positional_args=[
-                        call_1.id,
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=3,
-                                col_offset=2,
-                                end_lineno=3,
-                                end_col_offset=5,
-                                source_code=source_1.id,
-                            ),
-                            value="a",
-                        ).id,
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=3,
-                                col_offset=9,
-                                end_lineno=3,
-                                end_col_offset=10,
-                                source_code=source_1.id,
-                            ),
-                            value=3,
-                        ).id,
-                    ],
-                ).id,
-            ).id,
-            LiteralNode(
+            ImportNode(
                 source_location=SourceLocation(
-                    lineno=5,
-                    col_offset=16,
-                    end_lineno=5,
-                    end_col_offset=19,
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                value="x",
+                library=Library(
+                    name="lineapy",
+                ),
+            ).id,
+            LiteralNode(
+                value="save",
             ).id,
         ],
     ).id,
+    positional_args=[
+        MutateNode(
+            source_id=call_1.id,
+            call_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=3,
+                    col_offset=0,
+                    end_lineno=3,
+                    end_col_offset=10,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="setitem",
+                ).id,
+                positional_args=[
+                    call_1.id,
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=3,
+                            col_offset=2,
+                            end_lineno=3,
+                            end_col_offset=5,
+                            source_code=source_1.id,
+                        ),
+                        value="a",
+                    ).id,
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=3,
+                            col_offset=9,
+                            end_lineno=3,
+                            end_col_offset=10,
+                            source_code=source_1.id,
+                        ),
+                        value=3,
+                    ).id,
+                ],
+            ).id,
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=5,
+                col_offset=16,
+                end_lineno=5,
+                end_col_offset=19,
+                source_code=source_1.id,
+            ),
+            value="x",
+        ).id,
+    ],
 )
