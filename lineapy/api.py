@@ -6,7 +6,6 @@ We should keep these external APIs as small as possible, and unless there is
   same feature.
 """
 from datetime import datetime
-from typing import Optional
 
 from lineapy.data.types import Artifact, NodeValue
 from lineapy.execution.context import get_context
