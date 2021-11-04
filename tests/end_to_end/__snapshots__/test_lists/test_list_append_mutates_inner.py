@@ -191,11 +191,8 @@ call_9 = CallNode(
     positional_args=[
         MutateNode(
             source_id=MutateNode(
-                source_id=MutateNode(
-                    source_id=call_1.id,
-                    call_id=call_4.id,
-                ).id,
-                call_id=call_7.id,
+                source_id=call_1.id,
+                call_id=call_4.id,
             ).id,
             call_id=call_7.id,
         ).id,
@@ -239,10 +236,7 @@ call_11 = CallNode(
     ).id,
     positional_args=[
         MutateNode(
-            source_id=MutateNode(
-                source_id=mutate_2.id,
-                call_id=call_7.id,
-            ).id,
+            source_id=mutate_2.id,
             call_id=call_7.id,
         ).id,
         LiteralNode(
