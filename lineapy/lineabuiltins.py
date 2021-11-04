@@ -170,6 +170,12 @@ class FileSystem:
     pass
 
 
+@dataclass(frozen=True)
+class DB:
+    pass
+
+
 _builtin_functions.append(FileSystem)
+_builtin_functions.append(DB)
 
 LINEA_BUILTINS = {f.__name__: f for f in _builtin_functions}

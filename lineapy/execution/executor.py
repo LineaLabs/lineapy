@@ -305,22 +305,22 @@ class Executor:
             # The mutate node is a view of its source
             yield ViewOfNodes(node.id, node.source_id)
 
-    def _get_implicit_global_node(self, callnode, obj: object) -> LineaID:
+    def _get_implicit_global_node(self, call_node, obj: object) -> LineaID:
         if obj in self._implicit_global_to_node:
             return self._implicit_global_to_node[obj]
         else:
             global_lookup = LookupNode(
                 id=get_new_id(),
-                session_id=callnode.session_id,
-                name=lineabuiltins.FileSystem.__name__,
+                session_id=call_node.session_id,
+                name=obj.__class__.__name__,
                 source_location=None,
             )
             self.db.write_node(global_lookup)
             self.execute_node(node=global_lookup, variables=None)
 
-            global_implicit_callnode = CallNode(
+            global_implicit_call_node = CallNode(
                 id=get_new_id(),
-                session_id=callnode.session_id,
+                session_id=call_node.session_id,
                 function_id=global_lookup.id,
                 positional_args=[],
                 keyword_args={},
@@ -329,10 +329,10 @@ class Executor:
                 implicit_dependencies=[],
             )
 
-            self.db.write_node(global_implicit_callnode)
-            self.execute_node(node=global_implicit_callnode, variables=None)
+            self.db.write_node(global_implicit_call_node)
+            self.execute_node(node=global_implicit_call_node, variables=None)
 
-            self._implicit_global_to_node[obj] = global_implicit_callnode.id
+            self._implicit_global_to_node[obj] = global_implicit_call_node.id
             return self._implicit_global_to_node[obj]
 
     def execute_graph(self, graph: Graph) -> None:

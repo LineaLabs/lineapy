@@ -25,15 +25,50 @@ def inspect_function(
         yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
         yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
         return
+
+    if imported_module("pandas"):
+        import pandas
+
+        if (
+            isinstance(function, types.MethodType)
+            and function.__name__ == "to_sql"
+            and isinstance(function.__self__, pandas.DataFrame)
+        ):
+            yield ImplicitDependencyPointer(Global(lineabuiltins.DB()))
+            yield MutatedPointer(Global(lineabuiltins.DB()))
+            return
+
+        if (
+            isinstance(function, types.FunctionType)
+            and function.__name__ == "read_sql"
+            and function.__module__ == "pandas.io.sql"
+        ):
+            yield ImplicitDependencyPointer(Global(lineabuiltins.DB()))
+            yield ViewOfPointers(Global(lineabuiltins.DB()), Result())
+            return
+
+        if (
+            isinstance(function, types.MethodType)
+            and function.__name__ == "to_csv"
+            and isinstance(function.__self__, pandas.DataFrame)
+        ):
+            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+            yield MutatedPointer(Global(lineabuiltins.FileSystem()))
+            return
+
+        if (
+            isinstance(function, types.FunctionType)
+            and function.__name__ == "read_csv"
+            and function.__module__ == "pandas.io.parsers.readers"
+        ):
+            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+            yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
+            return
+
+        return
     if imported_module("PIL.Image"):
         from PIL.Image import Image
 
-        # if (function.__name__ == "new") and (
-        #     function.__module__ == "PIL.Image"
-        # ):
-        #     yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
-        #     yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
-        #     return
         if (
             isinstance(function, types.MethodType)
             and function.__name__ == "save"
@@ -42,8 +77,10 @@ def inspect_function(
             yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
             yield MutatedPointer(Global(lineabuiltins.FileSystem()))
             return
-        if  isinstance(function, types.FunctionType) and (function.__name__ == "open") and (
-            function.__module__ == "PIL.Image"
+        if (
+            isinstance(function, types.FunctionType)
+            and (function.__name__ == "open")
+            and (function.__module__ == "PIL.Image")
         ):
             yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
             yield ViewOfPointers(Result(), Global(lineabuiltins.FileSystem()))

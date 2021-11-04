@@ -305,7 +305,7 @@ class ImplicitDependencyORM(Base):  # type: ignore
     arg_node_id: str = Column(
         ForeignKey("node.id"), primary_key=True, nullable=False
     )
-    index = Column(String, primary_key=True, nullable=False)
+    index = Column(Integer, primary_key=True, nullable=False)
     argument = relationship(BaseNodeORM, uselist=False)
 
 
