@@ -262,7 +262,9 @@ class Tracer:
 
         # Only call nodes can refer to implicit dependencies
         assert isinstance(node, CallNode)
-        node.implicit_dependencies.append(implicit_dependency_id)
+        node.implicit_dependencies.append(
+            self.resolve_node(implicit_dependency_id)
+        )
 
     def _process_accessed_globals(
         self,

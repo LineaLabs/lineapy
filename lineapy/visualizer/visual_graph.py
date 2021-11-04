@@ -51,16 +51,19 @@ class VisualGraphOptions:
     """
 
     # Whether to add edges for the implied views in the tracer
-    show_implied_mutations: bool = field(default=False)
+    show_implied_mutations: bool = field(default=True)
 
     # Whether to add edges for the views kept in the tracer
-    show_views: bool = field(default=False)
+    show_views: bool = field(default=True)
 
     # Whether to show source code in the graph
-    show_code: bool = field(default=True)
+    show_code: bool = field(default=False)
 
     # Whether to add edges for global variable reads in calls
     show_global_reads: bool = field(default=True)
+
+    # Whether to add edges for implicit dependencies in calls
+    show_implicit_dependencies: bool = field(default=True)
 
 
 def tracer_to_visual_graph(
@@ -218,6 +221,15 @@ def contents_and_edges(
                 )
             contents += "| {{" + "|".join(global_reads_contents) + "} | vars }"
 
+        if options.show_implicit_dependencies and node.implicit_dependencies:
+            for ii, a_id in enumerate(node.implicit_dependencies):
+                sub_id = f"i_{ii}"
+                edges.append(
+                    VisualEdge(
+                        a_id, f"{n_id}", VisualEdgeType.IMPLICIT_DEPENDENCY
+                    )
+                )
+
         return contents, edges
     if isinstance(node, LiteralNode):
         return repr(node.value), []
@@ -342,3 +354,5 @@ class VisualEdgeType(Enum):
 
     # Edge from a node to global node that reads a value from it
     GLOBAL = auto()
+
+    IMPLICIT_DEPENDENCY = auto()

@@ -19,7 +19,7 @@ lineapy.save(img, "Graph With Image")
 """,
     location=PosixPath("[source file path]"),
 )
-call_5 = CallNode(
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -119,7 +119,7 @@ call_5 = CallNode(
         ).id,
     ],
 )
-call_9 = CallNode(
+call_10 = CallNode(
     source_location=SourceLocation(
         lineno=10,
         col_offset=6,
@@ -179,6 +179,13 @@ call_9 = CallNode(
                             source_code=source_1.id,
                         ),
                         value="simple_data.png",
+                    ).id
+                ],
+                implicit_dependencies=[
+                    CallNode(
+                        function_id=LookupNode(
+                            name="FileSystem",
+                        ).id,
                     ).id
                 ],
             ).id,

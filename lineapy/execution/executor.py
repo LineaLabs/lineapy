@@ -134,7 +134,6 @@ class Executor:
         - Returns the `SideEffects` of this node that's analyzed at runtime (hence in the executor).
         """
         logger.info("Executing node %s", node)
-        print(node.id)
 
         # To use if we need to raise an exception and change the frame
         add_frame: list[AddFrame] = []
@@ -329,11 +328,6 @@ class Executor:
                 global_reads={},
                 implicit_dependencies=[],
             )
-            print(
-                f"global_implicit_callnode id : {global_implicit_callnode.id}"
-            )
-            print(f"global_ilookup_node id : {global_lookup.id}")
-            print(f"global_fs id : {obj}")
 
             self.db.write_node(global_implicit_callnode)
             self.execute_node(node=global_implicit_callnode, variables=None)

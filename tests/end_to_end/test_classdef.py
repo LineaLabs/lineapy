@@ -19,7 +19,7 @@ class A():
         self.varname = newname
 
 class Modifier():
-    def modify_A(self,classinstance:A):
+    def modify_A(self,classinstance):
         classinstance.varname = new_value
 
 a = A("origvalue")

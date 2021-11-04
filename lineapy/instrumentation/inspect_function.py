@@ -42,7 +42,7 @@ def inspect_function(
             yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
             yield MutatedPointer(Global(lineabuiltins.FileSystem()))
             return
-        if (function.__name__ == "open") and (
+        if  isinstance(function, types.FunctionType) and (function.__name__ == "open") and (
             function.__module__ == "PIL.Image"
         ):
             yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
