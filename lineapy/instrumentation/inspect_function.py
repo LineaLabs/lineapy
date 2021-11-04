@@ -65,7 +65,6 @@ def inspect_function(
             yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
             return
 
-        return
     if imported_module("PIL.Image"):
         from PIL.Image import Image
 
