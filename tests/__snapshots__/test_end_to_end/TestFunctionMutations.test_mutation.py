@@ -24,41 +24,91 @@ call_1 = CallNode(
         name="l_dict",
     ).id,
 )
-mutate_1 = MutateNode(
-    source_id=call_1.id,
-    call_id=CallNode(
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=5,
+        col_offset=0,
+        end_lineno=5,
+        end_col_offset=20,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
         source_location=SourceLocation(
-            lineno=3,
+            lineno=5,
             col_offset=0,
-            end_lineno=3,
-            end_col_offset=10,
+            end_lineno=5,
+            end_col_offset=12,
             source_code=source_1.id,
         ),
         function_id=LookupNode(
-            name="setitem",
+            name="getattr",
         ).id,
         positional_args=[
-            call_1.id,
-            LiteralNode(
+            ImportNode(
                 source_location=SourceLocation(
-                    lineno=3,
-                    col_offset=2,
-                    end_lineno=3,
-                    end_col_offset=5,
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                value="a",
+                library=Library(
+                    name="lineapy",
+                ),
             ).id,
             LiteralNode(
+                value="save",
+            ).id,
+        ],
+    ).id,
+    positional_args=[
+        MutateNode(
+            source_id=call_1.id,
+            call_id=CallNode(
                 source_location=SourceLocation(
                     lineno=3,
-                    col_offset=9,
+                    col_offset=0,
                     end_lineno=3,
                     end_col_offset=10,
                     source_code=source_1.id,
                 ),
-                value=3,
+                function_id=LookupNode(
+                    name="setitem",
+                ).id,
+                positional_args=[
+                    call_1.id,
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=3,
+                            col_offset=2,
+                            end_lineno=3,
+                            end_col_offset=5,
+                            source_code=source_1.id,
+                        ),
+                        value="a",
+                    ).id,
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=3,
+                            col_offset=9,
+                            end_lineno=3,
+                            end_col_offset=10,
+                            source_code=source_1.id,
+                        ),
+                        value=3,
+                    ).id,
+                ],
             ).id,
-        ],
-    ).id,
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=5,
+                col_offset=16,
+                end_lineno=5,
+                end_col_offset=19,
+                source_code=source_1.id,
+            ),
+            value="x",
+        ).id,
+    ],
 )

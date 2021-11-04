@@ -380,6 +380,7 @@ class RelationalLineaDB:
         return (
             self.session.query(ArtifactORM)
             .filter(BaseNodeORM.session_id == session_id)
+            .join(BaseNodeORM)
             # Don't include source code in query, since it's not needed
             .options(
                 defaultload(ArtifactORM.node).raiseload(
