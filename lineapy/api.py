@@ -22,6 +22,9 @@ def save(value: object, /, description: Optional[str] = None) -> LineaArtifact:
     executor = execution_context.executor
     db = executor.db
     call_node = execution_context.node
+
+    # Lookup the first arguments id, which is the id for the value, and
+    # save that as the artifact
     value_node_id = call_node.positional_args[0]
     db.write_artifact(
         Artifact(
