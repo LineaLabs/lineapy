@@ -54,6 +54,10 @@ def test_get_value_artifact_inline(run_cell):
     assert run_cell("res.value") == [1, 2, 3]
 
 
+def test_ends_semicolon_no_print(run_cell):
+    assert run_cell("10;") is None
+
+
 @pytest.fixture
 def ip():
     """

@@ -158,7 +158,8 @@ class LineaInputTransformer:
 
         # Return the last value so it will be printed, if we don't end
         # in a semicolon
-        ends_with_semicolon = lines and lines[-1].endswith(";")
+        ends_with_semicolon = lines and lines[-1].strip().endswith(";")
+
         if not ends_with_semicolon and last_node:
             self.last_value = self.tracer.executor.get_value(last_node)
             # We are adding the following lines to the transpiled python code
