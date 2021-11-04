@@ -446,7 +446,7 @@ class NodeTransformer(ast.NodeTransformer):
             )
         else:
             raise ValueError(
-                "Subscript with ctx=ast.Load() should have been handled by"
+                "Subscript with ctx=ast.Store() should have been handled by"
                 " visit_Assign."
             )
 
