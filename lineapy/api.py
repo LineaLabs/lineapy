@@ -5,25 +5,50 @@ We should keep these external APIs as small as possible, and unless there is
   a very compelling use case, not support more than one way to access the
   same feature.
 """
-from typing import Any, Optional
+from datetime import datetime
+from typing import Optional
 
-from lineapy.constants import ExecutionMode
-from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.data.types import Artifact, NodeValue
+from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
+from lineapy.utils import get_value_type
 
 
-def save(variable: Any, description: Optional[str] = None) -> None:
+def save(value: object, /, description: Optional[str] = None) -> LineaArtifact:
     """
     Publishes artifact to the linea repo
     """
-    """
-    DEV NOTEs:
-    - This method is instrumented by transformer to be called by the tracer
-    """
-
-    raise RuntimeError(
-        """This method should be intrusmented and not invoked."""
+    execution_context = get_context()
+    executor = execution_context.executor
+    db = executor.db
+    call_node = execution_context.node
+    value_node_id = call_node.positional_args[0]
+    db.write_artifact(
+        Artifact(
+            id=value_node_id,
+            date_created=datetime.now(),
+            name=description,
+        )
     )
+    # serialize to db
+    timing = executor.get_execution_time(value_node_id)
+    db.write_node_value(
+        NodeValue(
+            node_id=value_node_id,
+            value=value,
+            execution_id=executor.execution.id,
+            start_time=timing[0],
+            end_time=timing[1],
+            value_type=get_value_type(value),
+        )
+    )
+    # we have to commit eagerly because if we just add it
+    #   to the queue, the `res` value may have mutated
+    #   and that's incorrect.
+    db.commit()
+
+    # TODO: Make work with unnamed artifacts
+    return LineaArtifact(description, db)
 
 
 def get(artifact_name: str) -> LineaArtifact:
@@ -41,9 +66,8 @@ def get(artifact_name: str) -> LineaArtifact:
         an object of the class `LineaArtifact`, which offers methods to access
         information we have stored about the artifact
     """
-    # FIXME: this ExecutionMode.DEV is a hack
-    db = RelationalLineaDB.from_environment(ExecutionMode.DEV)
-    return LineaArtifact(artifact_name, db)
+    execution_context = get_context()
+    return LineaArtifact(artifact_name, execution_context.executor.db)
 
 
 def catalog() -> LineaCatalog:
@@ -53,5 +77,5 @@ def catalog() -> LineaCatalog:
     linea catalog
         an object of the class `LineaCatalog`
     """
-    db = RelationalLineaDB.from_environment(ExecutionMode.DEV)
-    return LineaCatalog(db)
+    execution_context = get_context()
+    return LineaCatalog(execution_context.executor.db)

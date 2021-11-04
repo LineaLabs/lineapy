@@ -6,7 +6,7 @@ import types
 from dataclasses import dataclass
 from typing import Callable, Iterable, Union
 
-from lineapy import lineabuiltins
+from lineapy import api, lineabuiltins
 
 
 def inspect_function(
@@ -39,6 +39,9 @@ def inspect_function(
         # delitem(dict, key)
         yield MutatedPointer(PositionalArg(0))
         return
+    if function == api.save:
+        # The lineapy module is mutated when we save
+        yield MutatedPointer(BoundSelfOfFunction())
     if function == lineabuiltins.l_list:
         # l_build_list(x1, x2, ...)
         yield ViewOfPointers(

@@ -101,6 +101,8 @@ class Executor:
     def get_value(self, node: Node) -> object:
         return self._id_to_value[node.id]
 
+    # TODO: Refactor this to split out each type of node to its own function
+    # Have them all return value and time, instead of setting inside
     def execute_node(
         self, node: Node, variables: Optional[dict[str, LineaID]]
     ) -> SideEffects:
@@ -135,7 +137,9 @@ class Executor:
         if isinstance(node, LookupNode):
             # If we get a lookup error, change it to a name error to match python
             try:
+                start_time = datetime.now()
                 value = lookup_value(node.name)
+                end_time = datetime.now()
             except KeyError:
                 # Matches Python's message
                 message = f"name '{node.name}' is not defined"
@@ -150,7 +154,7 @@ class Executor:
 
             # If we are getting an attribute, save the value in case
             # we later call it as a bound method and need to track its mutations
-            if fn == getattr:
+            if fn is getattr:
                 self._node_to_bound_self[node.id] = node.positional_args[0]
 
             args = [
@@ -211,7 +215,9 @@ class Executor:
         elif isinstance(node, ImportNode):
             try:
                 with redirect_stdout(self._stdout):
+                    start_time = datetime.now()
                     value = importlib.import_module(node.library.name)
+                    end_time = datetime.now()
             except Exception as exc:
                 # Remove all importlib frames
                 # There are a different number depending on whether the import
@@ -230,8 +236,10 @@ class Executor:
                     *add_frame,
                 )
             self._id_to_value[node.id] = value
+            self._execution_time[node.id] = datetime.now(), datetime.now()
         elif isinstance(node, LiteralNode):
             self._id_to_value[node.id] = node.value
+            self._execution_time[node.id] = datetime.now(), datetime.now()
         elif isinstance(node, GlobalNode):
             self._id_to_value[node.id] = self._node_to_globals[node.call_id][
                 node.name

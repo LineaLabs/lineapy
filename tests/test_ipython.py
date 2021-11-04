@@ -31,11 +31,27 @@ def test_slice(run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]") is None
     assert run_cell("y = 10") is None
-    assert run_cell(f"x=a[0]\nlineapy.{save.__name__}(x, 'x')") is None
+    assert run_cell(f"x=a[0]\nlineapy.{save.__name__}(x, 'x')")
     assert (
         run_cell("tracer = lineapy.ipython.stop()\ntracer.slice('x')")
         == "a = [1, 2, 3]\nx=a[0]\n"
     )
+
+
+def test_slice_artifact_inline(run_cell):
+    assert run_cell("import lineapy") is None
+    assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
+    assert (
+        run_cell("res.code")
+        == """a = [1, 2, 3]
+"""
+    )
+
+
+def test_get_value_artifact_inline(run_cell):
+    assert run_cell("import lineapy") is None
+    assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
+    assert run_cell("res.value") == [1, 2, 3]
 
 
 @pytest.fixture

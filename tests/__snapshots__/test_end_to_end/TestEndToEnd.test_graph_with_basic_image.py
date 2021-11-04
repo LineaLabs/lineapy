@@ -19,6 +19,18 @@ lineapy.save(img, "Graph With Image")
 """,
     location=PosixPath("[source file path]"),
 )
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    library=Library(
+        name="lineapy",
+    ),
+)
 call_5 = CallNode(
     source_location=SourceLocation(
         lineno=7,
@@ -119,108 +131,150 @@ call_5 = CallNode(
         ).id,
     ],
 )
-call_9 = CallNode(
-    source_location=SourceLocation(
-        lineno=10,
-        col_offset=6,
-        end_lineno=10,
-        end_col_offset=28,
-        source_code=source_1.id,
-    ),
-    function_id=CallNode(
+mutate_1 = MutateNode(
+    source_id=import_1.id,
+    call_id=CallNode(
         source_location=SourceLocation(
-            lineno=10,
-            col_offset=6,
-            end_lineno=10,
-            end_col_offset=16,
+            lineno=12,
+            col_offset=0,
+            end_lineno=12,
+            end_col_offset=37,
             source_code=source_1.id,
         ),
-        function_id=LookupNode(
-            name="getattr",
+        function_id=CallNode(
+            source_location=SourceLocation(
+                lineno=12,
+                col_offset=0,
+                end_lineno=12,
+                end_col_offset=12,
+                source_code=source_1.id,
+            ),
+            function_id=LookupNode(
+                name="getattr",
+            ).id,
+            positional_args=[
+                import_1.id,
+                LiteralNode(
+                    value="save",
+                ).id,
+            ],
         ).id,
         positional_args=[
             CallNode(
                 source_location=SourceLocation(
-                    lineno=9,
+                    lineno=10,
                     col_offset=6,
-                    end_lineno=9,
-                    end_col_offset=29,
+                    end_lineno=10,
+                    end_col_offset=28,
                     source_code=source_1.id,
                 ),
                 function_id=CallNode(
+                    source_location=SourceLocation(
+                        lineno=10,
+                        col_offset=6,
+                        end_lineno=10,
+                        end_col_offset=16,
+                        source_code=source_1.id,
+                    ),
                     function_id=LookupNode(
                         name="getattr",
                     ).id,
                     positional_args=[
-                        ImportNode(
+                        CallNode(
                             source_location=SourceLocation(
-                                lineno=4,
-                                col_offset=0,
-                                end_lineno=4,
-                                end_col_offset=26,
+                                lineno=9,
+                                col_offset=6,
+                                end_lineno=9,
+                                end_col_offset=29,
                                 source_code=source_1.id,
                             ),
-                            library=Library(
-                                name="PIL.Image",
-                            ),
+                            function_id=CallNode(
+                                function_id=LookupNode(
+                                    name="getattr",
+                                ).id,
+                                positional_args=[
+                                    ImportNode(
+                                        source_location=SourceLocation(
+                                            lineno=4,
+                                            col_offset=0,
+                                            end_lineno=4,
+                                            end_col_offset=26,
+                                            source_code=source_1.id,
+                                        ),
+                                        library=Library(
+                                            name="PIL.Image",
+                                        ),
+                                    ).id,
+                                    LiteralNode(
+                                        value="open",
+                                    ).id,
+                                ],
+                            ).id,
+                            positional_args=[
+                                LiteralNode(
+                                    source_location=SourceLocation(
+                                        lineno=9,
+                                        col_offset=11,
+                                        end_lineno=9,
+                                        end_col_offset=28,
+                                        source_code=source_1.id,
+                                    ),
+                                    value="simple_data.png",
+                                ).id
+                            ],
                         ).id,
                         LiteralNode(
-                            value="open",
+                            value="resize",
                         ).id,
                     ],
                 ).id,
                 positional_args=[
-                    LiteralNode(
+                    CallNode(
                         source_location=SourceLocation(
-                            lineno=9,
-                            col_offset=11,
-                            end_lineno=9,
-                            end_col_offset=28,
+                            lineno=10,
+                            col_offset=17,
+                            end_lineno=10,
+                            end_col_offset=27,
                             source_code=source_1.id,
                         ),
-                        value="simple_data.png",
+                        function_id=LookupNode(
+                            name="l_list",
+                        ).id,
+                        positional_args=[
+                            LiteralNode(
+                                source_location=SourceLocation(
+                                    lineno=10,
+                                    col_offset=18,
+                                    end_lineno=10,
+                                    end_col_offset=21,
+                                    source_code=source_1.id,
+                                ),
+                                value=200,
+                            ).id,
+                            LiteralNode(
+                                source_location=SourceLocation(
+                                    lineno=10,
+                                    col_offset=23,
+                                    end_lineno=10,
+                                    end_col_offset=26,
+                                    source_code=source_1.id,
+                                ),
+                                value=200,
+                            ).id,
+                        ],
                     ).id
                 ],
             ).id,
             LiteralNode(
-                value="resize",
+                source_location=SourceLocation(
+                    lineno=12,
+                    col_offset=18,
+                    end_lineno=12,
+                    end_col_offset=36,
+                    source_code=source_1.id,
+                ),
+                value="Graph With Image",
             ).id,
         ],
     ).id,
-    positional_args=[
-        CallNode(
-            source_location=SourceLocation(
-                lineno=10,
-                col_offset=17,
-                end_lineno=10,
-                end_col_offset=27,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="l_list",
-            ).id,
-            positional_args=[
-                LiteralNode(
-                    source_location=SourceLocation(
-                        lineno=10,
-                        col_offset=18,
-                        end_lineno=10,
-                        end_col_offset=21,
-                        source_code=source_1.id,
-                    ),
-                    value=200,
-                ).id,
-                LiteralNode(
-                    source_location=SourceLocation(
-                        lineno=10,
-                        col_offset=23,
-                        end_lineno=10,
-                        end_col_offset=26,
-                        source_code=source_1.id,
-                    ),
-                    value=200,
-                ).id,
-            ],
-        ).id
-    ],
 )

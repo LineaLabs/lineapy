@@ -13,53 +13,107 @@ lineapy.save(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_2 = CallNode(
+import_1 = ImportNode(
     source_location=SourceLocation(
-        lineno=4,
-        col_offset=4,
-        end_lineno=4,
-        end_col_offset=9,
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
         source_code=source_1.id,
     ),
-    function_id=CallNode(
+    library=Library(
+        name="lineapy",
+    ),
+)
+mutate_1 = MutateNode(
+    source_id=import_1.id,
+    call_id=CallNode(
         source_location=SourceLocation(
-            lineno=3,
-            col_offset=4,
-            end_lineno=3,
-            end_col_offset=19,
+            lineno=6,
+            col_offset=0,
+            end_lineno=6,
+            end_col_offset=20,
             source_code=source_1.id,
         ),
-        function_id=LookupNode(
-            name="l_exec_expr",
+        function_id=CallNode(
+            source_location=SourceLocation(
+                lineno=6,
+                col_offset=0,
+                end_lineno=6,
+                end_col_offset=12,
+                source_code=source_1.id,
+            ),
+            function_id=LookupNode(
+                name="getattr",
+            ).id,
+            positional_args=[
+                import_1.id,
+                LiteralNode(
+                    value="save",
+                ).id,
+            ],
         ).id,
         positional_args=[
+            CallNode(
+                source_location=SourceLocation(
+                    lineno=4,
+                    col_offset=4,
+                    end_lineno=4,
+                    end_col_offset=9,
+                    source_code=source_1.id,
+                ),
+                function_id=CallNode(
+                    source_location=SourceLocation(
+                        lineno=3,
+                        col_offset=4,
+                        end_lineno=3,
+                        end_col_offset=19,
+                        source_code=source_1.id,
+                    ),
+                    function_id=LookupNode(
+                        name="l_exec_expr",
+                    ).id,
+                    positional_args=[
+                        LiteralNode(
+                            value="lambda x: x + a",
+                        ).id
+                    ],
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=4,
+                            col_offset=6,
+                            end_lineno=4,
+                            end_col_offset=8,
+                            source_code=source_1.id,
+                        ),
+                        value=10,
+                    ).id
+                ],
+                global_reads={
+                    "a": LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=2,
+                            col_offset=4,
+                            end_lineno=2,
+                            end_col_offset=6,
+                            source_code=source_1.id,
+                        ),
+                        value=10,
+                    ).id
+                },
+            ).id,
             LiteralNode(
-                value="lambda x: x + a",
-            ).id
+                source_location=SourceLocation(
+                    lineno=6,
+                    col_offset=16,
+                    end_lineno=6,
+                    end_col_offset=19,
+                    source_code=source_1.id,
+                ),
+                value="c",
+            ).id,
         ],
     ).id,
-    positional_args=[
-        LiteralNode(
-            source_location=SourceLocation(
-                lineno=4,
-                col_offset=6,
-                end_lineno=4,
-                end_col_offset=8,
-                source_code=source_1.id,
-            ),
-            value=10,
-        ).id
-    ],
-    global_reads={
-        "a": LiteralNode(
-            source_location=SourceLocation(
-                lineno=2,
-                col_offset=4,
-                end_lineno=2,
-                end_col_offset=6,
-                source_code=source_1.id,
-            ),
-            value=10,
-        ).id
-    },
 )

@@ -16,6 +16,18 @@ lineapy.save(y, \'y\')
 """,
     location=PosixPath("[source file path]"),
 )
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    library=Library(
+        name="lineapy",
+    ),
+)
 call_1 = CallNode(
     source_location=SourceLocation(
         lineno=2,
@@ -64,41 +76,83 @@ global_2 = GlobalNode(
     name="x",
     call_id=call_2.id,
 )
-call_4 = CallNode(
-    source_location=SourceLocation(
-        lineno=8,
-        col_offset=4,
-        end_lineno=8,
-        end_col_offset=9,
-        source_code=source_1.id,
-    ),
-    function_id=LookupNode(
-        name="add",
-    ).id,
-    positional_args=[
-        CallNode(
+mutate_1 = MutateNode(
+    source_id=import_1.id,
+    call_id=CallNode(
+        source_location=SourceLocation(
+            lineno=9,
+            col_offset=0,
+            end_lineno=9,
+            end_col_offset=20,
+            source_code=source_1.id,
+        ),
+        function_id=CallNode(
             source_location=SourceLocation(
-                lineno=7,
-                col_offset=4,
-                end_lineno=7,
-                end_col_offset=10,
+                lineno=9,
+                col_offset=0,
+                end_lineno=9,
+                end_col_offset=12,
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
+                name="getattr",
+            ).id,
+            positional_args=[
+                import_1.id,
+                LiteralNode(
+                    value="save",
+                ).id,
+            ],
+        ).id,
+        positional_args=[
+            CallNode(
                 source_location=SourceLocation(
-                    lineno=7,
+                    lineno=8,
                     col_offset=4,
-                    end_lineno=7,
-                    end_col_offset=7,
+                    end_lineno=8,
+                    end_col_offset=9,
                     source_code=source_1.id,
                 ),
-                name="sum",
+                function_id=LookupNode(
+                    name="add",
+                ).id,
+                positional_args=[
+                    CallNode(
+                        source_location=SourceLocation(
+                            lineno=7,
+                            col_offset=4,
+                            end_lineno=7,
+                            end_col_offset=10,
+                            source_code=source_1.id,
+                        ),
+                        function_id=LookupNode(
+                            source_location=SourceLocation(
+                                lineno=7,
+                                col_offset=4,
+                                end_lineno=7,
+                                end_col_offset=7,
+                                source_code=source_1.id,
+                            ),
+                            name="sum",
+                        ).id,
+                        positional_args=[call_1.id],
+                    ).id,
+                    GlobalNode(
+                        name="b",
+                        call_id=call_2.id,
+                    ).id,
+                ],
             ).id,
-            positional_args=[call_1.id],
-        ).id,
-        GlobalNode(
-            name="b",
-            call_id=call_2.id,
-        ).id,
-    ],
+            LiteralNode(
+                source_location=SourceLocation(
+                    lineno=9,
+                    col_offset=16,
+                    end_lineno=9,
+                    end_col_offset=19,
+                    source_code=source_1.id,
+                ),
+                value="y",
+            ).id,
+        ],
+    ).id,
 )
