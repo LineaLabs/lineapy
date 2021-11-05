@@ -88,10 +88,9 @@ d = foo(5,1)
 
 CONDITIONALS_CODE = """bs = [1,2]
 if len(bs) > 4:
-    print("True")
+    pass
 else:
     bs.append(3)
-    print("False")
 """
 
 LOOP_CODE = f"""import lineapy
@@ -214,7 +213,6 @@ class TestEndToEnd:
 
     def test_conditionals(self, execute):
         res = execute(CONDITIONALS_CODE)
-        assert res.stdout == "False\n"
         assert res.values["bs"] == [1, 2, 3]
 
     @pytest.mark.slow
@@ -334,8 +332,11 @@ class TestEndToEnd:
     def test_simple(self, execute):
         assert execute("a = abs(11)").values["a"] == 11
 
-    def test_print(self, execute):
-        assert execute(PRINT_CODE).stdout == "10\n"
+    def test_print(self, execute, capsys):
+
+        execute(PRINT_CODE)
+        captured = capsys.readouterr()
+        assert captured.out == "10\n"
 
     def test_chained_attributes(self, execute):
         """
