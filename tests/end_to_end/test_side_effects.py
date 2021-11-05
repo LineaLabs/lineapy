@@ -71,3 +71,15 @@ df3 = pd.read_csv("test.csv")
     res = execute(code, artifacts=["df3"])
     assert res.values["df3"].to_csv(index=False) == "a,b\n1,4\n2,5\n3,6\n"
     assert res.artifacts["df3"] == expectedcode
+
+
+def test_to_sql_does_not_slice(execute):
+    mincode = """import pandas as pd
+df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+"""
+    extras = """import sqlite3
+conn = sqlite3.connect(':memory:')
+df.to_sql(name="test", con=conn,index=False)
+"""
+    res = execute(mincode + extras, artifacts=["df"])
+    assert res.artifacts["df"] == mincode

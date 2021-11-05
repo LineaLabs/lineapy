@@ -3,11 +3,6 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
-call_1 = CallNode(
-    function_id=LookupNode(
-        name="DB",
-    ).id,
-)
 source_1 = SourceCode(
     code="""import lineapy
 import pandas as pd
@@ -34,7 +29,11 @@ import_1 = ImportNode(
     ),
 )
 mutate_1 = MutateNode(
-    source_id=call_1.id,
+    source_id=CallNode(
+        function_id=LookupNode(
+            name="DB",
+        ).id,
+    ).id,
     call_id=CallNode(
         source_location=SourceLocation(
             lineno=7,
@@ -308,7 +307,6 @@ mutate_1 = MutateNode(
                 value="test",
             ).id,
         },
-        implicit_dependencies=[call_1.id],
     ).id,
 )
 call_16 = CallNode(

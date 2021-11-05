@@ -23,7 +23,6 @@ def inspect_function(
     """
     if function == open:
         yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
-        yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
         return
     # TODO: Make this work without infinite recursion
     # if function in (lineabuiltins.DB, lineabuiltins.FileSystem):
@@ -37,7 +36,6 @@ def inspect_function(
             and function.__name__ == "to_sql"
             and isinstance(function.__self__, pandas.DataFrame)
         ):
-            yield ImplicitDependencyPointer(Global(lineabuiltins.DB()))
             yield MutatedPointer(Global(lineabuiltins.DB()))
             return
 
@@ -47,7 +45,6 @@ def inspect_function(
             and function.__module__ == "pandas.io.sql"
         ):
             yield ImplicitDependencyPointer(Global(lineabuiltins.DB()))
-            yield ViewOfPointers(Global(lineabuiltins.DB()), Result())
             return
 
         if (
@@ -55,7 +52,6 @@ def inspect_function(
             and function.__name__ == "to_csv"
             and isinstance(function.__self__, pandas.DataFrame)
         ):
-            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
             yield MutatedPointer(Global(lineabuiltins.FileSystem()))
             return
 
@@ -65,7 +61,6 @@ def inspect_function(
             and function.__module__ == "pandas.io.parsers.readers"
         ):
             yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
-            yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
             return
 
     if imported_module("PIL.Image"):
@@ -76,7 +71,6 @@ def inspect_function(
             and function.__name__ == "save"
             and isinstance(function.__self__, Image)
         ):
-            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
             yield MutatedPointer(Global(lineabuiltins.FileSystem()))
             return
         if (
@@ -85,7 +79,6 @@ def inspect_function(
             and (function.__module__ == "PIL.Image")
         ):
             yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
-            yield ViewOfPointers(Result(), Global(lineabuiltins.FileSystem()))
             return
 
     # TODO: We should probably not use use setitem, but instead get particular

@@ -3,11 +3,6 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
-call_1 = CallNode(
-    function_id=LookupNode(
-        name="FileSystem",
-    ).id,
-)
 source_1 = SourceCode(
     code="""import altair as alt
 import pandas as pd
@@ -213,7 +208,13 @@ call_10 = CallNode(
             value="ames_train_cleaned.csv",
         ).id
     ],
-    implicit_dependencies=[call_1.id],
+    implicit_dependencies=[
+        CallNode(
+            function_id=LookupNode(
+                name="FileSystem",
+            ).id,
+        ).id
+    ],
 )
 call_12 = CallNode(
     source_location=SourceLocation(
@@ -368,15 +369,11 @@ call_16 = CallNode(
     ],
 )
 mutate_1 = MutateNode(
-    source_id=call_1.id,
+    source_id=call_10.id,
     call_id=call_16.id,
 )
 mutate_2 = MutateNode(
     source_id=call_14.id,
-    call_id=call_16.id,
-)
-mutate_3 = MutateNode(
-    source_id=call_10.id,
     call_id=call_16.id,
 )
 call_17 = CallNode(
@@ -521,7 +518,7 @@ call_29 = CallNode(
                                         name="getitem",
                                     ).id,
                                     positional_args=[
-                                        mutate_3.id,
+                                        mutate_1.id,
                                         CallNode(
                                             source_location=SourceLocation(
                                                 lineno=24,
@@ -580,7 +577,7 @@ call_29 = CallNode(
                                         name="getitem",
                                     ).id,
                                     positional_args=[
-                                        mutate_3.id,
+                                        mutate_1.id,
                                         LiteralNode(
                                             source_location=SourceLocation(
                                                 lineno=23,
