@@ -3,6 +3,11 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
+call_1 = CallNode(
+    function_id=LookupNode(
+        name="FileSystem",
+    ).id,
+)
 source_1 = SourceCode(
     code="""import lineapy
 import pandas as pd
@@ -116,6 +121,7 @@ call_6 = CallNode(
                     value="tests/simple_data.csv",
                 ).id
             ],
+            implicit_dependencies=[call_1.id],
         ).id,
     ],
 )
@@ -181,13 +187,7 @@ call_10 = CallNode(
                         value="simple_data.png",
                     ).id
                 ],
-                implicit_dependencies=[
-                    CallNode(
-                        function_id=LookupNode(
-                            name="FileSystem",
-                        ).id,
-                    ).id
-                ],
+                implicit_dependencies=[call_1.id],
             ).id,
             LiteralNode(
                 value="resize",

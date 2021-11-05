@@ -14,7 +14,7 @@ lineapy.save(s, "Graph With CSV Import")
 """,
     location=PosixPath("[source file path]"),
 )
-call_5 = CallNode(
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=5,
         col_offset=4,
@@ -93,6 +93,13 @@ call_5 = CallNode(
                                     source_code=source_1.id,
                                 ),
                                 value="tests/simple_data.csv",
+                            ).id
+                        ],
+                        implicit_dependencies=[
+                            CallNode(
+                                function_id=LookupNode(
+                                    name="FileSystem",
+                                ).id,
                             ).id
                         ],
                     ).id,

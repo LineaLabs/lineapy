@@ -293,6 +293,69 @@ call_12 = CallNode(
     ],
     implicit_dependencies=[mutate_1.id],
 )
+call_13 = CallNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=11,
+        end_lineno=6,
+        end_col_offset=19,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getitem",
+    ).id,
+    positional_args=[
+        call_12.id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=6,
+                col_offset=15,
+                end_lineno=6,
+                end_col_offset=18,
+                source_code=source_1.id,
+            ),
+            value="a",
+        ).id,
+    ],
+)
+call_14 = CallNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=22,
+        end_lineno=6,
+        end_col_offset=30,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getitem",
+    ).id,
+    positional_args=[
+        call_12.id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=6,
+                col_offset=26,
+                end_lineno=6,
+                end_col_offset=29,
+                source_code=source_1.id,
+            ),
+            value="b",
+        ).id,
+    ],
+)
+call_15 = CallNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=11,
+        end_lineno=6,
+        end_col_offset=30,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="add",
+    ).id,
+    positional_args=[call_13.id, call_14.id],
+)
 call_16 = CallNode(
     source_location=SourceLocation(
         lineno=6,
@@ -316,71 +379,19 @@ call_16 = CallNode(
             ),
             value="c",
         ).id,
-        CallNode(
-            source_location=SourceLocation(
-                lineno=6,
-                col_offset=11,
-                end_lineno=6,
-                end_col_offset=30,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="add",
-            ).id,
-            positional_args=[
-                CallNode(
-                    source_location=SourceLocation(
-                        lineno=6,
-                        col_offset=11,
-                        end_lineno=6,
-                        end_col_offset=19,
-                        source_code=source_1.id,
-                    ),
-                    function_id=LookupNode(
-                        name="getitem",
-                    ).id,
-                    positional_args=[
-                        call_12.id,
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=6,
-                                col_offset=15,
-                                end_lineno=6,
-                                end_col_offset=18,
-                                source_code=source_1.id,
-                            ),
-                            value="a",
-                        ).id,
-                    ],
-                ).id,
-                CallNode(
-                    source_location=SourceLocation(
-                        lineno=6,
-                        col_offset=22,
-                        end_lineno=6,
-                        end_col_offset=30,
-                        source_code=source_1.id,
-                    ),
-                    function_id=LookupNode(
-                        name="getitem",
-                    ).id,
-                    positional_args=[
-                        call_12.id,
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=6,
-                                col_offset=26,
-                                end_lineno=6,
-                                end_col_offset=29,
-                                source_code=source_1.id,
-                            ),
-                            value="b",
-                        ).id,
-                    ],
-                ).id,
-            ],
-        ).id,
+        call_15.id,
     ],
+)
+mutate_4 = MutateNode(
+    source_id=MutateNode(
+        source_id=mutate_1.id,
+        call_id=call_16.id,
+    ).id,
+    call_id=call_16.id,
+)
+mutate_5 = MutateNode(
+    source_id=call_12.id,
+    call_id=call_16.id,
 )
 call_18 = CallNode(
     source_location=SourceLocation(
@@ -402,7 +413,7 @@ call_18 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            call_12.id,
+            mutate_5.id,
             LiteralNode(
                 value="to_csv",
             ).id,
@@ -432,10 +443,37 @@ call_18 = CallNode(
             value=False,
         ).id
     },
-    implicit_dependencies=[mutate_1.id],
+    implicit_dependencies=[mutate_4.id],
 )
-mutate_3 = MutateNode(
-    source_id=call_12.id,
+mutate_9 = MutateNode(
+    source_id=call_15.id,
+    call_id=call_18.id,
+)
+mutate_10 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=call_13.id,
+            call_id=call_16.id,
+        ).id,
+        call_id=call_18.id,
+    ).id,
+    call_id=call_18.id,
+)
+mutate_14 = MutateNode(
+    source_id=MutateNode(
+        source_id=MutateNode(
+            source_id=call_14.id,
+            call_id=call_16.id,
+        ).id,
+        call_id=call_18.id,
+    ).id,
+    call_id=call_18.id,
+)
+mutate_15 = MutateNode(
+    source_id=MutateNode(
+        source_id=mutate_5.id,
+        call_id=call_18.id,
+    ).id,
     call_id=call_18.id,
 )
 call_20 = CallNode(
@@ -479,7 +517,13 @@ call_20 = CallNode(
     implicit_dependencies=[
         MutateNode(
             source_id=MutateNode(
-                source_id=mutate_1.id,
+                source_id=MutateNode(
+                    source_id=MutateNode(
+                        source_id=mutate_4.id,
+                        call_id=call_18.id,
+                    ).id,
+                    call_id=call_18.id,
+                ).id,
                 call_id=call_18.id,
             ).id,
             call_id=call_18.id,
