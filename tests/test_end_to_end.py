@@ -343,6 +343,7 @@ class TestEndToEnd:
         """
         import altair
 
+        altair.data_transformers.enable("default")
         assert altair.data_transformers.active != "json"
         execute("import altair; altair.data_transformers.enable('json')")
         assert altair.data_transformers.active == "json"
