@@ -40,7 +40,7 @@ jobs:
         with:
           python-version: 3.9
       - run: pip install pre-commit
-      - run: pre-commit run black
+      - run: pre-commit run black --all-files
   flake8:
     runs-on: ubuntu-latest
     steps:
@@ -50,7 +50,7 @@ jobs:
         with:
           python-version: 3.9
       - run: pip install pre-commit
-      - run: pre-commit run flake8
+      - run: pre-commit run flake8 --all-files
   imports:
     runs-on: ubuntu-latest
     steps:
@@ -60,7 +60,7 @@ jobs:
         with:
           python-version: 3.9
       - run: pip install pre-commit
-      - run: pre-commit run isort
+      - run: pre-commit run isort --all-files
   mypy:
     runs-on: ubuntu-latest
     steps:
@@ -70,4 +70,4 @@ jobs:
         with:
           python-version: 3.9
       - run: pip install pre-commit
-      - run: pre-commit run mypy
+      - run: pre-commit run mypy --all-files
