@@ -12,10 +12,10 @@ This repository contains a few different components:
 ### Conda
 
 ```bash
-conda create --name lineapy-env python=3.9
-conda activate lineapy-env
+conda create --name lineapy python=3.9
+conda activate lineapy
 # added quotes to make zsh compliant
-pip install -e ".[dev]" --user
+pip install -e ".[dev]"
 ```
 
 ### Docker + Makefile
@@ -44,6 +44,9 @@ If using docker, please add appropriate tests and ensure all tests are working u
 `make test`. Any args to pytest can be passed using args="xxx". Eg, individual tests can be run using `make test args="<path_to_test_file>"`.
 
 Some tests have been marked "slow". These typically take > 0.5s and can be skipped by passing the args `-m "not slow"` when running pytest.
+
+We also added some tests which run airflow to verify that it works on the code we produce. These also take a lot longer, they create their own virtualenv
+with airflow in it, and create a new airflow DB. By default, those are not run. To run them, use `-m "airflow"` when running pytest.
 
 ### Logging
 

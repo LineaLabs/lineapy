@@ -93,10 +93,10 @@ def python_snapshot(request):
     """
     Copied from the default fixture, but updating the extension class to be Python
     """
-    return syrupy.SnapshotAssertion(  # type: ignore
+    return syrupy.SnapshotAssertion(
         update_snapshots=request.config.option.update_snapshots,
         extension_class=PythonSnapshotExtension,
-        test_location=syrupy.PyTestLocation(request.node),  # type: ignore
+        test_location=syrupy.PyTestLocation(request.node),
         session=request.session.config._syrupy,
     )
 
@@ -106,10 +106,10 @@ def svg_snapshot(request):
     """
     Copied from the default fixture, but updating the extension class to be Python
     """
-    return syrupy.SnapshotAssertion(  # type: ignore
+    return syrupy.SnapshotAssertion(
         update_snapshots=request.config.option.update_snapshots,
         extension_class=SVGSnapshotExtension,
-        test_location=syrupy.PyTestLocation(request.node),  # type: ignore
+        test_location=syrupy.PyTestLocation(request.node),
         session=request.session.config._syrupy,
     )
 
@@ -268,3 +268,14 @@ def remove_dev_db():
     p = Path("dev.sqlite")
     if p.exists():
         p.unlink()
+
+
+@pytest.fixture
+def housing_tracer(execute):
+    tests_dir = Path(__file__).parent
+
+    # Change directory to tests dir before executing
+    os.chdir(tests_dir)
+
+    code = (tests_dir / "housing.py").read_text()
+    return execute(code, compare_snapshot=False)

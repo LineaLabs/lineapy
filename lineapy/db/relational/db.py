@@ -210,7 +210,7 @@ class RelationalLineaDB:
             # Not sure why we are passing in value ot the literal node,
             # since it isnt a field in the ORM?
             # We were previously so I kept it, confused by this!
-            node_orm = LiteralNodeORM(  # type: ignore
+            node_orm = LiteralNodeORM(
                 **args,
                 value_type=RelationalLineaDB.get_type_of_literal_value(
                     node.value

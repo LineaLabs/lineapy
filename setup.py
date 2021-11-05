@@ -35,6 +35,7 @@ DOWNLOAD_URL = "linea.ai"
 LICENSE = "TODO"
 VERSION = version("lineapy/__init__.py")
 
+
 setup(
     name=NAME,
     version=VERSION,
@@ -58,8 +59,7 @@ setup(
         "astor",
         "click>=8.0.0",
         "pydantic",
-        # airflow requires older version of sqlalchemy, so we specify that directly to avoid backtracing
-        "SQLAlchemy<1.4.0",
+        "SQLAlchemy",
         "networkx",
         "black",
         "rich",
@@ -82,11 +82,13 @@ setup(
             "pytest-cov",
             "jupyterlab",
             "ipython",
+            "pdbpp",
+            "pytest-virtualenv",
             "nbval",
             "coveralls",
             "seaborn",
             "graphviz",
-            "apache-airflow==2.2.0",
+            "SQLAlchemy[mypy]>=1.4.0",
         ]
     },
     include_package_data=True,

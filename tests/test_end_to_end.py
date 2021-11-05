@@ -1,6 +1,4 @@
 import datetime
-import os
-from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import pytest
@@ -345,6 +343,7 @@ class TestEndToEnd:
         """
         import altair
 
+        altair.data_transformers.enable("default")
         assert altair.data_transformers.active != "json"
         execute("import altair; altair.data_transformers.enable('json')")
         assert altair.data_transformers.active == "json"
@@ -404,15 +403,8 @@ class TestEndToEnd:
         assert res.values["b"] == 2
 
     @pytest.mark.slow
-    def test_housing(self, execute, python_snapshot):
-        tests_dir = Path(__file__).parent
-
-        # Change directory to tests dir before executing
-        os.chdir(tests_dir)
-
-        code = (tests_dir / "housing.py").read_text()
-        res = execute(code)
-        assert res.slice("p value") == python_snapshot
+    def test_housing(self, housing_tracer, python_snapshot):
+        assert housing_tracer.slice("p value") == python_snapshot
 
 
 class TestUnaryOp:

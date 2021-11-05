@@ -6,7 +6,7 @@ that with graphviz.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import graphviz
 
@@ -194,7 +194,7 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
         ##
 
         # Save the previous ID so we can add an invisible edge.
-        prev_id = None
+        prev_id: Optional[str] = None
         for node_type, label in NODE_LABELS.items():
             id_ = f"legend_node_{label}"
 

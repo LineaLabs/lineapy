@@ -24,7 +24,7 @@ jobs:
           pip install -e .[dev]
       - name: Test with pytest
         run: |
-          pytest -vv examples/Explorations.ipynb examples/APIs.ipynb tests/ --nbval -m "not airflowtest" --cov=lineapy
+          pytest -vv examples/Explorations.ipynb examples/APIs.ipynb tests/ --nbval --cov=lineapy
       # https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
       - name: Upload coverage
         env:
@@ -81,9 +81,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Install mypy
+      - name: Install mypy and extensions
         run: |
-          pip install mypy
+          pip install mypy sqlalchemy[mypy] pydantic
       - name: Run mypy
         run: |
           mypy -p lineapy
