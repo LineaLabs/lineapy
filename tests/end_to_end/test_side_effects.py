@@ -8,7 +8,6 @@ new_img.save("test.png", "PNG")
 e = open("test.png")
 """
     res = execute(code, artifacts=["e"])
-    print(res.artifacts["e"])
     assert res.artifacts["e"] == code
 
 
@@ -25,7 +24,7 @@ df2 = pd.read_sql("select * from test", conn)
     assert res.artifacts["df2"] == code
 
 
-@pytest.mark.xfail("need to fix dependency on global")
+@pytest.mark.xfail(reason="need to fix dependency on global")
 def test_pandas_to_sql_filesystem(execute):
     code = """import lineapy
 import pandas as pd
@@ -52,7 +51,7 @@ df2 = pd.read_csv("test.csv")
     assert res.artifacts["df2"] == code
 
 
-@pytest.mark.xfail("Path based dependencies not working")
+@pytest.mark.xfail(reason="Path based dependencies not working")
 def test_needless_vars_do_not_get_included(execute):
     code = """import pandas as pd
 df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
