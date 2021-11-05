@@ -1,20 +1,45 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+# We use local hooks so that we don't pass the changed filenames in as args,
+# so that the ignores we defined in the configs work
 repos:
-    - repo: https://github.com/PyCQA/flake8
-      rev: "4.0.1"
-      hooks:
-          - id: flake8
-    - repo: https://github.com/PyCQA/isort
-      rev: "5.10.0"
-      hooks:
-          - id: isort
-    - repo: https://github.com/psf/black
-      rev: 21.10b0
-      hooks:
-          - id: black
-    - repo: https://github.com/pre-commit/mirrors-mypy
-      rev: "v0.910-1"
-      hooks:
-          - id: mypy
-            additional_dependencies: ["sqlalchemy[mypy]", pydantic]
+  - repo: local
+    hooks:
+      - id: flake8
+        name: flake8
+        entry: flake8 .
+        language: python
+        language_version: python3.9
+        additional_dependencies: ["flake8==4.0.1"]
+        types: [python]
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort
+        entry: isort .
+        language: python
+        language_version: python3.9
+        additional_dependencies: ["isort==5.10.0"]
+        types: [python]
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: black .
+        language: python
+        language_version: python3.9
+        additional_dependencies: ["black==21.10b0"]
+        types: [python]
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy -p lineapy
+        language: python
+        language_version: python3.9
+        additional_dependencies: ["mypy==0.910", "sqlalchemy[mypy]", pydantic]
+        types: [python]
+        pass_filenames: false
