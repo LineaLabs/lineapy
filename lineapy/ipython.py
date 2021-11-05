@@ -151,7 +151,6 @@ class LineaInputTransformer:
         if self.visualize_display:
             self.visualize_display.update(SVG(self.tracer.visualize_to_svg()))
 
-
         # Return the last value so it will be printed, if we don't end
         # in a semicolon
         ends_with_semicolon = lines and lines[-1].strip().endswith(";")
