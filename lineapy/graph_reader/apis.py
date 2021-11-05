@@ -77,6 +77,7 @@ class LineaArtifact:
             self._artifact.id, self._session_context.execution_id
         )
 
+    @cached_property
     def value(self) -> Any:
         # FIXME: the versioning semantics here is kinda weird
         #        the execution_id I believe is redundant right now

@@ -19,7 +19,7 @@ lineapy.save(df2, \'df2\')
 """,
     location=PosixPath("[source file path]"),
 )
-import_1 = ImportNode(
+import_2 = ImportNode(
     source_location=SourceLocation(
         lineno=2,
         col_offset=0,
@@ -31,263 +31,313 @@ import_1 = ImportNode(
         name="pandas",
     ),
 )
-call_12 = CallNode(
+call_14 = CallNode(
     source_location=SourceLocation(
-        lineno=5,
-        col_offset=6,
-        end_lineno=5,
-        end_col_offset=29,
+        lineno=7,
+        col_offset=0,
+        end_lineno=7,
+        end_col_offset=24,
         source_code=source_1.id,
     ),
     function_id=CallNode(
         source_location=SourceLocation(
-            lineno=5,
-            col_offset=6,
-            end_lineno=5,
-            end_col_offset=17,
+            lineno=7,
+            col_offset=0,
+            end_lineno=7,
+            end_col_offset=12,
             source_code=source_1.id,
         ),
         function_id=LookupNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            ImportNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=14,
+                    source_code=source_1.id,
+                ),
+                library=Library(
+                    name="lineapy",
+                ),
+            ).id,
             LiteralNode(
-                value="read_csv",
+                value="save",
             ).id,
         ],
     ).id,
     positional_args=[
-        LiteralNode(
+        CallNode(
             source_location=SourceLocation(
                 lineno=5,
-                col_offset=18,
+                col_offset=6,
                 end_lineno=5,
-                end_col_offset=28,
+                end_col_offset=29,
                 source_code=source_1.id,
             ),
-            value="test.csv",
-        ).id
-    ],
-    implicit_dependencies=[
-        MutateNode(
-            source_id=call_1.id,
-            call_id=CallNode(
+            function_id=CallNode(
                 source_location=SourceLocation(
-                    lineno=4,
-                    col_offset=0,
-                    end_lineno=4,
-                    end_col_offset=34,
+                    lineno=5,
+                    col_offset=6,
+                    end_lineno=5,
+                    end_col_offset=17,
                     source_code=source_1.id,
                 ),
-                function_id=CallNode(
+                function_id=LookupNode(
+                    name="getattr",
+                ).id,
+                positional_args=[
+                    import_2.id,
+                    LiteralNode(
+                        value="read_csv",
+                    ).id,
+                ],
+            ).id,
+            positional_args=[
+                LiteralNode(
                     source_location=SourceLocation(
-                        lineno=4,
-                        col_offset=0,
-                        end_lineno=4,
-                        end_col_offset=9,
+                        lineno=5,
+                        col_offset=18,
+                        end_lineno=5,
+                        end_col_offset=28,
                         source_code=source_1.id,
                     ),
-                    function_id=LookupNode(
-                        name="getattr",
-                    ).id,
-                    positional_args=[
-                        CallNode(
+                    value="test.csv",
+                ).id
+            ],
+            implicit_dependencies=[
+                MutateNode(
+                    source_id=call_1.id,
+                    call_id=CallNode(
+                        source_location=SourceLocation(
+                            lineno=4,
+                            col_offset=0,
+                            end_lineno=4,
+                            end_col_offset=34,
+                            source_code=source_1.id,
+                        ),
+                        function_id=CallNode(
                             source_location=SourceLocation(
-                                lineno=3,
-                                col_offset=5,
-                                end_lineno=3,
-                                end_col_offset=51,
+                                lineno=4,
+                                col_offset=0,
+                                end_lineno=4,
+                                end_col_offset=9,
                                 source_code=source_1.id,
                             ),
-                            function_id=CallNode(
-                                source_location=SourceLocation(
-                                    lineno=3,
-                                    col_offset=5,
-                                    end_lineno=3,
-                                    end_col_offset=17,
-                                    source_code=source_1.id,
-                                ),
-                                function_id=LookupNode(
-                                    name="getattr",
-                                ).id,
-                                positional_args=[
-                                    import_1.id,
-                                    LiteralNode(
-                                        value="DataFrame",
-                                    ).id,
-                                ],
+                            function_id=LookupNode(
+                                name="getattr",
                             ).id,
                             positional_args=[
                                 CallNode(
                                     source_location=SourceLocation(
                                         lineno=3,
-                                        col_offset=18,
+                                        col_offset=5,
                                         end_lineno=3,
-                                        end_col_offset=50,
+                                        end_col_offset=51,
                                         source_code=source_1.id,
                                     ),
-                                    function_id=LookupNode(
-                                        name="l_dict",
+                                    function_id=CallNode(
+                                        source_location=SourceLocation(
+                                            lineno=3,
+                                            col_offset=5,
+                                            end_lineno=3,
+                                            end_col_offset=17,
+                                            source_code=source_1.id,
+                                        ),
+                                        function_id=LookupNode(
+                                            name="getattr",
+                                        ).id,
+                                        positional_args=[
+                                            import_2.id,
+                                            LiteralNode(
+                                                value="DataFrame",
+                                            ).id,
+                                        ],
                                     ).id,
                                     positional_args=[
                                         CallNode(
+                                            source_location=SourceLocation(
+                                                lineno=3,
+                                                col_offset=18,
+                                                end_lineno=3,
+                                                end_col_offset=50,
+                                                source_code=source_1.id,
+                                            ),
                                             function_id=LookupNode(
-                                                name="l_tuple",
+                                                name="l_dict",
                                             ).id,
                                             positional_args=[
-                                                LiteralNode(
-                                                    source_location=SourceLocation(
-                                                        lineno=3,
-                                                        col_offset=19,
-                                                        end_lineno=3,
-                                                        end_col_offset=22,
-                                                        source_code=source_1.id,
-                                                    ),
-                                                    value="a",
-                                                ).id,
                                                 CallNode(
-                                                    source_location=SourceLocation(
-                                                        lineno=3,
-                                                        col_offset=24,
-                                                        end_lineno=3,
-                                                        end_col_offset=33,
-                                                        source_code=source_1.id,
-                                                    ),
                                                     function_id=LookupNode(
-                                                        name="l_list",
+                                                        name="l_tuple",
                                                     ).id,
                                                     positional_args=[
                                                         LiteralNode(
                                                             source_location=SourceLocation(
                                                                 lineno=3,
-                                                                col_offset=25,
+                                                                col_offset=19,
                                                                 end_lineno=3,
-                                                                end_col_offset=26,
+                                                                end_col_offset=22,
                                                                 source_code=source_1.id,
                                                             ),
-                                                            value=1,
+                                                            value="a",
                                                         ).id,
-                                                        LiteralNode(
+                                                        CallNode(
                                                             source_location=SourceLocation(
                                                                 lineno=3,
-                                                                col_offset=28,
+                                                                col_offset=24,
                                                                 end_lineno=3,
-                                                                end_col_offset=29,
+                                                                end_col_offset=33,
                                                                 source_code=source_1.id,
                                                             ),
-                                                            value=2,
-                                                        ).id,
-                                                        LiteralNode(
-                                                            source_location=SourceLocation(
-                                                                lineno=3,
-                                                                col_offset=31,
-                                                                end_lineno=3,
-                                                                end_col_offset=32,
-                                                                source_code=source_1.id,
-                                                            ),
-                                                            value=3,
+                                                            function_id=LookupNode(
+                                                                name="l_list",
+                                                            ).id,
+                                                            positional_args=[
+                                                                LiteralNode(
+                                                                    source_location=SourceLocation(
+                                                                        lineno=3,
+                                                                        col_offset=25,
+                                                                        end_lineno=3,
+                                                                        end_col_offset=26,
+                                                                        source_code=source_1.id,
+                                                                    ),
+                                                                    value=1,
+                                                                ).id,
+                                                                LiteralNode(
+                                                                    source_location=SourceLocation(
+                                                                        lineno=3,
+                                                                        col_offset=28,
+                                                                        end_lineno=3,
+                                                                        end_col_offset=29,
+                                                                        source_code=source_1.id,
+                                                                    ),
+                                                                    value=2,
+                                                                ).id,
+                                                                LiteralNode(
+                                                                    source_location=SourceLocation(
+                                                                        lineno=3,
+                                                                        col_offset=31,
+                                                                        end_lineno=3,
+                                                                        end_col_offset=32,
+                                                                        source_code=source_1.id,
+                                                                    ),
+                                                                    value=3,
+                                                                ).id,
+                                                            ],
                                                         ).id,
                                                     ],
                                                 ).id,
-                                            ],
-                                        ).id,
-                                        CallNode(
-                                            function_id=LookupNode(
-                                                name="l_tuple",
-                                            ).id,
-                                            positional_args=[
-                                                LiteralNode(
-                                                    source_location=SourceLocation(
-                                                        lineno=3,
-                                                        col_offset=35,
-                                                        end_lineno=3,
-                                                        end_col_offset=38,
-                                                        source_code=source_1.id,
-                                                    ),
-                                                    value="b",
-                                                ).id,
                                                 CallNode(
-                                                    source_location=SourceLocation(
-                                                        lineno=3,
-                                                        col_offset=40,
-                                                        end_lineno=3,
-                                                        end_col_offset=49,
-                                                        source_code=source_1.id,
-                                                    ),
                                                     function_id=LookupNode(
-                                                        name="l_list",
+                                                        name="l_tuple",
                                                     ).id,
                                                     positional_args=[
                                                         LiteralNode(
                                                             source_location=SourceLocation(
                                                                 lineno=3,
-                                                                col_offset=41,
+                                                                col_offset=35,
                                                                 end_lineno=3,
-                                                                end_col_offset=42,
+                                                                end_col_offset=38,
                                                                 source_code=source_1.id,
                                                             ),
-                                                            value=4,
+                                                            value="b",
                                                         ).id,
-                                                        LiteralNode(
+                                                        CallNode(
                                                             source_location=SourceLocation(
                                                                 lineno=3,
-                                                                col_offset=44,
+                                                                col_offset=40,
                                                                 end_lineno=3,
-                                                                end_col_offset=45,
+                                                                end_col_offset=49,
                                                                 source_code=source_1.id,
                                                             ),
-                                                            value=5,
-                                                        ).id,
-                                                        LiteralNode(
-                                                            source_location=SourceLocation(
-                                                                lineno=3,
-                                                                col_offset=47,
-                                                                end_lineno=3,
-                                                                end_col_offset=48,
-                                                                source_code=source_1.id,
-                                                            ),
-                                                            value=6,
+                                                            function_id=LookupNode(
+                                                                name="l_list",
+                                                            ).id,
+                                                            positional_args=[
+                                                                LiteralNode(
+                                                                    source_location=SourceLocation(
+                                                                        lineno=3,
+                                                                        col_offset=41,
+                                                                        end_lineno=3,
+                                                                        end_col_offset=42,
+                                                                        source_code=source_1.id,
+                                                                    ),
+                                                                    value=4,
+                                                                ).id,
+                                                                LiteralNode(
+                                                                    source_location=SourceLocation(
+                                                                        lineno=3,
+                                                                        col_offset=44,
+                                                                        end_lineno=3,
+                                                                        end_col_offset=45,
+                                                                        source_code=source_1.id,
+                                                                    ),
+                                                                    value=5,
+                                                                ).id,
+                                                                LiteralNode(
+                                                                    source_location=SourceLocation(
+                                                                        lineno=3,
+                                                                        col_offset=47,
+                                                                        end_lineno=3,
+                                                                        end_col_offset=48,
+                                                                        source_code=source_1.id,
+                                                                    ),
+                                                                    value=6,
+                                                                ).id,
+                                                            ],
                                                         ).id,
                                                     ],
                                                 ).id,
                                             ],
-                                        ).id,
+                                        ).id
                                     ],
-                                ).id
+                                ).id,
+                                LiteralNode(
+                                    value="to_csv",
+                                ).id,
                             ],
                         ).id,
-                        LiteralNode(
-                            value="to_csv",
-                        ).id,
-                    ],
-                ).id,
-                positional_args=[
-                    LiteralNode(
-                        source_location=SourceLocation(
-                            lineno=4,
-                            col_offset=10,
-                            end_lineno=4,
-                            end_col_offset=20,
-                            source_code=source_1.id,
-                        ),
-                        value="test.csv",
-                    ).id
-                ],
-                keyword_args={
-                    "index": LiteralNode(
-                        source_location=SourceLocation(
-                            lineno=4,
-                            col_offset=28,
-                            end_lineno=4,
-                            end_col_offset=33,
-                            source_code=source_1.id,
-                        ),
-                        value=False,
-                    ).id
-                },
-                implicit_dependencies=[call_1.id],
-            ).id,
-        ).id
+                        positional_args=[
+                            LiteralNode(
+                                source_location=SourceLocation(
+                                    lineno=4,
+                                    col_offset=10,
+                                    end_lineno=4,
+                                    end_col_offset=20,
+                                    source_code=source_1.id,
+                                ),
+                                value="test.csv",
+                            ).id
+                        ],
+                        keyword_args={
+                            "index": LiteralNode(
+                                source_location=SourceLocation(
+                                    lineno=4,
+                                    col_offset=28,
+                                    end_lineno=4,
+                                    end_col_offset=33,
+                                    source_code=source_1.id,
+                                ),
+                                value=False,
+                            ).id
+                        },
+                        implicit_dependencies=[call_1.id],
+                    ).id,
+                ).id
+            ],
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=7,
+                col_offset=18,
+                end_lineno=7,
+                end_col_offset=23,
+                source_code=source_1.id,
+            ),
+            value="df2",
+        ).id,
     ],
 )

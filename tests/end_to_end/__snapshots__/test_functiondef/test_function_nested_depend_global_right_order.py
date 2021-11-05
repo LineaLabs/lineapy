@@ -18,7 +18,7 @@ lineapy.save(c, \'c\')
 """,
     location=PosixPath("[source file path]"),
 )
-literal_2 = LiteralNode(
+literal_3 = LiteralNode(
     source_location=SourceLocation(
         lineno=6,
         col_offset=4,
@@ -28,56 +28,106 @@ literal_2 = LiteralNode(
     ),
     value=10,
 )
-call_3 = CallNode(
+call_5 = CallNode(
     source_location=SourceLocation(
-        lineno=9,
-        col_offset=4,
-        end_lineno=9,
-        end_col_offset=8,
+        lineno=11,
+        col_offset=0,
+        end_lineno=11,
+        end_col_offset=20,
         source_code=source_1.id,
     ),
     function_id=CallNode(
         source_location=SourceLocation(
-            lineno=7,
-            col_offset=5,
-            end_lineno=7,
-            end_col_offset=10,
+            lineno=11,
+            col_offset=0,
+            end_lineno=11,
+            end_col_offset=12,
             source_code=source_1.id,
         ),
-        function_id=GlobalNode(
-            name="foo",
-            call_id=CallNode(
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            ImportNode(
                 source_location=SourceLocation(
-                    lineno=2,
+                    lineno=1,
                     col_offset=0,
-                    end_lineno=5,
-                    end_col_offset=16,
+                    end_lineno=1,
+                    end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                function_id=LookupNode(
-                    name="l_exec_statement",
-                ).id,
-                positional_args=[
-                    LiteralNode(
-                        value="""def foo():
+                library=Library(
+                    name="lineapy",
+                ),
+            ).id,
+            LiteralNode(
+                value="save",
+            ).id,
+        ],
+    ).id,
+    positional_args=[
+        CallNode(
+            source_location=SourceLocation(
+                lineno=9,
+                col_offset=4,
+                end_lineno=9,
+                end_col_offset=8,
+                source_code=source_1.id,
+            ),
+            function_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=7,
+                    col_offset=5,
+                    end_lineno=7,
+                    end_col_offset=10,
+                    source_code=source_1.id,
+                ),
+                function_id=GlobalNode(
+                    name="foo",
+                    call_id=CallNode(
+                        source_location=SourceLocation(
+                            lineno=2,
+                            col_offset=0,
+                            end_lineno=5,
+                            end_col_offset=16,
+                            source_code=source_1.id,
+                        ),
+                        function_id=LookupNode(
+                            name="l_exec_statement",
+                        ).id,
+                        positional_args=[
+                            LiteralNode(
+                                value="""def foo():
     def inner():
         return a
     return inner""",
-                    ).id
-                ],
+                            ).id
+                        ],
+                    ).id,
+                ).id,
             ).id,
+            global_reads={
+                "a": LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=8,
+                        col_offset=4,
+                        end_lineno=8,
+                        end_col_offset=6,
+                        source_code=source_1.id,
+                    ),
+                    value=12,
+                ).id
+            },
         ).id,
-    ).id,
-    global_reads={
-        "a": LiteralNode(
+        LiteralNode(
             source_location=SourceLocation(
-                lineno=8,
-                col_offset=4,
-                end_lineno=8,
-                end_col_offset=6,
+                lineno=11,
+                col_offset=16,
+                end_lineno=11,
+                end_col_offset=19,
                 source_code=source_1.id,
             ),
-            value=12,
-        ).id
-    },
+            value="c",
+        ).id,
+    ],
 )

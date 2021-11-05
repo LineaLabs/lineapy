@@ -327,8 +327,12 @@ class Tracer:
         """
         # Create a mutation node for every node that was mutated,
         # Which are all the views + the node itself
-        source_ids = remove_duplicates(
-            map(self.resolve_node, [*self.viewers[source_id], source_id])
+        # Note: must resolve generator before iterating, so that resolve_node
+        # is called eagerly, otherwise we end up with duplicate mutate nodes.
+        source_ids = list(
+            remove_duplicates(
+                map(self.resolve_node, [*self.viewers[source_id], source_id])
+            )
         )
         for source_id in source_ids:
             mutate_node = MutateNode(

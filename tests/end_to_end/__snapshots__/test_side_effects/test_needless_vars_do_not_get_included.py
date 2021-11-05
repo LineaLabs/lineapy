@@ -22,7 +22,7 @@ lineapy.save(df3, \'df3\')
 """,
     location=PosixPath("[source file path]"),
 )
-import_1 = ImportNode(
+import_2 = ImportNode(
     source_location=SourceLocation(
         lineno=2,
         col_offset=0,
@@ -76,7 +76,7 @@ mutate_1 = MutateNode(
                             name="getattr",
                         ).id,
                         positional_args=[
-                            import_1.id,
+                            import_2.id,
                             LiteralNode(
                                 value="DataFrame",
                             ).id,
@@ -273,7 +273,7 @@ call_12 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            import_2.id,
             LiteralNode(
                 value="read_csv",
             ).id,
@@ -382,14 +382,11 @@ call_16 = CallNode(
         call_15.id,
     ],
 )
-mutate_4 = MutateNode(
-    source_id=MutateNode(
-        source_id=mutate_1.id,
-        call_id=call_16.id,
-    ).id,
+mutate_2 = MutateNode(
+    source_id=mutate_1.id,
     call_id=call_16.id,
 )
-mutate_5 = MutateNode(
+mutate_3 = MutateNode(
     source_id=call_12.id,
     call_id=call_16.id,
 )
@@ -413,7 +410,7 @@ call_18 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            mutate_5.id,
+            mutate_3.id,
             LiteralNode(
                 value="to_csv",
             ).id,
@@ -443,90 +440,122 @@ call_18 = CallNode(
             value=False,
         ).id
     },
-    implicit_dependencies=[mutate_4.id],
+    implicit_dependencies=[mutate_2.id],
 )
-mutate_9 = MutateNode(
+mutate_6 = MutateNode(
     source_id=call_15.id,
     call_id=call_18.id,
 )
+mutate_7 = MutateNode(
+    source_id=MutateNode(
+        source_id=call_14.id,
+        call_id=call_16.id,
+    ).id,
+    call_id=call_18.id,
+)
+mutate_9 = MutateNode(
+    source_id=MutateNode(
+        source_id=call_13.id,
+        call_id=call_16.id,
+    ).id,
+    call_id=call_18.id,
+)
 mutate_10 = MutateNode(
-    source_id=MutateNode(
-        source_id=MutateNode(
-            source_id=call_13.id,
-            call_id=call_16.id,
-        ).id,
-        call_id=call_18.id,
-    ).id,
+    source_id=mutate_3.id,
     call_id=call_18.id,
 )
-mutate_14 = MutateNode(
-    source_id=MutateNode(
-        source_id=MutateNode(
-            source_id=call_14.id,
-            call_id=call_16.id,
-        ).id,
-        call_id=call_18.id,
-    ).id,
-    call_id=call_18.id,
-)
-mutate_15 = MutateNode(
-    source_id=MutateNode(
-        source_id=mutate_5.id,
-        call_id=call_18.id,
-    ).id,
-    call_id=call_18.id,
-)
-call_20 = CallNode(
+call_22 = CallNode(
     source_location=SourceLocation(
-        lineno=8,
-        col_offset=6,
-        end_lineno=8,
-        end_col_offset=29,
+        lineno=10,
+        col_offset=0,
+        end_lineno=10,
+        end_col_offset=24,
         source_code=source_1.id,
     ),
     function_id=CallNode(
         source_location=SourceLocation(
-            lineno=8,
-            col_offset=6,
-            end_lineno=8,
-            end_col_offset=17,
+            lineno=10,
+            col_offset=0,
+            end_lineno=10,
+            end_col_offset=12,
             source_code=source_1.id,
         ),
         function_id=LookupNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            ImportNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=14,
+                    source_code=source_1.id,
+                ),
+                library=Library(
+                    name="lineapy",
+                ),
+            ).id,
             LiteralNode(
-                value="read_csv",
+                value="save",
             ).id,
         ],
     ).id,
     positional_args=[
-        LiteralNode(
+        CallNode(
             source_location=SourceLocation(
                 lineno=8,
-                col_offset=18,
+                col_offset=6,
                 end_lineno=8,
-                end_col_offset=28,
+                end_col_offset=29,
                 source_code=source_1.id,
             ),
-            value="test.csv",
-        ).id
-    ],
-    implicit_dependencies=[
-        MutateNode(
-            source_id=MutateNode(
-                source_id=MutateNode(
-                    source_id=MutateNode(
-                        source_id=mutate_4.id,
-                        call_id=call_18.id,
-                    ).id,
-                    call_id=call_18.id,
+            function_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=8,
+                    col_offset=6,
+                    end_lineno=8,
+                    end_col_offset=17,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="getattr",
                 ).id,
-                call_id=call_18.id,
+                positional_args=[
+                    import_2.id,
+                    LiteralNode(
+                        value="read_csv",
+                    ).id,
+                ],
             ).id,
-            call_id=call_18.id,
-        ).id
+            positional_args=[
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=8,
+                        col_offset=18,
+                        end_lineno=8,
+                        end_col_offset=28,
+                        source_code=source_1.id,
+                    ),
+                    value="test.csv",
+                ).id
+            ],
+            implicit_dependencies=[
+                MutateNode(
+                    source_id=mutate_2.id,
+                    call_id=call_18.id,
+                ).id
+            ],
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=10,
+                col_offset=18,
+                end_lineno=10,
+                end_col_offset=23,
+                source_code=source_1.id,
+            ),
+            value="df3",
+        ).id,
     ],
 )

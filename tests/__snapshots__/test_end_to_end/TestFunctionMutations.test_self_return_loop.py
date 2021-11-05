@@ -21,6 +21,18 @@ lineapy.save(clf, \'clf\')
 )
 import_1 = ImportNode(
     source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    library=Library(
+        name="lineapy",
+    ),
+)
+import_2 = ImportNode(
+    source_location=SourceLocation(
         lineno=2,
         col_offset=0,
         end_lineno=2,
@@ -51,7 +63,7 @@ call_5 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            import_2.id,
             LiteralNode(
                 value="array",
             ).id,
@@ -148,7 +160,7 @@ call_8 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            import_2.id,
             LiteralNode(
                 value="array",
             ).id,
@@ -346,33 +358,96 @@ call_15 = CallNode(
     ).id,
     positional_args=[call_5.id, call_8.id],
 )
-mutate_5 = MutateNode(
+mutate_4 = MutateNode(
     source_id=call_13.id,
     call_id=call_15.id,
 )
-mutate_7 = MutateNode(
-    source_id=MutateNode(
-        source_id=mutate_2.id,
-        call_id=call_15.id,
+call_17 = CallNode(
+    source_location=SourceLocation(
+        lineno=11,
+        col_offset=0,
+        end_lineno=11,
+        end_col_offset=32,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=11,
+            col_offset=0,
+            end_lineno=11,
+            end_col_offset=12,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            import_1.id,
+            LiteralNode(
+                value="save",
+            ).id,
+        ],
     ).id,
-    call_id=call_15.id,
+    positional_args=[
+        MutateNode(
+            source_id=mutate_2.id,
+            call_id=call_15.id,
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=11,
+                col_offset=22,
+                end_lineno=11,
+                end_col_offset=31,
+                source_code=source_1.id,
+            ),
+            value="new_clf",
+        ).id,
+    ],
 )
-mutate_11 = MutateNode(
-    source_id=MutateNode(
-        source_id=MutateNode(
+call_19 = CallNode(
+    source_location=SourceLocation(
+        lineno=12,
+        col_offset=0,
+        end_lineno=12,
+        end_col_offset=24,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=12,
+            col_offset=0,
+            end_lineno=12,
+            end_col_offset=12,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            import_1.id,
+            LiteralNode(
+                value="save",
+            ).id,
+        ],
+    ).id,
+    positional_args=[
+        MutateNode(
             source_id=MutateNode(
-                source_id=MutateNode(
-                    source_id=MutateNode(
-                        source_id=mutate_1.id,
-                        call_id=call_13.id,
-                    ).id,
-                    call_id=call_13.id,
-                ).id,
-                call_id=call_15.id,
+                source_id=mutate_1.id,
+                call_id=call_13.id,
             ).id,
             call_id=call_15.id,
         ).id,
-        call_id=call_15.id,
-    ).id,
-    call_id=call_15.id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=12,
+                col_offset=18,
+                end_lineno=12,
+                end_col_offset=23,
+                source_code=source_1.id,
+            ),
+            value="clf",
+        ).id,
+    ],
 )

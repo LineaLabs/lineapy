@@ -116,38 +116,34 @@ literal_7 = LiteralNode(
     ),
     value=4,
 )
-call_3 = CallNode(
-    source_location=SourceLocation(
-        lineno=5,
-        col_offset=0,
-        end_lineno=5,
-        end_col_offset=9,
-        source_code=source_1.id,
-    ),
-    function_id=LookupNode(
-        name="setitem",
-    ).id,
-    positional_args=[
-        mutate_1.id,
-        LiteralNode(
-            source_location=SourceLocation(
-                lineno=5,
-                col_offset=3,
-                end_lineno=5,
-                end_col_offset=4,
-                source_code=source_1.id,
-            ),
-            value=1,
+mutate_2 = MutateNode(
+    source_id=mutate_1.id,
+    call_id=CallNode(
+        source_location=SourceLocation(
+            lineno=5,
+            col_offset=0,
+            end_lineno=5,
+            end_col_offset=9,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="setitem",
         ).id,
-        literal_7.id,
-    ],
-)
-mutate_3 = MutateNode(
-    source_id=MutateNode(
-        source_id=mutate_1.id,
-        call_id=call_3.id,
+        positional_args=[
+            mutate_1.id,
+            LiteralNode(
+                source_location=SourceLocation(
+                    lineno=5,
+                    col_offset=3,
+                    end_lineno=5,
+                    end_col_offset=4,
+                    source_code=source_1.id,
+                ),
+                value=1,
+            ).id,
+            literal_7.id,
+        ],
     ).id,
-    call_id=call_3.id,
 )
 call_5 = CallNode(
     source_location=SourceLocation(
@@ -173,68 +169,58 @@ call_5 = CallNode(
         ).id
     ],
 )
-call_6 = CallNode(
-    source_location=SourceLocation(
-        lineno=6,
-        col_offset=0,
-        end_lineno=6,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    function_id=LookupNode(
-        name="setitem",
-    ).id,
-    positional_args=[
-        mutate_3.id,
-        CallNode(
-            source_location=SourceLocation(
-                lineno=6,
-                col_offset=3,
-                end_lineno=6,
-                end_col_offset=6,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="slice",
-            ).id,
-            positional_args=[
-                LiteralNode(
-                    source_location=SourceLocation(
-                        lineno=6,
-                        col_offset=3,
-                        end_lineno=6,
-                        end_col_offset=4,
-                        source_code=source_1.id,
-                    ),
-                    value=2,
-                ).id,
-                LiteralNode(
-                    source_location=SourceLocation(
-                        lineno=6,
-                        col_offset=5,
-                        end_lineno=6,
-                        end_col_offset=6,
-                        source_code=source_1.id,
-                    ),
-                    value=3,
-                ).id,
-            ],
+mutate_3 = MutateNode(
+    source_id=mutate_2.id,
+    call_id=CallNode(
+        source_location=SourceLocation(
+            lineno=6,
+            col_offset=0,
+            end_lineno=6,
+            end_col_offset=14,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="setitem",
         ).id,
-        call_5.id,
-    ],
-)
-mutate_7 = MutateNode(
-    source_id=MutateNode(
-        source_id=MutateNode(
-            source_id=MutateNode(
-                source_id=mutate_3.id,
-                call_id=call_6.id,
+        positional_args=[
+            mutate_2.id,
+            CallNode(
+                source_location=SourceLocation(
+                    lineno=6,
+                    col_offset=3,
+                    end_lineno=6,
+                    end_col_offset=6,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="slice",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=6,
+                            col_offset=3,
+                            end_lineno=6,
+                            end_col_offset=4,
+                            source_code=source_1.id,
+                        ),
+                        value=2,
+                    ).id,
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=6,
+                            col_offset=5,
+                            end_lineno=6,
+                            end_col_offset=6,
+                            source_code=source_1.id,
+                        ),
+                        value=3,
+                    ).id,
+                ],
             ).id,
-            call_id=call_6.id,
-        ).id,
-        call_id=call_6.id,
+            call_5.id,
+        ],
     ).id,
-    call_id=call_6.id,
 )
 call_9 = CallNode(
     source_location=SourceLocation(
@@ -248,7 +234,7 @@ call_9 = CallNode(
         name="setitem",
     ).id,
     positional_args=[
-        mutate_7.id,
+        mutate_3.id,
         CallNode(
             source_location=SourceLocation(
                 lineno=7,
@@ -300,32 +286,11 @@ call_9 = CallNode(
         ).id,
     ],
 )
-mutate_8 = MutateNode(
+mutate_4 = MutateNode(
     source_id=call_5.id,
     call_id=call_9.id,
 )
-mutate_16 = MutateNode(
-    source_id=MutateNode(
-        source_id=MutateNode(
-            source_id=MutateNode(
-                source_id=MutateNode(
-                    source_id=MutateNode(
-                        source_id=MutateNode(
-                            source_id=MutateNode(
-                                source_id=mutate_7.id,
-                                call_id=call_9.id,
-                            ).id,
-                            call_id=call_9.id,
-                        ).id,
-                        call_id=call_9.id,
-                    ).id,
-                    call_id=call_9.id,
-                ).id,
-                call_id=call_9.id,
-            ).id,
-            call_id=call_9.id,
-        ).id,
-        call_id=call_9.id,
-    ).id,
+mutate_5 = MutateNode(
+    source_id=mutate_3.id,
     call_id=call_9.id,
 )

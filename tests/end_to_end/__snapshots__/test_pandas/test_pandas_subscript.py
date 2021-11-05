@@ -277,10 +277,6 @@ call_11 = CallNode(
         ).id,
     ],
 )
-mutate_1 = MutateNode(
-    source_id=call_7.id,
-    call_id=call_11.id,
-)
 mutate_2 = MutateNode(
     source_id=call_9.id,
     call_id=call_11.id,
@@ -288,4 +284,58 @@ mutate_2 = MutateNode(
 mutate_3 = MutateNode(
     source_id=call_8.id,
     call_id=call_11.id,
+)
+call_13 = CallNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=0,
+        end_lineno=6,
+        end_col_offset=22,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=6,
+            col_offset=0,
+            end_lineno=6,
+            end_col_offset=12,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            ImportNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=14,
+                    source_code=source_1.id,
+                ),
+                library=Library(
+                    name="lineapy",
+                ),
+            ).id,
+            LiteralNode(
+                value="save",
+            ).id,
+        ],
+    ).id,
+    positional_args=[
+        MutateNode(
+            source_id=call_7.id,
+            call_id=call_11.id,
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=6,
+                col_offset=17,
+                end_lineno=6,
+                end_col_offset=21,
+                source_code=source_1.id,
+            ),
+            value="df",
+        ).id,
+    ],
 )

@@ -16,7 +16,7 @@ lineapy.save(a, \'a\')
 """,
     location=PosixPath("[source file path]"),
 )
-literal_2 = LiteralNode(
+literal_3 = LiteralNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=4,
@@ -26,51 +26,101 @@ literal_2 = LiteralNode(
     ),
     value=0,
 )
-global_2 = GlobalNode(
-    name="a",
-    call_id=CallNode(
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=9,
+        col_offset=0,
+        end_lineno=9,
+        end_col_offset=20,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
         source_location=SourceLocation(
-            lineno=7,
+            lineno=9,
             col_offset=0,
-            end_lineno=7,
-            end_col_offset=13,
+            end_lineno=9,
+            end_col_offset=12,
             source_code=source_1.id,
         ),
-        function_id=GlobalNode(
-            name="my_function",
-            call_id=CallNode(
-                source_location=SourceLocation(
-                    lineno=4,
-                    col_offset=0,
-                    end_lineno=6,
-                    end_col_offset=25,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="l_exec_statement",
-                ).id,
-                positional_args=[
-                    LiteralNode(
-                        value="""def my_function():
-    global a
-    a = math.factorial(5)""",
-                    ).id
-                ],
-            ).id,
+        function_id=LookupNode(
+            name="getattr",
         ).id,
-        global_reads={
-            "math": ImportNode(
+        positional_args=[
+            ImportNode(
                 source_location=SourceLocation(
-                    lineno=2,
+                    lineno=1,
                     col_offset=0,
-                    end_lineno=2,
-                    end_col_offset=11,
+                    end_lineno=1,
+                    end_col_offset=14,
                     source_code=source_1.id,
                 ),
                 library=Library(
-                    name="math",
+                    name="lineapy",
                 ),
-            ).id
-        },
+            ).id,
+            LiteralNode(
+                value="save",
+            ).id,
+        ],
     ).id,
+    positional_args=[
+        GlobalNode(
+            name="a",
+            call_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=7,
+                    col_offset=0,
+                    end_lineno=7,
+                    end_col_offset=13,
+                    source_code=source_1.id,
+                ),
+                function_id=GlobalNode(
+                    name="my_function",
+                    call_id=CallNode(
+                        source_location=SourceLocation(
+                            lineno=4,
+                            col_offset=0,
+                            end_lineno=6,
+                            end_col_offset=25,
+                            source_code=source_1.id,
+                        ),
+                        function_id=LookupNode(
+                            name="l_exec_statement",
+                        ).id,
+                        positional_args=[
+                            LiteralNode(
+                                value="""def my_function():
+    global a
+    a = math.factorial(5)""",
+                            ).id
+                        ],
+                    ).id,
+                ).id,
+                global_reads={
+                    "math": ImportNode(
+                        source_location=SourceLocation(
+                            lineno=2,
+                            col_offset=0,
+                            end_lineno=2,
+                            end_col_offset=11,
+                            source_code=source_1.id,
+                        ),
+                        library=Library(
+                            name="math",
+                        ),
+                    ).id
+                },
+            ).id,
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=9,
+                col_offset=16,
+                end_lineno=9,
+                end_col_offset=19,
+                source_code=source_1.id,
+            ),
+            value="a",
+        ).id,
+    ],
 )
