@@ -21,25 +21,14 @@ def test_run_airflow(virtualenv, tmp_path):
     """
     Verifies that the "--airflow" CLI command produces a working Airflow DAG
     by running the DAG locally.
+
+    Depends on snapshot being available from previous test.
     """
-    # remove original sliced code and dag
     airflow_home = tmp_path / "airflow"
     airflow_home.mkdir()
     dags_home = airflow_home / "dags"
     dags_home.mkdir()
 
-    subprocess.check_call(["rm", "-rf", "tests/sliced_housing_dag.py"])
-    # create new sliced code
-    subprocess.check_call(
-        [
-            "lineapy",
-            "tests/housing.py",
-            "--slice",
-            "p value",
-            "--airflow",
-            "sliced_housing_dag",
-        ]
-    )
     # Copy the dag and the data
     # NOTE: We can't leave them in the tests folder, since there are other
     # files in there that airflow will attempt to import, and fail, since
@@ -48,7 +37,7 @@ def test_run_airflow(virtualenv, tmp_path):
         [
             "cp",
             "-f",
-            "tests/sliced_housing_dag.py",
+            "tests/__snapshots__/test_airflow/test_slice_airflow.py",
             "tests/ames_train_cleaned.csv",
             str(dags_home),
         ]
