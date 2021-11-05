@@ -25,6 +25,21 @@ df2 = pd.read_sql("select * from test", conn)
     assert res.artifacts["df2"] == code
 
 
+def test_pandas_to_sql_filesystem(execute):
+    code = """import lineapy
+import pandas as pd
+import sqlite3
+
+df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+conn = sqlite3.connect(':memory:')
+df.to_sql(name="test", con=conn,index=False)
+
+lineapy.save(lineapy.DB(), "s3")
+"""
+    res = execute(code)
+    assert res.artifacts["s3"] == code
+
+
 def test_pandas_to_csv(execute):
     code = """import pandas as pd
 df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
@@ -36,14 +51,16 @@ df2 = pd.read_csv("test.csv")
     assert res.artifacts["df2"] == code
 
 
-@pytest.mark.xfail(reason="ideally we want to get to this point")
+@pytest.mark.xfail("Path based dependencies not working")
 def test_needless_vars_do_not_get_included(execute):
     code = """import pandas as pd
 df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 df.to_csv("test.csv", index=False)
+
 df2 = pd.read_csv("test.csv")
 df2["c"] = df2["a"] + df2["b"]
 df2.to_csv("test2.csv", index=False)
+
 df3 = pd.read_csv("test.csv")
 """
     expectedcode = """import pandas as pd
