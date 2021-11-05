@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Callable, List, Mapping, Optional, TypeVar, Union
 
 from lineapy.execution.context import get_context
@@ -139,5 +140,18 @@ def l_exec_expr(code: str) -> object:
 
 _builtin_functions.append(l_exec_expr)
 
+
+@dataclass(frozen=True)
+class FileSystem:
+    pass
+
+
+@dataclass(frozen=True)
+class DB:
+    pass
+
+
+_builtin_functions.append(FileSystem)
+_builtin_functions.append(DB)
 
 LINEA_BUILTINS = {f.__name__: f for f in _builtin_functions}

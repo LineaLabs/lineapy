@@ -47,7 +47,7 @@ import_1 = ImportNode(
         name="altair",
     ),
 )
-call_4 = CallNode(
+call_5 = CallNode(
     source_location=SourceLocation(
         lineno=8,
         col_offset=0,
@@ -103,7 +103,7 @@ call_4 = CallNode(
         ).id
     ],
 )
-call_7 = CallNode(
+call_8 = CallNode(
     source_location=SourceLocation(
         lineno=9,
         col_offset=0,
@@ -159,7 +159,7 @@ call_7 = CallNode(
         ).id
     ],
 )
-call_9 = CallNode(
+call_10 = CallNode(
     source_location=SourceLocation(
         lineno=11,
         col_offset=9,
@@ -208,8 +208,15 @@ call_9 = CallNode(
             value="ames_train_cleaned.csv",
         ).id
     ],
+    implicit_dependencies=[
+        CallNode(
+            function_id=LookupNode(
+                name="FileSystem",
+            ).id,
+        ).id
+    ],
 )
-call_11 = CallNode(
+call_12 = CallNode(
     source_location=SourceLocation(
         lineno=13,
         col_offset=0,
@@ -247,7 +254,7 @@ call_11 = CallNode(
         ],
     ).id,
     keyword_args={
-        "data": call_9.id,
+        "data": call_10.id,
         "size": LiteralNode(
             source_location=SourceLocation(
                 lineno=13,
@@ -280,7 +287,7 @@ call_11 = CallNode(
         ).id,
     },
 )
-call_13 = CallNode(
+call_14 = CallNode(
     source_location=SourceLocation(
         lineno=20,
         col_offset=26,
@@ -292,7 +299,7 @@ call_13 = CallNode(
         name="getitem",
     ).id,
     positional_args=[
-        call_9.id,
+        call_10.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=20,
@@ -305,7 +312,7 @@ call_13 = CallNode(
         ).id,
     ],
 )
-call_15 = CallNode(
+call_16 = CallNode(
     source_location=SourceLocation(
         lineno=20,
         col_offset=0,
@@ -317,7 +324,7 @@ call_15 = CallNode(
         name="setitem",
     ).id,
     positional_args=[
-        call_9.id,
+        call_10.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=20,
@@ -357,19 +364,19 @@ call_15 = CallNode(
                     ],
                 ).id,
             ).id,
-            positional_args=[call_13.id],
+            positional_args=[call_14.id],
         ).id,
     ],
 )
 mutate_1 = MutateNode(
-    source_id=call_9.id,
-    call_id=call_15.id,
+    source_id=call_10.id,
+    call_id=call_16.id,
 )
 mutate_2 = MutateNode(
-    source_id=call_13.id,
-    call_id=call_15.id,
+    source_id=call_14.id,
+    call_id=call_16.id,
 )
-call_16 = CallNode(
+call_17 = CallNode(
     source_location=SourceLocation(
         lineno=22,
         col_offset=6,
@@ -412,7 +419,7 @@ call_16 = CallNode(
         ).id
     },
 )
-call_28 = CallNode(
+call_29 = CallNode(
     source_location=SourceLocation(
         lineno=28,
         col_offset=0,
@@ -471,7 +478,7 @@ call_28 = CallNode(
                 ).id,
                 positional_args=[
                     MutateNode(
-                        source_id=call_16.id,
+                        source_id=call_17.id,
                         call_id=CallNode(
                             source_location=SourceLocation(
                                 lineno=26,
@@ -492,7 +499,7 @@ call_28 = CallNode(
                                     name="getattr",
                                 ).id,
                                 positional_args=[
-                                    call_16.id,
+                                    call_17.id,
                                     LiteralNode(
                                         value="fit",
                                     ).id,

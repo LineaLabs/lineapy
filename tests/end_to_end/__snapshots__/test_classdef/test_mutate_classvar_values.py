@@ -12,7 +12,7 @@ class A():
         self.varname = newname
 
 class Modifier():
-    def modify_A(self,classinstance:A):
+    def modify_A(self,classinstance):
         classinstance.varname = new_value
 
 a = A("origvalue")
@@ -65,7 +65,7 @@ call_6 = CallNode(
                         positional_args=[
                             LiteralNode(
                                 value="""class Modifier():
-    def modify_A(self,classinstance:A):
+    def modify_A(self,classinstance):
         classinstance.varname = new_value""",
                             ).id
                         ],

@@ -14,11 +14,72 @@ def inspect_function(
     args: list[object],
     kwargs: dict[str, object],
     result: object,
-) -> Iterable[Union[ViewOfPointers, MutatedPointer]]:
+) -> Iterable[
+    Union[ViewOfPointers, MutatedPointer, ImplicitDependencyPointer]
+]:
     """
     Inspects a function and returns how calling it mutates the args/result and
     creates view relationships between them.
     """
+    if function == open:
+        yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+        return
+    # TODO: Make this work without infinite recursion
+    # if function in (lineabuiltins.DB, lineabuiltins.FileSystem):
+    #     yield ImplicitDependencyPointer(Global(function()))
+    #     return
+    if imported_module("pandas"):
+        import pandas
+
+        if (
+            isinstance(function, types.MethodType)
+            and function.__name__ == "to_sql"
+            and isinstance(function.__self__, pandas.DataFrame)
+        ):
+            yield MutatedPointer(Global(lineabuiltins.DB()))
+            return
+
+        if (
+            isinstance(function, types.FunctionType)
+            and function.__name__ == "read_sql"
+            and function.__module__ == "pandas.io.sql"
+        ):
+            yield ImplicitDependencyPointer(Global(lineabuiltins.DB()))
+            return
+
+        if (
+            isinstance(function, types.MethodType)
+            and function.__name__ == "to_csv"
+            and isinstance(function.__self__, pandas.DataFrame)
+        ):
+            yield MutatedPointer(Global(lineabuiltins.FileSystem()))
+            return
+
+        if (
+            isinstance(function, types.FunctionType)
+            and function.__name__ == "read_csv"
+            and function.__module__ == "pandas.io.parsers.readers"
+        ):
+            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+            return
+
+    if imported_module("PIL.Image"):
+        from PIL.Image import Image
+
+        if (
+            isinstance(function, types.MethodType)
+            and function.__name__ == "save"
+            and isinstance(function.__self__, Image)
+        ):
+            yield MutatedPointer(Global(lineabuiltins.FileSystem()))
+            return
+        if (
+            isinstance(function, types.FunctionType)
+            and (function.__name__ == "open")
+            and (function.__module__ == "PIL.Image")
+        ):
+            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+            return
 
     # TODO: We should probably not use use setitem, but instead get particular
     # __setitem__ for class so we can differentiate based on type more easily?
@@ -43,7 +104,7 @@ def inspect_function(
         # l_build_list(x1, x2, ...)
         yield ViewOfPointers(
             Result(),
-            *(PositionalArg(i) for i, a in enumerate(args) if is_mutable(a))
+            *(PositionalArg(i) for i, a in enumerate(args) if is_mutable(a)),
         )
         return
     if (
@@ -125,7 +186,16 @@ class Result:
     pass
 
 
-Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction]
+@dataclass(frozen=True)
+class Global:
+    """
+    An internal implicit global used for side effects.
+    """
+
+    value: object
+
+
+Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction, Global]
 
 
 @dataclass
@@ -148,4 +218,9 @@ class MutatedPointer:
     A value that is mutated when the function is called
     """
 
+    pointer: Pointer
+
+
+@dataclass(frozen=True)
+class ImplicitDependencyPointer:
     pointer: Pointer

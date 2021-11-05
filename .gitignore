@@ -163,3 +163,5 @@ tracer
 tracer.pdf
 devcontainer.json
 tests/tmp
+test.csv
+test2.csv

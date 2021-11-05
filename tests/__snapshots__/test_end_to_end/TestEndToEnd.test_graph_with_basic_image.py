@@ -3,6 +3,11 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
+call_1 = CallNode(
+    function_id=LookupNode(
+        name="FileSystem",
+    ).id,
+)
 source_1 = SourceCode(
     code="""import lineapy
 import pandas as pd
@@ -19,7 +24,7 @@ lineapy.save(img, "Graph With Image")
 """,
     location=PosixPath("[source file path]"),
 )
-call_5 = CallNode(
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -116,10 +121,11 @@ call_5 = CallNode(
                     value="tests/simple_data.csv",
                 ).id
             ],
+            implicit_dependencies=[call_1.id],
         ).id,
     ],
 )
-call_11 = CallNode(
+call_12 = CallNode(
     source_location=SourceLocation(
         lineno=12,
         col_offset=0,
@@ -219,6 +225,7 @@ call_11 = CallNode(
                                 value="simple_data.png",
                             ).id
                         ],
+                        implicit_dependencies=[call_1.id],
                     ).id,
                     LiteralNode(
                         value="resize",
