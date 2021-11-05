@@ -264,3 +264,14 @@ def remove_dev_db():
     p = Path("dev.sqlite")
     if p.exists():
         p.unlink()
+
+
+@pytest.fixture
+def housing_tracer(execute):
+    tests_dir = Path(__file__).parent
+
+    # Change directory to tests dir before executing
+    os.chdir(tests_dir)
+
+    code = (tests_dir / "housing.py").read_text()
+    return execute(code, compare_snapshot=False)

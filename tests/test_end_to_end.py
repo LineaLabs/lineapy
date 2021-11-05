@@ -404,15 +404,8 @@ class TestEndToEnd:
         assert res.values["b"] == 2
 
     @pytest.mark.slow
-    def test_housing(self, execute, python_snapshot):
-        tests_dir = Path(__file__).parent
-
-        # Change directory to tests dir before executing
-        os.chdir(tests_dir)
-
-        code = (tests_dir / "housing.py").read_text()
-        res = execute(code)
-        assert res.slice("p value") == python_snapshot
+    def test_housing(self, housing_tracer, python_snapshot):
+        assert housing_tracer.slice("p value") == python_snapshot
 
 
 class TestUnaryOp:
