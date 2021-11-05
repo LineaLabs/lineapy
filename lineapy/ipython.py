@@ -151,10 +151,6 @@ class LineaInputTransformer:
         if self.visualize_display:
             self.visualize_display.update(SVG(self.tracer.visualize_to_svg()))
 
-        # TODO: write to existing stdout as well when executing
-        # more like tee, instead of having to write at end
-        # and also remove extra spaces
-        print(self.tracer.executor.get_stdout())
 
         # Return the last value so it will be printed, if we don't end
         # in a semicolon

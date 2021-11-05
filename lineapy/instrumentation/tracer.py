@@ -213,10 +213,6 @@ class Tracer:
     ) -> graphviz.Digraph:
         return tracer_to_graphviz(self, options)
 
-    @property
-    def stdout(self) -> str:
-        return self.executor.get_stdout()
-
     def process_node(self, node: Node) -> None:
         """
         Execute a node, and adds it to the database.
