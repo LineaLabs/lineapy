@@ -39,12 +39,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Install Black
-        run: |
-          pip install black
-      - name: Run black --check .
-        run: |
-          black --line-length 79 --check .
+      - run: pip install pre-commit
+      - run: pre-commit run black
   flake8:
     runs-on: ubuntu-latest
     steps:
@@ -53,12 +49,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Install flake8
-        run: |
-          pip install flake8
-      - name: Lint with flake8
-        run: |
-          flake8 . --show-source --statistics
+      - run: pip install pre-commit
+      - run: pre-commit run flake8
   imports:
     runs-on: ubuntu-latest
     steps:
@@ -67,12 +59,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Install isort
-        run: |
-          pip install isort
-      - name: Lint imports with isort
-        run: |
-          isort . --check
+      - run: pip install pre-commit
+      - run: pre-commit run isort
   mypy:
     runs-on: ubuntu-latest
     steps:
@@ -81,9 +69,5 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Install mypy and extensions
-        run: |
-          pip install mypy sqlalchemy[mypy] pydantic
-      - name: Run mypy
-        run: |
-          mypy -p lineapy
+      - run: pip install pre-commit
+      - run: pre-commit run mypy
