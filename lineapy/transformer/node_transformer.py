@@ -347,7 +347,7 @@ class NodeTransformer(ast.NodeTransformer):
             ast.BitAnd: BITAND,
             ast.MatMult: MATMUL,
         }
-        op = ast_to_op_map[node.op.__class__]  # type: ignore
+        op = ast_to_op_map[node.op.__class__]
         argument_nodes = [self.visit(node.left), self.visit(node.right)]
         return self.tracer.call(
             self.tracer.lookup_node(op),

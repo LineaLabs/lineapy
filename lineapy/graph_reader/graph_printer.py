@@ -159,7 +159,7 @@ class GraphPrinter:
                 v_str = "{" + ", ".join(args) + "}"
             # Singleton NewTypes get cast to str by pydantic, so we can't differentiate at the field
             # level between them and strings, so we just see if can look up the ID
-            elif isinstance(v, str) and v in self.id_to_attribute_name:  # type: ignore
+            elif isinstance(v, str) and v in self.id_to_attribute_name:
                 v_str = self.lookup_id(v)  # type: ignore
             elif isinstance(v, datetime.datetime) and not self.include_timing:
                 continue

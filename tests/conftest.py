@@ -93,10 +93,10 @@ def python_snapshot(request):
     """
     Copied from the default fixture, but updating the extension class to be Python
     """
-    return syrupy.SnapshotAssertion(  # type: ignore
+    return syrupy.SnapshotAssertion(
         update_snapshots=request.config.option.update_snapshots,
         extension_class=PythonSnapshotExtension,
-        test_location=syrupy.PyTestLocation(request.node),  # type: ignore
+        test_location=syrupy.PyTestLocation(request.node),
         session=request.session.config._syrupy,
     )
 
@@ -106,10 +106,10 @@ def svg_snapshot(request):
     """
     Copied from the default fixture, but updating the extension class to be Python
     """
-    return syrupy.SnapshotAssertion(  # type: ignore
+    return syrupy.SnapshotAssertion(
         update_snapshots=request.config.option.update_snapshots,
         extension_class=SVGSnapshotExtension,
-        test_location=syrupy.PyTestLocation(request.node),  # type: ignore
+        test_location=syrupy.PyTestLocation(request.node),
         session=request.session.config._syrupy,
     )
 

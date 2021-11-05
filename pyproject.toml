@@ -32,6 +32,5 @@ ignore_missing_imports = true
 # Raise errors on ignores which we don't need
 warn_unused_ignores = true
 
-warn_unused_casts = true
 
 warn_unreachable = true
