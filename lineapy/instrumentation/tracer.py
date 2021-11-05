@@ -401,32 +401,6 @@ class Tracer:
             node_id = self.source_to_mutate[node_id]
         return node_id
 
-    def publish(self, node: Node, description: Optional[str]) -> None:
-        self.db.write_artifact(
-            Artifact(
-                id=self.resolve_node(node.id),
-                date_created=datetime.now(),
-                name=description,
-            )
-        )
-        # serialize to db
-        res = self.executor.get_value(node)
-        timing = self.executor.get_execution_time(node.id)
-        self.db.write_node_value(
-            NodeValue(
-                node_id=node.id,
-                value=res,
-                execution_id=self.executor.execution.id,
-                start_time=timing[0],
-                end_time=timing[1],
-                value_type=get_value_type(res),
-            )
-        )
-        # we have to commit eagerly because if we just add it
-        #   to the queue, the `res` value may have mutated
-        #   and that's incorrect.
-        self.db.commit()
-
     def trace_import(
         self,
         name: str,

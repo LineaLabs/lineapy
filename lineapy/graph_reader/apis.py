@@ -1,10 +1,13 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
 from functools import cached_property
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import Artifact, LineaID, Node, SessionContext
+from lineapy.data.types import LineaID, SessionContext
 from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.db.relational.schema.relational import ArtifactORM, NodeValueORM
+from lineapy.db.relational.schema.relational import NodeValueORM
 from lineapy.graph_reader.program_slice import get_program_slice
 
 """
@@ -13,6 +16,7 @@ Should keep it very clean.
 """
 
 
+@dataclass
 class LineaArtifact:
     """LineaArtifact
     exposes functionalities we offer around the artifact.
@@ -27,54 +31,36 @@ class LineaArtifact:
       we expose to users.
     """
 
-    db: RelationalLineaDB
-    artifact_name: str
+    def __init__(
+        self,
+        db: RelationalLineaDB,
+        node_id: LineaID,
+    ):
+        self.db: RelationalLineaDB = db
+        self._node_id = node_id
+        session_id = db.get_node_by_id(node_id).session_id
 
-    def __init__(self, artifact_name: str, db: RelationalLineaDB):
-        self.db = db
-        self.artifact_name = artifact_name
+        self._session_context: SessionContext = self.db.get_session_context(
+            session_id
+        )
 
-    @cached_property
-    def _artifact(self) -> ArtifactORM:
-        """
-        "private" because the user should not know what "Artifact" in our
-        graph is.
-        NOTE: a little messy mixing ORM types in here...
-        """
-        return self.db.get_artifact_by_name(self.artifact_name)
+        # FIXME: copied cover from tracer, we might want to refactor
+        nodes = self.db.get_nodes_for_session(session_id)
+        graph = Graph(nodes, self._session_context)
+        # FIXME: this seems a little heavy to just get the slice?
+        self.code = get_program_slice(graph, [node_id])
 
-    # NOTE: assumes that all artifacts are callnodes
-    @cached_property
-    def _node(self) -> Node:
-        return self.db.get_node_by_id(self._artifact.id)
-
-    @cached_property
-    def _session_id(self) -> LineaID:
-        return self._node.session_id
-
-    @cached_property
-    def _session_context(self) -> SessionContext:
-        return self.db.get_session_context(self._session_id)
-
-    @cached_property
-    def _graph(self) -> Graph:
-        """
-        FIXME: copied cover from tracer, we might want to refactor
-        """
-        nodes = self.db.get_nodes_for_session(self._session_id)
-        return Graph(nodes, self._session_context)
-
-    @cached_property
-    def code(self) -> str:
-        """
-        FIXME: this seems a little heavy to just get the slice?
-        """
-        return get_program_slice(self._graph, [self._artifact.id])
+    @classmethod
+    def from_artifact_name(
+        cls, artifact_name: str, db: RelationalLineaDB
+    ) -> LineaArtifact:
+        artifact = db.get_artifact_by_name(artifact_name)
+        return cls(db, artifact)
 
     @cached_property
     def _node_value_orm(self) -> Optional[NodeValueORM]:
         return self.db.get_node_value_from_db(
-            self._artifact.id, self._session_context.execution_id
+            self._node_id, self._session_context.execution_id
         )
 
     @cached_property
@@ -102,16 +88,12 @@ class LineaCatalog:
 
     def __init__(self, db):
         self.db = db
-
-    @cached_property
-    def _artifacts(self) -> List[Artifact]:
-        # queries the DB
-        return self.db.get_all_artifacts()
+        self.artifacts = self.db.get_all_artifacts()
 
     @cached_property
     def print(self) -> str:
         return "\n".join(
-            [f"{a.name}, {a.date_created}" for a in self._artifacts]
+            [f"{a.name}, {a.date_created}" for a in self.artifacts]
         )
 
     def __str__(self) -> str:
@@ -131,5 +113,5 @@ class LineaCatalog:
         """
         return [
             {"artifact_name": a.name, "date_created": a.date_created}
-            for a in self._artifacts
+            for a in self.artifacts
         ]

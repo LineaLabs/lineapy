@@ -6,7 +6,7 @@ slice = res.code
 value = res.value
 """
 
-    res = execute(c)
+    res = execute(c, test_re_execution=False)
     assert (
         res.artifacts["x"]
         == """x = 1
@@ -26,7 +26,7 @@ y = res.value + 1
 lineapy.save(y, "y")
 """
 
-    res = execute(c)
+    res = execute(c, test_re_execution=False)
     assert (
         res.artifacts["x"]
         == """x = 1
@@ -43,12 +43,12 @@ y = res.value + 1
 
 
 def test_save_different_session(execute):
-    execute("import lineapy\nlineapy.save(10, 'x')")
+    execute("import lineapy\nlineapy.save(10, 'x')", test_re_execution=False)
     c = """import lineapy
 y = lineapy.get('x').value + 10
 lineapy.save(y, 'y')
 """
-    res = execute(c)
+    res = execute(c, test_re_execution=False)
     assert res.values["y"] == 20
     assert (
         res.artifacts["y"]
