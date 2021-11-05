@@ -140,7 +140,13 @@ class GraphPrinter:
                 continue
             # don't print empty args, kwargs, or reads
             if (
-                k in {"positional_args", "keyword_args", "global_reads"}
+                k
+                in {
+                    "positional_args",
+                    "keyword_args",
+                    "global_reads",
+                    "implicit_dependencies",
+                }
             ) and not v:
                 continue
             if tp == LineaID and shape == SHAPE_LIST:

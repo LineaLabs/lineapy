@@ -330,11 +330,14 @@ class CallNode(BaseNode):
     # Mapping of global variables that need to be set to call this function
     global_reads: dict[str, LineaID]
 
+    implicit_dependencies: list[LineaID]
+
     def parents(self) -> Iterable[LineaID]:
         yield self.function_id
         yield from self.positional_args
         yield from self.keyword_args.values()
         yield from self.global_reads.values()
+        yield from self.implicit_dependencies
 
 
 class LiteralNode(BaseNode):

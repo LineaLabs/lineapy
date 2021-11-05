@@ -79,6 +79,7 @@ EDGE_TYPE_TO_LABEL: dict[VisualEdgeType, str] = {
     VisualEdgeType.VIEW: "View",
     VisualEdgeType.SOURCE_CODE: "Source Code",
     VisualEdgeType.MUTATE_CALL: "Mutate Call",
+    VisualEdgeType.IMPLICIT_DEPENDENCY: "Implicit Dependency",
 }
 
 NODE_SHAPES: dict[NodeType, str] = {
@@ -99,6 +100,7 @@ EDGE_STYLES = {
     VisualEdgeType.MUTATE_CALL: "dashed",
     VisualEdgeType.NEXT_LINE: "invis",
     VisualEdgeType.SOURCE_CODE: "dotted",
+    VisualEdgeType.IMPLICIT_DEPENDENCY: "bold",
 }
 
 

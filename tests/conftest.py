@@ -158,6 +158,9 @@ class ExecuteFixture:
         *,
         compare_snapshot: bool = True,
         artifacts: typing.Iterable[str] = (),
+        # Whether we should try to re-execute the code
+        # TODO: Remove when we can have multiple artifacts saved with same name
+        test_re_execution: bool = False,
     ) -> Tracer:
         """
         Tests trace, graph, and executes code on init.
@@ -232,14 +235,15 @@ class ExecuteFixture:
                 self.svg_snapshot._executions - 1
             ].success = True
 
+        if test_re_execution:
             # Verify that execution works again, loading from the DB, in a new dir
-        new_executor = Executor(self.db)
+            new_db = RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
+            new_executor = Executor(new_db)
 
-        current_working_dir = os.getcwd()
-
-        os.chdir(self.tmp_path)
-        new_executor.execute_graph(tracer.graph)
-        os.chdir(current_working_dir)
+            current_working_dir = os.getcwd()
+            os.chdir(self.tmp_path)
+            new_executor.execute_graph(tracer.graph)
+            os.chdir(current_working_dir)
 
         return tracer
 

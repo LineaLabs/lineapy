@@ -12,7 +12,6 @@ from black import FileMode, format_str
 from lineapy.constants import GETATTR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    Artifact,
     CallNode,
     GlobalNode,
     ImportNode,
@@ -22,25 +21,24 @@ from lineapy.data.types import (
     LookupNode,
     MutateNode,
     Node,
-    NodeValue,
     SessionContext,
     SessionType,
     SourceLocation,
 )
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import ArtifactORM
-from lineapy.execution.executor import AccessedGlobals, Executor, ViewOfNodes
+from lineapy.execution.executor import (
+    AccessedGlobals,
+    Executor,
+    ImplicitDependency,
+    ViewOfNodes,
+)
 from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
 )
 from lineapy.lineabuiltins import l_tuple
-from lineapy.utils import (
-    get_new_id,
-    get_value_type,
-    remove_duplicates,
-    remove_value,
-)
+from lineapy.utils import get_new_id, remove_duplicates, remove_value
 from lineapy.visualizer.graphviz import tracer_to_graphviz
 from lineapy.visualizer.visual_graph import VisualGraphOptions
 
@@ -233,7 +231,9 @@ class Tracer:
 
         # Iterate through each side effect and process it, depending on its type
         for e in side_effects:
-            if isinstance(e, ViewOfNodes):
+            if isinstance(e, ImplicitDependency):
+                self._process_implicit_dependency(node, e.id)
+            elif isinstance(e, ViewOfNodes):
                 self._process_view_of_nodes(e.ids)
             elif isinstance(e, AccessedGlobals):
                 self._process_accessed_globals(
@@ -243,6 +243,21 @@ class Tracer:
                 self._process_mutate_node(e.id, node.id, node.session_id)
 
         self.db.write_node(node)
+
+    def _process_implicit_dependency(
+        self, node: Node, implicit_dependency_id: LineaID
+    ) -> None:
+        """
+        Add dependency of a node on a global implicit dependency,
+        which is a dependency that lineapy has deemed essential in the
+        reproduction of an artifact but is not explicitly passed as arguments
+        """
+
+        # Only call nodes can refer to implicit dependencies
+        assert isinstance(node, CallNode)
+        node.implicit_dependencies.append(
+            self.resolve_node(implicit_dependency_id)
+        )
 
     def _process_accessed_globals(
         self,
@@ -379,32 +394,6 @@ class Tracer:
             node_id = self.source_to_mutate[node_id]
         return node_id
 
-    def publish(self, node: Node, description: Optional[str]) -> None:
-        self.db.write_artifact(
-            Artifact(
-                id=self.resolve_node(node.id),
-                date_created=datetime.now(),
-                name=description,
-            )
-        )
-        # serialize to db
-        res = self.executor.get_value(node)
-        timing = self.executor.get_execution_time(node.id)
-        self.db.write_node_value(
-            NodeValue(
-                node_id=node.id,
-                value=res,
-                execution_id=self.executor.execution.id,
-                start_time=timing[0],
-                end_time=timing[1],
-                value_type=get_value_type(res),
-            )
-        )
-        # we have to commit eagerly because if we just add it
-        #   to the queue, the `res` value may have mutated
-        #   and that's incorrect.
-        self.db.commit()
-
     def trace_import(
         self,
         name: str,
@@ -507,6 +496,7 @@ class Tracer:
             },
             source_location=source_location,
             global_reads={},
+            implicit_dependencies=[],
         )
         self.process_node(node)
         return node
