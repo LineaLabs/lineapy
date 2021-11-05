@@ -297,7 +297,7 @@ class GlobalReferenceORM(Base):
     variable_node = relationship(BaseNodeORM, uselist=False)
 
 
-class ImplicitDependencyORM(Base):  # type: ignore
+class ImplicitDependencyORM(Base):
     __tablename__ = "implicit_dependency"
     call_node_id: str = Column(
         ForeignKey("call_node.id"), primary_key=True, nullable=False

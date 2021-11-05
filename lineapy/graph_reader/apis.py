@@ -36,6 +36,7 @@ class LineaArtifact:
         db: RelationalLineaDB,
         node_id: LineaID,
     ):
+        # Refactored to not be properties for easier debugging...
         self.db: RelationalLineaDB = db
         self._node_id = node_id
         session_id = db.get_node_by_id(node_id).session_id
@@ -55,7 +56,7 @@ class LineaArtifact:
         cls, artifact_name: str, db: RelationalLineaDB
     ) -> LineaArtifact:
         artifact = db.get_artifact_by_name(artifact_name)
-        return cls(db, artifact)
+        return cls(db, artifact.id)
 
     @cached_property
     def _node_value_orm(self) -> Optional[NodeValueORM]:
