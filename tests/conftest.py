@@ -232,8 +232,9 @@ class ExecuteFixture:
                 self.svg_snapshot._executions - 1
             ].success = True
 
-            # Verify that execution works again, loading from the DB, in a new dir
-        new_executor = Executor(self.db)
+        # Verify that execution works again, loading from the DB, in a new dir
+        new_db = RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
+        new_executor = Executor(new_db)
 
         current_working_dir = os.getcwd()
 
