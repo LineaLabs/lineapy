@@ -39,8 +39,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - run: pip install pre-commit
-      - run: pre-commit run black --all-files
+      - uses: pre-commit/action@v2.0.3
+        with:
+          extra_args: black --all-files
   flake8:
     runs-on: ubuntu-latest
     steps:
@@ -49,8 +50,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - run: pip install pre-commit
-      - run: pre-commit run flake8 --all-files
+      - uses: pre-commit/action@v2.0.3
+        with:
+          extra_args: flake8 --all-files
   imports:
     runs-on: ubuntu-latest
     steps:
@@ -59,8 +61,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - run: pip install pre-commit
-      - run: pre-commit run isort --all-files
+      - uses: pre-commit/action@v2.0.3
+        with:
+          extra_args: isort --all-files
   mypy:
     runs-on: ubuntu-latest
     steps:
@@ -69,5 +72,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - run: pip install pre-commit
-      - run: pre-commit run mypy --all-files
+      - uses: pre-commit/action@v2.0.3
+        with:
+          extra_args: mypy --all-files
