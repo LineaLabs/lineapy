@@ -280,9 +280,11 @@ class Executor:
             yield ViewOfNodes(node.id, node.source_id)
 
     def _get_implicit_global_node(self, call_node, obj: object) -> LineaID:
+        print("Looking up function", obj)
         if obj in self._implicit_global_to_node:
             return self._implicit_global_to_node[obj]
         else:
+            print("Creating fn")
             global_lookup = LookupNode(
                 id=get_new_id(),
                 session_id=call_node.session_id,

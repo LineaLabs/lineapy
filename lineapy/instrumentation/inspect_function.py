@@ -25,7 +25,10 @@ def inspect_function(
         yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
         yield ViewOfPointers(Global(lineabuiltins.FileSystem()), Result())
         return
-
+    # TODO: Make this work without infinite recursion
+    # if function in (lineabuiltins.DB, lineabuiltins.FileSystem):
+    #     yield ImplicitDependencyPointer(Global(function()))
+    #     return
     if imported_module("pandas"):
         import pandas
 
@@ -108,7 +111,7 @@ def inspect_function(
         # l_build_list(x1, x2, ...)
         yield ViewOfPointers(
             Result(),
-            *(PositionalArg(i) for i, a in enumerate(args) if is_mutable(a))
+            *(PositionalArg(i) for i, a in enumerate(args) if is_mutable(a)),
         )
         return
     if (
