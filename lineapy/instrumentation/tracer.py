@@ -12,7 +12,6 @@ from black import FileMode, format_str
 from lineapy.constants import GETATTR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
-    Artifact,
     CallNode,
     GlobalNode,
     ImportNode,
@@ -22,7 +21,6 @@ from lineapy.data.types import (
     LookupNode,
     MutateNode,
     Node,
-    NodeValue,
     SessionContext,
     SessionType,
     SourceLocation,
@@ -40,12 +38,7 @@ from lineapy.graph_reader.program_slice import (
     split_code_blocks,
 )
 from lineapy.lineabuiltins import l_tuple
-from lineapy.utils import (
-    get_new_id,
-    get_value_type,
-    remove_duplicates,
-    remove_value,
-)
+from lineapy.utils import get_new_id, remove_duplicates, remove_value
 from lineapy.visualizer.graphviz import tracer_to_graphviz
 from lineapy.visualizer.visual_graph import VisualGraphOptions
 
