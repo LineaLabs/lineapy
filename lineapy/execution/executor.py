@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
-import io
 import logging
-from contextlib import redirect_stdout
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
@@ -58,7 +56,6 @@ class Executor:
     execution: Execution = field(init=False)
 
     _id_to_value: dict[LineaID, object] = field(default_factory=dict)
-    _stdout: io.StringIO = field(default_factory=io.StringIO)
     _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
     )
@@ -82,21 +79,6 @@ class Executor:
             timestamp=datetime.now(),
         )
         self.db.write_execution(self.execution)
-
-    def get_stdout(self) -> str:
-        """
-        This returns the text that corresponds to the stdout results.
-        For instance, `print("hi")` should yield a result of "hi\n" from this function.
-
-        Note:
-        - If we assume that everything is sliced, the user printing may not
-        happen, but third party libs may still have outputs.
-        - Also the user may manually annotate for the print line to be
-        included and in general stdouts are useful
-        """
-
-        val = self._stdout.getvalue()
-        return val
 
     def get_execution_time(
         self, node_id: LineaID
@@ -182,10 +164,9 @@ class Executor:
             set_context(self, variables, node)
 
             try:
-                with redirect_stdout(self._stdout):
-                    start_time = datetime.now()
-                    res = fn(*args, **kwargs)
-                    end_time = datetime.now()
+                start_time = datetime.now()
+                res = fn(*args, **kwargs)
+                end_time = datetime.now()
             except Exception as exc:
                 raise UserException(exc, RemoveFrames(1), *add_frame)
             finally:
@@ -230,10 +211,9 @@ class Executor:
 
         elif isinstance(node, ImportNode):
             try:
-                with redirect_stdout(self._stdout):
-                    start_time = datetime.now()
-                    value = importlib.import_module(node.library.name)
-                    end_time = datetime.now()
+                start_time = datetime.now()
+                value = importlib.import_module(node.library.name)
+                end_time = datetime.now()
             except Exception as exc:
                 # Remove all importlib frames
                 # There are a different number depending on whether the import
