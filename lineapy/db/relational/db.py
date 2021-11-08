@@ -239,9 +239,9 @@ class RelationalLineaDB:
         self.session.add(NodeValueORM(**node_value.dict()))
 
     def write_artifact(self, artifact: Artifact) -> None:
-
         artifact_orm = ArtifactORM(
-            id=artifact.id,
+            node_id=artifact.node_id,
+            execution_id=artifact.execution_id,
             name=artifact.name,
             date_created=artifact.date_created,
         )
@@ -379,6 +379,23 @@ class RelationalLineaDB:
         )
         return value_orm
 
+    def node_value_in_db(
+        self, node_id: LineaID, execution_id: LineaID
+    ) -> bool:
+        """
+        Returns true if the node value is already in the DB.
+        """
+        return self.session.query(
+            self.session.query(NodeValueORM)
+            .filter(
+                and_(
+                    NodeValueORM.node_id == node_id,
+                    NodeValueORM.execution_id == execution_id,
+                )
+            )
+            .exists()
+        ).scalar()
+
     def get_artifacts_for_session(
         self, session_id: LineaID
     ) -> list[ArtifactORM]:
@@ -401,14 +418,16 @@ class RelationalLineaDB:
 
     def get_artifact_by_name(self, artifact_name: str) -> ArtifactORM:
         """
-        Gets a code slice for an artifact by name, assuming there is only
-        one artifact with that name,
+        Gets the most recent artifact with a certain name.
         """
-        return (
+        res = (
             self.session.query(ArtifactORM)
             .filter(ArtifactORM.name == artifact_name)
-            .one()
+            .order_by(ArtifactORM.date_created.desc())
+            .first()
         )
+        assert res
+        return res
 
     def get_all_artifacts(self) -> List[Artifact]:
         """

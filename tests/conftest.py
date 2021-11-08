@@ -156,7 +156,7 @@ class ExecuteFixture:
         self,
         code: str,
         *,
-        compare_snapshot: bool = True,
+        snapshot: bool = True,
         artifacts: typing.Iterable[str] = (),
         # Whether we should try to re-execute the code
         # TODO: Remove when we can have multiple artifacts saved with same name
@@ -165,8 +165,8 @@ class ExecuteFixture:
         """
         Tests trace, graph, and executes code on init.
 
-        :param compare_snapshot:  If you don't want to compare the snapshots,
-        just execute the code then set `compare_snapshot` to False.
+        :param snapshot:  If you don't want to compare the snapshots,
+        just execute the code then set `snapshot` to False.
         :param artifacts:  A list of artifacts that should be published and
         sliced based on. It assumes the artifact names are variables in the
         code.
@@ -196,7 +196,7 @@ class ExecuteFixture:
             )
 
         # Verify snapshot of graph
-        if compare_snapshot:
+        if snapshot:
             graph_str = (
                 tracer.graph.print(
                     include_imports=True,
@@ -278,4 +278,4 @@ def housing_tracer(execute):
     os.chdir(tests_dir)
 
     code = (tests_dir / "housing.py").read_text()
-    return execute(code, compare_snapshot=False)
+    return execute(code, snapshot=False)

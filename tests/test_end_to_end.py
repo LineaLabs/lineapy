@@ -201,7 +201,7 @@ class TestEndToEnd:
     def test_loop_code_slice(self, execute, python_snapshot):
         res = execute(
             LOOP_CODE,
-            compare_snapshot=False,
+            snapshot=False,
         )
 
         assert res.slice("y") == python_snapshot
@@ -383,13 +383,13 @@ class TestEndToEnd:
         assert res.slice("f") == python_snapshot
 
     def test_messy_nodes_slice(self, execute, python_snapshot):
-        res = execute(MESSY_NODES, compare_snapshot=False)
+        res = execute(MESSY_NODES, snapshot=False)
         assert res.slice("f") == python_snapshot
 
     def test_simple_slice(self, execute, python_snapshot):
         res = execute(
             SIMPLE_SLICE,
-            compare_snapshot=False,
+            snapshot=False,
         )
 
         assert res.slice("c") == python_snapshot
@@ -478,7 +478,7 @@ class TestListComprehension:
     def test_depends_on_prev_value(self, execute):
         res = execute(
             "y = range(3)\nx = [i + 1 for i in y]",
-            compare_snapshot=False,
+            snapshot=False,
             artifacts=["x"],
         )
         # Verify that i isn't set in the local scope

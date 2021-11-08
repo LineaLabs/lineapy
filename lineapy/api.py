@@ -25,23 +25,31 @@ def save(value: object, description: str, /) -> LineaArtifact:
     # Lookup the first arguments id, which is the id for the value, and
     # save that as the artifact
     value_node_id = call_node.positional_args[0]
+
+    execution_id = executor.execution.id
+    timing = executor.get_execution_time(value_node_id)
+
+    # serialize value to db if we haven't before
+    # (happens with multiple artifacts pointing to the same value)
+    if not db.node_value_in_db(
+        node_id=value_node_id, execution_id=execution_id
+    ):
+        db.write_node_value(
+            NodeValue(
+                node_id=value_node_id,
+                value=value,
+                execution_id=executor.execution.id,
+                start_time=timing[0],
+                end_time=timing[1],
+                value_type=get_value_type(value),
+            )
+        )
     db.write_artifact(
         Artifact(
-            id=value_node_id,
+            node_id=value_node_id,
+            execution_id=execution_id,
             date_created=datetime.now(),
             name=description,
-        )
-    )
-    # serialize to db
-    timing = executor.get_execution_time(value_node_id)
-    db.write_node_value(
-        NodeValue(
-            node_id=value_node_id,
-            value=value,
-            execution_id=executor.execution.id,
-            start_time=timing[0],
-            end_time=timing[1],
-            value_type=get_value_type(value),
         )
     )
     # we have to commit eagerly because if we just add it
@@ -49,11 +57,12 @@ def save(value: object, description: str, /) -> LineaArtifact:
     #   and that's incorrect.
     db.commit()
 
-    return LineaArtifact(db, value_node_id)
+    return LineaArtifact(db, executor.execution.id, value_node_id)
 
 
 def get(artifact_name: str) -> LineaArtifact:
-    """get
+    """
+    Gets an artifact from the DB.
 
     Parameters
     ----------
@@ -70,7 +79,7 @@ def get(artifact_name: str) -> LineaArtifact:
     execution_context = get_context()
     db = execution_context.executor.db
     artifact = db.get_artifact_by_name(artifact_name)
-    return LineaArtifact(db, artifact.id)
+    return LineaArtifact(db, artifact.execution_id, artifact.node_id)
 
 
 def catalog() -> LineaCatalog:

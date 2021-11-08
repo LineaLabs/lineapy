@@ -17,6 +17,8 @@ class Graph(object):
         :param session_context: the session context associated with the graph
 
         NOTE:
+        # TODO: Possibly remove session context since we aren't using it anywhere
+        # we refer to the graph
         - It makes sense to include session_context in the constructor of
           the graph because the information in session_context is semantically
           important to the notion of a Graph. Concretely, we are starting

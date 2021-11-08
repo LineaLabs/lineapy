@@ -130,11 +130,12 @@ class Execution(BaseModel):
 
 class Artifact(BaseModel):
     """
-    An artifact is simply an annotation on some existing graph node---the ID
-      simply points to an existing ID.
+    An artifact points to the value of a node during some execution.
     """
 
-    id: LineaID
+    node_id: LineaID
+    execution_id: LineaID
+
     date_created: datetime.datetime
     name: Optional[str]
 

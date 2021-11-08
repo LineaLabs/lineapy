@@ -138,7 +138,7 @@ class Tracer:
         """
 
         return {
-            artifact.name: get_program_slice(self.graph, [artifact.id])
+            artifact.name: get_program_slice(self.graph, [artifact.node_id])
             for artifact in self.session_artifacts()
             if artifact.name is not None
         }
@@ -148,7 +148,7 @@ class Tracer:
         artifact_var = self.slice_var_name(artifact)
         if not artifact_var:
             return "Unable to extract the slice"
-        slice_code = get_program_slice(self.graph, [artifact.id])
+        slice_code = get_program_slice(self.graph, [artifact.node_id])
         # We split the code in import and code blocks and join them to full code test
         import_block, code_block, main_block = split_code_blocks(
             slice_code, func_name
@@ -172,7 +172,7 @@ class Tracer:
 
     def slice(self, name: str) -> str:
         artifact = self.db.get_artifact_by_name(name)
-        return get_program_slice(self.graph, [artifact.id])
+        return get_program_slice(self.graph, [artifact.node_id])
 
     def slice_var_name(self, artifact: ArtifactORM) -> str:
         """
