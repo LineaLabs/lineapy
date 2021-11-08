@@ -3,10 +3,8 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils import get_new_id
 
-call_1 = CallNode(
-    function_id=LookupNode(
-        name="FileSystem",
-    ).id,
+lookup_4 = LookupNode(
+    name="file_system",
 )
 source_1 = SourceCode(
     code="""import lineapy
@@ -24,7 +22,7 @@ lineapy.save(img, "Graph With Image")
 """,
     location=PosixPath("[source file path]"),
 )
-call_6 = CallNode(
+call_5 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -121,11 +119,11 @@ call_6 = CallNode(
                     value="tests/simple_data.csv",
                 ).id
             ],
-            implicit_dependencies=[call_1.id],
+            implicit_dependencies=[lookup_4.id],
         ).id,
     ],
 )
-call_12 = CallNode(
+call_11 = CallNode(
     source_location=SourceLocation(
         lineno=12,
         col_offset=0,
@@ -225,7 +223,7 @@ call_12 = CallNode(
                                 value="simple_data.png",
                             ).id
                         ],
-                        implicit_dependencies=[call_1.id],
+                        implicit_dependencies=[lookup_4.id],
                     ).id,
                     LiteralNode(
                         value="resize",

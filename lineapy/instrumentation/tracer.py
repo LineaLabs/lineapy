@@ -28,9 +28,12 @@ from lineapy.data.types import (
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import ArtifactORM
 from lineapy.execution.executor import (
+    ID,
     AccessedGlobals,
     Executor,
-    ImplicitDependency,
+    ExecutorPointer,
+    ImplicitDependencyNode,
+    Variable,
     ViewOfNodes,
 )
 from lineapy.graph_reader.program_slice import (
@@ -227,18 +230,33 @@ class Tracer:
 
         # Iterate through each side effect and process it, depending on its type
         for e in side_effects:
-            if isinstance(e, ImplicitDependency):
-                self._process_implicit_dependency(node, e.id)
+            if isinstance(e, ImplicitDependencyNode):
+                self._process_implicit_dependency(
+                    node, self._resolve_pointer(e.pointer)
+                )
             elif isinstance(e, ViewOfNodes):
-                self._process_view_of_nodes(e.ids)
+                self._process_view_of_nodes(
+                    list(map(self._resolve_pointer, e.pointers))
+                )
             elif isinstance(e, AccessedGlobals):
                 self._process_accessed_globals(
                     node.session_id, node, e.retrieved, e.added_or_updated
                 )
+            # Mutate case
             else:
-                self._process_mutate_node(e.id, node.id, node.session_id)
+                self._process_mutate_node(
+                    self._resolve_pointer(e.pointer), node.id, node.session_id
+                )
 
         self.db.write_node(node)
+
+    def _resolve_pointer(self, ptr: ExecutorPointer) -> LineaID:
+        if isinstance(ptr, ID):
+            return ptr.id
+        if isinstance(ptr, Variable):
+            return self.variable_name_to_node[ptr.name].id
+        # Handle external state case, by making a lookup node for it
+        return self.lookup_node(ptr.__name__).id
 
     def _process_implicit_dependency(
         self, node: Node, implicit_dependency_id: LineaID
@@ -267,15 +285,11 @@ class Tracer:
         assert isinstance(node, CallNode)
 
         # Add the retrieved globals as global reads to the call node
-
-        # TODO: Add mutate nodes possibly for any reads as well, since we
-        # dont know if they are mutated
-
         node.global_reads = {
             var: self.resolve_node(self.variable_name_to_node[var].id)
             for var in retrieved
             # Only save reads from variables that we have already saved variables for
-            # Assume that all other reads are for variables assigned inside
+            # Assume that all other reads are for variables assigned inside the call
             if var in self.variable_name_to_node
         }
 
@@ -467,11 +481,6 @@ class Tracer:
         # function_name: str,
         *arguments: Node,
         **keyword_arguments: Node,
-        # TODO: We add `CallNode` as an arg here to support nested
-        # getattrs followed by a call. The "module" then is really
-        # not a module, but just a CallNode that is a getattr
-        # We should refactor this!
-        # function_module: Union[None, str, Node] = None,
     ) -> CallNode:
         """
         NOTE

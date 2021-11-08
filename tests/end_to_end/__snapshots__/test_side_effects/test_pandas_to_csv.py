@@ -26,7 +26,7 @@ import_2 = ImportNode(
         name="pandas",
     ),
 )
-call_14 = CallNode(
+call_13 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -104,10 +104,8 @@ call_14 = CallNode(
             ],
             implicit_dependencies=[
                 MutateNode(
-                    source_id=CallNode(
-                        function_id=LookupNode(
-                            name="FileSystem",
-                        ).id,
+                    source_id=LookupNode(
+                        name="file_system",
                     ).id,
                     call_id=CallNode(
                         source_location=SourceLocation(

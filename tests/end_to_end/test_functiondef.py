@@ -135,7 +135,6 @@ my_function()
     )
 
 
-@pytest.mark.xfail
 def test_mutate_in_fn(execute):
     code = """def f():
     a.append(1)

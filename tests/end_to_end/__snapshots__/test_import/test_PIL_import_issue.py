@@ -22,7 +22,7 @@ import_1 = ImportNode(
         name="PIL.Image",
     ),
 )
-call_8 = CallNode(
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=4,
         col_offset=4,
@@ -55,10 +55,8 @@ call_8 = CallNode(
     ],
     implicit_dependencies=[
         MutateNode(
-            source_id=CallNode(
-                function_id=LookupNode(
-                    name="FileSystem",
-                ).id,
+            source_id=LookupNode(
+                name="file_system",
             ).id,
             call_id=CallNode(
                 source_location=SourceLocation(

@@ -15,7 +15,7 @@ lineapy.save(df, \'df\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_8 = CallNode(
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=5,
@@ -192,10 +192,8 @@ call_8 = CallNode(
     ],
 )
 mutate_1 = MutateNode(
-    source_id=CallNode(
-        function_id=LookupNode(
-            name="DB",
-        ).id,
+    source_id=LookupNode(
+        name="db",
     ).id,
     call_id=CallNode(
         source_location=SourceLocation(
@@ -217,7 +215,7 @@ mutate_1 = MutateNode(
                 name="getattr",
             ).id,
             positional_args=[
-                call_8.id,
+                call_7.id,
                 LiteralNode(
                     value="to_sql",
                 ).id,
@@ -297,7 +295,7 @@ mutate_1 = MutateNode(
         },
     ).id,
 )
-call_14 = CallNode(
+call_13 = CallNode(
     source_location=SourceLocation(
         lineno=8,
         col_offset=0,
@@ -335,7 +333,7 @@ call_14 = CallNode(
         ],
     ).id,
     positional_args=[
-        call_8.id,
+        call_7.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=8,
