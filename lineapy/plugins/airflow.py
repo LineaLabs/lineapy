@@ -41,7 +41,7 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     artifact_var = tracer.slice_var_name(artifact)
     if not artifact_var:
         return "Unable to extract the slice"
-    slice_code = get_program_slice(tracer.graph, [artifact.id])
+    slice_code = get_program_slice(tracer.graph, [artifact.node_id])
     # We split the code in import and code blocks and join them to full code test
     import_block, code_block, main_block = split_code_blocks(
         slice_code, func_name

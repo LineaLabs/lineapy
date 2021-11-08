@@ -12,9 +12,9 @@ from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy import save
-from lineapy.constants import ExecutionMode
 from lineapy.data.types import SessionType
-from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.db.db import RelationalLineaDB
+from lineapy.db.utils import MEMORY_DB_URL
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
@@ -116,7 +116,7 @@ def svg_snapshot(request):
 
 @pytest.fixture
 def linea_db():
-    return RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
+    return RelationalLineaDB.from_environment(MEMORY_DB_URL)
 
 
 @pytest.fixture
@@ -158,9 +158,6 @@ class ExecuteFixture:
         *,
         snapshot: bool = True,
         artifacts: typing.Iterable[str] = (),
-        # Whether we should try to re-execute the code
-        # TODO: Remove when we can have multiple artifacts saved with same name
-        test_re_execution: bool = False,
     ) -> Tracer:
         """
         Tests trace, graph, and executes code on init.
@@ -235,15 +232,12 @@ class ExecuteFixture:
                 self.svg_snapshot._executions - 1
             ].success = True
 
-        if test_re_execution:
-            # Verify that execution works again, loading from the DB, in a new dir
-            new_db = RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
-            new_executor = Executor(new_db)
-
-            current_working_dir = os.getcwd()
-            os.chdir(self.tmp_path)
-            new_executor.execute_graph(tracer.graph)
-            os.chdir(current_working_dir)
+        # Verify that execution works again, with a new session
+        new_executor = Executor(self.db)
+        current_working_dir = os.getcwd()
+        os.chdir(self.tmp_path)
+        new_executor.execute_graph(tracer.graph)
+        os.chdir(current_working_dir)
 
         return tracer
 
@@ -261,11 +255,11 @@ def chdir_test_file():
 
 
 @pytest.fixture(autouse=True, scope="session")
-def remove_dev_db():
+def remove_db():
     """
-    Remove dev before all tests
+    Remove db before all tests
     """
-    p = Path("dev.sqlite")
+    p = Path("linea.sqlite")
     if p.exists():
         p.unlink()
 

@@ -9,7 +9,7 @@ from functools import cached_property
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
-from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.program_slice import get_program_slice
 
 
@@ -30,6 +30,7 @@ class LineaArtifact:
     db: RelationalLineaDB = field(repr=False)
     execution_id: LineaID
     node_id: LineaID
+    session_id: LineaID
 
     @cached_property
     def value(self) -> object:
@@ -46,10 +47,9 @@ class LineaArtifact:
         """
         Return the slices code for the artifact
         """
-        session_id = self.db.get_node_by_id(self.node_id).session_id
-        session_context = self.db.get_session_context(session_id)
+        session_context = self.db.get_session_context(self.session_id)
         # FIXME: copied cover from tracer, we might want to refactor
-        nodes = self.db.get_nodes_for_session(session_id)
+        nodes = self.db.get_nodes_for_session(self.session_id)
         graph = Graph(nodes, session_context)
         # FIXME: this seems a little heavy to just get the slice?
         return get_program_slice(graph, [self.node_id])

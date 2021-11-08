@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 from pathlib import Path
@@ -8,7 +10,7 @@ from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
-from lineapy.constants import SQLALCHEMY_ECHO, ExecutionMode
+from lineapy.constants import SQLALCHEMY_ECHO
 from lineapy.data.types import (
     Artifact,
     CallNode,
@@ -28,8 +30,7 @@ from lineapy.data.types import (
     SourceCode,
     SourceLocation,
 )
-from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
-from lineapy.db.relational.schema.relational import (
+from lineapy.db.relational import (
     ArtifactORM,
     Base,
     BaseNodeORM,
@@ -50,6 +51,7 @@ from lineapy.db.relational.schema.relational import (
     SessionContextORM,
     SourceCodeORM,
 )
+from lineapy.db.utils import OVERRIDE_HELP_TEXT, lookup_db_url
 from lineapy.utils import get_literal_value_from_string
 
 logger = logging.getLogger(__name__)
@@ -66,22 +68,17 @@ class RelationalLineaDB:
         loaded, but that's low priority.
     """
 
-    @classmethod
-    def from_environment(cls, mode: ExecutionMode) -> "RelationalLineaDB":
+    def __init__(self, url: str):
         """
-        Creates a new database connection from the environment variables.
+        Create a linea DB, by connecting to a database url:
+        https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls
         """
-        config = get_default_config_by_environment(mode)
-        return cls(config)
-
-    def __init__(self, config: LineaDBConfig):
-        # TODO: we eventually need some configurations
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
-        logging.info(f"Starting DB at {config.database_uri}")
+        logging.info(f"Starting DB at {url}")
         engine = create_engine(
-            config.database_uri,
+            url,
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
             echo=echo,
@@ -89,6 +86,15 @@ class RelationalLineaDB:
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
+
+    @classmethod
+    def from_environment(cls, url: Optional[str]) -> RelationalLineaDB:
+        f"""
+        Creates a new database.
+
+        url: {OVERRIDE_HELP_TEXT}
+        """
+        return cls(url or lookup_db_url())
 
     @staticmethod
     def get_type_of_literal_value(val: Any) -> LiteralType:

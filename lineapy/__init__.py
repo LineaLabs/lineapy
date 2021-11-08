@@ -1,7 +1,6 @@
 import os
 
 from lineapy.api import catalog, get, save
-from lineapy.constants import ExecutionMode
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
 from lineapy.instrumentation.tracer import Tracer
@@ -15,7 +14,6 @@ __all__ = [
     "get",
     "catalog",
     "SessionType",
-    "ExecutionMode",
     "ValueType",
     "DB",
     "FileSystem",

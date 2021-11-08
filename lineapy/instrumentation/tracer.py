@@ -25,8 +25,8 @@ from lineapy.data.types import (
     SessionType,
     SourceLocation,
 )
-from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.db.relational.schema.relational import ArtifactORM
+from lineapy.db.db import RelationalLineaDB
+from lineapy.db.relational import ArtifactORM
 from lineapy.execution.executor import (
     AccessedGlobals,
     Executor,

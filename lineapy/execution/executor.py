@@ -18,7 +18,7 @@ from lineapy.data.types import (
     LookupNode,
     Node,
 )
-from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.user_exception import (
     AddFrame,
     RemoveFrames,

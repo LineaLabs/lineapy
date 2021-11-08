@@ -77,7 +77,7 @@ def tracer_to_visual_graph(
     # First create a mapping of each node ID to all of its artifact names
     id_to_artifacts: dict[str, list[Optional[str]]] = defaultdict(list)
     for a in tracer.session_artifacts():
-        id_to_artifacts[a.id].append(a.name)
+        id_to_artifacts[a.node_id].append(a.name)
 
     # Then create a mapping of each node to the variables which point to it
     id_to_variables: dict[str, list[str]] = defaultdict(list)

@@ -193,7 +193,7 @@ class BaseNodeORM(Base):
 
     __tablename__ = "node"
     id = Column(String, primary_key=True)
-    session_id = Column(String)
+    session_id: LineaID = Column(String)
     node_type = Column(Enum(NodeType))
     lineno = Column(Integer, nullable=True)  # line numbers are 1-indexed
     col_offset = Column(Integer, nullable=True)  # col numbers are 0-indexed

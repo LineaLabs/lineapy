@@ -9,9 +9,8 @@ from typing import ClassVar, Literal, Optional
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import SVG, DisplayHandle, display
 
-from lineapy.constants import ExecutionMode
 from lineapy.data.types import JupyterCell, LineaID, SessionType
-from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
@@ -22,7 +21,7 @@ from lineapy.transformer.node_transformer import transform
 
 def start(
     session_name: Optional[str] = None,
-    execution_mode: ExecutionMode = ExecutionMode.MEMORY,
+    db_url: Optional[str] = None,
     visualize=False,
     ipython: Optional[InteractiveShell] = None,
 ) -> None:
@@ -48,7 +47,7 @@ def start(
     # TODO: Support pause/resume tracing
     assert not linea_input_transformers, "Already tracing"
 
-    db = RelationalLineaDB.from_environment(execution_mode)
+    db = RelationalLineaDB.from_environment(db_url)
     tracer = Tracer(db, SessionType.JUPYTER, session_name)
 
     # Create a display handler so that we can update the SVG visualization

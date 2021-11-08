@@ -1,15 +1,9 @@
 import datetime
-from tempfile import NamedTemporaryFile
 
 import pytest
-from click.testing import CliRunner
 
 from lineapy.api import save
-from lineapy.cli.cli import linea_cli
-from lineapy.constants import ExecutionMode
-from lineapy.db.base import get_default_config_by_environment
-from lineapy.db.relational.db import RelationalLineaDB
-from tests.util import CSV_CODE, IMAGE_CODE, reset_test_db
+from tests.util import CSV_CODE, IMAGE_CODE
 
 publish_name = "testing artifact publish"
 PUBLISH_CODE = f"""import lineapy
@@ -161,22 +155,6 @@ class TestEndToEnd:
     - LineaDB
     """
 
-    def setup(self):
-        """
-        Reference https://github.com/pallets/flask/blob/
-        afc13b9390ae2e40f4731e815b49edc9ef52ed4b/tests/test_cli.py
-
-        TODO
-        - More testing of error cases and error messages
-        """
-        self.runner = CliRunner()
-        # FIXME: test harness cli, extract out magic string
-        # FIXME: add methods instead of accessing session
-        config = get_default_config_by_environment(ExecutionMode.DEV)
-        # also reset the file
-        reset_test_db(config.database_uri)
-        self.db = RelationalLineaDB(config)
-
     @pytest.mark.xfail(
         reason="check for `save` is brittle, relies on Attribute"
     )
@@ -261,21 +239,6 @@ class TestEndToEnd:
         ).total_seconds()
         assert time_diff < 1
 
-    def test_publish_via_cli(self):
-        """
-        same test as above but via the CLI
-        """
-        with NamedTemporaryFile() as tmp:
-            tmp.write(str.encode(PUBLISH_CODE))
-            tmp.flush()
-            # might also need os.path.dirname() in addition to file name
-            tmp_file_name = tmp.name
-            result = self.runner.invoke(
-                linea_cli, ["--mode", "dev", tmp_file_name]
-            )
-            assert result.exit_code == 0
-            return tmp_file_name
-
     def test_dictionary_support(self, execute):
         execute(DICTIONARY_SUPPORT)
 
@@ -336,7 +299,8 @@ class TestEndToEnd:
 
         execute(PRINT_CODE)
         captured = capsys.readouterr()
-        assert captured.out == "10\n"
+        # Shows up twice due to re-exeuction
+        assert captured.out == "10\n10\n"
 
     def test_chained_attributes(self, execute):
         """
