@@ -5,7 +5,6 @@ import pytest
 from IPython.core.interactiveshell import InteractiveShell
 
 from lineapy import save
-from lineapy.instrumentation.tracer import Tracer
 
 
 def test_empty_cell(run_cell):
@@ -73,7 +72,10 @@ def ip_traced(ip):
     """
     An ipython fixture that first enables
     """
-    assert _run_cell(ip, "import lineapy.ipython\nlineapy.ipython.start()") is None
+    assert (
+        _run_cell(ip, "import lineapy.ipython\nlineapy.ipython.start()")
+        is None
+    )
     return ip
 
 

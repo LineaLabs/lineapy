@@ -18,7 +18,9 @@ def test_slice_housing():
     """
     Verifies that the "--slice" CLI command is aliased to the `lienapy` executable
     """
-    subprocess.check_call(["lineapy", "tests/housing.py", "--slice", "p value"])
+    subprocess.check_call(
+        ["lineapy", "tests/housing.py", "--slice", "p value"]
+    )
 
 
 @pytest.mark.slow
