@@ -3,7 +3,6 @@ Code to transform inputs when running in IPython, to trace them.
 """
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
 from typing import ClassVar, Literal, Optional
 
