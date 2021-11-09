@@ -51,7 +51,7 @@ from lineapy.db.relational import (
     SessionContextORM,
     SourceCodeORM,
 )
-from lineapy.db.utils import OVERRIDE_HELP_TEXT, lookup_db_url
+from lineapy.db.utils import OVERRIDE_HELP_TEXT, resolve_db_url
 from lineapy.utils import get_literal_value_from_string
 
 logger = logging.getLogger(__name__)
@@ -75,8 +75,9 @@ class RelationalLineaDB:
         """
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
+        self.url: str = url
         echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
-        logging.info(f"Starting DB at {url}")
+        logger.info(f"Connecting to Linea DB at {url}")
         engine = create_engine(
             url,
             connect_args={"check_same_thread": False},
@@ -94,7 +95,7 @@ class RelationalLineaDB:
 
         url: {OVERRIDE_HELP_TEXT}
         """
-        return cls(url or lookup_db_url())
+        return cls(resolve_db_url(url))
 
     @staticmethod
     def get_type_of_literal_value(val: Any) -> LiteralType:

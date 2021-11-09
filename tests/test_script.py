@@ -2,6 +2,8 @@ import subprocess
 
 import pytest
 
+from lineapy.db.utils import resolve_default_db_path
+
 
 @pytest.mark.slow
 def test_cli_entrypoint():
@@ -95,15 +97,14 @@ def test_linea_python_equivalent(tmp_path, code):
     assert linea_run.stderr.decode() == python_run.stderr.decode()
 
 
-@pytest.mark.skip(reason="https://github.com/LineaLabs/lineapy/issues/341")
+@pytest.mark.slow
 def test_run_from_nbconvert():
-    # delete viz first, if it exists (-f exits cleanly either way)
-    subprocess.check_call(["rm", "-f", "tests/tmp.pdf"])
+    assert not resolve_default_db_path().exists()
     # Run the command that should populate the database
     subprocess.check_call(
-        "env LINEA_VISUALIZATION_NAME=tmp jupyter nbconvert --to notebook --execute tests/untraced_notebook.ipynb --inplace --ExecutePreprocessor.extra_arguments=--IPKernelApp.extensions=lineapy --debug".split(
+        "jupyter nbconvert --to notebook --execute tests/test_notebook.ipynb --allow-errors --inplace".split(
             " "
         )
     )
-    # Delete it after (will exit cleanly only if it existed)
-    subprocess.check_call(["rm", "tests/tmp.pdf"])
+    # Verify that it exists
+    assert resolve_default_db_path().exists()

@@ -509,7 +509,7 @@ class Tracer:
         location for the assignment is discarded. In the future, if we need
         to trace where in some code a node is assigned, we can record that again.
         """
-        logger.info("assigning %s = %s", variable_name, value_node)
+        logger.debug("assigning %s = %s", variable_name, value_node)
         self.variable_name_to_node[variable_name] = value_node
         return
 

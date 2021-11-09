@@ -3,6 +3,7 @@ Code to transform inputs when running in IPython, to trace them.
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from typing import ClassVar, Literal, Optional
 
@@ -16,6 +17,7 @@ from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.ipython_cell_storage import cleanup_cells, get_cell_path
+from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
 
 
@@ -28,7 +30,7 @@ def start(
     """
     Trace any subsequent cells with linea.
     """
-
+    configure_logging("INFO")
     ipython = ipython or get_ipython()  # type: ignore
 
     # Ipython does not use exceptionhook, so instead we monkeypatch
@@ -76,7 +78,6 @@ def stop(
     ipython = ipython or get_ipython()  # type: ignore
 
     input_transformers_post = ipython.input_transformers_post
-
     # get the first valid input transformer and raise an error if there are more
     # than one
     (input_transformer,) = [
@@ -129,7 +130,6 @@ class LineaInputTransformer:
             "exit()" in lines[0] or "lineapy.ipython.stop()" in lines[0]
         ):
             return lines
-
         execution_count = self.ipython.execution_count
         if self.last_call:
             prev_execution_count, prev_lines = self.last_call

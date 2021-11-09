@@ -9,6 +9,7 @@ Lineapy is a Python library for capturing, analyzing, and automating data scienc
 On a high-level, Linea traces the code executed to get an **"understanding" of the code, and its context**. These understanding of your development process allow Linea to provide a set of tools that help you get more value out of your work.
 
 ### Linea Concepts
+
 A natural unit of organization for these code are variables in the code---both their value and the code used to create them. Our features revolve around these units, which we call _artifacts_.
 
 ## Features
@@ -19,6 +20,7 @@ We are still early in the process, and we currently support the following featur
 - Saving and getting artifacts from different sessions/notebooks/scripts.
 
 ### Future Features
+
 We are working towards a number of other features and have [created issues to describe some of them in Github, tagged with `User Story`](https://github.com/LineaLabs/lineapy/labels/User%20Story), which include:
 
 - Automatic creation of [Airflow DAGs](https://github.com/LineaLabs/lineapy/issues/236) (and related systems) from Linea artifacts. Note that we take a radically different approach that tools like Papermill, because we are actually _analyzing the code_ to automatically instrument the optimizations.
@@ -26,8 +28,6 @@ We are working towards a number of other features and have [created issues to de
 - Hosted storage of Linea artifacts (currently, only the local version is supported).
 
 If you have any feedback for us, please get in touch! We welcome feedback on Github, either by commenting on existing issues or creating new ones. You can also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
-
-
 
 ## Installing
 
@@ -61,6 +61,7 @@ $ pip install -e .
 $ lineapy --slice "p value" tests/housing.py
 ...
 ```
+
 ## Usage
 
 These features are currently exposed via two surfaces, one is the CLI and the other is Jupyter, supporting all notebook interfaces.
@@ -96,51 +97,55 @@ $ lineapy --print-source tests/housing.py --slice 'p value'
 ...
 ```
 
-### Interactive
+### Jupyter and IPython
 
-**⚠️ The user experience for the notebook is still very much in progress and will change in the near future.**
-We have opened [an issue](https://github.com/LineaLabs/lineapy/issues/298) to track some of these pain points. ⚠️
+You can also run Linea interactively in a notebook or IPython.
 
-You can also run Linea from an Juptyer notebook or IPython.
+The easiest way to do this to tell IPython to load the `lineapy` extension
+by default, by setting the `InteractiveShellApp.extensions` extension to include
+`lineapy`.
 
-First, import linea and start the tracing:
-
-```python
-import lineapy.ipython
-lineapy.ipython.start()
-```
-
-Now, ever subsequent cell will be traced. Let's say you run a few more lines
-and publish a result:
+If you are developing from this repository, we have created some ipython config files
+which have this enabled. So you can turn on tracing by telling IPython to look
+at those:
 
 ```python
-import lineapy
-# please follow the `import lineapy` import pattern
+$ env IPYTHONDIR=$PWD/.ipython ipython
+env IPYTHONDIR=$PWD/.ipython ipython
+Python 3.9.7 (default, Sep 16 2021, 08:50:36)
+Type 'copyright', 'credits' or 'license' for more information
+IPython 7.29.0 -- An enhanced Interactive Python. Type '?' for help.
+[16:48:07] INFO     Connecting to Linea DB at sqlite:///.linea/db.sqlite
 
+In [1]: import lineapy
+   ...: x = 100
+   ...: y = x + 500
+   ...: z = x - 10
+   ...: print(lineapy.save(z, "z").code)
 x = 100
-y = x + 500
 z = x - 10
-lineapy.save(z, "z")
 ```
 
-Then you can stop tracing and slice the code:
+This also works for starting `jupyter notebook` or `jupyter lab`, or any other
+frontend which uses the ipython kernel.
 
-```python
-res = lineapy.ipython.stop()
-print(res.slice("z"))
-# Prints out
-# x = 100
-# z = x - 10
-```
+You can also add `c.InteractiveShellApp.extensions = ["lineapy"]`
+to your own IPython config (found by running `ipython locate profile default`).
 
-For a full example, you can look at [`tests/test_notebook.ipynb`](./tests/test_notebook.ipynb)
+_See [`ipython`'s documentation on their configuration](https://ipython.readthedocs.io/en/stable/config/intro.html) for more information_
+
+For a larger example, you can look at [`examples/Explorations.ipynb`](./examples/Explorations.ipynb)
 
 If you have an existing notebook, you can try running it through linea, to see if it
 still works, and to save the resulting graph. For example:
 
 ```bash
-env LINEA_VISUALIZATION_NAME=output_graph jupyter nbconvert --to notebook --execute notebook_name.ipynb --inplace --ExecutePreprocessor.extra_arguments=--IPKernelApp.extensions=lineapy
+env IPYTHONDIR=$PWD/.ipython jupyter nbconvert --to notebook --execute examples/Explorations.ipynb --inplace --allow-errors
 ```
+
+If you would like to change the database that linea talks to, you can use the
+`LINEA_DATABASE_URL` env variable. For example, to set it to `sqlite:///:memory:`
+to use an in memory database instead of writing to disk.
 
 ### Web UI
 

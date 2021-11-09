@@ -116,7 +116,7 @@ class Executor:
 
         - Returns the `SideEffects` of this node that's analyzed at runtime (hence in the executor).
         """
-        logger.info("Executing node %s", node)
+        logger.debug("Executing node %s", node)
 
         # To use if we need to raise an exception and change the frame
         add_frame: list[AddFrame] = []
@@ -158,7 +158,7 @@ class Executor:
                 k: self._id_to_value[arg_id]
                 for k, arg_id in node.keyword_args.items()
             }
-            logger.info("Calling function %s %s %s", fn, args, kwargs)
+            logger.debug("Calling function %s %s %s", fn, args, kwargs)
 
             # Set up our execution context, with our globals and node
             set_context(self, variables, node)
@@ -287,7 +287,7 @@ class Executor:
             return self._implicit_global_to_node[obj]
 
     def execute_graph(self, graph: Graph) -> None:
-        logger.info("Executing graph %s", graph)
+        logger.debug("Executing graph %s", graph)
         prev_working_dir = getcwd()
         chdir(graph.session_context.working_directory)
         for node in graph.visit_order():

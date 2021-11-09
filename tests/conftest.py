@@ -14,7 +14,7 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension
 from lineapy import save
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.utils import MEMORY_DB_URL
+from lineapy.db.utils import MEMORY_DB_URL, resolve_default_db_path
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
@@ -254,12 +254,12 @@ def chdir_test_file():
     os.chdir(current_working_dir)
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(autouse=True)
 def remove_db():
     """
     Remove db before all tests
     """
-    p = Path("linea.sqlite")
+    p = resolve_default_db_path()
     if p.exists():
         p.unlink()
 
