@@ -1,0 +1,5 @@
+# Add coverage file to this directory, so that tests run in a subprocess
+# in this directory will find it and also use branch data.
+# Otherwise this will break when coverage tries to combine files.
+[tool.coverage.run]
+branch = true
