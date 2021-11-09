@@ -112,6 +112,8 @@ def input_transformer_post(lines: list[str]) -> list[str]:
         tracer = Tracer(db, SessionType.JUPYTER, STATE.session_name)
         STATE = CellsExecutedState(STATE.ipython, tracer)
 
+    # Reset display update
+    STATE.visualize_display_object = None
     execution_count = STATE.ipython.execution_count
     if STATE.last_call:
         prev_execution_count, prev_lines = STATE.last_call
@@ -163,7 +165,7 @@ def get_last_value() -> object:
     return STATE.last_value
 
 
-def visualize(live=False) -> None:
+def visualize(*, live=False) -> None:
     """
     Display a visualization of the Linea graph from this session using Graphviz.
 
