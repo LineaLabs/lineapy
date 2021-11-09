@@ -89,13 +89,15 @@ Also we use [pytest's xfail](https://docs.pytest.org/en/latest/how-to/skipping.h
 
 ### Notebooks
 
-We currently have a notebook that is also evaluated in the tests, and the
+We currently have notebooks that are also evaluated in the tests, and the
 outputs are compared.
 
-If you want to update the notebook output, you can run:
+If you want to re-run all the notebooks and update their ouputs, run:
 
 ```bash
-jupyter nbconvert --to notebook --execute tests/test_notebook.ipynb --inplace --log-level=DEBUG
+make notebooks
+# You can also re-run and save a particular notebook with
+make tests/notebook/test_visualize.ipynb
 ```
 
 Or you can open it in a notebook UI (JupyterLab, JupyterNotebook, VS Code, etc.)

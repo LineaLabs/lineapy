@@ -1,11 +1,11 @@
 import atexit
-import os
 
 from lineapy.api import catalog, get, save
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
+from lineapy.execution.context import get_context
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.ipython import start, stop
+from lineapy.ipython import start, stop, visualize
 from lineapy.lineabuiltins import DB, FileSystem
 
 __all__ = [
@@ -18,6 +18,8 @@ __all__ = [
     "ValueType",
     "DB",
     "FileSystem",
+    "_is_executing",
+    "visualize",
     "__version__",
 ]
 
@@ -29,14 +31,17 @@ __version__ = "0.0.1"
 
 
 def load_ipython_extension(ipython):
-    atexit.register(unload_ipython_extension, ipython)
+    atexit.register(stop)
     start(ipython=ipython)
 
 
 def unload_ipython_extension(ipython):
-    stop(
-        ipython=ipython,
-        visualization_filename=os.environ.get(
-            "LINEA_VISUALIZATION_NAME", None
-        ),
-    )
+    stop()
+
+
+def _is_executing() -> bool:
+    try:
+        get_context()
+    except RuntimeError:
+        return False
+    return True

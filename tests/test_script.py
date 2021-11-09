@@ -18,9 +18,7 @@ def test_slice_housing():
     """
     Verifies that the "--slice" CLI command is aliased to the `lienapy` executable
     """
-    subprocess.check_call(
-        ["lineapy", "tests/housing.py", "--slice", "p value"]
-    )
+    subprocess.check_call(["lineapy", "tests/housing.py", "--slice", "p value"])
 
 
 @pytest.mark.slow
@@ -102,7 +100,7 @@ def test_run_from_nbconvert():
     assert not resolve_default_db_path().exists()
     # Run the command that should populate the database
     subprocess.check_call(
-        "jupyter nbconvert --to notebook --execute tests/test_notebook.ipynb --allow-errors --inplace".split(
+        "jupyter nbconvert --to notebook --execute tests/notebook/test_is_executing.ipynb --allow-errors --inplace".split(
             " "
         )
     )

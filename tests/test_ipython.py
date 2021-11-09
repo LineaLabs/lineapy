@@ -23,7 +23,7 @@ def test_result(run_cell):
 
 
 def test_stop(run_cell):
-    assert isinstance(run_cell("lineapy.ipython.stop()"), Tracer)
+    assert run_cell("import lineapy\nlineapy.ipython.stop()") is None
     assert run_cell("10") == 10
 
 
@@ -31,11 +31,9 @@ def test_slice(run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]") is None
     assert run_cell("y = 10") is None
-    assert run_cell(f"x=a[0]\nlineapy.{save.__name__}(x, 'x')")
-    assert (
-        run_cell("tracer = lineapy.ipython.stop()\ntracer.slice('x')")
-        == "a = [1, 2, 3]\nx=a[0]\n"
-    )
+    assert run_cell(f"x=a[0]\na = lineapy.{save.__name__}(x, 'x')") is None
+
+    assert run_cell("a.code") == "a = [1, 2, 3]\nx=a[0]\n"
 
 
 def test_slice_artifact_inline(run_cell):
@@ -75,10 +73,7 @@ def ip_traced(ip):
     """
     An ipython fixture that first enables
     """
-    assert (
-        _run_cell(ip, "import lineapy.ipython\nlineapy.ipython.start()")
-        is None
-    )
+    assert _run_cell(ip, "import lineapy.ipython\nlineapy.ipython.start()") is None
     return ip
 
 

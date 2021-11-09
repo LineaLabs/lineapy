@@ -77,7 +77,7 @@ class RelationalLineaDB:
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         self.url: str = url
         echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
-        logger.info(f"Connecting to Linea DB at {url}")
+        logger.debug(f"Connecting to Linea DB at {url}")
         engine = create_engine(
             url,
             connect_args={"check_same_thread": False},

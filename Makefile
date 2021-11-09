@@ -40,3 +40,16 @@ blackfix:
 typecheck:
 	#docker run --rm -v "${PWD}":/data cytopia/mypy .
 	docker-compose run --rm ${service_name} mypy -p lineapy
+
+# Add pattern for all notebook files
+# https://stackoverflow.com/questions/2483182/recursive-wildcards-in-gnu-make
+NOTEBOOK_FILES = $(shell find . -type f -name '*.ipynb' -not -path '*/.ipynb_checkpoints/*' -not -path './docs/*')
+notebooks: $(NOTEBOOK_FILES)
+
+# Force to be re-run always
+# https://stackoverflow.com/questions/26226106/how-can-i-force-make-to-execute-a-recipe-all-the-time
+%.ipynb: FORCE
+	@echo Running "$@"
+	env IPYTHONDIR=${PWD}/.ipython jupyter nbconvert --to notebook --execute $@ --allow-errors --inplace
+
+FORCE: ;
