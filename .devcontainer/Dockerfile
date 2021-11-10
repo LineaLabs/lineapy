@@ -23,7 +23,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends graphviz
 
 # [Optional] If your pip requirements rarely change, uncomment this section to add them to the image.
-COPY setupy.py /tmp/pip-tmp/
+COPY setup.py /tmp/pip-tmp/
 COPY lineapy/__init__.py /tmp/pip-tmp/lineapy/
 
 RUN pip3 --disable-pip-version-check --no-cache-dir install -e "/tmp/pip-tmp/[dev]" \
