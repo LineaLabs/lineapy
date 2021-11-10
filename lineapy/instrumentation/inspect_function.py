@@ -159,7 +159,7 @@ def is_mutable(obj: object) -> bool:
     """
     Returns true if the object is mutable.
     """
-    
+
     # Assume all hashable objects are immutable
     try:
         hash(obj)
