@@ -81,6 +81,16 @@ def inspect_function(
             yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
             return
 
+    if function == setattr:
+        # setattr(o, attr, value)
+        yield MutatedPointer(PositionalArg(0))
+        if is_mutable(args[2]):
+            yield ViewOfPointers(PositionalArg(2), PositionalArg(0))
+        return
+    if function == getattr:
+        # getattr(o, attr)
+        if is_mutable(args[0]) and is_mutable(result):
+            yield ViewOfPointers(PositionalArg(0), Result())
     # TODO: We should probably not use use setitem, but instead get particular
     # __setitem__ for class so we can differentiate based on type more easily?
     if function == operator.setitem:
@@ -149,6 +159,7 @@ def is_mutable(obj: object) -> bool:
     """
     Returns true if the object is mutable.
     """
+
     # Assume all hashable objects are immutable
     try:
         hash(obj)
