@@ -6,8 +6,13 @@ name: Python
 on:
   push:
     branches: [main]
+    paths:
+      - "**.py"
+      - "**.ipynb"
   pull_request:
-
+    paths:
+      - "**.py"
+      - "**.ipynb"
 jobs:
   pytest:
     runs-on: ubuntu-latest
