@@ -159,10 +159,7 @@ def is_mutable(obj: object) -> bool:
     """
     Returns true if the object is mutable.
     """
-    # Module types are mutable, even though they are hashable
-    if isinstance(obj, types.ModuleType):
-        return True
-
+    
     # Assume all hashable objects are immutable
     try:
         hash(obj)
