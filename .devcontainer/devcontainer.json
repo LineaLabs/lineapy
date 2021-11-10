@@ -22,14 +22,5 @@
       "onAutoForward": "browser-open"
     }
   },
-
-  // Use 'otherPortsAttributes' to configure any ports that aren't configured using 'portsAttributes'.
-  // "otherPortsAttributes": {
-  // 		"onAutoForward": "silent"
-  // },
-
-  // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "pip3 install -r requirements.txt",
-
-  "postAttachCommand": "jupyter lab --ServerApp.token='' --port 8888 --allow-root --ip 0.0.0.0 --ServerApp.allow_origin=*",
+  "postStartCommand": "jupyter lab --ServerApp.token='' --port 8888 --allow-root --ip 0.0.0.0 --ServerApp.allow_origin=*",
 }
