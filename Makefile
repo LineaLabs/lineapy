@@ -48,6 +48,8 @@ notebooks: $(NOTEBOOK_FILES)
 
 # Force to be re-run always
 # https://stackoverflow.com/questions/26226106/how-can-i-force-make-to-execute-a-recipe-all-the-time
+# TODO: Possibly switch to jupyter execute?
+# https://twitter.com/palewire/status/1458083565191655424
 %.ipynb: FORCE
 	@echo Running "$@"
 	env IPYTHONDIR=${PWD}/.ipython jupyter nbconvert --to notebook --execute $@ --allow-errors --inplace

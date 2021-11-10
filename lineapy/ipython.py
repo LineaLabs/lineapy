@@ -162,7 +162,7 @@ def input_transformer_post(lines: list[str]) -> list[str]:
 def _end_cell() -> object:
     """
     Returns the last value that was executed, used when rendering the cell,
-    and also stops the
+    and also stops the tracer if we asked it to stop in the cell.
     """
     global STATE
     if not isinstance(STATE, CellsExecutedState):
@@ -217,14 +217,14 @@ def stop() -> None:
 
 def _optionally_stop(cells_executed_state: CellsExecutedState) -> None:
     """
-    Stop tracing if the `stop()` was called in the cell and should_stop was set
+    Stop tracing if the `stop()` was called in the cell and should_stop was set.
     """
     global STATE
-    STATE = None
 
     # If stop was trigered during in this cell, clean up
     if not cells_executed_state.should_stop:
         return
+    STATE = None
     cells_executed_state.ipython.input_transformers_post.remove(
         input_transformer_post
     )
