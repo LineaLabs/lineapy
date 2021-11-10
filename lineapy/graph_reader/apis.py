@@ -10,7 +10,7 @@ from lineapy.data.types import LineaID, SessionContext
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import NodeValueORM
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.plugins.airflow import slice_to_airflow, sliced_aiflow_dag
+from lineapy.plugins.airflow import slice_to_airflow
 
 """
 User exposed APIs.
