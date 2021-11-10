@@ -20,6 +20,8 @@ from lineapy.ipython_cell_storage import cleanup_cells, get_cell_path
 from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
 
+__all__ = ["_end_cell", "start", "stop", "visualize"]
+
 # The state of the ipython extension works like:
 # 1. Originally starts at `None``, meaning that no ipython transformations are active
 # 2. After calling `start`, it transitions to `Started`, which means that the
@@ -60,6 +62,11 @@ class CellsExecutedState:
 
     # the last expression value execute, will be what is displayed in the cell
     last_value: object = field(default=None)
+
+    # This is set to true, if `stop()` is called in the cell
+    # to signal that at the end of this cell we should stop tracing.
+    # We don't stop immediatetly, so we can return the proper value from the cell
+    should_stop: bool = field(default=False)
 
     def create_visualize_display_object(self) -> DisplayObject:
         """
@@ -139,30 +146,30 @@ def input_transformer_post(lines: list[str]) -> list[str]:
     # Return the last value so it will be printed, if we don't end
     # in a semicolon
     ends_with_semicolon = lines and lines[-1].strip().endswith(";")
-
     if not ends_with_semicolon and last_node:
         STATE.last_value = STATE.tracer.executor.get_value(last_node)
-        # We are adding the following lines to the transpiled python code
-        #   it's a little hacky right now since we rely on others not
-        #   having any input_transformers (hence the `[0]`).
-        # The `last_value` is tracked by this class, `LineaInputTransformer`.
-        lines = [
-            "import lineapy.ipython\n",
-            "lineapy.ipython.get_last_value()\n",
-        ]
     else:
-        lines = []
+        STATE.last_value = None
+    lines = [
+        "import lineapy.ipython\n",
+        "lineapy.ipython._end_cell()\n",
+    ]
     STATE.last_call = (execution_count, lines)
+
     return lines
 
 
-def get_last_value() -> object:
+def _end_cell() -> object:
     """
-    Gets the last value that was executed, used when rendering the cell
+    Returns the last value that was executed, used when rendering the cell,
+    and also stops the
     """
+    global STATE
     if not isinstance(STATE, CellsExecutedState):
         raise ValueError("We need to be executing cells to get the last value")
-    return STATE.last_value
+    value = STATE.last_value
+    _optionally_stop(STATE)
+    return value
 
 
 def visualize(*, live=False) -> None:
@@ -198,19 +205,30 @@ def visualize(*, live=False) -> None:
 
 def stop() -> None:
     """
-    Stop tracing.
+    Tell the tracer to stop after this cell
     """
-    global STATE
     if not STATE:
-        # We have already stopped
         return
 
     if not isinstance(STATE, CellsExecutedState):
         raise RuntimeError("Cannot stop executing if we haven't started yet.")
+    STATE.should_stop = True
 
-    STATE.ipython.input_transformers_post.remove(input_transformer_post)
-    STATE.tracer.db.close()
+
+def _optionally_stop(cells_executed_state: CellsExecutedState) -> None:
+    """
+    Stop tracing if the `stop()` was called in the cell and should_stop was set
+    """
+    global STATE
     STATE = None
+
+    # If stop was trigered during in this cell, clean up
+    if not cells_executed_state.should_stop:
+        return
+    cells_executed_state.ipython.input_transformers_post.remove(
+        input_transformer_post
+    )
+    cells_executed_state.tracer.db.close()
     # Remove the cells we stored
     cleanup_cells()
     # Reset the exception handling

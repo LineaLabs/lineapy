@@ -86,8 +86,10 @@ def _run_cell(ip: InteractiveShell, cell: str) -> object:
 
     # Set store_history to True to get execution_counts added to cells
     res = ip.run_cell(cell, store_history=True)
-    assert not res.error_before_exec
-    assert not res.error_in_exec
+    if res.error_before_exec:
+        raise res.error_before_exec
+    if res.error_in_exec:
+        raise res.error_in_exec
     return res.result
 
 
