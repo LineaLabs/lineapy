@@ -26,6 +26,8 @@ to run linting before commiting:
 pre-commit install
 # To manually run hooks:
 pre-commit
+# To force a run even when there are no changes
+pre-commit run --all-files
 ```
 
 Note that the pre-commit hook does not run the tests, since these are time
