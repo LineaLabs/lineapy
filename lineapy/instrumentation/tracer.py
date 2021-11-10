@@ -51,6 +51,7 @@ class Tracer:
 
     session_type: InitVar[SessionType]
     session_name: InitVar[Optional[str]] = None
+    globals_: InitVar[Optional[dict[str, object]]] = None
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
@@ -88,7 +89,10 @@ class Tracer:
     executor: Executor = field(init=False)
 
     def __post_init__(
-        self, session_type: SessionType, session_name: Optional[str]
+        self,
+        session_type: SessionType,
+        session_name: Optional[str],
+        globals_: Optional[dict[str, object]],
     ):
         """
         Tracer is internal to Linea and it implements the "hidden APIs"
@@ -101,7 +105,7 @@ class Tracer:
             to the ID responsible for its creation
         - Executes the program, using the `Executor`.
         """
-        self.executor = Executor(self.db)
+        self.executor = Executor(self.db, globals_ or globals())
         self.session_context = SessionContext(
             id=get_new_id(),
             environment_type=session_type,

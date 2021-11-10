@@ -238,7 +238,7 @@ class ExecuteFixture:
         if test_re_execution:
             # Verify that execution works again, loading from the DB, in a new dir
             new_db = RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
-            new_executor = Executor(new_db)
+            new_executor = Executor(new_db, globals())
 
             current_working_dir = os.getcwd()
             os.chdir(self.tmp_path)

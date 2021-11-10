@@ -31,7 +31,6 @@ def start(
     """
 
     ipython = ipython or get_ipython()  # type: ignore
-
     # Ipython does not use exceptionhook, so instead we monkeypatch
     # how it processes the exceptions, in order to add our handler
     # that removes the outer frames.
@@ -49,7 +48,11 @@ def start(
     assert not linea_input_transformers, "Already tracing"
 
     db = RelationalLineaDB.from_environment(execution_mode)
-    tracer = Tracer(db, SessionType.JUPYTER, session_name)
+
+    # pass in globals from ipython so that `get_ipthon()` works
+    # and things like `!cat df.csv` work in the notebook
+    ipython_globals = ipython.user_global_ns
+    tracer = Tracer(db, SessionType.JUPYTER, session_name, ipython_globals)
 
     # Create a display handler so that we can update the SVG visualization
     # after each cell

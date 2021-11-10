@@ -1,3 +1,5 @@
+from typing import Optional
+
 from black import FileMode, format_str
 
 from lineapy.graph_reader.program_slice import (
@@ -42,9 +44,20 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     if not artifact_var:
         return "Unable to extract the slice"
     slice_code = get_program_slice(tracer.graph, [artifact.id])
+    return slice_to_airflow(slice_code, func_name, artifact_var)
+
+
+def slice_to_airflow(
+    sliced_code: str, func_name: str, variable: Optional[str] = None
+) -> str:
+    """
+    Transforms sliced code into airflow code.
+
+    If the variable is passed in, this will be printed at the end of the airflow block.
+    """
     # We split the code in import and code blocks and join them to full code test
     import_block, code_block, main_block = split_code_blocks(
-        slice_code, func_name
+        sliced_code, func_name
     )
     full_code = (
         import_block
@@ -52,7 +65,9 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
         + AIRFLOW_IMPORTS_TEMPLATE
         + "\n\n"
         + code_block
-        + f"\n\tprint({artifact_var})"  # TODO What to do with artifact_var in a DAG?
+        + (
+            f"\n\tprint({variable})" if variable else ""
+        )  # TODO What to do with artifact_var in a DAG?
         + "\n\n"
         + AIRFLOW_MAIN_TEMPLATE.replace("DAG_NAME", func_name)
     )
