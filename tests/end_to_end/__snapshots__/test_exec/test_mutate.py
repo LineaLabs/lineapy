@@ -5,20 +5,19 @@ from lineapy.utils import get_new_id
 
 source_1 = SourceCode(
     code="""import lineapy
-def f():
-    a.append(1)
-a = []
-f()
+x = []
+if True:
+    x.append(1)
 
-lineapy.save(a, \'a\')
+lineapy.save(x, \'x\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_2 = CallNode(
+call_1 = CallNode(
     source_location=SourceLocation(
-        lineno=4,
+        lineno=2,
         col_offset=4,
-        end_lineno=4,
+        end_lineno=2,
         end_col_offset=6,
         source_code=source_1.id,
     ),
@@ -26,19 +25,19 @@ call_2 = CallNode(
         name="l_list",
     ).id,
 )
-call_5 = CallNode(
+call_4 = CallNode(
     source_location=SourceLocation(
-        lineno=7,
+        lineno=6,
         col_offset=0,
-        end_lineno=7,
+        end_lineno=6,
         end_col_offset=20,
         source_code=source_1.id,
     ),
     function_id=CallNode(
         source_location=SourceLocation(
-            lineno=7,
+            lineno=6,
             col_offset=0,
-            end_lineno=7,
+            end_lineno=6,
             end_col_offset=12,
             source_code=source_1.id,
         ),
@@ -65,48 +64,36 @@ call_5 = CallNode(
     ).id,
     positional_args=[
         MutateNode(
-            source_id=call_2.id,
+            source_id=call_1.id,
             call_id=CallNode(
                 source_location=SourceLocation(
-                    lineno=5,
+                    lineno=3,
                     col_offset=0,
-                    end_lineno=5,
-                    end_col_offset=3,
+                    end_lineno=4,
+                    end_col_offset=15,
                     source_code=source_1.id,
                 ),
-                function_id=GlobalNode(
-                    name="f",
-                    call_id=CallNode(
-                        source_location=SourceLocation(
-                            lineno=2,
-                            col_offset=0,
-                            end_lineno=3,
-                            end_col_offset=15,
-                            source_code=source_1.id,
-                        ),
-                        function_id=LookupNode(
-                            name="l_exec_statement",
-                        ).id,
-                        positional_args=[
-                            LiteralNode(
-                                value="""def f():
-    a.append(1)""",
-                            ).id
-                        ],
-                    ).id,
+                function_id=LookupNode(
+                    name="l_exec_statement",
                 ).id,
-                global_reads={"a": call_2.id},
+                positional_args=[
+                    LiteralNode(
+                        value="""if True:
+    x.append(1)""",
+                    ).id
+                ],
+                global_reads={"x": call_1.id},
             ).id,
         ).id,
         LiteralNode(
             source_location=SourceLocation(
-                lineno=7,
+                lineno=6,
                 col_offset=16,
-                end_lineno=7,
+                end_lineno=6,
                 end_col_offset=19,
                 source_code=source_1.id,
             ),
-            value="a",
+            value="x",
         ).id,
     ],
 )

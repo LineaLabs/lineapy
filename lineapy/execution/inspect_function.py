@@ -6,7 +6,7 @@ import types
 from dataclasses import dataclass
 from typing import Callable, Iterable, Union
 
-from lineapy import lineabuiltins
+from lineapy.lineabuiltins import ExternalState, db, file_system, l_list
 
 
 def inspect_function(
@@ -14,20 +14,15 @@ def inspect_function(
     args: list[object],
     kwargs: dict[str, object],
     result: object,
-) -> Iterable[
-    Union[ViewOfPointers, MutatedPointer, ImplicitDependencyPointer]
-]:
+) -> InspectFunctionSideEffects:
     """
     Inspects a function and returns how calling it mutates the args/result and
     creates view relationships between them.
     """
     if function == open:
-        yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+        yield ImplicitDependencyValue(file_system)
         return
-    # TODO: Make this work without infinite recursion
-    # if function in (lineabuiltins.DB, lineabuiltins.FileSystem):
-    #     yield ImplicitDependencyPointer(Global(function()))
-    #     return
+
     if imported_module("pandas"):
         import pandas
 
@@ -36,7 +31,7 @@ def inspect_function(
             and function.__name__ == "to_sql"
             and isinstance(function.__self__, pandas.DataFrame)
         ):
-            yield MutatedPointer(Global(lineabuiltins.DB()))
+            yield MutatedValue(db)
             return
 
         if (
@@ -44,7 +39,7 @@ def inspect_function(
             and function.__name__ == "read_sql"
             and function.__module__ == "pandas.io.sql"
         ):
-            yield ImplicitDependencyPointer(Global(lineabuiltins.DB()))
+            yield ImplicitDependencyValue(db)
             return
 
         if (
@@ -52,7 +47,7 @@ def inspect_function(
             and function.__name__ == "to_csv"
             and isinstance(function.__self__, pandas.DataFrame)
         ):
-            yield MutatedPointer(Global(lineabuiltins.FileSystem()))
+            yield MutatedValue(file_system)
             return
 
         if (
@@ -60,7 +55,7 @@ def inspect_function(
             and function.__name__ == "read_csv"
             and function.__module__ == "pandas.io.parsers.readers"
         ):
-            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+            yield ImplicitDependencyValue(file_system)
             return
 
     if imported_module("PIL.Image"):
@@ -71,48 +66,48 @@ def inspect_function(
             and function.__name__ == "save"
             and isinstance(function.__self__, Image)
         ):
-            yield MutatedPointer(Global(lineabuiltins.FileSystem()))
+            yield MutatedValue(file_system)
             return
         if (
             isinstance(function, types.FunctionType)
             and (function.__name__ == "open")
             and (function.__module__ == "PIL.Image")
         ):
-            yield ImplicitDependencyPointer(Global(lineabuiltins.FileSystem()))
+            yield ImplicitDependencyValue(file_system)
             return
 
     if function == setattr:
         # setattr(o, attr, value)
-        yield MutatedPointer(PositionalArg(0))
+        yield MutatedValue(PositionalArg(0))
         if is_mutable(args[2]):
-            yield ViewOfPointers(PositionalArg(2), PositionalArg(0))
+            yield ViewOfValues(PositionalArg(2), PositionalArg(0))
         return
     if function == getattr:
         # getattr(o, attr)
         if is_mutable(args[0]) and is_mutable(result):
-            yield ViewOfPointers(PositionalArg(0), Result())
+            yield ViewOfValues(PositionalArg(0), Result())
     # TODO: We should probably not use use setitem, but instead get particular
     # __setitem__ for class so we can differentiate based on type more easily?
     if function == operator.setitem:
         # setitem(dict, key, value)
-        yield MutatedPointer(PositionalArg(0))
+        yield MutatedValue(PositionalArg(0))
         if is_mutable(args[2]):
-            yield ViewOfPointers(PositionalArg(2), PositionalArg(0))
+            yield ViewOfValues(PositionalArg(2), PositionalArg(0))
         return
 
     if function == operator.getitem:
         # getitem(dict, key)
         # If both are mutable, they are now views of one another!
         if is_mutable(args[0]) and is_mutable(result):
-            yield ViewOfPointers(PositionalArg(0), Result())
+            yield ViewOfValues(PositionalArg(0), Result())
             return
     if function == operator.delitem:
         # delitem(dict, key)
-        yield MutatedPointer(PositionalArg(0))
+        yield MutatedValue(PositionalArg(0))
         return
-    if function == lineabuiltins.l_list:
+    if function == l_list:
         # l_build_list(x1, x2, ...)
-        yield ViewOfPointers(
+        yield ViewOfValues(
             Result(),
             *(PositionalArg(i) for i, a in enumerate(args) if is_mutable(a)),
         )
@@ -123,9 +118,9 @@ def inspect_function(
         and isinstance(function.__self__, list)
     ):
         # list.append(value)
-        yield MutatedPointer(BoundSelfOfFunction())
+        yield MutatedValue(BoundSelfOfFunction())
         if is_mutable(args[0]):
-            yield ViewOfPointers(BoundSelfOfFunction(), PositionalArg(0))
+            yield ViewOfValues(BoundSelfOfFunction(), PositionalArg(0))
         return
 
     if imported_module("sklearn"):
@@ -140,8 +135,8 @@ def inspect_function(
             # cff is mutated, and we say that the res and the clf
             # are views of each other, since mutating one will mutate the other
             # since they are the same object.
-            yield MutatedPointer(BoundSelfOfFunction())
-            yield ViewOfPointers(BoundSelfOfFunction(), Result())
+            yield MutatedValue(BoundSelfOfFunction())
+            yield ViewOfValues(BoundSelfOfFunction(), Result())
             return
     # Note: Future functions might require normalizing the args/kwargs with
     # inspect.signature.bind(args, kwargs) first
@@ -166,6 +161,40 @@ def is_mutable(obj: object) -> bool:
     except Exception:
         return True
     return False
+
+
+@dataclass
+class ViewOfValues:
+    """
+    A set of values which all potentially refer to shared pointers
+    So that if one is mutated, the rest might be as well.
+    """
+
+    # They are unique, like a set, but ordered for deterministc behaviour
+    pointers: list[ValuePointer]
+
+    def __init__(self, *xs: ValuePointer) -> None:
+        self.pointers = list(xs)
+
+
+@dataclass(frozen=True)
+class MutatedValue:
+    """
+    A value that is mutated when the function is called
+    """
+
+    pointer: ValuePointer
+
+
+@dataclass(frozen=True)
+class ImplicitDependencyValue:
+    pointer: ValuePointer
+
+
+InspectFunctionSideEffect = Union[
+    ViewOfValues, MutatedValue, ImplicitDependencyValue
+]
+InspectFunctionSideEffects = Iterable[InspectFunctionSideEffect]
 
 
 @dataclass(frozen=True)
@@ -197,41 +226,11 @@ class Result:
     pass
 
 
-@dataclass(frozen=True)
-class Global:
-    """
-    An internal implicit global used for side effects.
-    """
-
-    value: object
-
-
-Pointer = Union[PositionalArg, KeywordArg, Result, BoundSelfOfFunction, Global]
-
-
-@dataclass
-class ViewOfPointers:
-    """
-    A set of values which all potentially refer to shared pointers
-    So that if one is mutated, the rest might be as well.
-    """
-
-    # They are unique, like a set, but ordered for deterministc behaviour
-    pointers: list[Pointer]
-
-    def __init__(self, *xs: Pointer) -> None:
-        self.pointers = list(xs)
-
-
-@dataclass(frozen=True)
-class MutatedPointer:
-    """
-    A value that is mutated when the function is called
-    """
-
-    pointer: Pointer
-
-
-@dataclass(frozen=True)
-class ImplicitDependencyPointer:
-    pointer: Pointer
+# A value representing a pointer to some value related to a function call
+ValuePointer = Union[
+    PositionalArg,
+    KeywordArg,
+    Result,
+    BoundSelfOfFunction,
+    ExternalState,
+]

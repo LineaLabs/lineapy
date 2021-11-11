@@ -6,7 +6,7 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.ipython import start, stop
-from lineapy.lineabuiltins import DB, FileSystem
+from lineapy.lineabuiltins import db, file_system
 
 __all__ = [
     "Graph",
@@ -17,8 +17,8 @@ __all__ = [
     "SessionType",
     "ExecutionMode",
     "ValueType",
-    "DB",
-    "FileSystem",
+    "db",
+    "file_system",
     "__version__",
 ]
 

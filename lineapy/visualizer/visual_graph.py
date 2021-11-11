@@ -54,7 +54,7 @@ class VisualGraphOptions:
     show_implied_mutations: bool = field(default=True)
 
     # Whether to add edges for the views kept in the tracer
-    show_views: bool = field(default=True)
+    show_views: bool = field(default=False)
 
     # Whether to show source code in the graph
     show_code: bool = field(default=False)

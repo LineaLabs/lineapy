@@ -1,18 +1,31 @@
 from dataclasses import dataclass
-from typing import Callable, List, Mapping, Optional, TypeVar, Union
+from typing import List, Mapping, Optional, Protocol, TypeVar, Union
 
 from lineapy.execution.context import get_context
 from lineapy.ipython_cell_storage import get_location_path
 
 # Keep a list of builtin functions we want to expose to the user as globals
-_builtin_functions: list[Callable] = []
+# Then at the end, make a dict out of all of them, from their names
 
 
+class HasName(Protocol):
+    @property
+    def __name__(self) -> str:
+        ...
+
+
+_builtins: list[HasName] = []
+HAS_NAME = TypeVar("HAS_NAME", bound=HasName)
+
+
+def register(b: HAS_NAME) -> HAS_NAME:
+    _builtins.append(b)
+    return b
+
+
+@register
 def l_list(*items) -> List:
     return list(items)
-
-
-_builtin_functions.append(l_list)
 
 
 class _DictKwargsSentinel(object):
@@ -27,17 +40,16 @@ class _DictKwargsSentinel(object):
     pass
 
 
+@register
 def l_dict_kwargs_sentinel() -> _DictKwargsSentinel:
     return _DictKwargsSentinel()
-
-
-_builtin_functions.append(l_dict_kwargs_sentinel)
 
 
 K = TypeVar("K")
 V = TypeVar("V")
 
 
+@register
 def l_dict(
     *keys_and_values: Union[
         tuple[K, V], tuple[_DictKwargsSentinel, Mapping[K, V]]
@@ -65,24 +77,17 @@ def l_dict(
     return d
 
 
-_builtin_functions.append(l_dict)
-
-
+@register
 def l_tuple(*items) -> tuple:
     return items
 
 
-_builtin_functions.append(l_tuple)
-
-
+@register
 def l_assert(v: object, message: Optional[str] = None) -> None:
     if message is None:
         assert v
     else:
         assert v, message
-
-
-_builtin_functions.append(l_assert)
 
 
 # Magic variable name used internally in the `__exec__` function, when we
@@ -91,6 +96,7 @@ _builtin_functions.append(l_assert)
 _EXEC_EXPRESSION_SAVED_NAME = "__linea_expresion__"
 
 
+@register
 def l_exec_statement(code: str) -> None:
     """
     Execute the `code` with `input_locals` set as locals,
@@ -116,9 +122,7 @@ def l_exec_statement(code: str) -> None:
     exec(bytecode, context.global_variables)
 
 
-_builtin_functions.append(l_exec_statement)
-
-
+@register
 def l_exec_expr(code: str) -> object:
     """
     Execute the `code` with `input_locals` set as locals,
@@ -138,20 +142,20 @@ def l_exec_expr(code: str) -> object:
     return res
 
 
-_builtin_functions.append(l_exec_expr)
-
-
 @dataclass(frozen=True)
-class FileSystem:
-    pass
+class ExternalState:
+    """
+    Represents some reference to some state outside of the Python program.
+
+    If we ever make a reference to an external state instance, we assume
+    that it depends on any mutations of previous references.
+    """
+
+    __name__: str
 
 
-@dataclass(frozen=True)
-class DB:
-    pass
+file_system = register(ExternalState("file_system"))
+db = register(ExternalState("db"))
 
 
-_builtin_functions.append(FileSystem)
-_builtin_functions.append(DB)
-
-LINEA_BUILTINS = {f.__name__: f for f in _builtin_functions}
+LINEA_BUILTINS = {f.__name__: f for f in _builtins}
