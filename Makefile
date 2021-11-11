@@ -41,6 +41,8 @@ typecheck:
 	#docker run --rm -v "${PWD}":/data cytopia/mypy .
 	docker-compose run --rm ${service_name} mypy -p lineapy
 
+export IPYTHONDIR=${PWD}/.ipython
+
 # Add pattern for all notebook files
 # https://stackoverflow.com/questions/2483182/recursive-wildcards-in-gnu-make
 NOTEBOOK_FILES = $(shell find . -type f -name '*.ipynb' -not -path '*/.ipynb_checkpoints/*' -not -path './docs/*')
@@ -55,3 +57,23 @@ notebooks: $(NOTEBOOK_FILES)
 	env IPYTHONDIR=${PWD}/.ipython jupyter nbconvert --to notebook --execute $@ --allow-errors --inplace
 
 FORCE: ;
+
+airflow_venv:
+	python -m venv airflow_venv
+	./airflow_venv/bin/pip install --disable-pip-version-check -r airflow-requirements.txt
+
+airflow: airflow_venv
+	mkdir -p airflow
+	cp -f airflow_webserver_config.py airflow/webserver_config.py
+
+export AIRFLOW_HOME=${PWD}/airflow
+
+airflow_start: airflow
+	env AIRFLOW__CORE__LOAD_EXAMPLES=False \
+		AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=1 \
+		AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL=1 \
+		bash -c 'source airflow_venv/bin/activate && airflow standalone'
+
+
+jupyterlab_start:
+	jupyter lab --ServerApp.token='' --port 8888 --allow-root --ip 0.0.0.0 --ServerApp.allow_origin=*

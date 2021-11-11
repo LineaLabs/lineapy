@@ -164,3 +164,5 @@ tests/dags
 test.csv
 test2.csv
 TODO
+airflow_venv
+airflow

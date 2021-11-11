@@ -197,3 +197,9 @@ brew install act
 act
 # When it prompts, the "medium" image seems to work out alright.
 ```
+
+## Airflow
+
+In some of our tests, we write an airflow DAG. If we want to test actually
+executing this DAG, we can start airflow. Then when we execute the notebook
+to produce airflow

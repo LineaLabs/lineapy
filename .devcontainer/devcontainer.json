@@ -12,7 +12,7 @@
   "extensions": ["ms-python.python", "ms-python.vscode-pylance"],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [8888],
+  "forwardPorts": [8888, 8080],
   // Like the SSH plugin, we run jupyter by default in the command for the script
   // and tell codespaces not to override it
   // https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/sshd.md#usage-in-a-dockerfile
@@ -22,6 +22,10 @@
   "portsAttributes": {
     "8888": {
       "label": "Jupyter Lab",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Airflow",
       "onAutoForward": "notify"
     }
   },
