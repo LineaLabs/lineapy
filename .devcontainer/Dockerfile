@@ -8,7 +8,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 COPY setup.py /workspaces/lineapy/
 COPY lineapy/__init__.py /workspaces/lineapy/lineapy/
 
-RUN pip --no-cache-dir install -e "/workspaces/lineapy/[dev]" \
+RUN pip --no-cache-dir --disable-pip-version-check install -e "/workspaces/lineapy/[dev]" \
    && rm -rf /workspaces/lineapy
 
 ENV IPYTHONDIR=/workspaces/lineapy/.ipython
