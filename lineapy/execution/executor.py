@@ -45,7 +45,7 @@ from lineapy.execution.inspect_function import (
 )
 from lineapy.ipython_cell_storage import get_location_path
 from lineapy.lineabuiltins import LINEA_BUILTINS, ExternalState
-from lineapy.utils import get_new_id, listify
+from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 

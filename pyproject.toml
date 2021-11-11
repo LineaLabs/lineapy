@@ -5,7 +5,7 @@ exclude = '__snapshots__'
 [tool.isort]
 profile = "black"
 skip_gitignore = true
-skip = ["__snapshots__"]
+skip = ["__snapshots__", "airflow_venv"]
 line_length = 79
 
 [tool.coverage.run]

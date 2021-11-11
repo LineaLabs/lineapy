@@ -78,14 +78,14 @@ def inspect_function(
 
     if function == setattr:
         # setattr(o, attr, value)
-        yield MutatedPointer(PositionalArg(0))
+        yield MutatedValue(PositionalArg(0))
         if is_mutable(args[2]):
-            yield ViewOfPointers(PositionalArg(2), PositionalArg(0))
+            yield ViewOfValues(PositionalArg(2), PositionalArg(0))
         return
     if function == getattr:
         # getattr(o, attr)
         if is_mutable(args[0]) and is_mutable(result):
-            yield ViewOfPointers(PositionalArg(0), Result())
+            yield ViewOfValues(PositionalArg(0), Result())
     # TODO: We should probably not use use setitem, but instead get particular
     # __setitem__ for class so we can differentiate based on type more easily?
     if function == operator.setitem:
