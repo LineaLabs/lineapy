@@ -55,8 +55,5 @@ def test_run_airflow(virtualenv, tmp_path):
     # We create a new DB for airflow for testing, so it's reproducible
     virtualenv.run("airflow db init", capture=False)
     virtualenv.run(
-        "airflow dags test sliced_housing_dag_dag 2020-10-19",
-        capture=False,
-        # Change working directory to tests, so that it will find the data file
-        cd="tests",
+        "airflow dags test sliced_housing_dag_dag 2020-10-19", capture=False
     )

@@ -14,6 +14,7 @@ from typing import Optional
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
+from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.plugins.airflow import slice_to_airflow
 
@@ -68,7 +69,22 @@ class LineaArtifact:
 
         If a filename is not passed in, will write the dag to the airflow home.
         """
-        airflow_code = slice_to_airflow(self.code, self.name)
+        # We have to look up the session based on the node, since
+        # thats where we save the working directory.
+        # TODO: Move into DB and make session a relation of node.
+        node_orm = (
+            self.db.session.query(BaseNodeORM)
+            .filter(BaseNodeORM.id == self.node_id)
+            .one()
+        )
+        session_orm = (
+            self.db.session.query(SessionContextORM)
+            .filter(SessionContextORM.id == node_orm.session_id)
+            .one()
+        )
+        working_dir = Path(session_orm.working_directory)
+
+        airflow_code = slice_to_airflow(self.code, self.name, working_dir)
         if filename:
             path = Path(filename)
         else:
@@ -79,9 +95,8 @@ class LineaArtifact:
             )
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(airflow_code)
-        logger.info(
-            "Added Airflow DAG named '%s'. Start a run from the Airflow UI or CLI.",
-            self.name,
+        print(
+            f"Added Airflow DAG named '{self.name}'. Start a run from the Airflow UI or CLI."
         )
         return path
 

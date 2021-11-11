@@ -1,7 +1,9 @@
+from pathlib import Path
 from typing import Optional
 
 from black import FileMode, format_str
 
+from lineapy.config import linea_folder
 from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
@@ -44,11 +46,19 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     if not artifact_var:
         return "Unable to extract the slice"
     slice_code = get_program_slice(tracer.graph, [artifact.node_id])
-    return slice_to_airflow(slice_code, func_name, artifact_var)
+    return slice_to_airflow(
+        slice_code,
+        func_name,
+        Path(tracer.session_context.working_directory),
+        artifact_var,
+    )
 
 
 def slice_to_airflow(
-    sliced_code: str, func_name: str, variable: Optional[str] = None
+    sliced_code: str,
+    func_name: str,
+    working_directory: Path,
+    variable: Optional[str] = None,
 ) -> str:
     """
     Transforms sliced code into airflow code.
@@ -59,10 +69,18 @@ def slice_to_airflow(
     import_block, code_block, main_block = split_code_blocks(
         sliced_code, func_name
     )
+
+    working_dir_str = repr(
+        str(working_directory.relative_to((linea_folder() / "..").resolve()))
+    )
     full_code = (
-        import_block
+        "from os import chdir\n"
+        + import_block
         + "\n"
         + AIRFLOW_IMPORTS_TEMPLATE
+        + "\n\n"
+        # Change directory before executing to proper place
+        + f"chdir({working_dir_str})"
         + "\n\n"
         + code_block
         + (
