@@ -9,7 +9,7 @@ WORKDIR /workspaces/lineapy
 COPY . /workspaces/lineapy
 
 # Create airflow venv
-RUN make airflow_venv
+RUN make /tmp/airflow_venv
 
 # Install lineapy requirements
 RUN pip --no-cache-dir --disable-pip-version-check install -e ".[dev]"
