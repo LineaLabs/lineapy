@@ -22,11 +22,11 @@
   "portsAttributes": {
     "8888": {
       "label": "Jupyter Lab",
-      "onAutoForward": "browser-open"
+      "onAutoForward": "notify"
     }
   },
   "otherPortsAttributes": {
-    "onAutoForward": "silent"
+    "onAutoForward": "ignore"
   },
   // Reinstall since the directory is new
   "postStartCommand": "pip install -e .[dev]"
