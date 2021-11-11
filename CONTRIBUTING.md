@@ -48,10 +48,13 @@ Login and password will be printed on command line output. Please note that this
 
 ### Codespaces
 
-You can also run this in Codespaces. To test this, you can use:
+You can also run this in Codespaces.
+
+To test this the container, you can use:
 
 ```bash
-
+docker build -t lineapy -f .devcontainer/Dockerfile .
+docker run --rm -p 8080:8080 -p 8888:8888 -v $PWD:/workspaces/lineapy lineapy
 ```
 
 ## Debugging (in VSC)
