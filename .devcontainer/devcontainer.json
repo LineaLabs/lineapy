@@ -13,7 +13,7 @@
   "extensions": ["ms-python.python", "ms-python.vscode-pylance"],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  // "forwardPorts": [9000],
+  "forwardPorts": [8888],
 
   // Use 'portsAttributes' to set default properties for specific forwarded ports. More info: https://code.visualstudio.com/docs/remote/devcontainerjson-reference.
   "portsAttributes": {
@@ -22,5 +22,10 @@
       "onAutoForward": "browser-open"
     }
   },
-  "postStartCommand": "jupyter lab --ServerApp.token='' --port 8888 --allow-root --ip 0.0.0.0 --ServerApp.allow_origin=*",
+  "otherPortsAttributes": {
+			"onAutoForward": "silent"
+	},
+  // Reinstall since the directory is new
+  "postStartCommand": "pip install -e .[dev]",
 }
+

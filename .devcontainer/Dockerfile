@@ -5,8 +5,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends graphviz \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-COPY setup.py /tmp/pip-tmp/
-COPY lineapy/__init__.py /tmp/pip-tmp/lineapy/
+COPY setup.py /workspaces/lineapy/
+COPY lineapy/__init__.py /workspaces/lineapy/lineapy/
 
-RUN pip --no-cache-dir install -e "/tmp/pip-tmp/[dev]" \
-   && rm -rf /tmp/pip-tmp
+RUN pip --no-cache-dir install -e "/workspaces/lineapy/[dev]" \
+   && rm -rf /workspaces/lineapy
