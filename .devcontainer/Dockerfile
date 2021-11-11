@@ -5,11 +5,11 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends graphviz \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-COPY setup.py /workspaces/lineapy/
-COPY lineapy/__init__.py /workspaces/lineapy/lineapy/
+WORKDIR /workspaces/lineapy
+COPY setup.py .
+COPY lineapy/__init__.py ./lineapy/
 
-RUN pip --no-cache-dir --disable-pip-version-check install -e "/workspaces/lineapy/[dev]" \
-   && rm -rf /workspaces/lineapy
+RUN pip --no-cache-dir --disable-pip-version-check install -e ".[dev]"
 
 ENV IPYTHONDIR=/workspaces/lineapy/.ipython
 
