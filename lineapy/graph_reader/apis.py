@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import cached_property
+from pathlib import Path
 from typing import Any, Optional
 
 from lineapy.data.graph import Graph
@@ -9,6 +10,7 @@ from lineapy.data.types import LineaID, SessionContext
 from lineapy.db.relational.db import RelationalLineaDB
 from lineapy.db.relational.schema.relational import NodeValueORM
 from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.plugins.airflow import slice_to_airflow
 
 """
 User exposed APIs.
@@ -31,11 +33,8 @@ class LineaArtifact:
       we expose to users.
     """
 
-    def __init__(
-        self,
-        db: RelationalLineaDB,
-        node_id: LineaID,
-    ):
+    def __init__(self, db: RelationalLineaDB, node_id: LineaID, name: str):
+        self.name = name
         # Refactored to not be properties for easier debugging...
         self.db: RelationalLineaDB = db
         self._node_id = node_id
@@ -56,7 +55,7 @@ class LineaArtifact:
         cls, artifact_name: str, db: RelationalLineaDB
     ) -> LineaArtifact:
         artifact = db.get_artifact_by_name(artifact_name)
-        return cls(db, artifact.id)
+        return cls(db, artifact.id, artifact_name)
 
     @cached_property
     def _node_value_orm(self) -> Optional[NodeValueORM]:
@@ -72,6 +71,14 @@ class LineaArtifact:
             return self._node_value_orm.value
         else:
             return None
+
+    def to_airflow(self, path: str) -> None:
+        """
+        Writes the airflow job to a path on disk.
+        """
+        airflow_code = slice_to_airflow(self.code, self.name)
+        Path(path).write_text(airflow_code)
+        return None
 
 
 class LineaCatalog:

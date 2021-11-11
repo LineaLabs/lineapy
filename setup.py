@@ -46,14 +46,10 @@ setup(
     url=URL,
     download_url=DOWNLOAD_URL,
     license=LICENSE,
-    classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
-    ],
+    classifiers=["Development Status :: 2 - Pre-Alpha"],
     packages=find_packages(),
     # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
-    entry_points={
-        "console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"],
-    },
+    entry_points={"console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"]},
     install_requires=[
         "Pillow",
         "astor",
@@ -88,6 +84,7 @@ setup(
             "coveralls",
             "seaborn",
             "graphviz",
+            "pre-commit",
             "SQLAlchemy[mypy]>=1.4.0",
         ]
     },

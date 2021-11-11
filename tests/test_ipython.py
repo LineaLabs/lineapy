@@ -58,6 +58,10 @@ def test_ends_semicolon_no_print(run_cell):
     assert run_cell("10;") is None
 
 
+def test_magics(run_cell):
+    assert run_cell("!ls") is None
+
+
 @pytest.fixture
 def ip():
     """
