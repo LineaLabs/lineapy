@@ -61,6 +61,7 @@ FORCE: ;
 
 export AIRFLOW_HOME=/tmp/airflow_home
 AIRFLOW_VENV=/tmp/airflow_venv
+export JUPYTERLAB_WORKSPACES_DIR=${PWD}/jupyterlab-workspaces
 /tmp/airflow_venv:
 	python -m venv ${AIRFLOW_VENV}
 	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r airflow-requirements.txt

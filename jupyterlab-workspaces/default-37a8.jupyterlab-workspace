@@ -1,0 +1,76 @@
+{
+  "data": {
+    "layout-restorer:data": {
+      "main": {
+        "dock": {
+          "type": "split-area",
+          "orientation": "horizontal",
+          "sizes": [
+            0.5,
+            0.5
+          ],
+          "children": [
+            {
+              "type": "tab-area",
+              "currentIndex": 0,
+              "widgets": [
+                "notebook:tests/notebook/test_airflow.ipynb"
+              ]
+            },
+            {
+              "type": "tab-area",
+              "currentIndex": 0,
+              "widgets": [
+                "cloned-outputs:tests/notebook/test_airflow.ipynb:0"
+              ]
+            }
+          ]
+        },
+        "current": "cloned-outputs:tests/notebook/test_airflow.ipynb:0"
+      },
+      "down": {
+        "size": 0,
+        "widgets": []
+      },
+      "left": {
+        "collapsed": true,
+        "widgets": [
+          "filebrowser",
+          "running-sessions",
+          "@jupyterlab/toc:plugin",
+          "extensionmanager.main-view"
+        ]
+      },
+      "right": {
+        "collapsed": true,
+        "widgets": [
+          "jp-property-inspector",
+          "debugger-sidebar"
+        ]
+      },
+      "relativeSizes": [
+        0,
+        1,
+        0
+      ]
+    },
+    "file-browser-filebrowser:cwd": {
+      "path": "tests/notebook"
+    },
+    "notebook:tests/notebook/test_airflow.ipynb": {
+      "data": {
+        "path": "tests/notebook/test_airflow.ipynb",
+        "factory": "Notebook"
+      }
+    },
+    "cloned-outputs:tests/notebook/test_airflow.ipynb:0": {
+      "data": {
+        "path": "tests/notebook/test_airflow.ipynb",
+        "index": 0
+      }
+    }
+  },
+  "metadata": {
+    "id": "default"
+  }
+}
