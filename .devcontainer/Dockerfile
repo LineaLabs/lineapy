@@ -8,6 +8,9 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 WORKDIR /workspaces/lineapy
 COPY . /workspaces/lineapy
 
+ENV AIRFLOW_VENV=/tmp/airflow_venv
+ENV AIRFLOW_HOME=/tmp/airflow_home
+
 # Create airflow venv
 RUN make airflow
 

@@ -46,6 +46,14 @@ To build Lineapy contained with Airflow, run `make build-airflow`. `make tests-a
 `make airflow-up` is one command that will bring up a standalone local Airflow server on port 8080.
 Login and password will be printed on command line output. Please note that this mode used SQLite DB and is not ment for heavy workloads.
 
+### Codespaces
+
+You can also run this in Codespaces. To test this, you can use:
+
+```bash
+
+```
+
 ## Debugging (in VSC)
 
 `.vscode/launch.json` has a VSC debug configuration for `lineapy` which executes `lineapy --slice "p value" tests/housing.py` through VSC "Run and Debug" dialog.
