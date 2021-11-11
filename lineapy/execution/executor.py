@@ -160,6 +160,11 @@ class Executor:
                     res.side_effects.append(
                         ImplicitDependencyNode(ID(self._value_to_node[value]))
                     )
+                # If this is a mutate node, then update the value to node to the new
+                # value, so we always get the last one
+                else:
+                    self._value_to_node[value] = node.id
+
             # Otherwise, this is the first time we are seeing it, so
             # add it to our lookup
             else:
