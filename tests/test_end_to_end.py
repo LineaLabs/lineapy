@@ -155,9 +155,6 @@ class TestEndToEnd:
     - LineaDB
     """
 
-    @pytest.mark.xfail(
-        reason="check for `save` is brittle, relies on Attribute"
-    )
     def test_publish_format(self, execute):
         res = execute(PUBLISH_ALT_FORMAT_CODE)
         artifact = res.db.get_artifact_by_name(alt_publish_name)

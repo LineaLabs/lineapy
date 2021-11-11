@@ -18,6 +18,24 @@ conda activate lineapy
 pip install -e ".[dev]"
 ```
 
+We also support using [`pre-commit`](https://github.com/pre-commit/pre-commit)
+to run linting before commiting:
+
+```bash
+# Installls pre commit hook to run linting before commit:
+pre-commit install
+# To manually run hooks:
+pre-commit
+# To force a run even when there are no changes
+pre-commit run --all-files
+```
+
+Note that the pre-commit hook does not run the tests, since these are time
+consuming and you might not want to have to wait to run them on every commit.
+
+The pre commit config also pins the versions of the packages. To update them to
+the latest, run `pre-commit autoupdate`.
+
 ### Docker + Makefile
 
 To build the Lineapy container, run `make build` (you can pass in arguments with `args=`, i.e. `make build args=--no-cache`)

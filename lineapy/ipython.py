@@ -91,7 +91,6 @@ def start(
     """
     global STATE
     ipython = ipython or get_ipython()  # type: ignore
-
     # Ipython does not use exceptionhook, so instead we monkeypatch
     # how it processes the exceptions, in order to add our handler
     # that removes the outer frames.
@@ -116,6 +115,13 @@ def input_transformer_post(lines: list[str]) -> list[str]:
         # Configure logging so that we the linea db prints it has connected.
         configure_logging("INFO")
         db = RelationalLineaDB.from_environment(STATE.db_url)
+        # pass in globals from ipython so that `get_ipthon()` works
+        # and things like `!cat df.csv` work in the notebook
+        ipython_globals = STATE.ipython.user_global_ns
+        tracer = Tracer(
+            db, SessionType.JUPYTER, STATE.session_name, ipython_globals
+        )
+
         tracer = Tracer(db, SessionType.JUPYTER, STATE.session_name)
         STATE = CellsExecutedState(STATE.ipython, tracer)
 

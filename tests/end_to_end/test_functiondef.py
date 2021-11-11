@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_function_definition_without_side_effect_artifacts(execute):
     code = """b=30
 def foo(a):
@@ -135,7 +132,6 @@ my_function()
     )
 
 
-@pytest.mark.xfail
 def test_mutate_in_fn(execute):
     code = """def f():
     a.append(1)

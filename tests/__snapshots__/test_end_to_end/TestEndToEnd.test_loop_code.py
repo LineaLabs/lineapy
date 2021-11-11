@@ -132,7 +132,12 @@ call_6 = CallNode(
                         ),
                         name="sum",
                     ).id,
-                    positional_args=[call_1.id],
+                    positional_args=[
+                        MutateNode(
+                            source_id=call_1.id,
+                            call_id=call_2.id,
+                        ).id
+                    ],
                 ).id,
                 GlobalNode(
                     name="b",

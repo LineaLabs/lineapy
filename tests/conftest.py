@@ -233,7 +233,7 @@ class ExecuteFixture:
             ].success = True
 
         # Verify that execution works again, with a new session
-        new_executor = Executor(self.db)
+        new_executor = Executor(self.db, globals())
         current_working_dir = os.getcwd()
         os.chdir(self.tmp_path)
         new_executor.execute_graph(tracer.graph)

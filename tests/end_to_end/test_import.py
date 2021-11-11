@@ -47,3 +47,25 @@ b=sqrt(a)
 a=pow(5,2)
 """
     )
+
+
+def test_import_mutable(execute):
+    code = """import pandas
+pandas.x = 1
+y = pandas.x
+"""
+    res = execute(code, artifacts=["y"])
+    assert res.values["y"] == 1
+    assert res.artifacts["y"] == code
+
+
+@pytest.mark.xfail(reason="https://github.com/LineaLabs/lineapy/issues/383")
+def test_imports_linked(execute):
+    code = """import pandas
+import pandas as pd
+pandas.x = 1
+y = pd.x
+"""
+    res = execute(code, artifacts=["y"])
+    assert res.values["y"] == 1
+    assert res.artifacts["y"] == code

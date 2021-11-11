@@ -62,6 +62,7 @@ def save(value: object, description: str, /) -> LineaArtifact:
         execution_id=executor.execution.id,
         node_id=value_node_id,
         session_id=call_node.session_id,
+        name=description,
     )
 
 
@@ -89,6 +90,7 @@ def get(artifact_name: str) -> LineaArtifact:
         execution_id=artifact.execution_id,
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
+        name=artifact_name,
     )
 
 

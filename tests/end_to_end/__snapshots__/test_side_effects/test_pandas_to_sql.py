@@ -28,7 +28,7 @@ import_2 = ImportNode(
         name="pandas",
     ),
 )
-call_10 = CallNode(
+call_9 = CallNode(
     source_location=SourceLocation(
         lineno=5,
         col_offset=7,
@@ -78,7 +78,7 @@ call_10 = CallNode(
         ).id
     ],
 )
-call_16 = CallNode(
+call_15 = CallNode(
     source_location=SourceLocation(
         lineno=9,
         col_offset=0,
@@ -153,14 +153,12 @@ call_16 = CallNode(
                     ),
                     value="select * from test",
                 ).id,
-                call_10.id,
+                call_9.id,
             ],
             implicit_dependencies=[
                 MutateNode(
-                    source_id=CallNode(
-                        function_id=LookupNode(
-                            name="DB",
-                        ).id,
+                    source_id=LookupNode(
+                        name="db",
                     ).id,
                     call_id=CallNode(
                         source_location=SourceLocation(
@@ -353,7 +351,7 @@ call_16 = CallNode(
                             ],
                         ).id,
                         keyword_args={
-                            "con": call_10.id,
+                            "con": call_9.id,
                             "index": LiteralNode(
                                 source_location=SourceLocation(
                                     lineno=6,

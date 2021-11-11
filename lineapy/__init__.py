@@ -6,7 +6,7 @@ from lineapy.data.types import SessionType, ValueType
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.ipython import start, stop, visualize
-from lineapy.lineabuiltins import DB, FileSystem
+from lineapy.lineabuiltins import db, file_system
 
 __all__ = [
     "Graph",
@@ -16,10 +16,10 @@ __all__ = [
     "catalog",
     "SessionType",
     "ValueType",
-    "DB",
-    "FileSystem",
     "_is_executing",
     "visualize",
+    "db",
+    "file_system",
     "__version__",
 ]
 

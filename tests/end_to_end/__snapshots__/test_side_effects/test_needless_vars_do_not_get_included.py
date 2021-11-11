@@ -32,10 +32,8 @@ import_2 = ImportNode(
     ),
 )
 mutate_1 = MutateNode(
-    source_id=CallNode(
-        function_id=LookupNode(
-            name="FileSystem",
-        ).id,
+    source_id=LookupNode(
+        name="file_system",
     ).id,
     call_id=CallNode(
         source_location=SourceLocation(
@@ -253,7 +251,7 @@ mutate_1 = MutateNode(
         },
     ).id,
 )
-call_12 = CallNode(
+call_11 = CallNode(
     source_location=SourceLocation(
         lineno=6,
         col_offset=6,
@@ -293,7 +291,7 @@ call_12 = CallNode(
     ],
     implicit_dependencies=[mutate_1.id],
 )
-call_13 = CallNode(
+call_12 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=11,
@@ -305,7 +303,7 @@ call_13 = CallNode(
         name="getitem",
     ).id,
     positional_args=[
-        call_12.id,
+        call_11.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=7,
@@ -318,7 +316,7 @@ call_13 = CallNode(
         ).id,
     ],
 )
-call_14 = CallNode(
+call_13 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=22,
@@ -330,7 +328,7 @@ call_14 = CallNode(
         name="getitem",
     ).id,
     positional_args=[
-        call_12.id,
+        call_11.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=7,
@@ -343,7 +341,7 @@ call_14 = CallNode(
         ).id,
     ],
 )
-call_16 = CallNode(
+call_15 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -355,7 +353,7 @@ call_16 = CallNode(
         name="setitem",
     ).id,
     positional_args=[
-        call_12.id,
+        call_11.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=7,
@@ -377,19 +375,19 @@ call_16 = CallNode(
             function_id=LookupNode(
                 name="add",
             ).id,
-            positional_args=[call_13.id, call_14.id],
+            positional_args=[call_12.id, call_13.id],
         ).id,
     ],
 )
 mutate_2 = MutateNode(
-    source_id=call_14.id,
-    call_id=call_16.id,
+    source_id=call_13.id,
+    call_id=call_15.id,
 )
 mutate_3 = MutateNode(
-    source_id=call_13.id,
-    call_id=call_16.id,
+    source_id=call_12.id,
+    call_id=call_15.id,
 )
-call_22 = CallNode(
+call_21 = CallNode(
     source_location=SourceLocation(
         lineno=12,
         col_offset=0,
@@ -489,8 +487,8 @@ call_22 = CallNode(
                             ).id,
                             positional_args=[
                                 MutateNode(
-                                    source_id=call_12.id,
-                                    call_id=call_16.id,
+                                    source_id=call_11.id,
+                                    call_id=call_15.id,
                                 ).id,
                                 LiteralNode(
                                     value="to_csv",

@@ -6,11 +6,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from functools import cached_property
+from pathlib import Path
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.plugins.airflow import slice_to_airflow
 
 
 @dataclass
@@ -31,6 +33,7 @@ class LineaArtifact:
     execution_id: LineaID
     node_id: LineaID
     session_id: LineaID
+    name: str
 
     @cached_property
     def value(self) -> object:
@@ -53,6 +56,14 @@ class LineaArtifact:
         graph = Graph(nodes, session_context)
         # FIXME: this seems a little heavy to just get the slice?
         return get_program_slice(graph, [self.node_id])
+
+    def to_airflow(self, path: str) -> None:
+        """
+        Writes the airflow job to a path on disk.
+        """
+        airflow_code = slice_to_airflow(self.code, self.name)
+        Path(path).write_text(airflow_code)
+        return None
 
 
 class LineaCatalog:
