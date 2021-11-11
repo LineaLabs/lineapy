@@ -147,6 +147,31 @@ If you would like to change the database that linea talks to, you can use the
 `LINEA_DATABASE_URL` env variable. For example, to set it to `sqlite:///:memory:`
 to use an in memory database instead of writing to disk.
 
+## Airflow
+
+_Note: If you are running in Github Codespaces, both of these services will start automatically._
+
+We also support exporting tasks to Airflow DAGs. To try this out in the repo,
+we provide a simple way to start up your own airflow server and add a DAG to
+it from a notebook.
+
+First start up the Airflow UI, which you should be able to access it at [`localhost:8080`](http://localhost:8080):
+
+```bash
+make airflow_start
+```
+
+Wait for everything to be installed and set up, before running the notebook.
+
+Then start up JupyterLab, which is available at [`localhost:8888`](http://localhost:8888):
+
+```bash
+make jupyterlab_start
+```
+
+JupyterLab, should open with the `tests/notebook/test_airflow.ipynb` loaded.
+Once you re-run that, it will add a DAG that airflow can see, which you can run from the UI.
+
 ### Web UI
 
 We were previously working on a web based user interface to browse executions, but we are currently focusing on the API experience (in both Jupyter and the CLI).
