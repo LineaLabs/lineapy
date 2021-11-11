@@ -122,7 +122,6 @@ def input_transformer_post(lines: list[str]) -> list[str]:
             db, SessionType.JUPYTER, STATE.session_name, ipython_globals
         )
 
-        tracer = Tracer(db, SessionType.JUPYTER, STATE.session_name)
         STATE = CellsExecutedState(STATE.ipython, tracer)
 
     # Reset display update
