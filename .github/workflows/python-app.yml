@@ -6,12 +6,16 @@ name: Python
 on:
   push:
     branches: [main]
+    paths:
+      - "**.py"
+      - "**.ipynb"
   pull_request:
-
+    paths:
+      - "**.py"
+      - "**.ipynb"
 concurrency: 
   group: ${{ github.head_ref }}
   cancel-in-progress: true
-
 jobs:
   pytest:
     runs-on: ubuntu-latest

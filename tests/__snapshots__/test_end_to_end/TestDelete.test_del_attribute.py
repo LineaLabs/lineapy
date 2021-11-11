@@ -45,34 +45,6 @@ call_2 = CallNode(
         ],
     ).id,
 )
-call_3 = CallNode(
-    source_location=SourceLocation(
-        lineno=1,
-        col_offset=43,
-        end_lineno=1,
-        end_col_offset=51,
-        source_code=source_1.id,
-    ),
-    function_id=LookupNode(
-        name="setattr",
-    ).id,
-    positional_args=[
-        call_2.id,
-        LiteralNode(
-            value="hi",
-        ).id,
-        LiteralNode(
-            source_location=SourceLocation(
-                lineno=1,
-                col_offset=50,
-                end_lineno=1,
-                end_col_offset=51,
-                source_code=source_1.id,
-            ),
-            value=1,
-        ).id,
-    ],
-)
 call_4 = CallNode(
     source_location=SourceLocation(
         lineno=1,
@@ -85,7 +57,37 @@ call_4 = CallNode(
         name="delattr",
     ).id,
     positional_args=[
-        call_2.id,
+        MutateNode(
+            source_id=call_2.id,
+            call_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=43,
+                    end_lineno=1,
+                    end_col_offset=51,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="setattr",
+                ).id,
+                positional_args=[
+                    call_2.id,
+                    LiteralNode(
+                        value="hi",
+                    ).id,
+                    LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=1,
+                            col_offset=50,
+                            end_lineno=1,
+                            end_col_offset=51,
+                            source_code=source_1.id,
+                        ),
+                        value=1,
+                    ).id,
+                ],
+            ).id,
+        ).id,
         LiteralNode(
             value="hi",
         ).id,
