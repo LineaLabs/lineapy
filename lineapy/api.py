@@ -49,7 +49,7 @@ def save(value: object, description: str, /) -> LineaArtifact:
     #   and that's incorrect.
     db.commit()
 
-    return LineaArtifact(db, value_node_id)
+    return LineaArtifact(db, value_node_id, description)
 
 
 def get(artifact_name: str) -> LineaArtifact:
@@ -70,7 +70,7 @@ def get(artifact_name: str) -> LineaArtifact:
     execution_context = get_context()
     db = execution_context.executor.db
     artifact = db.get_artifact_by_name(artifact_name)
-    return LineaArtifact(db, artifact.id)
+    return LineaArtifact(db, artifact.id, artifact_name)
 
 
 def catalog() -> LineaCatalog:

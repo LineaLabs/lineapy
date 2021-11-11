@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import builtins
 import importlib.util
 import logging
+import operator
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
@@ -38,7 +40,8 @@ from lineapy.instrumentation.inspect_function import (
     inspect_function,
 )
 from lineapy.ipython_cell_storage import get_location_path
-from lineapy.utils import get_new_id, listify, lookup_value
+from lineapy.lineabuiltins import LINEA_BUILTINS
+from lineapy.utils import get_new_id, listify
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +58,9 @@ class Executor:
     # The execution to record the values in
     execution: Execution = field(init=False)
 
+    # The globals for this execution, to use when trying to lookup a value
+    # Note: This is set in Jupyter so that `get_ipython` is defined
+    _globals: dict[str, object]
     _id_to_value: dict[LineaID, object] = field(default_factory=dict)
     _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
@@ -132,7 +138,7 @@ class Executor:
             # If we get a lookup error, change it to a name error to match python
             try:
                 start_time = datetime.now()
-                value = lookup_value(node.name)
+                value = self.lookup_value(node.name)
                 end_time = datetime.now()
             except KeyError:
                 # Matches Python's message
@@ -295,6 +301,18 @@ class Executor:
         chdir(prev_working_dir)
         # Add executed nodes to DB
         self.db.session.commit()
+
+    def lookup_value(self, name: str) -> object:
+        """
+        Lookup a value from a string identifier.
+        """
+        if hasattr(builtins, name):
+            return getattr(builtins, name)
+        if hasattr(operator, name):
+            return getattr(operator, name)
+        if name in LINEA_BUILTINS:
+            return LINEA_BUILTINS[name]
+        return self._globals[name]
 
 
 @dataclass(frozen=True)
