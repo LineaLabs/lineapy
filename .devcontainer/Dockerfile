@@ -10,3 +10,7 @@ COPY lineapy/__init__.py /workspaces/lineapy/lineapy/
 
 RUN pip --no-cache-dir install -e "/workspaces/lineapy/[dev]" \
    && rm -rf /workspaces/lineapy
+
+ENV IPYTHONDIR=/workspaces/lineapy/.ipython
+
+CMD jupyter lab --ServerApp.token='' --port 8888 --allow-root --ip 0.0.0.0 --ServerApp.allow_origin=*
