@@ -47,8 +47,7 @@ def test_run_airflow(virtualenv, tmp_path):
     # with lineapy deps
     # https://github.com/man-group/pytest-plugins/tree/master/pytest-virtualenv#installing-packages
     virtualenv.run(
-        "pip install apache-airflow==2.2.0 pandas sklearn",
-        capture=False,
+        "pip install -r airflow-requirements.txt", capture=False, cd="."
     )
 
     # Set the airflow home for subsequent calls

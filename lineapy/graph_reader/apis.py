@@ -4,15 +4,20 @@ Should keep it very clean.
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from functools import cached_property
+from os import environ
 from pathlib import Path
+from typing import Optional
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.plugins.airflow import slice_to_airflow
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -57,13 +62,28 @@ class LineaArtifact:
         # FIXME: this seems a little heavy to just get the slice?
         return get_program_slice(graph, [self.node_id])
 
-    def to_airflow(self, path: str) -> None:
+    def to_airflow(self, filename: Optional[str] = None) -> Path:
         """
         Writes the airflow job to a path on disk.
+
+        If a filename is not passed in, will write the dag to the airflow home.
         """
         airflow_code = slice_to_airflow(self.code, self.name)
-        Path(path).write_text(airflow_code)
-        return None
+        if filename:
+            path = Path(filename)
+        else:
+            path = (
+                Path(environ.get("AIRFLOW_HOME", "~/airflow/"))
+                / "dags"
+                / f"{self.name}.py"
+            )
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(airflow_code)
+        logger.info(
+            "Added Airflow DAG named '%s'. Start a run from the Airflow UI or CLI.",
+            self.name,
+        )
+        return path
 
 
 class LineaCatalog:

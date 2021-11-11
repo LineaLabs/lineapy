@@ -6,11 +6,12 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspaces/lineapy
-COPY setup.py .
-COPY lineapy/__init__.py ./lineapy/
+COPY . /workspaces/lineapy
 
+# Create airflow venv
+RUN make /tmp/airflow_venv
+
+# Install lineapy requirements
 RUN pip --no-cache-dir --disable-pip-version-check install -e ".[dev]"
 
-ENV IPYTHONDIR=/workspaces/lineapy/.ipython
-
-CMD jupyter lab --ServerApp.token='' --port 8888 --allow-root --ip 0.0.0.0 --ServerApp.allow_origin=*
+CMD .devcontainer/start.sh
