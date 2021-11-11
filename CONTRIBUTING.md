@@ -54,7 +54,7 @@ To test this the container, you can use:
 
 ```bash
 docker build -t lineapy -f .devcontainer/Dockerfile .
-docker run --rm -p 8080:8080 -p 8888:8888 -v $PWD:/workspaces/lineapy lineapy
+docker run --rm -it -p 8080:8080 -p 8888:8888 -v $PWD:/workspaces/lineapy lineapy
 ```
 
 ## Debugging (in VSC)
