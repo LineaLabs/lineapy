@@ -5,7 +5,6 @@ import pytest
 from IPython.core.interactiveshell import InteractiveShell
 
 from lineapy import save
-from lineapy.instrumentation.tracer import Tracer
 
 
 def test_empty_cell(run_cell):
@@ -23,7 +22,7 @@ def test_result(run_cell):
 
 
 def test_stop(run_cell):
-    assert isinstance(run_cell("lineapy.ipython.stop()"), Tracer)
+    assert run_cell("import lineapy\nlineapy.ipython.stop()") is None
     assert run_cell("10") == 10
 
 
@@ -31,11 +30,9 @@ def test_slice(run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]") is None
     assert run_cell("y = 10") is None
-    assert run_cell(f"x=a[0]\nlineapy.{save.__name__}(x, 'x')")
-    assert (
-        run_cell("tracer = lineapy.ipython.stop()\ntracer.slice('x')")
-        == "a = [1, 2, 3]\nx=a[0]\n"
-    )
+    assert run_cell(f"x=a[0]\na = lineapy.{save.__name__}(x, 'x')") is None
+
+    assert run_cell("a.code") == "a = [1, 2, 3]\nx=a[0]\n"
 
 
 def test_slice_artifact_inline(run_cell):
@@ -93,8 +90,10 @@ def _run_cell(ip: InteractiveShell, cell: str) -> object:
 
     # Set store_history to True to get execution_counts added to cells
     res = ip.run_cell(cell, store_history=True)
-    assert not res.error_before_exec
-    assert not res.error_in_exec
+    if res.error_before_exec:
+        raise res.error_before_exec
+    if res.error_in_exec:
+        raise res.error_in_exec
     return res.result
 
 

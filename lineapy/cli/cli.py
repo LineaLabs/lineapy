@@ -7,9 +7,9 @@ import rich
 import rich.syntax
 import rich.tree
 
-from lineapy.constants import ExecutionMode
 from lineapy.data.types import SessionType
-from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.db.db import RelationalLineaDB
+from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
@@ -26,11 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option(
-    "--mode",
-    default="memory",
-    help="Either `memory`, `dev`, `test`, or `prod` mode",
-)
+@click.option("--db-url", default=None, help=OVERRIDE_HELP_TEXT)
 @click.option(
     "--slice",
     default=None,
@@ -71,7 +67,7 @@ logger = logging.getLogger(__name__)
 )
 def linea_cli(
     file_name: pathlib.Path,
-    mode,
+    db_url,
     slice,
     export_slice,
     export_slice_to_airflow_dag,
@@ -84,8 +80,7 @@ def linea_cli(
     configure_logging("INFO" if verbose else "WARNING")
     tree = rich.tree.Tree(f"📄 {file_name}")
 
-    execution_mode = ExecutionMode.__getitem__(str.upper(mode))
-    db = RelationalLineaDB.from_environment(execution_mode)
+    db = RelationalLineaDB.from_environment(db_url)
     code = file_name.read_text()
 
     if print_source:

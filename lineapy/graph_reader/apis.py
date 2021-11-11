@@ -1,21 +1,18 @@
-from __future__ import annotations
-
-from dataclasses import dataclass
-from functools import cached_property
-from pathlib import Path
-from typing import Any, Optional
-
-from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID, SessionContext
-from lineapy.db.relational.db import RelationalLineaDB
-from lineapy.db.relational.schema.relational import NodeValueORM
-from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.plugins.airflow import slice_to_airflow
-
 """
 User exposed APIs.
 Should keep it very clean.
 """
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from functools import cached_property
+from pathlib import Path
+
+from lineapy.data.graph import Graph
+from lineapy.data.types import LineaID
+from lineapy.db.db import RelationalLineaDB
+from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.plugins.airflow import slice_to_airflow
 
 
 @dataclass
@@ -32,45 +29,33 @@ class LineaArtifact:
     - Currently versions is still confusing. We need to sort it our before
       we expose to users.
     """
+    db: RelationalLineaDB = field(repr=False)
+    execution_id: LineaID
+    node_id: LineaID
+    session_id: LineaID
+    name: str
 
-    def __init__(self, db: RelationalLineaDB, node_id: LineaID, name: str):
-        self.name = name
-        # Refactored to not be properties for easier debugging...
-        self.db: RelationalLineaDB = db
-        self._node_id = node_id
-        session_id = db.get_node_by_id(node_id).session_id
+    @cached_property
+    def value(self) -> object:
+        """
+        Get and return the value of the artifact
+        """
+        value = self.db.get_node_value_from_db(self.node_id, self.execution_id)
+        if not value:
+            raise ValueError("No value saved for this node")
+        return value.value
 
-        self._session_context: SessionContext = self.db.get_session_context(
-            session_id
-        )
-
+    @cached_property
+    def code(self) -> str:
+        """
+        Return the slices code for the artifact
+        """
+        session_context = self.db.get_session_context(self.session_id)
         # FIXME: copied cover from tracer, we might want to refactor
-        nodes = self.db.get_nodes_for_session(session_id)
-        graph = Graph(nodes, self._session_context)
+        nodes = self.db.get_nodes_for_session(self.session_id)
+        graph = Graph(nodes, session_context)
         # FIXME: this seems a little heavy to just get the slice?
-        self.code = get_program_slice(graph, [node_id])
-
-    @classmethod
-    def from_artifact_name(
-        cls, artifact_name: str, db: RelationalLineaDB
-    ) -> LineaArtifact:
-        artifact = db.get_artifact_by_name(artifact_name)
-        return cls(db, artifact.id, artifact_name)
-
-    @cached_property
-    def _node_value_orm(self) -> Optional[NodeValueORM]:
-        return self.db.get_node_value_from_db(
-            self._node_id, self._session_context.execution_id
-        )
-
-    @cached_property
-    def value(self) -> Any:
-        # FIXME: the versioning semantics here is kinda weird
-        #        the execution_id I believe is redundant right now
-        if self._node_value_orm is not None:
-            return self._node_value_orm.value
-        else:
-            return None
+        return get_program_slice(graph, [self.node_id])
 
     def to_airflow(self, path: str) -> None:
         """

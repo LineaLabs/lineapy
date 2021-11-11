@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 from pathlib import Path
@@ -8,7 +10,7 @@ from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
-from lineapy.constants import SQLALCHEMY_ECHO, ExecutionMode
+from lineapy.constants import SQLALCHEMY_ECHO
 from lineapy.data.types import (
     Artifact,
     CallNode,
@@ -28,8 +30,7 @@ from lineapy.data.types import (
     SourceCode,
     SourceLocation,
 )
-from lineapy.db.base import LineaDBConfig, get_default_config_by_environment
-from lineapy.db.relational.schema.relational import (
+from lineapy.db.relational import (
     ArtifactORM,
     Base,
     BaseNodeORM,
@@ -50,6 +51,7 @@ from lineapy.db.relational.schema.relational import (
     SessionContextORM,
     SourceCodeORM,
 )
+from lineapy.db.utils import OVERRIDE_HELP_TEXT, resolve_db_url
 from lineapy.utils import get_literal_value_from_string
 
 logger = logging.getLogger(__name__)
@@ -66,22 +68,18 @@ class RelationalLineaDB:
         loaded, but that's low priority.
     """
 
-    @classmethod
-    def from_environment(cls, mode: ExecutionMode) -> "RelationalLineaDB":
+    def __init__(self, url: str):
         """
-        Creates a new database connection from the environment variables.
+        Create a linea DB, by connecting to a database url:
+        https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls
         """
-        config = get_default_config_by_environment(mode)
-        return cls(config)
-
-    def __init__(self, config: LineaDBConfig):
-        # TODO: we eventually need some configurations
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
+        self.url: str = url
         echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
-        logging.info(f"Starting DB at {config.database_uri}")
+        logger.debug(f"Connecting to Linea DB at {url}")
         engine = create_engine(
-            config.database_uri,
+            url,
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
             echo=echo,
@@ -89,6 +87,15 @@ class RelationalLineaDB:
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=engine)
         Base.metadata.create_all(engine)
+
+    @classmethod
+    def from_environment(cls, url: Optional[str]) -> RelationalLineaDB:
+        f"""
+        Creates a new database.
+
+        url: {OVERRIDE_HELP_TEXT}
+        """
+        return cls(resolve_db_url(url))
 
     @staticmethod
     def get_type_of_literal_value(val: Any) -> LiteralType:
@@ -239,9 +246,9 @@ class RelationalLineaDB:
         self.session.add(NodeValueORM(**node_value.dict()))
 
     def write_artifact(self, artifact: Artifact) -> None:
-
         artifact_orm = ArtifactORM(
-            id=artifact.id,
+            node_id=artifact.node_id,
+            execution_id=artifact.execution_id,
             name=artifact.name,
             date_created=artifact.date_created,
         )
@@ -379,6 +386,23 @@ class RelationalLineaDB:
         )
         return value_orm
 
+    def node_value_in_db(
+        self, node_id: LineaID, execution_id: LineaID
+    ) -> bool:
+        """
+        Returns true if the node value is already in the DB.
+        """
+        return self.session.query(
+            self.session.query(NodeValueORM)
+            .filter(
+                and_(
+                    NodeValueORM.node_id == node_id,
+                    NodeValueORM.execution_id == execution_id,
+                )
+            )
+            .exists()
+        ).scalar()
+
     def get_artifacts_for_session(
         self, session_id: LineaID
     ) -> list[ArtifactORM]:
@@ -401,14 +425,16 @@ class RelationalLineaDB:
 
     def get_artifact_by_name(self, artifact_name: str) -> ArtifactORM:
         """
-        Gets a code slice for an artifact by name, assuming there is only
-        one artifact with that name,
+        Gets the most recent artifact with a certain name.
         """
-        return (
+        res = (
             self.session.query(ArtifactORM)
             .filter(ArtifactORM.name == artifact_name)
-            .one()
+            .order_by(ArtifactORM.date_created.desc())
+            .first()
         )
+        assert res
+        return res
 
     def get_all_artifacts(self) -> List[Artifact]:
         """

@@ -131,12 +131,18 @@ class ArtifactORM(Base):
     """
 
     __tablename__ = "artifact"
-    id: LineaID = Column(String, ForeignKey("node.id"), primary_key=True)
-    name = Column(String, nullable=True)
+    node_id: LineaID = Column(String, ForeignKey("node.id"), primary_key=True)
+    execution_id: LineaID = Column(
+        String, ForeignKey("execution.id"), primary_key=True
+    )
+    name = Column(String, nullable=True, primary_key=True)
     date_created = Column(DateTime, nullable=False)
 
     node: BaseNodeORM = relationship(
         "BaseNodeORM", uselist=False, lazy="joined", innerjoin=True
+    )
+    execution: ExecutionORM = relationship(
+        "ExecutionORM", uselist=False, lazy="joined", innerjoin=True
     )
 
 
@@ -187,7 +193,7 @@ class BaseNodeORM(Base):
 
     __tablename__ = "node"
     id = Column(String, primary_key=True)
-    session_id = Column(String)
+    session_id: LineaID = Column(String)
     node_type = Column(Enum(NodeType))
     lineno = Column(Integer, nullable=True)  # line numbers are 1-indexed
     col_offset = Column(Integer, nullable=True)  # col numbers are 0-indexed

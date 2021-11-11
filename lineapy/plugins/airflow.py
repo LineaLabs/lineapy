@@ -43,7 +43,7 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     artifact_var = tracer.slice_var_name(artifact)
     if not artifact_var:
         return "Unable to extract the slice"
-    slice_code = get_program_slice(tracer.graph, [artifact.id])
+    slice_code = get_program_slice(tracer.graph, [artifact.node_id])
     return slice_to_airflow(slice_code, func_name, artifact_var)
 
 

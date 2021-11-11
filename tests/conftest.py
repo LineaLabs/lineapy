@@ -12,9 +12,9 @@ from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy import save
-from lineapy.constants import ExecutionMode
 from lineapy.data.types import SessionType
-from lineapy.db.relational.db import RelationalLineaDB
+from lineapy.db.db import RelationalLineaDB
+from lineapy.db.utils import MEMORY_DB_URL, resolve_default_db_path
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
@@ -116,7 +116,7 @@ def svg_snapshot(request):
 
 @pytest.fixture
 def linea_db():
-    return RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
+    return RelationalLineaDB.from_environment(MEMORY_DB_URL)
 
 
 @pytest.fixture
@@ -156,17 +156,14 @@ class ExecuteFixture:
         self,
         code: str,
         *,
-        compare_snapshot: bool = True,
+        snapshot: bool = True,
         artifacts: typing.Iterable[str] = (),
-        # Whether we should try to re-execute the code
-        # TODO: Remove when we can have multiple artifacts saved with same name
-        test_re_execution: bool = False,
     ) -> Tracer:
         """
         Tests trace, graph, and executes code on init.
 
-        :param compare_snapshot:  If you don't want to compare the snapshots,
-        just execute the code then set `compare_snapshot` to False.
+        :param snapshot:  If you don't want to compare the snapshots,
+        just execute the code then set `snapshot` to False.
         :param artifacts:  A list of artifacts that should be published and
         sliced based on. It assumes the artifact names are variables in the
         code.
@@ -196,7 +193,7 @@ class ExecuteFixture:
             )
 
         # Verify snapshot of graph
-        if compare_snapshot:
+        if snapshot:
             graph_str = (
                 tracer.graph.print(
                     include_imports=True,
@@ -235,15 +232,12 @@ class ExecuteFixture:
                 self.svg_snapshot._executions - 1
             ].success = True
 
-        if test_re_execution:
-            # Verify that execution works again, loading from the DB, in a new dir
-            new_db = RelationalLineaDB.from_environment(ExecutionMode.MEMORY)
-            new_executor = Executor(new_db, globals())
-
-            current_working_dir = os.getcwd()
-            os.chdir(self.tmp_path)
-            new_executor.execute_graph(tracer.graph)
-            os.chdir(current_working_dir)
+        # Verify that execution works again, with a new session
+        new_executor = Executor(self.db, globals())
+        current_working_dir = os.getcwd()
+        os.chdir(self.tmp_path)
+        new_executor.execute_graph(tracer.graph)
+        os.chdir(current_working_dir)
 
         return tracer
 
@@ -260,12 +254,12 @@ def chdir_test_file():
     os.chdir(current_working_dir)
 
 
-@pytest.fixture(autouse=True, scope="session")
-def remove_dev_db():
+@pytest.fixture(autouse=True)
+def remove_db():
     """
-    Remove dev before all tests
+    Remove db before all tests
     """
-    p = Path("dev.sqlite")
+    p = resolve_default_db_path()
     if p.exists():
         p.unlink()
 
@@ -278,4 +272,4 @@ def housing_tracer(execute):
     os.chdir(tests_dir)
 
     code = (tests_dir / "housing.py").read_text()
-    return execute(code, compare_snapshot=False)
+    return execute(code, snapshot=False)
