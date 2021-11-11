@@ -14,19 +14,19 @@
               "type": "tab-area",
               "currentIndex": 0,
               "widgets": [
-                "notebook:tests/notebook/test_airflow.ipynb"
+                "notebook:examples/Preprocessing.ipynb"
               ]
             },
             {
               "type": "tab-area",
               "currentIndex": 0,
               "widgets": [
-                "cloned-outputs:tests/notebook/test_airflow.ipynb:0"
+                "cloned-outputs:examples/Preprocessing.ipynb:0"
               ]
             }
           ]
         },
-        "current": "cloned-outputs:tests/notebook/test_airflow.ipynb:0"
+        "current": "cloned-outputs:examples/Preprocessing.ipynb:0"
       },
       "down": {
         "size": 0,
@@ -57,15 +57,15 @@
     "file-browser-filebrowser:cwd": {
       "path": "tests/notebook"
     },
-    "notebook:tests/notebook/test_airflow.ipynb": {
+    "notebook:examples/Preprocessing.ipynb": {
       "data": {
-        "path": "tests/notebook/test_airflow.ipynb",
+        "path": "examples/Preprocessing.ipynb",
         "factory": "Notebook"
       }
     },
-    "cloned-outputs:tests/notebook/test_airflow.ipynb:0": {
+    "cloned-outputs:examples/Preprocessing.ipynb:0": {
       "data": {
-        "path": "tests/notebook/test_airflow.ipynb",
+        "path": "examples/Preprocessing.ipynb",
         "index": 0
       }
     }
