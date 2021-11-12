@@ -330,6 +330,11 @@ class VisualGraph:
     def highlight_ancestors(self, node_id: str) -> None:
         """
         Update a graph to only highlight the ancestors of a certain node.
+
+        We could instead do this graph traversal with the original nodes,
+        as we do when computing the program slice. However we have some graph only nodes,
+        like the source code, so for now we are re-walking the graph to determine
+        the slice at the visual graph level.
         """
         # Set every node to unhighlighted
         for node in self.nodes:
