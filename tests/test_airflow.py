@@ -57,5 +57,6 @@ def test_run_airflow(virtualenv, tmp_path):
     virtualenv.run(
         "airflow dags test sliced_housing_dag_dag 2020-10-19",
         capture=False,
+        # Run in current root lineapy so that relative paths are accurate
         cd=".",
     )
