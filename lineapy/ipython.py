@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Union
 
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.display import SVG, DisplayHandle, DisplayObject, display
+from IPython.display import DisplayHandle, DisplayObject, display
 
 from lineapy.data.types import JupyterCell, SessionType
 from lineapy.db.db import RelationalLineaDB
@@ -19,7 +19,7 @@ from lineapy.instrumentation.tracer import Tracer
 from lineapy.ipython_cell_storage import cleanup_cells, get_cell_path
 from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
-from lineapy.visualizer.visual_graph import VisualGraphOptions
+from lineapy.visualizer import Visualizer
 
 __all__ = ["_end_cell", "start", "stop", "visualize"]
 
@@ -73,11 +73,7 @@ class CellsExecutedState:
         """
         Returns a jupyter display object for the visualization
         """
-        return SVG(
-            self.tracer.visualize_to_svg(
-                VisualGraphOptions(show_implied_mutations=False)
-            )
-        )
+        return Visualizer.for_public(self.tracer).ipython_display_object()
 
     def get_visualize_display_object(self) -> DisplayObject:
         if not self.visualize_display_object:

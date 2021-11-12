@@ -6,25 +6,23 @@ that with graphviz.
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Union
+from typing import Optional, Union
 
 import graphviz
 
 from lineapy.data.types import NodeType
-
-if TYPE_CHECKING:
-    from lineapy.instrumentation.tracer import Tracer
-
 from lineapy.visualizer.visual_graph import (
     ExtraLabel,
     ExtraLabels,
     ExtraLabelType,
     SourceLineType,
+    VisualEdge,
+    VisualEdgeID,
     VisualEdgeType,
     VisualGraphOptions,
     VisualNode,
     VisualNodeType,
-    tracer_to_visual_graph,
+    to_visual_graph,
 )
 
 GRAPH_STYLE = {"newrank": "true"}
@@ -69,18 +67,38 @@ NODE_LABELS: dict[NodeType, str] = {
     NodeType.GlobalNode: "Global",
 }
 
-EXTRA_LABEL_LABELS: dict[ExtraLabelType, str] = {
-    ExtraLabelType.ARTIFACT: "Artifact Name",
-    ExtraLabelType.VARIABLE: "Variable Name",
-}
 
-EDGE_TYPE_TO_LABEL: dict[VisualEdgeType, str] = {
-    VisualEdgeType.LATEST_MUTATE_SOURCE: "Implied Mutate",
-    VisualEdgeType.VIEW: "View",
-    VisualEdgeType.SOURCE_CODE: "Source Code",
-    VisualEdgeType.MUTATE_CALL: "Mutate Call",
-    VisualEdgeType.IMPLICIT_DEPENDENCY: "Implicit Dependency",
-}
+def extra_label_labels(
+    options: VisualGraphOptions,
+) -> dict[ExtraLabelType, str]:
+    """
+    Labels for the extra label, to use in the legend,
+    """
+    l: dict[ExtraLabelType, str] = {}
+    if options.show_artifacts:
+        l[ExtraLabelType.ARTIFACT] = "Artifact Name"
+    if options.show_variables:
+        l[ExtraLabelType.VARIABLE] = "Variable Name"
+    return l
+
+
+def edge_labels(
+    options: VisualGraphOptions,
+) -> dict[VisualEdgeType, str]:
+    """
+    Labels for the edge types to use in the legend,
+    """
+    l: dict[VisualEdgeType, str] = {
+        VisualEdgeType.SOURCE_CODE: "Source Code",
+        VisualEdgeType.MUTATE_CALL: "Mutate Call",
+        VisualEdgeType.IMPLICIT_DEPENDENCY: "Implicit Dependency",
+    }
+    if options.show_implied_mutations:
+        l[VisualEdgeType.LATEST_MUTATE_SOURCE] = "Implied Mutate"
+    if options.show_views:
+        l[VisualEdgeType.VIEW] = "View"
+    return l
+
 
 NODE_SHAPES: dict[NodeType, str] = {
     NodeType.CallNode: "record",
@@ -115,27 +133,37 @@ def get_color(tp: ColorableType) -> str:
         return "/greys3/1"
 
 
-def tracer_to_graphviz(
-    tracer: Tracer, options: VisualGraphOptions
-) -> graphviz.Digraph:
+def to_graphviz(options: VisualGraphOptions) -> graphviz.Digraph:
     dot = graphviz.Digraph(node_attr=NODE_STYLE, edge_attr=EDGE_STYLE)
     dot.attr(**GRAPH_STYLE)
 
     add_legend(dot, options)
 
-    vg = tracer_to_visual_graph(tracer, options)
+    vg = to_visual_graph(options)
 
     for node in vg.nodes:
         render_node(dot, node)
 
     for edge in vg.edges:
-        dot.edge(
-            edge.source,
-            edge.target,
-            **edge_type_to_kwargs(edge.type),
-        )
+        render_edge(dot, edge)
 
     return dot
+
+
+def render_edge(dot, edge: VisualEdge) -> None:
+    if not edge.highlighted:
+        return
+    dot.edge(
+        edge_id_to_str(edge.source),
+        edge_id_to_str(edge.target),
+        **edge_type_to_kwargs(edge.type),
+    )
+
+
+def edge_id_to_str(edge_id: VisualEdgeID) -> str:
+    if edge_id.port is not None:
+        return f"{edge_id.node_id}:{edge_id.port}"
+    return edge_id.node_id
 
 
 def extra_labels_to_html(extra_labels: ExtraLabels) -> str:
@@ -205,7 +233,9 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
                 c.edge(prev_id, id_, style="invis")
             # If this is the first node, add sample extra labels
             else:
-                for v, extra_label_label in EXTRA_LABEL_LABELS.items():
+                for v, extra_label_label in extra_label_labels(
+                    options
+                ).items():
                     extra_labels.append(ExtraLabel(extra_label_label, v))
             render_node(
                 c,
@@ -216,11 +246,7 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
         ##
         # Add edges to legend
         ##
-        edges_for_legend = dict(EDGE_TYPE_TO_LABEL)
-        if not options.show_implied_mutations:
-            del edges_for_legend[VisualEdgeType.LATEST_MUTATE_SOURCE]
-        if not options.show_views:
-            del edges_for_legend[VisualEdgeType.VIEW]
+        edges_for_legend = edge_labels(options)
         if edges_for_legend:
             # Keep adding invisible edges, so that all of the nodes are aligned vertically
             id_ = "legend_edge"
@@ -241,9 +267,10 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
     return id_
 
 
-def render_node(dot: graphviz.Digraph, node: VisualNode) -> str:
+def render_node(dot: graphviz.Digraph, node: VisualNode) -> None:
+    if not node.highlighted:
+        return
     kwargs = node_type_to_kwargs(node.type)
     if node.extra_labels:
         kwargs["xlabel"] = extra_labels_to_html(node.extra_labels)
     dot.node(node.id, node.contents, **kwargs)
-    return node.id

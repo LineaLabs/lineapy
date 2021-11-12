@@ -6,6 +6,7 @@ We include in this graph:
 * From the DB about this session:
   * Nodes
   * Artifacts
+  * Source code
 * From the tracer:
   * Mutation and view edges
   * Variables
@@ -13,15 +14,15 @@ We include in this graph:
 We currently don't include, but could:
 
 * Node values
-* Source code
 """
 from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Optional, Union
+from typing import Iterable, Optional, Union
 
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
     GlobalNode,
@@ -33,9 +34,7 @@ from lineapy.data.types import (
     Node,
     NodeType,
 )
-
-if TYPE_CHECKING:
-    from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer import Tracer
 
 
 @dataclass
@@ -43,32 +42,30 @@ class VisualGraphOptions:
     """
     Class to store options for the visualizer, so that we can properly type them
     as we pass this down the stack.
-
-    It would be nice if we could just use keyword arguments, and type this directly.
-
-    We can't use a TypedDict on **kwargs (see https://www.python.org/dev/peps/pep-0589/#rejected-alternatives)
-    In Python 3.10 we can maybe use https://www.python.org/dev/peps/pep-0612/.
     """
 
-    # Whether to add edges for the implied views in the tracer
-    show_implied_mutations: bool = field(default=True)
+    graph: Graph
+    # The tracer is optional, if provided, will let us show some additional
+    # information, like variables.
+    tracer: Optional[Tracer]
 
-    # Whether to add edges for the views kept in the tracer
-    show_views: bool = field(default=False)
+    # Whether to highlight a certain node.
+    # For now, this will only show that node and its ancestors.
+    # In the future, it will grey out the rest, but still show them
+    highlight_node: Optional[str]
+    # Whether to add edges for the implied views in the tracer (requires tracer)
+    show_implied_mutations: bool
+    # Whether to add edges for the views kept in the tracer (requires tracer)
+    show_views: bool
+    # Whether to show artifacts (requires tracer)
+    show_artifacts: bool
+    # Whether to show variables (requires tracer)
+    show_variables: bool
 
-    # Whether to show source code in the graph
-    show_code: bool = field(default=False)
 
-    # Whether to add edges for global variable reads in calls
-    show_global_reads: bool = field(default=True)
-
-    # Whether to add edges for implicit dependencies in calls
-    show_implicit_dependencies: bool = field(default=True)
-
-
-def tracer_to_visual_graph(
-    tracer: Tracer, options: VisualGraphOptions
-) -> VisualGraph:
+def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
+    tracer = options.tracer
+    graph = options.graph
     vg = VisualGraph()
 
     # We will create some mappings to start, so that we can add the
@@ -76,16 +73,22 @@ def tracer_to_visual_graph(
 
     # First create a mapping of each node ID to all of its artifact names
     id_to_artifacts: dict[str, list[Optional[str]]] = defaultdict(list)
-    for a in tracer.session_artifacts():
-        id_to_artifacts[a.node_id].append(a.name)
+    if options.show_artifacts:
+        if not tracer:
+            raise RuntimeError("Cannot show artifacts without tracer")
+        for a in tracer.session_artifacts():
+            id_to_artifacts[a.node_id].append(a.name)
 
     # Then create a mapping of each node to the variables which point to it
     id_to_variables: dict[str, list[str]] = defaultdict(list)
-    for name, node in tracer.variable_name_to_node.items():
-        id_to_variables[node.id].append(name)
+    if options.show_variables:
+        if not tracer:
+            raise RuntimeError("Cannot show implied mutations without tracer")
+        for name, node in tracer.variable_name_to_node.items():
+            id_to_variables[node.id].append(name)
 
     # First add all the nodes from the session
-    for node in tracer.graph.nodes:
+    for node in graph.nodes:
         extra_labels = [
             ExtraLabel(a or "Unnamed Artifact", ExtraLabelType.ARTIFACT)
             for a in id_to_artifacts[node.id]
@@ -93,11 +96,8 @@ def tracer_to_visual_graph(
             ExtraLabel(v, ExtraLabelType.VARIABLE)
             for v in id_to_variables[node.id]
         ]
-        contents, edges = contents_and_edges(node, options)
-        vg.edges.extend(edges)
-        vg.nodes.append(
-            VisualNode(node.id, node.node_type, contents, extra_labels)
-        )
+        contents = process_node(vg, node, options)
+        vg.node(VisualNode(node.id, node.node_type, contents, extra_labels))
 
     # For now, our algorithm for making nodes based on source locations is:
     # 1. Whenever we encounter a node, if we havent made a source code node
@@ -115,7 +115,7 @@ def tracer_to_visual_graph(
     last_added_source_id: Optional[str] = None
 
     # Then add the source code nodes
-    for n in tracer.graph.nodes:
+    for n in graph.nodes:
         source_location = n.source_location
         if not source_location:
             continue
@@ -127,33 +127,42 @@ def tracer_to_visual_graph(
                     source_location.lineno - 1 : source_location.end_lineno
                 ]
             )
-            vg.nodes.append(VisualNode(id_, SourceLineType(), contents, []))
+            vg.node(VisualNode(id_, SourceLineType(), contents, []))
 
             if last_added_source_id:
-                vg.edges.append(
+                vg.edge(
                     VisualEdge(
-                        last_added_source_id,
-                        id_,
+                        VisualEdgeID(last_added_source_id),
+                        VisualEdgeID(id_),
                         VisualEdgeType.NEXT_LINE,
                     )
                 )
             last_added_source_id = id_
-        vg.edges.append(
+        vg.edge(
             VisualEdge(
-                id_,
-                n.id,
+                VisualEdgeID(id_),
+                VisualEdgeID(n.id),
                 VisualEdgeType.SOURCE_CODE,
             )
         )
     # Then we can add all the additional information from the tracer
     if options.show_implied_mutations:
+        if not tracer:
+            raise RuntimeError("Cannot show implied mutations without tracer")
         # the mutate nodes
         for source, mutate in tracer.source_to_mutate.items():
-            vg.edges.append(
-                VisualEdge(source, mutate, VisualEdgeType.LATEST_MUTATE_SOURCE)
+            vg.edge(
+                VisualEdge(
+                    VisualEdgeID(source),
+                    VisualEdgeID(mutate),
+                    VisualEdgeType.LATEST_MUTATE_SOURCE,
+                )
             )
 
     if options.show_views:
+        if not tracer:
+            raise RuntimeError("Cannot show views without tracer")
+
         # Create a set of unique pairs of viewers, where order doesn't matter
         # Since they aren't directed
         viewer_pairs: set[frozenset[LineaID]] = {
@@ -162,35 +171,49 @@ def tracer_to_visual_graph(
             for viewer in viewers
         }
         for source, target in viewer_pairs:
-            vg.edges.append(VisualEdge(source, target, VisualEdgeType.VIEW))
+            vg.edge(
+                VisualEdge(
+                    VisualEdgeID(source),
+                    VisualEdgeID(target),
+                    VisualEdgeType.VIEW,
+                )
+            )
+    if options.highlight_node:
+        vg.highlight_ancestors(options.highlight_node)
     return vg
 
 
-def contents_and_edges(
-    node: Node, options: VisualGraphOptions
-) -> tuple[str, list[VisualEdge]]:
+def process_node(
+    vg: VisualGraph, node: Node, options: VisualGraphOptions
+) -> str:
     """
-    Get the contents and a list of edges from the node, depending on its type
+    Returns the contents of a node and add its edges.
     """
     n_id = node.id
     if isinstance(node, ImportNode):
-        return node.library.name, []
+        return node.library.name
     if isinstance(node, CallNode):
         # The call node body is in struct format to allow pointing to each
         # variable independently
         # https://graphviz.readthedocs.io/en/stable/examples.html#structs-revisited-py
         contents = "<fn> fn"
-        edges: list[VisualEdge] = [
-            VisualEdge(node.function_id, f"{n_id}:fn", VisualEdgeType.FUNCTION)
-        ]
+        vg.edge(
+            VisualEdge(
+                VisualEdgeID(node.function_id),
+                VisualEdgeID(n_id, "fn"),
+                VisualEdgeType.FUNCTION,
+            )
+        )
         if node.positional_args:
             args_contents: list[str] = []
             for i, a_id in enumerate(node.positional_args):
                 sub_id = f"p_{i}"
                 args_contents.append(f"<{sub_id}> {i}")
-                edges.append(
+                vg.edge(
                     VisualEdge(
-                        a_id, f"{n_id}:{sub_id}", VisualEdgeType.POSITIONAL_ARG
+                        VisualEdgeID(a_id),
+                        VisualEdgeID(n_id, sub_id),
+                        VisualEdgeType.POSITIONAL_ARG,
                     )
                 )
             contents += "| {{" + "|".join(args_contents) + "} | args }"
@@ -200,63 +223,73 @@ def contents_and_edges(
             for k, a_id in node.keyword_args.items():
                 sub_id = f"k_{k}"
                 kwargs_contents.append(f"<{sub_id}> {k}")
-                edges.append(
+                vg.edge(
                     VisualEdge(
-                        a_id, f"{n_id}:{sub_id}", VisualEdgeType.KEYWORD_ARG
+                        VisualEdgeID(a_id),
+                        VisualEdgeID(n_id, sub_id),
+                        VisualEdgeType.KEYWORD_ARG,
                     )
                 )
             contents += "| {{" + "|".join(kwargs_contents) + "} | kwargs }"
 
-        if options.show_global_reads and node.global_reads:
+        if node.global_reads:
             global_reads_contents: list[str] = []
 
             for k, v in node.global_reads.items():
                 sub_id = f"v_{k}"
                 global_reads_contents.append(f"<{sub_id}> {k}")
 
-                edges.append(
+                vg.edge(
                     VisualEdge(
-                        v, f"{n_id}:{sub_id}", VisualEdgeType.GLOBAL_READ
+                        VisualEdgeID(v),
+                        VisualEdgeID(n_id, sub_id),
+                        VisualEdgeType.GLOBAL_READ,
                     )
                 )
             contents += "| {{" + "|".join(global_reads_contents) + "} | vars }"
 
-        if options.show_implicit_dependencies and node.implicit_dependencies:
+        if node.implicit_dependencies:
             for ii, a_id in enumerate(node.implicit_dependencies):
                 sub_id = f"i_{ii}"
-                edges.append(
+                vg.edge(
                     VisualEdge(
-                        a_id, f"{n_id}", VisualEdgeType.IMPLICIT_DEPENDENCY
+                        VisualEdgeID(a_id),
+                        VisualEdgeID(n_id),
+                        VisualEdgeType.IMPLICIT_DEPENDENCY,
                     )
                 )
 
-        return contents, edges
+        return contents
     if isinstance(node, LiteralNode):
-        return repr(node.value), []
+        return repr(node.value)
     if isinstance(node, LookupNode):
-        return node.name, []
+        return node.name
     if isinstance(node, MutateNode):
-        contents = "<src> src|<call> call"
-        edges = [
+        vg.edge(
             VisualEdge(
-                node.source_id,
-                f"{n_id}:src",
+                VisualEdgeID(node.source_id),
+                VisualEdgeID(n_id, "src"),
                 VisualEdgeType.MUTATE_SOURCE,
-            ),
+            )
+        )
+        vg.edge(
             VisualEdge(
-                node.call_id,
-                f"{n_id}:call",
+                VisualEdgeID(node.call_id),
+                VisualEdgeID(n_id, "call"),
                 VisualEdgeType.MUTATE_CALL,
-            ),
-        ]
-        return contents, edges
+            )
+        )
+        return "<src> src|<call> call"
 
     if isinstance(node, GlobalNode):
-        contents = node.name
-        edges = [
-            VisualEdge(node.call_id, n_id, VisualEdgeType.GLOBAL),
-        ]
-        return contents, edges
+        vg.edge(
+            VisualEdge(
+                VisualEdgeID(node.call_id),
+                VisualEdgeID(n_id),
+                VisualEdgeType.GLOBAL,
+            ),
+        )
+        return node.name
 
 
 @dataclass
@@ -265,8 +298,64 @@ class VisualGraph:
     A visual graph contains a number of nodes and directed edges
     """
 
-    nodes: list[VisualNode] = field(default_factory=list)
-    edges: list[VisualEdge] = field(default_factory=list)
+    # Make these private and add property lookups so that
+    # we are forced to used helper methods to add edges and nodes
+    _nodes: list[VisualNode] = field(default_factory=list)
+    _edges: list[VisualEdge] = field(default_factory=list)
+
+    # Keep these mappings for more performant traversal, when filtering to highlight ancestors
+    # Mapping from each node id to all its parent edges
+    _node_id_to_parent_edges: dict[str, list[VisualEdge]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    _node_id_to_node: dict[str, VisualNode] = field(default_factory=dict)
+
+    @property
+    def edges(self) -> Iterable[VisualEdge]:
+        return self._edges
+
+    @property
+    def nodes(self) -> Iterable[VisualNode]:
+        return self._nodes
+
+    def node(self, node: VisualNode) -> None:
+        self._nodes.append(node)
+        self._node_id_to_node[node.id] = node
+
+    def edge(self, edge: VisualEdge) -> None:
+        self._edges.append(edge)
+        # Add this edge as a parent edge for the target
+        self._node_id_to_parent_edges[edge.target.node_id].append(edge)
+
+    def highlight_ancestors(self, node_id: str) -> None:
+        """
+        Update a graph to only highlight the ancestors of a certain node.
+
+        We could instead do this graph traversal with the original nodes,
+        as we do when computing the program slice. However we have some graph only nodes,
+        like the source code, so for now we are re-walking the graph to determine
+        the slice at the visual graph level.
+        """
+        # Set every node to unhighlighted
+        for node in self.nodes:
+            node.highlighted = False
+        for edge in self.edges:
+            edge.highlighted = False
+
+        # Traverse the graph, from the node to all its ancestors,
+        # every time we encounter a node, set it to highlighted.
+        # and then mark it to be traversed.
+        frontier = {node_id}
+        seen: set[str] = set()
+        while frontier:
+            id_ = frontier.pop()
+            seen.add(id_)
+            self._node_id_to_node[id_].highlighted = True
+            for edge in self._node_id_to_parent_edges[id_]:
+                edge.highlighted = True
+                parent_id = edge.source.node_id
+                if parent_id not in seen:
+                    frontier.add(parent_id)
 
 
 def get_node_id(id: str) -> str:
@@ -302,6 +391,8 @@ class VisualNode:
     # A list of "extra labels" that are associated with the node
     extra_labels: ExtraLabels
 
+    highlighted: bool = field(default=True)
+
 
 @dataclass
 class ExtraLabel:
@@ -316,9 +407,18 @@ class ExtraLabelType(Enum):
 
 @dataclass
 class VisualEdge:
-    source: str
-    target: str
+    source: VisualEdgeID
+    target: VisualEdgeID
     type: VisualEdgeType
+    highlighted: bool = field(default=True)
+
+
+@dataclass
+class VisualEdgeID:
+    node_id: str
+    # The port the edge is related to
+    # https://graphviz.org/doc/info/shapes.html#record
+    port: Optional[str] = field(default=None)
 
 
 class VisualEdgeType(Enum):

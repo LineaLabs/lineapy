@@ -16,6 +16,7 @@ from lineapy.logging import configure_logging
 from lineapy.plugins.airflow import sliced_aiflow_dag
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils import prettify
+from lineapy.visualizer import Visualizer
 
 """
 We are using click because our package will likely already have a dependency on
@@ -98,7 +99,7 @@ def linea_cli(
     transform(code, file_name, tracer)
 
     if visualize:
-        tracer.visualize()
+        Visualizer.for_public(tracer).render_pdf_file()
 
     if slice and not export_slice and not export_slice_to_airflow_dag:
         tree.add(

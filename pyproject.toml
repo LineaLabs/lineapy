@@ -18,6 +18,8 @@ relative_files = true
 
 [tool.mypy]
 
+exclude = '/__snapshots__/'
+
 # https://docs.sqlalchemy.org/en/14/orm/extensions/mypy.html
 # https://pydantic-docs.helpmanual.io/mypy_plugin/#enabling-the-plugin
 plugins = ["sqlalchemy.ext.mypy.plugin", "pydantic.mypy"]

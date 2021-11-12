@@ -20,7 +20,7 @@ from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils import prettify
-from lineapy.visualizer.visual_graph import VisualGraphOptions
+from lineapy.visualizer import Visualizer
 from tests.util import get_project_directory
 
 # Based off of unmerged JSON extension
@@ -47,7 +47,7 @@ def setup_logging():
 class PythonSnapshotExtension(SingleFileSnapshotExtension):
     _file_extension = "py"
 
-    def serialize(self, data: str, **kwargs) -> str:  # type: ignore
+    def serialize(self, data: str, **kwargs) -> str:
         return data
 
     def _write_snapshot_fossil(
@@ -186,11 +186,7 @@ class ExecuteFixture:
         transform(code, source_code_path, tracer)
 
         if self.visualize:
-            tracer.visualize(
-                options=VisualGraphOptions(
-                    show_implied_mutations=True, show_views=False
-                )
-            )
+            Visualizer.for_test_cli(tracer).render_pdf_file()
 
         # Verify snapshot of graph
         if snapshot:
@@ -221,7 +217,7 @@ class ExecuteFixture:
             self.svg_snapshot._update_snapshots = res.created or res.updated
             # If we aren't updating snapshots, dont even bother trying to generate the SVG
             svg_text = (
-                tracer.graphviz()._repr_svg_()
+                Visualizer.for_test_snapshot(tracer).render_svg()
                 if self.snapshot._update_snapshots
                 else ""
             )

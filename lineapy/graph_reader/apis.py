@@ -11,12 +11,15 @@ from os import environ
 from pathlib import Path
 from typing import Optional
 
+from IPython.display import display
+
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.plugins.airflow import slice_to_airflow
+from lineapy.visualizer import Visualizer
 
 logger = logging.getLogger(__name__)
 
@@ -56,12 +59,15 @@ class LineaArtifact:
         """
         Return the slices code for the artifact
         """
+        # FIXME: this seems a little heavy to just get the slice?
+        return get_program_slice(self._graph, [self.node_id])
+
+    @cached_property
+    def _graph(self) -> Graph:
         session_context = self.db.get_session_context(self.session_id)
         # FIXME: copied cover from tracer, we might want to refactor
         nodes = self.db.get_nodes_for_session(self.session_id)
-        graph = Graph(nodes, session_context)
-        # FIXME: this seems a little heavy to just get the slice?
-        return get_program_slice(graph, [self.node_id])
+        return Graph(nodes, session_context)
 
     def to_airflow(self, filename: Optional[str] = None) -> Path:
         """
@@ -105,6 +111,16 @@ class LineaArtifact:
             f"Added Airflow DAG named '{self.name}'. Start a run from the Airflow UI or CLI."
         )
         return path
+
+    def visualize(self) -> None:
+        """
+        Displays the graph for this artifact.
+        """
+        display(
+            Visualizer.for_public_node(
+                self._graph, self.node_id
+            ).ipython_display_object()
+        )
 
 
 class LineaCatalog:
