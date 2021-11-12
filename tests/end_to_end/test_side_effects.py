@@ -34,7 +34,15 @@ df.to_sql(name="test", con=conn,index=False)
 lineapy.save(lineapy.db, "db")
 """
     res = execute(code)
-    assert res.artifacts["db"] == code
+    assert (
+        res.artifacts["db"]
+        == """import pandas as pd
+import sqlite3
+df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+conn = sqlite3.connect(':memory:')
+df.to_sql(name="test", con=conn,index=False)
+"""
+    )
 
 
 def test_pandas_to_sql_global_imported(execute):

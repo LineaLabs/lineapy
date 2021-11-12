@@ -22,9 +22,19 @@ def save(value: object, description: str, /) -> LineaArtifact:
     db = executor.db
     call_node = execution_context.node
 
-    # Lookup the first arguments id, which is the id for the value, and
-    # save that as the artifact
-    value_node_id = call_node.positional_args[0]
+    # If this value is stored as a global in the executor (meaning its an external side effect)
+    # then look it up from there, instead of using this node.
+    try:
+        in_value_to_node = value in executor._value_to_node
+    # happens on non hashable objects
+    except Exception:
+        in_value_to_node = False
+    if in_value_to_node:
+        value_node_id = executor._value_to_node[value]
+    else:
+        # Lookup the first arguments id, which is the id for the value, and
+        # save that as the artifact
+        value_node_id = call_node.positional_args[0]
 
     execution_id = executor.execution.id
     timing = executor.get_execution_time(value_node_id)

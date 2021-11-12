@@ -34,7 +34,7 @@ jobs:
           pip install -e .[dev]
       - name: Test with pytest
         run: |
-          pytest -vv examples/Explorations.ipynb examples/APIs.ipynb tests/ --cov=lineapy
+          pytest -v --cov=lineapy
       # https://coveralls-python.readthedocs.io/en/latest/usage/configuration.html#github-actions-support
       - name: Upload coverage
         env:
