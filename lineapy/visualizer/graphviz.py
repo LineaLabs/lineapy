@@ -16,6 +16,7 @@ from lineapy.visualizer.visual_graph import (
     ExtraLabels,
     ExtraLabelType,
     SourceLineType,
+    VisualEdge,
     VisualEdgeID,
     VisualEdgeType,
     VisualGraphOptions,
@@ -144,13 +145,19 @@ def to_graphviz(options: VisualGraphOptions) -> graphviz.Digraph:
         render_node(dot, node)
 
     for edge in vg.edges:
-        dot.edge(
-            edge_id_to_str(edge.source),
-            edge_id_to_str(edge.target),
-            **edge_type_to_kwargs(edge.type),
-        )
+        render_edge(dot, edge)
 
     return dot
+
+
+def render_edge(dot, edge: VisualEdge) -> None:
+    if not edge.highlighted:
+        return
+    dot.edge(
+        edge_id_to_str(edge.source),
+        edge_id_to_str(edge.target),
+        **edge_type_to_kwargs(edge.type),
+    )
 
 
 def edge_id_to_str(edge_id: VisualEdgeID) -> str:
@@ -260,9 +267,10 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
     return id_
 
 
-def render_node(dot: graphviz.Digraph, node: VisualNode) -> str:
+def render_node(dot: graphviz.Digraph, node: VisualNode) -> None:
+    if not node.highlighted:
+        return
     kwargs = node_type_to_kwargs(node.type)
     if node.extra_labels:
         kwargs["xlabel"] = extra_labels_to_html(node.extra_labels)
     dot.node(node.id, node.contents, **kwargs)
-    return node.id

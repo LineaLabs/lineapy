@@ -57,6 +57,11 @@ class Graph(object):
           Note that we cannot just use the line number to sort because
             there are nodes created by us that do not have line numbers...
         """
+        # TODO: See if we could replace this with python's built in topological sort
+        # https://docs.python.org/3/library/graphlib.html
+        # It seems to suggest that resulting order is determined by insertion order
+        # so this could possibly also implicitly sort by line number, if we insert
+        # in that order.
 
         # Generally, we want to traverse the graph in a way to maintain two
         # constraints:

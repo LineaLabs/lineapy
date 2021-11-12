@@ -50,7 +50,6 @@ class Visualizer:
             show_implied_mutations=False,
             # Views are too verbose to show in the test output
             show_views=False,
-            show_code=True,
             show_artifacts=True,
             show_variables=True,
         )
@@ -70,7 +69,6 @@ class Visualizer:
             highlight_node=None,
             show_implied_mutations=True,
             show_views=True,
-            show_code=True,
             show_artifacts=True,
             show_variables=True,
         )
@@ -87,7 +85,6 @@ class Visualizer:
             highlight_node=None,
             show_implied_mutations=False,
             show_views=False,
-            show_code=True,
             show_artifacts=True,
             show_variables=False,
         )
@@ -107,7 +104,6 @@ class Visualizer:
             highlight_node=node_id,
             show_implied_mutations=False,
             show_views=False,
-            show_code=True,
             show_artifacts=False,
             show_variables=False,
         )
