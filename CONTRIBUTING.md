@@ -66,7 +66,7 @@ docker run --rm -it -p 8080:8080 -p 8888:8888 -v $PWD:/workspaces/lineapy lineap
 ```bash
 mypy -p lineapy
 black --line-length 79 --check .
-pytest tests/
+pytest
 ```
 
 If using docker, please add appropriate tests and ensure all tests are working using

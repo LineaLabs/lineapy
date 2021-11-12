@@ -88,8 +88,14 @@ class LineaArtifact:
         if filename:
             path = Path(filename)
         else:
+            # Save dag to dags folder in airflow home
+            # Otherwise default to default airflow home in home directory
             path = (
-                Path(environ.get("AIRFLOW_HOME", "~/airflow/"))
+                (
+                    Path(environ["AIRFLOW_HOME"])
+                    if "AIRFLOW_HOME" in environ
+                    else Path.home() / "airflow"
+                )
                 / "dags"
                 / f"{self.name}.py"
             )

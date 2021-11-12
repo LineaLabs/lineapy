@@ -6,6 +6,8 @@ import types
 from dataclasses import dataclass
 from typing import Callable, Iterable, Union
 
+import joblib
+
 from lineapy.lineabuiltins import ExternalState, db, file_system, l_list
 
 
@@ -23,6 +25,9 @@ def inspect_function(
         yield ImplicitDependencyValue(file_system)
         return
 
+    if function == joblib.dump:
+        yield MutatedValue(file_system)
+        return
     if imported_module("pandas"):
         import pandas
 
