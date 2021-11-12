@@ -20,6 +20,7 @@ from lineapy.visualizer.visual_graph import (
     ExtraLabels,
     ExtraLabelType,
     SourceLineType,
+    VisualEdgeID,
     VisualEdgeType,
     VisualGraphOptions,
     VisualNode,
@@ -130,12 +131,18 @@ def tracer_to_graphviz(
 
     for edge in vg.edges:
         dot.edge(
-            edge.source,
-            edge.target,
+            edge_id_to_str(edge.source),
+            edge_id_to_str(edge.target),
             **edge_type_to_kwargs(edge.type),
         )
 
     return dot
+
+
+def edge_id_to_str(edge_id: VisualEdgeID) -> str:
+    if edge_id.port is not None:
+        return f"{edge_id.node_id}:{edge_id.port}"
+    return edge_id.node_id
 
 
 def extra_labels_to_html(extra_labels: ExtraLabels) -> str:

@@ -50,6 +50,11 @@ class VisualGraphOptions:
     In Python 3.10 we can maybe use https://www.python.org/dev/peps/pep-0612/.
     """
 
+    # Whether to highlight a certain artifact.
+    # For now, this will only show that artifact. In the future, it will grey
+    # out the rest.
+    artifact: Optional[str] = field(default=None)
+
     # Whether to add edges for the implied views in the tracer
     show_implied_mutations: bool = field(default=True)
 
@@ -132,16 +137,16 @@ def tracer_to_visual_graph(
             if last_added_source_id:
                 vg.edges.append(
                     VisualEdge(
-                        last_added_source_id,
-                        id_,
+                        VisualEdgeID(last_added_source_id),
+                        VisualEdgeID(id_),
                         VisualEdgeType.NEXT_LINE,
                     )
                 )
             last_added_source_id = id_
         vg.edges.append(
             VisualEdge(
-                id_,
-                n.id,
+                VisualEdgeID(id_),
+                VisualEdgeID(n.id),
                 VisualEdgeType.SOURCE_CODE,
             )
         )
@@ -150,7 +155,11 @@ def tracer_to_visual_graph(
         # the mutate nodes
         for source, mutate in tracer.source_to_mutate.items():
             vg.edges.append(
-                VisualEdge(source, mutate, VisualEdgeType.LATEST_MUTATE_SOURCE)
+                VisualEdge(
+                    VisualEdgeID(source),
+                    VisualEdgeID(mutate),
+                    VisualEdgeType.LATEST_MUTATE_SOURCE,
+                )
             )
 
     if options.show_views:
@@ -162,7 +171,13 @@ def tracer_to_visual_graph(
             for viewer in viewers
         }
         for source, target in viewer_pairs:
-            vg.edges.append(VisualEdge(source, target, VisualEdgeType.VIEW))
+            vg.edges.append(
+                VisualEdge(
+                    VisualEdgeID(source),
+                    VisualEdgeID(target),
+                    VisualEdgeType.VIEW,
+                )
+            )
     return vg
 
 
@@ -180,8 +195,12 @@ def contents_and_edges(
         # variable independently
         # https://graphviz.readthedocs.io/en/stable/examples.html#structs-revisited-py
         contents = "<fn> fn"
-        edges: list[VisualEdge] = [
-            VisualEdge(node.function_id, f"{n_id}:fn", VisualEdgeType.FUNCTION)
+        edges = [
+            VisualEdge(
+                VisualEdgeID(node.function_id),
+                VisualEdgeID(n_id, "fn"),
+                VisualEdgeType.FUNCTION,
+            )
         ]
         if node.positional_args:
             args_contents: list[str] = []
@@ -190,7 +209,9 @@ def contents_and_edges(
                 args_contents.append(f"<{sub_id}> {i}")
                 edges.append(
                     VisualEdge(
-                        a_id, f"{n_id}:{sub_id}", VisualEdgeType.POSITIONAL_ARG
+                        VisualEdgeID(a_id),
+                        VisualEdgeID(n_id, sub_id),
+                        VisualEdgeType.POSITIONAL_ARG,
                     )
                 )
             contents += "| {{" + "|".join(args_contents) + "} | args }"
@@ -202,7 +223,9 @@ def contents_and_edges(
                 kwargs_contents.append(f"<{sub_id}> {k}")
                 edges.append(
                     VisualEdge(
-                        a_id, f"{n_id}:{sub_id}", VisualEdgeType.KEYWORD_ARG
+                        VisualEdgeID(a_id),
+                        VisualEdgeID(n_id, sub_id),
+                        VisualEdgeType.KEYWORD_ARG,
                     )
                 )
             contents += "| {{" + "|".join(kwargs_contents) + "} | kwargs }"
@@ -216,7 +239,9 @@ def contents_and_edges(
 
                 edges.append(
                     VisualEdge(
-                        v, f"{n_id}:{sub_id}", VisualEdgeType.GLOBAL_READ
+                        VisualEdgeID(v),
+                        VisualEdgeID(n_id, sub_id),
+                        VisualEdgeType.GLOBAL_READ,
                     )
                 )
             contents += "| {{" + "|".join(global_reads_contents) + "} | vars }"
@@ -226,7 +251,9 @@ def contents_and_edges(
                 sub_id = f"i_{ii}"
                 edges.append(
                     VisualEdge(
-                        a_id, f"{n_id}", VisualEdgeType.IMPLICIT_DEPENDENCY
+                        VisualEdgeID(a_id),
+                        VisualEdgeID(n_id),
+                        VisualEdgeType.IMPLICIT_DEPENDENCY,
                     )
                 )
 
@@ -239,13 +266,13 @@ def contents_and_edges(
         contents = "<src> src|<call> call"
         edges = [
             VisualEdge(
-                node.source_id,
-                f"{n_id}:src",
+                VisualEdgeID(node.source_id),
+                VisualEdgeID(n_id, "src"),
                 VisualEdgeType.MUTATE_SOURCE,
             ),
             VisualEdge(
-                node.call_id,
-                f"{n_id}:call",
+                VisualEdgeID(node.call_id),
+                VisualEdgeID(n_id, "call"),
                 VisualEdgeType.MUTATE_CALL,
             ),
         ]
@@ -254,7 +281,11 @@ def contents_and_edges(
     if isinstance(node, GlobalNode):
         contents = node.name
         edges = [
-            VisualEdge(node.call_id, n_id, VisualEdgeType.GLOBAL),
+            VisualEdge(
+                VisualEdgeID(node.call_id),
+                VisualEdgeID(n_id),
+                VisualEdgeType.GLOBAL,
+            ),
         ]
         return contents, edges
 
@@ -316,9 +347,17 @@ class ExtraLabelType(Enum):
 
 @dataclass
 class VisualEdge:
-    source: str
-    target: str
+    source: VisualEdgeID
+    target: VisualEdgeID
     type: VisualEdgeType
+
+
+@dataclass
+class VisualEdgeID:
+    node_id: str
+    # The port the edge is related to
+    # https://graphviz.org/doc/info/shapes.html#record
+    port: Optional[str] = field(default=None)
 
 
 class VisualEdgeType(Enum):
