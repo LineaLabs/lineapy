@@ -6,6 +6,7 @@ We include in this graph:
 * From the DB about this session:
   * Nodes
   * Artifacts
+  * Source code
 * From the tracer:
   * Mutation and view edges
   * Variables
@@ -13,15 +14,15 @@ We include in this graph:
 We currently don't include, but could:
 
 * Node values
-* Source code
 """
 from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import TYPE_CHECKING, Optional, Union
+from typing import Optional, Union
 
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
     GlobalNode,
@@ -33,9 +34,7 @@ from lineapy.data.types import (
     Node,
     NodeType,
 )
-
-if TYPE_CHECKING:
-    from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer import Tracer
 
 
 @dataclass
@@ -43,37 +42,32 @@ class VisualGraphOptions:
     """
     Class to store options for the visualizer, so that we can properly type them
     as we pass this down the stack.
-
-    It would be nice if we could just use keyword arguments, and type this directly.
-
-    We can't use a TypedDict on **kwargs (see https://www.python.org/dev/peps/pep-0589/#rejected-alternatives)
-    In Python 3.10 we can maybe use https://www.python.org/dev/peps/pep-0612/.
     """
 
-    # Whether to highlight a certain artifact.
-    # For now, this will only show that artifact. In the future, it will grey
-    # out the rest.
-    artifact: Optional[str] = field(default=None)
+    graph: Graph
+    # The tracer is optional, if provided, will let us show some additional
+    # information, like variables.
+    tracer: Optional[Tracer]
 
-    # Whether to add edges for the implied views in the tracer
-    show_implied_mutations: bool = field(default=True)
-
-    # Whether to add edges for the views kept in the tracer
-    show_views: bool = field(default=False)
-
+    # Whether to highlight a certain node.
+    # For now, this will only show that node and its ancestors.
+    # In the future, it will grey out the rest, but still show them
+    highlight_node: Optional[str]
+    # Whether to add edges for the implied views in the tracer (requires tracer)
+    show_implied_mutations: bool
+    # Whether to add edges for the views kept in the tracer (requires tracer)
+    show_views: bool
     # Whether to show source code in the graph
-    show_code: bool = field(default=False)
-
-    # Whether to add edges for global variable reads in calls
-    show_global_reads: bool = field(default=True)
-
-    # Whether to add edges for implicit dependencies in calls
-    show_implicit_dependencies: bool = field(default=True)
+    show_code: bool
+    # Whether to show artifacts (requires tracer)
+    show_artifacts: bool
+    # Whether to show variables (requires tracer)
+    show_variables: bool
 
 
-def tracer_to_visual_graph(
-    tracer: Tracer, options: VisualGraphOptions
-) -> VisualGraph:
+def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
+    tracer = options.tracer
+    graph = options.graph
     vg = VisualGraph()
 
     # We will create some mappings to start, so that we can add the
@@ -81,16 +75,22 @@ def tracer_to_visual_graph(
 
     # First create a mapping of each node ID to all of its artifact names
     id_to_artifacts: dict[str, list[Optional[str]]] = defaultdict(list)
-    for a in tracer.session_artifacts():
-        id_to_artifacts[a.node_id].append(a.name)
+    if options.show_artifacts:
+        if not tracer:
+            raise RuntimeError("Cannot show artifacts without tracer")
+        for a in tracer.session_artifacts():
+            id_to_artifacts[a.node_id].append(a.name)
 
     # Then create a mapping of each node to the variables which point to it
     id_to_variables: dict[str, list[str]] = defaultdict(list)
-    for name, node in tracer.variable_name_to_node.items():
-        id_to_variables[node.id].append(name)
+    if options.show_variables:
+        if not tracer:
+            raise RuntimeError("Cannot show implied mutations without tracer")
+        for name, node in tracer.variable_name_to_node.items():
+            id_to_variables[node.id].append(name)
 
     # First add all the nodes from the session
-    for node in tracer.graph.nodes:
+    for node in graph.nodes:
         extra_labels = [
             ExtraLabel(a or "Unnamed Artifact", ExtraLabelType.ARTIFACT)
             for a in id_to_artifacts[node.id]
@@ -120,7 +120,7 @@ def tracer_to_visual_graph(
     last_added_source_id: Optional[str] = None
 
     # Then add the source code nodes
-    for n in tracer.graph.nodes:
+    for n in graph.nodes:
         source_location = n.source_location
         if not source_location:
             continue
@@ -152,6 +152,8 @@ def tracer_to_visual_graph(
         )
     # Then we can add all the additional information from the tracer
     if options.show_implied_mutations:
+        if not tracer:
+            raise RuntimeError("Cannot show implied mutations without tracer")
         # the mutate nodes
         for source, mutate in tracer.source_to_mutate.items():
             vg.edges.append(
@@ -163,6 +165,9 @@ def tracer_to_visual_graph(
             )
 
     if options.show_views:
+        if not tracer:
+            raise RuntimeError("Cannot show views without tracer")
+
         # Create a set of unique pairs of viewers, where order doesn't matter
         # Since they aren't directed
         viewer_pairs: set[frozenset[LineaID]] = {
@@ -230,7 +235,7 @@ def contents_and_edges(
                 )
             contents += "| {{" + "|".join(kwargs_contents) + "} | kwargs }"
 
-        if options.show_global_reads and node.global_reads:
+        if node.global_reads:
             global_reads_contents: list[str] = []
 
             for k, v in node.global_reads.items():
@@ -246,7 +251,7 @@ def contents_and_edges(
                 )
             contents += "| {{" + "|".join(global_reads_contents) + "} | vars }"
 
-        if options.show_implicit_dependencies and node.implicit_dependencies:
+        if node.implicit_dependencies:
             for ii, a_id in enumerate(node.implicit_dependencies):
                 sub_id = f"i_{ii}"
                 edges.append(

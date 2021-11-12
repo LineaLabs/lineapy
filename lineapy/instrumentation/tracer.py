@@ -6,7 +6,6 @@ from itertools import chain
 from os import getcwd
 from typing import Dict, Optional
 
-import graphviz
 from black import FileMode, format_str
 
 from lineapy.constants import GETATTR
@@ -42,8 +41,6 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.lineabuiltins import l_tuple
 from lineapy.utils import get_new_id, remove_duplicates, remove_value
-from lineapy.visualizer.graphviz import tracer_to_graphviz
-from lineapy.visualizer.visual_graph import VisualGraphOptions
 
 logger = logging.getLogger(__name__)
 
@@ -198,27 +195,6 @@ class Tracer:
         if _col_offset < 3:
             return ""
         return artifact_line[: _col_offset - 3]
-
-    def visualize(
-        self,
-        filename="tracer",
-        options: VisualGraphOptions = VisualGraphOptions(),
-    ) -> None:
-        """
-        Visualize the graph using GraphViz, writing to disk and trying to open.
-        """
-        dot = self.graphviz(options)
-        dot.render(filename, view=True, format="pdf", quiet=True)
-
-    def visualize_to_svg(
-        self, options: VisualGraphOptions = VisualGraphOptions()
-    ) -> str:
-        return self.graphviz(options).pipe(format="svg", quiet=True).decode()
-
-    def graphviz(
-        self, options: VisualGraphOptions = VisualGraphOptions()
-    ) -> graphviz.Digraph:
-        return tracer_to_graphviz(self, options)
 
     def process_node(self, node: Node) -> None:
         """

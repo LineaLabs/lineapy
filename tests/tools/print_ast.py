@@ -20,7 +20,7 @@ def linea_cli(code):
     print("\n*** TRACER ***")
     # print(astor.to_source(NodeTransformer("dummy").visit(ast_)))
     print("\n*** Bytecoce ***")
-    print(dis.dis(code))
+    dis.dis(code)
 
 
 if __name__ == "__main__":
