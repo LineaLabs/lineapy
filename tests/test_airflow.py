@@ -55,5 +55,7 @@ def test_run_airflow(virtualenv, tmp_path):
     # We create a new DB for airflow for testing, so it's reproducible
     virtualenv.run("airflow db init", capture=False)
     virtualenv.run(
-        "airflow dags test sliced_housing_dag_dag 2020-10-19", capture=False
+        "airflow dags test sliced_housing_dag_dag 2020-10-19",
+        capture=False,
+        cd=".",
     )
