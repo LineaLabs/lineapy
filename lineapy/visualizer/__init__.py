@@ -86,7 +86,7 @@ class Visualizer:
             show_implied_mutations=False,
             show_views=False,
             show_artifacts=True,
-            show_variables=False,
+            show_variables=True,
         )
         return cls(options)
 

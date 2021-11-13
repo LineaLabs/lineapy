@@ -135,7 +135,7 @@ COLORS: dict[ColorableType, Colors] = defaultdict(
         NodeType.LookupNode: VEGA_CATEGORY_20["yellow"],
         # Make the global node and variables same color, since both are about variables
         NodeType.GlobalNode: VEGA_CATEGORY_20["brown"],
-        ExtraLabelType.VARIABLE: VEGA_CATEGORY_20["pink"],
+        ExtraLabelType.VARIABLE: VEGA_CATEGORY_20["aqua"],
         ExtraLabelType.ARTIFACT: VEGA_CATEGORY_20["orange"],
         # Make same color as mutate node
         VisualEdgeType.LATEST_MUTATE_SOURCE: VEGA_CATEGORY_20["red"],
