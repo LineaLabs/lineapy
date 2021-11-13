@@ -47,7 +47,7 @@ def setup_logging():
 class PythonSnapshotExtension(SingleFileSnapshotExtension):
     _file_extension = "py"
 
-    def serialize(self, data: str, **kwargs) -> str:  # type: ignore
+    def serialize(self, data: str, **kwargs) -> str:
         return data
 
     def _write_snapshot_fossil(
