@@ -6,6 +6,7 @@ that with graphviz.
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import Optional, Union
 
 import graphviz
@@ -27,35 +28,90 @@ from lineapy.visualizer.visual_graph import (
 
 GRAPH_STYLE = {"newrank": "true"}
 
-NODE_STYLE: dict[str, str] = {
-    # https://graphviz.org/doc/info/colors.html#brewer
-    "colorscheme": "pastel19",
-}
+NODE_STYLE: dict[str, str] = {}
 
 EDGE_STYLE = {
     "arrowhead": "vee",
     "arrowsize": "0.7",
-    "colorscheme": NODE_STYLE["colorscheme"],
 }
 
-DEFAULT_EDGE_COLOR = "/greys3/2"
-CLUSTER_EDGE_COLOR = "/greys3/3"
+# We use the Vega Category 20 color scheme since it provides dark and light version
+# of 10 colors, which we can use for node values to show which are highlighted.
+# https://vega.github.io/vega/docs/schemes/#category20
+# We also give them all names for easier access
+
+# Represents a pair of colors, to toggle between highlighted and not highlighted
+Colors = tuple[str, str]
+
+VEGA_CATEGORY_20: dict[str, Colors] = {
+    "blue": (
+        "#1f77b4",
+        "#aec7e8",
+    ),
+    "orange": (
+        "#ff7f0e",
+        "#ffbb78",
+    ),
+    "green": (
+        "#2ca02c",
+        "#98df8a",
+    ),
+    "red": (
+        "#d62728",
+        "#ff9896",
+    ),
+    "purple": (
+        "#9467bd",
+        "#c5b0d5",
+    ),
+    "brown": (
+        "#8c564b",
+        "#c49c94",
+    ),
+    "pink": (
+        "#e377c2",
+        "#f7b6d2",
+    ),
+    "grey": (
+        "#7f7f7f",
+        "#c7c7c7",
+    ),
+    "yellow": (
+        "#bcbd22",
+        "#dbdb8d",
+    ),
+    "aqua": (
+        "#17becf",
+        "#9edae5",
+    ),
+}
+
+BORDER_COLOR = VEGA_CATEGORY_20["grey"]
+
+CLUSTER_EDGE_COLOR = VEGA_CATEGORY_20["grey"][1]
+
 
 ColorableType = Union[NodeType, ExtraLabelType, VisualEdgeType]
 
-# List of types, to use as index to color scheme
-# https://graphviz.org/docs/attrs/colorscheme/
-TYPES_FOR_COLOR: list[ColorableType] = [
-    VisualEdgeType.LATEST_MUTATE_SOURCE,
-    VisualEdgeType.VIEW,
-    NodeType.CallNode,
-    NodeType.LiteralNode,
-    NodeType.MutateNode,
-    NodeType.ImportNode,
-    ExtraLabelType.VARIABLE,
-    NodeType.LookupNode,
-    NodeType.GlobalNode,
-]
+
+# Mapping of each node type to its colors
+COLORS: dict[ColorableType, Colors] = defaultdict(
+    lambda: VEGA_CATEGORY_20["grey"],
+    {
+        NodeType.CallNode: VEGA_CATEGORY_20["orange"],
+        NodeType.LiteralNode: VEGA_CATEGORY_20["green"],
+        NodeType.MutateNode: VEGA_CATEGORY_20["red"],
+        NodeType.ImportNode: VEGA_CATEGORY_20["purple"],
+        NodeType.LookupNode: VEGA_CATEGORY_20["yellow"],
+        # Make the global node and variables same color, since both are about variables
+        NodeType.GlobalNode: VEGA_CATEGORY_20["pink"],
+        ExtraLabelType.VARIABLE: VEGA_CATEGORY_20["pink"],
+        ExtraLabelType.ARTIFACT: VEGA_CATEGORY_20["brown"],
+        # Make same color as mutate node
+        VisualEdgeType.LATEST_MUTATE_SOURCE: VEGA_CATEGORY_20["red"],
+        VisualEdgeType.VIEW: VEGA_CATEGORY_20["aqua"],
+    },
+)
 
 # Labels for node types for legend
 NODE_LABELS: dict[NodeType, str] = {
@@ -66,6 +122,31 @@ NODE_LABELS: dict[NodeType, str] = {
     NodeType.MutateNode: "Mutate",
     NodeType.GlobalNode: "Global",
 }
+
+
+NODE_SHAPES: dict[NodeType, str] = {
+    NodeType.CallNode: "record",
+    NodeType.LiteralNode: "box",
+    NodeType.ImportNode: "box",
+    NodeType.LookupNode: "box",
+    NodeType.MutateNode: "record",
+    NodeType.GlobalNode: "box",
+}
+
+UNDIRECTED_EDGE_TYPES = {
+    VisualEdgeType.VIEW,
+}
+
+
+EDGE_STYLES = defaultdict(
+    lambda: "solid",
+    {
+        VisualEdgeType.MUTATE_CALL: "dashed",
+        VisualEdgeType.NEXT_LINE: "invis",
+        VisualEdgeType.SOURCE_CODE: "dotted",
+        VisualEdgeType.IMPLICIT_DEPENDENCY: "bold",
+    },
+)
 
 
 def extra_label_labels(
@@ -100,37 +181,12 @@ def edge_labels(
     return l
 
 
-NODE_SHAPES: dict[NodeType, str] = {
-    NodeType.CallNode: "record",
-    NodeType.LiteralNode: "box",
-    NodeType.ImportNode: "box",
-    NodeType.LookupNode: "box",
-    NodeType.MutateNode: "record",
-    NodeType.GlobalNode: "box",
-}
-
-UNDIRECTED_EDGE_TYPES = {
-    VisualEdgeType.VIEW,
-}
-
-
-EDGE_STYLES = {
-    VisualEdgeType.MUTATE_CALL: "dashed",
-    VisualEdgeType.NEXT_LINE: "invis",
-    VisualEdgeType.SOURCE_CODE: "dotted",
-    VisualEdgeType.IMPLICIT_DEPENDENCY: "bold",
-}
-
-
-def get_color(tp: ColorableType) -> str:
+def get_color(tp: ColorableType, is_highlighted: bool) -> str:
     """
     Get the color for a type. Note that graphviz colorscheme indexing
     is 1 based
     """
-    try:
-        return str(TYPES_FOR_COLOR.index(tp) + 1)
-    except ValueError:
-        return "/greys3/1"
+    return COLORS[tp][not is_highlighted]
 
 
 def to_graphviz(options: VisualGraphOptions) -> graphviz.Digraph:
@@ -151,12 +207,10 @@ def to_graphviz(options: VisualGraphOptions) -> graphviz.Digraph:
 
 
 def render_edge(dot, edge: VisualEdge) -> None:
-    if not edge.highlighted:
-        return
     dot.edge(
         edge_id_to_str(edge.source),
         edge_id_to_str(edge.target),
-        **edge_type_to_kwargs(edge.type),
+        **edge_type_to_kwargs(edge.type, edge.highlighted),
     )
 
 
@@ -166,7 +220,7 @@ def edge_id_to_str(edge_id: VisualEdgeID) -> str:
     return edge_id.node_id
 
 
-def extra_labels_to_html(extra_labels: ExtraLabels) -> str:
+def extra_labels_to_html(extra_labels: ExtraLabels, highlighted: bool) -> str:
     """
     Convert extra labels into an HTML table, where each label is a row.
     A single node could have multiple variables and artifacts pointing at it.
@@ -174,29 +228,35 @@ def extra_labels_to_html(extra_labels: ExtraLabels) -> str:
     it in the xlabel and a table was an easy way to have multiple rows with different colors.
     """
     rows = [
-        f'<TR ><TD BGCOLOR="{get_color(el.type)}"><FONT POINT-SIZE="10">{el.label}</FONT></TD></TR>'
+        f'<TR ><TD BGCOLOR="{get_color(el.type, highlighted)}"><FONT POINT-SIZE="10">{el.label}</FONT></TD></TR>'
         for el in extra_labels
     ]
     return f'<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0">{"".join(rows)}</TABLE>>'
 
 
-def node_type_to_kwargs(node_type: VisualNodeType) -> dict[str, object]:
+def node_type_to_kwargs(
+    node_type: VisualNodeType, highlighted: bool
+) -> dict[str, object]:
     if isinstance(node_type, SourceLineType):
-        return {"shape": "plaintext"}
+        return {
+            "shape": "plaintext",
+            "fontcolor": BORDER_COLOR[not highlighted],
+        }
     return {
-        "color": get_color(node_type),
+        "fillcolor": get_color(node_type, highlighted),
         "shape": NODE_SHAPES[node_type],
+        "color": BORDER_COLOR[not highlighted],
         "style": "filled",
     }
 
 
-def edge_type_to_kwargs(edge_type: VisualEdgeType) -> dict[str, object]:
+def edge_type_to_kwargs(
+    edge_type: VisualEdgeType, highlighted: bool
+) -> dict[str, object]:
     return {
-        "color": get_color(edge_type)
-        if edge_type in TYPES_FOR_COLOR
-        else DEFAULT_EDGE_COLOR,
+        "color": f"{get_color(edge_type, highlighted)}",
         "dir": "none" if edge_type in UNDIRECTED_EDGE_TYPES else "forward",
-        "style": EDGE_STYLES.get(edge_type, "solid"),
+        "style": EDGE_STYLES[edge_type],
     }
 
 
@@ -261,16 +321,16 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
                     prev_id,
                     id_,
                     label=label,
-                    **edge_type_to_kwargs(edge_type),
+                    **edge_type_to_kwargs(edge_type, highlighted=True),
                 )
                 prev_id = id_
     return id_
 
 
 def render_node(dot: graphviz.Digraph, node: VisualNode) -> None:
-    if not node.highlighted:
-        return
-    kwargs = node_type_to_kwargs(node.type)
+    kwargs = node_type_to_kwargs(node.type, node.highlighted)
     if node.extra_labels:
-        kwargs["xlabel"] = extra_labels_to_html(node.extra_labels)
+        kwargs["xlabel"] = extra_labels_to_html(
+            node.extra_labels, node.highlighted
+        )
     dot.node(node.id, node.contents, **kwargs)

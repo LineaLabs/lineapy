@@ -324,6 +324,10 @@ class VisualGraph:
 
     def edge(self, edge: VisualEdge) -> None:
         self._edges.append(edge)
+        # If this is a a pointer from source code to next line, don't add it
+        # since this doesn't count as a dependency
+        if edge.type == VisualEdgeType.NEXT_LINE:
+            return
         # Add this edge as a parent edge for the target
         self._node_id_to_parent_edges[edge.target.node_id].append(edge)
 
