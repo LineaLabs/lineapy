@@ -52,94 +52,60 @@ EDGE_STYLE = {
     "fontname": SERIF_FONT,
 }
 
-# We use the Vega Category 20 color scheme since it provides dark and light version
-# of 10 colors, which we can use for node values to show which are highlighted.
-# https://vega.github.io/vega/docs/schemes/#category20
-# We also give them all names for easier access
 
-# Represents a pair of colors, to toggle between highlighted and not highlighted
-Colors = tuple[str, str]
-
-
-VEGA_CATEGORY_20: dict[str, Colors] = {
-    "blue": (
-        "#1f77b4",
-        "#aec7e8",
-    ),
-    "orange": (
-        "#ff7f0e",
-        "#ffbb78",
-    ),
-    "green": (
-        "#2ca02c",
-        "#98df8a",
-    ),
-    "red": (
-        "#d62728",
-        "#ff9896",
-    ),
-    "purple": (
-        "#9467bd",
-        "#c5b0d5",
-    ),
-    "brown": (
-        "#8c564b",
-        "#c49c94",
-    ),
-    "pink": (
-        "#e377c2",
-        "#f7b6d2",
-    ),
-    "grey": (
-        "#7f7f7f",
-        "#c7c7c7",
-    ),
-    "yellow": (
-        "#bcbd22",
-        "#dbdb8d",
-    ),
-    "aqua": (
-        "#17becf",
-        "#9edae5",
-    ),
+# Copied from pastel19 on
+# https://graphviz.org/doc/info/colors.html so we can add transparency
+BREWER_PASTEL: dict[str, str] = {
+    "red": "#fbb4ae",
+    "blue": "#b3cde3",
+    "green": "#ccebc5",
+    "purple": "#decbe4",
+    "orange": "#fed9a6",
+    "yellow": "#ffffcc",
+    "brown": "#e5d8bd",
+    "pink": "#fddaec",
+    "grey": "#f2f2f2",
 }
 ALPHA = 50
-alpha_hex = hex(ALPHA)[2:]
 # Alpha fraction from 0 to 255 to apply to lighten the second colors
 # Make all the secondary colors lighter, by applying an alpha
 # Graphviz takes this as an alpha value in hex form
 # https://graphviz.org/docs/attr-types/color/
-for name, colors in VEGA_CATEGORY_20.items():
-    primary, secondary = colors
-    lightened_secondary = secondary + alpha_hex
-    VEGA_CATEGORY_20[name] = (primary, lightened_secondary)
+alpha_hex = hex(ALPHA)[2:]
 
-BORDER_COLOR = VEGA_CATEGORY_20["grey"]
-BLACK = "#000000"
-FONT_COLOR = (BLACK, BLACK + alpha_hex)
 
-CLUSTER_EDGE_COLOR = VEGA_CATEGORY_20["grey"][0]
+def color(orginal_color: str, highlighted: bool) -> str:
+    if highlighted:
+        return orginal_color
+    # If not highlighted, make it more transparent
+    return orginal_color + alpha_hex
+
+
+BORDER_COLOR = BREWER_PASTEL["grey"]
+FONT_COLOR = "#000000"
+
+CLUSTER_EDGE_COLOR = BREWER_PASTEL["grey"]
 
 
 ColorableType = Union[NodeType, ExtraLabelType, VisualEdgeType]
 
 
-# Mapping of each node type to its colors
-COLORS: dict[ColorableType, Colors] = defaultdict(
-    lambda: VEGA_CATEGORY_20["grey"],
+# Mapping of each node type to its color
+COLORS: dict[ColorableType, str] = defaultdict(
+    lambda: BREWER_PASTEL["grey"],
     {
-        NodeType.CallNode: VEGA_CATEGORY_20["pink"],
-        NodeType.LiteralNode: VEGA_CATEGORY_20["green"],
-        NodeType.MutateNode: VEGA_CATEGORY_20["red"],
-        NodeType.ImportNode: VEGA_CATEGORY_20["purple"],
-        NodeType.LookupNode: VEGA_CATEGORY_20["yellow"],
+        NodeType.CallNode: BREWER_PASTEL["pink"],
+        NodeType.LiteralNode: BREWER_PASTEL["green"],
+        NodeType.MutateNode: BREWER_PASTEL["red"],
+        NodeType.ImportNode: BREWER_PASTEL["purple"],
+        NodeType.LookupNode: BREWER_PASTEL["yellow"],
         # Make the global node and variables same color, since both are about variables
-        NodeType.GlobalNode: VEGA_CATEGORY_20["brown"],
-        ExtraLabelType.VARIABLE: VEGA_CATEGORY_20["aqua"],
-        ExtraLabelType.ARTIFACT: VEGA_CATEGORY_20["orange"],
+        NodeType.GlobalNode: BREWER_PASTEL["brown"],
+        ExtraLabelType.VARIABLE: BREWER_PASTEL["brown"],
+        ExtraLabelType.ARTIFACT: BREWER_PASTEL["orange"],
         # Make same color as mutate node
-        VisualEdgeType.LATEST_MUTATE_SOURCE: VEGA_CATEGORY_20["red"],
-        VisualEdgeType.VIEW: VEGA_CATEGORY_20["aqua"],
+        VisualEdgeType.LATEST_MUTATE_SOURCE: BREWER_PASTEL["red"],
+        VisualEdgeType.VIEW: BREWER_PASTEL["blue"],
     },
 )
 
@@ -211,12 +177,12 @@ def edge_labels(
     return l
 
 
-def get_color(tp: ColorableType, is_highlighted: bool) -> str:
+def get_color(tp: ColorableType, highlighted: bool) -> str:
     """
     Get the color for a type. Note that graphviz colorscheme indexing
     is 1 based
     """
-    return COLORS[tp][not is_highlighted]
+    return color(COLORS[tp], highlighted)
 
 
 def to_graphviz(options: VisualGraphOptions) -> graphviz.Digraph:
@@ -270,15 +236,13 @@ def node_type_to_kwargs(
     if isinstance(node_type, SourceLineType):
         return {
             "shape": "text",
-            "fontcolor": FONT_COLOR[not highlighted],
-            # Remove node edge
-            "penwidth": "0",
+            "fontcolor": color(FONT_COLOR, highlighted),
         }
     return {
         "fillcolor": get_color(node_type, highlighted),
         "shape": NODE_SHAPES[node_type],
-        "color": BORDER_COLOR[not highlighted],
-        "fontcolor": FONT_COLOR[not highlighted],
+        "color": color(BORDER_COLOR, highlighted),
+        "fontcolor": color(FONT_COLOR, highlighted),
         "style": "filled",
     }
 
