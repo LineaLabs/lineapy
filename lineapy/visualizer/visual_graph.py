@@ -122,10 +122,14 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
         id_ = f"{source_location.source_code.id}-{source_location.lineno}-{source_location.end_lineno}"
         if id_ not in added_source_ids:
             added_source_ids.add(id_)
-            contents = "\n".join(
-                source_location.source_code.code.splitlines()[
-                    source_location.lineno - 1 : source_location.end_lineno
-                ]
+            # Use \l instead of \n for left alligned code
+            contents = (
+                r"\l".join(
+                    source_location.source_code.code.splitlines()[
+                        source_location.lineno - 1 : source_location.end_lineno
+                    ]
+                )
+                + r"\l"
             )
             vg.node(VisualNode(id_, SourceLineType(), contents, []))
 
@@ -183,6 +187,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     return vg
 
 
+# TODO: Make single dispatch based on node type
 def process_node(
     vg: VisualGraph, node: Node, options: VisualGraphOptions
 ) -> str:
