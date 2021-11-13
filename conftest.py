@@ -14,4 +14,4 @@ def pytest_configure(config):
 def pytest_collectstart(collector):
     if collector.fspath and collector.fspath.ext == ".ipynb":
 
-        collector.skip_compare += ("image/svg+xml",)
+        collector.skip_compare += ("image/svg+xml", "text/html")
