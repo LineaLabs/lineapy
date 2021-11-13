@@ -26,7 +26,14 @@ from lineapy.visualizer.visual_graph import (
     to_visual_graph,
 )
 
-GRAPH_STYLE = {"newrank": "true", "splines": "polyline"}
+SERIF_FONT = "Helvetica"
+MONOSPACE_FONT = "Courier"
+
+GRAPH_STYLE = {
+    "newrank": "true",
+    "splines": "polyline",
+    "fontname": SERIF_FONT,
+}
 
 NODE_STYLE: dict[str, str] = {
     "width": "0",
@@ -35,12 +42,14 @@ NODE_STYLE: dict[str, str] = {
     "margin": "0.04",
     "penwidth": "0",
     "fontsize": "11",
+    "fontname": MONOSPACE_FONT,
 }
 
 EDGE_STYLE = {
     "arrowhead": "vee",
     "arrowsize": "0.5",
     "fontsize": "9",
+    "fontname": SERIF_FONT,
 }
 
 # We use the Vega Category 20 color scheme since it provides dark and light version
@@ -324,6 +333,7 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
             render_node(
                 c,
                 VisualNode(id_, node_type, label, extra_labels),
+                fontname=SERIF_FONT,
             )
             prev_id = id_
 
@@ -351,10 +361,13 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
     return id_
 
 
-def render_node(dot: graphviz.Digraph, node: VisualNode) -> None:
+def render_node(
+    dot: graphviz.Digraph, node: VisualNode, **overrides: str
+) -> None:
     kwargs = node_type_to_kwargs(node.type, node.highlighted)
     if node.extra_labels:
         kwargs["xlabel"] = extra_labels_to_html(
             node.extra_labels, node.highlighted
         )
+    kwargs.update(overrides)
     dot.node(node.id, node.contents, **kwargs)
