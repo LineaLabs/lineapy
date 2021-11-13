@@ -26,13 +26,23 @@ from lineapy.visualizer.visual_graph import (
     to_visual_graph,
 )
 
-GRAPH_STYLE = {"newrank": "true"}
+GRAPH_STYLE = {
+    "newrank": "true",
+}
 
-NODE_STYLE: dict[str, str] = {}
+NODE_STYLE: dict[str, str] = {
+    "width": "0",
+    "height": "0",
+    # in inches
+    "margin": "0.04",
+    "penwidth": "0",
+    "fontsize": "10",
+}
 
 EDGE_STYLE = {
     "arrowhead": "vee",
-    "arrowsize": "0.7",
+    "arrowsize": "0.5",
+    "fontsize": "9",
 }
 
 # We use the Vega Category 20 color scheme since it provides dark and light version
@@ -42,6 +52,7 @@ EDGE_STYLE = {
 
 # Represents a pair of colors, to toggle between highlighted and not highlighted
 Colors = tuple[str, str]
+
 
 VEGA_CATEGORY_20: dict[str, Colors] = {
     "blue": (
@@ -85,10 +96,22 @@ VEGA_CATEGORY_20: dict[str, Colors] = {
         "#9edae5",
     ),
 }
+ALPHA = 50
+alpha_hex = hex(ALPHA)[2:]
+# Alpha fraction from 0 to 255 to apply to lighten the second colors
+# Make all the secondary colors lighter, by applying an alpha
+# Graphviz takes this as an alpha value in hex form
+# https://graphviz.org/docs/attr-types/color/
+for name, colors in VEGA_CATEGORY_20.items():
+    primary, secondary = colors
+    lightened_secondary = secondary + alpha_hex
+    VEGA_CATEGORY_20[name] = (primary, lightened_secondary)
 
 BORDER_COLOR = VEGA_CATEGORY_20["grey"]
+BLACK = "#000000"
+FONT_COLOR = (BLACK, BLACK + alpha_hex)
 
-CLUSTER_EDGE_COLOR = VEGA_CATEGORY_20["grey"][1]
+CLUSTER_EDGE_COLOR = VEGA_CATEGORY_20["grey"][0]
 
 
 ColorableType = Union[NodeType, ExtraLabelType, VisualEdgeType]
@@ -98,15 +121,15 @@ ColorableType = Union[NodeType, ExtraLabelType, VisualEdgeType]
 COLORS: dict[ColorableType, Colors] = defaultdict(
     lambda: VEGA_CATEGORY_20["grey"],
     {
-        NodeType.CallNode: VEGA_CATEGORY_20["orange"],
+        NodeType.CallNode: VEGA_CATEGORY_20["pink"],
         NodeType.LiteralNode: VEGA_CATEGORY_20["green"],
         NodeType.MutateNode: VEGA_CATEGORY_20["red"],
         NodeType.ImportNode: VEGA_CATEGORY_20["purple"],
         NodeType.LookupNode: VEGA_CATEGORY_20["yellow"],
         # Make the global node and variables same color, since both are about variables
-        NodeType.GlobalNode: VEGA_CATEGORY_20["pink"],
+        NodeType.GlobalNode: VEGA_CATEGORY_20["brown"],
         ExtraLabelType.VARIABLE: VEGA_CATEGORY_20["pink"],
-        ExtraLabelType.ARTIFACT: VEGA_CATEGORY_20["brown"],
+        ExtraLabelType.ARTIFACT: VEGA_CATEGORY_20["orange"],
         # Make same color as mutate node
         VisualEdgeType.LATEST_MUTATE_SOURCE: VEGA_CATEGORY_20["red"],
         VisualEdgeType.VIEW: VEGA_CATEGORY_20["aqua"],
@@ -239,13 +262,16 @@ def node_type_to_kwargs(
 ) -> dict[str, object]:
     if isinstance(node_type, SourceLineType):
         return {
-            "shape": "plaintext",
-            "fontcolor": BORDER_COLOR[not highlighted],
+            "shape": "text",
+            "fontcolor": FONT_COLOR[not highlighted],
+            # Remove node edge
+            "penwidth": "0",
         }
     return {
         "fillcolor": get_color(node_type, highlighted),
         "shape": NODE_SHAPES[node_type],
         "color": BORDER_COLOR[not highlighted],
+        "fontcolor": FONT_COLOR[not highlighted],
         "style": "filled",
     }
 
