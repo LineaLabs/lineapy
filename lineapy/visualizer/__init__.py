@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import InitVar, dataclass, field
 
 import graphviz
-from IPython.display import SVG, DisplayObject
+from IPython.display import HTML, DisplayObject
 
 from lineapy.data.graph import Graph
 from lineapy.instrumentation.tracer import Tracer
@@ -35,7 +35,36 @@ class Visualizer:
         return self.digraph.pipe(format="svg", quiet=True).decode()
 
     def ipython_display_object(self) -> DisplayObject:
-        return SVG(self.render_svg())
+        svg_text = self.render_svg()
+        # We emit this HTML to get a zoomable SVG
+        # Copied from https://github.com/jupyterlab/jupyterlab/issues/7497#issuecomment-557334236
+        # Which references https://github.com/pygraphkit/graphtik/blob/56a513c665e26e7bf3e81b6fb07d9475c5bf1614/graphtik/plot.py#L144-L183
+        # Which uses this library: https://github.com/bumbu/svg-pan-zoom
+        html_text = f"""
+            <div class="svg_container">
+                <style>
+                    .svg_container SVG {{
+                        width: 100%;
+                        height: 100%;
+                    }}
+                </style>
+                <script src="https://bumbu.me/svg-pan-zoom/dist/svg-pan-zoom.min.js"></script>
+                <script type="text/javascript">
+                    var scriptTag = document.scripts[document.scripts.length - 1];
+                    var parentTag = scriptTag.parentNode;
+                    var svg_el = parentTag.querySelector(".svg_container svg");
+                    svgPanZoom(svg_el, {{
+                        controlIconsEnabled: true,
+                        fit: true,
+                        zoomScaleSensitivity: 1,
+                        minZoom: 0.1,
+                        maxZoom: 10
+                    }});
+                </script>
+                {svg_text}
+            </div>
+        """
+        return HTML(html_text)
 
     @classmethod
     def for_test_snapshot(cls, tracer: Tracer) -> Visualizer:
@@ -86,7 +115,7 @@ class Visualizer:
             show_implied_mutations=False,
             show_views=False,
             show_artifacts=True,
-            show_variables=False,
+            show_variables=True,
         )
         return cls(options)
 

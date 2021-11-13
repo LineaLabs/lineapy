@@ -39,7 +39,7 @@ STATE: Union[None, StartedState, CellsExecutedState] = None
 @dataclass
 class StartedState:
     # Save the ipython in the started state, because we can't look it
-    # up during our transformation, and we need it there to get the execution count
+    # up during our transformation, and we need it to get the globals
     ipython: InteractiveShell
 
     # Optionally overrides for the session name and DB URL
@@ -49,20 +49,11 @@ class StartedState:
 
 @dataclass
 class CellsExecutedState:
-    ipython: InteractiveShell
     tracer: Tracer
+    # The code for this cells execution
+    code: str
     # If set, we should update this display on every cell execution.
     visualize_display_handle: Optional[DisplayHandle] = field(default=None)
-    # If set, we have created a display object for the most recent execution
-    visualize_display_object: Optional[DisplayObject] = field(default=None)
-
-    # Store the last execution count and last resulting codes lines
-    # to avoid re-execution when working around an ipykernel bug
-    # that calls the transformer twice TODO: make bug in ipython for this
-    last_call: Optional[tuple[int, list[str]]] = field(default=None)
-
-    # the last expression value execute, will be what is displayed in the cell
-    last_value: object = field(default=None)
 
     # This is set to true, if `stop()` is called in the cell
     # to signal that at the end of this cell we should stop tracing.
@@ -74,12 +65,6 @@ class CellsExecutedState:
         Returns a jupyter display object for the visualization
         """
         return Visualizer.for_public(self.tracer).ipython_display_object()
-
-    def get_visualize_display_object(self) -> DisplayObject:
-        if not self.visualize_display_object:
-            obj = self.create_visualize_display_object()
-            self.visualize_display_object = obj
-        return self.visualize_display_object
 
 
 def start(
@@ -111,6 +96,7 @@ def input_transformer_post(lines: list[str]) -> list[str]:
         raise RuntimeError(
             "input_transformer_post shouldn't be called when we don't have an active tracer"
         )
+    code = "".join(lines)
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
         # Configure logging so that we the linea db prints it has connected.
@@ -123,46 +109,21 @@ def input_transformer_post(lines: list[str]) -> list[str]:
             db, SessionType.JUPYTER, STATE.session_name, ipython_globals
         )
 
-        STATE = CellsExecutedState(STATE.ipython, tracer)
-
-    # Reset display update
-    STATE.visualize_display_object = None
-    execution_count = STATE.ipython.execution_count
-    if STATE.last_call:
-        prev_execution_count, prev_lines = STATE.last_call
-        # Work around for ipython bug to prevent double execution in notebooks
-        if execution_count == prev_execution_count:
-            return prev_lines
-
-    code = "".join(lines)
-    location = JupyterCell(
-        execution_count=execution_count,
-        session_id=STATE.tracer.session_context.id,
-    )
-
-    # Write the code text to a file for error reporting
-    get_cell_path(location).write_text(code)
-
-    last_node = transform(code, location, STATE.tracer)
-    if STATE.visualize_display_handle:
-        STATE.visualize_display_handle.update(
-            STATE.get_visualize_display_object()
-        )
-
-    # Return the last value so it will be printed, if we don't end
-    # in a semicolon
-    ends_with_semicolon = lines and lines[-1].strip().endswith(";")
-    if not ends_with_semicolon and last_node:
-        STATE.last_value = STATE.tracer.executor.get_value(last_node)
+        STATE = CellsExecutedState(tracer, code=code)
     else:
-        STATE.last_value = None
-    lines = [
-        "import lineapy.ipython\n",
-        "lineapy.ipython._end_cell()\n",
-    ]
-    STATE.last_call = (execution_count, lines)
+        STATE.code = code
 
-    return lines
+    return RETURNED_LINES
+
+
+# We always return the same two lines for IPython to use as input.
+# They will run our internal end cell function, which wil return the proper
+# return value for the cell, so ipython can display it. They will also clean
+# up the tracer if we stopped in that cell.
+RETURNED_LINES = [
+    "import lineapy.ipython\n",
+    "lineapy.ipython._end_cell()\n",
+]
 
 
 def _end_cell() -> object:
@@ -173,9 +134,31 @@ def _end_cell() -> object:
     global STATE
     if not isinstance(STATE, CellsExecutedState):
         raise ValueError("We need to be executing cells to get the last value")
-    value = STATE.last_value
+
+    execution_count: int = get_ipython().execution_count  # type: ignore
+    location = JupyterCell(
+        execution_count=execution_count,
+        session_id=STATE.tracer.session_context.id,
+    )
+    code = STATE.code
+    # Write the code text to a file for error reporting
+    get_cell_path(location).write_text(code)
+
+    last_node = transform(code, location, STATE.tracer)
+    if STATE.visualize_display_handle:
+        STATE.visualize_display_handle.update(
+            STATE.create_visualize_display_object()
+        )
+
+    # Return the last value so it will be printed, if we don't end
+    # in a semicolon
+    ends_with_semicolon = code.strip().endswith(";")
+    if not ends_with_semicolon and last_node:
+        res = STATE.tracer.executor.get_value(last_node)
+    else:
+        res = None
     _optionally_stop(STATE)
-    return value
+    return res
 
 
 def visualize(*, live=False) -> None:
@@ -193,20 +176,19 @@ def visualize(*, live=False) -> None:
         raise RuntimeError(
             "Cannot visualize before we have started executing cells"
         )
+    display_object = STATE.create_visualize_display_object()
     if live:
         # If we have an existing display handle, display a new version of it.
         if STATE.visualize_display_handle:
-            STATE.visualize_display_handle.display(
-                STATE.get_visualize_display_object()
-            )
+            STATE.visualize_display_handle.display(display_object)
         # Otherwise, create a new one
         else:
             STATE.visualize_display_handle = display(
-                STATE.get_visualize_display_object(), display_id=True
+                display_object, display_id=True
             )
     else:
-        # Otherwise, just display the viusalize
-        display(STATE.get_visualize_display_object())
+        # Otherwise, just display the viusalization
+        display(display_object)
 
 
 def stop() -> None:
@@ -231,9 +213,8 @@ def _optionally_stop(cells_executed_state: CellsExecutedState) -> None:
     if not cells_executed_state.should_stop:
         return
     STATE = None
-    cells_executed_state.ipython.input_transformers_post.remove(
-        input_transformer_post
-    )
+    ipython: InteractiveShell = get_ipython()  # type: ignore
+    ipython.input_transformers_post.remove(input_transformer_post)
     cells_executed_state.tracer.db.close()
     # Remove the cells we stored
     cleanup_cells()

@@ -109,7 +109,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     #  we skip printing any lines that don't appear in nodes.
     # It also assumes that we have no overlapping line number ranges,
     # i.e. a node that is from lines 1-3 and another node just on line 3
-    # If this doesn occur, we will end up print line 3's source code twice.
+    # If this does occur, we will end up print line 3's source code twice.
 
     added_source_ids: set[str] = set()
     last_added_source_id: Optional[str] = None
@@ -122,10 +122,14 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
         id_ = f"{source_location.source_code.id}-{source_location.lineno}-{source_location.end_lineno}"
         if id_ not in added_source_ids:
             added_source_ids.add(id_)
-            contents = "\n".join(
-                source_location.source_code.code.splitlines()[
-                    source_location.lineno - 1 : source_location.end_lineno
-                ]
+            # Use \l instead of \n for left alligned code
+            contents = (
+                r"\l".join(
+                    source_location.source_code.code.splitlines()[
+                        source_location.lineno - 1 : source_location.end_lineno
+                    ]
+                )
+                + r"\l"
             )
             vg.node(VisualNode(id_, SourceLineType(), contents, []))
 
@@ -183,6 +187,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     return vg
 
 
+# TODO: Make single dispatch based on node type
 def process_node(
     vg: VisualGraph, node: Node, options: VisualGraphOptions
 ) -> str:
@@ -324,6 +329,10 @@ class VisualGraph:
 
     def edge(self, edge: VisualEdge) -> None:
         self._edges.append(edge)
+        # If this is a a pointer from source code to next line, don't add it
+        # since this doesn't count as a dependency
+        if edge.type == VisualEdgeType.NEXT_LINE:
+            return
         # Add this edge as a parent edge for the target
         self._node_id_to_parent_edges[edge.target.node_id].append(edge)
 
