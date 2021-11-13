@@ -109,7 +109,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     #  we skip printing any lines that don't appear in nodes.
     # It also assumes that we have no overlapping line number ranges,
     # i.e. a node that is from lines 1-3 and another node just on line 3
-    # If this doesn occur, we will end up print line 3's source code twice.
+    # If this does occur, we will end up print line 3's source code twice.
 
     added_source_ids: set[str] = set()
     last_added_source_id: Optional[str] = None

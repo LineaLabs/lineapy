@@ -26,9 +26,7 @@ from lineapy.visualizer.visual_graph import (
     to_visual_graph,
 )
 
-GRAPH_STYLE = {
-    "newrank": "true",
-}
+GRAPH_STYLE = {"newrank": "true", "splines": "polyline"}
 
 NODE_STYLE: dict[str, str] = {
     "width": "0",
@@ -36,7 +34,7 @@ NODE_STYLE: dict[str, str] = {
     # in inches
     "margin": "0.04",
     "penwidth": "0",
-    "fontsize": "10",
+    "fontsize": "11",
 }
 
 EDGE_STYLE = {
