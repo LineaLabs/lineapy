@@ -147,7 +147,7 @@ If you would like to change the database that linea talks to, you can use the
 `LINEA_DATABASE_URL` env variable. For example, to set it to `sqlite:///:memory:`
 to use an in memory database instead of writing to disk.
 
-## Airflow
+## Airflow and JupyterHub
 
 _Note: If you are running in Github Codespaces, both of these services will start automatically._
 
@@ -175,26 +175,6 @@ Once you re-run that, it will add a DAG that airflow can see, which you can run 
 ### Web UI
 
 We were previously working on a web based user interface to browse executions, but we are currently focusing on the API experience (in both Jupyter and the CLI).
-
-## Installing
-
-You can run linea either by cloning the repository or by using our Docker image.
-
-### Docker
-
-1. First install Docker and then authenticate to the [Github Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry)
-   so you can pull our private image.
-2. Now you can pull and run our image to slice Python code:
-
-```bash
-$ cat my_script.py
-x = 1 + 2
-y = x + 3
-assert y == 6
-
-$ docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main lineapy my_script.py --print-graph
-...
-```
 
 ## Known Bugs in Python Language Support
 
