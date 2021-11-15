@@ -25,10 +25,10 @@ bash-airflow:
 	docker-compose run --rm ${service_name}-airflow /bin/bash
 
 test:
-	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow" -m "not airflowtest" tests/
+	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow" -m "not airflow" tests/
 
 test-airflow:
-	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflowtest" tests/
+	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/
 
 lint:
 	docker run --rm -v "${PWD}":/apps alpine/flake8:latest --verbose . && \
