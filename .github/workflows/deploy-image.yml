@@ -43,4 +43,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Test the Docker image
-        run: docker run --rm ${{ steps.meta.outputs.tags }} --help
+        run: docker run --rm ${{ steps.meta.outputs.tags }} lineapy --help

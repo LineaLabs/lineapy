@@ -13,10 +13,7 @@ COPY ./lineapy/__init__.py ./lineapy/
 COPY ./airflow-requirements.txt ./
 COPY ./Makefile ./
 
-RUN pip --no-cache-dir --disable-pip-version-check install -e .[dev]
-
-# Create airflow venv
-RUN make /tmp/airflow_venv
+RUN pip --disable-pip-version-check install -e .[dev] && make /tmp/airflow_venv && pip cache purge
 
 # Setup git lfs
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash \

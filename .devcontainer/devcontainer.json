@@ -3,21 +3,21 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.202.3/containers/python-3
 {
   "name": "Python 3",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
-
+  "image": "ghcr.io/linealabs/lineapy:optimize-codespace-startup",
   // Add the IDs of extensions you want installed when the container is created.
-  "extensions": ["ms-python.python", "ms-python.vscode-pylance"],
-
+  "extensions": [
+    "ms-python.python",
+    "ms-python.vscode-pylance"
+  ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [8888, 8080],
+  "forwardPorts": [
+    8888,
+    8080
+  ],
   // Like the SSH plugin, we run jupyter by default in the command for the script
   // and tell codespaces not to override it
   // https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/sshd.md#usage-in-a-dockerfile
   "overrideCommand": false,
-
   // Use 'portsAttributes' to set default properties for specific forwarded ports. More info: https://code.visualstudio.com/docs/remote/devcontainerjson-reference.
   "portsAttributes": {
     "8888": {
@@ -33,5 +33,5 @@
     "onAutoForward": "ignore"
   },
   // Reinstall since the directory is new
-  "postStartCommand": "pip install -e .[dev]"
+  "postStartCommand": "pip install -e .[dev] && bash .devcontainer/start.sh"
 }
