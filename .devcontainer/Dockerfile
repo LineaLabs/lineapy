@@ -14,4 +14,8 @@ RUN make /tmp/airflow_venv
 # Install lineapy requirements
 RUN pip --no-cache-dir --disable-pip-version-check install -e ".[dev]"
 
+# Setup git lfs
+RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash \
+    && apt-get install git-lfs && git lfs install
+
 CMD .devcontainer/start.sh
