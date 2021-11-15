@@ -17,7 +17,7 @@
   // Like the SSH plugin, we run jupyter by default in the command for the script
   // and tell codespaces not to override it
   // https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/sshd.md#usage-in-a-dockerfile
-  "overrideCommand": false,
+  //"overrideCommand": false,
   // Use 'portsAttributes' to set default properties for specific forwarded ports. More info: https://code.visualstudio.com/docs/remote/devcontainerjson-reference.
   "portsAttributes": {
     "8888": {
