@@ -59,7 +59,7 @@ class Visualizer:
                     svgPanZoom(svg_el, {{
                         controlIconsEnabled: true,
                         fit: true,
-                        zoomScaleSensitivity: 1,
+                        zoomScaleSensitivity: 0.2,
                         minZoom: 0.1,
                         maxZoom: 10
                     }});
