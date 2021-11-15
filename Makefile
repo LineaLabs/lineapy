@@ -59,20 +59,20 @@ notebooks: $(NOTEBOOK_FILES)
 
 FORCE: ;
 
-export AIRFLOW_HOME=/tmp/airflow_home
-AIRFLOW_VENV=/tmp/airflow_venv
+export AIRFLOW_HOME=/usr/src/airflow_home
+AIRFLOW_VENV=/usr/src/airflow_venv
 export JUPYTERLAB_WORKSPACES_DIR=${PWD}/jupyterlab-workspaces
-/tmp/airflow_venv:
+/usr/src/airflow_venv:
 	python -m venv ${AIRFLOW_VENV}
 	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r airflow-requirements.txt
 
 
-/tmp/airflow_home: /tmp/airflow_venv
+/usr/src/airflow_home: /usr/src/airflow_venv
 	mkdir -p ${AIRFLOW_HOME}
 	cp -f airflow_webserver_config.py ${AIRFLOW_HOME}/webserver_config.py
 
 
-airflow_start: /tmp/airflow_home
+airflow_start: /usr/src/airflow_home
 	env AIRFLOW__CORE__LOAD_EXAMPLES=False \
 		AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=1 \
 		AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL=1 \

@@ -33,5 +33,5 @@
     "onAutoForward": "ignore"
   },
   // Reinstall since the directory is new
-  "postStartCommand": ""
+  "postStartCommand": ".devcontainer/start.sh"
 }

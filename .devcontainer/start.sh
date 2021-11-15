@@ -7,7 +7,7 @@ make jupyterlab_start &
 # Start the second process
 make airflow_start &
   
-#tail -f /tmp/jupyterlab_log /tmp/airflow_log &
+#tail -f /usr/src/jupyterlab_log /usr/src/airflow_log &
 
 # Wait for any process to exit
 wait -n
