@@ -16,7 +16,7 @@ from airflow.utils.dates import days_ago
 from airflow.operators.python_operator import PythonOperator
 """
 
-AIRFLOW_MAIN_TEMPLATE = """
+AIRFLOW_DAG_TEMPLATE = """
 default_dag_args = {"owner": "airflow", "retries": 2, "start_date": days_ago(1)}
 
 dag = DAG(
@@ -26,9 +26,11 @@ dag = DAG(
     catchup=False,
     default_args=default_dag_args,
 )
+"""
 
-DAG_NAME = PythonOperator(
-    dag=dag, task_id=f"DAG_NAME_task", python_callable=DAG_NAME,
+AIRFLOW_TASK_TEMPLATE = """
+TASK_NAME = PythonOperator(
+    dag=dag, task_id=f"TASK_NAME_task", python_callable=TASK_NAME,
 )
 """
 
@@ -87,7 +89,8 @@ def slice_to_airflow(
             f"\n\tprint({variable})" if variable else ""
         )  # TODO What to do with artifact_var in a DAG?
         + "\n\n"
-        + AIRFLOW_MAIN_TEMPLATE.replace("DAG_NAME", func_name)
+        + AIRFLOW_DAG_TEMPLATE.replace("DAG_NAME", func_name)
+        + AIRFLOW_TASK_TEMPLATE.replace("TASK_NAME", func_name)
     )
     # Black lint
     black_mode = FileMode()
