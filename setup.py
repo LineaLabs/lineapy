@@ -60,6 +60,7 @@ setup(
         "black",
         "rich",
         "astpretty",
+        "scour==0.38.2",
     ],
     extras_require={
         "dev": [
