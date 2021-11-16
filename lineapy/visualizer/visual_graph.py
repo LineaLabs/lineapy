@@ -154,7 +154,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
         if not tracer:
             raise RuntimeError("Cannot show implied mutations without tracer")
         # the mutate nodes
-        for source, mutate in tracer.source_to_mutate.items():
+        for source, mutate in tracer.mutation_tracker.source_to_mutate.items():
             vg.edge(
                 VisualEdge(
                     VisualEdgeID(source),
@@ -171,7 +171,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
         # Since they aren't directed
         viewer_pairs: set[frozenset[LineaID]] = {
             frozenset([source, viewer])
-            for source, viewers in tracer.viewers.items()
+            for source, viewers in tracer.mutation_tracker.viewers.items()
             for viewer in viewers
         }
         for source, target in viewer_pairs:
