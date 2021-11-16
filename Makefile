@@ -2,8 +2,8 @@ base_imagename=ghcr.io/linealabs/lineapy
 service_name=lineapy
 export IMAGE_NAME=${base_imagename}:main
 export IMAGE_NAME_AIRFLOW=${base_imagename}-airflow:main
-AIRFLOW_HOME?=/tmp/airflow_home
-AIRFLOW_VENV?=/tmp/airflow_venv
+AIRFLOW_HOME?=/usr/src/airflow_home
+AIRFLOW_VENV?=/usr/src/airflow_venv
 
 build:
 	docker-compose build \
