@@ -8,6 +8,7 @@ from IPython.display import HTML, DisplayObject
 from lineapy.data.graph import Graph
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.visualizer.graphviz import to_graphviz
+from lineapy.visualizer.optimize_svg import optimize_svg
 from lineapy.visualizer.visual_graph import VisualGraphOptions
 
 
@@ -32,7 +33,9 @@ class Visualizer:
         self.digraph.render(filename, view=True, format="pdf", quiet=True)
 
     def render_svg(self) -> str:
-        return self.digraph.pipe(format="svg", quiet=True).decode()
+        return optimize_svg(
+            self.digraph.pipe(format="svg", quiet=True).decode()
+        )
 
     def ipython_display_object(self) -> DisplayObject:
         svg_text = self.render_svg()
@@ -56,7 +59,7 @@ class Visualizer:
                     svgPanZoom(svg_el, {{
                         controlIconsEnabled: true,
                         fit: true,
-                        zoomScaleSensitivity: 1,
+                        zoomScaleSensitivity: 0.2,
                         minZoom: 0.1,
                         maxZoom: 10
                     }});

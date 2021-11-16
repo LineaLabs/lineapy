@@ -1,8 +1,6 @@
 import logging
-from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
-from itertools import chain
 from os import getcwd
 from typing import Dict, Optional
 
@@ -39,8 +37,9 @@ from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
 )
+from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.lineabuiltins import l_tuple
-from lineapy.utils import get_new_id, remove_duplicates, remove_value
+from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -55,38 +54,9 @@ class Tracer:
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
-    ##
-    # We store information on two types of relationships between nodes:
-    #
-    # 1. Source -> Mutate nodes, which is a directed relationship meaning
-    #    whenever a new node is created that refers to the source node, it
-    #    instead should refer to the mutate node.
-    # 2. Undirected view relationships. If two nodes are a view of each other,
-    #    they a mutating one may mutate the other, so if one is mutated, mutate
-    #    nodes need to be made for all the other nodes that are views. This is
-    #    a transitive relationship.
-    #
-    # We use lists in the data structures to store these relationships, although
-    # they really should be ordered sets. Ordering is important not for correctness
-    # but for having deterministic node ordering, which is used for testing.
-    ##
-
-    # Mapping of mutated nodes, from their original node id, to the latest
-    # mutate node id they are the source of
-    source_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
-    # Inverse mapping of the source_to_mutate, need a list since
-    # multiple sources can point to the same mutate node
-    mutate_to_sources: dict[LineaID, list[LineaID]] = field(
-        default_factory=lambda: defaultdict(list)
-    )
-    # Mapping from each node to every node which has a view of it,
-    # meaning that if that node is mutated, the view node will be as well
-    viewers: dict[LineaID, list[LineaID]] = field(
-        default_factory=lambda: defaultdict(list)
-    )
-
     session_context: SessionContext = field(init=False)
     executor: Executor = field(init=False)
+    mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
 
     def __post_init__(
         self,
@@ -215,8 +185,8 @@ class Tracer:
                     node, self._resolve_pointer(e.pointer)
                 )
             elif isinstance(e, ViewOfNodes):
-                self._process_view_of_nodes(
-                    list(map(self._resolve_pointer, e.pointers))
+                self.mutation_tracker.set_as_viewers_of_eachother(
+                    *map(self._resolve_pointer, e.pointers)
                 )
             elif isinstance(e, AccessedGlobals):
                 self._process_accessed_globals(
@@ -224,9 +194,18 @@ class Tracer:
                 )
             # Mutate case
             else:
-                self._process_mutate_node(
-                    self._resolve_pointer(e.pointer), node.id, node.session_id
-                )
+                mutated_node_id = self._resolve_pointer(e.pointer)
+                for (
+                    mutate_node_id,
+                    source_id,
+                ) in self.mutation_tracker.set_as_mutated(mutated_node_id):
+                    mutate_node = MutateNode(
+                        id=mutate_node_id,
+                        session_id=node.session_id,
+                        source_id=source_id,
+                        call_id=node.id,
+                    )
+                    self.process_node(mutate_node)
 
         self.db.write_node(node)
 
@@ -250,7 +229,9 @@ class Tracer:
         # Only call nodes can refer to implicit dependencies
         assert isinstance(node, CallNode)
         node.implicit_dependencies.append(
-            self.resolve_node(implicit_dependency_id)
+            self.mutation_tracker.get_latest_mutate_node(
+                implicit_dependency_id
+            )
         )
 
     def _process_accessed_globals(
@@ -266,7 +247,9 @@ class Tracer:
 
         # Add the retrieved globals as global reads to the call node
         node.global_reads = {
-            var: self.resolve_node(self.variable_name_to_node[var].id)
+            var: self.mutation_tracker.get_latest_mutate_node(
+                self.variable_name_to_node[var].id
+            )
             for var in retrieved
             # Only save reads from variables that we have already saved variables for
             # Assume that all other reads are for variables assigned inside the call
@@ -283,67 +266,6 @@ class Tracer:
             )
             self.process_node(global_node)
             self.variable_name_to_node[var] = global_node
-
-    def _process_view_of_nodes(self, ids: list[LineaID]) -> None:
-        """
-        To process adding views between nodes, update the `viewers` data structure
-        with all new viewers.
-        """
-        # First, iterate through all items in the view
-        # and create a complete view set adding all their views as well
-        # since it is a transitivity relationionship.
-        complete_ids = list(
-            remove_duplicates(chain(ids, *(self.viewers[id_] for id_ in ids)))
-        )
-
-        # Now update the viewers data structure to include all the viewers,
-        # apart the id itself, which is not kept in the mapping.
-        for id_ in complete_ids:
-            self.viewers[id_] = list(remove_value(complete_ids, id_))
-
-    def _process_mutate_node(
-        self, source_id: LineaID, call_id: LineaID, session_id: LineaID
-    ) -> None:
-        """
-        To process mutating a node, we create new mutate nodes for each views of
-        this node and update the source to view mapping to point to the new nodes.
-        """
-        # Create a mutation node for every node that was mutated,
-        # Which are all the views + the node itself
-        # Note: must resolve generator before iterating, so that resolve_node
-        # is called eagerly, otherwise we end up with duplicate mutate nodes.
-        source_ids = list(
-            remove_duplicates(
-                map(self.resolve_node, [*self.viewers[source_id], source_id])
-            )
-        )
-        for source_id in source_ids:
-            mutate_node = MutateNode(
-                id=get_new_id(),
-                session_id=session_id,
-                source_id=source_id,
-                call_id=call_id,
-            )
-
-            # Update the mutated sources, and then change all source
-            # of this mutation to now point to this mutate node
-
-            # Find all the mutate nodes that were pointing to the original source
-            mutated_sources: list[LineaID] = list(
-                remove_duplicates(
-                    chain([source_id], self.mutate_to_sources[source_id])
-                )
-            )
-
-            # First we update the forward mapping, mapping them to the new mutate node
-            for mutate_source_id in mutated_sources:
-                self.source_to_mutate[mutate_source_id] = mutate_node.id
-
-            # Now we set the reverse mapping, to be all the nodes we mutated
-            self.mutate_to_sources[mutate_node.id] = mutated_sources
-
-            # Add the mutate node to the graph
-            self.process_node(mutate_node)
 
     def lookup_node(
         self,
@@ -371,18 +293,6 @@ class Tracer:
             )
             self.process_node(new_node)
             return new_node
-
-    def resolve_node(self, node_id: LineaID) -> LineaID:
-        """
-        Resolve a node to find the latest mutate node, that refers to it.
-
-        Call this before creating a object based on another node.
-        """
-        # Keep looking up to see if their is a new mutated version of this
-        # node
-        while node_id in self.source_to_mutate:
-            node_id = self.source_to_mutate[node_id]
-        return node_id
 
     def trace_import(
         self,
@@ -474,9 +384,12 @@ class Tracer:
             id=get_new_id(),
             session_id=self.session_context.id,
             function_id=function_node.id,
-            positional_args=[self.resolve_node(n.id) for n in arguments],
+            positional_args=[
+                self.mutation_tracker.get_latest_mutate_node(n.id)
+                for n in arguments
+            ],
             keyword_args={
-                k: self.resolve_node(n.id)
+                k: self.mutation_tracker.get_latest_mutate_node(n.id)
                 for k, n, in keyword_arguments.items()
             },
             source_location=source_location,
