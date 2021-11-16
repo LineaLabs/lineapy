@@ -8,7 +8,7 @@ from lineapy.db.utils import resolve_default_db_path
 @pytest.mark.slow
 def test_cli_entrypoint():
     """
-    Verifies that the "--help" CLI command is aliased to the `lienapy` executable
+    Verifies that the "--help" CLI command is aliased to the `lineapy` executable
     """
     subprocess.check_call(["lineapy", "--help"])
 
@@ -16,7 +16,7 @@ def test_cli_entrypoint():
 @pytest.mark.slow
 def test_slice_housing():
     """
-    Verifies that the "--slice" CLI command is aliased to the `lienapy` executable
+    Verifies that the "--slice" CLI command is aliased to the `lineapy` executable
     """
     subprocess.check_call(
         ["lineapy", "tests/housing.py", "--slice", "p value"]
@@ -26,7 +26,7 @@ def test_slice_housing():
 @pytest.mark.slow
 def test_export_slice_housing():
     """
-    Verifies that the "--export-slice" CLI command is aliased to the `lienapy` executable
+    Verifies that the "--export-slice" CLI command is aliased to the `lineapy` executable
     """
     subprocess.check_call(
         [
@@ -36,32 +36,6 @@ def test_export_slice_housing():
             "p value",
             "--export-slice",
             "sliced_housing",
-        ]
-    )
-
-
-@pytest.mark.slow
-def test_kaggle_example1():
-
-    subprocess.check_call(
-        [
-            "lineapy",
-            "examples/kaggle_example1.py",
-            "--slice",
-            "mushroom feature importance",
-        ]
-    )
-
-
-@pytest.mark.slow
-def test_kaggle_example2():
-
-    subprocess.check_call(
-        [
-            "lineapy",
-            "examples/kaggle_example2.py",
-            "--slice",
-            "nn for diabetes",
         ]
     )
 
@@ -85,7 +59,7 @@ def test_kaggle_example2():
 )
 def test_linea_python_equivalent(tmp_path, code):
     """
-    Verifies that Python and lineapy have the same output.
+    Verifies that Python and lineapy have the same stack trace.
     """
     f = tmp_path / "script.py"
     f.write_text(code)
@@ -102,7 +76,8 @@ def test_run_from_nbconvert():
     assert not resolve_default_db_path().exists()
     # Run the command that should populate the database
     subprocess.check_call(
-        "jupyter nbconvert --to notebook --execute tests/notebook/test_is_executing.ipynb --allow-errors --inplace".split(
+        "jupyter nbconvert --to notebook --execute"
+        " tests/notebook/test_is_executing.ipynb --allow-errors --inplace".split(
             " "
         )
     )

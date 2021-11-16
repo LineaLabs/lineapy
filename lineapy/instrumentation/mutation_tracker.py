@@ -27,19 +27,14 @@ class MutationTracker:
     # deterministic snapshot generation and comparison.
     ##
 
-    # Mapping of mutated nodes, from their original node id, to the latest
+    # Mapping of mutated nodes, from their original node id, to the immediate
     # mutate node id they are the source of
     # a = []       CallNode ID: i1
     # a.append(1)  MutateNodeID: i2
     # a.append(2)  MutateNodeID: i3
     # source_to_mutate = {i1: i2, i2: i3}
-    # mutate_to_sources = {i3: [i2], i2: [i1]}
     source_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
-    # Inverse mapping of the source_to_mutate, need a list since
-    # multiple sources can point to the same mutate node
-    mutate_to_sources: dict[LineaID, list[LineaID]] = field(
-        default_factory=lambda: defaultdict(list)
-    )
+
     # Mapping from each node to every node which has a view of it,
     # meaning that if that node is mutated, the view node will be as well
     # a = []    CallNode ID: i1
@@ -67,11 +62,10 @@ class MutationTracker:
         # apart the id itself, which is not kept in the mapping.
         for id_ in complete_ids:
             self.viewers[id_] = list(remove_value(complete_ids, id_))
-    
+
     def get_latest_mutate_node(self, node_id: LineaID) -> LineaID:
         """
-        Resolve a node to find the latest mutate node, that refers to it.
-
+        Find the latest mutate node, that refers to it.
         Call this before creating a object based on another node.
         """
         # Keep looking up to see if their is a new mutated version of this
@@ -89,37 +83,20 @@ class MutationTracker:
         """
         # Create a mutation node for every node that was mutated,
         # Which are all the views + the node itself
-        # Note: must resolve generator before iterating, so that resolve_node
+        # Note: must resolve generator before iterating, so that get_latest_mutate_node
         # is called eagerly, otherwise we end up with duplicate mutate nodes.
         source_ids = list(
             remove_duplicates(
-                map(self.get_latest_mutate_node, [*self.viewers[source_id], source_id])
+                map(
+                    self.get_latest_mutate_node,
+                    [*self.viewers[source_id], source_id],
+                )
             )
         )
         for source_id in source_ids:
             mutate_node_id = get_new_id()
-            
-            # Update the mutated sources, and then change all source
-            # of this mutation to now point to this mutate node
-
-            # Find all the mutate nodes that were pointing to the original source
-            mutated_sources: list[LineaID] = list(
-                remove_duplicates(
-                    chain([source_id], self.mutate_to_sources[source_id])
-                )
-            )
 
             # First we update the forward mapping, mapping them to the new mutate node
-            for mutate_source_id in mutated_sources:
-                self.source_to_mutate[mutate_source_id] = mutate_node_id
+            self.source_to_mutate[source_id] = mutate_node_id
 
-            # Now we set the reverse mapping, to be all the nodes we mutated
-            self.mutate_to_sources[mutate_node_id] = mutated_sources
             yield mutate_node_id, source_id
-
-
-@dataclass
-class PartialMutateNode:
-    id: LineaID
-    source_id: LineaID
-

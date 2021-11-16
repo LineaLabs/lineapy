@@ -1,7 +1,6 @@
 import logging
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
-from itertools import chain
 from os import getcwd
 from typing import Dict, Optional
 
@@ -40,7 +39,7 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.lineabuiltins import l_tuple
-from lineapy.utils import get_new_id, remove_duplicates, remove_value
+from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -230,7 +229,9 @@ class Tracer:
         # Only call nodes can refer to implicit dependencies
         assert isinstance(node, CallNode)
         node.implicit_dependencies.append(
-            self.mutation_tracker.get_latest_mutate_node(implicit_dependency_id)
+            self.mutation_tracker.get_latest_mutate_node(
+                implicit_dependency_id
+            )
         )
 
     def _process_accessed_globals(
