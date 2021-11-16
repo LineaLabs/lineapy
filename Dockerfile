@@ -15,8 +15,8 @@ COPY ./lineapy/__init__.py ./lineapy/
 COPY ./airflow-requirements.txt ./
 COPY ./Makefile ./
 
-ENV AIRFLOW_HOME?=/usr/src/airflow_home
-ENV AIRFLOW_VENV?=/usr/src/airflow_venv
+ENV AIRFLOW_HOME=/usr/src/airflow_home
+ENV AIRFLOW_VENV=/usr/src/airflow_venv
 
 #RUN mkdir /usr/src/airflow_home
 RUN pip --disable-pip-version-check install -e .[dev] && make airflow_venv && pip cache purge
