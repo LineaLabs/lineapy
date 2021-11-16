@@ -10,6 +10,7 @@ on:
       - "airflow-requirements.txt"
       - "Dockerfile"
       - "Makefile"
+      - ".github/workflows/deploy-image.yml"
 
 env:
   REGISTRY: ghcr.io

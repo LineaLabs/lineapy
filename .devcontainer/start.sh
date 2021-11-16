@@ -5,7 +5,7 @@
 make jupyterlab_start &
   
 # Start the second process
-make airflow_start &
+make airflow_home airflow_start &
   
 #tail -f /tmp/jupyterlab_log /tmp/airflow_log &
 
