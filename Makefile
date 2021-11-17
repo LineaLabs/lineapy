@@ -2,8 +2,8 @@ base_imagename=ghcr.io/linealabs/lineapy
 service_name=lineapy
 export IMAGE_NAME=${base_imagename}:main
 export IMAGE_NAME_AIRFLOW=${base_imagename}-airflow:main
-export AIRFLOW_HOME?=/usr/src/airflow_home
-export AIRFLOW_VENV?=/usr/src/airflow_venv
+export AIRFLOW_HOME?=/tmp/airflow_home
+AIRFLOW_VENV?=/tmp/airflow_venv
 
 build:
 	docker-compose build \
@@ -43,7 +43,6 @@ typecheck:
 	#docker run --rm -v "${PWD}":/data cytopia/mypy .
 	docker-compose run --rm ${service_name} mypy -p lineapy
 
-export IPYTHONDIR=${PWD}/.ipython
 
 # Add pattern for all notebook files to re-execute them when they change
 # so that we can update them for the tests easily.
@@ -57,31 +56,28 @@ notebooks: $(NOTEBOOK_FILES)
 # https://twitter.com/palewire/status/1458083565191655424
 %.ipynb: FORCE
 	@echo Running "$@"
-	env IPYTHONDIR=${PWD}/.ipython jupyter nbconvert --to notebook --execute $@ --allow-errors --inplace
+	jupyter nbconvert --to notebook --execute $@ --allow-errors --inplace
 
 FORCE: ;
 
-export JUPYTERLAB_WORKSPACES_DIR=${PWD}/jupyterlab-workspaces
 
-airflow_venv: 
+$(AIRFLOW_VENV): 
 	python -m venv ${AIRFLOW_VENV}
 	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r airflow-requirements.txt
 
 
-airflow_home: 
+${AIRFLOW_HOME}:
 	mkdir -p ${AIRFLOW_HOME}
 	cp -f airflow_webserver_config.py ${AIRFLOW_HOME}/webserver_config.py
 
-
-airflow_start:  
-		env AIRFLOW__CORE__LOAD_EXAMPLES=False \
+airflow_start: ${AIRFLOW_HOME}
+	env AIRFLOW__CORE__LOAD_EXAMPLES=False \
 		AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=1 \
 		AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL=1 \
-		bash -c 'source ${AIRFLOW_VENV}/bin/activate && airflow standalone'
+		bash -c "source ${AIRFLOW_VENV}/bin/activate && ./airflow_start.py"
 
 
-jupyterlab_start:
-	jupyter lab --ServerApp.token='' --port 8888 --allow-root --ip 0.0.0.0 --ServerApp.allow_origin=*
+
 
 clean_airflow:
 	rm -rf ${AIRFLOW_HOME} ${AIRFLOW_VENV}

@@ -138,37 +138,33 @@ If you have an existing notebook, you can try running it through linea, to see i
 still works, and to save the resulting graph. For example:
 
 ```bash
-env IPYTHONDIR=$PWD/.ipython jupyter nbconvert --to notebook --execute examples/Explorations.ipynb --inplace --allow-errors
+jupyter nbconvert --to notebook --execute examples/Explorations.ipynb --inplace --allow-errors
 ```
 
 If you would like to change the database that linea talks to, you can use the
 `LINEA_DATABASE_URL` env variable. For example, to set it to `sqlite:///:memory:`
 to use an in memory database instead of writing to disk.
 
-## Airflow and JupyterHub
+## Airflow and Jupyter
 
-_Note: If you are running in Github Codespaces, both of these services will start automatically._
+_Note: If you are running in Github Codespaces, Jupyter Lab with Airflow will start automatically._
 
 We also support exporting tasks to Airflow DAGs. To try this out in the repo,
 we provide a simple way to start up your own airflow server and add a DAG to
 it from a notebook.
 
-First start up the Airflow UI, which you should be able to access it at [`localhost:8080`](http://localhost:8080):
+We use [Jupyter Server Proxy](https://jupyter-server-proxy.readthedocs.io/) to
+set up and start an airflow server in the background. It is accessible at
+the `/airflow` path from the Jupyter server.
 
 ```bash
-make airflow_start
+jupyter lab
+
+open http://localhost:8888/airflow
 ```
 
-Wait for everything to be installed and set up, before running the notebook.
-
-Then start up JupyterLab, which is available at [`localhost:8888`](http://localhost:8888):
-
-```bash
-make jupyterlab_start
-```
-
-JupyterLab, should open with the `tests/notebook/test_airflow.ipynb` loaded.
-Once you re-run that, it will add a DAG that airflow can see, which you can run from the UI.
+If you then run some code that writes to airflow, like in the the `tests/notebook/test_airflow.ipynb` notebook,
+this will be added as a DAG in airflow and you can run it from their UI.
 
 ### Web UI
 

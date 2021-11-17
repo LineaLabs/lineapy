@@ -19,7 +19,9 @@ ENV AIRFLOW_HOME=/usr/src/airflow_home
 ENV AIRFLOW_VENV=/usr/src/airflow_venv
 
 #RUN mkdir /usr/src/airflow_home
-RUN pip --disable-pip-version-check install -e .[dev] && make airflow_venv && pip cache purge
+RUN pip --disable-pip-version-check install -e .[dev] && \
+    make airflow_home airflow_venv && \
+    pip cache purge
 
 COPY . .
 

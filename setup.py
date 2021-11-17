@@ -73,6 +73,7 @@ setup(
             "isort",
             "pytest",
             "matplotlib",
+            "jupyter-server-proxy",
             # Coveralls doesn't work with 6.0
             # https://github.com/TheKevJames/coveralls-python/issues/326
             "coverage[toml]<6.0",
