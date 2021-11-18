@@ -4,7 +4,7 @@ name: Create, publish and test a Docker image
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main","optimize-codespace-startup"]
     paths:
       - "setup.py"
       - "airflow-requirements.txt"
