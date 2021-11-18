@@ -2,6 +2,8 @@ base_imagename=ghcr.io/linealabs/lineapy
 service_name=lineapy
 export IMAGE_NAME=${base_imagename}:main
 export IMAGE_NAME_AIRFLOW=${base_imagename}-airflow:main
+export AIRFLOW_HOME?=/usr/src/airflow_home
+export AIRFLOW_VENV?=/usr/src/airflow_venv
 
 build:
 	docker-compose build \
@@ -25,10 +27,10 @@ bash-airflow:
 	docker-compose run --rm ${service_name}-airflow /bin/bash
 
 test:
-	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow" -m "not airflowtest" tests/
+	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow" -m "not airflow" tests/
 
 test-airflow:
-	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflowtest" tests/
+	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/
 
 lint:
 	docker run --rm -v "${PWD}":/apps alpine/flake8:latest --verbose . && \
@@ -59,21 +61,20 @@ notebooks: $(NOTEBOOK_FILES)
 
 FORCE: ;
 
-export AIRFLOW_HOME=/tmp/airflow_home
-AIRFLOW_VENV=/tmp/airflow_venv
 export JUPYTERLAB_WORKSPACES_DIR=${PWD}/jupyterlab-workspaces
-/tmp/airflow_venv:
+
+airflow_venv: 
 	python -m venv ${AIRFLOW_VENV}
 	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r airflow-requirements.txt
 
 
-/tmp/airflow_home: /tmp/airflow_venv
+airflow_home: 
 	mkdir -p ${AIRFLOW_HOME}
 	cp -f airflow_webserver_config.py ${AIRFLOW_HOME}/webserver_config.py
 
 
-airflow_start: /tmp/airflow_home
-	env AIRFLOW__CORE__LOAD_EXAMPLES=False \
+airflow_start:  
+		env AIRFLOW__CORE__LOAD_EXAMPLES=False \
 		AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=1 \
 		AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL=1 \
 		bash -c 'source ${AIRFLOW_VENV}/bin/activate && airflow standalone'

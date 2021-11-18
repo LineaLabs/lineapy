@@ -4,7 +4,13 @@ name: Create, publish and test a Docker image
 
 on:
   push:
-    branches: ["release"]
+    branches: ["main"]
+    paths:
+      - "setup.py"
+      - "airflow-requirements.txt"
+      - "Dockerfile"
+      - "Makefile"
+      - ".github/workflows/deploy-image.yml"
 
 env:
   REGISTRY: ghcr.io
@@ -43,4 +49,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Test the Docker image
-        run: docker run --rm ${{ steps.meta.outputs.tags }} --help
+        run: docker run --rm ${{ steps.meta.outputs.tags }} lineapy --help
