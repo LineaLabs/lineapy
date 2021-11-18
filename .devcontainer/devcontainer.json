@@ -3,7 +3,7 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.202.3/containers/python-3
 {
   "name": "Python 3",
-  "image": "ghcr.io/linealabs/lineapy:optimize-codespace-startup",
+  "image": "ghcr.io/linealabs/lineapy:main",
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
     "ms-python.python",
