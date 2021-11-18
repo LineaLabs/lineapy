@@ -29,6 +29,9 @@ bash-airflow:
 test:
 	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow" -m "not airflow" tests/
 
+test-github-action:
+	docker-compose run --rm ${service_name} pytest ${args}
+
 test-airflow:
 	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/
 
