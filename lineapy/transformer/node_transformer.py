@@ -116,7 +116,9 @@ class NodeTransformer(ast.NodeTransformer):
         something and statements that return nothing
         """
 
-        if isinstance(node, (ast.ClassDef, ast.If, ast.For, ast.FunctionDef)):
+        if isinstance(
+            node, (ast.ClassDef, ast.If, ast.For, ast.FunctionDef, ast.While)
+        ):
             return self._exec_statement(node)
         elif isinstance(node, (ast.ListComp, ast.Lambda)):
             return self._exec_expression(node)
