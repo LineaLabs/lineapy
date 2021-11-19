@@ -80,6 +80,17 @@ df2 = pd.read_csv("test.csv")
     assert res.artifacts["df2"] == code
 
 
+def test_pandas_to_parquet(execute):
+    code = """import pandas as pd
+df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+df.to_parquet("test.parquet", index=False)
+df2 = pd.read_parquet("test.parquet")
+"""
+    res = execute(code, artifacts=["df2"])
+    assert res.values["df2"].to_parquet(index=False) == "a,b\n1,4\n2,5\n3,6\n"
+    assert res.artifacts["df2"] == code
+
+
 @pytest.mark.xfail(reason="Path based dependencies not working")
 def test_needless_vars_do_not_get_included(execute):
     code = """import pandas as pd

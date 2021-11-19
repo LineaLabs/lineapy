@@ -52,8 +52,23 @@ def inspect_function(
         yield MutatedValue(file_system)
 
     elif (
+        pandas
+        and isinstance(function, types.MethodType)
+        and function.__name__ == "to_parquet"
+        and isinstance(function.__self__, pandas.DataFrame)
+    ):
+        yield MutatedValue(file_system)
+
+    elif (
         isinstance(function, types.FunctionType)
         and function.__name__ == "read_csv"
+        and function.__module__ == "pandas.io.parsers.readers"
+    ):
+        yield ImplicitDependencyValue(file_system)
+
+    elif (
+        isinstance(function, types.FunctionType)
+        and function.__name__ == "read_parquet"
         and function.__module__ == "pandas.io.parsers.readers"
     ):
         yield ImplicitDependencyValue(file_system)
