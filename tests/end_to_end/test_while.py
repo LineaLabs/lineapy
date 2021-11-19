@@ -7,7 +7,7 @@ while idx<len(x):
 """
 
 
-def test_while_doest_puke(execute):
+def test_while_executes_correctly(execute):
     res = execute(SAMPLE_WHILE)
     assert res.values["result"] == 6
 
