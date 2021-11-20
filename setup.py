@@ -68,6 +68,7 @@ setup(
             "pandas",
             "sklearn",
             "flake8",
+            "fastparquet",
             "syrupy==1.4.5",
             "mypy",
             "isort",
