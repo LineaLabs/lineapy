@@ -69,7 +69,7 @@ def inspect_function(
     elif (
         isinstance(function, types.FunctionType)
         and function.__name__ == "read_parquet"
-        and function.__module__ == "pandas.io.parsers.readers"
+        and function.__module__ == "pandas.io.parquet"
     ):
         yield ImplicitDependencyValue(file_system)
 
