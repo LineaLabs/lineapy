@@ -1,27 +1,38 @@
 import pytest
 
-CODE = """def func(a,b):
+
+@pytest.mark.xfail
+def test_starred_executes(execute):
+    CODE = """def func(a,b):
     return a+b
 
 args = {'a':1, 'b':2}
 ret = func(**args)
 """
-
-CODE2 = """name="marcelo"
-it=iter(name)
-print(next(it))
-print(*it)
-"""
-
-
-@pytest.mark.xfail
-def test_starred_executes(execute):
     ret = execute(CODE)
     assert ret == 3
 
 
-@pytest.mark.xfail
 def test_starred2_executes(execute):
+    CODE2 = """name="marcelo"
+it=iter(name)
+print(next(it))
+print(*it)
+"""
     # should execute without failures
     ret = execute(CODE2)
     assert True
+
+
+def test_starred_in_func_executes(execute):
+    CODE = """def func(*args):
+    retobv = (m for m in args)
+    return list(retobv)
+
+name = "myname"
+it = iter(name)
+print(next(it))
+x = func(*it)
+"""
+    ret = execute(CODE)
+    assert list(ret.values["x"][0]) == ["y", "n", "a", "m", "e"]

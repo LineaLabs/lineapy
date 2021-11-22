@@ -127,6 +127,9 @@ class NodeTransformer(ast.NodeTransformer):
                 f"Don't know how to transform {type(node).__name__}"
             )
 
+    def visit_Starred(self, node: ast.Starred) -> Any:
+        return self.visit(node.value)
+
     def visit_Raise(self, node: ast.Raise) -> None:
         return super().visit_Raise(node)
 
