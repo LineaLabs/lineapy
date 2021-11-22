@@ -102,18 +102,22 @@ def linea_cli(
         Visualizer.for_public(tracer).render_pdf_file()
 
     if slice and not export_slice and not export_slice_to_airflow_dag:
-        tree.add(
-            rich.console.Group(
-                f"Slice of {repr(slice)}",
-                rich.syntax.Syntax(tracer.slice(slice), "python"),
+        slices = slice.split(",")
+        for slice in slices:
+            tree.add(
+                rich.console.Group(
+                    f"Slice of {repr(slice)}",
+                    rich.syntax.Syntax(tracer.slice(slice), "python"),
+                )
             )
-        )
 
     if export_slice:
         if not slice:
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
-        full_code = tracer.sliced_func(slice, export_slice)
+        full_code = ""
+        slices = slice.split(",")
+        full_code += tracer.sliced_func(slices, export_slice)
         pathlib.Path(f"{export_slice}.py").write_text(full_code)
 
     if export_slice_to_airflow_dag:
