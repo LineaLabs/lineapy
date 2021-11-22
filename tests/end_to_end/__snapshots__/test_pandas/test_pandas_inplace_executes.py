@@ -189,6 +189,56 @@ call_7 = CallNode(
         ).id
     ],
 )
+call_8 = CallNode(
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=6,
+        end_lineno=4,
+        end_col_offset=13,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getitem",
+    ).id,
+    positional_args=[
+        call_7.id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=4,
+                col_offset=9,
+                end_lineno=4,
+                end_col_offset=12,
+                source_code=source_1.id,
+            ),
+            value="A",
+        ).id,
+    ],
+)
+call_11 = CallNode(
+    source_location=SourceLocation(
+        lineno=5,
+        col_offset=0,
+        end_lineno=5,
+        end_col_offset=7,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getitem",
+    ).id,
+    positional_args=[
+        call_7.id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=5,
+                col_offset=3,
+                end_lineno=5,
+                end_col_offset=6,
+                source_code=source_1.id,
+            ),
+            value="A",
+        ).id,
+    ],
+)
 call_13 = CallNode(
     source_location=SourceLocation(
         lineno=5,
@@ -209,31 +259,7 @@ call_13 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            CallNode(
-                source_location=SourceLocation(
-                    lineno=5,
-                    col_offset=0,
-                    end_lineno=5,
-                    end_col_offset=7,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="getitem",
-                ).id,
-                positional_args=[
-                    call_7.id,
-                    LiteralNode(
-                        source_location=SourceLocation(
-                            lineno=5,
-                            col_offset=3,
-                            end_lineno=5,
-                            end_col_offset=6,
-                            source_code=source_1.id,
-                        ),
-                        value="A",
-                    ).id,
-                ],
-            ).id,
+            call_11.id,
             LiteralNode(
                 value="fillna",
             ).id,
@@ -260,31 +286,7 @@ call_13 = CallNode(
                     name="getattr",
                 ).id,
                 positional_args=[
-                    CallNode(
-                        source_location=SourceLocation(
-                            lineno=4,
-                            col_offset=6,
-                            end_lineno=4,
-                            end_col_offset=13,
-                            source_code=source_1.id,
-                        ),
-                        function_id=LookupNode(
-                            name="getitem",
-                        ).id,
-                        positional_args=[
-                            call_7.id,
-                            LiteralNode(
-                                source_location=SourceLocation(
-                                    lineno=4,
-                                    col_offset=9,
-                                    end_lineno=4,
-                                    end_col_offset=12,
-                                    source_code=source_1.id,
-                                ),
-                                value="A",
-                            ).id,
-                        ],
-                    ).id,
+                    call_8.id,
                     LiteralNode(
                         value="mean",
                     ).id,
@@ -304,6 +306,14 @@ call_13 = CallNode(
             value=True,
         ).id
     },
+)
+mutate_2 = MutateNode(
+    source_id=call_8.id,
+    call_id=call_13.id,
+)
+mutate_3 = MutateNode(
+    source_id=call_11.id,
+    call_id=call_13.id,
 )
 call_15 = CallNode(
     source_location=SourceLocation(
@@ -343,7 +353,10 @@ call_15 = CallNode(
         ],
     ).id,
     positional_args=[
-        call_7.id,
+        MutateNode(
+            source_id=call_7.id,
+            call_id=call_13.id,
+        ).id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=7,

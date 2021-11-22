@@ -28,6 +28,11 @@ def inspect_function(
     ##
     # Pandas
     ##
+    elif(isinstance(function, types.MethodType) and
+        function.__self__.__class__.__name__ == "Series" and
+        function.__name__ == "fillna" and
+        kwargs.get("inplace", False)):
+        yield MutatedValue(BoundSelfOfFunction())
     elif (
         (pandas := try_import("pandas"))
         and isinstance(function, types.MethodType)
