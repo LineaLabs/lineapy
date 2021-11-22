@@ -7,11 +7,12 @@ args = {'a':1, 'b':2}
 ret = func(**args)
 """
 
-CODE2="""name="marcelo"
+CODE2 = """name="marcelo"
 it=iter(name)
 print(next(it))
 print(*it)
 """
+
 
 @pytest.mark.xfail
 def test_starred_executes(execute):
@@ -21,6 +22,6 @@ def test_starred_executes(execute):
 
 @pytest.mark.xfail
 def test_starred2_executes(execute):
-    #should execute without failures
+    # should execute without failures
     ret = execute(CODE2)
     assert True
