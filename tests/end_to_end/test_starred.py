@@ -26,13 +26,10 @@ print(*it)
 
 def test_starred_in_func_executes(execute):
     CODE = """def func(*args):
-    retobv = (m for m in args)
-    return list(retobv)
+    return [m for m in args]
 
 name = "myname"
-it = iter(name)
-print(next(it))
-x = func(*it)
+x = func(*name)
 """
     ret = execute(CODE)
-    assert list(ret.values["x"][0]) == ["y", "n", "a", "m", "e"]
+    assert ret.values["x"] == ["m", "y", "n", "a", "m", "e"]
