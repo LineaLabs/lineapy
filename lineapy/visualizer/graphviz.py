@@ -9,7 +9,12 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Optional, Union
 
-import graphviz
+try:
+    import graphviz
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "graphviz is not installed, please install graphviz in your local environment to visualize artifacts"
+    ) from None
 
 from lineapy.data.types import NodeType
 from lineapy.visualizer.visual_graph import (
