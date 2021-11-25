@@ -18,8 +18,16 @@ def test_slice_housing():
     """
     Verifies that the "--slice" CLI command is aliased to the `lineapy` executable
     """
+    subprocess.check_call(["lineapy", "tests/housing.py", "--slice", "p value"])
+
+
+@pytest.mark.slow
+def test_slice_housing_multiple():
+    """
+    Verifies that we can run "--slice" CLI command multiple times
+    """
     subprocess.check_call(
-        ["lineapy", "tests/housing.py", "--slice", "p value"]
+        ["lineapy", "tests/housing.py", "--slice", "p value", "--slice", "y"]
     )
 
 
@@ -36,6 +44,27 @@ def test_export_slice_housing():
             "p value",
             "--export-slice",
             "sliced_housing",
+        ]
+    )
+
+
+@pytest.mark.slow
+def test_export_slice_housing_multiple():
+    """
+    Verifies that we can run "--export-slice" CLI command multiple times
+    """
+    subprocess.check_call(
+        [
+            "lineapy",
+            "tests/housing.py",
+            "--slice",
+            "p value",
+            "--export-slice",
+            "p_value_housing",
+            "--slice",
+            "y",
+            "--export-slice",
+            "y_housing",
         ]
     )
 
@@ -77,9 +106,7 @@ def test_run_from_nbconvert():
     # Run the command that should populate the database
     subprocess.check_call(
         "jupyter nbconvert --to notebook --execute"
-        " tests/notebook/test_is_executing.ipynb --allow-errors --inplace".split(
-            " "
-        )
+        " tests/notebook/test_is_executing.ipynb --allow-errors --inplace".split(" ")
     )
     # Verify that it exists
     assert resolve_default_db_path().exists()
