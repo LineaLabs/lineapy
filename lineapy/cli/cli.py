@@ -30,11 +30,13 @@ logger = logging.getLogger(__name__)
 @click.option(
     "--slice",
     default=None,
+    multiple=True,
     help="Print the sliced code that this artifact depends on",
 )
 @click.option(
     "--export-slice",
     default=None,
+    multiple=True,
     help="Requires --slice. Export the sliced code that {slice} depends on to {export_slice}.py",
 )
 @click.option(
@@ -103,12 +105,11 @@ def linea_cli(
         Visualizer.for_public(tracer).render_pdf_file()
 
     if slice and not export_slice and not export_slice_to_airflow_dag:
-        slices = slice.split(",")
-        for slice in slices:
+        for _slice in slice:  # slice is a tuple
             tree.add(
                 rich.console.Group(
-                    f"Slice of {repr(slice)}",
-                    rich.syntax.Syntax(tracer.slice(slice), "python"),
+                    f"Slice of {repr(_slice)}",
+                    rich.syntax.Syntax(tracer.slice(_slice), "python"),
                 )
             )
 
@@ -116,10 +117,9 @@ def linea_cli(
         if not slice:
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
-        full_code = ""
-        slices = slice.split(",")
-        full_code += tracer.sliced_func(slices, export_slice)
-        pathlib.Path(f"{export_slice}.py").write_text(full_code)
+        for _slice, _export_slice in zip(slice, export_slice):
+            full_code = tracer.sliced_func(_slice, _export_slice)
+            pathlib.Path(f"{_export_slice}.py").write_text(full_code)
 
     if export_slice_to_airflow_dag:
         if not slice:
