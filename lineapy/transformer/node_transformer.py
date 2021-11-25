@@ -357,6 +357,19 @@ class NodeTransformer(ast.NodeTransformer):
             *argument_nodes,
         )
 
+    def visit_BoolOp(self, node: ast.BoolOp) -> CallNode:
+        ast_to_op_map = {
+            ast.Or: BITOR,
+            ast.And: BITAND,
+        }
+        op = ast_to_op_map[node.op.__class__]
+        value_nodes = [self.visit(value) for value in node.values]
+        return self.tracer.call(
+            self.tracer.lookup_node(op),
+            self.get_source(node),
+            *value_nodes,
+        )
+
     def visit_Compare(self, node: ast.Compare) -> CallNode:
         ast_to_op_map = {
             ast.Eq: EQ,

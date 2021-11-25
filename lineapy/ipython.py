@@ -19,7 +19,6 @@ from lineapy.instrumentation.tracer import Tracer
 from lineapy.ipython_cell_storage import cleanup_cells, get_cell_path
 from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
-from lineapy.visualizer import Visualizer
 
 __all__ = ["_end_cell", "start", "stop", "visualize"]
 
@@ -64,6 +63,8 @@ class CellsExecutedState:
         """
         Returns a jupyter display object for the visualization
         """
+        from lineapy.visualizer import Visualizer
+
         return Visualizer.for_public(self.tracer).ipython_display_object()
 
 

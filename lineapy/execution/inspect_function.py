@@ -29,6 +29,13 @@ def inspect_function(
     # Pandas
     ##
     elif (
+        isinstance(function, types.MethodType)
+        and function.__module__ is not None
+        and function.__module__.startswith("pandas.")
+        and kwargs.get("inplace", False)
+    ):
+        yield MutatedValue(BoundSelfOfFunction())
+    elif (
         (pandas := try_import("pandas"))
         and isinstance(function, types.MethodType)
         and function.__name__ == "to_sql"

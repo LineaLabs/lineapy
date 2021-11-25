@@ -19,7 +19,6 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.plugins.airflow import slice_to_airflow
-from lineapy.visualizer import Visualizer
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +115,8 @@ class LineaArtifact:
         """
         Displays the graph for this artifact.
         """
+        from lineapy.visualizer import Visualizer
+
         display(
             Visualizer.for_public_node(
                 self._graph, self.node_id
