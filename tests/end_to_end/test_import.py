@@ -69,3 +69,11 @@ y = pd.x
     res = execute(code, artifacts=["y"])
     assert res.values["y"] == 1
     assert res.artifacts["y"] == code
+
+
+@pytest.mark.xfail(reason="we do not support import * yet")
+def test_import_star_executes(execute):
+    code = """from math import *
+mypi = pi"""
+    res = execute(code)
+    assert res.values["mypi"] == 3.141592653589793
