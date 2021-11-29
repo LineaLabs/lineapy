@@ -59,6 +59,15 @@ y = pandas.x
     assert res.artifacts["y"] == code
 
 
+def test_import_with_alias(execute):
+    code = """import pandas as pd
+y = pd.DataFrame()
+"""
+    res = execute(code, artifacts=["y"])
+    assert res.values["y"].__class__.__name__ == "DataFrame"
+    assert res.artifacts["y"] == code
+
+
 @pytest.mark.xfail(reason="https://github.com/LineaLabs/lineapy/issues/383")
 def test_imports_linked(execute):
     code = """import pandas
