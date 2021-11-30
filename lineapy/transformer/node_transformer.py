@@ -117,7 +117,15 @@ class NodeTransformer(ast.NodeTransformer):
         """
 
         if isinstance(
-            node, (ast.ClassDef, ast.If, ast.For, ast.FunctionDef, ast.While)
+            node,
+            (
+                ast.ClassDef,
+                ast.If,
+                ast.For,
+                ast.FunctionDef,
+                ast.While,
+                ast.Try,
+            ),
         ):
             return self._exec_statement(node)
         elif isinstance(node, (ast.ListComp, ast.Lambda)):
