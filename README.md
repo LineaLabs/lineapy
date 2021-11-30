@@ -41,7 +41,7 @@ You can run linea either by cloning the repository or by using our Docker image.
 $ cat my_script.py
 x = 1 + 2
 y = x + 3
-assert y == 4
+assert y == 6
 
 $ docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main lineapy my_script.py --print-graph
 ...
