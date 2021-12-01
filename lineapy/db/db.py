@@ -52,6 +52,7 @@ from lineapy.db.relational import (
     SourceCodeORM,
 )
 from lineapy.db.utils import OVERRIDE_HELP_TEXT, resolve_db_url
+from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.utils import get_literal_value_from_string
 
 logger = logging.getLogger(__name__)
@@ -131,7 +132,11 @@ class RelationalLineaDB:
         """
         End the transaction and commit the changes.
         """
-        self.session.commit()
+        try:
+            self.session.commit()
+        except Exception as e:
+            self.session.rollback()
+            raise ArtifactSaveException() from e
 
     def close(self):
         """

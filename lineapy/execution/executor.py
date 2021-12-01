@@ -23,6 +23,7 @@ from lineapy.data.types import (
     Node,
 )
 from lineapy.db.db import RelationalLineaDB
+from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import (
     AddFrame,
     RemoveFrames,
@@ -235,6 +236,8 @@ class Executor:
             start_time = datetime.now()
             res = fn(*args, **kwargs)
             end_time = datetime.now()
+        except ArtifactSaveException:
+            raise
         except Exception as exc:
             raise UserException(exc, RemoveFrames(1), *changes)
         finally:
