@@ -17,30 +17,6 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.instrumentation.tracer import Tracer
 
-AIRFLOW_IMPORTS_TEMPLATE = """
-from airflow import DAG
-from airflow.utils.dates import days_ago
-from airflow.operators.python_operator import PythonOperator
-"""
-
-AIRFLOW_DAG_TEMPLATE = """
-default_dag_args = {"owner": "airflow", "retries": 2, "start_date": days_ago(1)}
-
-dag = DAG(
-    dag_id="DAG_NAME_dag",
-    schedule_interval="*/15 * * * *",  # Every 15 minutes
-    max_active_runs=1,
-    catchup=False,
-    default_args=default_dag_args,
-)
-"""
-
-AIRFLOW_TASK_TEMPLATE = """
-TASK_NAME = PythonOperator(
-    dag=dag, task_id=f"TASK_NAME_task", python_callable=TASK_NAME,
-)
-"""
-
 
 def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     """
