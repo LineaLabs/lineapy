@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
     "--export-slice-to-airflow-dag",
     "--airflow",
     default=None,
+    multiple=True,
     help="Requires --slice. Export the sliced code that {slice} depends on to an Airflow DAG {export_slice}.py",
 )
 @click.option(
@@ -127,10 +128,15 @@ def linea_cli(
                 "Please specify --slice. It is required for --export-slice-to-airflow-dag"
             )
             exit(1)
-        full_code = sliced_aiflow_dag(
-            tracer, slice, export_slice_to_airflow_dag
-        )
-        pathlib.Path(f"{export_slice_to_airflow_dag}.py").write_text(full_code)
+        for _slice, _export_slice_to_airflow_dag in zip(
+            slice, export_slice_to_airflow_dag
+        ):
+            full_code = sliced_aiflow_dag(
+                tracer, _slice, _export_slice_to_airflow_dag
+            )
+            pathlib.Path(f"{_export_slice_to_airflow_dag}.py").write_text(
+                full_code
+            )
 
     tracer.db.close()
     if print_graph:
