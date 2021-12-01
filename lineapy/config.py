@@ -1,6 +1,9 @@
+import logging
 from pathlib import Path
 
 FOLDER_NAME = ".linea"
+
+logger = logging.getLogger(__name__)
 
 
 def linea_folder() -> Path:
@@ -17,7 +20,9 @@ def linea_folder() -> Path:
             return Path("./" + "../" * i) / FOLDER_NAME
 
     # you are here because you could not find a .linea folder anywhere. #418 says create one.
+    logger.warning(
+        "No .linea folder found. Creating a new folder in current directory."
+    )
     cwd_linea_folder = Path(".").resolve() / FOLDER_NAME
     cwd_linea_folder.mkdir(parents=False, exist_ok=True)
     return cwd_linea_folder
-    # raise RuntimeError("No .linea directory found.")
