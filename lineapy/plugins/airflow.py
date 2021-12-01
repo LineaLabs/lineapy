@@ -1,6 +1,13 @@
+import os
+import pickle
+import textwrap
+from importlib import import_module
 from pathlib import Path
 from typing import Optional
 
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+from airflow.utils.dates import days_ago
 from black import FileMode, format_str
 
 from lineapy.config import linea_folder
@@ -43,57 +50,81 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     :param slice_name: name of the artifacts to get the code slice for.
     :return: string containing the code of the Airflow DAG running this slice
     """
-    artifact = tracer.db.get_artifact_by_name(slice_name)
-    artifact_var = tracer.slice_var_name(artifact)
-    if not artifact_var:
-        return "Unable to extract the slice"
-    slice_code = get_program_slice(tracer.graph, [artifact.node_id])
-    return slice_to_airflow(
-        slice_code,
-        func_name,
-        Path(tracer.session_context.working_directory),
-        artifact_var,
-    )
+    slice_code = tracer.sliced_func(slice_name, func_name + "_task")
+    slice_to_airflow(slice_code, func_name)
 
 
-def slice_to_airflow(
-    sliced_code: str,
-    func_name: str,
-    working_directory: Path,
-    variable: Optional[str] = None,
-) -> str:
+def register_pickled_dag(dag, dag_folder_path=""):
+
+    """
+    registers (pushes) an airflow dag object to its dag folder, along with python script that
+    can load the pickled dag into memory. name of the pickled dag and its reader py script will
+    have have the dag as its name with a "auto_"
+
+    Inputs:
+    dag: an airflow dag object
+    dag_folder_path='': If empty, pickled dag objects will be saved into
+    airflow's default dag folder
+    """
+
+    dag_name = "".join(["auto_", dag.dag_id])
+
+    if not dag_folder_path:
+        dag_folder_path = "".join([os.environ["AIRFLOW_HOME"], "/dags/"])
+
+    dag_pkl_name = "".join([dag_folder_path, dag_name, ".pkl"])
+    dag_pyfile_name = "".join([dag_folder_path, dag_name, ".py"])
+
+    with open(dag_pkl_name, "wb") as f:
+        pickle.dump(dag, f)
+
+    pyscript = """
+    import pickle
+    from airflow.models import DAG
+    
+    with open('{}', 'rb') as f:
+        tmp_object = pickle.load(f)
+        
+    if isinstance(tmp_object,DAG):
+            globals()['{}'] = tmp_object
+    del tmp_object
+    """
+    pyscript = pyscript.format(dag_pkl_name, dag_name)
+    dedented_pyscript = textwrap.dedent(pyscript).strip()
+
+    with open(dag_pyfile_name, "w") as f:
+        f.write(dedented_pyscript)
+
+
+def slice_to_airflow(sliced_code: str, func_name: str) -> str:
     """
     Transforms sliced code into airflow code.
-
-    If the variable is passed in, this will be printed at the end of the airflow block.
     """
-    # We split the code in import and code blocks and join them to full code test
-    import_block, code_block, main_block = split_code_blocks(
-        sliced_code, func_name
+
+    default_dag_args = {
+        "owner": "airflow",
+        "retries": 2,
+        "start_date": days_ago(1),
+    }
+
+    dag = DAG(
+        dag_id="DAG_NAME_dag",
+        schedule_interval="*/15 * * * *",  # Every 15 minutes
+        max_active_runs=1,
+        catchup=False,
+        default_args=default_dag_args,
     )
 
-    working_dir_str = repr(
-        str(working_directory.relative_to((linea_folder() / "..").resolve()))
+    with open(func_name + "_task.py", "wb") as f:
+        f.write(sliced_code.encode("utf8"))
+    func_callable = getattr(
+        import_module(func_name + "_task"), func_name + "_task"
     )
-    full_code = (
-        "from os import chdir\n"
-        + import_block
-        + "\n"
-        + AIRFLOW_IMPORTS_TEMPLATE
-        + "\n\n"
-        # Change directory before executing to proper place
-        + f"chdir({working_dir_str})"
-        + "\n\n"
-        + code_block
-        + (
-            f"\n\tprint({variable})" if variable else ""
-        )  # TODO What to do with artifact_var in a DAG?
-        + "\n\n"
-        + AIRFLOW_DAG_TEMPLATE.replace("DAG_NAME", func_name)
-        + AIRFLOW_TASK_TEMPLATE.replace("TASK_NAME", func_name)
+
+    func_name_task = PythonOperator(
+        dag=dag,
+        task_id=f"{func_name}_task",
+        python_callable=func_callable,
     )
-    # Black lint
-    black_mode = FileMode()
-    black_mode.line_length = 79
-    full_code = format_str(full_code, mode=black_mode)
-    return full_code
+
+    register_pickled_dag(dag)
