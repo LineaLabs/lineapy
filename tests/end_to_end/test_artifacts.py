@@ -34,9 +34,9 @@ def test_bad_artifact_save_fails_and_recovers(execute):
 import lineapy
 x=1
 y=1
-lineapy.save(y,"workstoo")
 lineapy.save(pandas,"fails")
 lineapy.save(x,"works")
+lineapy.save(y,"workstoo")
 """
     res = execute(code, snapshot=False)
     assert res.values["x"] == 1
