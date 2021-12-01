@@ -125,6 +125,7 @@ class NodeTransformer(ast.NodeTransformer):
                 ast.FunctionDef,
                 ast.While,
                 ast.Try,
+                ast.With,
             ),
         ):
             return self._exec_statement(node)
