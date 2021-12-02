@@ -81,8 +81,8 @@ y = pd.x
 
 
 @pytest.mark.xfail(reason="we do not support import * yet")
-def test_import_star_executes(execute):
+def test_import_star(execute):
     code = """from math import *
 mypi = pi"""
-    res = execute(code, snapshot=False)
+    res = execute(code)
     assert res.values["mypi"] == 3.141592653589793
