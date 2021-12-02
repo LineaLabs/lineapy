@@ -80,9 +80,12 @@ class RelationalLineaDB:
         self.url: str = url
         echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
         logger.debug(f"Connecting to Linea DB at {url}")
+        additional_args = {}
+        if url.startswith("sqlite"):
+            additional_args = {"check_same_thread": False}
         engine = create_engine(
             url,
-            connect_args={"check_same_thread": False},
+            connect_args=additional_args,
             poolclass=StaticPool,
             echo=echo,
         )
@@ -128,6 +131,7 @@ class RelationalLineaDB:
         context_orm = SessionContextORM(**args)
 
         self.session.add(context_orm)
+        self.session.flush()
 
     def commit(self) -> None:
         """
@@ -267,6 +271,7 @@ class RelationalLineaDB:
             timestamp=execution.timestamp,
         )
         self.session.add(execution_orm)
+        self.session.flush()
 
     """
     Readers

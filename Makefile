@@ -35,6 +35,12 @@ test:
 test-github-action:
 	docker-compose run --rm ${service_name} pytest ${args}
 
+# needs pytest-xdist installed to run tests in parallel. also sqlite db should not be used as multiple users cannot write to it
+# postgres db has been tested and found to be working fine. in future commits, pg can be added as a dependent service in the docker-compose. 
+# Additionally, the package pg and psycopg2 should be installed in the main service.
+test-parallel:
+	docker-compose run --rm ${service_name} pytest ${args} -n 5 --durations=10 --dist=loadfile --snapshot-update --no-cov -m "not slow" -m "not airflow" tests/
+
 test-airflow:
 	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/
 
