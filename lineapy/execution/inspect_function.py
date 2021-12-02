@@ -118,10 +118,10 @@ def inspect_function(
         # If both are mutable, they are now views of one another!
         if is_mutable(args[0]) and is_mutable(result):
             yield ViewOfValues(PositionalArg(0), Result())
-    if function == operator.delitem:
+    elif function == operator.delitem:
         # delitem(dict, key)
         yield MutatedValue(PositionalArg(0))
-    if function == l_list:
+    elif function == l_list:
         # l_build_list(x1, x2, ...)
         yield ViewOfValues(
             Result(),
