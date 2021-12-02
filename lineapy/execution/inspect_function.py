@@ -150,6 +150,14 @@ def inspect_function(
         yield ViewOfValues(BoundSelfOfFunction(), Result())
     # Note: Future functions might require normalizing the args/kwargs with
     # inspect.signature.bind(args, kwargs) first
+
+    # this if is for usermodules and anything that is a method of a class
+    elif (
+        isinstance(function, types.MethodType)
+        and function.__self__ is not None
+        and function.__self__.__class__.__name__ != "InteractiveShell"
+    ):
+        yield MutatedValue(BoundSelfOfFunction())
     else:
         return []
 

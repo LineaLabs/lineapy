@@ -39,5 +39,22 @@ since classes are blackboxes right now."
 )
 def test_mutate_classvar_slice(execute):
     res = execute(GLOBAL_MUTATE_CODE, artifacts=["a", "b"])
+
     assert res.artifacts["a"] == GLOBAL_MUTATE_CODE
     assert res.artifacts["b"] == GLOBAL_MUTATE_CODE
+
+
+MUTATE_SELF_SAMPLE_CODE = """class Modifier():
+    def __init__(self):
+        self.varname = None
+    def modify_A(self,new_value):
+        self.varname = new_value
+b = Modifier()
+b.modify_A("new")
+"""
+
+
+def test_mutate_self(execute):
+    res = execute(MUTATE_SELF_SAMPLE_CODE, artifacts=["b"])
+    assert res.values["b"].varname == "new"
+    assert res.artifacts["b"] == MUTATE_SELF_SAMPLE_CODE
