@@ -25,4 +25,6 @@ x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
 
 clf.fit(x, y)
 p = clf.predict([[100 * 1000, 10, 4]])
+lineapy.save(x, "x")
+lineapy.save(y, "y")
 lineapy.save(p, "p value")

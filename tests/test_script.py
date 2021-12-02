@@ -24,6 +24,16 @@ def test_slice_housing():
 
 
 @pytest.mark.slow
+def test_slice_housing_multiple():
+    """
+    Verifies that we can run "--slice" CLI command multiple times
+    """
+    subprocess.check_call(
+        ["lineapy", "tests/housing.py", "--slice", "p value", "--slice", "y"]
+    )
+
+
+@pytest.mark.slow
 def test_export_slice_housing():
     """
     Verifies that the "--export-slice" CLI command is aliased to the `lineapy` executable
@@ -36,6 +46,27 @@ def test_export_slice_housing():
             "p value",
             "--export-slice",
             "sliced_housing",
+        ]
+    )
+
+
+@pytest.mark.slow
+def test_export_slice_housing_multiple():
+    """
+    Verifies that we can run "--export-slice" CLI command multiple times
+    """
+    subprocess.check_call(
+        [
+            "lineapy",
+            "tests/housing.py",
+            "--slice",
+            "p value",
+            "--export-slice",
+            "p_value_housing",
+            "--slice",
+            "y",
+            "--export-slice",
+            "y_housing",
         ]
     )
 
