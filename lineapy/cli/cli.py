@@ -30,17 +30,20 @@ logger = logging.getLogger(__name__)
 @click.option(
     "--slice",
     default=None,
+    multiple=True,
     help="Print the sliced code that this artifact depends on",
 )
 @click.option(
     "--export-slice",
     default=None,
+    multiple=True,
     help="Requires --slice. Export the sliced code that {slice} depends on to {export_slice}.py",
 )
 @click.option(
     "--export-slice-to-airflow-dag",
     "--airflow",
     default=None,
+    multiple=True,
     help="Requires --slice. Export the sliced code that {slice} depends on to an Airflow DAG {export_slice}.py",
 )
 @click.option(
@@ -103,19 +106,21 @@ def linea_cli(
         Visualizer.for_public(tracer).render_pdf_file()
 
     if slice and not export_slice and not export_slice_to_airflow_dag:
-        tree.add(
-            rich.console.Group(
-                f"Slice of {repr(slice)}",
-                rich.syntax.Syntax(tracer.slice(slice), "python"),
+        for _slice in slice:  # slice is a tuple
+            tree.add(
+                rich.console.Group(
+                    f"Slice of {repr(_slice)}",
+                    rich.syntax.Syntax(tracer.slice(_slice), "python"),
+                )
             )
-        )
 
     if export_slice:
         if not slice:
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
-        full_code = tracer.sliced_func(slice, export_slice)
-        pathlib.Path(f"{export_slice}.py").write_text(full_code)
+        for _slice, _export_slice in zip(slice, export_slice):
+            full_code = tracer.sliced_func(_slice, _export_slice)
+            pathlib.Path(f"{_export_slice}.py").write_text(full_code)
 
     if export_slice_to_airflow_dag:
         if not slice:
@@ -123,10 +128,15 @@ def linea_cli(
                 "Please specify --slice. It is required for --export-slice-to-airflow-dag"
             )
             exit(1)
-        full_code = sliced_aiflow_dag(
-            tracer, slice, export_slice_to_airflow_dag
-        )
-        pathlib.Path(f"{export_slice_to_airflow_dag}.py").write_text(full_code)
+        for _slice, _export_slice_to_airflow_dag in zip(
+            slice, export_slice_to_airflow_dag
+        ):
+            full_code = sliced_aiflow_dag(
+                tracer, _slice, _export_slice_to_airflow_dag
+            )
+            pathlib.Path(f"{_export_slice_to_airflow_dag}.py").write_text(
+                full_code
+            )
 
     tracer.db.close()
     if print_graph:
