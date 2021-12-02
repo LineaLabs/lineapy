@@ -35,11 +35,20 @@ x = func(*name)
     assert ret.values["x"] == ["m", "y", "n", "a", "m", "e"]
 
 
+def test_star_w_string(execute):
+    CODE = """def func(*args):
+    return [m for m in args]
+x=func(*"myname")
+"""
+    ret = execute(CODE)
+    assert ret.values["x"] == ["m", "y", "n", "a", "m", "e"]
+
+
 def test_starred_w_iterator_executes(execute):
     CODE = """def func(*args):
     retobv = (m for m in args)
     return list(retobv)
- 
+
 name = "myname"
 it = iter(name)
 print(next(it))

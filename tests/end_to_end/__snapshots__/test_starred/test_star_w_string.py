@@ -6,28 +6,16 @@ from lineapy.utils import get_new_id
 source_1 = SourceCode(
     code="""def func(*args):
     return [m for m in args]
-
-name = "myname"
-x = func(*name)
+x=func(*"myname")
 """,
     location=PosixPath("[source file path]"),
 )
-literal_8 = LiteralNode(
-    source_location=SourceLocation(
-        lineno=4,
-        col_offset=7,
-        end_lineno=4,
-        end_col_offset=15,
-        source_code=source_1.id,
-    ),
-    value="myname",
-)
 call_2 = CallNode(
     source_location=SourceLocation(
-        lineno=5,
-        col_offset=4,
-        end_lineno=5,
-        end_col_offset=15,
+        lineno=3,
+        col_offset=2,
+        end_lineno=3,
+        end_col_offset=17,
         source_code=source_1.id,
     ),
     function_id=GlobalNode(
