@@ -113,46 +113,6 @@ call_4 = CallNode(
         ).id,
     ).id,
 )
-call_6 = CallNode(
-    source_location=SourceLocation(
-        lineno=15,
-        col_offset=0,
-        end_lineno=15,
-        end_col_offset=13,
-        source_code=source_1.id,
-    ),
-    function_id=CallNode(
-        source_location=SourceLocation(
-            lineno=15,
-            col_offset=0,
-            end_lineno=15,
-            end_col_offset=10,
-            source_code=source_1.id,
-        ),
-        function_id=LookupNode(
-            name="getattr",
-        ).id,
-        positional_args=[
-            call_4.id,
-            LiteralNode(
-                value="modify_A",
-            ).id,
-        ],
-    ).id,
-    positional_args=[call_3.id],
-    global_reads={
-        "new_value": LiteralNode(
-            source_location=SourceLocation(
-                lineno=2,
-                col_offset=10,
-                end_lineno=2,
-                end_col_offset=18,
-                source_code=source_1.id,
-            ),
-            value="newval",
-        ).id
-    },
-)
 call_8 = CallNode(
     source_location=SourceLocation(
         lineno=17,
@@ -220,7 +180,49 @@ call_10 = CallNode(
         ],
     ).id,
     positional_args=[
-        call_4.id,
+        MutateNode(
+            source_id=call_4.id,
+            call_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=15,
+                    col_offset=0,
+                    end_lineno=15,
+                    end_col_offset=13,
+                    source_code=source_1.id,
+                ),
+                function_id=CallNode(
+                    source_location=SourceLocation(
+                        lineno=15,
+                        col_offset=0,
+                        end_lineno=15,
+                        end_col_offset=10,
+                        source_code=source_1.id,
+                    ),
+                    function_id=LookupNode(
+                        name="getattr",
+                    ).id,
+                    positional_args=[
+                        call_4.id,
+                        LiteralNode(
+                            value="modify_A",
+                        ).id,
+                    ],
+                ).id,
+                positional_args=[call_3.id],
+                global_reads={
+                    "new_value": LiteralNode(
+                        source_location=SourceLocation(
+                            lineno=2,
+                            col_offset=10,
+                            end_lineno=2,
+                            end_col_offset=18,
+                            source_code=source_1.id,
+                        ),
+                        value="newval",
+                    ).id
+                },
+            ).id,
+        ).id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=18,

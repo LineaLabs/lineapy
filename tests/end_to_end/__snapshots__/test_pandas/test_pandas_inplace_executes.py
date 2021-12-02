@@ -214,6 +214,37 @@ call_8 = CallNode(
         ).id,
     ],
 )
+call_10 = CallNode(
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=6,
+        end_lineno=4,
+        end_col_offset=20,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=4,
+            col_offset=6,
+            end_lineno=4,
+            end_col_offset=18,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            call_8.id,
+            LiteralNode(
+                value="mean",
+            ).id,
+        ],
+    ).id,
+)
+mutate_1 = MutateNode(
+    source_id=call_7.id,
+    call_id=call_10.id,
+)
 call_11 = CallNode(
     source_location=SourceLocation(
         lineno=5,
@@ -226,7 +257,7 @@ call_11 = CallNode(
         name="getitem",
     ).id,
     positional_args=[
-        call_7.id,
+        mutate_1.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=5,
@@ -265,35 +296,7 @@ call_13 = CallNode(
             ).id,
         ],
     ).id,
-    positional_args=[
-        CallNode(
-            source_location=SourceLocation(
-                lineno=4,
-                col_offset=6,
-                end_lineno=4,
-                end_col_offset=20,
-                source_code=source_1.id,
-            ),
-            function_id=CallNode(
-                source_location=SourceLocation(
-                    lineno=4,
-                    col_offset=6,
-                    end_lineno=4,
-                    end_col_offset=18,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="getattr",
-                ).id,
-                positional_args=[
-                    call_8.id,
-                    LiteralNode(
-                        value="mean",
-                    ).id,
-                ],
-            ).id,
-        ).id
-    ],
+    positional_args=[call_10.id],
     keyword_args={
         "inplace": LiteralNode(
             source_location=SourceLocation(
@@ -307,11 +310,14 @@ call_13 = CallNode(
         ).id
     },
 )
-mutate_2 = MutateNode(
-    source_id=call_8.id,
+mutate_4 = MutateNode(
+    source_id=MutateNode(
+        source_id=call_8.id,
+        call_id=call_10.id,
+    ).id,
     call_id=call_13.id,
 )
-mutate_3 = MutateNode(
+mutate_5 = MutateNode(
     source_id=call_11.id,
     call_id=call_13.id,
 )
@@ -354,7 +360,7 @@ call_15 = CallNode(
     ).id,
     positional_args=[
         MutateNode(
-            source_id=call_7.id,
+            source_id=mutate_1.id,
             call_id=call_13.id,
         ).id,
         LiteralNode(

@@ -7,70 +7,74 @@ source_1 = SourceCode(
     code="import altair; altair.data_transformers.enable('json')",
     location=PosixPath("[source file path]"),
 )
-call_3 = CallNode(
+call_1 = CallNode(
     source_location=SourceLocation(
         lineno=1,
         col_offset=15,
         end_lineno=1,
-        end_col_offset=54,
+        end_col_offset=39,
         source_code=source_1.id,
     ),
-    function_id=CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        ImportNode(
+            source_location=SourceLocation(
+                lineno=1,
+                col_offset=0,
+                end_lineno=1,
+                end_col_offset=13,
+                source_code=source_1.id,
+            ),
+            library=Library(
+                name="altair",
+            ),
+        ).id,
+        LiteralNode(
+            value="data_transformers",
+        ).id,
+    ],
+)
+mutate_1 = MutateNode(
+    source_id=call_1.id,
+    call_id=CallNode(
         source_location=SourceLocation(
             lineno=1,
             col_offset=15,
             end_lineno=1,
-            end_col_offset=46,
+            end_col_offset=54,
             source_code=source_1.id,
         ),
-        function_id=LookupNode(
-            name="getattr",
-        ).id,
-        positional_args=[
-            CallNode(
-                source_location=SourceLocation(
-                    lineno=1,
-                    col_offset=15,
-                    end_lineno=1,
-                    end_col_offset=39,
-                    source_code=source_1.id,
-                ),
-                function_id=LookupNode(
-                    name="getattr",
-                ).id,
-                positional_args=[
-                    ImportNode(
-                        source_location=SourceLocation(
-                            lineno=1,
-                            col_offset=0,
-                            end_lineno=1,
-                            end_col_offset=13,
-                            source_code=source_1.id,
-                        ),
-                        library=Library(
-                            name="altair",
-                        ),
-                    ).id,
-                    LiteralNode(
-                        value="data_transformers",
-                    ).id,
-                ],
-            ).id,
-            LiteralNode(
-                value="enable",
-            ).id,
-        ],
-    ).id,
-    positional_args=[
-        LiteralNode(
+        function_id=CallNode(
             source_location=SourceLocation(
                 lineno=1,
-                col_offset=47,
+                col_offset=15,
                 end_lineno=1,
-                end_col_offset=53,
+                end_col_offset=46,
                 source_code=source_1.id,
             ),
-            value="json",
-        ).id
-    ],
+            function_id=LookupNode(
+                name="getattr",
+            ).id,
+            positional_args=[
+                call_1.id,
+                LiteralNode(
+                    value="enable",
+                ).id,
+            ],
+        ).id,
+        positional_args=[
+            LiteralNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=47,
+                    end_lineno=1,
+                    end_col_offset=53,
+                    source_code=source_1.id,
+                ),
+                value="json",
+            ).id
+        ],
+    ).id,
 )

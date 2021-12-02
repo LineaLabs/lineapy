@@ -156,6 +156,7 @@ def inspect_function(
         isinstance(function, types.MethodType)
         and function.__self__ is not None
         and function.__self__.__class__.__name__ != "InteractiveShell"
+        and function.__self__.__class__.__name__ != "ZMQInteractiveShell"
     ):
         yield MutatedValue(BoundSelfOfFunction())
     else:
