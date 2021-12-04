@@ -182,13 +182,14 @@ class BaseNodeORM(Base):
     otherwise the environment type is "jupyter" and it has a jupyter execution
     count and session id, which is equal to the node.session
 
-    NOTE:
+    NOTE
+    ----
+
     - Because other nodes are inheriting from BaseNodeORM, finding a node
-      based on its id is easy (something like the following).
-      ```python
-       session.query(BaseNodeORM)
-       .filter(BaseNodeORM.id == linea_id)
-      ```
+      based on its id is easy (something like the following)::
+
+       session.query(BaseNodeORM).filter(BaseNodeORM.id == linea_id)
+
     """
 
     __tablename__ = "node"

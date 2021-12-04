@@ -86,9 +86,12 @@ def transform(
 
 class NodeTransformer(ast.NodeTransformer):
     """
-    Notes:
+    NOTE
+    ----
+
     - Need to be careful about the order by which these calls are invoked
       so that the transformation do not get called more than once.
+
     """
 
     def __init__(
@@ -223,6 +226,7 @@ class NodeTransformer(ast.NodeTransformer):
     def visit_Assign(self, node: ast.Assign) -> None:
         """
         TODO
+        ----
         - None variable assignment, should be turned into a setattr call
           not an assignment, so we might need to change the return signature
           from ast.Expr.

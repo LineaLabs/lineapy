@@ -61,8 +61,9 @@ def l_dict(
     There is a special case for dictionary unpacking. In this case, the
     key will be an instance of _DictKwargsSentinel.
 
-    For example, if the user creates a dict like {1: 2, **d, 3: 4},
-    then it will create a call like"
+    For example, if the user creates a dict like ``{1: 2, **d, 3: 4}``,
+    then it will create a call like::
+
     __build_dict__((1, 2), (__build_dict_kwargs_sentinel__(), d), (3, 4))
 
     We use a sentinel value instead of None, because None can be a valid

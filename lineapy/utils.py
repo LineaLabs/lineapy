@@ -42,7 +42,7 @@ def get_value_type(val: Any) -> Optional[ValueType]:
     """
     Got a little hacky so as to avoid dependency on external libraries.
     Current method is to check if the dependent library is already imported,
-      if they are, then we can reference them.
+    if they are, then we can reference them.
 
     Note:
     - Watch out for error here if the Executor tests fail.
