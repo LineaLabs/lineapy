@@ -80,7 +80,6 @@ y = pd.x
     assert res.artifacts["y"] == code
 
 
-@pytest.mark.xfail(reason="we do not support import * yet")
 def test_import_star(execute):
     code = """from math import *
 mypi = pi"""
