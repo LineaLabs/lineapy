@@ -82,6 +82,9 @@ y = pd.x
 
 def test_import_star(execute):
     code = """from math import *
-mypi = pi"""
+mypi = pi
+x = sqrt(4)
+"""
     res = execute(code)
     assert res.values["mypi"] == 3.141592653589793
+    assert res.values["x"] == 2.0

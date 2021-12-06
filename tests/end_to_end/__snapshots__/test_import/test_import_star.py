@@ -5,7 +5,9 @@ from lineapy.utils import get_new_id
 
 source_1 = SourceCode(
     code="""from math import *
-mypi = pi""",
+mypi = pi
+x = sqrt(4)
+""",
     location=PosixPath("[source file path]"),
 )
 import_1 = ImportNode(
@@ -27,7 +29,7 @@ call_1 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="fsum",
+            value="atan2",
         ).id,
     ],
 )
@@ -38,7 +40,7 @@ call_2 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="isfinite",
+            value="cos",
         ).id,
     ],
 )
@@ -49,7 +51,7 @@ call_3 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="floor",
+            value="fmod",
         ).id,
     ],
 )
@@ -60,7 +62,7 @@ call_4 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="isinf",
+            value="exp",
         ).id,
     ],
 )
@@ -71,7 +73,7 @@ call_5 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="log10",
+            value="ulp",
         ).id,
     ],
 )
@@ -82,7 +84,7 @@ call_6 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="comb",
+            value="radians",
         ).id,
     ],
 )
@@ -93,7 +95,7 @@ call_7 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="lcm",
+            value="isinf",
         ).id,
     ],
 )
@@ -104,7 +106,7 @@ call_8 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="lgamma",
+            value="tanh",
         ).id,
     ],
 )
@@ -115,7 +117,7 @@ call_9 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="acosh",
+            value="asinh",
         ).id,
     ],
 )
@@ -126,7 +128,7 @@ call_10 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="sinh",
+            value="sin",
         ).id,
     ],
 )
@@ -137,7 +139,7 @@ call_11 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="fabs",
+            value="lcm",
         ).id,
     ],
 )
@@ -148,7 +150,7 @@ call_12 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="asin",
+            value="nextafter",
         ).id,
     ],
 )
@@ -159,7 +161,7 @@ call_13 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="atan",
+            value="tau",
         ).id,
     ],
 )
@@ -170,7 +172,7 @@ call_14 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="gamma",
+            value="atan",
         ).id,
     ],
 )
@@ -181,7 +183,7 @@ call_15 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="erfc",
+            value="log2",
         ).id,
     ],
 )
@@ -192,7 +194,7 @@ call_16 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="perm",
+            value="log",
         ).id,
     ],
 )
@@ -203,7 +205,7 @@ call_17 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="pi",
+            value="fabs",
         ).id,
     ],
 )
@@ -214,7 +216,7 @@ call_18 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="hypot",
+            value="floor",
         ).id,
     ],
 )
@@ -225,7 +227,7 @@ call_19 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="ceil",
+            value="ldexp",
         ).id,
     ],
 )
@@ -236,7 +238,7 @@ call_20 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="tau",
+            value="degrees",
         ).id,
     ],
 )
@@ -247,7 +249,7 @@ call_21 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="cosh",
+            value="modf",
         ).id,
     ],
 )
@@ -258,7 +260,7 @@ call_22 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="exp",
+            value="log1p",
         ).id,
     ],
 )
@@ -280,7 +282,7 @@ call_24 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="log1p",
+            value="acos",
         ).id,
     ],
 )
@@ -291,7 +293,7 @@ call_25 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="isnan",
+            value="gamma",
         ).id,
     ],
 )
@@ -302,7 +304,7 @@ call_26 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="radians",
+            value="nan",
         ).id,
     ],
 )
@@ -313,7 +315,7 @@ call_27 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="fmod",
+            value="hypot",
         ).id,
     ],
 )
@@ -324,7 +326,7 @@ call_28 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="modf",
+            value="factorial",
         ).id,
     ],
 )
@@ -346,7 +348,7 @@ call_30 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="tanh",
+            value="erfc",
         ).id,
     ],
 )
@@ -357,7 +359,7 @@ call_31 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="erf",
+            value="pow",
         ).id,
     ],
 )
@@ -368,7 +370,7 @@ call_32 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="nan",
+            value="tan",
         ).id,
     ],
 )
@@ -379,7 +381,7 @@ call_33 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="sin",
+            value="atanh",
         ).id,
     ],
 )
@@ -390,7 +392,7 @@ call_34 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="pow",
+            value="e",
         ).id,
     ],
 )
@@ -401,18 +403,7 @@ call_35 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="e",
-        ).id,
-    ],
-)
-call_36 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="gcd",
+            value="erf",
         ).id,
     ],
 )
@@ -423,7 +414,7 @@ call_37 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="dist",
+            value="lgamma",
         ).id,
     ],
 )
@@ -434,7 +425,7 @@ call_38 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="expm1",
+            value="cosh",
         ).id,
     ],
 )
@@ -445,7 +436,7 @@ call_39 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="log",
+            value="expm1",
         ).id,
     ],
 )
@@ -456,7 +447,7 @@ call_40 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="log2",
+            value="prod",
         ).id,
     ],
 )
@@ -467,7 +458,7 @@ call_41 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="remainder",
+            value="trunc",
         ).id,
     ],
 )
@@ -478,7 +469,7 @@ call_42 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="prod",
+            value="inf",
         ).id,
     ],
 )
@@ -489,7 +480,7 @@ call_43 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="acos",
+            value="pi",
         ).id,
     ],
 )
@@ -500,7 +491,7 @@ call_44 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="ldexp",
+            value="isfinite",
         ).id,
     ],
 )
@@ -511,7 +502,7 @@ call_45 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="isclose",
+            value="isnan",
         ).id,
     ],
 )
@@ -522,7 +513,7 @@ call_46 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="tan",
+            value="isclose",
         ).id,
     ],
 )
@@ -533,7 +524,7 @@ call_47 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="copysign",
+            value="sinh",
         ).id,
     ],
 )
@@ -544,7 +535,7 @@ call_48 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="ulp",
+            value="perm",
         ).id,
     ],
 )
@@ -555,7 +546,7 @@ call_49 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="atanh",
+            value="asin",
         ).id,
     ],
 )
@@ -566,7 +557,7 @@ call_50 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="trunc",
+            value="gcd",
         ).id,
     ],
 )
@@ -577,7 +568,7 @@ call_51 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="nextafter",
+            value="dist",
         ).id,
     ],
 )
@@ -588,7 +579,7 @@ call_52 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="atan2",
+            value="log10",
         ).id,
     ],
 )
@@ -599,7 +590,7 @@ call_53 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="sqrt",
+            value="comb",
         ).id,
     ],
 )
@@ -610,7 +601,7 @@ call_54 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="asinh",
+            value="acosh",
         ).id,
     ],
 )
@@ -621,7 +612,7 @@ call_55 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="inf",
+            value="copysign",
         ).id,
     ],
 )
@@ -632,7 +623,7 @@ call_56 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="degrees",
+            value="ceil",
         ).id,
     ],
 )
@@ -643,7 +634,7 @@ call_57 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="cos",
+            value="fsum",
         ).id,
     ],
 )
@@ -654,7 +645,39 @@ call_58 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="factorial",
+            value="remainder",
         ).id,
+    ],
+)
+call_59 = CallNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=4,
+        end_lineno=3,
+        end_col_offset=11,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            import_1.id,
+            LiteralNode(
+                value="sqrt",
+            ).id,
+        ],
+    ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=3,
+                col_offset=9,
+                end_lineno=3,
+                end_col_offset=10,
+                source_code=source_1.id,
+            ),
+            value=4,
+        ).id
     ],
 )
