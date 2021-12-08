@@ -64,6 +64,9 @@ class VisualGraphOptions:
 
 
 def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
+    """
+    Returns a visual graph based on the options.
+    """
     tracer = options.tracer
     graph = options.graph
     vg = VisualGraph()

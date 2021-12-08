@@ -156,7 +156,26 @@ class ExternalState:
 
 
 file_system = register(ExternalState("file_system"))
-db = register(ExternalState("db"))
+"""
+The class file_system tracks `mutations` to the file system. 
+This currently includes `ANY` writes to the system irrespective of the file name.
 
+TODO
+====
+
+    - Add a way to track writes to specific files
+"""
+db = register(ExternalState("db"))
+"""
+Similar to file_system, the class db tracks `mutations` to the database. 
+This currently includes `ANY` writes to the db irrespective of the file name.
+We also do not support parsing the connection string so if there are multiple
+dbs or shards, all will be treated as one abstract db.
+
+TODO
+====
+
+    - Add a way to track writes to specific tables
+"""
 
 LINEA_BUILTINS = {f.__name__: f for f in _builtins}

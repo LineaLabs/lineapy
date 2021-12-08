@@ -1,18 +1,30 @@
 Welcome to lineapy's documentation!
 ===================================
 
+To get started, start :ref:`here <internals>`. The document goes over internals of the library, and how to use it.
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Modules
 
    modules
 
-.. include:: ../../INTERNALS.rst
+.. toctree::
+   :maxdepth: 2
+   :caption: Begin Here
 
+   internals
 
-Indices and tables
-==================
+.. toctree::
+   :maxdepth: 2
+   :caption: How-to Guides
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   howto
+
+..
+   Indices and tables
+   ==================
+
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
