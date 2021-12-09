@@ -7,7 +7,7 @@ To get started, start :ref:`here <internals>`. The document goes over internals 
    :maxdepth: 2
    :caption: Modules
 
-   modules
+   autogen/modules
 
 .. toctree::
    :maxdepth: 2
