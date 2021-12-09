@@ -211,7 +211,7 @@ We also supporting tracing using IPython (and so by proxy, Jupyter).
 This is implemented in the [`ipython.py`](lineapy/ipython.py) file. That file
 provides three main entrypoints:
 
-#. `start()`: Starts tracing by adding a function to [`input_transformers_post`](https://ipython.readthedocs.io/en/stable/config/inputtransforms.html#string-based-transformations) which takes in a list of strings of the cell contents, and returns a list of strings which are executed by IPython.
+#. `start()`: Starts tracing by adding a function to `input_transformers_post <https://ipython.readthedocs.io/en/stable/config/inputtransforms.html#string-based-transformations>`_ which takes in a list of strings of the cell contents, and returns a list of strings which are executed by IPython.
 #. `stop()`: Stops the tracing, removing this function from the `input_transformers_post`. This is not strictly neccesary now that we support querying linea inside of our tracing, so it could be removed and we could remove some of the logic in here.
 #. `visualize()`: output a visual of the current state of the graph.
 
@@ -340,7 +340,7 @@ and teaching purposes. This is implemented in the
    It also supports a number of ways to viewing the visualization, like
    as SVG, PDF, or as Jupyter Output.
 #. :class:`lineapy.visualizer.graphviz`: This files manages actually creating the graphviz source
-   using the :ref:`Graphviz <https://graphviz.readthedocs.io/en/stable/index.html>`
+   using the `Graphviz <https://graphviz.readthedocs.io/en/stable/index.html>`_
    library. It renders each edge and node, and also renders a legend.
 #. :meth:`lineapy.visualizer.visual_graph.to_visual_graph`: This takes in the Graph and (optional) Tracer and returns
    a list of nodes and edges in a form that is closer to how Graphviz works.
