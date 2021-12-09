@@ -9,6 +9,7 @@ DEL_ITEM = operator.__delitem__.__name__
 SET_ATTR = setattr.__name__
 GETATTR = getattr.__name__
 DEL_ATTR = delattr.__name__
+IMPORT_STAR = "*"
 
 # BinOPs
 ADD = operator.__add__.__name__

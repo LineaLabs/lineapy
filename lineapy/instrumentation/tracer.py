@@ -6,7 +6,7 @@ from typing import Dict, Optional
 
 from black import FileMode, format_str
 
-from lineapy.constants import GETATTR
+from lineapy.constants import GETATTR, IMPORT_STAR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
@@ -329,7 +329,14 @@ class Tracer:
         # for the attributes imported, we need to add them to the local lookup
         #  that yields the importnode's id for the `function_module` field,
         #  see `graph_with_basic_image`.
+
         if attributes is not None:
+            if IMPORT_STAR in attributes:
+                attributes = {
+                    attr: attr
+                    for attr in dir(self.values[library.name])
+                    if not attr.startswith("__")
+                }
             for alias, original_name in attributes.items():
                 # self.function_name_to_function_module_import_id[a] = node.id
                 self.assign(

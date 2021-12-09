@@ -59,6 +59,15 @@ y = pandas.x
     assert res.artifacts["y"] == code
 
 
+def test_import_with_alias(execute):
+    code = """import pandas as pd
+y = pd.DataFrame()
+"""
+    res = execute(code, artifacts=["y"])
+    assert res.values["y"].__class__.__name__ == "DataFrame"
+    assert res.artifacts["y"] == code
+
+
 @pytest.mark.xfail(reason="https://github.com/LineaLabs/lineapy/issues/383")
 def test_imports_linked(execute):
     code = """import pandas
@@ -69,3 +78,13 @@ y = pd.x
     res = execute(code, artifacts=["y"])
     assert res.values["y"] == 1
     assert res.artifacts["y"] == code
+
+
+def test_import_star(execute):
+    code = """from math import *
+mypi = pi
+x = sqrt(4)
+"""
+    res = execute(code)
+    assert res.values["mypi"] == 3.141592653589793
+    assert res.values["x"] == 2.0
