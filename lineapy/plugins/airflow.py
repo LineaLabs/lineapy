@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 from black import FileMode, format_str
+from jinja2 import Template
 
 from lineapy.config import linea_folder
 from lineapy.graph_reader.program_slice import (
@@ -10,29 +11,55 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.instrumentation.tracer import Tracer
 
-AIRFLOW_IMPORTS_TEMPLATE = """
+AIRFLOW_IMPORTS_TEMPLATE = Template(
+    """
 from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.python_operator import PythonOperator
 """
+)
 
-AIRFLOW_DAG_TEMPLATE = """
+AIRFLOW_DAG_TEMPLATE = Template(
+    """
 default_dag_args = {"owner": "airflow", "retries": 2, "start_date": days_ago(1)}
 
 dag = DAG(
-    dag_id="DAG_NAME_dag",
+    dag_id="{{ DAG_NAME }}_dag",
     schedule_interval="*/15 * * * *",  # Every 15 minutes
     max_active_runs=1,
     catchup=False,
     default_args=default_dag_args,
 )
 """
+)
 
-AIRFLOW_TASK_TEMPLATE = """
-TASK_NAME = PythonOperator(
-    dag=dag, task_id=f"TASK_NAME_task", python_callable=TASK_NAME,
+AIRFLOW_TASK_TEMPLATE = Template(
+    """
+{{ TASK_NAME }} = PythonOperator(
+    dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
 )
 """
+)
+
+AIRFLOW_FULL_TEMPLATE = Template(
+    """
+from os import chdir
+{{ import_block }}
+{{ airflow_import_block }}
+
+{# Change directory before executing to proper place #}
+chdir({{ working_dir_str }})
+
+{{ code_block }}
+{% if variable != "" %}
+\tprint({{ variable }})
+{% endif %}
+{# TODO What to do with artifact_var in a DAG? #}
+
+{{ airflow_dag_block }}
+{{ airflow_task_block }}
+"""
+)
 
 
 def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
@@ -75,22 +102,15 @@ def slice_to_airflow(
     working_dir_str = repr(
         str(working_directory.relative_to((linea_folder() / "..").resolve()))
     )
-    full_code = (
-        "from os import chdir\n"
-        + import_block
-        + "\n"
-        + AIRFLOW_IMPORTS_TEMPLATE
-        + "\n\n"
-        # Change directory before executing to proper place
-        + f"chdir({working_dir_str})"
-        + "\n\n"
-        + code_block
-        + (
-            f"\n\tprint({variable})" if variable else ""
-        )  # TODO What to do with artifact_var in a DAG?
-        + "\n\n"
-        + AIRFLOW_DAG_TEMPLATE.replace("DAG_NAME", func_name)
-        + AIRFLOW_TASK_TEMPLATE.replace("TASK_NAME", func_name)
+
+    full_code = AIRFLOW_FULL_TEMPLATE.render(
+        import_block=import_block,
+        airflow_import_block=AIRFLOW_IMPORTS_TEMPLATE.render(),
+        working_dir_str=working_dir_str,
+        code_block=code_block,
+        variable=variable,
+        airflow_dag_block=AIRFLOW_DAG_TEMPLATE.render(DAG_NAME=func_name),
+        airflow_task_block=AIRFLOW_TASK_TEMPLATE.render(TASK_NAME=func_name),
     )
     # Black lint
     black_mode = FileMode()
