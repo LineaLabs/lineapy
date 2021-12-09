@@ -190,8 +190,8 @@ class BaseNodeORM(Base):
 
        session.query(BaseNodeORM).filter(BaseNodeORM.id == linea_id)
 
-    - Each node inheriting from BaseNodeORM must have non null values for 
-      all of lineno, col_offset, end_lineno, end_col_offset and source_code_id 
+    - Each node inheriting from BaseNodeORM must have non null values for
+      all of lineno, col_offset, end_lineno, end_col_offset and source_code_id
       or nulls for all of them.
 
     """
