@@ -236,6 +236,7 @@ class Executor:
             start_time = datetime.now()
             res = fn(*args, **kwargs)
             end_time = datetime.now()
+        # have to do this to avoid entering the general exception block below
         except ArtifactSaveException:
             raise
         except Exception as exc:

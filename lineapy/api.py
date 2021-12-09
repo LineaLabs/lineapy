@@ -84,6 +84,21 @@ def save(value: object, description: str, /) -> LineaArtifact:
 def _can_save_to_db(value: object) -> bool:
     """
     Tests if the value is of a type that can be serialized to the DB.
+
+    Note
+    ----
+
+    An alternate proposed was to pickle here and create a binary and pass that to the db.
+    - Pro
+
+      - it will allow us to use any serializer to create binaries - could be a better pickler, another completely diff method.
+
+    - Con
+
+      - We'll have to handle the reads manually as well and all that change is beyond the scope of this PR.
+
+    if pickle performance becomes an issue, a new issue should be opened.
+
     """
     if isinstance(value, types.ModuleType):
         return False
