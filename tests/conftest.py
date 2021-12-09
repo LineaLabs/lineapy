@@ -50,7 +50,9 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
     def serialize(self, data: str, **kwargs):
         return data
 
-    def _write_snapshot_fossil(self, *, snapshot_fossil: SnapshotFossil) -> None:
+    def _write_snapshot_fossil(
+        self, *, snapshot_fossil: SnapshotFossil
+    ) -> None:
 
         filepath, data = (
             snapshot_fossil.location,
@@ -58,7 +60,9 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
         )
         if not isinstance(data, str):
             error_text = "Can't write into a file. Expected '{}', got '{}'"
-            raise TypeError(error_text.format(str.__name__, type(data).__name__))
+            raise TypeError(
+                error_text.format(str.__name__, type(data).__name__)
+            )
         Path(filepath).write_text(data, encoding="utf-8")
 
     def _read_snapshot_data_from_location(
@@ -167,7 +171,9 @@ class ExecuteFixture:
         if artifacts:
             code = "import lineapy\n" + code + "\n"
             for artifact in artifacts:
-                code += f"lineapy.{save.__name__}({artifact}, {repr(artifact)})\n"
+                code += (
+                    f"lineapy.{save.__name__}({artifact}, {repr(artifact)})\n"
+                )
 
         # These temp filenames are unique per test function.
         # If `execute` is called twice in a test, it will overwrite the
@@ -204,7 +210,9 @@ class ExecuteFixture:
             # snapshot. We don't want to always update the SVG snapshot, because
             # it has lots of random IDs in it. We want to use it not for testing,
             # but for better PR diffs
-            res = self.snapshot._execution_results[self.snapshot._executions - 1]
+            res = self.snapshot._execution_results[
+                self.snapshot._executions - 1
+            ]
 
             self.svg_snapshot._update_snapshots = res.created or res.updated
             # If we aren't updating snapshots, dont even bother trying to generate the SVG
