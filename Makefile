@@ -4,6 +4,11 @@ export IMAGE_NAME=${base_imagename}:main
 export IMAGE_NAME_AIRFLOW=${base_imagename}-airflow:main
 export AIRFLOW_HOME?=/usr/src/airflow_home
 export AIRFLOW_VENV?=/usr/src/airflow_venv
+BACKEND=PG
+export POSTGRES_PASSWORD=supersecretpassword
+ifeq ("$(BACKEND)","PG")
+	export LINEA_DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+endif
 
 build:
 	docker-compose build \
@@ -20,7 +25,24 @@ airflow-up:
 	${args} \
 	${service_name}-airflow
 
-bash:
+pg-up:
+	docker-compose up \
+	${args} \
+	postgres &
+
+wait_for_deps:
+	docker-compose up ${args} wait_for_deps
+
+deps:
+	@if [ "${BACKEND}" == "PG" ] ; then \
+		make pg-up wait_for_deps;\
+	fi
+
+down:
+	docker-compose down	
+
+bash: 
+	make deps
 	docker-compose run --rm ${service_name} /bin/bash
 
 bash-airflow:
@@ -39,6 +61,7 @@ test-github-action:
 # postgres db has been tested and found to be working fine. in future commits, pg can be added as a dependent service in the docker-compose. 
 # Additionally, the package pg and psycopg2 should be installed in the main service.
 test-parallel:
+	make deps
 	docker-compose run --rm ${service_name} pytest ${args} -n 5 --durations=10 --dist=loadfile --snapshot-update --no-cov -m "not slow" -m "not airflow" tests/
 
 test-airflow:
