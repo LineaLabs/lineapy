@@ -1,3 +1,31 @@
+"""
+This file contains the ORM versions of the graph node in types.py.
+  Pydantic allows us to extract out a Dataclass like object from the ORM,
+  but not let us directly write to the ORM.
+
+
+Relationships
+-------------
+
+Warning
+-------
+
+non exhaustive list
+
+
+SessionContext
+- Library (One to Many)
+- HardwareSpec (Many to One)
+
+Node
+- SessionContext (Many to One)
+
+ImportNode
+- Library (Many to One)
+
+CallNode
+- Node (Many to Many)
+"""
 from __future__ import annotations
 
 import json
@@ -28,31 +56,6 @@ from lineapy.data.types import (
     SessionType,
     ValueType,
 )
-
-"""
-This file contains the ORM versions of the graph node in types.py.
-  Pydantic allows us to extract out a Dataclass like object from the ORM,
-  but not let us directly write to the ORM.
-
-
-Relationships
--------------
-
-_Warning: non exhaustive_
-
-SessionContext
-- Library (One to Many)
-- HardwareSpec (Many to One)
-
-Node
-- SessionContext (Many to One)
-
-ImportNode
-- Library (Many to One)
-
-CallNode
-- Node (Many to Many)
-"""
 
 Base = declarative_base()
 
