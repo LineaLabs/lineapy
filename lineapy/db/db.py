@@ -61,12 +61,13 @@ logger = logging.getLogger(__name__)
 class RelationalLineaDB:
     """
     - Note that LineaDB coordinates with assset manager and relational db.
+
       - The asset manager deals with binaries (e.g., cached values)
         The relational db deals with more structured data,
         such as the Nodes and edges.
     - Also, at some point we might have a "cache" such that the readers
-        don't have to go to the database if it's already
-        loaded, but that's low priority.
+      don't have to go to the database if it's already
+      loaded, but that's low priority.
     """
 
     def __init__(self, url: str):

@@ -11,6 +11,7 @@ WORKDIR /usr/src/base
 
 # small hack to not keep building all the time
 COPY ./setup.py ./
+COPY ./README.md ./
 COPY ./lineapy/__init__.py ./lineapy/
 COPY ./airflow-requirements.txt ./
 COPY ./Makefile ./

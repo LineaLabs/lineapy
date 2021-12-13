@@ -1,3 +1,31 @@
+"""
+This file contains the ORM versions of the graph node in types.py.
+  Pydantic allows us to extract out a Dataclass like object from the ORM,
+  but not let us directly write to the ORM.
+
+
+Relationships
+-------------
+
+Warning
+-------
+
+non exhaustive list
+
+
+SessionContext
+- Library (One to Many)
+- HardwareSpec (Many to One)
+
+Node
+- SessionContext (Many to One)
+
+ImportNode
+- Library (Many to One)
+
+CallNode
+- Node (Many to Many)
+"""
 from __future__ import annotations
 
 import json
@@ -28,31 +56,6 @@ from lineapy.data.types import (
     SessionType,
     ValueType,
 )
-
-"""
-This file contains the ORM versions of the graph node in types.py.
-  Pydantic allows us to extract out a Dataclass like object from the ORM,
-  but not let us directly write to the ORM.
-
-
-Relationships
--------------
-
-_Warning: non exhaustive_
-
-SessionContext
-- Library (One to Many)
-- HardwareSpec (Many to One)
-
-Node
-- SessionContext (Many to One)
-
-ImportNode
-- Library (Many to One)
-
-CallNode
-- Node (Many to Many)
-"""
 
 Base = declarative_base()
 
@@ -182,13 +185,18 @@ class BaseNodeORM(Base):
     otherwise the environment type is "jupyter" and it has a jupyter execution
     count and session id, which is equal to the node.session
 
-    NOTE:
+    NOTE
+    ----
+
     - Because other nodes are inheriting from BaseNodeORM, finding a node
-      based on its id is easy (something like the following).
-      ```python
-       session.query(BaseNodeORM)
-       .filter(BaseNodeORM.id == linea_id)
-      ```
+      based on its id is easy (something like the following)::
+
+       session.query(BaseNodeORM).filter(BaseNodeORM.id == linea_id)
+
+    - Each node inheriting from BaseNodeORM must have non null values for
+      all of lineno, col_offset, end_lineno, end_col_offset and source_code_id
+      or nulls for all of them.
+
     """
 
     __tablename__ = "node"

@@ -89,10 +89,15 @@ class LiteralType(Enum):
 class ValueType(Enum):
     """
     Lower case because the API with the frontend assume the characters "chart"
-      exactly as is.
-    FIXME---rename (need coordination with linea-server):
-    - really `dataset` is a table
-    - `value` means its a literal  (e.g., int/str)
+    exactly as is.
+
+    TODO
+    ----
+    FIXME
+
+    - rename (need coordination with linea-server):
+        - really `dataset` is a table
+        - `value` means its a literal  (e.g., int/str)
     """
 
     chart = 1
@@ -252,13 +257,14 @@ class SourceLocation(BaseModel):
 class BaseNode(BaseModel):
     """
     - id: string version of UUID, which we chose because
-        we do not need to coordinate to make it unique
+      we do not need to coordinate to make it unique
     - lineno, col_offset, end_lino, end_col_offsets: these record the position
       of the calls. They are optional because it's not required some nodes,
       such as side-effects nodes, which do not correspond to a line of code.
 
     - `class Config`'s orm_mode allows us to use from_orm to convert ORM
-    objects to pydantic objects
+      objects to pydantic objects
+
     """
 
     id: LineaID

@@ -281,12 +281,14 @@ class Tracer:
     ) -> Node:
         """
         Cases:
+
         - user defined variable & function definitions
         - imported libs
-        - unknown runtime magic functions---special case to
-          LookupNode
+        - unknown runtime magic functions---special case to LookupNode
+
           - builtin functions, e.g., min
           - custom runtime, e.g., get_ipython
+
         """
         if variable_name in self.variable_name_to_node:
             # user define var and fun def
@@ -313,9 +315,12 @@ class Tracer:
         - `alias`: the module could be aliased, e.g., import pandas as pd
         - `attributes`: a list of functions imported from the library.
            It keys the aliased name to the original name.
+
         NOTE
+        ----
         - The input args would _either_ have alias or attributes, but not both
         - Didn't call the function import because I think that's a protected name
+
         note that version and path will be introspected at runtime
         """
         library = Library(id=get_new_id(), name=name)
@@ -388,6 +393,7 @@ class Tracer:
     ) -> CallNode:
         """
         NOTE
+        ----
         - It's important for the call to return the call node
           so that we can programmatically chain the the nodes together,
           e.g., for the assignment call to modify the previous call node.

@@ -61,8 +61,9 @@ def l_dict(
     There is a special case for dictionary unpacking. In this case, the
     key will be an instance of _DictKwargsSentinel.
 
-    For example, if the user creates a dict like {1: 2, **d, 3: 4},
-    then it will create a call like"
+    For example, if the user creates a dict like ``{1: 2, **d, 3: 4}``,
+    then it will create a call like::
+
     __build_dict__((1, 2), (__build_dict_kwargs_sentinel__(), d), (3, 4))
 
     We use a sentinel value instead of None, because None can be a valid
@@ -155,7 +156,26 @@ class ExternalState:
 
 
 file_system = register(ExternalState("file_system"))
-db = register(ExternalState("db"))
+"""
+The class file_system tracks `mutations` to the file system. 
+This currently includes `ANY` writes to the system irrespective of the file name.
 
+TODO
+====
+
+    - Add a way to track writes to specific files
+"""
+db = register(ExternalState("db"))
+"""
+Similar to file_system, the class db tracks `mutations` to the database. 
+This currently includes `ANY` writes to the db irrespective of the file name.
+We also do not support parsing the connection string so if there are multiple
+dbs or shards, all will be treated as one abstract db.
+
+TODO
+====
+
+    - Add a way to track writes to specific tables
+"""
 
 LINEA_BUILTINS = {f.__name__: f for f in _builtins}
