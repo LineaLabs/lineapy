@@ -248,7 +248,7 @@ def chdir_test_file():
     os.chdir(current_working_dir)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=False)
 def remove_db():
     """
     Remove db before all tests

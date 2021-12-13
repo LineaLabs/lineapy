@@ -4,7 +4,7 @@ export IMAGE_NAME=${base_imagename}:main
 export IMAGE_NAME_AIRFLOW=${base_imagename}-airflow:main
 export AIRFLOW_HOME?=/usr/src/airflow_home
 export AIRFLOW_VENV?=/usr/src/airflow_venv
-BACKEND=PG
+BACKEND?=PG
 export POSTGRES_PASSWORD=supersecretpassword
 ifeq ("$(BACKEND)","PG")
 	export LINEA_DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
@@ -52,6 +52,7 @@ build-docs:
 	docker-compose run --rm ${service_name} /bin/bash -c "cd docs && rm -rf source/build source/autogen && SPHINX_APIDOC_OPTIONS=members sphinx-apidoc -d 2 -f -o ./source/autogen ../lineapy/ && make html"
 
 test:
+	make deps
 	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow and not airflow" tests/
 
 test-github-action:
@@ -62,7 +63,7 @@ test-github-action:
 # Additionally, the package pg and psycopg2 should be installed in the main service.
 test-parallel:
 	make deps
-	docker-compose run --rm ${service_name} pytest ${args} -n 5 --durations=10 --dist=loadfile --snapshot-update --no-cov -m "not slow" -m "not airflow" tests/
+	docker-compose run --rm ${service_name} pytest ${args} -n 5 --dist=loadfile --snapshot-update --no-cov -m "not (slow or airflow)" tests/
 
 test-airflow:
 	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/

@@ -102,6 +102,7 @@ def test_linea_python_equivalent(tmp_path, code):
     assert linea_run.stderr.decode() == python_run.stderr.decode()
 
 
+@pytest.mark.skip
 @pytest.mark.slow
 def test_run_from_nbconvert():
     assert not resolve_default_db_path().exists()
