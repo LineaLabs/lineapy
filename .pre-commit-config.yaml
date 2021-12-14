@@ -6,81 +6,36 @@ repos:
   - repo: local
     hooks:
       - id: flake8
-        name: flake8 (3.9)
-        alias: flake8-3-9
+        name: flake8
         entry: flake8 .
         language: python
-        language_version: python3.9
         additional_dependencies: ["flake8==4.0.1"]
         types: [python]
         pass_filenames: false
-      - id: flake8
-        name: flake8 (3.8)
-        alias: flake8-3-8
-        entry: flake8 .
-        language: python
-        language_version: python3.8
-        additional_dependencies: ["flake8==4.0.1"]
-        types: [python]
-        pass_filenames: false
-      
   - repo: local
     hooks:
       - id: isort
-        name: isort (3.8)
-        alias: isort-3-8
+        name: isort
         entry: isort .
         language: python
-        language_version: python3.8
-        additional_dependencies: ["isort==5.10.0"]
-        types: [python]
-        pass_filenames: false
-      - id: isort
-        name: isort (3.9)
-        alias: isort-3-9
-        entry: isort .
-        language: python
-        language_version: python3.9
         additional_dependencies: ["isort==5.10.0"]
         types: [python]
         pass_filenames: false
   - repo: local
     hooks:
       - id: black
-        name: black (3.8)
-        alias: black-3-8
+        name: black
         entry: black .
         language: python
-        language_version: python3.8
-        additional_dependencies: ["black==21.10b0"]
-        types: [python]
-        pass_filenames: false
-      - id: black
-        name: black (3.9)
-        alias: black-3-9
-        entry: black .
-        language: python
-        language_version: python3.9
         additional_dependencies: ["black==21.10b0"]
         types: [python]
         pass_filenames: false
   - repo: local
     hooks:
       - id: mypy
-        name: mypy (3.8)
-        alias: mypy-3-8
+        name: mypy
         entry: mypy .
         language: python
-        language_version: python3.8
-        additional_dependencies: ["mypy==0.910", "sqlalchemy[mypy]", "pydantic"]
-        types: [python]
-        pass_filenames: false
-      - id: mypy
-        name: mypy (3.9)
-        alias: mypy-3-9
-        entry: mypy .
-        language: python
-        language_version: python3.9
         additional_dependencies: ["mypy==0.910", "sqlalchemy[mypy]", "pydantic"]
         types: [python]
         pass_filenames: false
