@@ -1,5 +1,6 @@
 import ast
 import logging
+import sys
 from typing import Any, Iterable, Optional, cast
 
 from lineapy.constants import (
@@ -59,6 +60,17 @@ from lineapy.transformer.transformer_util import create_lib_attributes
 from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
+
+if sys.version_info >= (3, 9):
+
+    class ExtSlice:
+        dims: list[slice]
+
+    class Index:
+        value: Any
+
+    ast.Index = Index
+    ast.ExtSlice = ExtSlice
 
 
 def transform(
