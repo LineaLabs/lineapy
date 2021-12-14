@@ -64,13 +64,6 @@ call_3 = CallNode(
             ],
         ).id,
         CallNode(
-            source_location=SourceLocation(
-                lineno=1,
-                col_offset=14,
-                end_lineno=1,
-                end_col_offset=18,
-                source_code=source_1.id,
-            ),
             function_id=LookupNode(
                 name="slice",
             ).id,

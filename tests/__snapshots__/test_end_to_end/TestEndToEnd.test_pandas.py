@@ -14,7 +14,7 @@ assert new_df.size == 2
 """,
     location=PosixPath("[source file path]"),
 )
-call_5 = CallNode(
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=5,
@@ -129,7 +129,7 @@ call_5 = CallNode(
         ).id
     ],
 )
-call_8 = CallNode(
+call_9 = CallNode(
     source_location=SourceLocation(
         lineno=4,
         col_offset=0,
@@ -161,7 +161,7 @@ call_8 = CallNode(
                     name="getitem",
                 ).id,
                 positional_args=[
-                    call_5.id,
+                    call_6.id,
                     LiteralNode(
                         source_location=SourceLocation(
                             lineno=4,
@@ -192,7 +192,7 @@ call_8 = CallNode(
         ).id
     ],
 )
-call_11 = CallNode(
+call_12 = CallNode(
     source_location=SourceLocation(
         lineno=5,
         col_offset=0,
@@ -228,7 +228,7 @@ call_11 = CallNode(
                         name="getattr",
                     ).id,
                     positional_args=[
-                        call_5.id,
+                        call_6.id,
                         LiteralNode(
                             value="size",
                         ).id,
@@ -308,32 +308,18 @@ call_18 = CallNode(
                                         name="getattr",
                                     ).id,
                                     positional_args=[
-                                        call_5.id,
+                                        call_6.id,
                                         LiteralNode(
                                             value="iloc",
                                         ).id,
                                     ],
                                 ).id,
                                 CallNode(
-                                    source_location=SourceLocation(
-                                        lineno=6,
-                                        col_offset=17,
-                                        end_lineno=6,
-                                        end_col_offset=21,
-                                        source_code=source_1.id,
-                                    ),
                                     function_id=LookupNode(
                                         name="l_tuple",
                                     ).id,
                                     positional_args=[
                                         CallNode(
-                                            source_location=SourceLocation(
-                                                lineno=6,
-                                                col_offset=17,
-                                                end_lineno=6,
-                                                end_col_offset=18,
-                                                source_code=source_1.id,
-                                            ),
                                             function_id=LookupNode(
                                                 name="slice",
                                             ).id,

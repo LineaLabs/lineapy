@@ -1,4 +1,5 @@
 import os.path as path
+import sys
 from ast import AST, dump
 from os import remove
 
@@ -22,8 +23,13 @@ def compare_ast(node1: AST, node2: AST):
     s1 = dump(node1)
     s2 = dump(node2)
     if s1 != s2:
-        print(dump(node1, indent=2))
-        print(dump(node2, indent=2))
+        # assuming here that the python version is atleast > 3
+        if sys.version_info <= (3, 8):
+            print(dump(node1))
+            print(dump(node2))
+        else:
+            print(dump(node1, indent=2))
+            print(dump(node2, indent=2))
     return s1 == s2
 
 

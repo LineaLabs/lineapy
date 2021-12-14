@@ -29,7 +29,7 @@ call_1 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="atan2",
+            value="pi",
         ).id,
     ],
 )
@@ -40,7 +40,7 @@ call_2 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="cos",
+            value="perm",
         ).id,
     ],
 )
@@ -51,7 +51,7 @@ call_3 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="fmod",
+            value="cos",
         ).id,
     ],
 )
@@ -73,7 +73,7 @@ call_5 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="ulp",
+            value="radians",
         ).id,
     ],
 )
@@ -84,7 +84,7 @@ call_6 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="radians",
+            value="sin",
         ).id,
     ],
 )
@@ -95,7 +95,7 @@ call_7 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="isinf",
+            value="fmod",
         ).id,
     ],
 )
@@ -106,7 +106,7 @@ call_8 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="tanh",
+            value="log1p",
         ).id,
     ],
 )
@@ -117,18 +117,7 @@ call_9 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="asinh",
-        ).id,
-    ],
-)
-call_10 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="sin",
+            value="log10",
         ).id,
     ],
 )
@@ -139,7 +128,7 @@ call_11 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="lcm",
+            value="tan",
         ).id,
     ],
 )
@@ -150,7 +139,7 @@ call_12 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="nextafter",
+            value="atan",
         ).id,
     ],
 )
@@ -161,7 +150,7 @@ call_13 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="tau",
+            value="floor",
         ).id,
     ],
 )
@@ -172,7 +161,7 @@ call_14 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="atan",
+            value="asinh",
         ).id,
     ],
 )
@@ -183,7 +172,7 @@ call_15 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="log2",
+            value="isqrt",
         ).id,
     ],
 )
@@ -194,7 +183,7 @@ call_16 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="log",
+            value="acos",
         ).id,
     ],
 )
@@ -205,7 +194,7 @@ call_17 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="fabs",
+            value="e",
         ).id,
     ],
 )
@@ -216,7 +205,7 @@ call_18 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="floor",
+            value="ceil",
         ).id,
     ],
 )
@@ -227,7 +216,7 @@ call_19 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="ldexp",
+            value="degrees",
         ).id,
     ],
 )
@@ -238,7 +227,7 @@ call_20 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="degrees",
+            value="lgamma",
         ).id,
     ],
 )
@@ -249,7 +238,7 @@ call_21 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="modf",
+            value="nan",
         ).id,
     ],
 )
@@ -260,7 +249,7 @@ call_22 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="log1p",
+            value="inf",
         ).id,
     ],
 )
@@ -271,7 +260,7 @@ call_23 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="frexp",
+            value="gamma",
         ).id,
     ],
 )
@@ -282,7 +271,7 @@ call_24 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="acos",
+            value="expm1",
         ).id,
     ],
 )
@@ -293,7 +282,7 @@ call_25 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="gamma",
+            value="copysign",
         ).id,
     ],
 )
@@ -304,7 +293,7 @@ call_26 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="nan",
+            value="isinf",
         ).id,
     ],
 )
@@ -315,7 +304,7 @@ call_27 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="hypot",
+            value="tanh",
         ).id,
     ],
 )
@@ -326,7 +315,7 @@ call_28 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="factorial",
+            value="hypot",
         ).id,
     ],
 )
@@ -337,7 +326,7 @@ call_29 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="isqrt",
+            value="factorial",
         ).id,
     ],
 )
@@ -348,7 +337,7 @@ call_30 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="erfc",
+            value="isnan",
         ).id,
     ],
 )
@@ -359,7 +348,7 @@ call_31 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="pow",
+            value="sinh",
         ).id,
     ],
 )
@@ -370,7 +359,7 @@ call_32 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="tan",
+            value="trunc",
         ).id,
     ],
 )
@@ -381,7 +370,7 @@ call_33 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="atanh",
+            value="atan2",
         ).id,
     ],
 )
@@ -392,7 +381,7 @@ call_34 = CallNode(
     positional_args=[
         import_1.id,
         LiteralNode(
-            value="e",
+            value="pow",
         ).id,
     ],
 )
@@ -407,106 +396,7 @@ call_35 = CallNode(
         ).id,
     ],
 )
-call_37 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="lgamma",
-        ).id,
-    ],
-)
-call_38 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="cosh",
-        ).id,
-    ],
-)
-call_39 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="expm1",
-        ).id,
-    ],
-)
-call_40 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="prod",
-        ).id,
-    ],
-)
-call_41 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="trunc",
-        ).id,
-    ],
-)
-call_42 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="inf",
-        ).id,
-    ],
-)
-call_43 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="pi",
-        ).id,
-    ],
-)
-call_44 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="isfinite",
-        ).id,
-    ],
-)
-call_45 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="isnan",
-        ).id,
-    ],
-)
-call_46 = CallNode(
+call_36 = CallNode(
     function_id=LookupNode(
         name="getattr",
     ).id,
@@ -517,128 +407,7 @@ call_46 = CallNode(
         ).id,
     ],
 )
-call_47 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="sinh",
-        ).id,
-    ],
-)
-call_48 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="perm",
-        ).id,
-    ],
-)
-call_49 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="asin",
-        ).id,
-    ],
-)
-call_50 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="gcd",
-        ).id,
-    ],
-)
-call_51 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="dist",
-        ).id,
-    ],
-)
-call_52 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="log10",
-        ).id,
-    ],
-)
-call_53 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="comb",
-        ).id,
-    ],
-)
-call_54 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="acosh",
-        ).id,
-    ],
-)
-call_55 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="copysign",
-        ).id,
-    ],
-)
-call_56 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="ceil",
-        ).id,
-    ],
-)
-call_57 = CallNode(
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        import_1.id,
-        LiteralNode(
-            value="fsum",
-        ).id,
-    ],
-)
-call_58 = CallNode(
+call_37 = CallNode(
     function_id=LookupNode(
         name="getattr",
     ).id,
@@ -649,7 +418,205 @@ call_58 = CallNode(
         ).id,
     ],
 )
-call_59 = CallNode(
+call_38 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="frexp",
+        ).id,
+    ],
+)
+call_39 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="cosh",
+        ).id,
+    ],
+)
+call_40 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="asin",
+        ).id,
+    ],
+)
+call_41 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="dist",
+        ).id,
+    ],
+)
+call_42 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="tau",
+        ).id,
+    ],
+)
+call_43 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="isfinite",
+        ).id,
+    ],
+)
+call_44 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="gcd",
+        ).id,
+    ],
+)
+call_45 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="ldexp",
+        ).id,
+    ],
+)
+call_46 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="prod",
+        ).id,
+    ],
+)
+call_47 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="modf",
+        ).id,
+    ],
+)
+call_48 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="atanh",
+        ).id,
+    ],
+)
+call_49 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="erfc",
+        ).id,
+    ],
+)
+call_50 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="comb",
+        ).id,
+    ],
+)
+call_51 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="acosh",
+        ).id,
+    ],
+)
+call_52 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="log2",
+        ).id,
+    ],
+)
+call_53 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="log",
+        ).id,
+    ],
+)
+call_54 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="fsum",
+        ).id,
+    ],
+)
+call_55 = CallNode(
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        import_1.id,
+        LiteralNode(
+            value="fabs",
+        ).id,
+    ],
+)
+call_56 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=4,
