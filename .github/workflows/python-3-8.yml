@@ -14,7 +14,7 @@ on:
       - "**.py"
       - "**.ipynb"
 concurrency:
-  group: "${{ github.head_ref }}"
+  group: "${{ github.head_ref }}-3-8"
   cancel-in-progress: true
 jobs:
   pytest:
@@ -46,7 +46,7 @@ jobs:
       - uses: pre-commit/action@v2.0.3
         with:
           extra_args: black --all-files
-  flake8:
+  flake8-3-8:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
