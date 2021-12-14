@@ -15,7 +15,7 @@ This module exposes three global functions, which are meant to be used like:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Mapping, Optional
+from typing import TYPE_CHECKING, Dict, Mapping, Optional
 
 from lineapy.execution.globals_dict import GlobalsDict
 
@@ -42,7 +42,7 @@ class ExecutionContext:
     _input_node_ids: Mapping[str, LineaID]
 
     @property
-    def global_variables(self) -> dict[str, object]:
+    def global_variables(self) -> Dict[str, object]:
         """
         The current globals dictionary
         """
@@ -51,7 +51,7 @@ class ExecutionContext:
 
 def set_context(
     executor: Executor,
-    variables: Optional[dict[str, LineaID]],
+    variables: Optional[Dict[str, LineaID]],
     node: CallNode,
 ) -> None:
     """
@@ -114,5 +114,5 @@ def teardown_context() -> ContextResult:
 
 @dataclass
 class ContextResult:
-    accessed_inputs: dict[str, LineaID]
-    added_or_modified: dict[str, object]
+    accessed_inputs: Dict[str, LineaID]
+    added_or_modified: Dict[str, object]

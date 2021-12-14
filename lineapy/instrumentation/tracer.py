@@ -51,7 +51,7 @@ class Tracer:
 
     session_type: InitVar[SessionType]
     session_name: InitVar[Optional[str]] = None
-    globals_: InitVar[Optional[dict[str, object]]] = None
+    globals_: InitVar[Optional[Dict[str, object]]] = None
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
@@ -63,7 +63,7 @@ class Tracer:
         self,
         session_type: SessionType,
         session_name: Optional[str],
-        globals_: Optional[dict[str, object]],
+        globals_: Optional[Dict[str, object]],
     ):
         """
         Tracer is internal to Linea and it implements the "hidden APIs"

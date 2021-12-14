@@ -1,3 +1,5 @@
+from typing import Dict
+
 import pytest
 
 from lineapy.execution.globals_dict import GlobalsDict, GlobalsDictResult
@@ -18,7 +20,7 @@ from lineapy.execution.globals_dict import GlobalsDict, GlobalsDictResult
     ),
 )
 def test_results(
-    code: str, inputs: dict[str, object], accessed_inputs, added_or_modified
+    code: str, inputs: Dict[str, object], accessed_inputs, added_or_modified
 ):
     g = GlobalsDict()
     g.setup_globals(inputs)

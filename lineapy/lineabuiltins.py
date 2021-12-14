@@ -1,5 +1,14 @@
 from dataclasses import dataclass
-from typing import List, Mapping, Optional, Protocol, TypeVar, Union
+from typing import (
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Protocol,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from lineapy.execution.context import get_context
 from lineapy.ipython_cell_storage import get_location_path
