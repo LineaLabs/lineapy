@@ -1,0 +1,70 @@
+# external libs
+- module: pandas
+  annotations:
+  - criteria:
+    - key_word_argument:
+        arg_name: inplace
+        arg_value: 0
+    side_effects:
+    - mutated_value:
+        self: SELF
+  - criteria:
+    - class_method_name: to_sql
+      class_instance: DataFrame
+    side_effects:
+    - mutated_value:
+        external_state: DB
+  - criteria:
+    - class_method_names:
+      - to_csv
+      - to_parquet
+      class_instance: DataFrame
+    side_effects:
+    - mutated_value:
+        external_state: FILE_SYSTEM
+  - criteria: # I omitted pandas.io.sql, lets see if this works
+    - function_names:
+      - read_sql
+      - read_parquet
+    side_effects:
+    - dependency:
+        external_state: DB
+- module: boto3
+  annotations:
+  - criteria:
+    - function_names:
+      - upload_file
+      - upload_fileobj
+    side_effects:
+    - mutated_value:
+        external_state: FILE_SYSTEM
+- module: PIL.Image
+  annotations:
+  - criteria:
+    - function_name: save
+    side_effects:
+    - mutated_value:
+        external_state: FILE_SYSTEM
+  - criteria:
+    - function_name: open
+    side_effects:
+    - dependency:
+      external_state: FILE_SYSTEM
+- module: sklearn.base
+  annotations:
+  - criteria:
+    - class_instance: BaseEstimator
+    - class_method_name: fit
+    side_effects:
+    - mutated_value:
+        self: SELF
+    - views:
+      - self: SELF
+      - result: RESULT
+- module: joblib
+  annotations:
+  - criteria:
+    - function_name: dump
+    side_effects:
+    - mutated_value:
+        external_state: FILE_SYSTEM

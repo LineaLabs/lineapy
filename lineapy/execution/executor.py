@@ -42,20 +42,21 @@ from lineapy.exceptions.user_exception import (
     UserException,
 )
 from lineapy.execution.context import set_context, teardown_context
-from lineapy.execution.inspect_function import (
+from lineapy.execution.inspect_function import inspect_function, is_mutable
+from lineapy.instrumentation.annotation_spec import (
     BoundSelfOfFunction,
+    ExternalState,
     ImplicitDependencyValue,
     InspectFunctionSideEffect,
-    KeywordArg,
+    KeywordArgument,
     MutatedValue,
     PositionalArg,
     Result,
     ValuePointer,
-    inspect_function,
-    is_mutable,
+    ViewOfValues,
 )
 from lineapy.ipython_cell_storage import get_location_path
-from lineapy.lineabuiltins import LINEA_BUILTINS, ExternalState
+from lineapy.lineabuiltins import LINEA_BUILTINS
 from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
@@ -389,7 +390,7 @@ class Executor:
 
         if isinstance(pointer, PositionalArg):
             return ID(node.positional_args[pointer.index])
-        elif isinstance(pointer, KeywordArg):
+        elif isinstance(pointer, KeywordArgument):
             return ID(node.keyword_args[pointer.name])
         elif isinstance(pointer, Result):
             return ID(node.id)
@@ -407,14 +408,14 @@ class Executor:
         self, node: CallNode, e: InspectFunctionSideEffect
     ) -> SideEffect:
         if isinstance(e, MutatedValue):
-            return MutatedNode(self._translate_pointer(node, e.pointer))
+            return MutatedNode(self._translate_pointer(node, e.mutated_value))
         elif isinstance(e, ImplicitDependencyValue):
             return ImplicitDependencyNode(
-                self._translate_pointer(node, e.pointer)
+                self._translate_pointer(node, e.dependency)
             )
-        else:
+        elif isinstance(e, ViewOfValues):
             return ViewOfNodes(
-                [self._translate_pointer(node, ptr) for ptr in e.pointers]
+                [self._translate_pointer(node, ptr) for ptr in e.views]
             )
 
     def lookup_value(self, name: str) -> object:

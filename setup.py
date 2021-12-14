@@ -68,6 +68,7 @@ setup(
         "rich",
         "astpretty",
         "scour==0.38.2",
+        "pyyaml",
     ],
     extras_require={
         "dev": [

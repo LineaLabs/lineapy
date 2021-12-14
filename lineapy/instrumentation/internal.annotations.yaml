@@ -1,0 +1,10 @@
+---
+modules:
+# builtin function
+- module: io
+  annotations:
+  - criteria:
+    - function_name: open
+      side_effects:
+      - dependency:
+        external_state: FILE_SYSTEM
