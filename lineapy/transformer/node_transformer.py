@@ -1,6 +1,5 @@
 import ast
 import logging
-import sys
 from typing import Any, Iterable, Optional, cast
 
 from lineapy.constants import (
@@ -60,17 +59,6 @@ from lineapy.transformer.transformer_util import create_lib_attributes
 from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
-
-if sys.version_info >= (3, 9):
-
-    class ExtSlice:
-        dims: list[slice]
-
-    class Index:
-        value: Any
-
-    ast.Index = Index
-    ast.ExtSlice = ExtSlice
 
 
 def transform(
@@ -209,7 +197,7 @@ class NodeTransformer(ast.NodeTransformer):
 
         Deprecated in Python 3.9
         """
-        return self.visit(node.value)
+        return self.visit(node.value)  # type: ignore
 
     def visit_ExtSlice(self, node: ast.ExtSlice) -> Node:
         """
@@ -218,7 +206,7 @@ class NodeTransformer(ast.NodeTransformer):
 
         Deprecated in Python 3.9
         """
-        elem_nodes = [self.visit(elem) for elem in node.dims]
+        elem_nodes = [self.visit(elem) for elem in node.dims]  # type: ignore
         return self.tracer.tuple(
             *elem_nodes,
             source_location=self.get_source(node),
