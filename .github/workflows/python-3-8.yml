@@ -1,0 +1,81 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python 3.8
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**.py"
+      - "**.ipynb"
+  pull_request:
+    paths:
+      - "**.py"
+      - "**.ipynb"
+concurrency:
+  group: "${{ github.head_ref }}"
+  cancel-in-progress: true
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install graphviz
+        run: sudo apt-get install -y graphviz
+      - name: Install dependencies
+        run: |
+          pip install -e .[dev]
+      - name: Test with pytest
+        run: |
+          pytest -v
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: pre-commit/action@v2.0.3
+        with:
+          extra_args: black --all-files
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: pre-commit/action@v2.0.3
+        with:
+          extra_args: flake8 --all-files
+  imports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: pre-commit/action@v2.0.3
+        with:
+          extra_args: isort --all-files
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: pre-commit/action@v2.0.3
+        with:
+          extra_args: mypy --all-files
