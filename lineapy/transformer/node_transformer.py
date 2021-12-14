@@ -1,5 +1,6 @@
 import ast
 import logging
+import sys
 from typing import Any, Iterable, Optional, cast
 
 from lineapy.constants import (
@@ -197,7 +198,12 @@ class NodeTransformer(ast.NodeTransformer):
 
         Deprecated in Python 3.9
         """
-        return self.visit(node.value)  # type: ignore
+        if sys.version_info >= (3, 9):
+            raise NotImplementedError(
+                "Index nodes are deprecated in Python 3.9"
+            )
+        else:
+            return self.visit(node.value)
 
     def visit_ExtSlice(self, node: ast.ExtSlice) -> Node:
         """
@@ -206,11 +212,16 @@ class NodeTransformer(ast.NodeTransformer):
 
         Deprecated in Python 3.9
         """
-        elem_nodes = [self.visit(elem) for elem in node.dims]  # type: ignore
-        return self.tracer.tuple(
-            *elem_nodes,
-            source_location=self.get_source(node),
-        )
+        if sys.version_info >= (3, 9):
+            raise NotImplementedError(
+                "ExtSlice nodes are deprecated in Python 3.9"
+            )
+        else:
+            elem_nodes = [self.visit(elem) for elem in node.dims]
+            return self.tracer.tuple(
+                *elem_nodes,
+                source_location=self.get_source(node),
+            )
 
     def visit_Name(self, node: ast.Name) -> Node:
         return self.tracer.lookup_node(node.id, self.get_source(node))
