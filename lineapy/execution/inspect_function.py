@@ -23,6 +23,7 @@ from lineapy.instrumentation.annotation_spec import (
 
 logger = logging.getLogger(__name__)
 
+
 def is_mutable(obj: object) -> bool:
     """
     Returns true if the object is mutable.
@@ -61,38 +62,51 @@ def get_specs() -> List[ModuleAnnotation]:
     yaml specs are for non-built in functions.
     will capture all the .annotations.yaml files in the `instrumentation` directory.
     """
-    path = "../instrumentation/*.annotations.yaml"
+    # apparently the path is on the top level
+    path = "./lineapy/instrumentation/*.annotations.yaml"
     all_valid_specs = []
     for filename in glob.glob(path):
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             doc = yaml.safe_load(f)
             all_valid_specs += list(
-                filter(None, [validate(item) for item in doc["modules"]])
-            )  
+                filter(None, [validate(item) for item in doc])
+            )
     return all_valid_specs
+
 
 def check_function_against_annotation(
     function: Callable,
     args: list[object],
     kwargs: dict[str, object],
-    criteria: Criteria
-    ):
+    criteria: Criteria,
+):
     """
     Helper function for inspect_function.
     """
     if criteria.function_name and criteria.function_name != function.__name__:
         return False
-    if criteria.class_instance and criteria.class_instance not in function.__module__:
+    if (
+        criteria.class_instance
+        and criteria.class_instance not in function.__module__
+    ):
         return False
-    if criteria.class_method_name and criteria.class_method_name != function.__name__:
+    if (
+        criteria.class_method_name
+        and criteria.class_method_name != function.__name__
+    ):
         return False
-    if criteria.class_method_names and function.__name__ not in criteria.class_method_names:
+    if (
+        criteria.class_method_names
+        and function.__name__ not in criteria.class_method_names
+    ):
         return False
     if criteria.key_word_argument:
-        if kwargs.get(criteria.key_word_argument.arg_name, None) != criteria.key_word_argument.arg_value:
+        if (
+            kwargs.get(criteria.key_word_argument.arg_name, None)
+            != criteria.key_word_argument.arg_value
+        ):
             return False
     return True
-        
 
 
 def inspect_function(
@@ -111,10 +125,7 @@ def inspect_function(
         if spec.module in function.__module__:
             for annotation in spec.annotations:
                 if check_function_against_annotation(
-                    function,
-                    args,
-                    kwargs,
-                    annotation.criteria
+                    function, args, kwargs, annotation.criteria
                 ):
                     for side_effect in annotation.side_effects:
                         yield side_effect

@@ -95,26 +95,29 @@ class KeywordArgumentCriteria(BaseModel):
     We might need to augment how we parse it in the future for other inputs.
     """
 
-    arg_name: str
-    arg_value: int
+    keyword_arg_name: str
+    keyword_arg_value: int
 
 
-class Criteria(BaseModel):
+class FunctionNames(BaseModel):
     """
-    Criteria for a single annotation
-
+    
     the names v. name is just a convenience for being able to have either a single item or a list of items.
-
-    Also, really should be a union type but I'm getting lazy here...
     """
+    function_names: List[str]
+class FunctionName(BaseModel):
+    function_name: str
 
-    key_word_argument: Optional[KeywordArgumentCriteria] = None
-    function_names: Optional[List[str]]
-    function_name: Optional[str]
-    class_instance: Optional[str]
-    class_method_name: Optional[str]
-    class_method_names: Optional[List[str]]
+class ClassMethodName(BaseModel):
+    class_instance: str
+    class_method_name: str
 
+class ClassMethodNames(BaseModel):
+    class_instance: str
+    class_method_names: List[str]
+
+# Criteria for a single annotation
+Criteria = Union[KeywordArgumentCriteria, FunctionNames, ClassMethodNames, FunctionName, ClassMethodName]
 
 class Annotation(BaseModel):
     criteria: Criteria
@@ -125,7 +128,11 @@ class ModuleAnnotation(BaseModel):
     module: str
     annotations: List[Annotation]
 
+    class Config:
+        allow_mutation = False
+        extra = "forbid"
+
 
 # the FILE_SYSTEM and DB needs to match the yaml config
-file_system = ExternalState(external_state="FILE_SYSTEM") 
+file_system = ExternalState(external_state="FILE_SYSTEM")
 db = ExternalState(external_state="db")
