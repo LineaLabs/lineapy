@@ -122,18 +122,10 @@ class NodeTransformer(ast.NodeTransformer):
 
         if isinstance(
             node,
-            (
-                ast.ClassDef,
-                ast.If,
-                ast.For,
-                ast.FunctionDef,
-                ast.While,
-                ast.Try,
-                ast.With,
-            ),
+            ast.stmt,
         ):
             return self._exec_statement(node)
-        elif isinstance(node, (ast.ListComp, ast.Lambda)):
+        elif isinstance(node, ast.expr):
             return self._exec_expression(node)
         else:
             raise NotImplementedError(
