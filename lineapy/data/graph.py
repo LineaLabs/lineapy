@@ -76,7 +76,7 @@ class Graph(object):
 
         # We also keep track of all nodes we have already added to the queue
         # so that we don't add them again
-        seen: "Set[LineaID]" = set()
+        seen: Set[LineaID] = set()
 
         # We also keep a mapping of each node to the number of parents left
         # which have not been visited yet.
