@@ -100,11 +100,13 @@ _EXEC_EXPRESSION_SAVED_NAME = "__linea_expresion__"
 @register
 def l_exec_statement(code: str) -> None:
     """
+    Executes code statements. These typically are ast nodes that inherit from ast.stmt.
+    Examples include ast.ClassDef, ast.If, ast.For, ast.FunctionDef, ast.While, ast.Try, ast.With
+
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
 
-    If the code is an expression, it will return the result as well as the last
-    argument.
+    :return: None. Since the code is a statement, it will not return anything
     """
     context = get_context()
     source_location = context.node.source_location
@@ -126,10 +128,13 @@ def l_exec_statement(code: str) -> None:
 @register
 def l_exec_expr(code: str) -> object:
     """
+    Executes code expressions. These typically are ast nodes that inherit from ast.expr.
+    Examples include ast.ListComp, ast.Lambda
+
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
 
-    If the code is an expression, it will return the result as well as the last
+    :return: it will return the result as well as the last
     argument.
     """
     context = get_context()
