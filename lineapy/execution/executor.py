@@ -6,7 +6,14 @@ import logging
 import operator
 from dataclasses import dataclass, field
 from datetime import datetime
-from functools import singledispatch
+
+try:
+    from functools import singledispatchmethod
+except ImportError:
+    # this is the fallback for python < 3.8
+    # https://stackoverflow.com/questions/24601722
+    from lineapy.deprecation_utils import singledispatchmethod
+
 from os import chdir, getcwd
 from typing import (
     Callable,
@@ -187,7 +194,7 @@ class Executor:
                 self._value_to_node[value] = node.id
         return res.side_effects
 
-    @singledispatch
+    @singledispatchmethod
     def _execute(
         self,
         node: Node,

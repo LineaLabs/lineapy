@@ -138,6 +138,48 @@ class NodeTransformer(ast.NodeTransformer):
                 f"Don't know how to transform {type(node).__name__}"
             )
 
+    def visit_Str(self, node: ast.Str) -> LiteralNode:
+        """
+        Warning
+        -------
+
+        Deprecated in Python 3.8
+        """
+        if sys.version_info >= (3, 8):
+            raise NotImplementedError(
+                "Str nodes are deprecated since Python 3.8"
+            )
+        else:
+            return self.tracer.literal(node.s, self.get_source(node))
+
+    def visit_Num(self, node: ast.Num) -> LiteralNode:
+        """
+        Warning
+        -------
+
+        Deprecated in Python 3.8
+        """
+        if sys.version_info >= (3, 8):
+            raise NotImplementedError(
+                "Num nodes are deprecated since Python 3.8"
+            )
+        else:
+            return self.tracer.literal(node.n, self.get_source(node))
+
+    def visit_NameConstant(self, node: ast.NameConstant) -> LiteralNode:
+        """
+        Warning
+        -------
+
+        Deprecated in Python 3.8
+        """
+        if sys.version_info >= (3, 8):
+            raise NotImplementedError(
+                "Num nodes are deprecated since Python 3.8"
+            )
+        else:
+            return self.tracer.literal(node.value, self.get_source(node))
+
     def visit_Starred(self, node: ast.Starred) -> Iterable[LiteralNode]:
         elemlist: Iterable = []
         if isinstance(node.value, ast.Constant):
