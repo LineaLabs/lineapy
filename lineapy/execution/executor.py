@@ -6,7 +6,7 @@ import logging
 import operator
 from dataclasses import dataclass, field
 from datetime import datetime
-from functools import singledispatchmethod
+from functools import singledispatch
 from os import chdir, getcwd
 from typing import (
     Callable,
@@ -187,7 +187,7 @@ class Executor:
                 self._value_to_node[value] = node.id
         return res.side_effects
 
-    @singledispatchmethod
+    @singledispatch
     def _execute(
         self,
         node: Node,

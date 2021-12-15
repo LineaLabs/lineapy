@@ -50,9 +50,7 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
     def serialize(self, data: str, **kwargs):
         return data
 
-    def _write_snapshot_fossil(
-        self, *, snapshot_fossil: SnapshotFossil
-    ) -> None:
+    def _write_snapshot_fossil(self, snapshot_fossil: SnapshotFossil) -> None:
 
         filepath, data = (
             snapshot_fossil.location,
@@ -66,14 +64,14 @@ class PythonSnapshotExtension(SingleFileSnapshotExtension):
         Path(filepath).write_text(data, encoding="utf-8")
 
     def _read_snapshot_data_from_location(
-        self, *, snapshot_location: str, snapshot_name: str
+        self, snapshot_location: str, snapshot_name: str
     ) -> typing.Optional[str]:
         try:
             return Path(snapshot_location).read_text(encoding="utf-8")
         except FileNotFoundError:
             return None
 
-    def get_snapshot_name(self, *, index: int = 0) -> str:
+    def get_snapshot_name(self, index: int = 0) -> str:
         """
         Override to not replace < in filename
         """

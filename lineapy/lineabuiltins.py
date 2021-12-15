@@ -1,13 +1,4 @@
-from typing import (
-    Dict,
-    List,
-    Mapping,
-    Optional,
-    Protocol,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
@@ -17,7 +8,7 @@ from lineapy.ipython_cell_storage import get_location_path
 # Then at the end, make a dict out of all of them, from their names
 
 
-class HasName(Protocol):
+class HasName:
     @property
     def __name__(self) -> str:
         ...

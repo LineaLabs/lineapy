@@ -112,7 +112,12 @@ class NodeTransformer(ast.NodeTransformer):
         self.last_statement_result: Optional[Node] = None
 
     def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
-        return ast.get_source_segment(self.source_code.code, node, padded=True)
+        if sys.version_info < (3, 8):
+            return " "
+        else:
+            return ast.get_source_segment(
+                self.source_code.code, node, padded=True
+            )
 
     def generic_visit(self, node: ast.AST):
         """
@@ -575,10 +580,19 @@ class NodeTransformer(ast.NodeTransformer):
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):
             return None
-        return SourceLocation(
-            source_code=self.source_code,
-            lineno=node.lineno,
-            col_offset=node.col_offset,
-            end_lineno=node.end_lineno,
-            end_col_offset=node.end_col_offset,
-        )
+        if sys.version_info < (3, 8):
+            return SourceLocation(
+                source_code=self.source_code,
+                lineno=node.lineno,
+                col_offset=node.col_offset,
+                end_lineno=-1,
+                end_col_offset=-1,
+            )
+        else:
+            return SourceLocation(
+                source_code=self.source_code,
+                lineno=node.lineno,
+                col_offset=node.col_offset,
+                end_lineno=node.end_lineno,
+                end_col_offset=node.end_col_offset,
+            )

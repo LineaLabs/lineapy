@@ -16,7 +16,7 @@ from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.utils import get_value_type
 
 
-def save(value: object, description: str, /) -> LineaArtifact:
+def save(value: object, description: str) -> LineaArtifact:
     """
     Publishes artifact to the linea repo
     """
