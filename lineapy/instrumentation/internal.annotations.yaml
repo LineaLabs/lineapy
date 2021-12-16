@@ -1,3 +1,42 @@
+- module: lineapy.lineabuiltins
+  annotations:
+  - criteria:
+      function_name: l_list
+    side_effects:
+    - views:
+      - result: RESULT
+      - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
+
+- module: builtins
+  annotations:
+  - criteria:
+      function_name: setattr
+    side_effects:
+    - mutated_value:
+        positional_argument_index: 0
+
+- module: operator
+  annotations:
+  - criteria: # setitem(dict, key, value)
+      function_name: setitem
+    side_effects:
+    - mutated_value:
+        positional_argument_index: 0
+    - views:
+      - positional_argument_index: 2
+      - positional_argument_index: 0
+  - criteria: # getitem(dict, key)
+      function_name: getitem
+    side_effects:
+    - views:
+      - positional_argument_index: 0
+      - result: RESULT
+  - criteria: # delitem(dict, key)
+      function_name: delitem
+    side_effects:
+     - mutated_value:
+       positional_argument_index: 0
+
 - module: io
   annotations:
   - criteria:

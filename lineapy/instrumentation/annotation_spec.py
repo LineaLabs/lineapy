@@ -3,14 +3,32 @@ from typing import Iterable, List, Optional, Union
 from pydantic import BaseModel
 
 """
-TODO: figure out how to capture the name of the DB
+
+NOTE:
+- For all mutation, we'll check if they are mutable. If this is a perf issue, we can re-evaluate...
+
+
+TODO:
+- figure out how to capture the name of the DB
   - where the relevant SQL string is
   - where the relevant file name is
+
+- Also the all caps strings are kinda hacky... 
+  open to ideas for something better.
 """
 
 
 class PositionalArg(BaseModel):
     positional_argument_index: int
+
+
+class AllPositionalArgs(BaseModel):
+    all_positional_arguments: str = "ALL_POSITIONAL_ARGUMENTS"
+
+
+all_positional_args_instance = AllPositionalArgs(
+    all_positional_arguments="ALL_POSITIONAL_ARGUMENTS"
+)
 
 
 class KeywordArgument(BaseModel):
@@ -23,7 +41,7 @@ class BoundSelfOfFunction(BaseModel):
     bound of the method.
     """
 
-    self: str = "SELF"
+    self: Optional[str] = "SELF"
 
 
 class Result(BaseModel):
@@ -101,23 +119,36 @@ class KeywordArgumentCriteria(BaseModel):
 
 class FunctionNames(BaseModel):
     """
-    
+
     the names v. name is just a convenience for being able to have either a single item or a list of items.
     """
+
     function_names: List[str]
+
+
 class FunctionName(BaseModel):
     function_name: str
+
 
 class ClassMethodName(BaseModel):
     class_instance: str
     class_method_name: str
 
+
 class ClassMethodNames(BaseModel):
     class_instance: str
     class_method_names: List[str]
 
+
 # Criteria for a single annotation
-Criteria = Union[KeywordArgumentCriteria, FunctionNames, ClassMethodNames, FunctionName, ClassMethodName]
+Criteria = Union[
+    KeywordArgumentCriteria,
+    FunctionNames,
+    ClassMethodNames,
+    FunctionName,
+    ClassMethodName,
+]
+
 
 class Annotation(BaseModel):
     criteria: Criteria
