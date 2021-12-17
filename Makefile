@@ -46,7 +46,7 @@ blackfix:
 	docker run --rm -v "${PWD}":/data cytopia/black .
 
 typecheck:
-	docker-compose run --rm ${service_name} dmypy run -- --follow-imports=skip --exclude build .
+	docker-compose run --rm ${service_name} dmypy run -- --follow-imports=skip .
 
 typecheck-dev:
 	docker-compose run --rm ${service_name} dmypy run -- --follow-imports=skip -p lineapy

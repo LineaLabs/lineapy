@@ -25,6 +25,6 @@ RUN pip --disable-pip-version-check install -r requirements.txt && make airflow_
 
 COPY . .
 
-RUN python setup.py install
+RUN python setup.py install && rm -rf build
 
 CMD [ "lineapy" ]
