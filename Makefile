@@ -46,10 +46,10 @@ blackfix:
 	docker run --rm -v "${PWD}":/data cytopia/black .
 
 typecheck:
-	docker-compose run --rm ${service_name} mypy .
+	docker-compose run --rm ${service_name} dmypy run -- --follow-imports=skip --exclude build .
 
 typecheck-dev:
-	docker-compose run --rm ${service_name} mypy -p lineapy
+	docker-compose run --rm ${service_name} dmypy run -- --follow-imports=skip -p lineapy
 
 export IPYTHONDIR=${PWD}/.ipython
 

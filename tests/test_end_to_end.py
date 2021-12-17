@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from lineapy.api import save
+from lineapy.api.api import save
 from tests.util import CSV_CODE, IMAGE_CODE
 
 publish_name = "testing artifact publish"

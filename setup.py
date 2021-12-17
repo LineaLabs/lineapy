@@ -77,7 +77,7 @@ setup(
             "flake8",
             "fastparquet",
             "syrupy==1.4.5",
-            "mypy",
+            "mypy<0.920",
             "isort",
             "pytest",
             "matplotlib",

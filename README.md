@@ -54,8 +54,9 @@ You can also run Linea by cloning this repository and running the `lineapy`:
 ```bash
 $ git clone git@github.com:LineaLabs/lineapy.git
 $ cd lineapy
-# Linea currently requires Python 3.9
-$ pip install -e .
+# Linea currently requires Python 3.8+
+$ pip install -r requirements.txt
+$ python setup.py install
 $ lineapy --slice "p value" tests/housing.py
 ...
 ```

@@ -26,7 +26,7 @@ jobs:
           python-version: 3.9
       - name: Install dependencies
         run: |
-          pip install -e .[dev]
+          pip install -r requirements.txt && python setup.py install
       - name: Test with pytest
         run: |
           pytest -vv -m 'airflow'

@@ -13,6 +13,7 @@ WORKDIR /usr/src/base
 COPY ./setup.py ./
 COPY ./README.md ./
 COPY ./lineapy/__init__.py ./lineapy/
+COPY ./requirements.txt ./
 COPY ./airflow-requirements.txt ./
 COPY ./Makefile ./
 
@@ -20,8 +21,10 @@ ENV AIRFLOW_HOME=/usr/src/airflow_home
 ENV AIRFLOW_VENV=/usr/src/airflow_venv
 
 #RUN mkdir /usr/src/airflow_home
-RUN pip --disable-pip-version-check install -e .[dev] && make airflow_venv && pip cache purge
+RUN pip --disable-pip-version-check install -r requirements.txt && make airflow_venv && pip cache purge
 
 COPY . .
+
+RUN python setup.py install
 
 CMD [ "lineapy" ]
