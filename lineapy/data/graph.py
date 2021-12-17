@@ -72,7 +72,7 @@ class Graph(object):
         # To do this, we do a breadth first traversal, keeping our queue ordered
         # by their line number. The sorting is done via the __lt__ method
         # of the Node
-        queue: "PriorityQueue[Node]" = PriorityQueue()
+        queue: PriorityQueue[Node] = PriorityQueue()
 
         # We also keep track of all nodes we have already added to the queue
         # so that we don't add them again
