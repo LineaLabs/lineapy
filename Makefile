@@ -1,3 +1,4 @@
+SHELL=/bin/bash
 base_imagename=ghcr.io/linealabs/lineapy
 service_name=lineapy
 export IMAGE_NAME=${base_imagename}:main
