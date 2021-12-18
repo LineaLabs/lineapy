@@ -47,18 +47,7 @@
      function_name: open
     side_effects:
     - dependency:
-      external_state: FILE_SYSTEM
-- module: sklearn.base
-  annotations:
-  - criteria:
-      class_instance: BaseEstimator
-      class_method_name: fit
-    side_effects:
-    - mutated_value:
-        self: SELF
-    - views:
-      - self: SELF
-      - result: RESULT
+        external_state: FILE_SYSTEM
 - module: joblib
   annotations:
   - criteria:
@@ -66,3 +55,16 @@
     side_effects:
     - mutated_value:
         external_state: FILE_SYSTEM
+- base_module: sklearn.base
+  annotations:
+  - criteria:
+      base_class: BaseEstimator
+      class_method_name: fit
+    side_effects:
+    - mutated_value:
+        self: SELF
+    - views:
+      - self: SELF
+      - result: RESULT
+
+        

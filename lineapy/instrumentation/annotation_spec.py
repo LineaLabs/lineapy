@@ -9,6 +9,8 @@ NOTE:
 
 
 TODO:
+- also we should add annotation for base class, e.g., `sklearn.base`
+
 - figure out how to capture the name of the DB
   - where the relevant SQL string is
   - where the relevant file name is
@@ -24,11 +26,6 @@ class PositionalArg(BaseModel):
 
 class AllPositionalArgs(BaseModel):
     all_positional_arguments: str = "ALL_POSITIONAL_ARGUMENTS"
-
-
-all_positional_args_instance = AllPositionalArgs(
-    all_positional_arguments="ALL_POSITIONAL_ARGUMENTS"
-)
 
 
 class KeywordArgument(BaseModel):
@@ -70,6 +67,7 @@ ValuePointer = Union[
     Result,
     BoundSelfOfFunction,
     ExternalState,
+    AllPositionalArgs,
 ]
 
 
@@ -82,8 +80,8 @@ class ViewOfValues(BaseModel):
     # They are unique, like a set, but ordered for deterministic behavior
     views: list[ValuePointer]
 
-    def __init__(self, *xs: ValuePointer) -> None:
-        self.views = list(xs)
+    # def __init__(self, *xs: ValuePointer) -> None:
+    #     self.views = list(xs)
 
 
 class MutatedValue(BaseModel):
@@ -104,7 +102,6 @@ class ImplicitDependencyValue(BaseModel):
 InspectFunctionSideEffect = Union[
     ViewOfValues, MutatedValue, ImplicitDependencyValue
 ]
-InspectFunctionSideEffects = Iterable[InspectFunctionSideEffect]
 
 
 class KeywordArgumentCriteria(BaseModel):
@@ -140,6 +137,11 @@ class ClassMethodNames(BaseModel):
     class_method_names: List[str]
 
 
+class BaseClassMethodName(BaseModel):
+    base_class: str
+    class_method_name: str
+
+
 # Criteria for a single annotation
 Criteria = Union[
     KeywordArgumentCriteria,
@@ -147,16 +149,18 @@ Criteria = Union[
     ClassMethodNames,
     FunctionName,
     ClassMethodName,
+    BaseClassMethodName,
 ]
 
 
 class Annotation(BaseModel):
     criteria: Criteria
-    side_effects: InspectFunctionSideEffects
+    side_effects: List[InspectFunctionSideEffect]
 
 
 class ModuleAnnotation(BaseModel):
-    module: str
+    module: Optional[str]
+    base_module: Optional[str]
     annotations: List[Annotation]
 
     class Config:

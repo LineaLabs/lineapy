@@ -15,7 +15,7 @@
     - mutated_value:
         positional_argument_index: 0
 
-- module: operator
+- module: _operator
   annotations:
   - criteria: # setitem(dict, key, value)
       function_name: setitem
@@ -34,8 +34,8 @@
   - criteria: # delitem(dict, key)
       function_name: delitem
     side_effects:
-     - mutated_value:
-       positional_argument_index: 0
+    - mutated_value:
+        positional_argument_index: 0
 
 - module: io
   annotations:

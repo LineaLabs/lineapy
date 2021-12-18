@@ -4,20 +4,22 @@ import functools
 import glob
 import logging
 import sys
-from types import BuiltinMethodType
-from typing import Any, Callable, Dict, List, Optional
+from types import BuiltinMethodType, MethodType
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 import yaml
 from pydantic import ValidationError
 
 from lineapy.instrumentation.annotation_spec import (
+    AllPositionalArgs,
+    Annotation,
+    BaseClassMethodName,
     BoundSelfOfFunction,
     ClassMethodName,
     ClassMethodNames,
     Criteria,
     FunctionName,
     InspectFunctionSideEffect,
-    InspectFunctionSideEffects,
     KeywordArgumentCriteria,
     ModuleAnnotation,
     MutatedValue,
@@ -25,8 +27,8 @@ from lineapy.instrumentation.annotation_spec import (
     Result,
     ValuePointer,
     ViewOfValues,
-    all_positional_args_instance,
 )
+from lineapy.utils import listify
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +57,12 @@ def validate(item: Dict) -> Optional[ModuleAnnotation]:
     try:
         spec = ModuleAnnotation(**item)
         # check if the module is relevant for this run
-        if try_import(spec.module) is None:
+        if spec.module is not None and try_import(spec.module) is None:
+            return None
+        if (
+            spec.base_module is not None
+            and try_import(spec.base_module) is None
+        ):
             return None
         return spec
     except ValidationError as e:
@@ -65,21 +72,28 @@ def validate(item: Dict) -> Optional[ModuleAnnotation]:
 
 
 @functools.lru_cache()
-def get_specs() -> List[ModuleAnnotation]:
+def get_specs() -> Tuple[
+    Dict[str, List[Annotation]], Dict[str, List[Annotation]]
+]:
     """
     yaml specs are for non-built in functions.
     will capture all the .annotations.yaml files in the `instrumentation` directory.
     """
     # apparently the path is on the top level
     path = "./lineapy/instrumentation/*.annotations.yaml"
-    all_valid_specs = []
+    valid_specs = {}
+    valid_base_specs = {}
     for filename in glob.glob(path):
         with open(filename, "r") as f:
             doc = yaml.safe_load(f)
-            all_valid_specs += list(
-                filter(None, [validate(item) for item in doc])
-            )
-    return all_valid_specs
+            for item in doc:
+                v = validate(item)
+                if v is not None:
+                    if v.module is not None:
+                        valid_specs[v.module] = v.annotations
+                    else:
+                        valid_base_specs[v.base_module] = v.annotations
+    return valid_specs, valid_base_specs
 
 
 def check_function_against_annotation(
@@ -87,33 +101,51 @@ def check_function_against_annotation(
     args: list[object],
     kwargs: dict[str, object],
     criteria: Criteria,
+    base_module: Optional[str] = None,
 ):
     """
     Helper function for inspect_function.
     """
-    if (
-        isinstance(criteria, FunctionName)
-        and criteria.function_name != function.__name__
-    ):
+    if isinstance(criteria, FunctionName):
+        if criteria.function_name == function.__name__:
+            return True
         return False
-    if (
-        isinstance(criteria, ClassMethodName)
-        and criteria.class_instance not in function.__module__
-        and function.__name__ != criteria.class_method_name
-    ):
+    if isinstance(criteria, ClassMethodName):
+        if (
+            criteria.class_instance == function.__self.__.__module__
+            and function.__name__ == criteria.class_method_name
+        ):
+            return True
         return False
-    if (
-        isinstance(criteria, ClassMethodNames)
-        and criteria.class_instance not in function.__module__
-        and function.__name__ not in criteria.class_method_names
-    ):
+    if isinstance(criteria, ClassMethodNames):
+        if (
+            criteria.class_instance == function.__self.__.__module__
+            and function.__name__ in criteria.class_method_names
+        ):
+            return True
         return False
-    if isinstance(criteria, KeywordArgumentCriteria) and (
-        kwargs.get(criteria.keyword_arg_name, None)
-        != criteria.keyword_arg_value
-    ):
+    if isinstance(criteria, KeywordArgumentCriteria):
+        if (
+            kwargs.get(criteria.keyword_arg_name, None)
+            == criteria.keyword_arg_value
+        ):
+            return True
         return False
-    return True
+    if isinstance(criteria, BaseClassMethodName):
+        if (
+            base_module is not None
+            and function.__name__ == criteria.class_method_name
+            and (
+                isinstance(
+                    function.__self___,
+                    getattr(try_import(base_module), criteria.base_class),
+                )
+            )
+        ):
+            return True
+        return False
+
+    raise ValueError(f"Unknown criteria: {criteria} of type {type(criteria)}")
 
 
 def process_side_effect(
@@ -128,15 +160,21 @@ def process_side_effect(
         # TODO: maybe bring back our custom errors?
         raise Exception("The other cases should not have been called.")
 
+    def check_view_of_values(side_effect: ViewOfValues):
+        for i, v in enumerate(side_effect.views):
+            if isinstance(v, AllPositionalArgs):
+                side_effect.views.pop(i)
+                side_effect.views.extend(
+                    (
+                        PositionalArg(positional_argument_index=i)
+                        for i, a in enumerate(args)
+                    )
+                )
+            return
+
     if isinstance(side_effect, ViewOfValues):
         # TODO: also need to check for mutability
-        i = side_effect.views.index(all_positional_args_instance)  # type: ignore
-        if i != -1:
-            side_effect.views.pop(i)
-            side_effect.views.extend(
-                (PositionalArg(i) for i, a in enumerate(args))
-            )
-
+        check_view_of_values(side_effect)
         side_effect.views = list(
             filter(lambda x: is_mutable(x), side_effect.views)
         )
@@ -148,16 +186,32 @@ def process_side_effect(
     # check if they are mutable
 
 
+@listify
 def inspect_function(
     function: Callable,
     args: list[object],
     kwargs: dict[str, object],
     result: object,
-) -> InspectFunctionSideEffects:
+) -> Iterable[InspectFunctionSideEffect]:
     """
     Inspects a function and returns how calling it mutates the args/result and
     creates view relationships between them.
     """
+    has_yielded = False
+
+    def _check_annotation(annotations: List[Annotation]):
+        for annotation in annotations:
+            if check_function_against_annotation(
+                function, args, kwargs, annotation.criteria
+            ):
+                for side_effect in annotation.side_effects:
+                    processed = process_side_effect(side_effect, args, result)
+                    if processed is not None:
+                        yield processed
+                        has_yielded = True
+                if has_yielded:
+                    return
+
     # we have a special case here whose structure is not
     #   shared with any other cases...
     if (
@@ -166,21 +220,23 @@ def inspect_function(
         and isinstance(function.__self__, list)
     ):
         # list.append(value)
-        yield MutatedValue(BoundSelfOfFunction())
+        yield MutatedValue(mutated_value=BoundSelfOfFunction())
         if is_mutable(args[0]):
-            yield ViewOfValues(BoundSelfOfFunction(), PositionalArg(0))
+            yield ViewOfValues(
+                views=[
+                    BoundSelfOfFunction(),
+                    PositionalArg(positional_argument_index=0),
+                ]
+            )
     else:
-        specs = get_specs()
-        # TODO: create some hashing to avoid multiple loops
-        for spec in specs:
-            if spec.module in function.__module__:
-                for annotation in spec.annotations:
-                    if check_function_against_annotation(
-                        function, args, kwargs, annotation.criteria
-                    ):
-                        for side_effect in annotation.side_effects:
-                            processed = process_side_effect(
-                                side_effect, args, result
-                            )
-                            if processed is not None:
-                                yield processed
+        specs, base_specs = get_specs()
+        if function.__module__ in specs:
+            _check_annotation(specs[function.__module__])
+        if has_yielded:
+            return
+
+        # there doesn't seem to be a way to hash thru this...
+        # so we'll loop for now,
+        for base_spec_module in base_specs:
+            _check_annotation(base_specs[base_spec_module])
+        return
