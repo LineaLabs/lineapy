@@ -7,7 +7,7 @@ that with graphviz.
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 try:
     import graphviz
@@ -40,7 +40,7 @@ GRAPH_STYLE = {
     "fontname": SERIF_FONT,
 }
 
-NODE_STYLE: dict[str, str] = {
+NODE_STYLE: Dict[str, str] = {
     "width": "0",
     "height": "0",
     # in inches
@@ -60,7 +60,7 @@ EDGE_STYLE = {
 
 # Copied from pastel19 on
 # https://graphviz.org/doc/info/colors.html so we can add transparency
-BREWER_PASTEL: dict[str, str] = {
+BREWER_PASTEL: Dict[str, str] = {
     "red": "#fbb4ae",
     "blue": "#b3cde3",
     "green": "#ccebc5",
@@ -96,7 +96,7 @@ ColorableType = Union[NodeType, ExtraLabelType, VisualEdgeType]
 
 
 # Mapping of each node type to its color
-COLORS: dict[ColorableType, str] = defaultdict(
+COLORS: Dict[ColorableType, str] = defaultdict(
     lambda: BREWER_PASTEL["grey"],
     {
         NodeType.CallNode: BREWER_PASTEL["pink"],
@@ -115,7 +115,7 @@ COLORS: dict[ColorableType, str] = defaultdict(
 )
 
 # Labels for node types for legend
-NODE_LABELS: dict[NodeType, str] = {
+NODE_LABELS: Dict[NodeType, str] = {
     NodeType.CallNode: "Call",
     NodeType.LiteralNode: "Literal",
     NodeType.ImportNode: "Import",
@@ -125,7 +125,7 @@ NODE_LABELS: dict[NodeType, str] = {
 }
 
 
-NODE_SHAPES: dict[NodeType, str] = {
+NODE_SHAPES: Dict[NodeType, str] = {
     NodeType.CallNode: "record",
     NodeType.LiteralNode: "box",
     NodeType.ImportNode: "box",
@@ -152,11 +152,11 @@ EDGE_STYLES = defaultdict(
 
 def extra_label_labels(
     options: VisualGraphOptions,
-) -> dict[ExtraLabelType, str]:
+) -> Dict[ExtraLabelType, str]:
     """
     Labels for the extra label, to use in the legend,
     """
-    l: dict[ExtraLabelType, str] = {}
+    l: Dict[ExtraLabelType, str] = {}
     if options.show_artifacts:
         l[ExtraLabelType.ARTIFACT] = "Artifact Name"
     if options.show_variables:
@@ -166,11 +166,11 @@ def extra_label_labels(
 
 def edge_labels(
     options: VisualGraphOptions,
-) -> dict[VisualEdgeType, str]:
+) -> Dict[VisualEdgeType, str]:
     """
     Labels for the edge types to use in the legend,
     """
-    l: dict[VisualEdgeType, str] = {
+    l: Dict[VisualEdgeType, str] = {
         VisualEdgeType.SOURCE_CODE: "Source Code",
         VisualEdgeType.MUTATE_CALL: "Mutate Call",
         VisualEdgeType.IMPLICIT_DEPENDENCY: "Implicit Dependency",
@@ -237,7 +237,7 @@ def extra_labels_to_html(extra_labels: ExtraLabels, highlighted: bool) -> str:
 
 def node_type_to_kwargs(
     node_type: VisualNodeType, highlighted: bool
-) -> dict[str, object]:
+) -> Dict[str, object]:
     if isinstance(node_type, SourceLineType):
         return {
             "shape": "text",
@@ -254,7 +254,7 @@ def node_type_to_kwargs(
 
 def edge_type_to_kwargs(
     edge_type: VisualEdgeType, highlighted: bool
-) -> dict[str, object]:
+) -> Dict[str, object]:
     return {
         "color": f"{get_color(edge_type, highlighted)}",
         "dir": "none" if edge_type in UNDIRECTED_EDGE_TYPES else "forward",

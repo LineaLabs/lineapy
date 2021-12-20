@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Dict, Iterable, NewType, Optional, Union
+from typing import Any, Dict, Iterable, List, NewType, Optional, Union
 
 from pydantic import BaseModel
 
@@ -331,13 +331,13 @@ class CallNode(BaseNode):
     node_type: NodeType = NodeType.CallNode
 
     function_id: LineaID
-    positional_args: list[LineaID]
-    keyword_args: dict[str, LineaID]
+    positional_args: List[LineaID]
+    keyword_args: Dict[str, LineaID]
 
     # Mapping of global variables that need to be set to call this function
-    global_reads: dict[str, LineaID]
+    global_reads: Dict[str, LineaID]
 
-    implicit_dependencies: list[LineaID]
+    implicit_dependencies: List[LineaID]
 
     def parents(self) -> Iterable[LineaID]:
         yield self.function_id

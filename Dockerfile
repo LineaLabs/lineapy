@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.2
 # Pin syntax as Docker reccomens
 # https://docs.docker.com/language/python/build-images/#create-a-dockerfile-for-python
-FROM python:3.9.7-slim
+FROM python:3.8.12-slim
 
 RUN apt-get update && apt-get -y install git graphviz make && \
     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash \
@@ -13,6 +13,7 @@ WORKDIR /usr/src/base
 COPY ./setup.py ./
 COPY ./README.md ./
 COPY ./lineapy/__init__.py ./lineapy/
+COPY ./requirements.txt ./
 COPY ./airflow-requirements.txt ./
 COPY ./Makefile ./
 
@@ -20,8 +21,10 @@ ENV AIRFLOW_HOME=/usr/src/airflow_home
 ENV AIRFLOW_VENV=/usr/src/airflow_venv
 
 #RUN mkdir /usr/src/airflow_home
-RUN pip --disable-pip-version-check install -e .[dev] && make airflow_venv && pip cache purge
+RUN pip --disable-pip-version-check install -r requirements.txt && make airflow_venv && pip cache purge
 
 COPY . .
+
+RUN python setup.py install && rm -rf build
 
 CMD [ "lineapy" ]

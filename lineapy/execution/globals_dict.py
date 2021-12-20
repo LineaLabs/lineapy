@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import builtins
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Dict, List, Optional
 
 
-class GlobalsDict(dict[str, object]):
+class GlobalsDict(Dict[str, object]):
     """
     A custom dict that is meant to be accessed in a particular way, in order
     to record getitems. It is used for setting as the globals when execing some
@@ -39,7 +39,7 @@ class GlobalsDict(dict[str, object]):
         self._state.process_getitem(k, v)
         return v
 
-    def setup_globals(self, inputs: dict[str, object]) -> None:
+    def setup_globals(self, inputs: Dict[str, object]) -> None:
         self._state = State(inputs)
         self.update(inputs)
         self["__builtins__"] = builtins
@@ -72,11 +72,11 @@ class GlobalsDict(dict[str, object]):
 @dataclass
 class State:
     # The mapping of input globals
-    inputs: dict[str, object]
+    inputs: Dict[str, object]
 
     # A subset of the input globals, containing only the keys that were accessed
     # from it
-    accessed_inputs: list[str] = field(default_factory=list)
+    accessed_inputs: List[str] = field(default_factory=list)
 
     def process_getitem(self, k: str, v: object) -> None:
         """
@@ -95,5 +95,5 @@ class State:
 
 @dataclass
 class GlobalsDictResult:
-    accessed_inputs: list[str]
-    added_or_modified: dict[str, object]
+    accessed_inputs: List[str]
+    added_or_modified: Dict[str, object]

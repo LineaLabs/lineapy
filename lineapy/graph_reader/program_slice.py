@@ -1,6 +1,5 @@
 import logging
-from collections import defaultdict
-from typing import List, Set
+from typing import DefaultDict, List, Set
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID, SourceCode
@@ -37,7 +36,7 @@ def get_source_code_from_graph(program: Graph) -> str:
     representation.
     """
     # map of source code to set of included line numbers
-    source_code_to_lines = defaultdict[SourceCode, set[int]](set)
+    source_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
 
     for node in program.nodes:
         if not node.source_location:
