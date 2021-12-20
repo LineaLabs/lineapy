@@ -4,6 +4,7 @@ from typing import Optional
 from black import FileMode, format_str
 from jinja2 import Environment, FileSystemLoader
 
+import lineapy
 from lineapy.config import linea_folder
 from lineapy.graph_reader.program_slice import (
     get_program_slice,
@@ -50,7 +51,9 @@ def slice_to_airflow(
     )
 
     templateLoader = FileSystemLoader(
-        searchpath=str(linea_folder() / "../lineapy/plugins/jinja_templates")
+        searchpath=str(
+            (Path(lineapy.__file__) / "../plugins/jinja_templates").resolve()
+        )
     )
     templateEnv = Environment(loader=templateLoader)
 
