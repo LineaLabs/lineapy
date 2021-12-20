@@ -85,6 +85,6 @@ def test_import_star(execute):
 mypi = pi
 x = sqrt(4)
 """
-    res = execute(code)
+    res = execute(code, snapshot=False)
     assert res.values["mypi"] == 3.141592653589793
     assert res.values["x"] == 2.0

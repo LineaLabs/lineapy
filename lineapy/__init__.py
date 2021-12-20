@@ -1,6 +1,6 @@
 import atexit
 
-from lineapy.api import catalog, get, save
+from lineapy.api.api import catalog, get, save
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
 from lineapy.execution.context import get_context

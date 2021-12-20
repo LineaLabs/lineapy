@@ -1,6 +1,6 @@
 import sys
 from types import TracebackType
-from typing import Optional, Type
+from typing import Optional, Tuple, Type
 
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import (
@@ -9,7 +9,7 @@ from lineapy.exceptions.user_exception import (
     apply_changes,
 )
 
-ExceptHookArgs = tuple[Type[Exception], Exception, Optional[TracebackType]]
+ExceptHookArgs = Tuple[Type[Exception], Exception, Optional[TracebackType]]
 
 
 def transform_except_hook_args(

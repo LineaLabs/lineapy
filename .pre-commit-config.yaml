@@ -9,7 +9,6 @@ repos:
         name: flake8
         entry: flake8 .
         language: python
-        language_version: python3.9
         additional_dependencies: ["flake8==4.0.1"]
         types: [python]
         pass_filenames: false
@@ -19,7 +18,6 @@ repos:
         name: isort
         entry: isort .
         language: python
-        language_version: python3.9
         additional_dependencies: ["isort==5.10.0"]
         types: [python]
         pass_filenames: false
@@ -29,7 +27,6 @@ repos:
         name: black
         entry: black .
         language: python
-        language_version: python3.9
         additional_dependencies: ["black==21.10b0"]
         types: [python]
         pass_filenames: false
@@ -39,7 +36,6 @@ repos:
         name: mypy
         entry: mypy .
         language: python
-        language_version: python3.9
         additional_dependencies: ["mypy==0.910", "sqlalchemy[mypy]", "pydantic"]
         types: [python]
         pass_filenames: false

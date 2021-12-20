@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 from itertools import chain
-from typing import Iterable
+from typing import Dict, Iterable, List, Tuple
 
 from lineapy.data.types import LineaID
 from lineapy.utils import get_new_id, remove_duplicates, remove_value
@@ -33,7 +33,7 @@ class MutationTracker:
     # a.append(1)  MutateNodeID: i2
     # a.append(2)  MutateNodeID: i3
     # source_to_mutate = {i1: i2, i2: i3}
-    source_to_mutate: dict[LineaID, LineaID] = field(default_factory=dict)
+    source_to_mutate: Dict[LineaID, LineaID] = field(default_factory=dict)
 
     # Mapping from each node to every node which has a view of it,
     # meaning that if that node is mutated, the view node will be as well
@@ -42,7 +42,7 @@ class MutationTracker:
     # c = [b]   CallNode ID: i3
     # viewers: {i1: [i2, i3], i2: [i1, i3], i3: [i1, i2]}
     # NOTE that b = a would not constitute a view relationship
-    viewers: dict[LineaID, list[LineaID]] = field(
+    viewers: Dict[LineaID, List[LineaID]] = field(
         default_factory=lambda: defaultdict(list)
     )
 
@@ -76,7 +76,7 @@ class MutationTracker:
 
     def set_as_mutated(
         self, source_id: LineaID
-    ) -> Iterable[tuple[LineaID, LineaID]]:
+    ) -> Iterable[Tuple[LineaID, LineaID]]:
         """
         To process mutating a node, we create new mutate nodes for each views of
         this node and update the source to view mapping to point to the new nodes.

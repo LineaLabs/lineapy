@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 
-from lineapy.api import save
+from lineapy.api.api import save
 from tests.util import CSV_CODE, IMAGE_CODE
 
 publish_name = "testing artifact publish"
@@ -192,7 +192,7 @@ class TestEndToEnd:
 
     @pytest.mark.slow
     def test_pandas(self, execute):
-        res = execute(PANDAS_RANDOM_CODE)
+        res = execute(PANDAS_RANDOM_CODE, snapshot=False)
         assert res.values["new_df"].size == 2
 
     def test_string_format(self, execute):
@@ -282,7 +282,7 @@ class TestEndToEnd:
         assert res.values["r6"] is False
 
     def test_subscript(self, execute):
-        res = execute(SUBSCRIPT)
+        res = execute(SUBSCRIPT, snapshot=False)
         assert len(res.values["ls"]) == 4
         assert res.values["ls"][0] == 1
         assert res.values["ls"][1] == 4
@@ -452,27 +452,27 @@ class TestListComprehension:
 
 class TestSlicing:
     def test_empty_slice(self, execute):
-        res = execute("x = [1, 2, 3][:]")
+        res = execute("x = [1, 2, 3][:]", snapshot=False)
         assert res.values["x"] == [1, 2, 3]
 
     def test_slice_with_step(self, execute):
-        res = execute("x = [1, 2, 3][::2]")
+        res = execute("x = [1, 2, 3][::2]", snapshot=False)
         assert res.values["x"] == [1, 3]
 
     def test_slice_with_step_and_start(self, execute):
-        res = execute("x = [1, 2, 3][0::2]")
+        res = execute("x = [1, 2, 3][0::2]", snapshot=False)
         assert res.values["x"] == [1, 3]
 
     def test_slice_with_step_and_stop(self, execute):
-        res = execute("x = [1, 2, 3][:2:2]")
+        res = execute("x = [1, 2, 3][:2:2]", snapshot=False)
         assert res.values["x"] == [1]
 
     def test_slice_with_step_and_start_and_stop(self, execute):
-        res = execute("x = [1, 2, 3][1:2:2]")
+        res = execute("x = [1, 2, 3][1:2:2]", snapshot=False)
         assert res.values["x"] == [2]
 
     def test_slice_with_start(self, execute):
-        res = execute("x = [1, 2, 3][1:]")
+        res = execute("x = [1, 2, 3][1:]", snapshot=False)
         assert res.values["x"] == [2, 3]
 
 
