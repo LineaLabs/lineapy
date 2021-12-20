@@ -36,7 +36,7 @@ dag = DAG(
 AIRFLOW_TASK_TEMPLATE = Template(
     """
 {{ TASK_NAME }} = PythonOperator(
-    dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
+    dag=dag, task_id=f"{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
 )
 """
 )
