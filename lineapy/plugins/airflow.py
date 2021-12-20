@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 from black import FileMode, format_str
-from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader, Template
 
 from lineapy.config import linea_folder
 from lineapy.graph_reader.program_slice import (
@@ -10,56 +10,6 @@ from lineapy.graph_reader.program_slice import (
     split_code_blocks,
 )
 from lineapy.instrumentation.tracer import Tracer
-
-AIRFLOW_IMPORTS_TEMPLATE = Template(
-    """
-from airflow import DAG
-from airflow.utils.dates import days_ago
-from airflow.operators.python_operator import PythonOperator
-"""
-)
-
-AIRFLOW_DAG_TEMPLATE = Template(
-    """
-default_dag_args = {"owner": "airflow", "retries": 2, "start_date": days_ago(1)}
-
-dag = DAG(
-    dag_id="{{ DAG_NAME }}_dag",
-    schedule_interval="*/15 * * * *",  # Every 15 minutes
-    max_active_runs=1,
-    catchup=False,
-    default_args=default_dag_args,
-)
-"""
-)
-
-AIRFLOW_TASK_TEMPLATE = Template(
-    """
-{{ TASK_NAME }} = PythonOperator(
-    dag=dag, task_id=f"{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
-)
-"""
-)
-
-AIRFLOW_FULL_TEMPLATE = Template(
-    """
-from os import chdir
-{{ import_block }}
-{{ airflow_import_block }}
-
-{# Change directory before executing to proper place #}
-chdir({{ working_dir_str }})
-
-{{ code_block }}
-{% if variable != "" %}
-\tprint({{ variable }})
-{% endif %}
-{# TODO What to do with artifact_var in a DAG? #}
-
-{{ airflow_dag_block }}
-{{ airflow_task_block }}
-"""
-)
 
 
 def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
@@ -94,13 +44,27 @@ def slice_to_airflow(
 
     If the variable is passed in, this will be printed at the end of the airflow block.
     """
-    # We split the code in import and code blocks and join them to full code test
-    import_block, code_block, main_block = split_code_blocks(
-        sliced_code, func_name
-    )
 
     working_dir_str = repr(
         str(working_directory.relative_to((linea_folder() / "..").resolve()))
+    )
+
+    templateLoader = FileSystemLoader(
+        searchpath=str(linea_folder() / "../lineapy/plugins/jinja_templates")
+    )
+    templateEnv = Environment(loader=templateLoader)
+
+    AIRFLOW_IMPORTS_TEMPLATE = templateEnv.get_template("imports.jinja")
+
+    AIRFLOW_DAG_TEMPLATE = templateEnv.get_template("dag.jinja")
+
+    AIRFLOW_TASK_TEMPLATE = templateEnv.get_template("task.jinja")
+
+    AIRFLOW_FULL_TEMPLATE = templateEnv.get_template("full.jinja")
+
+    # We split the code in import and code blocks and join them to full code test
+    import_block, code_block, main_block = split_code_blocks(
+        sliced_code, func_name
     )
 
     full_code = AIRFLOW_FULL_TEMPLATE.render(

@@ -1,0 +1,9 @@
+default_dag_args = {"owner": "airflow", "retries": 2, "start_date": days_ago(1)}
+
+dag = DAG(
+    dag_id="{{ DAG_NAME }}_dag",
+    schedule_interval="*/15 * * * *",  # Every 15 minutes
+    max_active_runs=1,
+    catchup=False,
+    default_args=default_dag_args,
+)

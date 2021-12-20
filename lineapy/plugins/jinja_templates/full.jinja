@@ -1,0 +1,15 @@
+from os import chdir
+{{ import_block }}
+{{ airflow_import_block }}
+
+{# Change directory before executing to proper place #}
+chdir({{ working_dir_str }})
+
+{{ code_block }}
+{% if variable != "" %}
+	print({{ variable }})
+{% endif %}
+{# TODO What to do with artifact_var in a DAG? #}
+
+{{ airflow_dag_block }}
+{{ airflow_task_block }}
