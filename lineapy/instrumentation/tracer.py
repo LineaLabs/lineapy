@@ -6,7 +6,7 @@ from typing import Dict, Optional
 
 from black import FileMode, format_str
 
-from lineapy.constants import GETATTR
+from lineapy.constants import GETATTR, IMPORT_STAR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
@@ -24,6 +24,7 @@ from lineapy.data.types import (
 )
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
+from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.executor import (
     ID,
     AccessedGlobals,
@@ -173,10 +174,16 @@ class Tracer:
 
         ##
         # Update the graph from the side effects of the node,
+        # If an artifact could not be created, quitely return without saving the node to the DB.
         ##
-        side_effects = self.executor.execute_node(
-            node, {k: v.id for k, v in self.variable_name_to_node.items()}
-        )
+        try:
+            side_effects = self.executor.execute_node(
+                node, {k: v.id for k, v in self.variable_name_to_node.items()}
+            )
+        except ArtifactSaveException as exc_info:
+            logger.error("Artifact could not be saved.")
+            logger.debug(exc_info)
+            return
 
         # Iterate through each side effect and process it, depending on its type
         for e in side_effects:
@@ -274,12 +281,14 @@ class Tracer:
     ) -> Node:
         """
         Cases:
+
         - user defined variable & function definitions
         - imported libs
-        - unknown runtime magic functions---special case to
-          LookupNode
+        - unknown runtime magic functions---special case to LookupNode
+
           - builtin functions, e.g., min
           - custom runtime, e.g., get_ipython
+
         """
         if variable_name in self.variable_name_to_node:
             # user define var and fun def
@@ -306,9 +315,12 @@ class Tracer:
         - `alias`: the module could be aliased, e.g., import pandas as pd
         - `attributes`: a list of functions imported from the library.
            It keys the aliased name to the original name.
+
         NOTE
+        ----
         - The input args would _either_ have alias or attributes, but not both
         - Didn't call the function import because I think that's a protected name
+
         note that version and path will be introspected at runtime
         """
         library = Library(id=get_new_id(), name=name)
@@ -329,7 +341,14 @@ class Tracer:
         # for the attributes imported, we need to add them to the local lookup
         #  that yields the importnode's id for the `function_module` field,
         #  see `graph_with_basic_image`.
+
         if attributes is not None:
+            if IMPORT_STAR in attributes:
+                attributes = {
+                    attr: attr
+                    for attr in dir(self.values[library.name])
+                    if not attr.startswith("__")
+                }
             for alias, original_name in attributes.items():
                 # self.function_name_to_function_module_import_id[a] = node.id
                 self.assign(
@@ -374,6 +393,7 @@ class Tracer:
     ) -> CallNode:
         """
         NOTE
+        ----
         - It's important for the call to return the call node
           so that we can programmatically chain the the nodes together,
           e.g., for the assignment call to modify the previous call node.

@@ -27,3 +27,16 @@ lineapy.save(x, "x2")
     res = execute(code, snapshot=False)
     assert res.slice("x") == "x = []\n"
     assert res.slice("x2") == "x = []\n"
+
+
+def test_bad_artifact_save_fails_and_recovers(execute):
+    code = """import pandas
+import lineapy
+x=1
+y=1
+lineapy.save(pandas,"fails")
+lineapy.save(x,"works")
+lineapy.save(y,"workstoo")
+"""
+    res = execute(code, snapshot=False)
+    assert res.values["x"] == 1

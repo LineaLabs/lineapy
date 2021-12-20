@@ -23,6 +23,7 @@ from lineapy.data.types import (
     Node,
 )
 from lineapy.db.db import RelationalLineaDB
+from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import (
     AddFrame,
     RemoveFrames,
@@ -114,7 +115,6 @@ class Executor:
         self, node: Node, variables: Optional[dict[str, LineaID]]
     ) -> SideEffects:
         """
-
         Variables is the mapping from local variable names to their nodes. It
         is passed in on the first execution, but on re-executions it is empty.
 
@@ -122,8 +122,10 @@ class Executor:
         the first time we executed we captured that.
 
         Does the following:
+
         - Executes a node
         - And records
+
           - value (currently: only for call nodes and all call nodes)
           - execution time
 
@@ -235,6 +237,9 @@ class Executor:
             start_time = datetime.now()
             res = fn(*args, **kwargs)
             end_time = datetime.now()
+        # have to do this to avoid entering the general exception block below
+        except ArtifactSaveException:
+            raise
         except Exception as exc:
             raise UserException(exc, RemoveFrames(1), *changes)
         finally:

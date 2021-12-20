@@ -1,6 +1,6 @@
 import ast
 import logging
-from typing import Any, Optional, cast
+from typing import Any, Iterable, Optional, cast
 
 from lineapy.constants import (
     ADD,
@@ -38,6 +38,7 @@ from lineapy.constants import (
 )
 from lineapy.data.types import (
     CallNode,
+    LiteralNode,
     Node,
     SourceCode,
     SourceCodeLocation,
@@ -86,9 +87,12 @@ def transform(
 
 class NodeTransformer(ast.NodeTransformer):
     """
-    Notes:
+    NOTE
+    ----
+
     - Need to be careful about the order by which these calls are invoked
       so that the transformation do not get called more than once.
+
     """
 
     def __init__(
@@ -117,15 +121,26 @@ class NodeTransformer(ast.NodeTransformer):
         """
 
         if isinstance(
-            node, (ast.ClassDef, ast.If, ast.For, ast.FunctionDef, ast.While)
+            node,
+            ast.stmt,
         ):
             return self._exec_statement(node)
-        elif isinstance(node, (ast.ListComp, ast.Lambda)):
+        elif isinstance(node, ast.expr):
             return self._exec_expression(node)
         else:
             raise NotImplementedError(
                 f"Don't know how to transform {type(node).__name__}"
             )
+
+    def visit_Starred(self, node: ast.Starred) -> Iterable[LiteralNode]:
+        elemlist: Iterable = []
+        if isinstance(node.value, ast.Constant):
+            elemlist = cast(Iterable, node.value.value)
+        elif isinstance(node.value, ast.Name):
+            elemlist = cast(Iterable, self.tracer.values[node.value.id])
+
+        elem_nodes = [self.visit(ast.Constant(ele)) for ele in iter(elemlist)]
+        yield from elem_nodes
 
     def visit_Raise(self, node: ast.Raise) -> None:
         return super().visit_Raise(node)
@@ -177,7 +192,14 @@ class NodeTransformer(ast.NodeTransformer):
         """
 
         # this is the normal case, non-publish
-        argument_nodes = [self.visit(arg) for arg in node.args]
+        argument_nodes = []
+        for arg in node.args:
+            # special case for starred, we need to unpack shit
+            if isinstance(arg, ast.Starred):
+                for n in self.visit(arg):
+                    argument_nodes.append(n)
+            else:
+                argument_nodes.append(self.visit(arg))
         keyword_argument_nodes = {
             cast(str, arg.arg): self.visit(arg.value) for arg in node.keywords
         }
@@ -225,6 +247,7 @@ class NodeTransformer(ast.NodeTransformer):
     def visit_Assign(self, node: ast.Assign) -> None:
         """
         TODO
+        ----
         - None variable assignment, should be turned into a setattr call
           not an assignment, so we might need to change the return signature
           from ast.Expr.

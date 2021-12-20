@@ -26,6 +26,9 @@ bash:
 bash-airflow:
 	docker-compose run --rm ${service_name}-airflow /bin/bash
 
+build-docs:
+	docker-compose run --rm ${service_name} /bin/bash -c "cd docs && rm -rf source/build source/autogen && SPHINX_APIDOC_OPTIONS=members sphinx-apidoc -d 2 -f -o ./source/autogen ../lineapy/ && make html"
+
 test:
 	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow" -m "not airflow" tests/
 
@@ -43,7 +46,9 @@ blackfix:
 	docker run --rm -v "${PWD}":/data cytopia/black .
 
 typecheck:
-	#docker run --rm -v "${PWD}":/data cytopia/mypy .
+	docker-compose run --rm ${service_name} mypy .
+
+typecheck-dev:
 	docker-compose run --rm ${service_name} mypy -p lineapy
 
 export IPYTHONDIR=${PWD}/.ipython

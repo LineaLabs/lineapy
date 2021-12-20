@@ -52,6 +52,7 @@ from lineapy.db.relational import (
     SourceCodeORM,
 )
 from lineapy.db.utils import OVERRIDE_HELP_TEXT, resolve_db_url
+from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.utils import get_literal_value_from_string
 
 logger = logging.getLogger(__name__)
@@ -60,12 +61,13 @@ logger = logging.getLogger(__name__)
 class RelationalLineaDB:
     """
     - Note that LineaDB coordinates with assset manager and relational db.
+
       - The asset manager deals with binaries (e.g., cached values)
         The relational db deals with more structured data,
         such as the Nodes and edges.
     - Also, at some point we might have a "cache" such that the readers
-        don't have to go to the database if it's already
-        loaded, but that's low priority.
+      don't have to go to the database if it's already
+      loaded, but that's low priority.
     """
 
     def __init__(self, url: str):
@@ -131,7 +133,11 @@ class RelationalLineaDB:
         """
         End the transaction and commit the changes.
         """
-        self.session.commit()
+        try:
+            self.session.commit()
+        except Exception as e:
+            self.session.rollback()
+            raise ArtifactSaveException() from e
 
     def close(self):
         """

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def get_slice_graph(graph: Graph, sinks: List[LineaID]) -> Graph:
     """
     Takes a full graph from the session
-        and produces the subset responsible for the "sinks".
+    and produces the subset responsible for the "sinks".
 
     """
     ancestors: Set[LineaID] = set(sinks)
@@ -69,7 +69,7 @@ def get_program_slice(graph: Graph, sinks: List[LineaID]) -> str:
     :param program: the computation graph.
     :param sinks: artifacts to get the code slice for.
     :return: string containing the necessary and sufficient code for
-    computing sinks.
+        computing sinks.
     """
     logger.debug("Slicing graph %s", graph)
     subgraph = get_slice_graph(graph, sinks)

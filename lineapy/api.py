@@ -5,9 +5,12 @@ We should keep these external APIs as small as possible, and unless there is
   a very compelling use case, not support more than one way to access the
   same feature.
 """
+import pickle
+import types
 from datetime import datetime
 
 from lineapy.data.types import Artifact, NodeValue
+from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.utils import get_value_type
@@ -44,6 +47,8 @@ def save(value: object, description: str, /) -> LineaArtifact:
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
+        if not _can_save_to_db(value):
+            raise ArtifactSaveException()
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
@@ -74,6 +79,34 @@ def save(value: object, description: str, /) -> LineaArtifact:
         session_id=call_node.session_id,
         name=description,
     )
+
+
+def _can_save_to_db(value: object) -> bool:
+    """
+    Tests if the value is of a type that can be serialized to the DB.
+
+    Note
+    ----
+
+    An alternate proposed was to pickle here and create a binary and pass that to the db.
+    - Pro
+
+      - it will allow us to use any serializer to create binaries - could be a better pickler, another completely diff method.
+
+    - Con
+
+      - We'll have to handle the reads manually as well and all that change is beyond the scope of this PR.
+
+    if pickle performance becomes an issue, a new issue should be opened.
+
+    """
+    if isinstance(value, types.ModuleType):
+        return False
+    try:
+        pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
+    except pickle.PicklingError:
+        return False
+    return True
 
 
 def get(artifact_name: str) -> LineaArtifact:

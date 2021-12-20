@@ -61,8 +61,9 @@ def l_dict(
     There is a special case for dictionary unpacking. In this case, the
     key will be an instance of _DictKwargsSentinel.
 
-    For example, if the user creates a dict like {1: 2, **d, 3: 4},
-    then it will create a call like"
+    For example, if the user creates a dict like ``{1: 2, **d, 3: 4}``,
+    then it will create a call like::
+
     __build_dict__((1, 2), (__build_dict_kwargs_sentinel__(), d), (3, 4))
 
     We use a sentinel value instead of None, because None can be a valid
@@ -99,11 +100,13 @@ _EXEC_EXPRESSION_SAVED_NAME = "__linea_expresion__"
 @register
 def l_exec_statement(code: str) -> None:
     """
+    Executes code statements. These typically are ast nodes that inherit from ast.stmt.
+    Examples include ast.ClassDef, ast.If, ast.For, ast.FunctionDef, ast.While, ast.Try, ast.With
+
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
 
-    If the code is an expression, it will return the result as well as the last
-    argument.
+    :return: None. Since the code is a statement, it will not return anything
     """
     context = get_context()
     source_location = context.node.source_location
@@ -125,10 +128,13 @@ def l_exec_statement(code: str) -> None:
 @register
 def l_exec_expr(code: str) -> object:
     """
+    Executes code expressions. These typically are ast nodes that inherit from ast.expr.
+    Examples include ast.ListComp, ast.Lambda
+
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
 
-    If the code is an expression, it will return the result as well as the last
+    :return: it will return the result as well as the last
     argument.
     """
     context = get_context()
@@ -155,7 +161,26 @@ class ExternalState:
 
 
 file_system = register(ExternalState("file_system"))
-db = register(ExternalState("db"))
+"""
+The class file_system tracks `mutations` to the file system. 
+This currently includes `ANY` writes to the system irrespective of the file name.
 
+TODO
+====
+
+    - Add a way to track writes to specific files
+"""
+db = register(ExternalState("db"))
+"""
+Similar to file_system, the class db tracks `mutations` to the database. 
+This currently includes `ANY` writes to the db irrespective of the file name.
+We also do not support parsing the connection string so if there are multiple
+dbs or shards, all will be treated as one abstract db.
+
+TODO
+====
+
+    - Add a way to track writes to specific tables
+"""
 
 LINEA_BUILTINS = {f.__name__: f for f in _builtins}

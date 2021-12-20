@@ -2,9 +2,15 @@ import io
 import os
 import re
 
+# read the contents of your README file
+from pathlib import Path
+
 from setuptools import find_packages, setup
 
-LONG_DESCRIPTION = """"""
+this_directory = Path(__file__).parent
+LONG_DESCRIPTION = (this_directory / "README.md").read_text()
+
+# LONG_DESCRIPTION = """"""
 DESCRIPTION = ""
 NAME = "lineapy"
 AUTHOR = "linealabs"
@@ -41,6 +47,7 @@ setup(
     version=VERSION,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
+    long_description_content_type="text/markdown",
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
     url=URL,
@@ -88,6 +95,8 @@ setup(
             "graphviz",
             "pre-commit",
             "SQLAlchemy[mypy]>=1.4.0",
+            "sphinx",
+            "sphinx_rtd_theme",
         ]
     },
     include_package_data=True,

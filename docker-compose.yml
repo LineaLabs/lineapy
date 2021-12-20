@@ -8,6 +8,7 @@ services:
       - ./tests:/usr/src/base/tests
       - ./pyproject.toml:/usr/src/base/pyproject.toml
       - ./pytest.ini:/usr/src/base/pytest.ini
+      - ./docs:/usr/src/base/docs
   lineapy-airflow:
     image: ${IMAGE_NAME_AIRFLOW}
     build:
@@ -19,5 +20,4 @@ services:
       - lineapy
     ports:
       - 8080:8080
-    command: airflow standalone 
-
+    command: airflow standalone
