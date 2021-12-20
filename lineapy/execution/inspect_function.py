@@ -4,7 +4,7 @@ import operator
 import sys
 import types
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Union
+from typing import Any, Callable, Dict, Iterable, List, Union
 
 import joblib
 
@@ -13,8 +13,8 @@ from lineapy.lineabuiltins import ExternalState, db, file_system, l_list
 
 def inspect_function(
     function: Callable,
-    args: list[object],
-    kwargs: dict[str, object],
+    args: List[object],
+    kwargs: Dict[str, object],
     result: object,
 ) -> InspectFunctionSideEffects:
     """
@@ -182,7 +182,7 @@ class ViewOfValues:
     """
 
     # They are unique, like a set, but ordered for deterministc behaviour
-    pointers: list[ValuePointer]
+    pointers: List[ValuePointer]
 
     def __init__(self, *xs: ValuePointer) -> None:
         self.pointers = list(xs)

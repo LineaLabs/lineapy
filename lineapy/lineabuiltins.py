@@ -1,5 +1,14 @@
 from dataclasses import dataclass
-from typing import List, Mapping, Optional, Protocol, TypeVar, Union
+from typing import (
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Protocol,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from lineapy.execution.context import get_context
 from lineapy.ipython_cell_storage import get_location_path
@@ -14,7 +23,7 @@ class HasName(Protocol):
         ...
 
 
-_builtins: list[HasName] = []
+_builtins: List[HasName] = []
 HAS_NAME = TypeVar("HAS_NAME", bound=HasName)
 
 
@@ -52,9 +61,9 @@ V = TypeVar("V")
 @register
 def l_dict(
     *keys_and_values: Union[
-        tuple[K, V], tuple[_DictKwargsSentinel, Mapping[K, V]]
+        Tuple[K, V], Tuple[_DictKwargsSentinel, Mapping[K, V]]
     ]
-) -> dict[K, V]:
+) -> Dict[K, V]:
     """
     Build a dict from a number of key value pairs.
 
@@ -69,7 +78,7 @@ def l_dict(
     We use a sentinel value instead of None, because None can be a valid
     dictionary key.
     """
-    d: dict[K, V] = {}
+    d: Dict[K, V] = {}
     for (key, value) in keys_and_values:
         if isinstance(key, _DictKwargsSentinel):
             d.update(value)  # type: ignore

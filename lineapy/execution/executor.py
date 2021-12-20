@@ -8,7 +8,17 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from functools import singledispatchmethod
 from os import chdir, getcwd
-from typing import Callable, Hashable, Iterable, Optional, Tuple, Union, cast
+from typing import (
+    Callable,
+    Dict,
+    Hashable,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -75,23 +85,23 @@ class Executor:
 
     # The globals for this execution, to use when trying to lookup a value
     # Note: This is set in Jupyter so that `get_ipython` is defined
-    _globals: dict[str, object]
-    _id_to_value: dict[LineaID, object] = field(default_factory=dict)
-    _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
+    _globals: Dict[str, object]
+    _id_to_value: Dict[LineaID, object] = field(default_factory=dict)
+    _execution_time: Dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
     )
     # Mapping of bound method node ids to the ID of the instance they are bound to
-    _node_to_bound_self: dict[LineaID, LineaID] = field(default_factory=dict)
+    _node_to_bound_self: Dict[LineaID, LineaID] = field(default_factory=dict)
 
     # Mapping of call node to the globals that were updated
     # TODO: rename to variable
-    _node_to_globals: dict[LineaID, dict[str, object]] = field(
+    _node_to_globals: Dict[LineaID, Dict[str, object]] = field(
         default_factory=dict
     )
 
     # Mapping of values to their nodes. Currently the only values
     # in here are external state values
-    _value_to_node: dict[Hashable, LineaID] = field(default_factory=dict)
+    _value_to_node: Dict[Hashable, LineaID] = field(default_factory=dict)
 
     def __post_init__(self):
         self.execution = Execution(
@@ -112,7 +122,7 @@ class Executor:
         return self._id_to_value[node.id]
 
     def execute_node(
-        self, node: Node, variables: Optional[dict[str, LineaID]]
+        self, node: Node, variables: Optional[Dict[str, LineaID]]
     ) -> SideEffects:
         """
         Variables is the mapping from local variable names to their nodes. It
@@ -134,7 +144,7 @@ class Executor:
         logger.debug("Executing node %s", node)
 
         # To use if we need to raise an exception and change the frame
-        default_changes: list[AddFrame] = []
+        default_changes: List[AddFrame] = []
         # If we know the source location, add that frame at the top
         if node.source_location:
             location = node.source_location.source_code.location
@@ -178,7 +188,7 @@ class Executor:
         self,
         node: Node,
         changes: Iterable[TracebackChange],
-        variables: Optional[dict[str, LineaID]],
+        variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
         """
         Executes a node, returning the resulting value, the start and end times,
@@ -193,7 +203,7 @@ class Executor:
         self,
         node: LookupNode,
         changes: Iterable[TracebackChange],
-        variables: Optional[dict[str, LineaID]],
+        variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
         # If we get a lookup error, change it to a name error to match python
         try:
@@ -211,7 +221,7 @@ class Executor:
         self,
         node: CallNode,
         changes: Iterable[TracebackChange],
-        variables: Optional[dict[str, LineaID]],
+        variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
 
         # execute the function
@@ -254,7 +264,7 @@ class Executor:
 
         # Any nodes that we retrieved that were mutable, assume were mutated
         # Filter the vars by if the value is mutable
-        mutable_input_vars: list[ExecutorPointer] = [
+        mutable_input_vars: List[ExecutorPointer] = [
             ID(id_)
             for id_ in globals_result.accessed_inputs.values()
             if is_mutable(self._id_to_value[id_])
@@ -276,7 +286,7 @@ class Executor:
         # to the node they pointed to before the function call
         # and mutated ones will refer to the new GlobalNodes that
         # were created when processing `AccessedGlobals`
-        mutable_output_vars: list[ExecutorPointer] = [
+        mutable_output_vars: List[ExecutorPointer] = [
             Variable(k)
             for k, v in globals_result.added_or_modified.items()
             if is_mutable(v)
@@ -296,7 +306,7 @@ class Executor:
         self,
         node: ImportNode,
         changes: Iterable[TracebackChange],
-        variables: Optional[dict[str, LineaID]],
+        variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
         try:
             start_time = datetime.now()
@@ -326,7 +336,7 @@ class Executor:
         self,
         node: LiteralNode,
         changes: Iterable[TracebackChange],
-        variables: Optional[dict[str, LineaID]],
+        variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
         return PrivateExecuteResult(
             node.value, datetime.now(), datetime.now(), []
@@ -337,7 +347,7 @@ class Executor:
         self,
         node: GlobalNode,
         changes: Iterable[TracebackChange],
-        variables: Optional[dict[str, LineaID]],
+        variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
         return PrivateExecuteResult(
             # Copy the result and the timing from the call node
@@ -351,7 +361,7 @@ class Executor:
         self,
         node: MutateNode,
         changes: Iterable[TracebackChange],
-        variables: Optional[dict[str, LineaID]],
+        variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
         return PrivateExecuteResult(
             # Copy the result and the timing from the source node
@@ -438,7 +448,7 @@ class ViewOfNodes:
     """
 
     # An ordered set
-    pointers: list[ExecutorPointer]
+    pointers: List[ExecutorPointer]
 
 
 @dataclass
@@ -456,14 +466,14 @@ class AccessedGlobals:
     Represents some global variables that were retireved or changed during this call.
     """
 
-    retrieved: list[str]
-    added_or_updated: list[str]
+    retrieved: List[str]
+    added_or_updated: List[str]
 
 
 SideEffect = Union[
     MutatedNode, ViewOfNodes, AccessedGlobals, ImplicitDependencyNode
 ]
-SideEffects = list[SideEffect]
+SideEffects = List[SideEffect]
 
 
 @dataclass

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Any, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
@@ -273,7 +273,7 @@ class RelationalLineaDB:
     """
 
     def map_orm_to_pydantic(self, node: NodeORM) -> Node:
-        args: dict[str, Any] = {
+        args: Dict[str, Any] = {
             "id": node.id,
             "session_id": node.session_id,
             "node_type": node.node_type,
@@ -411,7 +411,7 @@ class RelationalLineaDB:
 
     def get_artifacts_for_session(
         self, session_id: LineaID
-    ) -> list[ArtifactORM]:
+    ) -> List[ArtifactORM]:
         """
         Gets a code slice for an artifact by name, assuming there is only
         one artifact with that name,

@@ -5,7 +5,7 @@ import datetime
 import enum
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Iterable, cast
+from typing import TYPE_CHECKING, Dict, Iterable, cast
 
 from pydantic import BaseModel
 from pydantic.fields import SHAPE_DICT, SHAPE_LIST
@@ -39,11 +39,11 @@ class GraphPrinter:
 
     # Set to True to nest node strings, when they only have one successor.
     nest_nodes: bool = field(default=True)
-    id_to_attribute_name: dict[LineaID, str] = field(default_factory=dict)
+    id_to_attribute_name: Dict[LineaID, str] = field(default_factory=dict)
 
     # Mapping of each node types to the count of nodes of that type printed
     # so far to create variables based on node type.
-    node_type_to_count: dict[NodeType, int] = field(
+    node_type_to_count: Dict[NodeType, int] = field(
         default_factory=lambda: collections.defaultdict(lambda: 0)
     )
 
@@ -159,7 +159,7 @@ class GraphPrinter:
                 args = [
                     f"{repr(k)}: {self.lookup_id(id_)}"
                     for k, id_ in sorted(
-                        cast(dict[str, LineaID], v).items(), key=lambda x: x[0]
+                        cast(Dict[str, LineaID], v).items(), key=lambda x: x[0]
                     )
                 ]
                 v_str = "{" + ", ".join(args) + "}"
