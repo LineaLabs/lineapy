@@ -42,6 +42,6 @@ dag = DAG(
 
 sliced_housing_dag = PythonOperator(
     dag=dag,
-    task_id=f"sliced_housing_dag_task",
+    task_id="sliced_housing_dag_task",
     python_callable=sliced_housing_dag,
 )
