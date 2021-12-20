@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 from black import FileMode, format_str
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 
 from lineapy.config import linea_folder
 from lineapy.graph_reader.program_slice import (
