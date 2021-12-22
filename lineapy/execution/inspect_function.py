@@ -278,14 +278,16 @@ def inspect_function(
         specs, base_specs = get_specs()
 
         def get_root_module(fun: Callable):
-            return fun.__module__.split(".")[0]
+            if hasattr(fun, "__module__") and fun.__module__ is not None:
+                return fun.__module__.split(".")[0]
+            return None
 
         if function.__module__ in specs:
             yield from _check_annotation(
                 specs[function.__module__], module=function.__module__
             )
         root_module = get_root_module(function)
-        if root_module in specs:
+        if root_module is not None and root_module in specs:
             yield from _check_annotation(specs[root_module], module=root_module)
         if has_yielded:
             return
