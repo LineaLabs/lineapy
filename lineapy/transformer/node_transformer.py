@@ -80,6 +80,19 @@ def transform(
         )
     except SyntaxError as e:
         raise UserException(e, RemoveFrames(2))
+    if sys.version_info < (3, 8):
+        from asttokens import ASTTokens
+
+        from lineapy.transformer.source_giver import SourceGiver
+
+        # if python version is 3.7 or below, we need to run the source_giver
+        # to add the end_lineno's to the nodes. We do this in two steps - first
+        # the asttoken lib does its thing and adds tokens to the nodes
+        # and then we swoop in and copy the end_lineno from the tokens
+        # and claim credit for their hard work
+        ASTTokens(code, parse=False, tree=tree)
+        SourceGiver().transform(tree)
+
     node_transformer.visit(tree)
 
     tracer.db.commit()
@@ -113,7 +126,9 @@ class NodeTransformer(ast.NodeTransformer):
 
     def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
         if sys.version_info < (3, 8):
-            return " "
+            from lineapy.deprecation_utils import get_source_segment
+
+            return get_source_segment(self.source_code.code, node, padded=True)
         else:
             return ast.get_source_segment(
                 self.source_code.code, node, padded=True
@@ -622,19 +637,19 @@ class NodeTransformer(ast.NodeTransformer):
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):
             return None
-        if sys.version_info < (3, 8):
-            return SourceLocation(
-                source_code=self.source_code,
-                lineno=node.lineno,
-                col_offset=node.col_offset,
-                end_lineno=-1,
-                end_col_offset=-1,
-            )
-        else:
-            return SourceLocation(
-                source_code=self.source_code,
-                lineno=node.lineno,
-                col_offset=node.col_offset,
-                end_lineno=node.end_lineno,
-                end_col_offset=node.end_col_offset,
-            )
+        # if sys.version_info < (3, 8):
+        #     return SourceLocation(
+        #         source_code=self.source_code,
+        #         lineno=node.lineno,
+        #         col_offset=node.col_offset,
+        #         end_lineno=-1,
+        #         end_col_offset=-1,
+        #     )
+        # else:
+        return SourceLocation(
+            source_code=self.source_code,
+            lineno=node.lineno,
+            col_offset=node.col_offset,
+            end_lineno=node.end_lineno,
+            end_col_offset=node.end_col_offset,
+        )

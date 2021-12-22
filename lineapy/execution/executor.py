@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 try:
-    from functools import singledispatchmethod
+    from functools import singledispatchmethod  # type: ignore
 except ImportError:
     # this is the fallback for python < 3.8
     # https://stackoverflow.com/questions/24601722

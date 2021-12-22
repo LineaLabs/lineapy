@@ -330,7 +330,7 @@ class TestEndToEnd:
 
     def test_alias_by_value(self, execute):
         res = execute(ALIAS_BY_VALUE)
-        print(res.graph)
+        # print(res.graph)
         assert res.values["a"] == 2
         assert res.values["b"] == 0
 
