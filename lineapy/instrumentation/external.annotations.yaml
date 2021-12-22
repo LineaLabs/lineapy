@@ -11,7 +11,7 @@
       class_instance: DataFrame
     side_effects:
     - mutated_value:
-        external_state: DB
+        external_state: db
   - criteria:
       class_method_names:
       - to_csv

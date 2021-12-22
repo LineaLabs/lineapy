@@ -5,7 +5,7 @@ import glob
 import logging
 import sys
 from types import BuiltinMethodType, MethodType
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import yaml
 from pydantic import ValidationError
@@ -20,6 +20,7 @@ from lineapy.instrumentation.annotation_spec import (
     Criteria,
     ExternalState,
     FunctionName,
+    FunctionNames,
     InspectFunctionSideEffect,
     KeywordArgument,
     KeywordArgumentCriteria,
@@ -108,26 +109,42 @@ def check_function_against_annotation(
     args: list[object],
     kwargs: dict[str, object],
     criteria: Criteria,
+    module: Optional[str] = None,
     base_module: Optional[str] = None,
 ):
     """
     Helper function for inspect_function.
+    The checking for __self__ is for sometimes when it's a class instantiation method.
     """
+
+    def check_class(criteria: Union[ClassMethodName, ClassMethodNames]):
+        return (
+            hasattr(function, "__self__")
+            and module is not None
+            and module in sys.modules
+            and isinstance(
+                function.__self__,
+                getattr(sys.modules[module], criteria.class_instance),
+            )
+        )
+
     if isinstance(criteria, FunctionName):
         if criteria.function_name == function.__name__:
             return True
         return False
+    if isinstance(criteria, FunctionNames):
+        if function.__name__ in criteria.function_names:
+            return True
+        return False
     if isinstance(criteria, ClassMethodName):
-        if (
-            criteria.class_instance == function.__self.__.__module__
-            and function.__name__ == criteria.class_method_name
+        if function.__name__ == criteria.class_method_name and check_class(
+            criteria
         ):
             return True
         return False
     if isinstance(criteria, ClassMethodNames):
-        if (
-            criteria.class_instance == function.__self.__.__module__
-            and function.__name__ in criteria.class_method_names
+        if function.__name__ in criteria.class_method_names and check_class(
+            criteria
         ):
             return True
         return False
@@ -214,12 +231,19 @@ def inspect_function(
     has_yielded = False
 
     def _check_annotation(
-        annotations: List[Annotation], base_spec_module: Optional[str] = None
+        annotations: List[Annotation],
+        module: Optional[str] = None,
+        base_spec_module: Optional[str] = None,
     ):
         nonlocal has_yielded
         for annotation in annotations:
             if check_function_against_annotation(
-                function, args, kwargs, annotation.criteria, base_spec_module
+                function,
+                args,
+                kwargs,
+                annotation.criteria,
+                module,
+                base_spec_module,
             ):
                 for side_effect in annotation.side_effects:
                     processed = process_side_effect(
@@ -230,6 +254,7 @@ def inspect_function(
                         has_yielded = True
                 if has_yielded:
                     return
+        return
 
     # we have a special case here whose structure is not
     #   shared with any other cases...
@@ -239,7 +264,9 @@ def inspect_function(
         and isinstance(function.__self__, list)
     ):
         # list.append(value)
-        yield MutatedValue(mutated_value=BoundSelfOfFunction(self_ref="SELF_REF"))
+        yield MutatedValue(
+            mutated_value=BoundSelfOfFunction(self_ref="SELF_REF")
+        )
         if is_mutable(args[0]):
             yield ViewOfValues(
                 views=[
@@ -249,8 +276,17 @@ def inspect_function(
             )
     else:
         specs, base_specs = get_specs()
+
+        def get_root_module(fun: Callable):
+            return fun.__module__.split(".")[0]
+
         if function.__module__ in specs:
-            yield from _check_annotation(specs[function.__module__])
+            yield from _check_annotation(
+                specs[function.__module__], module=function.__module__
+            )
+        root_module = get_root_module(function)
+        if root_module in specs:
+            yield from _check_annotation(specs[root_module], module=root_module)
         if has_yielded:
             return
 
@@ -262,6 +298,6 @@ def inspect_function(
             # there doesn't seem to be a way to hash thru this...
             # so we'll loop for now
             yield from _check_annotation(
-                base_specs[base_spec_module], base_spec_module
+                base_specs[base_spec_module], base_spec_module=base_spec_module
             )
         return
