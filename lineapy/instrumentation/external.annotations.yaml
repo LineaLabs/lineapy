@@ -19,14 +19,14 @@
       class_instance: DataFrame
     side_effects:
     - mutated_value:
-        external_state: FILE_SYSTEM
+        external_state: file_system
   - criteria: # I omitted pandas.io.sql, lets see if this works
       function_names:
       - read_sql
       - read_parquet
     side_effects:
     - dependency:
-        external_state: DB
+        external_state: db
 - module: boto3
   annotations:
   - criteria:
@@ -35,26 +35,26 @@
       - upload_fileobj
     side_effects:
     - mutated_value:
-        external_state: FILE_SYSTEM
+        external_state: file_system
 - module: PIL.Image
   annotations:
   - criteria:
      function_name: save
     side_effects:
     - mutated_value:
-        external_state: FILE_SYSTEM
+        external_state: file_system
   - criteria:
      function_name: open
     side_effects:
     - dependency:
-        external_state: FILE_SYSTEM
+        external_state: file_system
 - module: joblib
   annotations:
   - criteria:
       function_name: dump
     side_effects:
     - mutated_value:
-        external_state: FILE_SYSTEM
+        external_state: file_system
 - base_module: sklearn.base
   annotations:
   - criteria:

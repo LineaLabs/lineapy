@@ -181,7 +181,3 @@ class ModuleAnnotation(BaseModel):
         allow_mutation = False
         extra = "forbid"
 
-
-# the FILE_SYSTEM and DB needs to match the yaml config
-file_system = ExternalState(external_state="FILE_SYSTEM")
-db = ExternalState(external_state="db")

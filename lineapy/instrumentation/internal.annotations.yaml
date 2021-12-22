@@ -43,4 +43,4 @@
       function_name: open
     side_effects:
     - dependency:
-        external_state: FILE_SYSTEM
+        external_state: file_system
