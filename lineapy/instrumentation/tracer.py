@@ -192,9 +192,10 @@ class Tracer:
                     node, self._resolve_pointer(e.pointer)
                 )
             elif isinstance(e, ViewOfNodes):
-                self.mutation_tracker.set_as_viewers_of_eachother(
-                    *map(self._resolve_pointer, e.pointers)
-                )
+                if len(e.pointers) > 0:  # skip if empty
+                    self.mutation_tracker.set_as_viewers_of_eachother(
+                        *map(self._resolve_pointer, e.pointers)
+                    )
             elif isinstance(e, AccessedGlobals):
                 self._process_accessed_globals(
                     node.session_id, node, e.retrieved, e.added_or_updated
@@ -236,9 +237,7 @@ class Tracer:
         # Only call nodes can refer to implicit dependencies
         assert isinstance(node, CallNode)
         node.implicit_dependencies.append(
-            self.mutation_tracker.get_latest_mutate_node(
-                implicit_dependency_id
-            )
+            self.mutation_tracker.get_latest_mutate_node(implicit_dependency_id)
         )
 
     def _process_accessed_globals(

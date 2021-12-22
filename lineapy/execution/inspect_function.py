@@ -239,11 +239,11 @@ def inspect_function(
         and isinstance(function.__self__, list)
     ):
         # list.append(value)
-        yield MutatedValue(mutated_value=BoundSelfOfFunction())
+        yield MutatedValue(mutated_value=BoundSelfOfFunction(self_ref="SELF_REF"))
         if is_mutable(args[0]):
             yield ViewOfValues(
                 views=[
-                    BoundSelfOfFunction(),
+                    BoundSelfOfFunction(self_ref="SELF_REF"),
                     PositionalArg(positional_argument_index=0),
                 ]
             )
