@@ -5,7 +5,7 @@
       keyword_arg_value: 0
     side_effects:
     - mutated_value:
-        self: SELF
+        self_ref: SELF_REF
   - criteria:
       class_method_name: to_sql
       class_instance: DataFrame
@@ -62,9 +62,10 @@
       class_method_name: fit
     side_effects:
     - mutated_value:
-        self: SELF
+        self_ref: SELF_REF # self is a keyword...
     - views:
-      - self: SELF
+      - self_ref: SELF_REF
       - result: RESULT
+      - all_positional_arguments:  ALL_POSITIONAL_ARGUMENTS
 
         

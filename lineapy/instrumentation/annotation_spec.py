@@ -25,7 +25,8 @@ class PositionalArg(BaseModel):
 
 
 class AllPositionalArgs(BaseModel):
-    all_positional_arguments: str = "ALL_POSITIONAL_ARGUMENTS"
+    # ALL_POSITIONAL_ARGUMENTS
+    all_positional_arguments: str
 
 
 class KeywordArgument(BaseModel):
@@ -36,17 +37,20 @@ class BoundSelfOfFunction(BaseModel):
     """
     If the function is a bound method, this refers to the instance that was
     bound of the method.
+
+    We are expecting "SELF_REF" though it's not needed
     """
 
-    self: Optional[str] = "SELF"
+    self_ref: str
 
 
 class Result(BaseModel):
     """
     The result of a function call, used to describe a View.
+    #  "RESULT"
     """
 
-    result: str = "RESULT"
+    result: str
 
 
 class ExternalState(BaseModel):

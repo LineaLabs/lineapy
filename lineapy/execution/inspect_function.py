@@ -18,8 +18,10 @@ from lineapy.instrumentation.annotation_spec import (
     ClassMethodName,
     ClassMethodNames,
     Criteria,
+    ExternalState,
     FunctionName,
     InspectFunctionSideEffect,
+    KeywordArgument,
     KeywordArgumentCriteria,
     ModuleAnnotation,
     MutatedValue,
@@ -137,7 +139,7 @@ def check_function_against_annotation(
             and function.__name__ == criteria.class_method_name
             and (
                 isinstance(
-                    function.__self___,
+                    function.__self__,
                     getattr(try_import(base_module), criteria.base_class),
                 )
             )
@@ -149,18 +151,23 @@ def check_function_against_annotation(
 
 
 def process_side_effect(
-    side_effect: InspectFunctionSideEffect, args: list, result: object
+    side_effect: InspectFunctionSideEffect,
+    args: list,
+    kwargs: dict[str, object],
+    result: object,
 ) -> Optional[InspectFunctionSideEffect]:
     def is_reference_mutable(p: ValuePointer) -> bool:
         if isinstance(p, Result):
             return is_mutable(result)
         if isinstance(p, PositionalArg):
             return is_mutable(args[p.positional_argument_index])
-        # shouldn't really be called
-        # TODO: maybe bring back our custom errors?
-        raise Exception("The other cases should not have been called.")
+        if isinstance(p, BoundSelfOfFunction) or isinstance(p, ExternalState):
+            return True  # object
+        if isinstance(p, KeywordArgument):
+            return is_mutable(kwargs[p.argument_keyword])
+        raise Exception(f"ValuePointer {p} of type {type(p)} not handled.")
 
-    def check_view_of_values(side_effect: ViewOfValues):
+    def check_view_of_values(side_effect: ViewOfValues) -> ViewOfValues:
         for i, v in enumerate(side_effect.views):
             if isinstance(v, AllPositionalArgs):
                 side_effect.views.pop(i)
@@ -170,18 +177,20 @@ def process_side_effect(
                         for i, a in enumerate(args)
                     )
                 )
-            return
+                return side_effect
+        return side_effect
 
     if isinstance(side_effect, ViewOfValues):
         # TODO: also need to check for mutability
-        check_view_of_values(side_effect)
+        side_effect = check_view_of_values(side_effect)
         side_effect.views = list(
-            filter(lambda x: is_mutable(x), side_effect.views)
+            filter(lambda x: is_reference_mutable(x), side_effect.views)
         )
+        return side_effect
     if isinstance(side_effect, MutatedValue) and is_reference_mutable(
         side_effect.mutated_value
     ):
-        return side_effect
+        return side_effect  # FIXME: this seemes odd...
     return side_effect
     # check if they are mutable
 
@@ -199,14 +208,18 @@ def inspect_function(
     """
     has_yielded = False
 
-    def _check_annotation(annotations: List[Annotation]):
+    def _check_annotation(
+        annotations: List[Annotation], base_spec_module: Optional[str] = None
+    ):
         nonlocal has_yielded
         for annotation in annotations:
             if check_function_against_annotation(
-                function, args, kwargs, annotation.criteria
+                function, args, kwargs, annotation.criteria, base_spec_module
             ):
                 for side_effect in annotation.side_effects:
-                    processed = process_side_effect(side_effect, args, result)
+                    processed = process_side_effect(
+                        side_effect, args, kwargs, result
+                    )
                     if processed is not None:
                         yield processed
                         has_yielded = True
@@ -236,8 +249,14 @@ def inspect_function(
         if has_yielded:
             return
 
-        # there doesn't seem to be a way to hash thru this...
-        # so we'll loop for now,
+        if not isinstance(function, MethodType):
+            # base classes have to be a method type, helps skip through
+            #   some options
+            return
         for base_spec_module in base_specs:
-            yield from _check_annotation(base_specs[base_spec_module])
+            # there doesn't seem to be a way to hash thru this...
+            # so we'll loop for now
+            yield from _check_annotation(
+                base_specs[base_spec_module], base_spec_module
+            )
         return
