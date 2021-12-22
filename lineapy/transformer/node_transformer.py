@@ -201,6 +201,8 @@ class NodeTransformer(ast.NodeTransformer):
             elemlist = cast(Iterable, node.value.value)
         elif isinstance(node.value, ast.Name):
             elemlist = cast(Iterable, self.tracer.values[node.value.id])
+        elif isinstance(node.value, ast.Str):
+            elemlist = cast(Iterable, node.value.s)
 
         elem_nodes = [self.visit(ast.Constant(ele)) for ele in iter(elemlist)]
         yield from elem_nodes
@@ -650,6 +652,6 @@ class NodeTransformer(ast.NodeTransformer):
             source_code=self.source_code,
             lineno=node.lineno,
             col_offset=node.col_offset,
-            end_lineno=node.end_lineno,
-            end_col_offset=node.end_col_offset,
+            end_lineno=node.end_lineno,  # type: ignore
+            end_col_offset=node.end_col_offset,  # type: ignore
         )

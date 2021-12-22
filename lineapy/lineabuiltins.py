@@ -1,3 +1,4 @@
+import sys
 from typing import Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
 from lineapy.execution.context import get_context
@@ -8,19 +9,39 @@ from lineapy.ipython_cell_storage import get_location_path
 # Then at the end, make a dict out of all of them, from their names
 
 
-class HasName:
-    @property
-    def __name__(self) -> str:
-        ...
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+
+    class HasName(Protocol):
+        @property
+        def __name__(self) -> str:
+            ...
+
+
+else:
+
+    class HasName:
+        @property
+        def __name__(self) -> str:
+            ...
 
 
 _builtins: List[HasName] = []
-HAS_NAME = TypeVar("HAS_NAME", bound=HasName)
+
+if sys.version_info >= (3, 8):
+
+    HAS_NAME = TypeVar("HAS_NAME", bound=HasName)
+
+    def register(b: "HAS_NAME") -> "HAS_NAME":
+        _builtins.append(b)
+        return b
 
 
-def register(b: HAS_NAME) -> HAS_NAME:
-    _builtins.append(b)
-    return b
+else:
+
+    def register(b):
+        _builtins.append(b)
+        return b
 
 
 @register

@@ -30,7 +30,7 @@ build-docs:
 	docker-compose run --rm ${service_name} /bin/bash -c "cd docs && rm -rf source/build source/autogen && SPHINX_APIDOC_OPTIONS=members sphinx-apidoc -d 2 -f -o ./source/autogen ../lineapy/ && make html"
 
 test:
-	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow" -m "not airflow" tests/
+	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow and not airflow" tests/
 
 test-github-action:
 	docker-compose run --rm ${service_name} pytest ${args}
