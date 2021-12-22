@@ -200,6 +200,7 @@ def inspect_function(
     has_yielded = False
 
     def _check_annotation(annotations: List[Annotation]):
+        nonlocal has_yielded
         for annotation in annotations:
             if check_function_against_annotation(
                 function, args, kwargs, annotation.criteria
@@ -231,12 +232,12 @@ def inspect_function(
     else:
         specs, base_specs = get_specs()
         if function.__module__ in specs:
-            _check_annotation(specs[function.__module__])
+            yield from _check_annotation(specs[function.__module__])
         if has_yielded:
             return
 
         # there doesn't seem to be a way to hash thru this...
         # so we'll loop for now,
         for base_spec_module in base_specs:
-            _check_annotation(base_specs[base_spec_module])
+            yield from _check_annotation(base_specs[base_spec_module])
         return
