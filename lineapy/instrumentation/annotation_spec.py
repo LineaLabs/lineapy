@@ -59,9 +59,15 @@ class ExternalState(BaseModel):
 
     If we ever make a reference to an external state instance, we assume
     that it depends on any mutations of previous references.
+
+    Elsewhere we need ExternalState to be hashable, it was pretty easy with Dataclass (frozen option), but with Pydantic, we have to add an extract hash function
+    https://github.com/samuelcolvin/pydantic/issues/1303
     """
 
     external_state: str
+
+    def __hash__(self):
+        return hash((type(self),) + tuple(self.__dict__.values()))
 
 
 # A value representing a pointer to some value related to a function call
