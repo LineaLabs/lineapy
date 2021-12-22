@@ -66,6 +66,10 @@ class ExternalState(BaseModel):
 
     external_state: str
 
+    @property
+    def __name__(self):
+        return self.external_state
+
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))
 
