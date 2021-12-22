@@ -41,11 +41,16 @@ def is_mutable(obj: object) -> bool:
     """
 
     # Assume all hashable objects are immutable
-    try:
-        hash(obj)
-    except Exception:
+    # I think this is incorrect...
+    # try:
+    #     hash(obj)
+    # except Exception:
+    #     return True
+    # return False
+    if isinstance(obj, (str, int, bool, float, tuple, frozenset)):
+        return False
+    else:
         return True
-    return False
 
 
 def try_import(name: str) -> Any:

@@ -66,6 +66,5 @@
     - views:
       - self_ref: SELF_REF
       - result: RESULT
-      - all_positional_arguments:  ALL_POSITIONAL_ARGUMENTS
 
         
