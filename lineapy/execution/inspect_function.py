@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 import glob
 import logging
 import sys
@@ -34,6 +33,10 @@ from lineapy.instrumentation.annotation_spec import (
 from lineapy.utils import listify
 
 logger = logging.getLogger(__name__)
+
+"""
+helper functions
+"""
 
 
 def is_mutable(obj: object) -> bool:
@@ -79,13 +82,13 @@ def validate(item: Dict) -> Optional[ModuleAnnotation]:
         return None
 
 
-# @functools.lru_cache()
 def get_specs() -> Tuple[
     Dict[str, List[Annotation]], Dict[str, List[Annotation]]
 ]:
     """
     yaml specs are for non-built in functions.
-    will capture all the .annotations.yaml files in the `instrumentation` directory.
+    Captures all the .annotations.yaml files
+      in the `instrumentation` directory.
     """
     # apparently the path is on the top level
     path = "./lineapy/instrumentation/*.annotations.yaml"
@@ -205,7 +208,6 @@ def process_side_effect(
         return side_effect
 
     if isinstance(side_effect, ViewOfValues):
-        # TODO: also need to check for mutability
         side_effect = check_view_of_values(side_effect)
         side_effect.views = list(
             filter(lambda x: is_reference_mutable(x), side_effect.views)
@@ -219,91 +221,109 @@ def process_side_effect(
     # check if they are mutable
 
 
-@listify
-def inspect_function(
-    function: Callable,
-    args: list[object],
-    kwargs: dict[str, object],
-    result: object,
-) -> Iterable[InspectFunctionSideEffect]:
-    """
-    Inspects a function and returns how calling it mutates the args/result and
-    creates view relationships between them.
-    """
-    has_yielded = False
+# class FunctionInstance():
+#     """
+#     Created this class because we are sharing a lot of state in
+#     the helper functions
+#     """
 
-    def _check_annotation(
-        annotations: List[Annotation],
-        module: Optional[str] = None,
-        base_spec_module: Optional[str] = None,
-    ):
-        nonlocal has_yielded
-        for annotation in annotations:
-            if check_function_against_annotation(
-                function,
-                args,
-                kwargs,
-                annotation.criteria,
-                module,
-                base_spec_module,
-            ):
-                for side_effect in annotation.side_effects:
-                    processed = process_side_effect(
-                        side_effect, args, kwargs, result
-                    )
-                    if processed is not None:
-                        yield processed
-                        has_yielded = True
-                if has_yielded:
-                    return
-        return
 
-    # we have a special case here whose structure is not
-    #   shared with any other cases...
-    if (
-        isinstance(function, BuiltinMethodType)
-        and function.__name__ == "append"
-        and isinstance(function.__self__, list)
-    ):
-        # list.append(value)
-        yield MutatedValue(
-            mutated_value=BoundSelfOfFunction(self_ref="SELF_REF")
-        )
-        if is_mutable(args[0]):
-            yield ViewOfValues(
-                views=[
-                    BoundSelfOfFunction(self_ref="SELF_REF"),
-                    PositionalArg(positional_argument_index=0),
-                ]
-            )
-    else:
-        specs, base_specs = get_specs()
+class FunctionInspector:
+    specs: Dict[str, List[Annotation]]
+    base_specs: Dict[str, List[Annotation]]
 
-        def get_root_module(fun: Callable):
-            if hasattr(fun, "__module__") and fun.__module__ is not None:
-                return fun.__module__.split(".")[0]
-            return None
+    def __init__(self):
+        """
+        We can add more params later for fancier configs
+        """
+        self.specs, self.base_specs = get_specs()
 
-        if function.__module__ in specs:
-            yield from _check_annotation(
-                specs[function.__module__], module=function.__module__
-            )
-        root_module = get_root_module(function)
-        if root_module is not None and root_module in specs:
-            yield from _check_annotation(
-                specs[root_module], module=root_module
-            )
-        if has_yielded:
+    @listify
+    def inspect(
+        self,
+        function: Callable,
+        args: list[object],
+        kwargs: dict[str, object],
+        result: object,
+    ) -> Iterable[InspectFunctionSideEffect]:
+        """
+        Inspects a function and returns how calling it mutates the args/result and
+        creates view relationships between them.
+        """
+        has_yielded = False
+
+        def _check_annotation(
+            annotations: List[Annotation],
+            module: Optional[str] = None,
+            base_spec_module: Optional[str] = None,
+        ):
+            nonlocal has_yielded
+            for annotation in annotations:
+                if check_function_against_annotation(
+                    function,
+                    args,
+                    kwargs,
+                    annotation.criteria,
+                    module,
+                    base_spec_module,
+                ):
+                    for side_effect in annotation.side_effects:
+                        processed = process_side_effect(
+                            side_effect, args, kwargs, result
+                        )
+                        if processed is not None:
+                            yield processed
+                            has_yielded = True
+                    if has_yielded:
+                        return
             return
 
-        if not isinstance(function, MethodType):
-            # base classes have to be a method type, helps skip through
-            #   some options
-            return
-        for base_spec_module in base_specs:
-            # there doesn't seem to be a way to hash thru this...
-            # so we'll loop for now
-            yield from _check_annotation(
-                base_specs[base_spec_module], base_spec_module=base_spec_module
+        # we have a special case here whose structure is not
+        #   shared with any other cases...
+        if (
+            isinstance(function, BuiltinMethodType)
+            and function.__name__ == "append"
+            and isinstance(function.__self__, list)
+        ):
+            # list.append(value)
+            yield MutatedValue(
+                mutated_value=BoundSelfOfFunction(self_ref="SELF_REF")
             )
-        return
+            if is_mutable(args[0]):
+                yield ViewOfValues(
+                    views=[
+                        BoundSelfOfFunction(self_ref="SELF_REF"),
+                        PositionalArg(positional_argument_index=0),
+                    ]
+                )
+        else:
+
+            def get_root_module(fun: Callable):
+                if hasattr(fun, "__module__") and fun.__module__ is not None:
+                    return fun.__module__.split(".")[0]
+                return None
+
+            if function.__module__ in self.specs:
+                yield from _check_annotation(
+                    self.specs[function.__module__], module=function.__module__
+                )
+            root_module = get_root_module(function)
+            if root_module is not None and root_module in self.specs:
+                yield from _check_annotation(
+                    self.specs[root_module], module=root_module
+                )
+            if has_yielded:
+                return
+
+            if not isinstance(function, MethodType):
+                # base classes have to be a method type, helps skip through
+                #   some options
+                return
+            for base_spec_module in self.base_specs:
+                # there doesn't seem to be a way to hash thru this...
+                # so we'll loop for now
+                yield from _check_annotation(
+                    self.base_specs[base_spec_module],
+                    base_spec_module=base_spec_module,
+                )
+            return

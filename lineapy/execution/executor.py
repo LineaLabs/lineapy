@@ -42,7 +42,7 @@ from lineapy.exceptions.user_exception import (
     UserException,
 )
 from lineapy.execution.context import set_context, teardown_context
-from lineapy.execution.inspect_function import inspect_function, is_mutable
+from lineapy.execution.inspect_function import FunctionInspector, is_mutable
 from lineapy.instrumentation.annotation_spec import (
     BoundSelfOfFunction,
     ExternalState,
@@ -83,6 +83,8 @@ class Executor:
     db: RelationalLineaDB
     # The execution to record the values in
     execution: Execution = field(init=False)
+
+    function_inspector = FunctionInspector()
 
     # The globals for this execution, to use when trying to lookup a value
     # Note: This is set in Jupyter so that `get_ipython` is defined
@@ -295,7 +297,7 @@ class Executor:
         )
 
         # Now append all side effects from the function
-        for e in inspect_function(fn, args, kwargs, res):
+        for e in self.function_inspector.inspect(fn, args, kwargs, res):
             side_effects.append(self._translate_side_effect(node, e))
 
         return PrivateExecuteResult(res, start_time, end_time, side_effects)
