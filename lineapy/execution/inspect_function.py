@@ -79,7 +79,7 @@ def validate(item: Dict) -> Optional[ModuleAnnotation]:
         return None
 
 
-@functools.lru_cache()
+# @functools.lru_cache()
 def get_specs() -> Tuple[
     Dict[str, List[Annotation]], Dict[str, List[Annotation]]
 ]:
@@ -123,7 +123,7 @@ def check_function_against_annotation(
             and module is not None
             and module in sys.modules
             and isinstance(
-                function.__self__,
+                function.__self__,  # type: ignore
                 getattr(sys.modules[module], criteria.class_instance),
             )
         )
@@ -155,13 +155,15 @@ def check_function_against_annotation(
         ):
             return True
         return False
-    if isinstance(criteria, BaseClassMethodName):
+    if isinstance(criteria, BaseClassMethodName) and hasattr(
+        function, "__self__"
+    ):
         if (
             base_module is not None
             and function.__name__ == criteria.class_method_name
             and (
                 isinstance(
-                    function.__self__,
+                    function.__self__,  # type: ignore
                     getattr(try_import(base_module), criteria.base_class),
                 )
             )
@@ -288,7 +290,9 @@ def inspect_function(
             )
         root_module = get_root_module(function)
         if root_module is not None and root_module in specs:
-            yield from _check_annotation(specs[root_module], module=root_module)
+            yield from _check_annotation(
+                specs[root_module], module=root_module
+            )
         if has_yielded:
             return
 

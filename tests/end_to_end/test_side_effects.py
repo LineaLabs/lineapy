@@ -24,8 +24,6 @@ df2 = pd.read_sql("select * from test", conn)
     assert res.artifacts["df2"] == code
 
 
-
-
 def test_pandas_to_sql_global_imported(execute):
     code = """from lineapy import save, db
 import pandas as pd
@@ -137,7 +135,7 @@ def test_to_sql_does_not_slice(execute):
 
 
 def test_slicing_db(execute):
-    code = mincode + extras + to_sql
+    code = mincode + extras + to_sql + "\n"
     res = execute(code, artifacts=["lineapy.db"])
     assert res.artifacts["lineapy.db"] == code
 
@@ -145,4 +143,4 @@ def test_slicing_db(execute):
 def test_slicing_filesystem(execute):
     code = mincode + extras + to_parquet
     res = execute(code, artifacts=["lineapy.file_system"])
-    assert res.artifacts["lineapy.file_system"] == code
+    assert res.artifacts["lineapy.file_system"] == mincode + to_parquet + "\n"
