@@ -34,7 +34,7 @@ default_dag_args = {
 
 dag = DAG(
     dag_id="sliced_housing_dag_dag",
-    schedule_interval="*/15 * * * *",  # Every 15 minutes
+    schedule_interval="*/15 * * * *",
     max_active_runs=1,
     catchup=False,
     default_args=default_dag_args,
