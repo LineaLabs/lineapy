@@ -1,6 +1,7 @@
 from os import chdir
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+
 from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.python_operator import PythonOperator
@@ -38,6 +39,8 @@ dag = DAG(
     catchup=False,
     default_args=default_dag_args,
 )
+
+
 sliced_housing_dag = PythonOperator(
     dag=dag,
     task_id="sliced_housing_dag_task",
