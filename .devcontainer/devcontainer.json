@@ -19,6 +19,9 @@
   // https://github.com/microsoft/vscode-dev-containers/blob/main/script-library/docs/sshd.md#usage-in-a-dockerfile
   //"overrideCommand": false,
   // Use 'portsAttributes' to set default properties for specific forwarded ports. More info: https://code.visualstudio.com/docs/remote/devcontainerjson-reference.
+  "mounts": [
+    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,consistency=cached",
+  ],
   "portsAttributes": {
     "8888": {
       "label": "Jupyter Lab",
