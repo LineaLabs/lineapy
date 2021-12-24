@@ -18,7 +18,7 @@ from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.plugins.airflow import slice_to_airflow
+from lineapy.plugins.airflow import to_airflow
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ class LineaArtifact:
         )
         working_dir = Path(session_orm.working_directory)
 
-        airflow_code = slice_to_airflow(self.code, self.name, working_dir)
+        airflow_code = to_airflow(self.code, self.name, working_dir)
         if filename:
             path = Path(filename)
         else:

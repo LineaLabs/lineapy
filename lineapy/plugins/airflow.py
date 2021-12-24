@@ -26,7 +26,7 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     if not artifact_var:
         return "Unable to extract the slice"
     slice_code = get_program_slice(tracer.graph, [artifact.node_id])
-    return slice_to_airflow(
+    return to_airflow(
         slice_code,
         func_name,
         Path(tracer.session_context.working_directory),
@@ -34,7 +34,7 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     )
 
 
-def slice_to_airflow(
+def to_airflow(
     sliced_code: str,
     func_name: str,
     working_directory: Path,
