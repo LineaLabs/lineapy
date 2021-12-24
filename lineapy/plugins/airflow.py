@@ -50,14 +50,14 @@ def slice_to_airflow(
         str(working_directory.relative_to((linea_folder() / "..").resolve()))
     )
 
-    templateLoader = FileSystemLoader(
+    template_loader = FileSystemLoader(
         searchpath=str(
             (Path(lineapy.__file__) / "../plugins/jinja_templates").resolve()
         )
     )
-    templateEnv = Environment(loader=templateLoader)
+    template_env = Environment(loader=template_loader)
 
-    AIRFLOW_DAG_TEMPLATE = templateEnv.get_template("airflow_dag.jinja")
+    AIRFLOW_DAG_TEMPLATE = template_env.get_template("airflow_dag.jinja")
 
     # We split the code in import and code blocks and join them to full code test
     import_block, code_block, main_block = split_code_blocks(
