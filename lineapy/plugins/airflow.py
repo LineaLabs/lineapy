@@ -22,7 +22,7 @@ def sliced_aiflow_dag(tracer: Tracer, slice_name: str, func_name: str) -> str:
     :return: string containing the code of the Airflow DAG running this slice
     """
     artifact = tracer.db.get_artifact_by_name(slice_name)
-    artifact_var = tracer.slice_var_name(artifact)
+    artifact_var = tracer.artifact_var_name(artifact)
     if not artifact_var:
         return "Unable to extract the slice"
     slice_code = get_program_slice(tracer.graph, [artifact.node_id])
