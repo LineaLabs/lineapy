@@ -1,6 +1,6 @@
 from os import chdir
-{{ import_block }}
-{{ airflow_import_block }}
+{% block import_block %}{% endblock %}
+{% block plugin_import_block %}{% endblock %}
 
 {# Change directory before executing to proper place #}
 chdir({{ working_dir_str }})
@@ -11,5 +11,6 @@ chdir({{ working_dir_str }})
 {% endif %}
 {# TODO What to do with artifact_var in a DAG? #}
 
-{{ airflow_dag_block }}
-{{ airflow_task_block }}
+{% block plugin_dag_block %}{% endblock %}
+{% block plugin_tasks_block %}{% endblock %}
+{# TODO tasks dependency graph #}
