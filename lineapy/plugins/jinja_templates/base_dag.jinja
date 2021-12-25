@@ -1,5 +1,7 @@
 from os import chdir
-{% block import_block %}{% endblock %}
+{% for import_block in import_blocks %}
+{{ import_block }}
+{% endfor %}
 {% block plugin_import_block %}{% endblock %}
 
 {# Change directory before executing to proper place #}

@@ -124,7 +124,7 @@ class Tracer:
         if not artifact_var:
             return "Unable to extract the slice"
         slice_code = get_program_slice(self.graph, [artifact.node_id])
-        # We split the code in import and code blocks and join them to full code test
+        # We split the code in import and code blocks and form a faunction that calculates the artifact
         import_block, code_block, main_block = split_code_blocks(
             slice_code, func_name
         )

@@ -53,6 +53,8 @@
             "args": [
                 "--slice",
                 "p value",
+                "--slice",
+                "y",
                 "--airflow",
                 "sliced_housing_dag",
                 "tests/housing.py",
