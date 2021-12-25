@@ -5,7 +5,9 @@ from os import chdir
 {# Change directory before executing to proper place #}
 chdir({{ working_dir_str }})
 
+{% for code_block in code_blocks %}
 {{ code_block }}
+{% endfor %}
 {% if variable != "" %}
 	print({{ variable }})
 {% endif %}

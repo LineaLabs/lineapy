@@ -67,10 +67,10 @@ def to_airflow(
     full_code = AIRFLOW_DAG_TEMPLATE.render(
         import_block=import_block,
         working_dir_str=working_dir_str,
-        code_block=code_block,
+        code_blocks=[code_block, code_block],
         variable=variable,
         DAG_NAME=func_name,
-        TASK_NAME=func_name,
+        tasks=[func_name, func_name],
     )
     black_mode = FileMode()
     black_mode.line_length = 79
