@@ -27,7 +27,7 @@ dag = DAG(
 
 {% block plugin_tasks_block %}
 {% for TASK_NAME in tasks %}
-{{ TASK_NAME }}_task = PythonOperator(
+{{ TASK_NAME }} = PythonOperator(
     dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
 )
 {% endfor %}
