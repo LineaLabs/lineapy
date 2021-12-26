@@ -10,10 +10,6 @@ chdir({{ working_dir_str }})
 {% for code_block in code_blocks %}
 {{ code_block }}
 {% endfor %}
-{% if variable != "" %}
-	print({{ variable }})
-{% endif %}
-{# TODO What to do with artifact_var in a DAG? #}
 
 {% block plugin_dag_block %}{% endblock %}
 {% block plugin_tasks_block %}{% endblock %}

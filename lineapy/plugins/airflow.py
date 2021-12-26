@@ -35,15 +35,11 @@ def sliced_aiflow_dag(
         artifacts_code,
         func_name,
         Path(tracer.session_context.working_directory),
-        artifact_var,
     )
 
 
 def to_airflow(
-    artifacts_code: Dict[str, str],
-    func_name: str,
-    working_directory: Path,
-    variable: Optional[str] = "",
+    artifacts_code: Dict[str, str], func_name: str, working_directory: Path
 ) -> str:
     """
     Transforms sliced code into airflow code.
@@ -81,7 +77,6 @@ def to_airflow(
         import_blocks=_import_blocks,
         working_dir_str=working_dir_str,
         code_blocks=_code_blocks,
-        variable=variable,
         DAG_NAME=func_name,
         tasks=_task_names,
     )
