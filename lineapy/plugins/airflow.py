@@ -14,7 +14,10 @@ from lineapy.instrumentation.tracer import Tracer
 
 
 def sliced_aiflow_dag(
-    tracer: Tracer, slice_names: List[str], func_name: str
+    tracer: Tracer,
+    slice_names: List[str],
+    task_dependencies: str,
+    func_name: str,
 ) -> str:
     """
     Returns a an Airflow DAG of the sliced code.
@@ -33,18 +36,20 @@ def sliced_aiflow_dag(
         artifacts_code[artifact_var] = slice_code
     return to_airflow(
         artifacts_code,
+        task_dependencies,
         func_name,
         Path(tracer.session_context.working_directory),
     )
 
 
 def to_airflow(
-    artifacts_code: Dict[str, str], func_name: str, working_directory: Path
+    artifacts_code: Dict[str, str],
+    task_dependencies: str,
+    func_name: str,
+    working_directory: Path,
 ) -> str:
     """
     Transforms sliced code into airflow code.
-
-    If the variable is passed in, this will be printed at the end of the airflow block.
     """
 
     working_dir_str = repr(
@@ -79,6 +84,7 @@ def to_airflow(
         code_blocks=_code_blocks,
         DAG_NAME=func_name,
         tasks=_task_names,
+        task_dependencies=task_dependencies,
     )
     black_mode = FileMode()
     black_mode.line_length = 79

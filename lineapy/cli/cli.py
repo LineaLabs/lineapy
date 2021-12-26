@@ -128,8 +128,9 @@ def linea_cli(
                 "Please specify --slice. It is required for --export-slice-to-airflow-dag"
             )
             exit(1)
+        task_dependencies = "sliced_housing_dag_p >> sliced_housing_dag_y"
         full_code = sliced_aiflow_dag(
-            tracer, slice, export_slice_to_airflow_dag[0]
+            tracer, slice, task_dependencies, export_slice_to_airflow_dag[0]
         )
         pathlib.Path(f"{export_slice_to_airflow_dag[0]}.py").write_text(
             full_code

@@ -31,5 +31,6 @@ dag = DAG(
     dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
 )
 {% endfor %}
+{{ task_dependencies }}
 {% endblock %}
 
