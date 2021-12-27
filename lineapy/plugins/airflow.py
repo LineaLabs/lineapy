@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import isort
 from black import FileMode, format_str
 from jinja2 import Environment, FileSystemLoader
 
@@ -86,6 +87,8 @@ def to_airflow(
         tasks=_task_names,
         task_dependencies=task_dependencies,
     )
+    # Sort imports and move them to the top
+    full_code = isort.code(full_code, float_to_top=True, profile="black")
     black_mode = FileMode()
     black_mode.line_length = 79
     full_code = format_str(full_code, mode=black_mode)
