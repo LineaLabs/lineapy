@@ -38,7 +38,7 @@ def to_airflow(
     sliced_code: str,
     func_name: str,
     working_directory: Path,
-    variable: Optional[str] = "",
+    variable: str = "",
 ) -> str:
     """
     Transforms sliced code into airflow code.
