@@ -40,7 +40,7 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.lineabuiltins import l_tuple
-from lineapy.utils import get_new_id
+from lineapy.utils import get_new_id, prettify
 
 logger = logging.getLogger(__name__)
 
@@ -136,11 +136,7 @@ class Tracer:
             + "\n\n"
             + main_block
         )
-        # Black lint
-        black_mode = FileMode()
-        black_mode.line_length = 79
-        full_code = format_str(full_code, mode=black_mode)
-        return full_code
+        return prettify(full_code)
 
     def session_artifacts(self) -> List[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)

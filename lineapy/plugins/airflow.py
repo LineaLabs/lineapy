@@ -12,6 +12,7 @@ from lineapy.graph_reader.program_slice import (
     split_code_blocks,
 )
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils import prettify
 
 
 def sliced_aiflow_dag(
@@ -87,9 +88,4 @@ def to_airflow(
         tasks=_task_names,
         task_dependencies=task_dependencies,
     )
-    # Sort imports and move them to the top
-    full_code = isort.code(full_code, float_to_top=True, profile="black")
-    black_mode = FileMode()
-    black_mode.line_length = 79
-    full_code = format_str(full_code, mode=black_mode)
-    return full_code
+    return prettify(full_code)
