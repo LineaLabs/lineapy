@@ -13,14 +13,21 @@ from lineapy.utils import prettify
 def sliced_aiflow_dag(
     tracer: Tracer,
     slice_names: List[str],
-    task_dependencies: List[List[str]],
     func_name: str,
+    task_dependencies: List[List[str]],
 ) -> str:
     """
     Returns a an Airflow DAG of the sliced code.
 
     :param tracer: the tracer object.
-    :param slice_name: name of the artifacts to get the code slice for.
+    :param task_dependencies: task dependencies as adjacency list,
+                    i.e. "[['p value'], ['y']]" or "[['p value', 'x'], ['y']]"
+                    This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
+                    and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
+                    Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
+                    and "sliced_housing_dag_y" depends on them.
+    :param func_name: name of the DAG and corresponding functions and task prefixes,
+                    i.e. "sliced_housing_dag"
     :return: string containing the code of the Airflow DAG running this slice
     """
 

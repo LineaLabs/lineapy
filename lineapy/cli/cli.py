@@ -47,6 +47,11 @@ logger = logging.getLogger(__name__)
     help="Requires --slice. Export the sliced code that {slice} depends on to an Airflow DAG {export_slice}.py",
 )
 @click.option(
+    "--airflow-task-dependencies",
+    default=None,
+    help="Optional flag for --airflow. Specifies tasks dependencies",
+)
+@click.option(
     "--print-source", help="Whether to print the source code", is_flag=True
 )
 @click.option(
@@ -74,6 +79,7 @@ def linea_cli(
     slice,
     export_slice,
     export_slice_to_airflow_dag,
+    airflow_task_dependencies,
     print_source,
     print_graph,
     verbose,
@@ -129,9 +135,12 @@ def linea_cli(
                 "Please specify --slice. It is required for --export-slice-to-airflow-dag"
             )
             exit(1)
-        task_dependencies = [[_slice] for _slice in slice]  # adjacency list
+
+        task_dependencies = eval(
+            airflow_task_dependencies.replace("\\", "")
+        )  # adjacency list
         full_code = sliced_aiflow_dag(
-            tracer, slice, task_dependencies, export_slice_to_airflow_dag[0]
+            tracer, slice, export_slice_to_airflow_dag[0], task_dependencies
         )
         pathlib.Path(f"{export_slice_to_airflow_dag[0]}.py").write_text(
             full_code

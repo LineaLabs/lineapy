@@ -57,6 +57,8 @@
                 "y",
                 "--airflow",
                 "sliced_housing_dag",
+                "--airflow-task-dependencies",
+                "[['p value'], ['y']]",
                 "tests/housing.py",
             ],
         },
