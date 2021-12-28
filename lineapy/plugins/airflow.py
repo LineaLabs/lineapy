@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 from black import FileMode, format_str
 from jinja2 import Environment, FileSystemLoader
