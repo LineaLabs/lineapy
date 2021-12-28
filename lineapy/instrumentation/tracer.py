@@ -2,7 +2,7 @@ import logging
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from os import getcwd
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from black import FileMode, format_str
 
@@ -119,11 +119,7 @@ class Tracer:
         }
 
     def sliced_func(self, slice_name: str, func_name: str) -> str:
-        artifact = self.db.get_artifact_by_name(slice_name)
-        artifact_var = self.artifact_var_name(artifact)
-        if not artifact_var:
-            return "Unable to extract the slice"
-        slice_code = get_program_slice(self.graph, [artifact.node_id])
+        artifact_var, slice_code = self.slice(slice_name)
         # We split the code in import and code blocks and form a faunction that calculates the artifact
         import_block, code_block, main_block = split_code_blocks(
             slice_code, func_name
@@ -141,9 +137,10 @@ class Tracer:
     def session_artifacts(self) -> List[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)
 
-    def slice(self, name: str) -> str:
+    def slice(self, name: str) -> Tuple[str, str]:
         artifact = self.db.get_artifact_by_name(name)
-        return get_program_slice(self.graph, [artifact.node_id])
+        artifact_var = self.artifact_var_name(artifact)
+        return artifact_var, get_program_slice(self.graph, [artifact.node_id])
 
     def artifact_var_name(self, artifact: ArtifactORM) -> str:
         """

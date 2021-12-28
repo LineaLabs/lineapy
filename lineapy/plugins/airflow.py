@@ -30,11 +30,7 @@ def sliced_aiflow_dag(
     """
     artifacts_code = {}
     for slice_name in slice_names:
-        artifact = tracer.db.get_artifact_by_name(slice_name)
-        artifact_var = tracer.artifact_var_name(artifact)
-        if not artifact_var:
-            return "Unable to extract the slice"
-        slice_code = get_program_slice(tracer.graph, [artifact.node_id])
+        artifact_var, slice_code = tracer.slice(slice_name)
         artifacts_code[artifact_var] = slice_code
     return to_airflow(
         artifacts_code,
