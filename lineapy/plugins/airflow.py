@@ -1,16 +1,11 @@
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
-import isort
-from black import FileMode, format_str
 from jinja2 import Environment, FileSystemLoader
 
 import lineapy
 from lineapy.config import linea_folder
-from lineapy.graph_reader.program_slice import (
-    get_program_slice,
-    split_code_blocks,
-)
+from lineapy.graph_reader.program_slice import split_code_blocks
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils import prettify
 
@@ -18,7 +13,7 @@ from lineapy.utils import prettify
 def sliced_aiflow_dag(
     tracer: Tracer,
     slice_names: List[str],
-    task_dependencies: str,
+    task_dependencies: List[List[str]],
     func_name: str,
 ) -> str:
     """
@@ -28,13 +23,28 @@ def sliced_aiflow_dag(
     :param slice_name: name of the artifacts to get the code slice for.
     :return: string containing the code of the Airflow DAG running this slice
     """
+
+    artifacts_name = {}
     artifacts_code = {}
     for slice_name in slice_names:
         artifact_var, slice_code = tracer.slice(slice_name)
         artifacts_code[artifact_var] = slice_code
+        artifacts_name[slice_name] = artifact_var
+
+    def _parallel_tasks(leaf: List[str]):
+        # join parallel tasks in comma separated string per Airflow conventions
+        # append func_name to each artifact variable
+        return ",".join(
+            [f"{func_name}_{artifacts_name[node]}" for node in leaf]
+        )
+
+    # join sequential tasks in >> separated string per Airflow conventions
+    task_dependencies_str = " >> ".join(
+        map(_parallel_tasks, task_dependencies)
+    )
     return to_airflow(
         artifacts_code,
-        task_dependencies,
+        task_dependencies_str,
         func_name,
         Path(tracer.session_context.working_directory),
     )
