@@ -46,22 +46,24 @@ def sliced_aiflow_dag(
         )
 
     # join sequential tasks in >> separated string per Airflow conventions
-    task_dependencies_str = " >> ".join(
-        map(_parallel_tasks, task_dependencies)
+    task_dependencies_str = (
+        " >> ".join(map(_parallel_tasks, task_dependencies))
+        if task_dependencies
+        else ""
     )
     return to_airflow(
         artifacts_code,
-        task_dependencies_str,
         func_name,
         Path(tracer.session_context.working_directory),
+        task_dependencies_str,
     )
 
 
 def to_airflow(
     artifacts_code: Dict[str, str],
-    task_dependencies: str,
     func_name: str,
     working_directory: Path,
+    task_dependencies: str = "",
 ) -> str:
     """
     Transforms sliced code into airflow code.

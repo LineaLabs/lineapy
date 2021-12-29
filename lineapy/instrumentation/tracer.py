@@ -4,8 +4,6 @@ from datetime import datetime
 from os import getcwd
 from typing import Dict, List, Optional, Tuple
 
-from black import FileMode, format_str
-
 from lineapy.constants import GETATTR, IMPORT_STAR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
