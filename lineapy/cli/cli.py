@@ -139,7 +139,7 @@ def linea_cli(
         task_dependencies = (
             eval(airflow_task_dependencies.replace("\\", ""))
             if airflow_task_dependencies
-            else None
+            else []
         )
         full_code = sliced_aiflow_dag(
             tracer, slice, export_slice_to_airflow_dag[0], task_dependencies

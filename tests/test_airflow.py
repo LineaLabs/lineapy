@@ -11,7 +11,7 @@ def test_slice_airflow(python_snapshot, housing_tracer):
     Test the slice produced by airflow against a snapshot.
     """
     assert python_snapshot == sliced_aiflow_dag(
-        housing_tracer, "p value", "sliced_housing_dag"
+        housing_tracer, ["p value"], "sliced_housing_dag", []
     )
 
 
