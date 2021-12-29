@@ -1,0 +1,34 @@
+{% set OWNER = "airflow" %}
+{% set RETRIES = 2 %}
+{% set START_DATE = "days_ago(1)" %}
+{% set SCHEDULE_IMTERVAL = "*/15 * * * *" %}
+{% set MAX_ACTIVE_RUNS = 1 %}
+{% set CATCHUP = "False" %}
+
+{% extends "base_dag.jinja" %}
+{% block import_block %}{{ import_block }}{% endblock %}
+
+{% block plugin_import_block %}
+from airflow import DAG
+from airflow.utils.dates import days_ago
+from airflow.operators.python_operator import PythonOperator
+{% endblock %}
+
+{% block plugin_dag_block %}
+default_dag_args = {"owner": "{{ OWNER }}", "retries": {{ RETRIES }}, "start_date": {{ START_DATE }}}
+
+dag = DAG(
+    dag_id="{{ DAG_NAME }}_dag",
+    schedule_interval="{{ SCHEDULE_IMTERVAL }}",
+    max_active_runs={{ MAX_ACTIVE_RUNS }},
+    catchup={{ CATCHUP }},
+    default_args=default_dag_args,
+)
+{% endblock %}
+
+{% block plugin_tasks_block %}
+{{ TASK_NAME }} = PythonOperator(
+    dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
+)
+{% endblock %}
+

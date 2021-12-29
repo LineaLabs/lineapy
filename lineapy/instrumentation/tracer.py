@@ -120,7 +120,7 @@ class Tracer:
 
     def sliced_func(self, slice_name: str, func_name: str) -> str:
         artifact = self.db.get_artifact_by_name(slice_name)
-        artifact_var = self.slice_var_name(artifact)
+        artifact_var = self.artifact_var_name(artifact)
         if not artifact_var:
             return "Unable to extract the slice"
         slice_code = get_program_slice(self.graph, [artifact.node_id])
@@ -149,7 +149,7 @@ class Tracer:
         artifact = self.db.get_artifact_by_name(name)
         return get_program_slice(self.graph, [artifact.node_id])
 
-    def slice_var_name(self, artifact: ArtifactORM) -> str:
+    def artifact_var_name(self, artifact: ArtifactORM) -> str:
         """
         Returns the variable name for the given artifact.
         i.e. in lineapy.save(p, "p value") "p" is returned
