@@ -34,7 +34,8 @@ def sliced_aiflow_dag(
     artifacts_name = {}
     artifacts_code = {}
     for slice_name in slice_names:
-        artifact_var, slice_code = tracer.slice(slice_name)
+        artifact_var = tracer.artifact_var_name(slice_name)
+        slice_code = tracer.slice(slice_name)
         artifacts_code[artifact_var] = slice_code
         artifacts_name[slice_name] = artifact_var
 

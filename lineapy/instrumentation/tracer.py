@@ -2,7 +2,7 @@ import logging
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from os import getcwd
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from lineapy.constants import GETATTR, IMPORT_STAR
 from lineapy.data.graph import Graph
@@ -117,7 +117,8 @@ class Tracer:
         }
 
     def sliced_func(self, slice_name: str, func_name: str) -> str:
-        artifact_var, slice_code = self.slice(slice_name)
+        artifact_var = self.artifact_var_name(slice_name)
+        slice_code = self.slice(slice_name)
         # We split the code in import and code blocks and form a faunction that calculates the artifact
         import_block, code_block, main_block = split_code_blocks(
             slice_code, func_name
@@ -135,17 +136,17 @@ class Tracer:
     def session_artifacts(self) -> List[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)
 
-    def slice(self, name: str) -> Tuple[str, str]:
+    def slice(self, name: str) -> str:
         artifact = self.db.get_artifact_by_name(name)
-        artifact_var = self.artifact_var_name(artifact)
-        return artifact_var, get_program_slice(self.graph, [artifact.node_id])
+        return get_program_slice(self.graph, [artifact.node_id])
 
-    def artifact_var_name(self, artifact: ArtifactORM) -> str:
+    def artifact_var_name(self, artifact_name: str) -> str:
         """
         Returns the variable name for the given artifact.
         i.e. in lineapy.save(p, "p value") "p" is returned
         """
-        if not artifact.node:
+        artifact = self.db.get_artifact_by_name(artifact_name)
+        if not artifact.node or not artifact.node.source_code:
             return ""
         _line_no = artifact.node.lineno if artifact.node.lineno else 0
         artifact_line = str(artifact.node.source_code.code).split("\n")[

@@ -1,6 +1,8 @@
 from os import chdir
+
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+
 
 from airflow import DAG
 from airflow.utils.dates import days_ago
@@ -10,7 +12,7 @@ from airflow.operators.python_operator import PythonOperator
 chdir("tests")
 
 
-def sliced_housing_dag():
+def sliced_housing_dag_p():
     assets = pd.read_csv("ames_train_cleaned.csv")
 
     def is_new(col):
@@ -23,14 +25,8 @@ def sliced_housing_dag():
     clf.fit(x, y)
     p = clf.predict([[100 * 1000, 10, 4]])
 
-    print(p)
 
-
-default_dag_args = {
-    "owner": "airflow",
-    "retries": 2,
-    "start_date": days_ago(1),
-}
+default_dag_args = {"owner": "airflow", "retries": 2, "start_date": days_ago(1)}
 
 dag = DAG(
     dag_id="sliced_housing_dag_dag",
@@ -41,8 +37,8 @@ dag = DAG(
 )
 
 
-sliced_housing_dag = PythonOperator(
+sliced_housing_dag_p = PythonOperator(
     dag=dag,
-    task_id="sliced_housing_dag_task",
-    python_callable=sliced_housing_dag,
+    task_id="sliced_housing_dag_p_task",
+    python_callable=sliced_housing_dag_p,
 )
