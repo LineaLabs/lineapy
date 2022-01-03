@@ -285,7 +285,6 @@ class FunctionInspector:
         """
         self.specs, self.base_specs = get_specs()
 
-    @listify
     def inspect(
         self,
         function: Callable,
