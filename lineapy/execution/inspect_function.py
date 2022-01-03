@@ -204,7 +204,7 @@ def process_side_effect(
         """
         new_side_effect = ViewOfValues(views=[])
         for view in side_effect.views:
-            new_side_effect.views.append(view)
+            new_side_effect.views.append(view.copy(deep=True))
         for i, v in enumerate(new_side_effect.views):
             if isinstance(v, AllPositionalArgs):
                 new_side_effect.views.pop(i)
@@ -225,10 +225,10 @@ def process_side_effect(
             filter(lambda x: is_reference_mutable(x), new_side_effect.views)
         )
         return new_side_effect
-    if isinstance(side_effect, MutatedValue) and is_reference_mutable(
-        side_effect.mutated_value
-    ):
-        return side_effect  # FIXME: this seemes odd...
+    if isinstance(side_effect, MutatedValue):
+        if is_reference_mutable(side_effect.mutated_value):
+            return side_effect
+        return None
     return side_effect
 
 
