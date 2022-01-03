@@ -65,16 +65,21 @@ def try_import(name: str) -> Any:
 
 
 def validate(item: Dict) -> Optional[ModuleAnnotation]:
+    """
+    We cannot filer the specs by module, because it might be loaded later.
+    This causes a bit of inefficiency in our function inspection, but we
+    can fix later if it's a problem.
+    """
     try:
         spec = ModuleAnnotation(**item)
         # check if the module is relevant for this run
-        if spec.module is not None and try_import(spec.module) is None:
-            return None
-        if (
-            spec.base_module is not None
-            and try_import(spec.base_module) is None
-        ):
-            return None
+        # if spec.module is not None and try_import(spec.module) is None:
+        #     return None
+        # if (
+        #     spec.base_module is not None
+        #     and try_import(spec.base_module) is None
+        # ):
+        #     return None
         return spec
     except ValidationError as e:
         # want to warn the user but not break the whole thing
