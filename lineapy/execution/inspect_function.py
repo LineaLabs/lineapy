@@ -332,32 +332,33 @@ class FunctionInspector:
                     self.specs[function.__module__],
                     module=function.__module__,
                 )
-            root_module = get_root_module(function)
-            if root_module is not None and root_module in self.specs:
-                yield from _check_annotation(
-                    function,
-                    args,
-                    kwargs,
-                    result,
-                    self.specs[root_module],
-                    module=root_module,
-                )
+            else:
+                root_module = get_root_module(function)
+                if root_module is not None and root_module in self.specs:
+                    yield from _check_annotation(
+                        function,
+                        args,
+                        kwargs,
+                        result,
+                        self.specs[root_module],
+                        module=root_module,
+                    )
             if has_yielded:
                 return
-
-            if not isinstance(function, MethodType):
-                # base classes have to be a method type, helps skip through
-                #   some options
+            else:
+                if not isinstance(function, MethodType):
+                    # base classes have to be a method type, helps skip through
+                    #   some options
+                    return
+                for base_spec_module in self.base_specs:
+                    # there doesn't seem to be a way to hash thru this...
+                    # so we'll loop for now
+                    yield from _check_annotation(
+                        function,
+                        args,
+                        kwargs,
+                        result,
+                        self.base_specs[base_spec_module],
+                        base_spec_module=base_spec_module,
+                    )
                 return
-            for base_spec_module in self.base_specs:
-                # there doesn't seem to be a way to hash thru this...
-                # so we'll loop for now
-                yield from _check_annotation(
-                    function,
-                    args,
-                    kwargs,
-                    result,
-                    self.base_specs[base_spec_module],
-                    base_spec_module=base_spec_module,
-                )
-            return
