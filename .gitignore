@@ -168,3 +168,4 @@ test2.csv
 *.parquet
 TODO
 *.scrap
+*.parquet

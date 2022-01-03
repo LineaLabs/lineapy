@@ -30,7 +30,6 @@ from lineapy.instrumentation.annotation_spec import (
     ValuePointer,
     ViewOfValues,
 )
-from lineapy.utils import listify
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,9 @@ def is_mutable(obj: object) -> bool:
     """
 
     # Assume all hashable objects are immutable
-    # I think this is incorrect...
+    # I (yifan) think this is incorrect, but keeping the dead code
+    #   here in case we run into some issues again
+
     # try:
     #     hash(obj)
     # except Exception:
@@ -237,13 +238,6 @@ def process_side_effect(
     return side_effect
 
 
-# class FunctionInstance():
-#     """
-#     Created this class because we are sharing a lot of state in
-#     the helper functions
-#     """
-
-
 def _check_annotation(
     function: Callable,
     args: list[object],
@@ -253,7 +247,6 @@ def _check_annotation(
     module: Optional[str] = None,
     base_spec_module: Optional[str] = None,
 ):
-    # nonlocal has_yielded
     for annotation in annotations:
         if check_function_against_annotation(
             function,
@@ -269,9 +262,6 @@ def _check_annotation(
                 )
                 if processed is not None:
                     yield processed
-                    # has_yielded = True
-    #         if has_yielded:
-    #             return
     return
 
 
@@ -296,7 +286,6 @@ class FunctionInspector:
         Inspects a function and returns how calling it mutates the args/result and
         creates view relationships between them.
         """
-        has_yielded = False
 
         # we have a special case here whose structure is not
         #   shared with any other cases...
@@ -343,22 +332,20 @@ class FunctionInspector:
                         self.specs[root_module],
                         module=root_module,
                     )
-            if has_yielded:
+
+            if not isinstance(function, MethodType):
+                # base classes have to be a method type, helps skip through
+                #   some options
                 return
-            else:
-                if not isinstance(function, MethodType):
-                    # base classes have to be a method type, helps skip through
-                    #   some options
-                    return
-                for base_spec_module in self.base_specs:
-                    # there doesn't seem to be a way to hash thru this...
-                    # so we'll loop for now
-                    yield from _check_annotation(
-                        function,
-                        args,
-                        kwargs,
-                        result,
-                        self.base_specs[base_spec_module],
-                        base_spec_module=base_spec_module,
-                    )
-                return
+            for base_spec_module in self.base_specs:
+                # there doesn't seem to be a way to hash thru this...
+                # so we'll loop for now
+                yield from _check_annotation(
+                    function,
+                    args,
+                    kwargs,
+                    result,
+                    self.base_specs[base_spec_module],
+                    base_spec_module=base_spec_module,
+                )
+            return
