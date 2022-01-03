@@ -504,9 +504,9 @@ y = {}
 x['y'] = y
 y['a'] = 1
 """
-        res = execute(source, artifacts=["x"])
+        res = execute(source, artifacts=["x", "y"])
         assert res.artifacts["x"] == source
-        # assert res.artifacts["y"] == "y = {}\ny['a'] = 1\n"
+        assert res.artifacts["y"] == "y = {}\ny['a'] = 1\n"
 
     def test_before_after_mutation(self, execute):
         """

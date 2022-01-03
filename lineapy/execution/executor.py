@@ -81,16 +81,17 @@ class Executor:
 
     # The database to use for saving the execution
     db: RelationalLineaDB
+
+    # The globals for this execution, to use when trying to lookup a value
+    # Note: This is set in Jupyter so that `get_ipython` is defined
+    _globals: dict[str, object]
+
     # The execution to record the values in
     execution: Execution = field(init=False)
 
     function_inspector = FunctionInspector()
-
-    # The globals for this execution, to use when trying to lookup a value
-    # Note: This is set in Jupyter so that `get_ipython` is defined
-    _globals: Dict[str, object]
-    _id_to_value: Dict[LineaID, object] = field(default_factory=dict)
-    _execution_time: Dict[LineaID, Tuple[datetime, datetime]] = field(
+    _id_to_value: dict[LineaID, object] = field(default_factory=dict)
+    _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
     )
     # Mapping of bound method node ids to the ID of the instance they are bound to
