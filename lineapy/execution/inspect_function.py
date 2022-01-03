@@ -194,31 +194,37 @@ def process_side_effect(
             return is_mutable(kwargs[p.argument_keyword])
         raise Exception(f"ValuePointer {p} of type {type(p)} not handled.")
 
-    def check_view_of_values(side_effect: ViewOfValues) -> ViewOfValues:
-        for i, v in enumerate(side_effect.views):
+    def new_side_effect_without_all_positional_arg(
+        side_effect: ViewOfValues,
+    ) -> ViewOfValues:
+        new_side_effect = ViewOfValues(views=[])
+        for view in side_effect.views:
+            new_side_effect.views.append(view)
+        for i, v in enumerate(new_side_effect.views):
             if isinstance(v, AllPositionalArgs):
-                side_effect.views.pop(i)
-                side_effect.views.extend(
+                new_side_effect.views.pop(i)
+                new_side_effect.views.extend(
                     (
                         PositionalArg(positional_argument_index=i)
                         for i, a in enumerate(args)
                     )
                 )
-                return side_effect
-        return side_effect
+                return new_side_effect
+        return new_side_effect
 
     if isinstance(side_effect, ViewOfValues):
-        side_effect = check_view_of_values(side_effect)
-        side_effect.views = list(
-            filter(lambda x: is_reference_mutable(x), side_effect.views)
+        new_side_effect = new_side_effect_without_all_positional_arg(
+            side_effect
         )
-        return side_effect
+        new_side_effect.views = list(
+            filter(lambda x: is_reference_mutable(x), new_side_effect.views)
+        )
+        return new_side_effect
     if isinstance(side_effect, MutatedValue) and is_reference_mutable(
         side_effect.mutated_value
     ):
         return side_effect  # FIXME: this seemes odd...
     return side_effect
-    # check if they are mutable
 
 
 # class FunctionInstance():
