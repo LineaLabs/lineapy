@@ -228,6 +228,37 @@ def process_side_effect(
 #     """
 
 
+def _check_annotation(
+    function: Callable,
+    args: list[object],
+    kwargs: dict[str, object],
+    result: object,
+    annotations: List[Annotation],
+    module: Optional[str] = None,
+    base_spec_module: Optional[str] = None,
+):
+    # nonlocal has_yielded
+    for annotation in annotations:
+        if check_function_against_annotation(
+            function,
+            args,
+            kwargs,
+            annotation.criteria,
+            module,
+            base_spec_module,
+        ):
+            for side_effect in annotation.side_effects:
+                processed = process_side_effect(
+                    side_effect, args, kwargs, result
+                )
+                if processed is not None:
+                    yield processed
+                    # has_yielded = True
+    #         if has_yielded:
+    #             return
+    return
+
+
 class FunctionInspector:
     specs: Dict[str, List[Annotation]]
     base_specs: Dict[str, List[Annotation]]
@@ -251,32 +282,6 @@ class FunctionInspector:
         creates view relationships between them.
         """
         has_yielded = False
-
-        def _check_annotation(
-            annotations: List[Annotation],
-            module: Optional[str] = None,
-            base_spec_module: Optional[str] = None,
-        ):
-            nonlocal has_yielded
-            for annotation in annotations:
-                if check_function_against_annotation(
-                    function,
-                    args,
-                    kwargs,
-                    annotation.criteria,
-                    module,
-                    base_spec_module,
-                ):
-                    for side_effect in annotation.side_effects:
-                        processed = process_side_effect(
-                            side_effect, args, kwargs, result
-                        )
-                        if processed is not None:
-                            yield processed
-                            has_yielded = True
-                    if has_yielded:
-                        return
-            return
 
         # we have a special case here whose structure is not
         #   shared with any other cases...
@@ -305,12 +310,22 @@ class FunctionInspector:
 
             if function.__module__ in self.specs:
                 yield from _check_annotation(
-                    self.specs[function.__module__], module=function.__module__
+                    function,
+                    args,
+                    kwargs,
+                    result,
+                    self.specs[function.__module__],
+                    module=function.__module__,
                 )
             root_module = get_root_module(function)
             if root_module is not None and root_module in self.specs:
                 yield from _check_annotation(
-                    self.specs[root_module], module=root_module
+                    function,
+                    args,
+                    kwargs,
+                    result,
+                    self.specs[root_module],
+                    module=root_module,
                 )
             if has_yielded:
                 return
@@ -323,6 +338,10 @@ class FunctionInspector:
                 # there doesn't seem to be a way to hash thru this...
                 # so we'll loop for now
                 yield from _check_annotation(
+                    function,
+                    args,
+                    kwargs,
+                    result,
                     self.base_specs[base_spec_module],
                     base_spec_module=base_spec_module,
                 )
