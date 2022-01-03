@@ -197,6 +197,11 @@ def process_side_effect(
     def new_side_effect_without_all_positional_arg(
         side_effect: ViewOfValues,
     ) -> ViewOfValues:
+        """
+        This method must NOT modify the original side_effect, since these
+        annotations are dependent on the runtime values that are different
+        for each call---AllPositionalArgs will have a different set of arguments.
+        """
         new_side_effect = ViewOfValues(views=[])
         for view in side_effect.views:
             new_side_effect.views.append(view)
