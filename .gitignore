@@ -148,7 +148,6 @@ temp.py
 *.png
 
 tmp_*
-housing.csv
 *.temp
 
 # Result of --export-slice
@@ -160,12 +159,11 @@ y_housing.py
 sliced_housing_dag.py
 
 tracer
-tracer.pdf
+*.pdf
 tests/tmp
 tests/dags
-test.csv
-test2.csv
+*.csv
 *.parquet
 TODO
 *.scrap
-*.parquet
+Untitled*.ipynb

@@ -93,11 +93,10 @@ def get_specs() -> Tuple[
 ]:
     """
     yaml specs are for non-built in functions.
-    Captures all the .annotations.yaml files
-      in the `instrumentation` directory.
+    Captures all the .annotations.yaml files in the lineapy directory.
     """
     # apparently the path is on the top level
-    path = "./lineapy/instrumentation/*.annotations.yaml"
+    path = "./lineapy/*.annotations.yaml"
     valid_specs: Dict[str, List[Annotation]] = {}
     valid_base_specs: Dict[str, List[Annotation]] = {}
     for filename in glob.glob(path):
@@ -105,17 +104,18 @@ def get_specs() -> Tuple[
             doc = yaml.safe_load(f)
             for item in doc:
                 v = validate(item)
-                if v is not None:
-                    if v.module is not None:
-                        valid_specs[v.module] = v.annotations
-                    elif v.base_module is not None:
-                        valid_base_specs[v.base_module] = v.annotations
+                if v is None:
+                    continue
+                if v.module is not None:
+                    valid_specs[v.module] = v.annotations
+                elif v.base_module is not None:
+                    valid_base_specs[v.base_module] = v.annotations
     return valid_specs, valid_base_specs
 
 
 def check_function_against_annotation(
     function: Callable,
-    args: list[object],
+    # args: list[object], # we'll prob need this later...
     kwargs: dict[str, object],
     criteria: Criteria,
     module: Optional[str] = None,
@@ -183,6 +183,34 @@ def check_function_against_annotation(
     raise ValueError(f"Unknown criteria: {criteria} of type {type(criteria)}")
 
 
+def new_side_effect_without_all_positional_arg(
+    side_effect: ViewOfValues,
+    args: list,
+) -> ViewOfValues:
+    """
+    This method must NOT modify the original side_effect, since these
+    annotations are dependent on the runtime values that are different
+    for each call---AllPositionalArgs will have a different set of arguments.
+
+    Note that we might need to add something like "all keyword arguments", but
+    that use case hasn't come up yet.
+    """
+    new_side_effect = ViewOfValues(views=[])
+    for view in side_effect.views:
+        new_side_effect.views.append(view.copy(deep=True))
+    for i, v in enumerate(new_side_effect.views):
+        if isinstance(v, AllPositionalArgs):
+            new_side_effect.views.pop(i)
+            new_side_effect.views.extend(
+                (
+                    PositionalArg(positional_argument_index=i)
+                    for i, a in enumerate(args)
+                )
+            )
+            return new_side_effect
+    return new_side_effect
+
+
 def process_side_effect(
     side_effect: InspectFunctionSideEffect,
     args: list,
@@ -200,32 +228,9 @@ def process_side_effect(
             return is_mutable(kwargs[p.argument_keyword])
         raise Exception(f"ValuePointer {p} of type {type(p)} not handled.")
 
-    def new_side_effect_without_all_positional_arg(
-        side_effect: ViewOfValues,
-    ) -> ViewOfValues:
-        """
-        This method must NOT modify the original side_effect, since these
-        annotations are dependent on the runtime values that are different
-        for each call---AllPositionalArgs will have a different set of arguments.
-        """
-        new_side_effect = ViewOfValues(views=[])
-        for view in side_effect.views:
-            new_side_effect.views.append(view.copy(deep=True))
-        for i, v in enumerate(new_side_effect.views):
-            if isinstance(v, AllPositionalArgs):
-                new_side_effect.views.pop(i)
-                new_side_effect.views.extend(
-                    (
-                        PositionalArg(positional_argument_index=i)
-                        for i, a in enumerate(args)
-                    )
-                )
-                return new_side_effect
-        return new_side_effect
-
     if isinstance(side_effect, ViewOfValues):
         new_side_effect = new_side_effect_without_all_positional_arg(
-            side_effect
+            side_effect, args
         )
         new_side_effect.views = list(
             filter(lambda x: is_reference_mutable(x), new_side_effect.views)
@@ -250,7 +255,7 @@ def _check_annotation(
     for annotation in annotations:
         if check_function_against_annotation(
             function,
-            args,
+            # args, # prob will need soon
             kwargs,
             annotation.criteria,
             module,

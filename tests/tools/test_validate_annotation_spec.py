@@ -15,7 +15,7 @@ def test_validate_specs():
     """
     TODO: make into a nice cli tool. Also improve errors.
     """
-    path = "./lineapy/instrumentation/*.annotations.yaml"
+    path = "./lineapy/*.annotations.yaml"
     all_valid_specs: List[Any] = []
     for filename in glob.glob(path):
         with open(filename, "r") as f:

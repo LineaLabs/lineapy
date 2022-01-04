@@ -2,7 +2,7 @@
   annotations:
   - criteria:
       keyword_arg_name: inplace
-      keyword_arg_value: 0
+      keyword_arg_value: 1
     side_effects:
     - mutated_value:
         self_ref: SELF_REF
@@ -72,5 +72,3 @@
     - views:
       - self_ref: SELF_REF
       - result: RESULT
-
-        
