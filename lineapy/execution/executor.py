@@ -42,20 +42,21 @@ from lineapy.exceptions.user_exception import (
     UserException,
 )
 from lineapy.execution.context import set_context, teardown_context
-from lineapy.execution.inspect_function import (
+from lineapy.execution.inspect_function import FunctionInspector, is_mutable
+from lineapy.instrumentation.annotation_spec import (
     BoundSelfOfFunction,
+    ExternalState,
     ImplicitDependencyValue,
     InspectFunctionSideEffect,
-    KeywordArg,
+    KeywordArgument,
     MutatedValue,
     PositionalArg,
     Result,
     ValuePointer,
-    inspect_function,
-    is_mutable,
+    ViewOfValues,
 )
 from lineapy.ipython_cell_storage import get_location_path
-from lineapy.lineabuiltins import LINEA_BUILTINS, ExternalState
+from lineapy.lineabuiltins import LINEA_BUILTINS
 from lineapy.utils import get_new_id
 
 logger = logging.getLogger(__name__)
@@ -80,14 +81,17 @@ class Executor:
 
     # The database to use for saving the execution
     db: RelationalLineaDB
-    # The execution to record the values in
-    execution: Execution = field(init=False)
 
     # The globals for this execution, to use when trying to lookup a value
     # Note: This is set in Jupyter so that `get_ipython` is defined
-    _globals: Dict[str, object]
-    _id_to_value: Dict[LineaID, object] = field(default_factory=dict)
-    _execution_time: Dict[LineaID, Tuple[datetime, datetime]] = field(
+    _globals: dict[str, object]
+
+    # The execution to record the values in
+    execution: Execution = field(init=False)
+
+    function_inspector = FunctionInspector()
+    _id_to_value: dict[LineaID, object] = field(default_factory=dict)
+    _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
     )
     # Mapping of bound method node ids to the ID of the instance they are bound to
@@ -296,7 +300,7 @@ class Executor:
         )
 
         # Now append all side effects from the function
-        for e in inspect_function(fn, args, kwargs, res):
+        for e in self.function_inspector.inspect(fn, args, kwargs, res):
             side_effects.append(self._translate_side_effect(node, e))
 
         return PrivateExecuteResult(res, start_time, end_time, side_effects)
@@ -388,9 +392,9 @@ class Executor:
         """
 
         if isinstance(pointer, PositionalArg):
-            return ID(node.positional_args[pointer.index])
-        elif isinstance(pointer, KeywordArg):
-            return ID(node.keyword_args[pointer.name])
+            return ID(node.positional_args[pointer.positional_argument_index])
+        elif isinstance(pointer, KeywordArgument):
+            return ID(node.keyword_args[pointer.argument_keyword])
         elif isinstance(pointer, Result):
             return ID(node.id)
         elif isinstance(pointer, BoundSelfOfFunction):
@@ -402,20 +406,24 @@ class Executor:
             # Otherwise return a pointer that external state for the tracer
             # to create
             return pointer
+        raise ValueError(f"Unknown pointer {pointer}, of type {type(pointer)}")
 
     def _translate_side_effect(
         self, node: CallNode, e: InspectFunctionSideEffect
     ) -> SideEffect:
         if isinstance(e, MutatedValue):
-            return MutatedNode(self._translate_pointer(node, e.pointer))
+            return MutatedNode(self._translate_pointer(node, e.mutated_value))
         elif isinstance(e, ImplicitDependencyValue):
             return ImplicitDependencyNode(
-                self._translate_pointer(node, e.pointer)
+                self._translate_pointer(node, e.dependency)
             )
-        else:
+        elif isinstance(e, ViewOfValues):
             return ViewOfNodes(
-                [self._translate_pointer(node, ptr) for ptr in e.pointers]
+                [self._translate_pointer(node, ptr) for ptr in e.views]
             )
+        raise NotImplementedError(
+            f"Unknown side effect {e}, of type {type(e)}"
+        )
 
     def lookup_value(self, name: str) -> object:
         """

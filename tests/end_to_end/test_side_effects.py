@@ -24,27 +24,6 @@ df2 = pd.read_sql("select * from test", conn)
     assert res.artifacts["df2"] == code
 
 
-def test_pandas_to_sql_global(execute):
-    code = """import lineapy
-import pandas as pd
-import sqlite3
-df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-conn = sqlite3.connect(':memory:')
-df.to_sql(name="test", con=conn,index=False)
-lineapy.save(lineapy.db, "db")
-"""
-    res = execute(code)
-    assert (
-        res.artifacts["db"]
-        == """import pandas as pd
-import sqlite3
-df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
-conn = sqlite3.connect(':memory:')
-df.to_sql(name="test", con=conn,index=False)
-"""
-    )
-
-
 def test_pandas_to_sql_global_imported(execute):
     code = """from lineapy import save, db
 import pandas as pd
@@ -113,13 +92,35 @@ df3 = pd.read_csv("test.csv")
     assert res.artifacts["df3"] == expectedcode
 
 
-def test_to_sql_does_not_slice(execute):
-    mincode = """import pandas as pd
+mincode = """import pandas as pd
 df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 """
-    extras = """import sqlite3
+
+extras = """import sqlite3
 conn = sqlite3.connect(':memory:')
-df.to_sql(name="test", con=conn,index=False)
 """
-    res = execute(mincode + extras, artifacts=["df"])
+
+to_sql = 'df.to_sql(name="test", con=conn,index=False)'
+to_parquet = 'df.to_parquet("df.parquet")'
+
+
+def test_to_sql_does_not_slice(execute):
+    res = execute(mincode + extras + to_sql, artifacts=["df"])
     assert res.artifacts["df"] == mincode
+
+
+##
+# File system and DB side effects
+##
+
+
+def test_slicing_db(execute):
+    code = mincode + extras + to_sql + "\n"
+    res = execute(code, artifacts=["lineapy.db"])
+    assert res.artifacts["lineapy.db"] == code
+
+
+def test_slicing_filesystem(execute):
+    code = mincode + extras + to_parquet
+    res = execute(code, artifacts=["lineapy.file_system"])
+    assert res.artifacts["lineapy.file_system"] == mincode + to_parquet + "\n"

@@ -4,6 +4,12 @@ lineapy.instrumentation package
 Submodules
 ----------
 
+lineapy.instrumentation.annotation\_spec module
+-----------------------------------------------
+
+.. automodule:: lineapy.instrumentation.annotation_spec
+   :members:
+
 lineapy.instrumentation.mutation\_tracker module
 ------------------------------------------------
 

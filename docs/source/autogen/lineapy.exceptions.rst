@@ -10,6 +10,12 @@ lineapy.exceptions.create\_frame module
 .. automodule:: lineapy.exceptions.create_frame
    :members:
 
+lineapy.exceptions.db\_exceptions module
+----------------------------------------
+
+.. automodule:: lineapy.exceptions.db_exceptions
+   :members:
+
 lineapy.exceptions.excepthook module
 ------------------------------------
 

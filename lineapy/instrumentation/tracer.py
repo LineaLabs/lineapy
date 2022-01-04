@@ -38,6 +38,7 @@ from lineapy.graph_reader.program_slice import (
     get_program_slice,
     split_code_blocks,
 )
+from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.lineabuiltins import l_tuple
 from lineapy.utils import get_new_id
@@ -192,9 +193,10 @@ class Tracer:
                     node, self._resolve_pointer(e.pointer)
                 )
             elif isinstance(e, ViewOfNodes):
-                self.mutation_tracker.set_as_viewers_of_eachother(
-                    *map(self._resolve_pointer, e.pointers)
-                )
+                if len(e.pointers) > 0:  # skip if empty
+                    self.mutation_tracker.set_as_viewers_of_eachother(
+                        *map(self._resolve_pointer, e.pointers)
+                    )
             elif isinstance(e, AccessedGlobals):
                 self._process_accessed_globals(
                     node.session_id, node, e.retrieved, e.added_or_updated
@@ -222,7 +224,9 @@ class Tracer:
         if isinstance(ptr, Variable):
             return self.variable_name_to_node[ptr.name].id
         # Handle external state case, by making a lookup node for it
-        return self.lookup_node(ptr.__name__).id
+        if isinstance(ptr, ExternalState):
+            return self.lookup_node(ptr.external_state).id
+        raise ValueError(f"Unsupported pointer type: {type(ptr)}")
 
     def _process_implicit_dependency(
         self, node: Node, implicit_dependency_id: LineaID

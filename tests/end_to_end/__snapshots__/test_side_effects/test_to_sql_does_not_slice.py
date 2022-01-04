@@ -10,7 +10,6 @@ df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 import sqlite3
 conn = sqlite3.connect(\':memory:\')
 df.to_sql(name="test", con=conn,index=False)
-
 lineapy.save(df, \'df\')
 """,
     location=PosixPath("[source file path]"),
@@ -297,17 +296,17 @@ mutate_1 = MutateNode(
 )
 call_13 = CallNode(
     source_location=SourceLocation(
-        lineno=8,
+        lineno=7,
         col_offset=0,
-        end_lineno=8,
+        end_lineno=7,
         end_col_offset=22,
         source_code=source_1.id,
     ),
     function_id=CallNode(
         source_location=SourceLocation(
-            lineno=8,
+            lineno=7,
             col_offset=0,
-            end_lineno=8,
+            end_lineno=7,
             end_col_offset=12,
             source_code=source_1.id,
         ),
@@ -336,9 +335,9 @@ call_13 = CallNode(
         call_7.id,
         LiteralNode(
             source_location=SourceLocation(
-                lineno=8,
+                lineno=7,
                 col_offset=17,
-                end_lineno=8,
+                end_lineno=7,
                 end_col_offset=21,
                 source_code=source_1.id,
             ),
