@@ -113,6 +113,25 @@ def get_specs() -> Tuple[
     return valid_specs, valid_base_specs
 
 
+def _check_class(
+    criteria: Union[ClassMethodName, ClassMethodNames],
+    module: Optional[str],
+    function: Callable,
+):
+    """
+    helper
+    """
+    return (
+        hasattr(function, "__self__")
+        and module is not None
+        and module in sys.modules
+        and isinstance(
+            function.__self__,  # type: ignore
+            getattr(sys.modules[module], criteria.class_instance),
+        )
+    )
+
+
 def check_function_against_annotation(
     function: Callable,
     # args: list[object], # we'll prob need this later...
@@ -126,17 +145,6 @@ def check_function_against_annotation(
     The checking for __self__ is for sometimes when it's a class instantiation method.
     """
 
-    def check_class(criteria: Union[ClassMethodName, ClassMethodNames]):
-        return (
-            hasattr(function, "__self__")
-            and module is not None
-            and module in sys.modules
-            and isinstance(
-                function.__self__,  # type: ignore
-                getattr(sys.modules[module], criteria.class_instance),
-            )
-        )
-
     if isinstance(criteria, FunctionName):
         if criteria.function_name == function.__name__:
             return True
@@ -146,14 +154,14 @@ def check_function_against_annotation(
             return True
         return False
     if isinstance(criteria, ClassMethodName):
-        if function.__name__ == criteria.class_method_name and check_class(
-            criteria
+        if function.__name__ == criteria.class_method_name and _check_class(
+            criteria, module, function
         ):
             return True
         return False
     if isinstance(criteria, ClassMethodNames):
-        if function.__name__ in criteria.class_method_names and check_class(
-            criteria
+        if function.__name__ in criteria.class_method_names and _check_class(
+            criteria, module, function
         ):
             return True
         return False
@@ -248,11 +256,11 @@ def _check_annotation(
     args: list[object],
     kwargs: dict[str, object],
     result: object,
-    annotations: List[Annotation],
+    spec_annotations: List[Annotation],
     module: Optional[str] = None,
     base_spec_module: Optional[str] = None,
 ):
-    for annotation in annotations:
+    for annotation in spec_annotations:
         if check_function_against_annotation(
             function,
             # args, # prob will need soon
