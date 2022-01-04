@@ -114,7 +114,9 @@ class Executor:
         )
         self.db.write_execution(self.execution)
 
-    def get_execution_time(self, node_id: LineaID) -> Tuple[datetime, datetime]:
+    def get_execution_time(
+        self, node_id: LineaID
+    ) -> Tuple[datetime, datetime]:
         """
         Returns the (startime, endtime), only applies for function call nodes.
         """
@@ -419,7 +421,9 @@ class Executor:
             return ViewOfNodes(
                 [self._translate_pointer(node, ptr) for ptr in e.views]
             )
-        raise NotImplementedError(f"Unknown side effect {e}, of type {type(e)}")
+        raise NotImplementedError(
+            f"Unknown side effect {e}, of type {type(e)}"
+        )
 
     def lookup_value(self, name: str) -> object:
         """

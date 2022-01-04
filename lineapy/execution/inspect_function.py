@@ -98,8 +98,8 @@ def get_specs() -> Tuple[
     """
     # apparently the path is on the top level
     path = "./lineapy/instrumentation/*.annotations.yaml"
-    valid_specs = {}
-    valid_base_specs = {}
+    valid_specs: Dict[str, List[Annotation]] = {}
+    valid_base_specs: Dict[str, List[Annotation]] = {}
     for filename in glob.glob(path):
         with open(filename, "r") as f:
             doc = yaml.safe_load(f)
@@ -108,7 +108,7 @@ def get_specs() -> Tuple[
                 if v is not None:
                     if v.module is not None:
                         valid_specs[v.module] = v.annotations
-                    else:
+                    elif v.base_module is not None:
                         valid_base_specs[v.base_module] = v.annotations
     return valid_specs, valid_base_specs
 

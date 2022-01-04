@@ -4,6 +4,7 @@ Validate the annotations.yaml files in the instrumentation directory.
 """
 import glob
 import json  # for pretty printing dicts
+from typing import Any, List
 
 import yaml
 
@@ -15,7 +16,7 @@ def test_validate_specs():
     TODO: make into a nice cli tool. Also improve errors.
     """
     path = "./lineapy/instrumentation/*.annotations.yaml"
-    all_valid_specs = []
+    all_valid_specs: List[Any] = []
     for filename in glob.glob(path):
         with open(filename, "r") as f:
             print("Evaluating file: {}\n".format(filename))

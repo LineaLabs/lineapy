@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Union
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -180,4 +180,3 @@ class ModuleAnnotation(BaseModel):
     class Config:
         allow_mutation = False
         extra = "forbid"
-

@@ -155,3 +155,4 @@ webencodings==0.5.1
 websocket-client==1.2.3
 wmctrl==0.4
 zipp==3.6.0
+types-PyYAML==6.0.1

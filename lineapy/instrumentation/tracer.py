@@ -240,7 +240,9 @@ class Tracer:
         # Only call nodes can refer to implicit dependencies
         assert isinstance(node, CallNode)
         node.implicit_dependencies.append(
-            self.mutation_tracker.get_latest_mutate_node(implicit_dependency_id)
+            self.mutation_tracker.get_latest_mutate_node(
+                implicit_dependency_id
+            )
         )
 
     def _process_accessed_globals(

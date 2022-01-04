@@ -98,6 +98,7 @@ setup(
             "SQLAlchemy[mypy]>=1.4.0",
             "sphinx",
             "sphinx_rtd_theme",
+            "types-PyYAML",
         ]
     },
     include_package_data=True,
