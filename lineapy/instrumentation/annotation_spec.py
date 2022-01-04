@@ -92,7 +92,7 @@ class ViewOfValues(BaseModel):
     """
 
     # They are unique, like a set, but ordered for deterministic behavior
-    views: list[ValuePointer]
+    views: List[ValuePointer]
 
     # def __init__(self, *xs: ValuePointer) -> None:
     #     self.views = list(xs)

@@ -37,6 +37,6 @@ repos:
         entry: mypy .
         language: python
         additional_dependencies: ["mypy==0.910", "SQLAlchemy==1.4.28", "sqlalchemy[mypy]",
-                                  "mypy-extensions==0.4.3", "pydantic==1.8.2"]
+                                  "mypy-extensions==0.4.3", "pydantic==1.8.2", "types-PyYAML"]
         types: [python]
         pass_filenames: false
