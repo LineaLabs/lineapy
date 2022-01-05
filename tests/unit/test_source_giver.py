@@ -1,3 +1,6 @@
+#
+#
+# type: ignore
 import ast
 import sys
 
@@ -27,14 +30,13 @@ def test_source_giver_adds_end_lineno(code, lineno):
         pytest.skip("SourceGiver not invoked for Python 3.8+")
     tree = ast.parse(code)
     with pytest.raises(AttributeError):
-        print(tree.body[0].end_lineno)  # type: ignore
+        print(tree.body[0].end_lineno)
 
     asttokens.ASTTokens(code, parse=False, tree=tree)
     pprint(tree)
-    print(tree.body[0].last_token)  # type: ignore
-    assert tree.body[0].last_token.end[0] == lineno  # type: ignore
+    print(tree.body[0].last_token)
+    assert tree.body[0].last_token.end[0] == lineno
 
     SourceGiver().transform(tree)
-    # print(tree.body[0].end_lineno)  # type: ignore
-    assert tree.body[0].end_lineno == lineno  # type: ignore
+    assert tree.body[0].end_lineno == lineno
     print(tree)
