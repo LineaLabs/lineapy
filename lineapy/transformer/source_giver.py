@@ -21,10 +21,6 @@ class SourceGiver:
             if not hasattr(node, "lineno"):
                 continue
 
-            # if last_token isnt set, asttoken didnt do its magic so abandon ship - this might be unnecessary
-            # if not hasattr(node, "last_token"):
-            #     return
-
             if hasattr(node, "last_token"):
                 node.end_lineno = node.last_token.end[0]  # type: ignore
                 node.end_col_offset = node.last_token.end[1]  # type: ignore

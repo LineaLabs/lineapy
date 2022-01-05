@@ -639,15 +639,6 @@ class NodeTransformer(ast.NodeTransformer):
     def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
         if not hasattr(node, "lineno"):
             return None
-        # if sys.version_info < (3, 8):
-        #     return SourceLocation(
-        #         source_code=self.source_code,
-        #         lineno=node.lineno,
-        #         col_offset=node.col_offset,
-        #         end_lineno=-1,
-        #         end_col_offset=-1,
-        #     )
-        # else:
         return SourceLocation(
             source_code=self.source_code,
             lineno=node.lineno,
