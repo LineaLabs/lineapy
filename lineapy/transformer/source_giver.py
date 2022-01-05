@@ -54,7 +54,3 @@ class SourceGiver:
             prev_node = node
             prev_line_start = curr_line_start
             prev_line_offset = curr_line_offset
-
-        # TODO after the entire loop ends, the last node's end_lineno should be set? maybe not?
-        # This will only create issues if we end with a blackbox - which could be a valid case
-        # for when users do if __name__ == "__main__"
