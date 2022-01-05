@@ -80,6 +80,19 @@ def transform(
         )
     except SyntaxError as e:
         raise UserException(e, RemoveFrames(2))
+    if sys.version_info < (3, 8):
+        from asttokens import ASTTokens
+
+        from lineapy.transformer.source_giver import SourceGiver
+
+        # if python version is 3.7 or below, we need to run the source_giver
+        # to add the end_lineno's to the nodes. We do this in two steps - first
+        # the asttoken lib does its thing and adds tokens to the nodes
+        # and then we swoop in and copy the end_lineno from the tokens
+        # and claim credit for their hard work
+        ASTTokens(code, parse=False, tree=tree)
+        SourceGiver().transform(tree)
+
     node_transformer.visit(tree)
 
     tracer.db.commit()
@@ -112,7 +125,14 @@ class NodeTransformer(ast.NodeTransformer):
         self.last_statement_result: Optional[Node] = None
 
     def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
-        return ast.get_source_segment(self.source_code.code, node, padded=True)
+        if sys.version_info < (3, 8):
+            from lineapy.deprecation_utils import get_source_segment
+
+            return get_source_segment(self.source_code.code, node, padded=True)
+        else:
+            return ast.get_source_segment(
+                self.source_code.code, node, padded=True
+            )
 
     def generic_visit(self, node: ast.AST):
         """
@@ -133,12 +153,56 @@ class NodeTransformer(ast.NodeTransformer):
                 f"Don't know how to transform {type(node).__name__}"
             )
 
+    def visit_Str(self, node: ast.Str) -> LiteralNode:
+        """
+        Note
+        ----
+
+        Deprecated in Python 3.8
+        """
+        if sys.version_info >= (3, 8):
+            raise NotImplementedError(
+                "Str nodes are deprecated since Python 3.8"
+            )
+        else:
+            return self.tracer.literal(node.s, self.get_source(node))
+
+    def visit_Num(self, node: ast.Num) -> LiteralNode:
+        """
+        Note
+        ----
+
+        Deprecated in Python 3.8
+        """
+        if sys.version_info >= (3, 8):
+            raise NotImplementedError(
+                "Num nodes are deprecated since Python 3.8"
+            )
+        else:
+            return self.tracer.literal(node.n, self.get_source(node))
+
+    def visit_NameConstant(self, node: ast.NameConstant) -> LiteralNode:
+        """
+        Note
+        ----
+
+        Deprecated in Python 3.8
+        """
+        if sys.version_info >= (3, 8):
+            raise NotImplementedError(
+                "Num nodes are deprecated since Python 3.8"
+            )
+        else:
+            return self.tracer.literal(node.value, self.get_source(node))
+
     def visit_Starred(self, node: ast.Starred) -> Iterable[LiteralNode]:
         elemlist: Iterable = []
         if isinstance(node.value, ast.Constant):
             elemlist = cast(Iterable, node.value.value)
         elif isinstance(node.value, ast.Name):
             elemlist = cast(Iterable, self.tracer.values[node.value.id])
+        elif isinstance(node.value, ast.Str):
+            elemlist = cast(Iterable, node.value.s)
 
         elem_nodes = [self.visit(ast.Constant(ele)) for ele in iter(elemlist)]
         yield from elem_nodes
@@ -185,8 +249,8 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Index(self, node: ast.Index) -> Node:
         """
-        Warning
-        -------
+        Note
+        ----
 
         Deprecated in Python 3.9
         """
@@ -199,8 +263,8 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_ExtSlice(self, node: ast.ExtSlice) -> Node:
         """
-        Warning
-        -------
+        Note
+        ----
 
         Deprecated in Python 3.9
         """
@@ -579,6 +643,6 @@ class NodeTransformer(ast.NodeTransformer):
             source_code=self.source_code,
             lineno=node.lineno,
             col_offset=node.col_offset,
-            end_lineno=node.end_lineno,
-            end_col_offset=node.end_col_offset,
+            end_lineno=node.end_lineno,  # type: ignore
+            end_col_offset=node.end_col_offset,  # type: ignore
         )

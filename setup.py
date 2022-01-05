@@ -69,6 +69,7 @@ setup(
         "astpretty",
         "scour==0.38.2",
         "pyyaml",
+        "asttokens",
     ],
     extras_require={
         "dev": [

@@ -6,7 +6,14 @@ import logging
 import operator
 from dataclasses import dataclass, field
 from datetime import datetime
-from functools import singledispatchmethod
+
+try:
+    from functools import singledispatchmethod  # type: ignore
+except ImportError:
+    # this is the fallback for python < 3.8
+    # https://stackoverflow.com/questions/24601722
+    from lineapy.deprecation_utils import singledispatchmethod  # type: ignore
+
 from os import chdir, getcwd
 from typing import (
     Callable,
