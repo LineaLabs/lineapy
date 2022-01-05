@@ -155,8 +155,8 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Str(self, node: ast.Str) -> LiteralNode:
         """
-        Warning
-        -------
+        Note
+        ----
 
         Deprecated in Python 3.8
         """
@@ -169,8 +169,8 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Num(self, node: ast.Num) -> LiteralNode:
         """
-        Warning
-        -------
+        Note
+        ----
 
         Deprecated in Python 3.8
         """
@@ -183,8 +183,8 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_NameConstant(self, node: ast.NameConstant) -> LiteralNode:
         """
-        Warning
-        -------
+        Note
+        ----
 
         Deprecated in Python 3.8
         """
@@ -249,8 +249,8 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_Index(self, node: ast.Index) -> Node:
         """
-        Warning
-        -------
+        Note
+        ----
 
         Deprecated in Python 3.9
         """
@@ -263,8 +263,8 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_ExtSlice(self, node: ast.ExtSlice) -> Node:
         """
-        Warning
-        -------
+        Note
+        ----
 
         Deprecated in Python 3.9
         """

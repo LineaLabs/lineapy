@@ -123,8 +123,8 @@ class MutatedValue(BaseModel):
     """
     A value that is mutated when the function is called.
     We are naming the fields with a repetition to the class name because we
-      want Pydantic to be able to differentiate between the classes (without
-      explicit class definitions.)
+    want Pydantic to be able to differentiate between the classes (without
+    explicit class definitions.)
     """
 
     mutated_value: ValuePointer
@@ -195,10 +195,9 @@ class BaseClassMethodName(BaseModel):
     Baseclass methods allow us to cover more cases.
 
     For instance, in sklearn, many `fit` methods are on different types of
-      estimators that are subclasses of `BaseEstimator`.
-
+    estimators that are subclasses of `BaseEstimator`.
     So the `class_instance` is the string "BaseEstimator",
-      and the `class_method_name` is the string "fit".
+    and the `class_method_name` is the string "fit".
     """
 
     base_class: str

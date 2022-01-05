@@ -17,7 +17,6 @@ if sys.version_info >= (3, 8):
         def __name__(self) -> str:
             ...
 
-
 else:
 
     class HasName:
@@ -35,7 +34,6 @@ if sys.version_info >= (3, 8):
     def register(b: "HAS_NAME") -> "HAS_NAME":
         _builtins.append(b)
         return b
-
 
 else:
 
@@ -155,8 +153,8 @@ def l_exec_expr(code: str) -> object:
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
 
-    :return: it will return the result as well as the last
-    argument.
+    :return: it will return the result as well as the last argument.
+
     """
     context = get_context()
 

@@ -34,6 +34,12 @@ lineapy.constants module
 .. automodule:: lineapy.constants
    :members:
 
+lineapy.deprecation\_utils module
+---------------------------------
+
+.. automodule:: lineapy.deprecation_utils
+   :members:
+
 lineapy.ipython module
 ----------------------
 
