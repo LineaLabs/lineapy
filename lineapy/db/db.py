@@ -10,7 +10,7 @@ from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
-from lineapy.constants import SQLALCHEMY_ECHO
+from lineapy.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
 from lineapy.data.types import (
     Artifact,
     CallNode,
@@ -81,7 +81,7 @@ class RelationalLineaDB:
         echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
         logger.debug(f"Connecting to Linea DB at {url}")
         additional_args = {}
-        if url.startswith("sqlite"):
+        if url.startswith(DB_SQLITE_PREFIX):
             additional_args = {"check_same_thread": False}
         engine = create_engine(
             url,

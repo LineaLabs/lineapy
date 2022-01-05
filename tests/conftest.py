@@ -12,6 +12,7 @@ from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy import save
+from lineapy.constants import DB_SQLITE_PREFIX
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import (
@@ -261,7 +262,7 @@ def remove_db():
     db_url = (
         os.environ.get(DB_URL_ENV_VARIABLE, MEMORY_DB_URL) or MEMORY_DB_URL
     )
-    if db_url.startswith("sqlite"):
+    if db_url.startswith(DB_SQLITE_PREFIX):
         p = resolve_default_db_path()
         if p.exists():
             p.unlink()
