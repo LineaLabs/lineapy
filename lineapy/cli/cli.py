@@ -113,11 +113,10 @@ def linea_cli(
 
     if slice and not export_slice and not export_slice_to_airflow_dag:
         for _slice in slice:  # slice is a tuple
-            slice_var_code = tracer.slice(_slice)
             tree.add(
                 rich.console.Group(
-                    f"Slice of {repr(_slice)}, variable {slice_var_code[0]}",
-                    rich.syntax.Syntax(slice_var_code[1], "python"),
+                    f"Slice of {repr(_slice)}",
+                    rich.syntax.Syntax(tracer.slice(_slice), "python"),
                 )
             )
 
