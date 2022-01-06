@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import glob
 import logging
+import os
 import sys
 from types import BuiltinMethodType, MethodType
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
@@ -95,8 +96,8 @@ def get_specs() -> Tuple[
     yaml specs are for non-built in functions.
     Captures all the .annotations.yaml files in the lineapy directory.
     """
-    # apparently the path is on the top level
-    path = "./lineapy/*.annotations.yaml"
+    relative_path = "../*.annotations.yaml"
+    path = os.path.join(os.path.dirname(__file__), relative_path)
     valid_specs: Dict[str, List[Annotation]] = {}
     valid_base_specs: Dict[str, List[Annotation]] = {}
     for filename in glob.glob(path):
