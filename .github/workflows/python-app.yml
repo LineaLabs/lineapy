@@ -5,39 +5,21 @@ name: Python
 
 on:
   push:
-    branches: [main]
+    branches: [split-actions-and-badges]
     paths:
       - "**.py"
       - "**.ipynb"
-  pull_request:
-    paths:
-      - "**.py"
-      - "**.ipynb"
+  # pull_request:
+  #   paths:
+  #     - "**.py"
+  #     - "**.ipynb"
+  
 concurrency:
   group: "${{ github.head_ref }}"
   cancel-in-progress: true
 jobs:
-  pytest:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.7.11', '3.8', '3.9']
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          lfs: true
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install graphviz
-        run: sudo apt-get install -y graphviz
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt && python setup.py install && rm -rf build
-      - name: Test with pytest
-        run: |
-          pytest -v
+  test:
+    uses: ./.github/workflows/test.yml
   black:
     runs-on: ubuntu-latest
     strategy:

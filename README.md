@@ -1,4 +1,12 @@
-# `lineapy`
+<p align="center">
+    <a href="https://linea.ai/">
+      <img src="https://linea.ai/logo-negative-trsp-nopadding.png" width="550">
+    </a>
+</p>
+<br />
+
+[![Python](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml/badge.svg)](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml)
+
 
 Lineapy is a Python library for capturing, analyzing, and automating data 
 science workflows.
