@@ -4,21 +4,18 @@
 name: Python
 
 on:
-  push:
-    branches: [split-actions-and-badges, main]
+  pull_request:
     paths:
-      - "setup.py"
-      - "airflow-requirements.txt"
-      - "Dockerfile"
-      - "Makefile"
-      - ".github/workflows/deploy-image.yml"
       - "**.py"
       - "**.ipynb"
-
+  
 concurrency:
-  group: "${{ github.ref }}"
+  group: "${{ github.head_ref }}"
   cancel-in-progress: true
 jobs:
+  test:
+    name: Tests
+    uses: LineaLabs/lineapy/.github/workflows/test.yml@split-actions-and-badges
   format:
     name: Format code
     uses: LineaLabs/lineapy/.github/workflows/format.yml@split-actions-and-badges
@@ -28,11 +25,3 @@ jobs:
   typechecks:
     name: Typechecks
     uses: LineaLabs/lineapy/.github/workflows/typecheck.yml@split-actions-and-badges
-  test:
-    name: Tests
-    needs: [format, lint, typechecks]
-    uses: LineaLabs/lineapy/.github/workflows/test.yml@split-actions-and-badges
-  deploy:
-    name: Publish
-    needs: test
-    uses: LineaLabs/lineapy/.github/workflows/deploy-image.yml@split-actions-and-badges

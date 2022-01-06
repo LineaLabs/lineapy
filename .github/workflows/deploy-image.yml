@@ -3,14 +3,7 @@
 name: Create, publish and test a Docker image
 
 on:
-  push:
-    branches: ["main"]
-    paths:
-      - "setup.py"
-      - "airflow-requirements.txt"
-      - "Dockerfile"
-      - "Makefile"
-      - ".github/workflows/deploy-image.yml"
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io
