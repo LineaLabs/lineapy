@@ -124,7 +124,9 @@ def linea_cli(
         if not slice:
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
-        for _slice, _export_slice in zip(slice, export_slice):
+        for _slice, _export_slice in zip(
+            slice, export_slice
+        ):  # export_slice is a tuple
             full_code = tracer.sliced_func(_slice, _export_slice)
             pathlib.Path(f"{_export_slice}.py").write_text(full_code)
 
@@ -138,7 +140,9 @@ def linea_cli(
         full_code = sliced_aiflow_dag(
             tracer,
             slice,
-            export_slice_to_airflow_dag[0],
+            export_slice_to_airflow_dag[
+                0
+            ],  # export_slice_to_airflow_dag is a tuple
             airflow_task_dependencies,
         )
         pathlib.Path(f"{export_slice_to_airflow_dag[0]}.py").write_text(
