@@ -31,8 +31,8 @@ check_untyped_defs = true
 # Dont check libraries without stubs
 ignore_missing_imports = true
 
-# Raise errors on ignores which we don't need
-warn_unused_ignores = true
+# Do not raise errors on ignores which we don't need - hassle when supporting multiple python versions
+warn_unused_ignores = false
 
 
 warn_unreachable = true

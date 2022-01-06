@@ -6,11 +6,12 @@ from lineapy.utils import get_new_id
 source_1 = SourceCode(
     code="""import lineapy
 import pandas as pd
-import sqlite3
 df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+import sqlite3
 conn = sqlite3.connect(\':memory:\')
 df.to_sql(name="test", con=conn,index=False)
-lineapy.save(lineapy.db, "db")
+
+lineapy.save(lineapy.db, \'lineapy.db\')
 """,
     location=PosixPath("[source file path]"),
 )
@@ -28,17 +29,17 @@ import_1 = ImportNode(
 )
 call_14 = CallNode(
     source_location=SourceLocation(
-        lineno=7,
+        lineno=8,
         col_offset=0,
-        end_lineno=7,
-        end_col_offset=30,
+        end_lineno=8,
+        end_col_offset=38,
         source_code=source_1.id,
     ),
     function_id=CallNode(
         source_location=SourceLocation(
-            lineno=7,
+            lineno=8,
             col_offset=0,
-            end_lineno=7,
+            end_lineno=8,
             end_col_offset=12,
             source_code=source_1.id,
         ),
@@ -55,9 +56,9 @@ call_14 = CallNode(
     positional_args=[
         CallNode(
             source_location=SourceLocation(
-                lineno=7,
+                lineno=8,
                 col_offset=13,
-                end_lineno=7,
+                end_lineno=8,
                 end_col_offset=23,
                 source_code=source_1.id,
             ),
@@ -97,17 +98,17 @@ call_14 = CallNode(
                             positional_args=[
                                 CallNode(
                                     source_location=SourceLocation(
-                                        lineno=4,
+                                        lineno=3,
                                         col_offset=5,
-                                        end_lineno=4,
+                                        end_lineno=3,
                                         end_col_offset=51,
                                         source_code=source_1.id,
                                     ),
                                     function_id=CallNode(
                                         source_location=SourceLocation(
-                                            lineno=4,
+                                            lineno=3,
                                             col_offset=5,
-                                            end_lineno=4,
+                                            end_lineno=3,
                                             end_col_offset=17,
                                             source_code=source_1.id,
                                         ),
@@ -135,9 +136,9 @@ call_14 = CallNode(
                                     positional_args=[
                                         CallNode(
                                             source_location=SourceLocation(
-                                                lineno=4,
+                                                lineno=3,
                                                 col_offset=18,
-                                                end_lineno=4,
+                                                end_lineno=3,
                                                 end_col_offset=50,
                                                 source_code=source_1.id,
                                             ),
@@ -152,9 +153,9 @@ call_14 = CallNode(
                                                     positional_args=[
                                                         LiteralNode(
                                                             source_location=SourceLocation(
-                                                                lineno=4,
+                                                                lineno=3,
                                                                 col_offset=19,
-                                                                end_lineno=4,
+                                                                end_lineno=3,
                                                                 end_col_offset=22,
                                                                 source_code=source_1.id,
                                                             ),
@@ -162,9 +163,9 @@ call_14 = CallNode(
                                                         ).id,
                                                         CallNode(
                                                             source_location=SourceLocation(
-                                                                lineno=4,
+                                                                lineno=3,
                                                                 col_offset=24,
-                                                                end_lineno=4,
+                                                                end_lineno=3,
                                                                 end_col_offset=33,
                                                                 source_code=source_1.id,
                                                             ),
@@ -174,9 +175,9 @@ call_14 = CallNode(
                                                             positional_args=[
                                                                 LiteralNode(
                                                                     source_location=SourceLocation(
-                                                                        lineno=4,
+                                                                        lineno=3,
                                                                         col_offset=25,
-                                                                        end_lineno=4,
+                                                                        end_lineno=3,
                                                                         end_col_offset=26,
                                                                         source_code=source_1.id,
                                                                     ),
@@ -184,9 +185,9 @@ call_14 = CallNode(
                                                                 ).id,
                                                                 LiteralNode(
                                                                     source_location=SourceLocation(
-                                                                        lineno=4,
+                                                                        lineno=3,
                                                                         col_offset=28,
-                                                                        end_lineno=4,
+                                                                        end_lineno=3,
                                                                         end_col_offset=29,
                                                                         source_code=source_1.id,
                                                                     ),
@@ -194,9 +195,9 @@ call_14 = CallNode(
                                                                 ).id,
                                                                 LiteralNode(
                                                                     source_location=SourceLocation(
-                                                                        lineno=4,
+                                                                        lineno=3,
                                                                         col_offset=31,
-                                                                        end_lineno=4,
+                                                                        end_lineno=3,
                                                                         end_col_offset=32,
                                                                         source_code=source_1.id,
                                                                     ),
@@ -213,9 +214,9 @@ call_14 = CallNode(
                                                     positional_args=[
                                                         LiteralNode(
                                                             source_location=SourceLocation(
-                                                                lineno=4,
+                                                                lineno=3,
                                                                 col_offset=35,
-                                                                end_lineno=4,
+                                                                end_lineno=3,
                                                                 end_col_offset=38,
                                                                 source_code=source_1.id,
                                                             ),
@@ -223,9 +224,9 @@ call_14 = CallNode(
                                                         ).id,
                                                         CallNode(
                                                             source_location=SourceLocation(
-                                                                lineno=4,
+                                                                lineno=3,
                                                                 col_offset=40,
-                                                                end_lineno=4,
+                                                                end_lineno=3,
                                                                 end_col_offset=49,
                                                                 source_code=source_1.id,
                                                             ),
@@ -235,9 +236,9 @@ call_14 = CallNode(
                                                             positional_args=[
                                                                 LiteralNode(
                                                                     source_location=SourceLocation(
-                                                                        lineno=4,
+                                                                        lineno=3,
                                                                         col_offset=41,
-                                                                        end_lineno=4,
+                                                                        end_lineno=3,
                                                                         end_col_offset=42,
                                                                         source_code=source_1.id,
                                                                     ),
@@ -245,9 +246,9 @@ call_14 = CallNode(
                                                                 ).id,
                                                                 LiteralNode(
                                                                     source_location=SourceLocation(
-                                                                        lineno=4,
+                                                                        lineno=3,
                                                                         col_offset=44,
-                                                                        end_lineno=4,
+                                                                        end_lineno=3,
                                                                         end_col_offset=45,
                                                                         source_code=source_1.id,
                                                                     ),
@@ -255,9 +256,9 @@ call_14 = CallNode(
                                                                 ).id,
                                                                 LiteralNode(
                                                                     source_location=SourceLocation(
-                                                                        lineno=4,
+                                                                        lineno=3,
                                                                         col_offset=47,
-                                                                        end_lineno=4,
+                                                                        end_lineno=3,
                                                                         end_col_offset=48,
                                                                         source_code=source_1.id,
                                                                     ),
@@ -299,9 +300,9 @@ call_14 = CallNode(
                                     positional_args=[
                                         ImportNode(
                                             source_location=SourceLocation(
-                                                lineno=3,
+                                                lineno=4,
                                                 col_offset=0,
-                                                end_lineno=3,
+                                                end_lineno=4,
                                                 end_col_offset=14,
                                                 source_code=source_1.id,
                                             ),
@@ -354,13 +355,13 @@ call_14 = CallNode(
         ).id,
         LiteralNode(
             source_location=SourceLocation(
-                lineno=7,
+                lineno=8,
                 col_offset=25,
-                end_lineno=7,
-                end_col_offset=29,
+                end_lineno=8,
+                end_col_offset=37,
                 source_code=source_1.id,
             ),
-            value="db",
+            value="lineapy.db",
         ).id,
     ],
 )

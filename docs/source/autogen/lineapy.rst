@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 2
 
+   lineapy.api
    lineapy.cli
    lineapy.data
    lineapy.db
@@ -14,17 +15,12 @@ Subpackages
    lineapy.execution
    lineapy.graph_reader
    lineapy.instrumentation
+   lineapy.plugins
    lineapy.transformer
    lineapy.visualizer
 
 Submodules
 ----------
-
-lineapy.api module
-------------------
-
-.. automodule:: lineapy.api
-   :members:
 
 lineapy.config module
 ---------------------
@@ -36,6 +32,12 @@ lineapy.constants module
 ------------------------
 
 .. automodule:: lineapy.constants
+   :members:
+
+lineapy.deprecation\_utils module
+---------------------------------
+
+.. automodule:: lineapy.deprecation_utils
    :members:
 
 lineapy.ipython module

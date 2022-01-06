@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from functools import cached_property
 from os import environ
 from pathlib import Path
 from typing import Optional
@@ -43,7 +42,7 @@ class LineaArtifact:
     session_id: LineaID
     name: str
 
-    @cached_property
+    @property
     def value(self) -> object:
         """
         Get and return the value of the artifact
@@ -53,7 +52,7 @@ class LineaArtifact:
             raise ValueError("No value saved for this node")
         return value.value
 
-    @cached_property
+    @property
     def code(self) -> str:
         """
         Return the slices code for the artifact
@@ -61,7 +60,7 @@ class LineaArtifact:
         # FIXME: this seems a little heavy to just get the slice?
         return get_program_slice(self._graph, [self.node_id])
 
-    @cached_property
+    @property
     def _graph(self) -> Graph:
         session_context = self.db.get_session_context(self.session_id)
         # FIXME: copied cover from tracer, we might want to refactor
@@ -143,7 +142,7 @@ class LineaCatalog:
         self.db = db
         self.artifacts = self.db.get_all_artifacts()
 
-    @cached_property
+    @property
     def print(self) -> str:
         return "\n".join(
             [f"{a.name}, {a.date_created}" for a in self.artifacts]
@@ -155,7 +154,7 @@ class LineaCatalog:
     def __repr__(self) -> str:
         return self.print
 
-    @cached_property
+    @property
     def export(self):
         """
         Returns

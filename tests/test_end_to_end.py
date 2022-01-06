@@ -330,7 +330,6 @@ class TestEndToEnd:
 
     def test_alias_by_value(self, execute):
         res = execute(ALIAS_BY_VALUE)
-        print(res.graph)
         assert res.values["a"] == 2
         assert res.values["b"] == 0
 
@@ -504,9 +503,9 @@ y = {}
 x['y'] = y
 y['a'] = 1
 """
-        res = execute(source, artifacts=["x"])
+        res = execute(source, artifacts=["x", "y"])
         assert res.artifacts["x"] == source
-        # assert res.artifacts["y"] == "y = {}\ny['a'] = 1\n"
+        assert res.artifacts["y"] == "y = {}\ny['a'] = 1\n"
 
     def test_before_after_mutation(self, execute):
         """
@@ -538,11 +537,9 @@ z['a'] = 1
 """
         res = execute(source, artifacts=["x", "y", "z"])
 
-        assert res.artifacts == {
-            "x": source,
-            "y": "y = {}\nz = {}\ny['z'] = z\nz['a'] = 1\n",
-            "z": "z = {}\nz['a'] = 1\n",
-        }
+        assert res.artifacts["z"] == "z = {}\nz['a'] = 1\n"
+        assert res.artifacts["y"] == "y = {}\nz = {}\ny['z'] = z\nz['a'] = 1\n"
+        assert res.artifacts["x"] == source
 
     def test_delitem(self, execute):
         """

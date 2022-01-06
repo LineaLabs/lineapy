@@ -3,7 +3,7 @@ This module contains a number of globals, which are set by the execution when it
 processing nodes. 
 
 They are used as a side channel to pass values from the executor to special functions
-which need to know more about the exeuction context, like in the `exec` to know
+which need to know more about the execution context, like in the `exec` to know
 the source code of the current node.
 
 This module exposes three global functions, which are meant to be used like:

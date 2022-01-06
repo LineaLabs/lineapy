@@ -1,157 +1,62 @@
 from __future__ import annotations
 
-import operator
+import glob
+import logging
+import os
 import sys
-import types
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, Iterable, List, Union
+from types import BuiltinMethodType, MethodType
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
-import joblib
+import yaml
+from pydantic import ValidationError
 
-from lineapy.lineabuiltins import ExternalState, db, file_system, l_list
+from lineapy.instrumentation.annotation_spec import (
+    AllPositionalArgs,
+    Annotation,
+    BaseClassMethodName,
+    BoundSelfOfFunction,
+    ClassMethodName,
+    ClassMethodNames,
+    Criteria,
+    ExternalState,
+    FunctionName,
+    FunctionNames,
+    InspectFunctionSideEffect,
+    KeywordArgument,
+    KeywordArgumentCriteria,
+    ModuleAnnotation,
+    MutatedValue,
+    PositionalArg,
+    Result,
+    ValuePointer,
+    ViewOfValues,
+)
+
+logger = logging.getLogger(__name__)
+
+"""
+helper functions
+"""
 
 
-def inspect_function(
-    function: Callable,
-    args: List[object],
-    kwargs: Dict[str, object],
-    result: object,
-) -> InspectFunctionSideEffects:
+def is_mutable(obj: object) -> bool:
     """
-    Inspects a function and returns how calling it mutates the args/result and
-    creates view relationships between them.
+    Returns true if the object is mutable.
     """
-    if function == open:
-        yield ImplicitDependencyValue(file_system)
-    elif function == joblib.dump:
-        yield MutatedValue(file_system)
-    ##
-    # Pandas
-    ##
-    elif (
-        isinstance(function, types.MethodType)
-        and function.__module__ is not None
-        and function.__module__.startswith("pandas.")
-        and kwargs.get("inplace", False)
-    ):
-        yield MutatedValue(BoundSelfOfFunction())
-    elif (
-        (pandas := try_import("pandas"))
-        and isinstance(function, types.MethodType)
-        and function.__name__ == "to_sql"
-        and isinstance(function.__self__, pandas.DataFrame)
-    ):
-        yield MutatedValue(db)
 
-    elif (
-        isinstance(function, types.FunctionType)
-        and function.__name__ == "read_sql"
-        and function.__module__ == "pandas.io.sql"
-    ):
-        yield ImplicitDependencyValue(db)
+    # Assume all hashable objects are immutable
+    # I (yifan) think this is incorrect, but keeping the dead code
+    #   here in case we run into some issues again
 
-    elif (
-        pandas
-        and isinstance(function, types.MethodType)
-        and function.__name__ == "to_csv"
-        and isinstance(function.__self__, pandas.DataFrame)
-    ):
-        yield MutatedValue(file_system)
-
-    elif (
-        pandas
-        and isinstance(function, types.MethodType)
-        and function.__name__ == "to_parquet"
-        and isinstance(function.__self__, pandas.DataFrame)
-    ):
-        yield MutatedValue(file_system)
-
-    elif (
-        isinstance(function, types.FunctionType)
-        and function.__name__ == "read_csv"
-        and function.__module__ == "pandas.io.parsers.readers"
-    ):
-        yield ImplicitDependencyValue(file_system)
-
-    elif (
-        isinstance(function, types.FunctionType)
-        and function.__name__ == "read_parquet"
-        and function.__module__ == "pandas.io.parquet"
-    ):
-        yield ImplicitDependencyValue(file_system)
-
-    ##
-    # PIL
-    ##
-
-    elif (
-        (pil_image := try_import("PIL.Image"))
-        and isinstance(function, types.MethodType)
-        and function.__name__ == "save"
-        and isinstance(function.__self__, pil_image.Image)
-    ):
-        yield MutatedValue(file_system)
-    elif (
-        isinstance(function, types.FunctionType)
-        and (function.__name__ == "open")
-        and (function.__module__ == "PIL.Image")
-    ):
-        yield ImplicitDependencyValue(file_system)
-    elif function == setattr:
-        # setattr(o, attr, value)
-        yield MutatedValue(PositionalArg(0))
-        if is_mutable(args[2]):
-            yield ViewOfValues(PositionalArg(2), PositionalArg(0))
-    elif function == getattr:
-        # getattr(o, attr)
-        if is_mutable(args[0]) and is_mutable(result):
-            yield ViewOfValues(PositionalArg(0), Result())
-    # TODO: We should probably not use use setitem, but instead get particular
-    # __setitem__ for class so we can differentiate based on type more easily?
-    elif function == operator.setitem:
-        # setitem(dict, key, value)
-        yield MutatedValue(PositionalArg(0))
-        if is_mutable(args[2]):
-            yield ViewOfValues(PositionalArg(2), PositionalArg(0))
-    elif function == operator.getitem:
-        # getitem(dict, key)
-        # If both are mutable, they are now views of one another!
-        if is_mutable(args[0]) and is_mutable(result):
-            yield ViewOfValues(PositionalArg(0), Result())
-    if function == operator.delitem:
-        # delitem(dict, key)
-        yield MutatedValue(PositionalArg(0))
-    if function == l_list:
-        # l_build_list(x1, x2, ...)
-        yield ViewOfValues(
-            Result(),
-            *(PositionalArg(i) for i, a in enumerate(args) if is_mutable(a)),
-        )
-    elif (
-        isinstance(function, types.BuiltinMethodType)
-        and function.__name__ == "append"
-        and isinstance(function.__self__, list)
-    ):
-        # list.append(value)
-        yield MutatedValue(BoundSelfOfFunction())
-        if is_mutable(args[0]):
-            yield ViewOfValues(BoundSelfOfFunction(), PositionalArg(0))
-    elif (
-        (sklearn_base := try_import("sklearn.base"))
-        and isinstance(function, types.MethodType)
-        and function.__name__ == "fit"
-        and isinstance(function.__self__, sklearn_base.BaseEstimator)
-    ):
-        # In res = clf.fit(x, y)
-        # cff is mutated, and we say that the res and the clf
-        # are views of each other, since mutating one will mutate the other
-        # since they are the same object.
-        yield MutatedValue(BoundSelfOfFunction())
-        yield ViewOfValues(BoundSelfOfFunction(), Result())
-    # Note: Future functions might require normalizing the args/kwargs with
-    # inspect.signature.bind(args, kwargs) first
+    # try:
+    #     hash(obj)
+    # except Exception:
+    #     return True
+    # return False
+    if isinstance(obj, (str, int, bool, float, tuple, frozenset)):
+        return False
     else:
-        return []
+        return True
 
 
 def try_import(name: str) -> Any:
@@ -161,87 +66,300 @@ def try_import(name: str) -> Any:
     return sys.modules.get(name, None)
 
 
-def is_mutable(obj: object) -> bool:
+def validate(item: Dict) -> Optional[ModuleAnnotation]:
     """
-    Returns true if the object is mutable.
+    We cannot filer the specs by module, because it might be loaded later.
+    This causes a bit of inefficiency in our function inspection, but we
+    can fix later if it's a problem.
     """
-
-    # Assume all hashable objects are immutable
     try:
-        hash(obj)
-    except Exception:
-        return True
-    return False
+        spec = ModuleAnnotation(**item)
+        # check if the module is relevant for this run
+        # if spec.module is not None and try_import(spec.module) is None:
+        #     return None
+        # if (
+        #     spec.base_module is not None
+        #     and try_import(spec.base_module) is None
+        # ):
+        #     return None
+        return spec
+    except ValidationError as e:
+        # want to warn the user but not break the whole thing
+        logger.warning(f"Validation failed for annotation spec: {e}")
+        return None
 
 
-@dataclass
-class ViewOfValues:
+def get_specs() -> Tuple[
+    Dict[str, List[Annotation]], Dict[str, List[Annotation]]
+]:
     """
-    A set of values which all potentially refer to shared pointers
-    So that if one is mutated, the rest might be as well.
+    yaml specs are for non-built in functions.
+    Captures all the .annotations.yaml files in the lineapy directory.
+    """
+    relative_path = "../*.annotations.yaml"
+    path = os.path.join(os.path.dirname(__file__), relative_path)
+    valid_specs: Dict[str, List[Annotation]] = {}
+    valid_base_specs: Dict[str, List[Annotation]] = {}
+    for filename in glob.glob(path):
+        with open(filename, "r") as f:
+            doc = yaml.safe_load(f)
+            for item in doc:
+                v = validate(item)
+                if v is None:
+                    continue
+                if v.module is not None:
+                    valid_specs[v.module] = v.annotations
+                elif v.base_module is not None:
+                    valid_base_specs[v.base_module] = v.annotations
+    return valid_specs, valid_base_specs
+
+
+def _check_class(
+    criteria: Union[ClassMethodName, ClassMethodNames],
+    module: Optional[str],
+    function: Callable,
+):
+    """
+    helper
+    """
+    return (
+        hasattr(function, "__self__")
+        and module is not None
+        and module in sys.modules
+        and isinstance(
+            function.__self__,  # type: ignore
+            getattr(sys.modules[module], criteria.class_instance),
+        )
+    )
+
+
+def check_function_against_annotation(
+    function: Callable,
+    # args: list[object], # we'll prob need this later...
+    kwargs: dict[str, object],
+    criteria: Criteria,
+    module: Optional[str] = None,
+    base_module: Optional[str] = None,
+):
+    """
+    Helper function for inspect_function.
+    The checking for __self__ is for sometimes when it's a class instantiation method.
     """
 
-    # They are unique, like a set, but ordered for deterministc behaviour
-    pointers: List[ValuePointer]
+    if isinstance(criteria, FunctionName):
+        if criteria.function_name == function.__name__:
+            return True
+        return False
+    if isinstance(criteria, FunctionNames):
+        if function.__name__ in criteria.function_names:
+            return True
+        return False
+    if isinstance(criteria, ClassMethodName):
+        if function.__name__ == criteria.class_method_name and _check_class(
+            criteria, module, function
+        ):
+            return True
+        return False
+    if isinstance(criteria, ClassMethodNames):
+        if function.__name__ in criteria.class_method_names and _check_class(
+            criteria, module, function
+        ):
+            return True
+        return False
+    if isinstance(criteria, KeywordArgumentCriteria):
+        if (
+            kwargs.get(criteria.keyword_arg_name, None)
+            == criteria.keyword_arg_value
+        ):
+            return True
+        return False
+    if isinstance(criteria, BaseClassMethodName) and hasattr(
+        function, "__self__"
+    ):
+        if (
+            base_module is not None
+            and function.__name__ == criteria.class_method_name
+            and (
+                isinstance(
+                    function.__self__,  # type: ignore
+                    getattr(try_import(base_module), criteria.base_class),
+                )
+            )
+        ):
+            return True
+        return False
 
-    def __init__(self, *xs: ValuePointer) -> None:
-        self.pointers = list(xs)
+    raise ValueError(f"Unknown criteria: {criteria} of type {type(criteria)}")
 
 
-@dataclass(frozen=True)
-class MutatedValue:
+def new_side_effect_without_all_positional_arg(
+    side_effect: ViewOfValues,
+    args: list,
+) -> ViewOfValues:
     """
-    A value that is mutated when the function is called
+    This method must NOT modify the original side_effect, since these
+    annotations are dependent on the runtime values that are different
+    for each call---AllPositionalArgs will have a different set of arguments.
+
+    Note that we might need to add something like "all keyword arguments", but
+    that use case hasn't come up yet.
     """
-
-    pointer: ValuePointer
-
-
-@dataclass(frozen=True)
-class ImplicitDependencyValue:
-    pointer: ValuePointer
-
-
-InspectFunctionSideEffect = Union[
-    ViewOfValues, MutatedValue, ImplicitDependencyValue
-]
-InspectFunctionSideEffects = Iterable[InspectFunctionSideEffect]
-
-
-@dataclass(frozen=True)
-class PositionalArg:
-    index: int
+    new_side_effect = ViewOfValues(views=[])
+    for view in side_effect.views:
+        new_side_effect.views.append(view.copy(deep=True))
+    for i, v in enumerate(new_side_effect.views):
+        if isinstance(v, AllPositionalArgs):
+            new_side_effect.views.pop(i)
+            new_side_effect.views.extend(
+                (
+                    PositionalArg(positional_argument_index=i)
+                    for i, a in enumerate(args)
+                )
+            )
+            return new_side_effect
+    return new_side_effect
 
 
-@dataclass(frozen=True)
-class KeywordArg:
-    name: str
+def process_side_effect(
+    side_effect: InspectFunctionSideEffect,
+    args: list,
+    kwargs: dict[str, object],
+    result: object,
+) -> Optional[InspectFunctionSideEffect]:
+    def is_reference_mutable(p: ValuePointer) -> bool:
+        if isinstance(p, Result):
+            return is_mutable(result)
+        if isinstance(p, PositionalArg):
+            return is_mutable(args[p.positional_argument_index])
+        if isinstance(p, BoundSelfOfFunction) or isinstance(p, ExternalState):
+            return True  # object
+        if isinstance(p, KeywordArgument):
+            return is_mutable(kwargs[p.argument_keyword])
+        raise Exception(f"ValuePointer {p} of type {type(p)} not handled.")
+
+    if isinstance(side_effect, ViewOfValues):
+        new_side_effect = new_side_effect_without_all_positional_arg(
+            side_effect, args
+        )
+        new_side_effect.views = list(
+            filter(lambda x: is_reference_mutable(x), new_side_effect.views)
+        )
+        return new_side_effect
+    if isinstance(side_effect, MutatedValue):
+        if is_reference_mutable(side_effect.mutated_value):
+            return side_effect
+        return None
+    return side_effect
 
 
-@dataclass(frozen=True)
-class BoundSelfOfFunction:
-    """
-    If the function is a bound method, this refers to the instance that was
-    bound of the method.
-    """
+def _check_annotation(
+    function: Callable,
+    args: list[object],
+    kwargs: dict[str, object],
+    result: object,
+    spec_annotations: List[Annotation],
+    module: Optional[str] = None,
+    base_spec_module: Optional[str] = None,
+):
+    for annotation in spec_annotations:
+        if check_function_against_annotation(
+            function,
+            # args, # prob will need soon
+            kwargs,
+            annotation.criteria,
+            module,
+            base_spec_module,
+        ):
+            for side_effect in annotation.side_effects:
+                processed = process_side_effect(
+                    side_effect, args, kwargs, result
+                )
+                if processed is not None:
+                    yield processed
+    return
 
-    pass
 
+class FunctionInspector:
+    specs: Dict[str, List[Annotation]]
+    base_specs: Dict[str, List[Annotation]]
 
-@dataclass(frozen=True)
-class Result:
-    """
-    The result of a function call, used to describe a View.
-    """
+    def __init__(self):
+        """
+        We can add more params later for fancier configs
+        """
+        self.specs, self.base_specs = get_specs()
 
-    pass
+    def inspect(
+        self,
+        function: Callable,
+        args: list[object],
+        kwargs: dict[str, object],
+        result: object,
+    ) -> Iterable[InspectFunctionSideEffect]:
+        """
+        Inspects a function and returns how calling it mutates the args/result and
+        creates view relationships between them.
+        """
 
+        # we have a special case here whose structure is not
+        #   shared with any other cases...
+        if (
+            isinstance(function, BuiltinMethodType)
+            and function.__name__ == "append"
+            and isinstance(function.__self__, list)
+        ):
+            # list.append(value)
+            yield MutatedValue(
+                mutated_value=BoundSelfOfFunction(self_ref="SELF_REF")
+            )
+            if is_mutable(args[0]):
+                yield ViewOfValues(
+                    views=[
+                        BoundSelfOfFunction(self_ref="SELF_REF"),
+                        PositionalArg(positional_argument_index=0),
+                    ]
+                )
+        else:
 
-# A value representing a pointer to some value related to a function call
-ValuePointer = Union[
-    PositionalArg,
-    KeywordArg,
-    Result,
-    BoundSelfOfFunction,
-    ExternalState,
-]
+            def get_root_module(fun: Callable):
+                if hasattr(fun, "__module__") and fun.__module__ is not None:
+                    return fun.__module__.split(".")[0]
+                return None
+
+            if function.__module__ in self.specs:
+                yield from _check_annotation(
+                    function,
+                    args,
+                    kwargs,
+                    result,
+                    self.specs[function.__module__],
+                    module=function.__module__,
+                )
+            else:
+                root_module = get_root_module(function)
+                if root_module is not None and root_module in self.specs:
+                    yield from _check_annotation(
+                        function,
+                        args,
+                        kwargs,
+                        result,
+                        self.specs[root_module],
+                        module=root_module,
+                    )
+
+            if not isinstance(function, MethodType):
+                # base classes have to be a method type, helps skip through
+                #   some options
+                return
+            for base_spec_module in self.base_specs:
+                # there doesn't seem to be a way to hash thru this...
+                # so we'll loop for now
+                yield from _check_annotation(
+                    function,
+                    args,
+                    kwargs,
+                    result,
+                    self.base_specs[base_spec_module],
+                    base_spec_module=base_spec_module,
+                )
+            return

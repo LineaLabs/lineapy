@@ -1,35 +1,47 @@
-from dataclasses import dataclass
-from typing import (
-    Dict,
-    List,
-    Mapping,
-    Optional,
-    Protocol,
-    Tuple,
-    TypeVar,
-    Union,
-)
+import sys
+from typing import Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
 from lineapy.execution.context import get_context
+from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.ipython_cell_storage import get_location_path
 
 # Keep a list of builtin functions we want to expose to the user as globals
 # Then at the end, make a dict out of all of them, from their names
 
 
-class HasName(Protocol):
-    @property
-    def __name__(self) -> str:
-        ...
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+
+    class HasName(Protocol):
+        @property
+        def __name__(self) -> str:
+            ...
+
+
+else:
+
+    class HasName:
+        @property
+        def __name__(self) -> str:
+            ...
 
 
 _builtins: List[HasName] = []
-HAS_NAME = TypeVar("HAS_NAME", bound=HasName)
+
+if sys.version_info >= (3, 8):
+
+    HAS_NAME = TypeVar("HAS_NAME", bound=HasName)
+
+    def register(b: "HAS_NAME") -> "HAS_NAME":
+        _builtins.append(b)
+        return b
 
 
-def register(b: HAS_NAME) -> HAS_NAME:
-    _builtins.append(b)
-    return b
+else:
+
+    def register(b):
+        _builtins.append(b)
+        return b
 
 
 @register
@@ -143,8 +155,8 @@ def l_exec_expr(code: str) -> object:
     Execute the `code` with `input_locals` set as locals,
     and returns a list of the `output_locals` pulled from the environment.
 
-    :return: it will return the result as well as the last
-    argument.
+    :return: it will return the result as well as the last argument.
+
     """
     context = get_context()
 
@@ -157,39 +169,8 @@ def l_exec_expr(code: str) -> object:
     return res
 
 
-@dataclass(frozen=True)
-class ExternalState:
-    """
-    Represents some reference to some state outside of the Python program.
+file_system = register(ExternalState(external_state="file_system"))
+db = register(ExternalState(external_state="db"))
 
-    If we ever make a reference to an external state instance, we assume
-    that it depends on any mutations of previous references.
-    """
-
-    __name__: str
-
-
-file_system = register(ExternalState("file_system"))
-"""
-The class file_system tracks `mutations` to the file system. 
-This currently includes `ANY` writes to the system irrespective of the file name.
-
-TODO
-====
-
-    - Add a way to track writes to specific files
-"""
-db = register(ExternalState("db"))
-"""
-Similar to file_system, the class db tracks `mutations` to the database. 
-This currently includes `ANY` writes to the db irrespective of the file name.
-We also do not support parsing the connection string so if there are multiple
-dbs or shards, all will be treated as one abstract db.
-
-TODO
-====
-
-    - Add a way to track writes to specific tables
-"""
 
 LINEA_BUILTINS = {f.__name__: f for f in _builtins}

@@ -55,6 +55,7 @@ setup(
     license=LICENSE,
     classifiers=["Development Status :: 2 - Pre-Alpha"],
     packages=find_packages(),
+    package_data={"lineapy": ["*.yaml"]},
     # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
     entry_points={"console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"]},
     install_requires=[
@@ -68,6 +69,8 @@ setup(
         "rich",
         "astpretty",
         "scour==0.38.2",
+        "pyyaml",
+        "asttokens",
     ],
     extras_require={
         "dev": [
@@ -97,6 +100,7 @@ setup(
             "SQLAlchemy[mypy]>=1.4.0",
             "sphinx",
             "sphinx_rtd_theme",
+            "types-PyYAML",
         ]
     },
     include_package_data=True,

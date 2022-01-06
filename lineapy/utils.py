@@ -62,8 +62,9 @@ def get_value_type(val: Any) -> Optional[ValueType]:
     if "PIL" in sys.modules:
         import PIL
 
-        if isinstance(val, PIL.PngImagePlugin.PngImageFile):
-            return ValueType.chart
+        if sys.version_info >= (3, 8):
+            if isinstance(val, PIL.PngImagePlugin.PngImageFile):
+                return ValueType.chart
         if isinstance(val, PIL.Image.Image):
             return ValueType.chart
 
