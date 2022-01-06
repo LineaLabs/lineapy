@@ -6,9 +6,9 @@ name: Python
 on:
   push:
     branches: [split-actions-and-badges]
-    paths:
-      - "**.py"
-      - "**.ipynb"
+    # paths:
+    #   - "**.py"
+    #   - "**.ipynb"
   # pull_request:
   #   paths:
   #     - "**.py"
