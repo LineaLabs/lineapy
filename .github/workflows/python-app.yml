@@ -18,8 +18,7 @@ concurrency:
   group: "${{ github.head_ref || github.ref }}"
   cancel-in-progress: true
 jobs:
-  test:
-    uses: LineaLabs/lineapy/.github/workflows/test.yml@split-actions-and-badges
+  uses: LineaLabs/lineapy/.github/workflows/test.yml@split-actions-and-badges
   black:
     runs-on: ubuntu-latest
     strategy:
