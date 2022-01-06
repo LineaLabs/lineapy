@@ -1,11 +1,11 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python
+name: Build
 
 on:
   push:
-    branches: [split-actions-and-badges, main]
+    branches: [main]
     paths:
       - "setup.py"
       - "airflow-requirements.txt"
@@ -21,18 +21,18 @@ concurrency:
 jobs:
   format:
     name: Format code
-    uses: LineaLabs/lineapy/.github/workflows/format.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/format.yml@main
   lint:
     name: Lint
-    uses: LineaLabs/lineapy/.github/workflows/lint.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/lint.yml@main
   typechecks:
     name: Typechecks
-    uses: LineaLabs/lineapy/.github/workflows/typecheck.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/typecheck.yml@main
   test:
     name: Tests
     needs: [format, lint, typechecks]
-    uses: LineaLabs/lineapy/.github/workflows/test.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/test.yml@main
   deploy:
     name: Publish
     needs: test
-    uses: LineaLabs/lineapy/.github/workflows/deploy-image.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/deploy-image.yml@main

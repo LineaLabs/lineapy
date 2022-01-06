@@ -15,13 +15,13 @@ concurrency:
 jobs:
   test:
     name: Tests
-    uses: LineaLabs/lineapy/.github/workflows/test.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/test.yml@main
   format:
     name: Format code
-    uses: LineaLabs/lineapy/.github/workflows/format.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/format.yml@main
   lint:
     name: Lint
-    uses: LineaLabs/lineapy/.github/workflows/lint.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/lint.yml@main
   typechecks:
     name: Typechecks
-    uses: LineaLabs/lineapy/.github/workflows/typecheck.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/typecheck.yml@main
