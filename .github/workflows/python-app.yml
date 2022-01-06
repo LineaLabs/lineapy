@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   test:
-    uses: ./.github/workflows/test.yml@split-actions-and-badges
+    uses: LineaLabs/lineapy/.github/workflows/test.yml@split-actions-and-badges
   black:
     runs-on: ubuntu-latest
     strategy:
