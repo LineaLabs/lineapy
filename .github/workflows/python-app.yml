@@ -22,6 +22,9 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.7', '3.8', '3.9']
+    concurrency:
+      group: "${{ github.head_ref }}-${{ matrix.python-version }}"
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v2
         with:
