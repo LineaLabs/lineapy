@@ -21,13 +21,13 @@ def sliced_aiflow_dag(
 
     :param tracer: the tracer object.
     :param airflow_task_dependencies: task dependencies as adjacency list,
-                    i.e. "[['p value'], ['y']]" or "[['p value', 'x'], ['y']]"
-                    This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
-                    and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
-                    Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
-                    and "sliced_housing_dag_y" depends on them.
+    i.e. "[['p value'], ['y']]" or "[['p value', 'x'], ['y']]"
+    This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
+    and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
+    Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
+    and "sliced_housing_dag_y" depends on them.
     :param func_name: name of the DAG and corresponding functions and task prefixes,
-                    i.e. "sliced_housing_dag"
+    i.e. "sliced_housing_dag"
     :return: string containing the code of the Airflow DAG running this slice
     """
 
