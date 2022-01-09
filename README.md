@@ -139,8 +139,8 @@ Options:
                                   slice-to-airflow-dag}.py
   --airflow-task-dependencies TEXT
                                   Optional flag for --airflow. Specifies tasks
-                                  dependencies as adjacency list, i.e. [['p
-                                  value'], ['y']] or [['p value', 'x'], ['y']]
+                                  dependencies in Airflow format, i.e. 'p
+                                  value >> y' or 'p value, x >> y'
   --print-source                  Whether to print the source code
   --print-graph                   Whether to print the generated graph code
   --verbose                       Print out logging for graph creation and

@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 @click.option(
     "--airflow-task-dependencies",
     default=None,
-    help="Optional flag for --airflow. Specifies tasks dependencies as adjacency list, i.e. [['p value'], ['y']] or [['p value', 'x'], ['y']]",
+    help="Optional flag for --airflow. Specifies tasks dependencies in Airflow format, i.e. 'p value >> y' or 'p value, x >> y'",
 )
 @click.option(
     "--print-source", help="Whether to print the source code", is_flag=True
