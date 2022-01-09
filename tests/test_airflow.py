@@ -36,7 +36,7 @@ def test_multiple_slices_airflow_with_task_dependencies(
         housing_tracer,
         ["p value", "y"],
         "sliced_housing_dag",
-        "[['p value'], ['y']]",
+        "p value >> y",
     )
 
 
