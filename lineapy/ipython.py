@@ -32,7 +32,8 @@ __all__ = ["_end_cell", "start", "stop", "visualize"]
 #    any logging printed during this connection, or errors raised during this connection
 #    are displayed to users, instead of being lost, if the start is called during
 #    an extension load during ipython startup.
-STATE: Union[None, StartedState, CellsExecutedState] = None
+# SS: do not explicitly set the state to `None` here
+STATE: Union[None, StartedState, CellsExecutedState]
 
 
 @dataclass
