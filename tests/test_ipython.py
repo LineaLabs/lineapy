@@ -28,7 +28,8 @@ def test_stop(run_cell):
 
 
 def test_stop2(run_cell):
-    assert run_cell("import lineapy\nlineapy.stop()") is None
+    assert run_cell("import lineapy") is None
+    assert run_cell("lineapy.stop()") is None
     assert run_cell("10") == 10
 
 
