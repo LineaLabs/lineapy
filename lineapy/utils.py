@@ -72,6 +72,8 @@ def get_value_type(val: Any) -> Optional[ValueType]:
 
 
 def prettify(code: str) -> str:
+    # TODO Sort imports and move them to the top
+    # code = isort.code(code, float_to_top=True, profile="black")
     return black.format_str(
         code,
         mode=black.Mode(),
