@@ -50,19 +50,19 @@ class StartedState:
 @dataclass
 class CellsExecutedState:
     tracer: Tracer
-    # The code for this cells execution
+    # The code for this cell's execution
     code: str
     # If set, we should update this display on every cell execution.
     visualize_display_handle: Optional[DisplayHandle] = field(default=None)
 
     # This is set to true, if `stop()` is called in the cell
     # to signal that at the end of this cell we should stop tracing.
-    # We don't stop immediatetly, so we can return the proper value from the cell
+    # We don't stop immediately, so we can return the proper value from the cell
     should_stop: bool = field(default=False)
 
     def create_visualize_display_object(self) -> DisplayObject:
         """
-        Returns a jupyter display object for the visualization
+        Returns a jupyter display object for the visualization.
         """
         from lineapy.visualizer import Visualizer
 
@@ -189,7 +189,7 @@ def visualize(*, live=False) -> None:
                 display_object, display_id=True
             )
     else:
-        # Otherwise, just display the viusalization
+        # Otherwise, just display the visualization
         display(display_object)
 
 
@@ -213,7 +213,7 @@ def _optionally_stop(cells_executed_state: CellsExecutedState) -> None:
     """
     global STATE
 
-    # If stop was trigered during in this cell, clean up
+    # If stop was triggered during in this cell, clean up
     if not cells_executed_state.should_stop:
         return
     STATE = None
