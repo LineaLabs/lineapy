@@ -196,6 +196,8 @@ def stop() -> None:
     """
     Tell the tracer to stop after this cell
     """
+    global STATE
+
     if not STATE:
         return
 
