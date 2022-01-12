@@ -10,7 +10,7 @@ from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
-from lineapy.constants import SQLALCHEMY_ECHO
+from lineapy.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
 from lineapy.data.types import (
     Artifact,
     CallNode,
@@ -80,9 +80,12 @@ class RelationalLineaDB:
         self.url: str = url
         echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
         logger.debug(f"Connecting to Linea DB at {url}")
+        additional_args = {}
+        if url.startswith(DB_SQLITE_PREFIX):
+            additional_args = {"check_same_thread": False}
         engine = create_engine(
             url,
-            connect_args={"check_same_thread": False},
+            connect_args=additional_args,
             poolclass=StaticPool,
             echo=echo,
         )
@@ -128,6 +131,8 @@ class RelationalLineaDB:
         context_orm = SessionContextORM(**args)
 
         self.session.add(context_orm)
+        if not self.url.startswith(DB_SQLITE_PREFIX):
+            self.session.flush()
 
     def commit(self) -> None:
         """
@@ -267,6 +272,8 @@ class RelationalLineaDB:
             timestamp=execution.timestamp,
         )
         self.session.add(execution_orm)
+        if not self.url.startswith(DB_SQLITE_PREFIX):
+            self.session.flush()
 
     """
     Readers

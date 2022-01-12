@@ -2,8 +2,6 @@ import subprocess
 
 import pytest
 
-from lineapy.db.utils import resolve_default_db_path
-
 
 @pytest.mark.slow
 def test_cli_entrypoint():
@@ -100,17 +98,3 @@ def test_linea_python_equivalent(tmp_path, code):
     assert linea_run.returncode == python_run.returncode
     assert linea_run.stdout.decode() == python_run.stdout.decode()
     assert linea_run.stderr.decode() == python_run.stderr.decode()
-
-
-@pytest.mark.slow
-def test_run_from_nbconvert():
-    assert not resolve_default_db_path().exists()
-    # Run the command that should populate the database
-    subprocess.check_call(
-        "jupyter nbconvert --to notebook --execute"
-        " tests/notebook/test_is_executing.ipynb --allow-errors --inplace".split(
-            " "
-        )
-    )
-    # Verify that it exists
-    assert resolve_default_db_path().exists()

@@ -1,6 +1,7 @@
 import operator
 
 SQLALCHEMY_ECHO = "SQLALCHEMY_ECHO"
+DB_SQLITE_PREFIX = "sqlite:///"
 
 # Transformer related
 GET_ITEM = operator.__getitem__.__name__

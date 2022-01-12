@@ -101,6 +101,9 @@ setup(
             "sphinx",
             "sphinx_rtd_theme",
             "types-PyYAML",
+            "pg",
+            "psycopg2",
+            "pytest-xdist",
         ]
     },
     include_package_data=True,

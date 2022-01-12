@@ -32,7 +32,10 @@ def resolve_db_url(override_url_template: Optional[str]) -> str:
     template_str = (
         override_url_template
         if override_url_template
-        else os.environ.get(DB_URL_ENV_VARIABLE, DEFAULT_DB_URL)
+        else (
+            os.environ.get(DB_URL_ENV_VARIABLE, DEFAULT_DB_URL)
+            or DEFAULT_DB_URL  # doing this to avoid the case where the env var is set to blank string
+        )
     )
     return template_str.format(**{LINEA_HOME_NAME: linea_folder()})
 

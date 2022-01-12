@@ -1,9 +1,15 @@
+SHELL=/bin/bash
 base_imagename=ghcr.io/linealabs/lineapy
 service_name=lineapy
 export IMAGE_NAME=${base_imagename}:main
 export IMAGE_NAME_AIRFLOW=${base_imagename}-airflow:main
 export AIRFLOW_HOME?=/usr/src/airflow_home
 export AIRFLOW_VENV?=/usr/src/airflow_venv
+BACKEND?=PG
+export POSTGRES_PASSWORD=supersecretpassword
+ifeq ("$(BACKEND)","PG")
+	export LINEA_DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+endif
 
 build:
 	docker-compose build \
@@ -20,7 +26,24 @@ airflow-up:
 	${args} \
 	${service_name}-airflow
 
-bash:
+pg-up:
+	docker-compose up \
+	${args} \
+	postgres &
+
+wait_for_deps:
+	docker-compose up ${args} wait_for_deps
+
+deps:
+	@if [ "${BACKEND}" == "PG" ] ; then \
+		make pg-up wait_for_deps;\
+	fi
+
+down:
+	docker-compose down	
+
+bash: 
+	make deps
 	docker-compose run --rm ${service_name} /bin/bash
 
 bash-airflow:
@@ -30,10 +53,18 @@ build-docs:
 	docker-compose run --rm ${service_name} /bin/bash -c "cd docs && rm -rf source/build source/autogen && SPHINX_APIDOC_OPTIONS=members sphinx-apidoc -d 2 -f -o ./source/autogen ../lineapy/ && make html"
 
 test:
+	make deps
 	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow and not airflow" tests/
 
 test-github-action:
 	docker-compose run --rm ${service_name} pytest ${args}
+
+# needs pytest-xdist installed to run tests in parallel. also sqlite db should not be used as multiple users cannot write to it
+# postgres db has been tested and found to be working fine. in future commits, pg can be added as a dependent service in the docker-compose. 
+# Additionally, the package pg and psycopg2 should be installed in the main service.
+test-parallel:
+	make deps
+	docker-compose run --rm ${service_name} pytest ${args} -n 3 --dist=loadscope --snapshot-update --no-cov -m "not (slow or airflow)" tests/
 
 test-airflow:
 	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/

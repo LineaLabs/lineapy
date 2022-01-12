@@ -3,7 +3,7 @@
 # https://docs.docker.com/language/python/build-images/#create-a-dockerfile-for-python
 FROM python:3.9-slim
 
-RUN apt-get update && apt-get -y install git graphviz make && \
+RUN apt-get update && apt-get -y install git graphviz make libpq-dev gcc && \
     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash \
     && apt-get install git-lfs && git lfs install && apt clean && apt-get autoclean && apt-get autoremove
 

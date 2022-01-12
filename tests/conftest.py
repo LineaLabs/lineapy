@@ -12,9 +12,14 @@ from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy import save
+from lineapy.constants import DB_SQLITE_PREFIX
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.utils import MEMORY_DB_URL, resolve_default_db_path
+from lineapy.db.utils import (
+    DB_URL_ENV_VARIABLE,
+    MEMORY_DB_URL,
+    resolve_default_db_path,
+)
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.logging import configure_logging
@@ -253,9 +258,14 @@ def remove_db():
     """
     Remove db before all tests
     """
-    p = resolve_default_db_path()
-    if p.exists():
-        p.unlink()
+    # doing this because db cleanup is only needed for sqlite
+    db_url = (
+        os.environ.get(DB_URL_ENV_VARIABLE, MEMORY_DB_URL) or MEMORY_DB_URL
+    )
+    if db_url.startswith(DB_SQLITE_PREFIX):
+        p = resolve_default_db_path()
+        if p.exists():
+            p.unlink()
 
 
 @pytest.fixture

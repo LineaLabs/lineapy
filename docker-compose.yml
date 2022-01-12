@@ -3,12 +3,40 @@ services:
   lineapy:
     image: ${IMAGE_NAME}
     build: .
+    environment:
+      - LINEA_DATABASE_URL=${LINEA_DATABASE_URL}
     volumes:
       - ./lineapy:/usr/src/base/lineapy
       - ./tests:/usr/src/base/tests
       - ./pyproject.toml:/usr/src/base/pyproject.toml
       - ./pytest.ini:/usr/src/base/pytest.ini
       - ./docs:/usr/src/base/docs
+    networks:
+      - lineapy
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - lineapy
+
+  # wait_for_deps2:
+  #   image: willwill/wait-for-it
+  #   command: [ postgres:5432 ]
+  #   networks:
+  #     - lineapy
+
+  wait_for_deps:
+    image: dadarek/wait-for-dependencies
+    command: postgres:5432
+    networks:
+      - lineapy
+
   lineapy-airflow:
     image: ${IMAGE_NAME_AIRFLOW}
     build:
@@ -21,3 +49,10 @@ services:
     ports:
       - 8080:8080
     command: airflow standalone
+    networks:
+      - lineapy
+
+networks:
+  lineapy:
+    driver: bridge
+    external: true
