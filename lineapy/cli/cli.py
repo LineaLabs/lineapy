@@ -1,7 +1,7 @@
 import logging
 import os
 import pathlib
-from typing import Tuple
+from typing import List
 
 import click
 import rich
@@ -76,8 +76,8 @@ logger = logging.getLogger(__name__)
 def linea_cli(
     file_name: pathlib.Path,
     db_url: str,
-    slice: Tuple[str],
-    export_slice: Tuple[str],
+    slice: List[str],  # cast tuple into list
+    export_slice: List[str],  # cast tuple into list
     export_slice_to_airflow_dag: str,
     airflow_task_dependencies: str,
     print_source: bool,
@@ -111,7 +111,7 @@ def linea_cli(
 
         Visualizer.for_public(tracer).render_pdf_file()
 
-    if slice and export_slice == () and not export_slice_to_airflow_dag:
+    if slice and not export_slice and not export_slice_to_airflow_dag:
         for _slice in slice:
             tree.add(
                 rich.console.Group(
@@ -121,7 +121,7 @@ def linea_cli(
             )
 
     if export_slice:
-        if slice == ():
+        if not slice:
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
@@ -129,7 +129,7 @@ def linea_cli(
             pathlib.Path(f"{_export_slice}.py").write_text(full_code)
 
     if export_slice_to_airflow_dag:
-        if slice == ():
+        if not slice:
             print(
                 "Please specify --slice. It is required for --export-slice-to-airflow-dag"
             )

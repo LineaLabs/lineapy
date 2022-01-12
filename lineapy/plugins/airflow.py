@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, List
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -12,7 +12,7 @@ from lineapy.utils import prettify
 
 def sliced_aiflow_dag(
     tracer: Tracer,
-    slice_names: Tuple[str],
+    slice_names: List[str],
     func_name: str,
     airflow_task_dependencies: str,
 ) -> str:
