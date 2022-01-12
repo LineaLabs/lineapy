@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Dict, List
 
+import isort
 from jinja2 import Environment, FileSystemLoader
 
 import lineapy
@@ -98,4 +99,6 @@ def to_airflow(
         tasks=_task_names,
         task_dependencies=task_dependencies,
     )
+    # Sort imports and move them to the top
+    full_code = isort.code(full_code, float_to_top=True, profile="black")
     return prettify(full_code)
