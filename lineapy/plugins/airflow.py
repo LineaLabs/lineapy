@@ -34,6 +34,7 @@ def sliced_aiflow_dag(
 
     # Remove quotes
     airflow_task_dependencies = airflow_task_dependencies.replace("\\'", "")
+    airflow_task_dependencies = airflow_task_dependencies.replace("'", "")
 
     artifacts_code = {}
     for slice_name in slice_names:
