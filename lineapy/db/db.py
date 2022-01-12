@@ -85,7 +85,7 @@ class RelationalLineaDB:
             additional_args = {"check_same_thread": False}
         engine = create_engine(
             url,
-            connect_args={"check_same_thread": False},
+            connect_args=additional_args,
             poolclass=StaticPool,
             echo=echo,
         )
