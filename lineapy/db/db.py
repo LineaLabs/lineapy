@@ -131,7 +131,8 @@ class RelationalLineaDB:
         context_orm = SessionContextORM(**args)
 
         self.session.add(context_orm)
-        # self.session.flush()
+        if not self.url.startswith(DB_SQLITE_PREFIX):
+            self.session.flush()
 
     def commit(self) -> None:
         """
@@ -271,7 +272,8 @@ class RelationalLineaDB:
             timestamp=execution.timestamp,
         )
         self.session.add(execution_orm)
-        # self.session.flush()
+        if not self.url.startswith(DB_SQLITE_PREFIX):
+            self.session.flush()
 
     """
     Readers
