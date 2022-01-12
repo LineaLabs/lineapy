@@ -1,9 +1,6 @@
 #!/bin/bash
 # Modified from https://docs.docker.com/config/containers/multi-service_container/
 
-# Install lineapy in develop mode
-python setup.py develop
-
 # Start the first process
 make jupyterlab_start &> /tmp/jupyterlab_log &
   
