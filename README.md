@@ -121,15 +121,33 @@ $ lineapy --help
 Usage: lineapy [OPTIONS] FILE_NAME
 
 Options:
-  --mode TEXT          Either `memory`, `dev`, `test`, or `prod` mode
-  --slice TEXT         Print the sliced code that this artifact depends on
-  --export-slice TEXT  Requires --slice. Export the sliced code that {slice}
-                       depends on to {export_slice}.py
-  --print-source       Whether to print the source code
-  --print-graph        Whether to print the generated graph code
-  --verbose            Print out logging for graph creation and execution
-  --visualize          Visualize the resulting graph with Graphviz
-  --help               Show this message and exit.
+  --db-url TEXT                   Set the DB URL. If None, will default to
+                                  reading from the LINEA_DATABASE_URL env
+                                  variable and if that is not set then will
+                                  default to sqlite:///{LINEA_HOME}/db.sqlite.
+                                  Note that {LINEA_HOME} will be replaced with
+                                  the root linea home directory. This is the
+                                  first directory found which has a .linea
+                                  folder
+  --slice TEXT                    Print the sliced code that this artifact
+                                  depends on
+  --export-slice TEXT             Requires --slice. Export the sliced code
+                                  that {slice} depends on to {export_slice}.py
+  --export-slice-to-airflow-dag, --airflow TEXT
+                                  Requires --slice. Export the sliced code
+                                  from all slices to an Airflow DAG {export-
+                                  slice-to-airflow-dag}.py
+  --airflow-task-dependencies TEXT
+                                  Optional flag for --airflow. Specifies tasks
+                                  dependencies in Airflow format, i.e. 'p
+                                  value' >> 'y' or 'p value', 'x' >> 'y'. Put
+                                  slice names under single quotes.
+  --print-source                  Whether to print the source code
+  --print-graph                   Whether to print the generated graph code
+  --verbose                       Print out logging for graph creation and
+                                  execution
+  --visualize                     Visualize the resulting graph with Graphviz
+  --help                          Show this message and exit.
 
 # Run linea on a Python file to analyze it.
 # --visualize creates a visual representation of the underlying graph and displays it

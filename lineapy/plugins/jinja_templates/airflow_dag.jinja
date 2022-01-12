@@ -6,7 +6,6 @@
 {% set CATCHUP = "False" %}
 
 {% extends "base_dag.jinja" %}
-{% block import_block %}{{ import_block }}{% endblock %}
 
 {% block plugin_import_block %}
 from airflow import DAG
@@ -27,8 +26,11 @@ dag = DAG(
 {% endblock %}
 
 {% block plugin_tasks_block %}
+{% for TASK_NAME in tasks %}
 {{ TASK_NAME }} = PythonOperator(
     dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
 )
+{% endfor %}
+{{ task_dependencies }}
 {% endblock %}
 

@@ -23,6 +23,16 @@ def sliced_housing_dag_p():
     p = clf.predict([[100 * 1000, 10, 4]])
 
 
+def sliced_housing_dag_y():
+    assets = pd.read_csv("ames_train_cleaned.csv")
+
+    def is_new(col):
+        return col > 1970
+
+    assets["is_new"] = is_new(assets["Year_Built"])
+    y = assets["is_new"]
+
+
 default_dag_args = {"owner": "airflow", "retries": 2, "start_date": days_ago(1)}
 
 dag = DAG(
@@ -39,3 +49,11 @@ sliced_housing_dag_p = PythonOperator(
     task_id="sliced_housing_dag_p_task",
     python_callable=sliced_housing_dag_p,
 )
+
+sliced_housing_dag_y = PythonOperator(
+    dag=dag,
+    task_id="sliced_housing_dag_y_task",
+    python_callable=sliced_housing_dag_y,
+)
+
+sliced_housing_dag_p >> sliced_housing_dag_y

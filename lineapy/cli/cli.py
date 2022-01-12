@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+from typing import List
 
 import click
 import rich
@@ -30,21 +31,25 @@ logger = logging.getLogger(__name__)
 @click.option(
     "--slice",
     default=None,
-    multiple=True,
+    multiple=True,  # makes 'slice' variable a tuple
     help="Print the sliced code that this artifact depends on",
 )
 @click.option(
     "--export-slice",
     default=None,
-    multiple=True,
+    multiple=True,  # makes 'export-slice' variable a tuple
     help="Requires --slice. Export the sliced code that {slice} depends on to {export_slice}.py",
 )
 @click.option(
     "--export-slice-to-airflow-dag",
     "--airflow",
     default=None,
-    multiple=True,
-    help="Requires --slice. Export the sliced code that {slice} depends on to an Airflow DAG {export_slice}.py",
+    help="Requires --slice. Export the sliced code from all slices to an Airflow DAG {export-slice-to-airflow-dag}.py",
+)
+@click.option(
+    "--airflow-task-dependencies",
+    default=None,
+    help="Optional flag for --airflow. Specifies tasks dependencies in Airflow format, i.e. 'p value' >> 'y' or 'p value', 'x' >> 'y'. Put slice names under single quotes.",
 )
 @click.option(
     "--print-source", help="Whether to print the source code", is_flag=True
@@ -70,14 +75,15 @@ logger = logging.getLogger(__name__)
 )
 def linea_cli(
     file_name: pathlib.Path,
-    db_url,
-    slice,
-    export_slice,
-    export_slice_to_airflow_dag,
-    print_source,
-    print_graph,
-    verbose,
-    visualize,
+    db_url: str,
+    slice: List[str],  # cast tuple into list
+    export_slice: List[str],  # cast tuple into list
+    export_slice_to_airflow_dag: str,
+    airflow_task_dependencies: str,
+    print_source: bool,
+    print_graph: bool,
+    verbose: bool,
+    visualize: bool,
 ):
     set_custom_excepthook()
     configure_logging("INFO" if verbose else "WARNING")
@@ -106,7 +112,7 @@ def linea_cli(
         Visualizer.for_public(tracer).render_pdf_file()
 
     if slice and not export_slice and not export_slice_to_airflow_dag:
-        for _slice in slice:  # slice is a tuple
+        for _slice in slice:
             tree.add(
                 rich.console.Group(
                     f"Slice of {repr(_slice)}",
@@ -128,15 +134,14 @@ def linea_cli(
                 "Please specify --slice. It is required for --export-slice-to-airflow-dag"
             )
             exit(1)
-        for _slice, _export_slice_to_airflow_dag in zip(
-            slice, export_slice_to_airflow_dag
-        ):
-            full_code = sliced_aiflow_dag(
-                tracer, _slice, _export_slice_to_airflow_dag
-            )
-            pathlib.Path(f"{_export_slice_to_airflow_dag}.py").write_text(
-                full_code
-            )
+
+        full_code = sliced_aiflow_dag(
+            tracer,
+            slice,
+            export_slice_to_airflow_dag,
+            airflow_task_dependencies,
+        )
+        pathlib.Path(f"{export_slice_to_airflow_dag}.py").write_text(full_code)
 
     tracer.db.close()
     if print_graph:

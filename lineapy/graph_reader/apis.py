@@ -88,7 +88,9 @@ class LineaArtifact:
         )
         working_dir = Path(session_orm.working_directory)
 
-        airflow_code = to_airflow(self.code, self.name, working_dir)
+        airflow_code = to_airflow(
+            {self.name: self.code}, self.name, working_dir
+        )
         if filename:
             path = Path(filename)
         else:

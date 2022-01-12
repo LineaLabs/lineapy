@@ -4,8 +4,6 @@ from datetime import datetime
 from os import getcwd
 from typing import Dict, List, Optional
 
-from black import FileMode, format_str
-
 from lineapy.constants import GETATTR, IMPORT_STAR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -41,7 +39,7 @@ from lineapy.graph_reader.program_slice import (
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.lineabuiltins import l_tuple
-from lineapy.utils import get_new_id
+from lineapy.utils import get_new_id, prettify
 
 logger = logging.getLogger(__name__)
 
@@ -120,12 +118,9 @@ class Tracer:
         }
 
     def sliced_func(self, slice_name: str, func_name: str) -> str:
-        artifact = self.db.get_artifact_by_name(slice_name)
-        artifact_var = self.artifact_var_name(artifact)
-        if not artifact_var:
-            return "Unable to extract the slice"
-        slice_code = get_program_slice(self.graph, [artifact.node_id])
-        # We split the code in import and code blocks and join them to full code test
+        artifact_var = self.artifact_var_name(slice_name)
+        slice_code = self.slice(slice_name)
+        # We split the code in import and code blocks and form a faunction that calculates the artifact
         import_block, code_block, main_block = split_code_blocks(
             slice_code, func_name
         )
@@ -137,11 +132,7 @@ class Tracer:
             + "\n\n"
             + main_block
         )
-        # Black lint
-        black_mode = FileMode()
-        black_mode.line_length = 79
-        full_code = format_str(full_code, mode=black_mode)
-        return full_code
+        return prettify(full_code)
 
     def session_artifacts(self) -> List[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)
@@ -150,12 +141,13 @@ class Tracer:
         artifact = self.db.get_artifact_by_name(name)
         return get_program_slice(self.graph, [artifact.node_id])
 
-    def artifact_var_name(self, artifact: ArtifactORM) -> str:
+    def artifact_var_name(self, artifact_name: str) -> str:
         """
         Returns the variable name for the given artifact.
         i.e. in lineapy.save(p, "p value") "p" is returned
         """
-        if not artifact.node:
+        artifact = self.db.get_artifact_by_name(artifact_name)
+        if not artifact.node or not artifact.node.source_code:
             return ""
         _line_no = artifact.node.lineno if artifact.node.lineno else 0
         artifact_line = str(artifact.node.source_code.code).split("\n")[

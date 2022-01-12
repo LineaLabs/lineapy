@@ -1,16 +1,16 @@
 from os import chdir
-{% block import_block %}{% endblock %}
+{% for import_block in import_blocks %}
+{{ import_block }}
+{% endfor %}
 {% block plugin_import_block %}{% endblock %}
 
 {# Change directory before executing to proper place #}
 chdir({{ working_dir_str }})
 
+{% for code_block in code_blocks %}
 {{ code_block }}
-{% if variable != "" %}
-	print({{ variable }})
-{% endif %}
-{# TODO What to do with artifact_var in a DAG? #}
+{% endfor %}
 
 {% block plugin_dag_block %}{% endblock %}
 {% block plugin_tasks_block %}{% endblock %}
-{# TODO tasks dependency graph #}
+

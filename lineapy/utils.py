@@ -72,7 +72,6 @@ def get_value_type(val: Any) -> Optional[ValueType]:
 
 
 def prettify(code: str) -> str:
-
     return black.format_str(
         code,
         mode=black.Mode(),
