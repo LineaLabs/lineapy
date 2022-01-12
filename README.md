@@ -140,7 +140,8 @@ Options:
   --airflow-task-dependencies TEXT
                                   Optional flag for --airflow. Specifies tasks
                                   dependencies in Airflow format, i.e. 'p
-                                  value >> y' or 'p value, x >> y'
+                                  value' >> 'y' or 'p value', 'x' >> 'y'. Put
+                                  slice names under single quotes.
   --print-source                  Whether to print the source code
   --print-graph                   Whether to print the generated graph code
   --verbose                       Print out logging for graph creation and
