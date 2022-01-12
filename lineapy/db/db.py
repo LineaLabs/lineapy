@@ -85,7 +85,7 @@ class RelationalLineaDB:
             additional_args = {"check_same_thread": False}
         engine = create_engine(
             url,
-            connect_args=additional_args,
+            connect_args={"check_same_thread": False},
             poolclass=StaticPool,
             echo=echo,
         )
@@ -131,7 +131,7 @@ class RelationalLineaDB:
         context_orm = SessionContextORM(**args)
 
         self.session.add(context_orm)
-        self.session.flush()
+        # self.session.flush()
 
     def commit(self) -> None:
         """
@@ -271,7 +271,7 @@ class RelationalLineaDB:
             timestamp=execution.timestamp,
         )
         self.session.add(execution_orm)
-        self.session.flush()
+        # self.session.flush()
 
     """
     Readers
