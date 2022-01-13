@@ -5,7 +5,7 @@ export IMAGE_NAME=${base_imagename}:main
 export IMAGE_NAME_AIRFLOW=${base_imagename}-airflow:main
 export AIRFLOW_HOME?=/usr/src/airflow_home
 export AIRFLOW_VENV?=/usr/src/airflow_venv
-BACKEND?=PG
+BACKEND?=sqlite
 export POSTGRES_PASSWORD=supersecretpassword
 ifeq ("$(BACKEND)","PG")
 	export LINEA_DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
