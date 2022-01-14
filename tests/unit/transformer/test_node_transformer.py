@@ -195,6 +195,7 @@ class TestNodeTransformer:
 
     @pytest.mark.parametrize(*basic_tests, ids=basic_test_ids)
     def test_code_visited_calls_tracer_call(self, code, visitor, call_count):
+        self.nt._get_code_from_node = MagicMock()
         test_node = _get_ast_node(code)
         self.nt.visit(test_node)
         # doing this so that we can select which function in tracer gets called.
