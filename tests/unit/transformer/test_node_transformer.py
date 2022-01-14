@@ -2,11 +2,23 @@
 #
 # type:ignore
 import ast
+import sys
 
+import asttokens
 import pytest
 from mock import MagicMock, patch
 
 from lineapy.transformer.node_transformer import NodeTransformer, transform
+from lineapy.transformer.source_giver import SourceGiver
+
+
+def _get_ast_node(code):
+    node = ast.parse(code)
+    if sys.version_info < (3, 8):  # give me endlines!
+        asttokens.ASTTokens(code, parse=False, tree=node)
+        SourceGiver().transform(node)
+
+    return node
 
 
 @patch(
@@ -27,34 +39,31 @@ def test_transform_fn(nt_mock: MagicMock):
 class TestNodeTransformer:
     nt: NodeTransformer
 
-    basic_tests = (
-        "code, visitor, call_count",
-        [
-            ("a[2:3]", "Slice", 2),
-            ("a[2:3:2]", "Slice", 2),
-            ("a[2:3]", "Subscript", 2),
-            ("a.x", "Attribute", 1),
-            ("{'a': 1}", "Dict", 1),
-            ("a < b", "Compare", 1),
-            ("a not in []", "Compare", 3),
-            ("a + b", "BinOp", 1),
-            ("a or b", "BoolOp", 1),
-            ("[1,2]", "List", 1),
-            # ("{1,2}", "Set", 1),
-            # tuple eventually calls tracer.call but we've mocked out the whole thing
-            ("(1,2)", "Tuple", 0),
-            ("not True", "UnaryOp", 1),
-            ("10", "Constant", 0),  # this will break with 3.7
-            ("assert True", "Assert", 1),
-            ("fn(*args)", "Expr", 1),
-            ("fn(*args)", "Call", 1),
-            ("fn(*args)", "Starred", 1),
-            ("fn(*args)", "Name", 1),
-        ],
-    )
+    basic_tests_list = [
+        ("a[2:3]", "Slice", 2),
+        ("a[2:3:2]", "Slice", 2),
+        ("a[2:3]", "Subscript", 2),
+        ("a.x", "Attribute", 1),
+        ("{'a': 1}", "Dict", 1),
+        ("a < b", "Compare", 1),
+        ("a not in []", "Compare", 3),
+        ("a + b", "BinOp", 1),
+        ("a or b", "BoolOp", 1),
+        ("[1,2]", "List", 1),
+        # ("{1,2}", "Set", 1),
+        # tuple eventually calls tracer.call but we've mocked out the whole thing
+        ("(1,2)", "Tuple", 0),
+        ("not True", "UnaryOp", 1),
+        ("assert True", "Assert", 1),
+        ("fn(*args)", "Expr", 1),
+        ("fn(*args)", "Call", 1),
+        ("fn(*args)", "Starred", 1),
+        ("fn(*args)", "Name", 1),
+    ]
+
     # TODO pull out constant to handle 3.7 vs 3.9 etc
     # TODO handle visit_Name as its own test
-    # TODO import, assert, module, starred
+    # TODO import, module
     basic_test_ids = [
         "slice",
         "slice_with_step",
@@ -69,13 +78,22 @@ class TestNodeTransformer:
         # "set",
         "tuple",
         "unaryop",
-        "constant",
         "assert",
         "expr",
         "call",
         "starred",
         "name",
     ]
+
+    if sys.version_info < (3, 8):
+        basic_tests_list += (("10", "Num", 0),)
+        basic_test_ids += ["num"]
+    else:
+        # this will break with 3.7
+        basic_tests_list += (("10", "Constant", 0),)
+        basic_test_ids += ["constant"]
+
+    basic_tests = ("code, visitor, call_count", basic_tests_list)
 
     @pytest.fixture(autouse=True)
     def before_everything(self):
@@ -90,21 +108,21 @@ class TestNodeTransformer:
         self.nt._exec_statement = MagicMock()
 
         # this inits an ast.Module containing one expression whose value is a ast.lambda
-        test_node = ast.parse("lambda x: x + 10")
+        test_node = _get_ast_node("lambda x: x + 10")
         lambda_node = test_node.body[0].value
         self.nt.generic_visit(lambda_node)
         self.nt._exec_statement.assert_not_called()
         self.nt._exec_expression.assert_called_once()
 
     def test_assign_executes(self):
-        test_node = ast.parse("a = 10")
+        test_node = _get_ast_node("a = 10")
         self.nt.visit_Assign = MagicMock()
         self.nt.visit(test_node.body[0])
         self.nt.visit_Assign.assert_called_once_with(test_node.body[0])
 
     def test_assign_calls_tracer_assign(self):
         self.nt.get_source = MagicMock()
-        test_node = ast.parse("a = 10")
+        test_node = _get_ast_node("a = 10")
         tracer = self.nt.tracer
         self.nt.visit(test_node.body[0])
         # self.nt.visit_Assign.assert_called_once_with(test_node.body[0])
@@ -117,7 +135,7 @@ class TestNodeTransformer:
     )
     def test_assign_subscript_attribute_calls_tracer_assign(self, code):
         self.nt.get_source = MagicMock()
-        test_node = ast.parse(code)
+        test_node = _get_ast_node(code)
         tracer = self.nt.tracer
         self.nt.visit(test_node.body[0])
         tracer.call.assert_called_once_with(
@@ -129,7 +147,7 @@ class TestNodeTransformer:
         )
 
     def test_visit_delete_executes(self):
-        test_node = ast.parse("del a")
+        test_node = _get_ast_node("del a")
         with pytest.raises(NotImplementedError):
             self.nt.visit_Delete(test_node.body[0])
 
@@ -142,7 +160,7 @@ class TestNodeTransformer:
     )
     def test_visit_delete_subscript_attribute_calls_tracer_call(self, code):
         self.nt.get_source = MagicMock()
-        test_node = ast.parse(code)
+        test_node = _get_ast_node(code)
         tracer = self.nt.tracer
         self.nt.visit(test_node.body[0])
         tracer.call.assert_called_once_with(
@@ -156,7 +174,7 @@ class TestNodeTransformer:
 
     @pytest.mark.parametrize(*basic_tests, ids=basic_test_ids)
     def test_code_visited_calls_tracer_call(self, code, visitor, call_count):
-        test_node = ast.parse(code)
+        test_node = _get_ast_node(code)
         self.nt.visit(test_node)
         # doing this so that we can select which function in tracer gets called.
         # might be overkill though so leaving it at this
@@ -165,7 +183,7 @@ class TestNodeTransformer:
 
     @pytest.mark.parametrize(*basic_tests, ids=basic_test_ids)
     def test_code_visits_right_visitor(self, code, visitor, call_count):
-        test_node = ast.parse(code)
+        test_node = _get_ast_node(code)
         self.nt.__setattr__("visit_" + visitor, MagicMock())
         nt_visitor = self.nt.__getattribute__("visit_" + visitor)
         self.nt.visit(test_node)
