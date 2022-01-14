@@ -50,6 +50,7 @@ class TestNodeTransformer:
         ("a + b", "BinOp", 1),
         ("a or b", "BoolOp", 1),
         ("[1,2]", "List", 1),
+        # set is xfailing right now
         # ("{1,2}", "Set", 1),
         # tuple eventually calls tracer.call but we've mocked out the whole thing
         ("(1,2)", "Tuple", 0),
@@ -59,6 +60,15 @@ class TestNodeTransformer:
         ("fn(*args)", "Call", 1),
         ("fn(*args)", "Starred", 1),
         ("fn(*args)", "Name", 1),
+        ("print(*'mystring')", "Starred", 1),
+        # calls tracer.trace_import but this list checks for tracer.call calls
+        ("import math", "Import", 0),
+        # calls tracer.trace_import but this list checks for tracer.call calls
+        # TODO - import from calls transform utils which should really be mocked out and
+        # tested on their own, in true spirit of unit testing
+        ("from math import sqrt", "ImportFrom", 0),
+        ("a, b = (1,2)", "Assign", 2),
+        ("lambda x: x + 10", "Lambda", 1),
     ]
 
     # TODO pull out constant to handle 3.7 vs 3.9 etc
@@ -83,15 +93,26 @@ class TestNodeTransformer:
         "call",
         "starred",
         "name",
+        "starred_str",
+        "import",
+        "import_from",
+        "assign_tuple",
+        "lambda",
     ]
 
     if sys.version_info < (3, 8):
         basic_tests_list += (("10", "Num", 0),)
+        # extslice does not call tracer.call but it contains a slice node.
+        # that along with subscript will result in two calls
+        basic_tests_list += (("a[:,3]", "ExtSlice", 2),)
         basic_test_ids += ["num"]
+        basic_test_ids += ["extslice"]
     else:
         # this will break with 3.7
         basic_tests_list += (("10", "Constant", 0),)
+        basic_tests_list += (("a[:,3]", "Slice", 2),)
         basic_test_ids += ["constant"]
+        basic_test_ids += ["slice_with_ext"]
 
     basic_tests = ("code, visitor, call_count", basic_tests_list)
 
