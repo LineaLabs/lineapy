@@ -12,7 +12,7 @@ try:
 except ImportError:
     # this is the fallback for python < 3.8
     # https://stackoverflow.com/questions/24601722
-    from lineapy.deprecation_utils import singledispatchmethod  # type: ignore
+    from lineapy.utils.deprecation_utils import singledispatchmethod  # type: ignore
 
 from os import chdir, getcwd
 from typing import (
@@ -40,6 +40,7 @@ from lineapy.data.types import (
     Node,
 )
 from lineapy.db.db import RelationalLineaDB
+from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import (
     AddFrame,
@@ -62,9 +63,8 @@ from lineapy.instrumentation.annotation_spec import (
     ValuePointer,
     ViewOfValues,
 )
-from lineapy.ipython_cell_storage import get_location_path
-from lineapy.lineabuiltins import LINEA_BUILTINS
-from lineapy.utils import get_new_id
+from lineapy.utils.lineabuiltins import LINEA_BUILTINS
+from lineapy.utils.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 

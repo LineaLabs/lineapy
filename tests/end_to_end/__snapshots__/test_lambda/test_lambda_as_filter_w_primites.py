@@ -1,7 +1,7 @@
 import datetime
 from pathlib import *
 from lineapy.data.types import *
-from lineapy.utils import get_new_id
+from lineapy.utils.utils import get_new_id
 
 source_1 = SourceCode(
     code="""list_1 = [1,2,3,4,5,6,7,8,9]

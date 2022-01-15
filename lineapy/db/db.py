@@ -10,7 +10,6 @@ from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
-from lineapy.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
 from lineapy.data.types import (
     Artifact,
     CallNode,
@@ -53,7 +52,8 @@ from lineapy.db.relational import (
 )
 from lineapy.db.utils import OVERRIDE_HELP_TEXT, resolve_db_url
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
-from lineapy.utils import get_literal_value_from_string
+from lineapy.utils.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
+from lineapy.utils.utils import get_literal_value_from_string
 
 logger = logging.getLogger(__name__)
 

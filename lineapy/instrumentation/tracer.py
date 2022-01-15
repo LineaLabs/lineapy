@@ -4,7 +4,6 @@ from datetime import datetime
 from os import getcwd
 from typing import Dict, List, Optional
 
-from lineapy.constants import GETATTR, IMPORT_STAR
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
@@ -38,8 +37,9 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
-from lineapy.lineabuiltins import l_tuple
-from lineapy.utils import get_new_id, prettify
+from lineapy.utils.constants import GETATTR, IMPORT_STAR
+from lineapy.utils.lineabuiltins import l_tuple
+from lineapy.utils.utils import get_new_id, prettify
 
 logger = logging.getLogger(__name__)
 

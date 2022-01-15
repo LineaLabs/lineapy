@@ -12,13 +12,13 @@ from IPython.display import DisplayHandle, DisplayObject, display
 
 from lineapy.data.types import JupyterCell, SessionType
 from lineapy.db.db import RelationalLineaDB
+from lineapy.editors.ipython_cell_storage import cleanup_cells, get_cell_path
 from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.ipython_cell_storage import cleanup_cells, get_cell_path
-from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils.logging_config import configure_logging
 
 __all__ = ["_end_cell", "start", "stop", "visualize"]
 
@@ -123,8 +123,8 @@ def input_transformer_post(lines: List[str]) -> List[str]:
 # return value for the cell, so ipython can display it. They will also clean
 # up the tracer if we stopped in that cell.
 RETURNED_LINES = [
-    "import lineapy.ipython\n",
-    "lineapy.ipython._end_cell()\n",
+    "import lineapy.editors.ipython\n",
+    "lineapy.editors.ipython._end_cell()\n",
 ]
 
 

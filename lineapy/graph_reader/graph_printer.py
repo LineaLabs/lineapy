@@ -66,7 +66,7 @@ class GraphPrinter:
             yield "import datetime"
             yield "from pathlib import *"
             yield "from lineapy.data.types import *"
-            yield "from lineapy.utils import get_new_id"
+            yield "from lineapy.utils.utils import get_new_id"
         if self.include_session:
             yield "session = ("
             yield from self.pretty_print_model(self.graph.session_context)

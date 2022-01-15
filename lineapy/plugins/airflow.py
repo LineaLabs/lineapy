@@ -5,10 +5,10 @@ import isort
 from jinja2 import Environment, FileSystemLoader
 
 import lineapy
-from lineapy.config import linea_folder
 from lineapy.graph_reader.program_slice import split_code_blocks
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.utils import prettify
+from lineapy.utils.config import linea_folder
+from lineapy.utils.utils import prettify
 
 
 def sliced_aiflow_dag(
