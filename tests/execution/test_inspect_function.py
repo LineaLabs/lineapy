@@ -1,21 +1,20 @@
 """
 Tests FunctionInspector().inspect to verify the right side effects are the same.
 """
-import pytest
+from pytest import fixture, mark, param
 
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.annotation_spec import (
     MutatedValue,
     PositionalArg,
-    ValuePointer,
     ViewOfValues,
 )
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     ("function", "args", "kwargs", "side_effects"),
     [
-        pytest.param(
+        param(
             setattr,
             (lambda: None, "x", "y"),
             {},
@@ -26,7 +25,7 @@ from lineapy.instrumentation.annotation_spec import (
             ],
             id="setattr immutable",
         ),
-        pytest.param(
+        param(
             setattr,
             (lambda: None, "x", []),
             {},
@@ -57,6 +56,6 @@ def test_inspect(
 
 # Make a session scoped fixture for the function inspector so its instatation
 # is cached for all the tests
-@pytest.fixture(scope="session")
+@fixture(scope="session")
 def function_inspector():
     return FunctionInspector()
