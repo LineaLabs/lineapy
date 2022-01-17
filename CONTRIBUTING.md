@@ -12,7 +12,7 @@ This repository contains a few different components:
 ### Conda
 
 ```bash
-conda create --name lineapy python=3.9
+conda create --name lineapy python=3.9 postgresql
 conda activate lineapy
 # added quotes to make zsh compliant
 pip install -r requirements.txt
