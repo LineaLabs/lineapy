@@ -125,7 +125,7 @@ def linea_cli(
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
-            full_code = tracer.sliced_func(_slice, _export_slice)
+            full_code = tracer.slice(_slice)
             pathlib.Path(f"{_export_slice}.py").write_text(full_code)
 
     if export_slice_to_airflow_dag:
