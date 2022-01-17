@@ -26,6 +26,23 @@ from lineapy.instrumentation.annotation_spec import (
             ],
             id="setattr immutable",
         ),
+        pytest.param(
+            setattr,
+            (lambda: None, "x", []),
+            {},
+            [
+                MutatedValue(
+                    mutated_value=PositionalArg(positional_argument_index=0)
+                ),
+                ViewOfValues(
+                    views=[
+                        PositionalArg(positional_argument_index=2),
+                        PositionalArg(positional_argument_index=0),
+                    ]
+                ),
+            ],
+            id="setattr mutable",
+        ),
     ],
 )
 def test_inspect(
