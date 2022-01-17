@@ -1,10 +1,12 @@
 """
 Tests FunctionInspector().inspect to verify the right side effects are the same.
 """
+from pandas import DataFrame
 from pytest import fixture, mark, param
 
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.annotation_spec import (
+    ExternalState,
     MutatedValue,
     PositionalArg,
     ViewOfValues,
@@ -41,6 +43,17 @@ from lineapy.instrumentation.annotation_spec import (
                 ),
             ],
             id="setattr mutable",
+        ),
+        param(
+            DataFrame.from_records([]).to_csv,
+            ("path"),
+            {},
+            [
+                MutatedValue(
+                    mutated_value=ExternalState(external_state="file_system")
+                )
+            ],
+            id="to_csv",
         ),
     ],
 )
