@@ -1,9 +1,9 @@
 import sys
 from typing import Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
+from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.ipython_cell_storage import get_location_path
 
 # Keep a list of builtin functions we want to expose to the user as globals
 # Then at the end, make a dict out of all of them, from their names

@@ -1,6 +1,6 @@
 import os
 
-from lineapy.config import linea_folder
+from lineapy.utils.config import linea_folder
 
 
 def test_linea_folder_creation():

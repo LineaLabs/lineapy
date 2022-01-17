@@ -1,12 +1,8 @@
-#
-#
 # type: ignore
 import ast
 import sys
 
-import asttokens
 import pytest
-from astpretty import pprint
 
 from lineapy.transformer.source_giver import SourceGiver
 
@@ -28,6 +24,9 @@ c = b(a)
 def test_source_giver_adds_end_lineno(code, lineno):
     if sys.version_info >= (3, 8):
         pytest.skip("SourceGiver not invoked for Python 3.8+")
+    import asttokens
+    from astpretty import pprint
+
     tree = ast.parse(code)
     with pytest.raises(AttributeError):
         print(tree.body[0].end_lineno)

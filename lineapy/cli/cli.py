@@ -13,10 +13,10 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.logging import configure_logging
 from lineapy.plugins.airflow import sliced_aiflow_dag
 from lineapy.transformer.node_transformer import transform
-from lineapy.utils import prettify
+from lineapy.utils.logging_config import configure_logging
+from lineapy.utils.utils import prettify
 
 """
 We are using click because our package will likely already have a dependency on

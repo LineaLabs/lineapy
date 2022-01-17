@@ -3,10 +3,10 @@ import atexit
 from lineapy.api.api import catalog, get, save
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
+from lineapy.editors.ipython import start, stop, visualize
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.ipython import start, stop, visualize
-from lineapy.lineabuiltins import db, file_system
+from lineapy.utils.lineabuiltins import db, file_system
 
 __all__ = [
     "Graph",

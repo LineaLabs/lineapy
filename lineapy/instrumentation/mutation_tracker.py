@@ -4,7 +4,7 @@ from itertools import chain
 from typing import Dict, Iterable, List, Tuple
 
 from lineapy.data.types import LineaID
-from lineapy.utils import get_new_id, remove_duplicates, remove_value
+from lineapy.utils.utils import get_new_id, remove_duplicates, remove_value
 
 
 @dataclass

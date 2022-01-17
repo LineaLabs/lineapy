@@ -79,11 +79,11 @@ ALPHA = 50
 alpha_hex = hex(ALPHA)[2:]
 
 
-def color(orginal_color: str, highlighted: bool) -> str:
+def color(original_color: str, highlighted: bool) -> str:
     if highlighted:
-        return orginal_color
+        return original_color
     # If not highlighted, make it more transparent
-    return orginal_color + alpha_hex
+    return original_color + alpha_hex
 
 
 BORDER_COLOR = BREWER_PASTEL["grey"]

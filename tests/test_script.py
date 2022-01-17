@@ -75,7 +75,7 @@ def test_export_slice_housing_multiple():
         "+++",
         "1 / 0",
         "1\nx",
-        "import lineapy.__error_on_load",
+        "import lineapy.utils.__error_on_load",
         "import lineapy_xxx",
     ),
     ids=(
