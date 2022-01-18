@@ -1,6 +1,6 @@
 <p align="center">
     <a href="https://linea.ai/">
-      <img src="https://linea.ai/logo-negative-trsp-nopadding.png" width="550">
+      <img src="https://linea.ai/banner-wide-negative.png">
     </a>
 </p>
 <br />
