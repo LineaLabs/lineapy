@@ -1,5 +1,6 @@
-#
-#
+# Setting up for mypy to ignore this file
+# This file uses mocks which have dynamically defined functions.
+# this does not sit well with mypy who needs to know what functions a class has
 # type:ignore
 import ast
 import sys
@@ -64,16 +65,15 @@ class TestNodeTransformer:
         # calls tracer.trace_import but this list checks for tracer.call calls
         ("import math", "Import", 0),
         # calls tracer.trace_import but this list checks for tracer.call calls
-        # TODO - import from calls transform utils which should really be mocked out and
+        # TODO - importfrom calls transform_utils which should really be mocked out and
         # tested on their own, in true spirit of unit testing
         ("from math import sqrt", "ImportFrom", 0),
         ("a, b = (1,2)", "Assign", 2),
         ("lambda x: x + 10", "Lambda", 1),
     ]
 
-    # TODO pull out constant to handle 3.7 vs 3.9 etc
     # TODO handle visit_Name as its own test
-    # TODO import, module
+    # TODO module
     basic_test_ids = [
         "slice",
         "slice_with_step",
@@ -146,7 +146,6 @@ class TestNodeTransformer:
         test_node = _get_ast_node("a = 10")
         tracer = self.nt.tracer
         self.nt.visit(test_node.body[0])
-        # self.nt.visit_Assign.assert_called_once_with(test_node.body[0])
         tracer.assign.assert_called_once_with("a", tracer.literal.return_value)
 
     @pytest.mark.parametrize(
