@@ -12,7 +12,7 @@ This repository contains a few different components:
 ### Conda
 
 ```bash
-conda create --name lineapy python=3.9 postgresql
+conda create --name lineapy python=3.9 postgresql graphviz
 conda activate lineapy
 pip install -r requirements.txt
 python setup.py install
