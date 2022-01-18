@@ -31,15 +31,12 @@ from lineapy.execution.executor import (
     Variable,
     ViewOfNodes,
 )
-from lineapy.graph_reader.program_slice import (
-    get_program_slice,
-    split_code_blocks,
-)
+from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
 from lineapy.utils.lineabuiltins import l_tuple
-from lineapy.utils.utils import get_new_id, prettify
+from lineapy.utils.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -116,23 +113,6 @@ class Tracer:
             for artifact in self.session_artifacts()
             if artifact.name is not None
         }
-
-    def sliced_func(self, slice_name: str, func_name: str) -> str:
-        artifact_var = self.artifact_var_name(slice_name)
-        slice_code = self.slice(slice_name)
-        # We split the code in import and code blocks and form a faunction that calculates the artifact
-        import_block, code_block, main_block = split_code_blocks(
-            slice_code, func_name
-        )
-        full_code = (
-            import_block
-            + "\n\n"
-            + code_block
-            + f"\n\treturn {artifact_var}"
-            + "\n\n"
-            + main_block
-        )
-        return prettify(full_code)
 
     def session_artifacts(self) -> List[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)
