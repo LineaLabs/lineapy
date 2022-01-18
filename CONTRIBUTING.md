@@ -15,7 +15,7 @@ This repository contains a few different components:
 conda create --name lineapy python=3.9 postgresql graphviz
 conda activate lineapy
 pip install -r requirements.txt
-python setup.py install
+pip install -e .
 ```
 
 (We support python 3.8+ for now and you can initalize a conda environment with python 3.8 as well if you desire)
