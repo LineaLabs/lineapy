@@ -569,21 +569,11 @@ class NodeTransformer(ast.NodeTransformer):
         args = [self.visit(node.value)]
         index = node.slice
         args.append(self.visit(index))
-        if isinstance(node.ctx, ast.Load):
-            return self.tracer.call(
-                self.tracer.lookup_node(GET_ITEM),
-                self.get_source(node),
-                *args,
-            )
-        elif isinstance(node.ctx, ast.Del):
-            raise NotImplementedError(
-                "Subscript with ctx=ast.Del() not supported."
-            )
-        else:
-            raise ValueError(
-                "Subscript with ctx=ast.Store() should have been handled by"
-                " visit_Assign."
-            )
+        return self.tracer.call(
+            self.tracer.lookup_node(GET_ITEM),
+            self.get_source(node),
+            *args,
+        )
 
     def visit_Attribute(self, node: ast.Attribute) -> CallNode:
 
