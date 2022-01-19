@@ -6,6 +6,7 @@ from jinja2 import Environment, FileSystemLoader
 
 import lineapy
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
 
 
@@ -101,7 +102,9 @@ def to_airflow(
     Transforms sliced code into airflow code.
     """
 
-    working_dir_str = repr(str(working_directory))
+    working_dir_str = repr(
+        str(working_directory.relative_to((linea_folder() / "..").resolve()))
+    )
 
     template_loader = FileSystemLoader(
         searchpath=str(
