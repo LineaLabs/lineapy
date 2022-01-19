@@ -6,7 +6,6 @@ from jinja2 import Environment, FileSystemLoader
 
 import lineapy
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
 
 
