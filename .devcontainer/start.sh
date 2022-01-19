@@ -1,6 +1,9 @@
 #!/bin/bash
 # Modified from https://docs.docker.com/config/containers/multi-service_container/
 
+# Install lineapy in develop mode
+python setup.py develop
+
 # turn on bash's job control
 set -m
 
