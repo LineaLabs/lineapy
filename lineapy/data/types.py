@@ -311,8 +311,6 @@ class ImportNode(BaseNode):
     node_type: NodeType = NodeType.ImportNode
     library: Library
 
-    alias: Optional[str] = None
-
 
 class CallNode(BaseNode):
     """

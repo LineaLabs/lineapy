@@ -242,7 +242,6 @@ class ImportNodeORM(BaseNodeORM):
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     library_id = Column(String, ForeignKey("library.id"))
-    alias = Column(String, nullable=True)
 
 
 # Use associations for many to many relationship between calls and args

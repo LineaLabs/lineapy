@@ -303,9 +303,7 @@ class Tracer:
         node = ImportNode(
             id=get_new_id(),
             session_id=self.session_context.id,
-            alias=alias,
             library=library,
-            attributes=attributes,
             source_location=source_location,
         )
         if alias is not None:
