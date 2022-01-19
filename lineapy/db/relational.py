@@ -77,28 +77,6 @@ class OptionalPickler:
         return pickle.loads(value)
 
 
-class AttributesDict(types.TypeDecorator):
-    # FIXME: missing two inherited abstract methods that
-    #        need to be implemented:
-    #  - `process_literal_param` from  `TypeDecorator`
-    #  - `python_type` from `TypeEngine`.
-
-    impl = Text()
-    cache_ok = True
-
-    def process_bind_param(self, value, dialect):
-        if value is not None:
-            value = json.dumps(value)
-
-        return value
-
-    def process_result_value(self, value, dialect):
-        if value is not None:
-            value = json.loads(value)
-
-        return value
-
-
 class SessionContextORM(Base):
     __tablename__ = "session_context"
     id = Column(String, primary_key=True)
@@ -267,7 +245,6 @@ class ImportNodeORM(BaseNodeORM):
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     library_id = Column(String, ForeignKey("library.id"))
-    attributes = Column(AttributesDict(), nullable=True)
     alias = Column(String, nullable=True)
 
 

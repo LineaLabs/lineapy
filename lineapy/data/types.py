@@ -311,10 +311,6 @@ class ImportNode(BaseNode):
     node_type: NodeType = NodeType.ImportNode
     library: Library
 
-    # TODO: These are currently not needed anymore for linking, since
-    # we are calling call(getattr) on the ImportNode directly to get attributes.
-    # dict key is alias, value is full name
-    attributes: Optional[Dict[str, str]] = None
     alias: Optional[str] = None
 
 
