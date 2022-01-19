@@ -10,9 +10,10 @@ This should cover `execution/executor.py`
 
 import operator
 
-from pytest import fixture, mark, param
+from pytest import fixture, mark, param, raises
 
 from lineapy.data.types import ImportNode, Library
+from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.executor import Executor
 from lineapy.utils.lineabuiltins import l_list
 
@@ -44,14 +45,40 @@ def test_execute_import_nonexistant(executor: Executor):
     """
     Verify exception frame matches normal exception frame of importing nonexistanting import.
     """
-    pass
+    node = ImportNode(
+        id="a_",
+        session_id="unused",
+        library=Library(id="unused", name="nonexistant_module"),
+    )
+    with raises(UserException) as excinfo:
+        executor.execute_node(node, None)
+
+    user_exception: UserException = excinfo.value
+
+    with raises(ImportError) as excinfo:
+        import nonexistant_module  # noqa
+    # Verify string is same as builtin exception
+    assert str(excinfo.value) == str(user_exception.__cause__)
 
 
 def test_execute_import_exception(executor: Executor):
     """
     Verify exception frame matches of that of importing a module with an error.
     """
-    pass
+    node = ImportNode(
+        id="a_",
+        session_id="unused",
+        library=Library(id="unused", name="lineapy.utils.__error_on_load"),
+    )
+    with raises(UserException) as excinfo:
+        executor.execute_node(node, None)
+
+    user_exception: UserException = excinfo.value
+
+    with raises(ZeroDivisionError) as excinfo:
+        import lineapy.utils.__error_on_load  # noqa
+    # Verify string is same as builtin exception
+    assert str(excinfo.value) == str(user_exception.__cause__)
 
 
 def test_execute_call(executor: Executor):
