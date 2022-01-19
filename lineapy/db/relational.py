@@ -28,7 +28,6 @@ CallNode
 """
 from __future__ import annotations
 
-import json
 import pickle
 from datetime import datetime
 from typing import Union
@@ -43,11 +42,9 @@ from sqlalchemy import (
     PickleType,
     String,
     UniqueConstraint,
-    types,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.sqltypes import Text
 
 from lineapy.data.types import (
     LineaID,
