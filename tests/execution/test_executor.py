@@ -12,6 +12,7 @@ import operator
 
 from pytest import fixture, mark, param
 
+from lineapy.data.types import ImportNode, Library
 from lineapy.execution.executor import Executor
 from lineapy.utils.lineabuiltins import l_list
 
@@ -29,7 +30,14 @@ def test_execute_import(executor: Executor):
     """
     Verify that executing an import gives a value, timing information, and no side effects.
     """
-    pass
+    node = ImportNode(
+        id="a_",
+        session_id="unused",
+        library=Library(id="unused", name="operator"),
+    )
+    assert not executor.execute_node(node, None)
+    assert executor.get_value(node) == operator
+    assert isinstance(executor.get_execution_time(node.id), tuple)
 
 
 def test_execute_import_nonexistant(executor: Executor):

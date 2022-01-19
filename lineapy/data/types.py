@@ -309,6 +309,8 @@ class ImportNode(BaseNode):
     """
 
     node_type: NodeType = NodeType.ImportNode
+    # TODO: Remove library and replace with just name since this is all we are using
+    # now
     library: Library
 
 
