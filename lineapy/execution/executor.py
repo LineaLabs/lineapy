@@ -103,7 +103,8 @@ class Executor:
     # so that artifacts created during the execution know which execution they should refer to.
     execution: Execution = field(init=False)
 
-    function_inspector = FunctionInspector()
+    # TODO:
+    _function_inspector = FunctionInspector()
     _id_to_value: dict[LineaID, object] = field(default_factory=dict)
     _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
@@ -319,7 +320,7 @@ class Executor:
         )
 
         # Now append all side effects from the function
-        for e in self.function_inspector.inspect(fn, args, kwargs, res):
+        for e in self._function_inspector.inspect(fn, args, kwargs, res):
             side_effects.append(self._translate_side_effect(node, e))
 
         return PrivateExecuteResult(res, start_time, end_time, side_effects)
