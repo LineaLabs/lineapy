@@ -84,6 +84,11 @@ class Executor:
     """
     An executor that is responsible for executing a graph, either node by
     node as it is created, or in a batch, after the fact.
+
+    To use the executor, you first instantiate it. Then you can execute nodes, by calling
+    `execute_node`. This returns a list of side effects that executing that node causes.
+
+    You can also query for the time a node took to execute or its value, using `get_value` and `get_execution_time`.
     """
 
     # The database to use for saving the execution
@@ -94,6 +99,8 @@ class Executor:
     _globals: dict[str, object]
 
     # The execution to record the values in
+    # This is accessed via the ExecutionContext, which is set when executing a node
+    # so that artifacts created during the execution know which execution they should refer to.
     execution: Execution = field(init=False)
 
     function_inspector = FunctionInspector()
@@ -125,11 +132,16 @@ class Executor:
         self, node_id: LineaID
     ) -> Tuple[datetime, datetime]:
         """
-        Returns the (startime, endtime), only applies for function call nodes.
+        Returns the (startime, endtime) for a node that was execute.
+
+        Only applies for function call nodes.
         """
         return self._execution_time[node_id]
 
     def get_value(self, node: Node) -> object:
+        """
+        Gets the Python in memory value for a node which was already executed.
+        """
         return self._id_to_value[node.id]
 
     def execute_node(
@@ -219,7 +231,7 @@ class Executor:
         # If we get a lookup error, change it to a name error to match python
         try:
             start_time = datetime.now()
-            value = self.lookup_value(node.name)
+            value = self._lookup_value(node.name)
             end_time = datetime.now()
         except KeyError:
             # Matches Python's message
@@ -382,6 +394,12 @@ class Executor:
         )
 
     def execute_graph(self, graph: Graph) -> None:
+        """
+        Executes a graph in visit order making sure to setup the working directory first.
+
+        TODO: Possibly move to graph instead of on executor, since it rather cleanly uses the
+        executor's public API? Or move to function?
+        """
         logger.debug("Executing graph %s", graph)
         prev_working_dir = getcwd()
         chdir(graph.session_context.working_directory)
@@ -432,7 +450,7 @@ class Executor:
             f"Unknown side effect {e}, of type {type(e)}"
         )
 
-    def lookup_value(self, name: str) -> object:
+    def _lookup_value(self, name: str) -> object:
         """
         Lookup a value from a string identifier.
         """
