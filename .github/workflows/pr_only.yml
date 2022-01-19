@@ -8,6 +8,7 @@ on:
     paths:
       - "**.py"
       - "**.ipynb"
+      - ".github/workflows/**"
   
 concurrency:
   group: "${{ github.head_ref }}"
