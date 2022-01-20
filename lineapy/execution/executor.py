@@ -319,7 +319,7 @@ class Executor:
         input_output_vars_view = ViewOfNodes(
             mutable_input_vars + mutable_output_vars
         )
-        if input_output_vars_view.pointers:
+        if len(input_output_vars_view.pointers) > 1:
             side_effects.append(input_output_vars_view)
 
         # Now append all side effects from the function

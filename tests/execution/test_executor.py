@@ -11,6 +11,7 @@ This should cover `execution/executor.py`
 import operator
 
 from pytest import fixture, mark, param, raises
+from syrupy import session
 
 from lineapy.data.types import (
     CallNode,
@@ -19,9 +20,10 @@ from lineapy.data.types import (
     LineaID,
     LiteralNode,
     LookupNode,
+    MutateNode,
 )
 from lineapy.exceptions.user_exception import UserException
-from lineapy.execution.executor import Executor
+from lineapy.execution.executor import ID, Executor, MutatedNode, ViewOfNodes
 from lineapy.utils.lineabuiltins import l_list
 
 
@@ -109,9 +111,6 @@ def test_execute_call(executor: Executor):
             session_id="unused",
             function_id="neg",
             positional_args=["one"],
-            keyword_args={},
-            global_reads={},
-            implicit_dependencies=[],
         )
     )
     # There should be no side effects
@@ -209,12 +208,74 @@ def test_execute_lookup_undefined(executor: Executor):
     pass
 
 
-# TODO
 def test_execute_mutate(executor: Executor):
     """
     Verify executing a mutate node adds a view between the nodes, the timing of the previous node, and the value of the previous node.
     """
-    pass
+    # Create a list and append to it.
+
+    # Create the list
+    assert not executor.execute_node(
+        LookupNode(id="l_list", name="l_list", session_id="")
+    )
+    assert not executor.execute_node(
+        CallNode(id="list", function_id="l_list", session_id="")
+    )
+
+    # Get the append method
+    assert not executor.execute_node(
+        LookupNode(id="getattr", name="getattr", session_id="")
+    )
+    assert not executor.execute_node(
+        LiteralNode(id="append_str", value="append", session_id="")
+    )
+    assert not executor.execute_node(
+        CallNode(
+            id="append_method",
+            function_id="getattr",
+            positional_args=["list", "append_str"],
+            session_id="",
+        )
+    )
+    # append one to it
+    assert not executor.execute_node(
+        LiteralNode(id="one", value=1, session_id="")
+    )
+    side_effects = executor.execute_node(
+        CallNode(
+            id="call_append",
+            function_id="append_method",
+            positional_args=["one"],
+            session_id="",
+        )
+    )
+    # Assert that list is mutated
+    assert side_effects == [MutatedNode(ID("list"))]
+
+    # Now create a mutate node for the new list
+    mutate_side_effects = executor.execute_node(
+        MutateNode(
+            id="mutated_list",
+            session_id="",
+            source_id="list",
+            call_id="call_append",
+        )
+    )
+    # Verify there is a view now between them
+    assert mutate_side_effects == [
+        ViewOfNodes(
+            [
+                ID("mutated_list"),
+                ID("list"),
+            ]
+        )
+    ]
+
+    # Verify value and timing is copied
+    assert executor.get_execution_time(
+        "mutated_list"
+    ) == executor.get_execution_time("call_append")
+    assert executor.get_value("mutated_list") == executor.get_value("list")
 
 
 # TODO

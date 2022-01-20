@@ -244,7 +244,9 @@ def process_side_effect(
         new_side_effect.views = list(
             filter(lambda x: is_reference_mutable(x), new_side_effect.views)
         )
-        return new_side_effect
+        if len(new_side_effect.views) > 1:
+            return new_side_effect
+        return None
     if isinstance(side_effect, MutatedValue):
         if is_reference_mutable(side_effect.mutated_value):
             return side_effect
