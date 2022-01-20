@@ -270,7 +270,7 @@ def remove_db():
 
 @pytest.fixture
 def housing_tracer(execute):
-    tests_dir = Path("/workspaces/lineapy/tests/")
+    tests_dir = Path(__file__).parent
 
     # Change directory to tests dir before executing
     os.chdir(tests_dir)

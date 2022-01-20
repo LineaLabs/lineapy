@@ -102,7 +102,9 @@ def to_airflow(
     Transforms sliced code into airflow code.
     """
 
-    working_dir_str = repr(str(working_directory))
+    working_dir_str = repr(
+        str(working_directory.relative_to((linea_folder() / "..").resolve()))
+    )
 
     template_loader = FileSystemLoader(
         searchpath=str(

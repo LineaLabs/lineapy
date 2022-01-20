@@ -88,6 +88,9 @@ class LineaArtifact:
         )
         working_dir = Path(session_orm.working_directory)
 
+        airflow_code = to_airflow(
+            {self.name: self.code}, self.name, working_dir
+        )
         if filename:
             path = Path(filename)
         else:
@@ -103,13 +106,6 @@ class LineaArtifact:
                 / f"{self.name}.py"
             )
         path.parent.mkdir(parents=True, exist_ok=True)
-        airflow_home_path = path.parent / Path.cwd().name
-        if not airflow_home_path.exists():
-            airflow_home_path.symlink_to(Path.cwd())
-
-        airflow_code = to_airflow(
-            {self.name: self.code}, self.name, airflow_home_path
-        )
         path.write_text(airflow_code)
         print(
             f"Added Airflow DAG named '{self.name}'. Start a run from the Airflow UI or CLI."

@@ -8,7 +8,7 @@ from pathlib import Path
 def pytest_configure(config):
     ipython_dir = Path(__file__).parent / ".ipython"
     os.environ["IPYTHONDIR"] = str(ipython_dir.resolve())
-    os.environ["AIRFLOW_HOME"] = "/usr/src/airflow_home"
+    os.environ["AIRFLOW_HOME"] = "/tmp/airflow_home"
 
 
 def pytest_collectstart(collector):
