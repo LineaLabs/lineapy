@@ -1,6 +1,12 @@
 from pytest import fixture
 
-from lineapy.data.types import ImportNode, LiteralNode, LookupNode, SessionType
+from lineapy.data.types import (
+    CallNode,
+    LiteralNode,
+    LookupNode,
+    MutateNode,
+    SessionType,
+)
 from lineapy.instrumentation.tracer import Tracer
 
 
@@ -31,6 +37,34 @@ def test_import(tracer: Tracer):
     assert tracer.lookup_node("json")
 
 
-def test_import_alias(tracer: Tracer):
+def test_import_attributes(tracer: Tracer):
     tracer.trace_import("json", attributes={"my_loads": "loads"})
     assert tracer.lookup_node("my_loads")
+
+
+def test_import_alias(tracer: Tracer):
+    tracer.trace_import("json", alias="my_json")
+    assert tracer.lookup_node("my_json")
+
+
+def test_tuple(tracer: Tracer):
+    tuple_node = tracer.tuple(tracer.literal(10))
+    assert isinstance(tuple_node, CallNode)
+
+
+def test_mutate(tracer: Tracer):
+    l_list = tracer.lookup_node("l_list")
+    my_list = tracer.call(l_list, None)
+
+    tracer.assign("my_list", my_list)
+    append_str = tracer.literal("append")
+    getattr_ = tracer.lookup_node("getattr")
+    append_method = tracer.call(getattr_, None, my_list, append_str)
+    one = tracer.literal(1)
+    tracer.call(append_method, None, one)
+
+    # TODO: Implement this when lookup_node returns the most recent version
+    # Verify that assigned value is mutation
+    # my_new_list = tracer.lookup_node("my_list")
+    # assert my_list != my_new_list
+    # assert isinstance(my_new_list, MutateNode)
