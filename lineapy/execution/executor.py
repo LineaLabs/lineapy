@@ -380,7 +380,7 @@ class Executor:
             # Copy the result and the timing from the call node
             self._node_to_globals[node.call_id][node.name],
             *self._execution_time[node.call_id],
-            [ViewOfNodes([ID(node.id), ID(node.call_id)])],
+            [],
         )
 
     @_execute.register

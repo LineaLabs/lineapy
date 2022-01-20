@@ -88,10 +88,6 @@ call_4 = CallNode(
         ).id
     ],
 )
-mutate_2 = MutateNode(
-    source_id=call_2.id,
-    call_id=call_4.id,
-)
 mutate_3 = MutateNode(
     source_id=global_1.id,
     call_id=call_4.id,

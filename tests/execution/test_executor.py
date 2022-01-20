@@ -194,8 +194,6 @@ def test_execute_call_mutable_input_vars(executor: Executor):
         AccessedGlobals(retrieved=["x"], added_or_updated=["y"]),
         MutatedNode(ID(LineaID("list"))),
         # The list and the variable should be views
-        # TODO: Why not make list view of asssign_call?
-        # Then transitively wont the global lookup of the variable also be a view?
         ViewOfNodes([ID(LineaID("list")), Variable("y")]),
     ]
 
@@ -351,12 +349,9 @@ def test_execute_global(executor: Executor):
         AccessedGlobals(retrieved=[], added_or_updated=["x"])
     ]
     # Now create a global node to get the value
-    global_side_effects = executor.execute_node(
+    assert not executor.execute_node(
         GlobalNode(id="x", session_id="", name="x", call_id="assign_call")
     )
-    assert global_side_effects == [
-        ViewOfNodes([ID(LineaID("x")), ID(LineaID("assign_call"))])
-    ]
     # Verify it has same timing as parent and has value
     assert executor.get_execution_time(
         LineaID("x")

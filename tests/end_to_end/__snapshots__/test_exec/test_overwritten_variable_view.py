@@ -103,7 +103,7 @@ call_5 = CallNode(
         ).id
     ],
 )
-mutate_3 = MutateNode(
+mutate_4 = MutateNode(
     source_id=MutateNode(
         source_id=CallNode(
             source_location=SourceLocation(
@@ -142,7 +142,7 @@ call_7 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            mutate_3.id,
+            mutate_4.id,
             LiteralNode(
                 value="append",
             ).id,
@@ -161,19 +161,12 @@ call_7 = CallNode(
         ).id
     ],
 )
-mutate_9 = MutateNode(
+mutate_6 = MutateNode(
     source_id=MutateNode(
         source_id=MutateNode(
             source_id=call_1.id,
             call_id=call_3.id,
         ).id,
-        call_id=call_5.id,
-    ).id,
-    call_id=call_7.id,
-)
-mutate_10 = MutateNode(
-    source_id=MutateNode(
-        source_id=call_3.id,
         call_id=call_5.id,
     ).id,
     call_id=call_7.id,
@@ -252,7 +245,7 @@ call_11 = CallNode(
     ).id,
     positional_args=[
         MutateNode(
-            source_id=mutate_3.id,
+            source_id=mutate_4.id,
             call_id=call_7.id,
         ).id,
         LiteralNode(
