@@ -1,11 +1,12 @@
-from os import chdir
+import os
 {% for import_block in import_blocks %}
 {{ import_block }}
 {% endfor %}
 {% block plugin_import_block %}{% endblock %}
 
 {# Change directory before executing to proper place #}
-chdir({{ working_dir_str }})
+if {{ working_dir_str }} not in os.getcwd():
+    os.chdir({{ working_dir_str }})
 
 {% for code_block in code_blocks %}
 {{ code_block }}
