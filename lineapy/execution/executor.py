@@ -419,7 +419,6 @@ class Executor:
         """
         Maps from a pointer output by the inspect function, to one output by the executor.
         """
-
         if isinstance(pointer, PositionalArg):
             return ID(node.positional_args[pointer.positional_argument_index])
         elif isinstance(pointer, KeywordArgument):

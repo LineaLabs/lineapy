@@ -11,10 +11,10 @@ This should cover `execution/executor.py`
 import operator
 
 from pytest import fixture, mark, param, raises
-from syrupy import session
 
 from lineapy.data.types import (
     CallNode,
+    GlobalNode,
     ImportNode,
     Library,
     LineaID,
@@ -23,7 +23,14 @@ from lineapy.data.types import (
     MutateNode,
 )
 from lineapy.exceptions.user_exception import UserException
-from lineapy.execution.executor import ID, Executor, MutatedNode, ViewOfNodes
+from lineapy.execution.executor import (
+    ID,
+    AccessedGlobals,
+    Executor,
+    MutatedNode,
+    Variable,
+    ViewOfNodes,
+)
 from lineapy.utils.lineabuiltins import l_list
 
 
@@ -148,13 +155,49 @@ def test_execute_call_artifact_save_exception(executor: Executor):
     pass
 
 
-# TODO
 def test_execute_call_mutable_input_vars(executor: Executor):
     """
     Verify that if a global was accessed during a call, and the global was mutable, it is added as a mutate
     side effect.
     """
-    pass
+    # Create a list
+    assert not executor.execute_node(
+        LookupNode(id="l_list", name="l_list", session_id="")
+    )
+    assert not executor.execute_node(
+        CallNode(id="list", function_id="l_list", session_id="")
+    )
+
+    # Use exec statement to re-assign the list to another variable
+    assert not executor.execute_node(
+        LookupNode(
+            id="l_exec_statement", name="l_exec_statement", session_id=""
+        )
+    )
+    assert not executor.execute_node(
+        LiteralNode(
+            id="assign_str", value="x.append(10); y = x", session_id=""
+        )
+    )
+
+    # Assert that it assigned to a global
+    call_side_effects = executor.execute_node(
+        CallNode(
+            id="assign_call",
+            function_id="l_exec_statement",
+            positional_args=["assign_str"],
+            session_id="",
+        ),
+        {"x": LineaID("list")},
+    )
+    assert call_side_effects == [
+        AccessedGlobals(retrieved=["x"], added_or_updated=["y"]),
+        MutatedNode(ID(LineaID("list"))),
+        # The list and the variable should be views
+        # TODO: Why not make list view of asssign_call?
+        # Then transitively wont the global lookup of the variable also be a view?
+        ViewOfNodes([ID(LineaID("list")), Variable("y")]),
+    ]
 
 
 # TODO
@@ -250,7 +293,7 @@ def test_execute_mutate(executor: Executor):
         )
     )
     # Assert that list is mutated
-    assert side_effects == [MutatedNode(ID("list"))]
+    assert side_effects == [MutatedNode(ID(LineaID("list")))]
 
     # Now create a mutate node for the new list
     mutate_side_effects = executor.execute_node(
@@ -265,17 +308,19 @@ def test_execute_mutate(executor: Executor):
     assert mutate_side_effects == [
         ViewOfNodes(
             [
-                ID("mutated_list"),
-                ID("list"),
+                ID(LineaID("mutated_list")),
+                ID(LineaID("list")),
             ]
         )
     ]
 
     # Verify value and timing is copied
     assert executor.get_execution_time(
-        "mutated_list"
-    ) == executor.get_execution_time("call_append")
-    assert executor.get_value("mutated_list") == executor.get_value("list")
+        LineaID("mutated_list")
+    ) == executor.get_execution_time(LineaID("call_append"))
+    assert executor.get_value(LineaID("mutated_list")) == executor.get_value(
+        LineaID("list")
+    )
 
 
 # TODO
@@ -284,7 +329,39 @@ def test_execute_global(executor: Executor):
     Verify that executing a global lookup will lookup the global value set by a call node, and return the timing of
     the call node, and a view between the call node and this node.
     """
-    pass
+    # Use exec statement to execute assigning a variable, then grabbing it
+    assert not executor.execute_node(
+        LookupNode(
+            id="l_exec_statement", name="l_exec_statement", session_id=""
+        )
+    )
+    assert not executor.execute_node(
+        LiteralNode(id="assign_str", value="x = 1", session_id="")
+    )
+    # Assert that it assigned to a global
+    call_side_effects = executor.execute_node(
+        CallNode(
+            id="assign_call",
+            function_id="l_exec_statement",
+            positional_args=["assign_str"],
+            session_id="",
+        )
+    )
+    assert call_side_effects == [
+        AccessedGlobals(retrieved=[], added_or_updated=["x"])
+    ]
+    # Now create a global node to get the value
+    global_side_effects = executor.execute_node(
+        GlobalNode(id="x", session_id="", name="x", call_id="assign_call")
+    )
+    assert global_side_effects == [
+        ViewOfNodes([ID(LineaID("x")), ID(LineaID("assign_call"))])
+    ]
+    # Verify it has same timing as parent and has value
+    assert executor.get_execution_time(
+        LineaID("x")
+    ) == executor.get_execution_time(LineaID("assign_call"))
+    assert executor.get_value(LineaID("x")) == 1
 
 
 # TODO
