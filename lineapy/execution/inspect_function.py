@@ -244,6 +244,7 @@ def process_side_effect(
         new_side_effect.views = list(
             filter(lambda x: is_reference_mutable(x), new_side_effect.views)
         )
+
         # If we don't have at least two items to view each other, skip this one
         if len(new_side_effect.views) < 2:
             return None

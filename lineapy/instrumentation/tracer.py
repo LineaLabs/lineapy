@@ -98,7 +98,7 @@ class Tracer:
         the scoping information with the executor values.
         """
         return {
-            k: self.executor.get_value(n)
+            k: self.executor.get_value(n.id)
             for k, n in self.variable_name_to_node.items()
         }
 
@@ -303,9 +303,7 @@ class Tracer:
         node = ImportNode(
             id=get_new_id(),
             session_id=self.session_context.id,
-            alias=alias,
             library=library,
-            attributes=attributes,
             source_location=source_location,
         )
         if alias is not None:

@@ -28,7 +28,6 @@ CallNode
 """
 from __future__ import annotations
 
-import json
 import pickle
 from datetime import datetime
 from typing import Union
@@ -43,11 +42,9 @@ from sqlalchemy import (
     PickleType,
     String,
     UniqueConstraint,
-    types,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.sqltypes import Text
 
 from lineapy.data.types import (
     LineaID,
@@ -75,28 +72,6 @@ class OptionalPickler:
     @staticmethod
     def loads(value):
         return pickle.loads(value)
-
-
-class AttributesDict(types.TypeDecorator):
-    # FIXME: missing two inherited abstract methods that
-    #        need to be implemented:
-    #  - `process_literal_param` from  `TypeDecorator`
-    #  - `python_type` from `TypeEngine`.
-
-    impl = Text()
-    cache_ok = True
-
-    def process_bind_param(self, value, dialect):
-        if value is not None:
-            value = json.dumps(value)
-
-        return value
-
-    def process_result_value(self, value, dialect):
-        if value is not None:
-            value = json.loads(value)
-
-        return value
 
 
 class SessionContextORM(Base):
@@ -267,8 +242,6 @@ class ImportNodeORM(BaseNodeORM):
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     library_id = Column(String, ForeignKey("library.id"))
-    attributes = Column(AttributesDict(), nullable=True)
-    alias = Column(String, nullable=True)
 
 
 # Use associations for many to many relationship between calls and args
