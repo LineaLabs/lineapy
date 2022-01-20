@@ -12,12 +12,12 @@ This repository contains a few different components:
 ### Conda
 
 ```bash
-conda create --name lineapy python=3.9
+conda create --name lineapy python=3.9 postgresql graphviz
 conda activate lineapy
-# added quotes to make zsh compliant
 pip install -r requirements.txt
-python setup.py develop
+pip install -e .
 ```
+
 (We support python 3.8+ for now and you can initalize a conda environment with python 3.8 as well if you desire)
 
 We also support using [`pre-commit`](https://github.com/pre-commit/pre-commit)
@@ -68,7 +68,7 @@ docker run --rm -it -p 8080:8080 -p 8888:8888 -v $PWD:/workspaces/lineapy lineap
 ```bash
 mypy .
 black --line-length 79 --check .
-pytest
+pytest tests
 ```
 
 If using docker, please add appropriate tests and ensure all tests are working using
