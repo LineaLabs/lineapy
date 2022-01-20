@@ -1,4 +1,4 @@
-from os import chdir
+import os
 
 import pandas as pd
 from airflow import DAG
@@ -6,7 +6,8 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 from sklearn.ensemble import RandomForestClassifier
 
-chdir("tests")
+if "tests" not in os.getcwd():
+    os.chdir("tests")
 
 
 def sliced_housing_dag_p():
