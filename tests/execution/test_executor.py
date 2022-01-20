@@ -16,6 +16,7 @@ from lineapy.data.types import (
     CallNode,
     ImportNode,
     Library,
+    LineaID,
     LiteralNode,
     LookupNode,
 )
@@ -37,15 +38,16 @@ def test_execute_import(executor: Executor):
     """
     Verify that executing an import gives a value, timing information, and no side effects.
     """
+    id_ = LineaID("operator_id")
     assert not executor.execute_node(
         ImportNode(
-            id="operator_id",
+            id=id_,
             session_id="unused",
             library=Library(id="unused", name="operator"),
         ),
     )
-    assert executor.get_value("operator_id") == operator
-    assert isinstance(executor.get_execution_time("operator_id"), tuple)
+    assert executor.get_value(id_) == operator
+    assert isinstance(executor.get_execution_time(id_), tuple)
 
 
 def test_execute_import_nonexistant(executor: Executor):
@@ -100,9 +102,10 @@ def test_execute_call(executor: Executor):
     executor.execute_node(LiteralNode(id="one", value=1, session_id="unused"))
 
     # Now call neg with one
+    id_ = LineaID("neg-one")
     side_effects = executor.execute_node(
         CallNode(
-            id="neg-one",
+            id=id_,
             session_id="unused",
             function_id="neg",
             positional_args=["one"],
@@ -115,10 +118,10 @@ def test_execute_call(executor: Executor):
     assert not side_effects
 
     # we should be able to get the value
-    assert executor.get_value("neg-one") == -1
+    assert executor.get_value(id_) == -1
 
     # and the timing
-    assert isinstance(executor.get_execution_time("neg-one"), tuple)
+    assert isinstance(executor.get_execution_time(id_), tuple)
 
 
 # TODO
@@ -168,9 +171,11 @@ def test_execute_literal(executor: Executor):
     """
     Verify executing a literal returns the value, timing, and no side effects
     """
-    executor.execute_node(LiteralNode(id="one", value=1, session_id="unused"))
-    assert executor.get_value("one") == 1
-    assert executor.get_execution_time("one")
+    id_ = LineaID("one")
+
+    executor.execute_node(LiteralNode(id=id_, value=1, session_id="unused"))
+    assert executor.get_value(id_) == 1
+    assert executor.get_execution_time(id_)
 
 
 # Make a global which is used in the executor globals, since it uses the globals from this module
@@ -190,11 +195,10 @@ def test_execute_lookup(executor: Executor, name: str, value: object):
     """
     Verify that looking up a variable will return no side effects, a timing, and the value.
     """
-    executor.execute_node(
-        LookupNode(id="lookup_id", name=name, session_id="unused")
-    )
-    assert executor.get_value("lookup_id") == value
-    assert executor.get_execution_time("lookup_id")
+    id_ = LineaID("lookup_oid")
+    executor.execute_node(LookupNode(id=id_, name=name, session_id="unused"))
+    assert executor.get_value(id_) == value
+    assert executor.get_execution_time(id_)
 
 
 # TODO
