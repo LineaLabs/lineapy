@@ -12,13 +12,13 @@ from IPython.display import DisplayHandle, DisplayObject, display
 
 from lineapy.data.types import JupyterCell, SessionType
 from lineapy.db.db import RelationalLineaDB
+from lineapy.editors.ipython_cell_storage import cleanup_cells, get_cell_path
 from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.ipython_cell_storage import cleanup_cells, get_cell_path
-from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils.logging_config import configure_logging
 
 __all__ = ["_end_cell", "start", "stop", "visualize"]
 
@@ -50,19 +50,19 @@ class StartedState:
 @dataclass
 class CellsExecutedState:
     tracer: Tracer
-    # The code for this cells execution
+    # The code for this cell's execution
     code: str
     # If set, we should update this display on every cell execution.
     visualize_display_handle: Optional[DisplayHandle] = field(default=None)
 
     # This is set to true, if `stop()` is called in the cell
     # to signal that at the end of this cell we should stop tracing.
-    # We don't stop immediatetly, so we can return the proper value from the cell
+    # We don't stop immediately, so we can return the proper value from the cell
     should_stop: bool = field(default=False)
 
     def create_visualize_display_object(self) -> DisplayObject:
         """
-        Returns a jupyter display object for the visualization
+        Returns a jupyter display object for the visualization.
         """
         from lineapy.visualizer import Visualizer
 
@@ -123,8 +123,8 @@ def input_transformer_post(lines: List[str]) -> List[str]:
 # return value for the cell, so ipython can display it. They will also clean
 # up the tracer if we stopped in that cell.
 RETURNED_LINES = [
-    "import lineapy.ipython\n",
-    "lineapy.ipython._end_cell()\n",
+    "import lineapy.editors.ipython\n",
+    "lineapy.editors.ipython._end_cell()\n",
 ]
 
 
@@ -156,7 +156,7 @@ def _end_cell() -> object:
     # in a semicolon
     ends_with_semicolon = code.strip().endswith(";")
     if not ends_with_semicolon and last_node:
-        res = STATE.tracer.executor.get_value(last_node)
+        res = STATE.tracer.executor.get_value(last_node.id)
     else:
         res = None
     _optionally_stop(STATE)
@@ -189,7 +189,7 @@ def visualize(*, live=False) -> None:
                 display_object, display_id=True
             )
     else:
-        # Otherwise, just display the viusalization
+        # Otherwise, just display the visualization
         display(display_object)
 
 
@@ -213,7 +213,7 @@ def _optionally_stop(cells_executed_state: CellsExecutedState) -> None:
     """
     global STATE
 
-    # If stop was trigered during in this cell, clean up
+    # If stop was triggered during in this cell, clean up
     if not cells_executed_state.should_stop:
         return
     STATE = None

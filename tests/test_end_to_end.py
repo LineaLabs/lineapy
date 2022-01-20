@@ -181,11 +181,6 @@ class TestEndToEnd:
 
         assert res.slice("y") == python_snapshot
 
-    def test_loop_code_export_slice(self, execute, python_snapshot):
-        res = execute(LOOP_CODE)
-
-        assert res.sliced_func("y", "loop") == python_snapshot
-
     def test_conditionals(self, execute):
         res = execute(CONDITIONALS_CODE)
         assert res.values["bs"] == [1, 2, 3]

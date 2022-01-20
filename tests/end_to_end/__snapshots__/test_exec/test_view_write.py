@@ -1,7 +1,7 @@
 import datetime
 from pathlib import *
 from lineapy.data.types import *
-from lineapy.utils import get_new_id
+from lineapy.utils.utils import get_new_id
 
 source_1 = SourceCode(
     code="""import lineapy
@@ -87,10 +87,6 @@ call_4 = CallNode(
             value=1,
         ).id
     ],
-)
-mutate_2 = MutateNode(
-    source_id=call_2.id,
-    call_id=call_4.id,
 )
 mutate_3 = MutateNode(
     source_id=global_1.id,

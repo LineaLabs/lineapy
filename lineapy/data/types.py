@@ -309,13 +309,9 @@ class ImportNode(BaseNode):
     """
 
     node_type: NodeType = NodeType.ImportNode
+    # TODO: Remove library and replace with just name since this is all we are using
+    # now
     library: Library
-
-    # TODO: These are currently not needed anymore for linking, since
-    # we are calling call(getattr) on the ImportNode directly to get attributes.
-    # dict key is alias, value is full name
-    attributes: Optional[Dict[str, str]] = None
-    alias: Optional[str] = None
 
 
 class CallNode(BaseNode):
@@ -331,13 +327,13 @@ class CallNode(BaseNode):
     node_type: NodeType = NodeType.CallNode
 
     function_id: LineaID
-    positional_args: List[LineaID]
-    keyword_args: Dict[str, LineaID]
+    positional_args: List[LineaID] = []
+    keyword_args: Dict[str, LineaID] = {}
 
     # Mapping of global variables that need to be set to call this function
-    global_reads: Dict[str, LineaID]
+    global_reads: Dict[str, LineaID] = {}
 
-    implicit_dependencies: List[LineaID]
+    implicit_dependencies: List[LineaID] = []
 
     def parents(self) -> Iterable[LineaID]:
         yield self.function_id

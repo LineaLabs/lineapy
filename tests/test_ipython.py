@@ -23,7 +23,7 @@ def test_result(run_cell):
 
 def test_stop(run_cell):
     assert run_cell("import lineapy") is None
-    assert run_cell("lineapy.ipython.stop()") is None
+    assert run_cell("lineapy.editors.ipython.stop()") is None
     assert run_cell("10") == 10
 
 
@@ -84,7 +84,10 @@ def ip_traced(ip):
     An ipython fixture that first enables
     """
     assert (
-        _run_cell(ip, "import lineapy.ipython\nlineapy.ipython.start()")
+        _run_cell(
+            ip,
+            "import lineapy.editors.ipython\nlineapy.editors.ipython.start()",
+        )
         is None
     )
     return ip

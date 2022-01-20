@@ -9,10 +9,10 @@ from datetime import datetime
 
 try:
     from functools import singledispatchmethod  # type: ignore
-except ImportError:
+except ImportError:  # pragma: no cover
     # this is the fallback for python < 3.8
     # https://stackoverflow.com/questions/24601722
-    from lineapy.deprecation_utils import singledispatchmethod  # type: ignore
+    from lineapy.utils.deprecation_utils import singledispatchmethod  # type: ignore
 
 from os import chdir, getcwd
 from typing import (
@@ -40,6 +40,7 @@ from lineapy.data.types import (
     Node,
 )
 from lineapy.db.db import RelationalLineaDB
+from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import (
     AddFrame,
@@ -62,9 +63,8 @@ from lineapy.instrumentation.annotation_spec import (
     ValuePointer,
     ViewOfValues,
 )
-from lineapy.ipython_cell_storage import get_location_path
-from lineapy.lineabuiltins import LINEA_BUILTINS
-from lineapy.utils import get_new_id
+from lineapy.utils.lineabuiltins import LINEA_BUILTINS
+from lineapy.utils.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +84,11 @@ class Executor:
     """
     An executor that is responsible for executing a graph, either node by
     node as it is created, or in a batch, after the fact.
+
+    To use the executor, you first instantiate it. Then you can execute nodes, by calling
+    `execute_node`. This returns a list of side effects that executing that node causes.
+
+    You can also query for the time a node took to execute or its value, using `get_value` and `get_execution_time`.
     """
 
     # The database to use for saving the execution
@@ -94,9 +99,12 @@ class Executor:
     _globals: dict[str, object]
 
     # The execution to record the values in
+    # This is accessed via the ExecutionContext, which is set when executing a node
+    # so that artifacts created during the execution know which execution they should refer to.
     execution: Execution = field(init=False)
 
-    function_inspector = FunctionInspector()
+    # TODO:
+    _function_inspector = FunctionInspector()
     _id_to_value: dict[LineaID, object] = field(default_factory=dict)
     _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
@@ -125,15 +133,20 @@ class Executor:
         self, node_id: LineaID
     ) -> Tuple[datetime, datetime]:
         """
-        Returns the (startime, endtime), only applies for function call nodes.
+        Returns the (startime, endtime) for a node that was execute.
+
+        Only applies for function call nodes.
         """
         return self._execution_time[node_id]
 
-    def get_value(self, node: Node) -> object:
-        return self._id_to_value[node.id]
+    def get_value(self, node_id: LineaID) -> object:
+        """
+        Gets the Python in memory value for a node which was already executed.
+        """
+        return self._id_to_value[node_id]
 
     def execute_node(
-        self, node: Node, variables: Optional[Dict[str, LineaID]]
+        self, node: Node, variables: Optional[Dict[str, LineaID]] = None
     ) -> SideEffects:
         """
         Variables is the mapping from local variable names to their nodes. It
@@ -219,7 +232,7 @@ class Executor:
         # If we get a lookup error, change it to a name error to match python
         try:
             start_time = datetime.now()
-            value = self.lookup_value(node.name)
+            value = self._lookup_value(node.name)
             end_time = datetime.now()
         except KeyError:
             # Matches Python's message
@@ -280,12 +293,13 @@ class Executor:
             for id_ in globals_result.accessed_inputs.values()
             if is_mutable(self._id_to_value[id_])
         ]
-        side_effects: SideEffects = [
-            AccessedGlobals(
-                list(globals_result.accessed_inputs.keys()),
-                list(globals_result.added_or_modified.keys()),
-            )
-        ]
+        side_effects: SideEffects = []
+        accessed_globals = AccessedGlobals(
+            list(globals_result.accessed_inputs.keys()),
+            list(globals_result.added_or_modified.keys()),
+        )
+        if accessed_globals.added_or_updated or accessed_globals.retrieved:
+            side_effects.append(accessed_globals)
 
         side_effects.extend(map(MutatedNode, mutable_input_vars))
 
@@ -302,12 +316,14 @@ class Executor:
             for k, v in globals_result.added_or_modified.items()
             if is_mutable(v)
         ]
-        side_effects.append(
-            ViewOfNodes(mutable_input_vars + mutable_output_vars)
+        input_output_vars_view = ViewOfNodes(
+            mutable_input_vars + mutable_output_vars
         )
+        if len(input_output_vars_view.pointers) > 1:
+            side_effects.append(input_output_vars_view)
 
         # Now append all side effects from the function
-        for e in self.function_inspector.inspect(fn, args, kwargs, res):
+        for e in self._function_inspector.inspect(fn, args, kwargs, res):
             side_effects.append(self._translate_side_effect(node, e))
 
         return PrivateExecuteResult(res, start_time, end_time, side_effects)
@@ -364,7 +380,7 @@ class Executor:
             # Copy the result and the timing from the call node
             self._node_to_globals[node.call_id][node.name],
             *self._execution_time[node.call_id],
-            [ViewOfNodes([ID(node.id), ID(node.call_id)])],
+            [],
         )
 
     @_execute.register
@@ -382,6 +398,12 @@ class Executor:
         )
 
     def execute_graph(self, graph: Graph) -> None:
+        """
+        Executes a graph in visit order making sure to setup the working directory first.
+
+        TODO: Possibly move to graph instead of on executor, since it rather cleanly uses the
+        executor's public API? Or move to function?
+        """
         logger.debug("Executing graph %s", graph)
         prev_working_dir = getcwd()
         chdir(graph.session_context.working_directory)
@@ -397,7 +419,6 @@ class Executor:
         """
         Maps from a pointer output by the inspect function, to one output by the executor.
         """
-
         if isinstance(pointer, PositionalArg):
             return ID(node.positional_args[pointer.positional_argument_index])
         elif isinstance(pointer, KeywordArgument):
@@ -432,7 +453,7 @@ class Executor:
             f"Unknown side effect {e}, of type {type(e)}"
         )
 
-    def lookup_value(self, name: str) -> object:
+    def _lookup_value(self, name: str) -> object:
         """
         Lookup a value from a string identifier.
         """

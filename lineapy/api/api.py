@@ -13,7 +13,7 @@ from lineapy.data.types import Artifact, NodeValue
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
-from lineapy.utils import get_value_type
+from lineapy.utils.utils import get_value_type
 
 
 def save(value: object, description: str) -> LineaArtifact:

@@ -1,1 +1,2 @@
 recursive-include lineapy *.jinja
+recursive-include lineapy *.annotations.yaml

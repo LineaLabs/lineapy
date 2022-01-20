@@ -1,4 +1,4 @@
-- module: lineapy.lineabuiltins
+- module: lineapy.utils.lineabuiltins
   annotations:
   - criteria:
       function_name: l_list
