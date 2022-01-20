@@ -293,12 +293,13 @@ class Executor:
             for id_ in globals_result.accessed_inputs.values()
             if is_mutable(self._id_to_value[id_])
         ]
-        side_effects: SideEffects = [
-            AccessedGlobals(
-                list(globals_result.accessed_inputs.keys()),
-                list(globals_result.added_or_modified.keys()),
-            )
-        ]
+        side_effects: SideEffects = []
+        accessed_globals = AccessedGlobals(
+            list(globals_result.accessed_inputs.keys()),
+            list(globals_result.added_or_modified.keys()),
+        )
+        if accessed_globals.added_or_updated or accessed_globals.retrieved:
+            side_effects.append(accessed_globals)
 
         side_effects.extend(map(MutatedNode, mutable_input_vars))
 
@@ -315,9 +316,11 @@ class Executor:
             for k, v in globals_result.added_or_modified.items()
             if is_mutable(v)
         ]
-        side_effects.append(
-            ViewOfNodes(mutable_input_vars + mutable_output_vars)
+        input_output_vars_view = ViewOfNodes(
+            mutable_input_vars + mutable_output_vars
         )
+        if input_output_vars_view.pointers:
+            side_effects.append(input_output_vars_view)
 
         # Now append all side effects from the function
         for e in self._function_inspector.inspect(fn, args, kwargs, res):

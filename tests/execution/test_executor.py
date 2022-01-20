@@ -12,7 +12,13 @@ import operator
 
 from pytest import fixture, mark, param, raises
 
-from lineapy.data.types import ImportNode, Library
+from lineapy.data.types import (
+    CallNode,
+    ImportNode,
+    Library,
+    LiteralNode,
+    LookupNode,
+)
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.executor import Executor
 from lineapy.utils.lineabuiltins import l_list
@@ -81,12 +87,39 @@ def test_execute_import_exception(executor: Executor):
     assert str(excinfo.value) == str(user_exception.__cause__)
 
 
-# TODO
 def test_execute_call(executor: Executor):
     """
     Verify that executing a call will return the side effects returned by the call, the timing, and the value.
     """
-    pass
+    # First lookup the `neg` operator
+    executor.execute_node(
+        LookupNode(id="neg", name="neg", session_id="unused"), None
+    )
+    # Then add the 1 literal
+    executor.execute_node(
+        LiteralNode(id="one", value=1, session_id="unused"), None
+    )
+
+    # Now call neg with one
+    call_node = CallNode(
+        id="neg-one",
+        session_id="unused",
+        function_id="neg",
+        positional_args=["one"],
+        keyword_args={},
+        global_reads={},
+        implicit_dependencies=[],
+    )
+
+    # There should be no side effects
+    side_effects = executor.execute_node(call_node, None)
+    assert not side_effects
+
+    # we should be able to get the value
+    assert executor.get_value(call_node) == -1
+
+    # and the timing
+    assert isinstance(executor.get_execution_time(call_node.id), tuple)
 
 
 # TODO
