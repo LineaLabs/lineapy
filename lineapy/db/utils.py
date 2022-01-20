@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from lineapy.config import FOLDER_NAME, linea_folder
+from lineapy.utils.config import FOLDER_NAME, linea_folder
 
 # The name of the database URL environmental variable
 DB_URL_ENV_VARIABLE = "LINEA_DATABASE_URL"

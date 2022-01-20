@@ -1,7 +1,7 @@
 import datetime
 from pathlib import *
 from lineapy.data.types import *
-from lineapy.utils import get_new_id
+from lineapy.utils.utils import get_new_id
 
 lookup_4 = LookupNode(
     name="file_system",

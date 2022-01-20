@@ -2,7 +2,7 @@ import subprocess
 
 import pytest
 
-from lineapy.plugins.airflow import sliced_aiflow_dag
+from lineapy.plugins.airflow import sliced_airflow_dag
 
 
 @pytest.mark.slow
@@ -10,7 +10,7 @@ def test_slice_airflow(python_snapshot, housing_tracer):
     """
     Test the slice produced by airflow against a snapshot.
     """
-    assert python_snapshot == sliced_aiflow_dag(
+    assert python_snapshot == sliced_airflow_dag(
         housing_tracer, ["p value"], "sliced_housing_dag", ""
     )
 
@@ -20,7 +20,7 @@ def test_multiple_slices_airflow(python_snapshot, housing_tracer):
     """
     Test producing and ariflow DAG slicng several artifacts.
     """
-    assert python_snapshot == sliced_aiflow_dag(
+    assert python_snapshot == sliced_airflow_dag(
         housing_tracer, ["p value", "y"], "sliced_housing_dag", ""
     )
 
@@ -32,7 +32,7 @@ def test_multiple_slices_airflow_with_task_dependencies(
     """
     Test producing and ariflow DAG slicng several artifacts with task dependencies.
     """
-    assert python_snapshot == sliced_aiflow_dag(
+    assert python_snapshot == sliced_airflow_dag(
         housing_tracer,
         ["p value", "y"],
         "sliced_housing_dag",

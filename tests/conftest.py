@@ -12,7 +12,6 @@ from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy import save
-from lineapy.constants import DB_SQLITE_PREFIX
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import (
@@ -22,9 +21,10 @@ from lineapy.db.utils import (
 )
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.logging import configure_logging
 from lineapy.transformer.node_transformer import transform
-from lineapy.utils import prettify
+from lineapy.utils.constants import DB_SQLITE_PREFIX
+from lineapy.utils.logging_config import configure_logging
+from lineapy.utils.utils import prettify
 from lineapy.visualizer import Visualizer
 from tests.util import get_project_directory
 

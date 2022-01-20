@@ -25,7 +25,7 @@ def read(path, encoding="utf-8"):
 
 
 def version(path):
-    """Obtain the packge version from a python file e.g. pkg/__init__.py
+    """Obtain the package version from a python file e.g. pkg/__init__.py
     See <https://packaging.python.org/en/latest/single_source_version.html>.
     """
     version_file = read(path)
@@ -55,7 +55,6 @@ setup(
     license=LICENSE,
     classifiers=["Development Status :: 2 - Pre-Alpha"],
     packages=find_packages(),
-    package_data={"lineapy": ["*.yaml"]},
     # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
     entry_points={"console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"]},
     install_requires=[
@@ -80,7 +79,7 @@ setup(
             "flake8",
             "fastparquet",
             "syrupy==1.4.5",
-            "mypy<0.920",
+            "mypy",
             "isort",
             "pytest",
             "matplotlib",

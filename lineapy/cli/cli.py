@@ -13,10 +13,10 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.logging import configure_logging
-from lineapy.plugins.airflow import sliced_aiflow_dag
+from lineapy.plugins.airflow import sliced_airflow_dag
 from lineapy.transformer.node_transformer import transform
-from lineapy.utils import prettify
+from lineapy.utils.logging_config import configure_logging
+from lineapy.utils.utils import prettify
 
 """
 We are using click because our package will likely already have a dependency on
@@ -125,7 +125,7 @@ def linea_cli(
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
-            full_code = tracer.sliced_func(_slice, _export_slice)
+            full_code = tracer.slice(_slice)
             pathlib.Path(f"{_export_slice}.py").write_text(full_code)
 
     if export_slice_to_airflow_dag:
@@ -135,7 +135,7 @@ def linea_cli(
             )
             exit(1)
 
-        full_code = sliced_aiflow_dag(
+        full_code = sliced_airflow_dag(
             tracer,
             slice,
             export_slice_to_airflow_dag,

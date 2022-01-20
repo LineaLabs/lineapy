@@ -5,7 +5,7 @@ import networkx as nx
 
 from lineapy.data.types import LineaID, Node, SessionContext
 from lineapy.graph_reader.graph_printer import GraphPrinter
-from lineapy.utils import listify, prettify
+from lineapy.utils.utils import listify, prettify
 
 
 class Graph(object):

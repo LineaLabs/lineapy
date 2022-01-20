@@ -3,7 +3,19 @@ import logging
 import sys
 from typing import Any, Iterable, Optional, cast
 
-from lineapy.constants import (
+from lineapy.data.types import (
+    CallNode,
+    LiteralNode,
+    Node,
+    SourceCode,
+    SourceCodeLocation,
+    SourceLocation,
+)
+from lineapy.editors.ipython_cell_storage import get_location_path
+from lineapy.exceptions.user_exception import RemoveFrames, UserException
+from lineapy.instrumentation.tracer import Tracer
+from lineapy.transformer.transformer_util import create_lib_attributes
+from lineapy.utils.constants import (
     ADD,
     BITAND,
     BITOR,
@@ -37,18 +49,7 @@ from lineapy.constants import (
     SET_ITEM,
     SUB,
 )
-from lineapy.data.types import (
-    CallNode,
-    LiteralNode,
-    Node,
-    SourceCode,
-    SourceCodeLocation,
-    SourceLocation,
-)
-from lineapy.exceptions.user_exception import RemoveFrames, UserException
-from lineapy.instrumentation.tracer import Tracer
-from lineapy.ipython_cell_storage import get_location_path
-from lineapy.lineabuiltins import (
+from lineapy.utils.lineabuiltins import (
     l_assert,
     l_dict,
     l_dict_kwargs_sentinel,
@@ -56,8 +57,7 @@ from lineapy.lineabuiltins import (
     l_exec_statement,
     l_list,
 )
-from lineapy.transformer.transformer_util import create_lib_attributes
-from lineapy.utils import get_new_id
+from lineapy.utils.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +126,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
         if sys.version_info < (3, 8):
-            from lineapy.deprecation_utils import get_source_segment
+            from lineapy.utils.deprecation_utils import get_source_segment
 
             return get_source_segment(self.source_code.code, node, padded=True)
         else:
@@ -314,7 +314,7 @@ class NodeTransformer(ast.NodeTransformer):
 
         if isinstance(target, ast.Name):
             raise NotImplementedError(
-                "We do not support unassigning a variable"
+                "We do not support un-assigning a variable"
             )
         elif isinstance(target, ast.Subscript):
             self.tracer.call(
@@ -569,21 +569,11 @@ class NodeTransformer(ast.NodeTransformer):
         args = [self.visit(node.value)]
         index = node.slice
         args.append(self.visit(index))
-        if isinstance(node.ctx, ast.Load):
-            return self.tracer.call(
-                self.tracer.lookup_node(GET_ITEM),
-                self.get_source(node),
-                *args,
-            )
-        elif isinstance(node.ctx, ast.Del):
-            raise NotImplementedError(
-                "Subscript with ctx=ast.Del() not supported."
-            )
-        else:
-            raise ValueError(
-                "Subscript with ctx=ast.Store() should have been handled by"
-                " visit_Assign."
-            )
+        return self.tracer.call(
+            self.tracer.lookup_node(GET_ITEM),
+            self.get_source(node),
+            *args,
+        )
 
     def visit_Attribute(self, node: ast.Attribute) -> CallNode:
 

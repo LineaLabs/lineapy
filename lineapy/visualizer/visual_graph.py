@@ -103,7 +103,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
         vg.node(VisualNode(node.id, node.node_type, contents, extra_labels))
 
     # For now, our algorithm for making nodes based on source locations is:
-    # 1. Whenever we encounter a node, if we havent made a source code node
+    # 1. Whenever we encounter a node, if we haven't made a source code node
     #    for that pair of start and end lines, make one and add an edge
     #    from the previous to it.
     # 2. We add an edge from that source node to the node.
@@ -125,7 +125,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
         id_ = f"{source_location.source_code.id}-{source_location.lineno}-{source_location.end_lineno}"
         if id_ not in added_source_ids:
             added_source_ids.add(id_)
-            # Use \l instead of \n for left alligned code
+            # Use \l instead of \n for left aligned code
             contents = (
                 r"\l".join(
                     source_location.source_code.code.splitlines()[
@@ -348,7 +348,7 @@ class VisualGraph:
         like the source code, so for now we are re-walking the graph to determine
         the slice at the visual graph level.
         """
-        # Set every node to unhighlighted
+        # Set every node to un-highlighted
         for node in self.nodes:
             node.highlighted = False
         for edge in self.edges:
