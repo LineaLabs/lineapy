@@ -9,7 +9,7 @@ from datetime import datetime
 
 try:
     from functools import singledispatchmethod  # type: ignore
-except ImportError:
+except ImportError:  # pragma: no cover
     # this is the fallback for python < 3.8
     # https://stackoverflow.com/questions/24601722
     from lineapy.utils.deprecation_utils import singledispatchmethod  # type: ignore
@@ -139,14 +139,14 @@ class Executor:
         """
         return self._execution_time[node_id]
 
-    def get_value(self, node: Node) -> object:
+    def get_value(self, node_id: LineaID) -> object:
         """
         Gets the Python in memory value for a node which was already executed.
         """
-        return self._id_to_value[node.id]
+        return self._id_to_value[node_id]
 
     def execute_node(
-        self, node: Node, variables: Optional[Dict[str, LineaID]]
+        self, node: Node, variables: Optional[Dict[str, LineaID]] = None
     ) -> SideEffects:
         """
         Variables is the mapping from local variable names to their nodes. It

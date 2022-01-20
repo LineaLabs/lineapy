@@ -37,14 +37,15 @@ def test_execute_import(executor: Executor):
     """
     Verify that executing an import gives a value, timing information, and no side effects.
     """
-    node = ImportNode(
-        id="a_",
-        session_id="unused",
-        library=Library(id="unused", name="operator"),
+    assert not executor.execute_node(
+        ImportNode(
+            id="operator_id",
+            session_id="unused",
+            library=Library(id="unused", name="operator"),
+        ),
     )
-    assert not executor.execute_node(node, None)
-    assert executor.get_value(node) == operator
-    assert isinstance(executor.get_execution_time(node.id), tuple)
+    assert executor.get_value("operator_id") == operator
+    assert isinstance(executor.get_execution_time("operator_id"), tuple)
 
 
 def test_execute_import_nonexistant(executor: Executor):
@@ -52,12 +53,12 @@ def test_execute_import_nonexistant(executor: Executor):
     Verify exception frame matches normal exception frame of importing nonexistanting import.
     """
     node = ImportNode(
-        id="a_",
+        id="a",
         session_id="unused",
         library=Library(id="unused", name="nonexistant_module"),
     )
     with raises(UserException) as excinfo:
-        executor.execute_node(node, None)
+        executor.execute_node(node)
 
     user_exception: UserException = excinfo.value
 
@@ -72,12 +73,12 @@ def test_execute_import_exception(executor: Executor):
     Verify exception frame matches of that of importing a module with an error.
     """
     node = ImportNode(
-        id="a_",
+        id="a",
         session_id="unused",
         library=Library(id="unused", name="lineapy.utils.__error_on_load"),
     )
     with raises(UserException) as excinfo:
-        executor.execute_node(node, None)
+        executor.execute_node(node)
 
     user_exception: UserException = excinfo.value
 
@@ -93,33 +94,31 @@ def test_execute_call(executor: Executor):
     """
     # First lookup the `neg` operator
     executor.execute_node(
-        LookupNode(id="neg", name="neg", session_id="unused"), None
+        LookupNode(id="neg", name="neg", session_id="unused")
     )
     # Then add the 1 literal
-    executor.execute_node(
-        LiteralNode(id="one", value=1, session_id="unused"), None
-    )
+    executor.execute_node(LiteralNode(id="one", value=1, session_id="unused"))
 
     # Now call neg with one
-    call_node = CallNode(
-        id="neg-one",
-        session_id="unused",
-        function_id="neg",
-        positional_args=["one"],
-        keyword_args={},
-        global_reads={},
-        implicit_dependencies=[],
+    side_effects = executor.execute_node(
+        CallNode(
+            id="neg-one",
+            session_id="unused",
+            function_id="neg",
+            positional_args=["one"],
+            keyword_args={},
+            global_reads={},
+            implicit_dependencies=[],
+        )
     )
-
     # There should be no side effects
-    side_effects = executor.execute_node(call_node, None)
     assert not side_effects
 
     # we should be able to get the value
-    assert executor.get_value(call_node) == -1
+    assert executor.get_value("neg-one") == -1
 
     # and the timing
-    assert isinstance(executor.get_execution_time(call_node.id), tuple)
+    assert isinstance(executor.get_execution_time("neg-one"), tuple)
 
 
 # TODO
@@ -165,19 +164,19 @@ def test_execute_call_immutable_input_vars(executor: Executor):
     pass
 
 
-# TODO
 def test_execute_literal(executor: Executor):
     """
     Verify executing a literal returns the value, timing, and no side effects
     """
-    pass
+    executor.execute_node(LiteralNode(id="one", value=1, session_id="unused"))
+    assert executor.get_value("one") == 1
+    assert executor.get_execution_time("one")
 
 
 # Make a global which is used in the executor globals, since it uses the globals from this module
 some_global = object()
 
 
-# TODO
 @mark.parametrize(
     "name,value",
     [
@@ -191,7 +190,11 @@ def test_execute_lookup(executor: Executor, name: str, value: object):
     """
     Verify that looking up a variable will return no side effects, a timing, and the value.
     """
-    pass
+    executor.execute_node(
+        LookupNode(id="lookup_id", name=name, session_id="unused")
+    )
+    assert executor.get_value("lookup_id") == value
+    assert executor.get_execution_time("lookup_id")
 
 
 # TODO

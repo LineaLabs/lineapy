@@ -98,7 +98,7 @@ class Tracer:
         the scoping information with the executor values.
         """
         return {
-            k: self.executor.get_value(n)
+            k: self.executor.get_value(n.id)
             for k, n in self.variable_name_to_node.items()
         }
 

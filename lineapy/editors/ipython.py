@@ -156,7 +156,7 @@ def _end_cell() -> object:
     # in a semicolon
     ends_with_semicolon = code.strip().endswith(";")
     if not ends_with_semicolon and last_node:
-        res = STATE.tracer.executor.get_value(last_node)
+        res = STATE.tracer.executor.get_value(last_node.id)
     else:
         res = None
     _optionally_stop(STATE)
