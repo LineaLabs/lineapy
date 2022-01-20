@@ -16,7 +16,7 @@ conda create --name lineapy python=3.9
 conda activate lineapy
 # added quotes to make zsh compliant
 pip install -r requirements.txt
-python setup.py develop
+python setup.py install
 ```
 (We support python 3.8+ for now and you can initalize a conda environment with python 3.8 as well if you desire)
 
