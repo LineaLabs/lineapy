@@ -2,9 +2,9 @@ from pytest import fixture
 
 from lineapy.data.types import (
     CallNode,
+    GlobalNode,
     LiteralNode,
     LookupNode,
-    MutateNode,
     SessionType,
 )
 from lineapy.instrumentation.tracer import Tracer
@@ -68,3 +68,22 @@ def test_mutate(tracer: Tracer):
     # my_new_list = tracer.lookup_node("my_list")
     # assert my_list != my_new_list
     # assert isinstance(my_new_list, MutateNode)
+
+
+def test_exec(tracer: Tracer):
+    # Test running an exec node that gets a variable and sets a variable
+
+    tracer.assign("y", tracer.literal(10))
+    tracer.call(
+        tracer.lookup_node("l_exec_statement"), None, tracer.literal("x = y")
+    )
+    assert isinstance(tracer.lookup_node("x"), GlobalNode)
+    assert set(tracer.values.keys()) == {"x", "y"}
+
+
+def test_implicit_dependency(tracer: Tracer):
+
+    res = tracer.call(
+        tracer.lookup_node("open"), None, tracer.literal("setup.py")
+    )
+    assert isinstance(res, CallNode)
