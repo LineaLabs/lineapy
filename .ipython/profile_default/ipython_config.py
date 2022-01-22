@@ -1,1 +1,0 @@
-c.InteractiveShellApp.extensions = ["lineapy"]

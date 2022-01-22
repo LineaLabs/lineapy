@@ -17,7 +17,7 @@ def test_slice_housing():
     Verifies that the "--slice" CLI command is aliased to the `lineapy` executable
     """
     subprocess.check_call(
-        ["lineapy", "tests/housing.py", "--slice", "p value"]
+        ["lineapy", "python", "tests/housing.py", "--slice", "p value"]
     )
 
 
@@ -27,7 +27,15 @@ def test_slice_housing_multiple():
     Verifies that we can run "--slice" CLI command multiple times
     """
     subprocess.check_call(
-        ["lineapy", "tests/housing.py", "--slice", "p value", "--slice", "y"]
+        [
+            "lineapy",
+            "python",
+            "tests/housing.py",
+            "--slice",
+            "p value",
+            "--slice",
+            "y",
+        ]
     )
 
 
@@ -39,6 +47,7 @@ def test_export_slice_housing():
     subprocess.check_call(
         [
             "lineapy",
+            "python",
             "tests/housing.py",
             "--slice",
             "p value",
@@ -56,6 +65,7 @@ def test_export_slice_housing_multiple():
     subprocess.check_call(
         [
             "lineapy",
+            "python",
             "tests/housing.py",
             "--slice",
             "p value",
@@ -93,8 +103,16 @@ def test_linea_python_equivalent(tmp_path, code):
     f = tmp_path / "script.py"
     f.write_text(code)
 
-    linea_run = subprocess.run(["lineapy", str(f)], capture_output=True)
+    linea_run = subprocess.run(
+        ["lineapy", "python", str(f)], capture_output=True
+    )
     python_run = subprocess.run(["python", str(f)], capture_output=True)
     assert linea_run.returncode == python_run.returncode
     assert linea_run.stdout.decode() == python_run.stdout.decode()
     assert linea_run.stderr.decode() == python_run.stderr.decode()
+
+
+def test_ipython():
+    code = 'import lineapy; print(lineapy.save(1, "one").code)'
+    res = subprocess.check_output(["lineapy", "ipython", "-c", code])
+    assert res.decode().strip().endswith(code)
