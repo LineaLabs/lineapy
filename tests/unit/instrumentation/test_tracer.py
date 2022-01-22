@@ -63,12 +63,6 @@ def test_mutate(tracer: Tracer):
     one = tracer.literal(1)
     tracer.call(append_method, None, one)
 
-    # TODO: Implement this when lookup_node returns the most recent version
-    # Verify that assigned value is mutation
-    # my_new_list = tracer.lookup_node("my_list")
-    # assert my_list != my_new_list
-    # assert isinstance(my_new_list, MutateNode)
-
 
 def test_exec(tracer: Tracer):
     # Test running an exec node that gets a variable and sets a variable
