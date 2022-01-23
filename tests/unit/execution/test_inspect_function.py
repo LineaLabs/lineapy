@@ -46,7 +46,7 @@ from lineapy.instrumentation.annotation_spec import (
         ),
         param(
             DataFrame.from_records([]).to_csv,
-            ("path"),
+            (["/dev/null"]),
             {},
             [
                 MutatedValue(
