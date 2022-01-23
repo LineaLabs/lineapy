@@ -74,13 +74,14 @@ class Visualizer:
         return HTML(html_text)
 
     @classmethod
-    def for_test_snapshot(cls, tracer: Tracer) -> Visualizer:
+    def for_test_snapshot(cls, lgcontext, tracer: Tracer) -> Visualizer:
         """
         Create a graph for saving as a snapshot, to help with visual diffs in PRs.
         """
         options = VisualGraphOptions(
-            tracer.graph,
-            tracer,
+            lgcontext.graph,
+            None,
+            lgcontext,
             highlight_node=None,
             # This is genenerally repetative, and we can avoid it.
             show_implied_mutations=False,
@@ -92,7 +93,7 @@ class Visualizer:
         return cls(options)
 
     @classmethod
-    def for_test_cli(cls, tracer: Tracer) -> Visualizer:
+    def for_test_cli(cls, lgcontext, tracer: Tracer) -> Visualizer:
         """
         Create a graph to use when visualizing after passing in `--visualize`
         during testing.
@@ -100,8 +101,9 @@ class Visualizer:
         Show as much as we can for debugging.
         """
         options = VisualGraphOptions(
-            tracer.graph,
-            tracer,
+            lgcontext.graph,
+            None,
+            lgcontext,
             highlight_node=None,
             show_implied_mutations=True,
             show_views=True,
@@ -117,7 +119,8 @@ class Visualizer:
         """
         options = VisualGraphOptions(
             tracer.graph,
-            tracer,
+            None,
+            None,
             highlight_node=None,
             show_implied_mutations=False,
             show_views=False,
@@ -137,6 +140,7 @@ class Visualizer:
         options = VisualGraphOptions(
             graph,
             tracer=None,
+            lgcontext=None,
             highlight_node=node_id,
             show_implied_mutations=False,
             show_views=False,

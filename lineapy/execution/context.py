@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 _global_variables: GlobalsDict = GlobalsDict()
 _current_context: Optional[ExecutionContext] = None
+# _var_value_cache: Dict[str, LineaID] = {}
 
 
 @dataclass

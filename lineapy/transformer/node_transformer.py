@@ -14,7 +14,9 @@ from lineapy.data.types import (
 )
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.exceptions.user_exception import RemoveFrames, UserException
+from lineapy.execution.context import ExecutionContext
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.linea_context import LineaGlobalContext
 from lineapy.transformer.transformer_util import create_lib_attributes
 from lineapy.utils.constants import (
     ADD,
@@ -96,7 +98,7 @@ def transform(
 
     node_transformer.visit(tree)
 
-    tracer.db.commit()
+    LineaGlobalContext.db.commit()
     return node_transformer.last_statement_result
 
 
@@ -119,7 +121,7 @@ class NodeTransformer(ast.NodeTransformer):
         self.source_code = SourceCode(
             id=get_new_id(), code=code, location=location
         )
-        tracer.db.write_source_code(self.source_code)
+        LineaGlobalContext.db.write_source_code(self.source_code)
         self.tracer = tracer
         # Set __file__ to the pathname of the file
         if isinstance(location, Path):

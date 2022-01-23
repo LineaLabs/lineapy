@@ -93,7 +93,9 @@ def sliced_airflow_dag(
 
     artifacts_code = {}
     for slice_name in slice_names:
+        # TODO - use lgcontext's function here
         artifact_var = tracer.artifact_var_name(slice_name)
+        # TODO - use lgcontext's slice - need instance for this
         slice_code = tracer.slice(slice_name)
         artifacts_code[artifact_var] = slice_code
         # "'p value' >> 'y'" needs to be replaced by "sliced_housing_dag_p >> sliced_housing_dag_y"

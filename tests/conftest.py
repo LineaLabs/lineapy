@@ -21,6 +21,7 @@ from lineapy.db.utils import (
 )
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.linea_context import LineaGlobalContext
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
@@ -161,7 +162,7 @@ class ExecuteFixture:
         *,
         snapshot: bool = True,
         artifacts: typing.Iterable[str] = (),
-    ) -> Tracer:
+    ) -> LineaGlobalContext:
         """
         Tests trace, graph, and executes code on init.
 
@@ -185,16 +186,19 @@ class ExecuteFixture:
         source_code_path.write_text(code)
 
         # Verify snapshot of source of user transformed code
-        tracer = Tracer(self.db, SessionType.SCRIPT)
+        lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
+            SessionType.SCRIPT
+        )
+        tracer = Tracer()
         transform(code, source_code_path, tracer)
 
         if self.visualize:
-            Visualizer.for_test_cli(tracer).render_pdf_file()
+            Visualizer.for_test_cli(lgcontext, tracer).render_pdf_file()
 
         # Verify snapshot of graph
         if snapshot:
             graph_str = (
-                tracer.graph.print(
+                lgcontext.graph.print(
                     include_imports=True,
                     include_id_field=False,
                     include_session=False,
@@ -202,7 +206,7 @@ class ExecuteFixture:
                 )
                 .replace(str(source_code_path), "[source file path]")
                 .replace(
-                    tracer.session_context.working_directory,
+                    lgcontext.session_context.working_directory,
                     DUMMY_WORKING_DIR,
                 )
             )
@@ -220,7 +224,7 @@ class ExecuteFixture:
             self.svg_snapshot._update_snapshots = res.created or res.updated
             # If we aren't updating snapshots, dont even bother trying to generate the SVG
             svg_text = (
-                Visualizer.for_test_snapshot(tracer).render_svg()
+                Visualizer.for_test_snapshot(lgcontext, tracer).render_svg()
                 if self.snapshot._update_snapshots
                 else ""
             )
@@ -232,13 +236,13 @@ class ExecuteFixture:
             ].success = True
 
         # Verify that execution works again, with a new session
-        new_executor = Executor(self.db, globals())
+        new_executor = Executor(LineaGlobalContext.db, globals())
         current_working_dir = os.getcwd()
         os.chdir(self.tmp_path)
-        new_executor.execute_graph(tracer.graph)
+        new_executor.execute_graph(lgcontext.graph)
         os.chdir(current_working_dir)
 
-        return tracer
+        return lgcontext
 
 
 @pytest.fixture(autouse=True)
