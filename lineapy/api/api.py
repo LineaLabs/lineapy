@@ -10,6 +10,7 @@ from lineapy.data.types import Artifact, NodeValue
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
+from lineapy.linea_context import LineaGlobalContext
 from lineapy.utils.utils import get_value_type
 
 """
@@ -144,11 +145,11 @@ def get(artifact_name: str) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact
     """
-    execution_context = get_context()
-    db = execution_context.executor.db
-    artifact = db.get_artifact_by_name(artifact_name)
+    # execution_context = get_context()
+    # db = execution_context.executor.db
+    artifact = LineaGlobalContext.db.get_artifact_by_name(artifact_name)
     return LineaArtifact(
-        db=db,
+        db=LineaGlobalContext.db,
         execution_id=artifact.execution_id,
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
@@ -163,5 +164,5 @@ def catalog() -> LineaCatalog:
     LineaCatalog
         An object of the class `LineaCatalog` that allows for printing and exporting artifacts metadata.
     """
-    execution_context = get_context()
-    return LineaCatalog(execution_context.executor.db)
+    # execution_context = get_context()
+    return LineaCatalog(LineaGlobalContext.db)

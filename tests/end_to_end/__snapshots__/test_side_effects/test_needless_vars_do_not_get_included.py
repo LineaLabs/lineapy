@@ -32,9 +32,7 @@ import_2 = ImportNode(
     ),
 )
 mutate_1 = MutateNode(
-    source_id=LookupNode(
-        name="file_system",
-    ).id,
+    source_id="91874da6-133c-448d-babd-dcd8b85e646d",
     call_id=CallNode(
         source_location=SourceLocation(
             lineno=4,

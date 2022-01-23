@@ -132,6 +132,7 @@ def python(
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
+            # TODO use lgcontext's slice - need an instance for this
             full_code = tracer.slice(_slice)
             pathlib.Path(f"{_export_slice}.py").write_text(full_code)
 

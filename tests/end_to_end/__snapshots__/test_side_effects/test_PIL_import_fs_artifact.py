@@ -97,9 +97,7 @@ call_9 = CallNode(
             ],
             implicit_dependencies=[
                 MutateNode(
-                    source_id=LookupNode(
-                        name="file_system",
-                    ).id,
+                    source_id="1938158b-1a21-44f8-8bfc-66e386c1f7d1",
                     call_id=CallNode(
                         source_location=SourceLocation(
                             lineno=4,

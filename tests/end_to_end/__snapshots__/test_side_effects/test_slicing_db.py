@@ -73,9 +73,7 @@ call_14 = CallNode(
             ],
             implicit_dependencies=[
                 MutateNode(
-                    source_id=LookupNode(
-                        name="db",
-                    ).id,
+                    source_id="c5a88cbe-6789-44cf-ae52-3759ce6a39ae",
                     call_id=CallNode(
                         source_location=SourceLocation(
                             lineno=6,

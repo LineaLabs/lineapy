@@ -134,9 +134,7 @@ call_7 = CallNode(
                                     ).id
                                 ],
                                 implicit_dependencies=[
-                                    LookupNode(
-                                        name="file_system",
-                                    ).id
+                                    "fd9f7203-abc9-4372-a6ee-e5cf4236d4fb"
                                 ],
                             ).id,
                             LiteralNode(

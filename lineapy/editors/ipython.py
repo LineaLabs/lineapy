@@ -4,15 +4,15 @@ adding to input_transformers_post.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.display import DisplayHandle, DisplayObject, display
+from IPython.display import display
 
 from lineapy.data.types import JupyterCell, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.editors.ipython_cell_storage import cleanup_cells, get_cell_path
+from lineapy.editors.states import CellsExecutedState, StartedState
 from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
@@ -34,39 +34,6 @@ __all__ = ["_end_cell", "start", "stop", "visualize"]
 #    an extension load during ipython startup.
 # SS: do not explicitly set the state to `None` here
 STATE: Union[None, StartedState, CellsExecutedState]
-
-
-@dataclass
-class StartedState:
-    # Save the ipython in the started state, because we can't look it
-    # up during our transformation, and we need it to get the globals
-    ipython: InteractiveShell
-
-    # Optionally overrides for the session name and DB URL
-    session_name: Optional[str]
-    db_url: Optional[str]
-
-
-@dataclass
-class CellsExecutedState:
-    tracer: Tracer
-    # The code for this cell's execution
-    code: str
-    # If set, we should update this display on every cell execution.
-    visualize_display_handle: Optional[DisplayHandle] = field(default=None)
-
-    # This is set to true, if `stop()` is called in the cell
-    # to signal that at the end of this cell we should stop tracing.
-    # We don't stop immediately, so we can return the proper value from the cell
-    should_stop: bool = field(default=False)
-
-    def create_visualize_display_object(self) -> DisplayObject:
-        """
-        Returns a jupyter display object for the visualization.
-        """
-        from lineapy.visualizer import Visualizer
-
-        return Visualizer.for_public(self.tracer).ipython_display_object()
 
 
 def start(

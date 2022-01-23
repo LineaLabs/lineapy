@@ -35,6 +35,7 @@ from lineapy.data.types import (
     NodeType,
 )
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.linea_context import LineaGlobalContext
 
 
 @dataclass
@@ -48,6 +49,7 @@ class VisualGraphOptions:
     # The tracer is optional, if provided, will let us show some additional
     # information, like variables.
     tracer: Optional[Tracer]
+    lgcontext: Optional[LineaGlobalContext]
 
     # Whether to highlight a certain node.
     # For now, this will only show that node and its ancestors.
@@ -68,6 +70,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     Returns a visual graph based on the options.
     """
     tracer = options.tracer
+    lgcontext = options.lgcontext
     graph = options.graph
     vg = VisualGraph()
 
@@ -77,17 +80,17 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     # First create a mapping of each node ID to all of its artifact names
     id_to_artifacts: Dict[str, List[Optional[str]]] = defaultdict(list)
     if options.show_artifacts:
-        if not tracer:
+        if not lgcontext:
             raise RuntimeError("Cannot show artifacts without tracer")
-        for a in tracer.session_artifacts():
+        for a in lgcontext.session_artifacts():
             id_to_artifacts[a.node_id].append(a.name)
 
     # Then create a mapping of each node to the variables which point to it
     id_to_variables: Dict[str, List[str]] = defaultdict(list)
     if options.show_variables:
-        if not tracer:
+        if not lgcontext:
             raise RuntimeError("Cannot show implied mutations without tracer")
-        for name, node in tracer.variable_name_to_node.items():
+        for name, node in lgcontext.variable_name_to_node.items():
             id_to_variables[node.id].append(name)
 
     # First add all the nodes from the session

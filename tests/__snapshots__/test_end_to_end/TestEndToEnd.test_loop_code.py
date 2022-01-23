@@ -60,7 +60,7 @@ call_2 = CallNode(
         ).id,
     },
 )
-global_2 = GlobalNode(
+global_1 = GlobalNode(
     name="x",
     call_id=call_2.id,
 )
