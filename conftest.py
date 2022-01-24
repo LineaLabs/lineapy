@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 from lineapy.cli.cli import setup_ipython_dir
 

@@ -1,10 +1,8 @@
-import contextlib
 import logging
 import os
 import pathlib
 import subprocess
 import tempfile
-from copy import copy
 from typing import List
 
 import click
