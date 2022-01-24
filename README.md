@@ -168,13 +168,8 @@ the required extension auto loading.
 This sets the `InteractiveShellApp.extensions` configuration option to include
 `lineapy` for the kernel.
 
-If you are developing from this repository, we have created some ipython config files
-which have this enabled. So you can turn on tracing by telling IPython to look
-at those:
-
 ```python
-$ env IPYTHONDIR=$PWD/.ipython ipython
-env IPYTHONDIR=$PWD/.ipython ipython
+$ lineapy ipython
 Python 3.9.7 (default, Sep 16 2021, 08:50:36)
 Type 'copyright', 'credits' or 'license' for more information
 IPython 7.29.0 -- An enhanced Interactive Python. Type '?' for help.
@@ -203,7 +198,7 @@ If you have an existing notebook, you can try running it through linea, to see i
 still works, and to save the resulting graph. For example:
 
 ```bash
-env IPYTHONDIR=$PWD/.ipython jupyter nbconvert --to notebook --execute examples/Explorations.ipynb --inplace --allow-errors
+lineapy jupyter nbconvert --to notebook --execute examples/Explorations.ipynb --inplace --allow-errors
 ```
 
 If you would like to change the database that linea talks to, you can use the
