@@ -82,7 +82,6 @@ typecheck:
 typecheck-dev:
 	docker-compose run --rm ${service_name} dmypy run -- --follow-imports=skip -p lineapy
 
-export IPYTHONDIR=${PWD}/.ipython
 
 # Add pattern for all notebook files to re-execute them when they change
 # so that we can update them for the tests easily.
@@ -96,7 +95,7 @@ notebooks: $(NOTEBOOK_FILES)
 # https://twitter.com/palewire/status/1458083565191655424
 %.ipynb: FORCE
 	@echo Running "$@"
-	env IPYTHONDIR=${PWD}/.ipython jupyter nbconvert --to notebook --execute $@ --allow-errors --inplace
+	lineapy jupyter nbconvert --to notebook --execute $@ --allow-errors --inplace
 
 FORCE: ;
 
@@ -120,7 +119,7 @@ airflow_start:
 
 
 jupyterlab_start:
-	jupyter lab --ServerApp.token='' --port 8888 --allow-root --ip 0.0.0.0 --ServerApp.allow_origin=*
+	lineapy jupyter lab --ServerApp.token='' --port 8888 --allow-root --ip 0.0.0.0 --ServerApp.allow_origin=*
 
 clean_airflow:
 	rm -rf ${AIRFLOW_HOME} ${AIRFLOW_VENV}

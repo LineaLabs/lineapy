@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import os
 import pathlib
@@ -174,33 +175,31 @@ def python(
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("jupyter_args", nargs=-1, type=click.UNPROCESSED)
 def jupyter(jupyter_args):
-    run_with_ipython_dir("jupyter", *jupyter_args)
+    setup_ipython_dir()
+    subprocess.run(["jupyter", *jupyter_args])
 
 
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("ipython_args", nargs=-1, type=click.UNPROCESSED)
 def ipython(ipython_args):
-    run_with_ipython_dir("ipython", *ipython_args)
+    setup_ipython_dir()
+    subprocess.run(["ipython", *ipython_args])
 
 
-def run_with_ipython_dir(*args: str) -> None:
+def setup_ipython_dir() -> None:
     """
-    Runs the command with a custom ipython directory set
-    so that the lineapy extension is loaded by default.
+    Set the ipython directory to include the lineapy extension by default
     """
-    with tempfile.TemporaryDirectory() as ipython_dir_name:
-        # Make a default profile with the extension added to the ipython and kernel
-        # configs
-        profile_dir = pathlib.Path(ipython_dir_name) / "profile_default"
-        profile_dir.mkdir()
-        settings = 'c.InteractiveShellApp.extensions = ["lineapy"]'
-        (profile_dir / "ipython_config.py").write_text(settings)
-        (profile_dir / "ipython_kernel_config.py").write_text(settings)
+    ipython_dir_name = tempfile.mkdtemp()
+    # Make a default profile with the extension added to the ipython and kernel
+    # configs
+    profile_dir = pathlib.Path(ipython_dir_name) / "profile_default"
+    profile_dir.mkdir()
+    settings = 'c.InteractiveShellApp.extensions = ["lineapy"]'
+    (profile_dir / "ipython_config.py").write_text(settings)
+    (profile_dir / "ipython_kernel_config.py").write_text(settings)
 
-        env = copy(os.environ)
-        env["IPYTHONDIR"] = ipython_dir_name
-
-        subprocess.run(args, env=env)
+    os.environ["IPYTHONDIR"] = ipython_dir_name
 
 
 if __name__ == "__main__":
