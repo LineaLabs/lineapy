@@ -256,7 +256,7 @@ class Tracer:
         source_location: Optional[SourceLocation] = None,
     ) -> Node:
         """
-        Cases:
+        Cases for the node that we are looking up:
 
         - user defined variable & function definitions
         - imported libs

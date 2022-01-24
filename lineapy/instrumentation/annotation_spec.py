@@ -1,9 +1,16 @@
+"""
+.. note::
+
+    You can find a higher level documentation about how library annotations in
+    lineapy work, and how to contribute :ref:`here <lib_annotations>`.
+"""
+
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
 """
-NOTE:
+DEV NOTE:
 - All the classes in the `ValuePointer` follow this weird structure where
   their field entries duplicate the class name---this is so that when we load
   the YAMLs, they can differentiate the class based just by the field names.
@@ -40,7 +47,7 @@ class AllPositionalArgs(BaseModel):
     """
     References all positional arguments. E.g., in `foo(a, b)`, `a` and `b`.
 
-    Expecting the string to be set the value "ALL_POSITIONAL_ARGUMENTS"
+    Expecting the string to be set the value "ALL_POSITIONAL_ARGUMENTS"---see :class:`~lineapy.instrumentation.annotation_spec.Result` for an explanation
     """
 
     all_positional_arguments: str
@@ -49,14 +56,13 @@ class AllPositionalArgs(BaseModel):
 class BoundSelfOfFunction(BaseModel):
     """
 
-    References the bound self of a function. E.g., in `foo.test(a, b)`,
+    References the bound self of a function. E.g., in ``foo.test(a, b)``,
     `foo` would be the bound self.
 
     If the function is a bound method, this refers to the instance that was
     bound of the method.
 
-    We are expecting "SELF_REF" though it's not needed. I was not able to
-    set it as "default" due to some YAML snafus.
+    We are expecting "SELF_REF"---see :class:`~lineapy.instrumentation.annotation_spec.Result` for an explanation.
     """
 
     self_ref: str
@@ -64,11 +70,12 @@ class BoundSelfOfFunction(BaseModel):
 
 class Result(BaseModel):
     """
-    References the result of a function. E.g., in `bar = foo(a, b)`, `bar` would
+    References the result of a function. E.g., in ``bar = foo(a, b)``, ``bar`` would
     The result of a function call.
 
-
-    We are expecting "RESULT" though it's not needed.
+    We are expecting "RESULT" for the field ``result``---though it's not needed
+    for the python class, it is needed for yaml, and setting a default value
+    makes the loader we use, pydantic, confused.
     """
 
     result: str
@@ -76,15 +83,11 @@ class Result(BaseModel):
 
 class ExternalState(BaseModel):
     """
-    Represents some reference to some state outside of the Python program.
+    Represents some reference to some state outside of the Python program. The two types of external state supported are ``DB`` and ``file_system``.
 
     If we ever make a reference to an external state instance, we assume
     that it depends on any mutations of previous references.
 
-    Elsewhere we need ExternalState to be hashable, it was pretty easy with
-    Dataclass (frozen option), but with Pydantic, we have to add an extra
-    hash function
-    https://github.com/samuelcolvin/pydantic/issues/1303
     """
 
     external_state: str
@@ -94,6 +97,12 @@ class ExternalState(BaseModel):
         return self.external_state
 
     def __hash__(self):
+        """
+        Elsewhere we need ``ExternalState`` to be hashable, it was pretty easy
+        with Dataclass (frozen option), but with Pydantic, we have to add an
+        extra hash function
+        https://github.com/samuelcolvin/pydantic/issues/1303
+        """
         return hash((type(self),) + tuple(self.__dict__.values()))
 
 
@@ -114,6 +123,26 @@ class ViewOfValues(BaseModel):
     So that if one is mutated, the rest might be as well.
     They are unique, like a set, but ordered for deterministic behavior,
     hence a list.
+
+    Take the ``fit`` function in scikit-learn, if its assigned to a new variable,
+    then the variable is aliased to the original variable.
+    So we have the following annotation:
+
+    .. code-block:: yaml
+
+          - base_module: sklearn.base
+            annotations:
+            - criteria:
+                base_class: BaseEstimator
+                class_method_name: fit
+                side_effects:
+                - mutated_value:
+                    self_ref: SELF_REF # self is a keyword...
+                - views:
+                - self_ref: SELF_REF
+                - result: RESULT
+
+
     """
 
     views: List[ValuePointer]
@@ -121,10 +150,19 @@ class ViewOfValues(BaseModel):
 
 class MutatedValue(BaseModel):
     """
-    A value that is mutated when the function is called.
-    We are naming the fields with a repetition to the class name because we
-    want Pydantic to be able to differentiate between the classes (without
-    explicit class definitions.)
+    A value that is mutated when the function is called. Consider the example
+    of the ``dump`` function in ``joblib``. It mutates the file_system, which
+    is represented by :class:`~lineapy.lineapy.instrumentation.annotation_spec.ExternalState`.
+
+    .. code-block:: yaml
+
+        - module: joblib
+          annotations:
+          - criteria:
+              function_name: dump
+            side_effects:
+            - mutated_value:
+                external_state: file_system
     """
 
     mutated_value: ValuePointer
@@ -146,7 +184,7 @@ InspectFunctionSideEffect = Union[
 
 class KeywordArgumentCriteria(BaseModel):
     """
-    Currently only used for the pandas inplace argument.
+    Currently only used for the pandas in-place argument.
     We might need to augment how we parse it in the future for other inputs.
     """
 
@@ -156,7 +194,17 @@ class KeywordArgumentCriteria(BaseModel):
 
 class FunctionNames(BaseModel):
     """
-    References a list of function names.
+    References a list of function names (vs. a single one in :class:`~lineapy.instrumentation.annotation_spec.FunctionName`).
+
+    One example is for the module `pandas` (and you can find the code `here <https://github.com/LineaLabs/lineapy/blob/main/lineapy/external.annotations.yaml>`__):
+
+    .. code-block:: yaml
+
+        - criteria:
+            function_names:
+            - upload_file
+            - upload_fileobj
+
     """
 
     function_names: List[str]
@@ -164,7 +212,7 @@ class FunctionNames(BaseModel):
 
 class FunctionName(BaseModel):
     """
-    A convenience for a list of items.
+    A single function name (vs. a list in :class:`~lineapy.instrumentation.annotation_spec.FunctionNames`).
     """
 
     function_name: str
@@ -172,8 +220,14 @@ class FunctionName(BaseModel):
 
 class ClassMethodName(BaseModel):
     """
-    An example is `df.to_sql`, the `class_instance` is then the string "DataFrame",
-    and the `class_method_name` is the string "to_sql".
+    Specifies a **class** method name (as opposed to a function). An example is `df.to_sql`:
+
+    .. code-block:: yaml
+
+        - criteria:
+            class_method_name: to_sql
+            class_instance: DataFrame
+
     """
 
     class_instance: str
@@ -182,8 +236,15 @@ class ClassMethodName(BaseModel):
 
 class ClassMethodNames(BaseModel):
     """
-    A shorthand for a list of class method names. Useful for cases like
-    df.to_sql, df.to_csv, etc.
+    A shorthand for a list of class method names (vs. a single one
+    as in :class:`~lineapy.instrumentation.annotation_spec.ClassMethodName`).
+
+    .. code-block:: yaml
+        - criteria:
+            class_method_names:
+            - to_csv
+            - to_parquet
+            class_instance: DataFrame
     """
 
     class_instance: str
@@ -198,6 +259,12 @@ class BaseClassMethodName(BaseModel):
     estimators that are subclasses of `BaseEstimator`.
     So the `class_instance` is the string "BaseEstimator",
     and the `class_method_name` is the string "fit".
+
+    .. code-block:: yaml
+
+        - criteria:
+            base_class: BaseEstimator
+            class_method_name: fit
     """
 
     base_class: str
@@ -216,11 +283,40 @@ Criteria = Union[
 
 
 class Annotation(BaseModel):
+    """
+    An annotation contains a single criteria for the function call,
+    and the corresponding `side_effects` of the function call.
+
+    There are currently six types of criteria, all of which are explained in their respective classes:
+
+    * :class:`~lineapy.instrumentation.annotation_spec.KeywordArgumentCriteria`
+    * :class:`~lineapy.instrumentation.annotation_spec.FunctionNames`
+    * :class:`~lineapy.instrumentation.annotation_spec.ClassMethodNames`
+    * :class:`~lineapy.instrumentation.annotation_spec.FunctionName`
+    * :class:`~lineapy.instrumentation.annotation_spec.ClassMethodName`
+    * :class:`~lineapy.instrumentation.annotation_spec.BaseClassMethodName`
+
+    There are currently three types of side_effects:
+
+    * :class:`~lineapy.instrumentation.annotation_spec.ViewOfValues`
+    * :class:`~lineapy.instrumentation.annotation_spec.MutatedValue`
+    * :class:`~lineapy.instrumentation.annotation_spec.ImplicitDependencyValue`
+    """
+
     criteria: Criteria
     side_effects: List[InspectFunctionSideEffect]
 
 
 class ModuleAnnotation(BaseModel):
+    """
+    An annotation yaml file is composed of a list of :class:`~lineapy.instrumentation.annotation_spec.ModuleAnnotations` (this class), which is to say that the annotations are hierarchically organized
+    by what module the annotation is associated with, such as ``pandas`` and ``boto3``.
+
+    The modules could also be what we call "base modules"s, such as ``sklearn.base``, which is useful for
+    adding annotations for a range of classes that are subclasses of the "base class" provided, such as ``BaseEstimator``. You would specify *either* a ``module`` or a ``base_module``.
+
+    """
+
     module: Optional[str]
     base_module: Optional[str]
     annotations: List[Annotation]

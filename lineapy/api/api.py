@@ -1,10 +1,7 @@
 """
-User exposed APIs.
-
-We should keep these external APIs as small as possible, and unless there is
-  a very compelling use case, not support more than one way to access the
-  same feature.
+User facing APIs.
 """
+
 import pickle
 import types
 from datetime import datetime
@@ -15,10 +12,32 @@ from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.utils.utils import get_value_type
 
+"""
+Dev notes: We should keep these external APIs as small as possible, and unless
+there is a very compelling use case, not support more than 
+one way to access the same feature.
+"""
 
-def save(value: object, description: str) -> LineaArtifact:
+
+def save(reference: object, name: str) -> LineaArtifact:
     """
-    Publishes artifact to the linea repo
+    Publishes the object to the Linea DB.
+
+    Parameters
+    ----------
+    reference: Union[object, ExternalState]
+        The reference could be a variable name, in which case Linea will save
+        the value of the variable, with out default serialization mechanism.
+        Alternatively, it could be a "side effect" reference, which currently includes either `lineapy.file_system` or `lineapy.db`. Linea will save the associated process that creates the final side effects.
+        We are in the process of adding more side effect references, including `assert`s.
+    name: str
+        The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
+
+    Returns
+    -------
+    LineaArtifact
+        returned value offers methods to access
+        information we have stored about the artifact (value, version), and other automation capabilities, such as `to_airflow`.
     """
     execution_context = get_context()
     executor = execution_context.executor
@@ -28,12 +47,12 @@ def save(value: object, description: str) -> LineaArtifact:
     # If this value is stored as a global in the executor (meaning its an external side effect)
     # then look it up from there, instead of using this node.
     try:
-        in_value_to_node = value in executor._value_to_node
+        in_value_to_node = reference in executor._value_to_node
     # happens on non hashable objects
     except Exception:
         in_value_to_node = False
     if in_value_to_node:
-        value_node_id = executor._value_to_node[value]
+        value_node_id = executor._value_to_node[reference]
     else:
         # Lookup the first arguments id, which is the id for the value, and
         # save that as the artifact
@@ -47,16 +66,16 @@ def save(value: object, description: str) -> LineaArtifact:
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
-        if not _can_save_to_db(value):
+        if not _can_save_to_db(reference):
             raise ArtifactSaveException()
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=value,
+                value=reference,
                 execution_id=executor.execution.id,
                 start_time=timing[0],
                 end_time=timing[1],
-                value_type=get_value_type(value),
+                value_type=get_value_type(reference),
             )
         )
     db.write_artifact(
@@ -64,7 +83,7 @@ def save(value: object, description: str) -> LineaArtifact:
             node_id=value_node_id,
             execution_id=execution_id,
             date_created=datetime.now(),
-            name=description,
+            name=name,
         )
     )
     # we have to commit eagerly because if we just add it
@@ -77,7 +96,7 @@ def save(value: object, description: str) -> LineaArtifact:
         execution_id=executor.execution.id,
         node_id=value_node_id,
         session_id=call_node.session_id,
-        name=description,
+        name=name,
     )
 
 
@@ -121,8 +140,8 @@ def get(artifact_name: str) -> LineaArtifact:
 
     Returns
     -------
-    linea artifact
-        an object of the class `LineaArtifact`, which offers methods to access
+    LineaArtifact
+        returned value offers methods to access
         information we have stored about the artifact
     """
     execution_context = get_context()
@@ -138,11 +157,11 @@ def get(artifact_name: str) -> LineaArtifact:
 
 
 def catalog() -> LineaCatalog:
-    """catalog
+    """
     Returns
     -------
-    linea catalog
-        an object of the class `LineaCatalog`
+    LineaCatalog
+        An object of the class `LineaCatalog` that allows for printing and exporting artifacts metadata.
     """
     execution_context = get_context()
     return LineaCatalog(execution_context.executor.db)
