@@ -14,6 +14,11 @@ class TRACER_EVENTS(Enum):
     VISUALIZE = "visualize"
 
 
+class IPYTHON_EVENTS(Enum):
+    StartedState = "StartedState"
+    CellsExecutedState = "CellsExecutedState"
+
+
 @dataclass
 class GlobalContext(ABC):
     session_type: InitVar[SessionType]
@@ -22,6 +27,10 @@ class GlobalContext(ABC):
     )
 
     def notify(
-        self, operator: object, event: Union[None, TRACER_EVENTS]
+        self,
+        operator: object,
+        event: Union[None, TRACER_EVENTS, IPYTHON_EVENTS],
+        *args,
+        **kwargs
     ) -> None:
         pass

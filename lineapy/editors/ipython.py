@@ -16,6 +16,7 @@ from lineapy.editors.states import CellsExecutedState, StartedState
 from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
+from lineapy.global_context import IPYTHON_EVENTS
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.linea_context import LineaGlobalContext
 from lineapy.transformer.node_transformer import transform
@@ -34,7 +35,7 @@ __all__ = ["_end_cell", "start", "stop", "visualize"]
 #    are displayed to users, instead of being lost, if the start is called during
 #    an extension load during ipython startup.
 # SS: do not explicitly set the state to `None` here
-STATE: Union[None, StartedState, CellsExecutedState]
+STATE: LineaGlobalContext  # Union[None, StartedState, CellsExecutedState]
 
 
 def start(
@@ -54,7 +55,17 @@ def start(
         InteractiveShell._get_exc_info = custom_get_exc_info
 
     ipython.input_transformers_post.append(input_transformer_post)
-    STATE = StartedState(ipython, session_name=session_name, db_url=db_url)
+    STATE = LineaGlobalContext.discard_existing_and_create_new_session(
+        SessionType.JUPYTER
+    )
+    STATE.notify(
+        event=IPYTHON_EVENTS.StartedState,
+        operator=None,
+        ipython=ipython,
+        session_name=session_name,
+        db_url=db_url,
+    )
+    # STATE = StartedState(ipython, session_name=session_name, db_url=db_url)
 
 
 def input_transformer_post(lines: List[str]) -> List[str]:
@@ -62,29 +73,35 @@ def input_transformer_post(lines: List[str]) -> List[str]:
     Translate the lines of code for the cell provided by ipython.
     """
     global STATE
-    if not STATE:
+    if not STATE.IPYSTATE:
         raise RuntimeError(
             "input_transformer_post shouldn't be called when we don't have an active tracer"
         )
     code = "".join(lines)
     # If we have just started, first start everything up
-    if isinstance(STATE, StartedState):
+    if isinstance(STATE.IPYSTATE, StartedState):
         # Configure logging so that we the linea db prints it has connected.
         configure_logging("INFO")
-        ipython_globals = STATE.ipython.user_global_ns
-        lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
-            SessionType.JUPYTER, ipython_globals
-        )
+        ipython_globals = STATE.IPYSTATE.ipython.user_global_ns
+        # lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
+        #    SessionType.JUPYTER, ipython_globals
+        # )
         # db = RelationalLineaDB.from_environment(STATE.db_url)
         # pass in globals from ipython so that `get_ipthon()` works
         # and things like `!cat df.csv` work in the notebook
-        tracer = Tracer(
-            # db, SessionType.JUPYTER, STATE.session_name, ipython_globals
+        # tracer = Tracer(
+        #     # db, SessionType.JUPYTER, STATE.session_name, ipython_globals
+        # )
+        STATE.notify(
+            event=IPYTHON_EVENTS.CellsExecutedState,
+            operator=None,
+            globals=ipython_globals,
+            code=code,
         )
+        # STATE = CellsExecutedState(code=code)
 
-        STATE = CellsExecutedState(code=code)
     else:
-        STATE.code = code
+        STATE.IPYSTATE.code = code
 
     return RETURNED_LINES
 
@@ -105,7 +122,7 @@ def _end_cell() -> object:
     and also stops the tracer if we asked it to stop in the cell.
     """
     global STATE
-    if not isinstance(STATE, CellsExecutedState):
+    if not isinstance(STATE.IPYSTATE, CellsExecutedState):
         raise ValueError("We need to be executing cells to get the last value")
 
     execution_count: int = get_ipython().execution_count  # type: ignore
@@ -113,24 +130,25 @@ def _end_cell() -> object:
         execution_count=execution_count,
         session_id=LineaGlobalContext.session_context.id,
     )
-    code = STATE.code
+    # TODO: type issues here
+    code = STATE.IPYSTATE.code  # type: ignore
     # Write the code text to a file for error reporting
     get_cell_path(location).write_text(code)
 
     last_node = transform(code, location, STATE.tracer)
-    if STATE.visualize_display_handle:
-        STATE.visualize_display_handle.update(
-            STATE.create_visualize_display_object()
-        )
+    # if STATE.visualize_display_handle:
+    #     STATE.visualize_display_handle.update(
+    #         STATE.create_visualize_display_object()
+    #     )
 
     # Return the last value so it will be printed, if we don't end
     # in a semicolon
     ends_with_semicolon = code.strip().endswith(";")
     if not ends_with_semicolon and last_node:
-        res = STATE.tracer.executor.get_value(last_node.id)
+        res = STATE.executor.get_value(last_node.id)
     else:
         res = None
-    _optionally_stop(STATE)
+    _optionally_stop()
     return res
 
 
@@ -145,18 +163,19 @@ def visualize(*, live=False) -> None:
     Note: If the visualization is not live, it will print out the visualization
     as of the previous cell execution, not the one where `visualize` is executed.
     """
-    if not isinstance(STATE, CellsExecutedState):
+    # TODO - migrate this whole thing into context
+    if not isinstance(STATE.IPYSTATE, CellsExecutedState):
         raise RuntimeError(
             "Cannot visualize before we have started executing cells"
         )
     display_object = STATE.create_visualize_display_object()
     if live:
         # If we have an existing display handle, display a new version of it.
-        if STATE.visualize_display_handle:
-            STATE.visualize_display_handle.display(display_object)
+        if STATE.IPYSTATE.visualize_display_handle:
+            STATE.IPYSTATE.visualize_display_handle.display(display_object)
         # Otherwise, create a new one
         else:
-            STATE.visualize_display_handle = display(
+            STATE.IPYSTATE.visualize_display_handle = display(
                 display_object, display_id=True
             )
     else:
@@ -170,27 +189,29 @@ def stop() -> None:
     """
     global STATE
 
-    if not STATE:
+    if not STATE.IPYSTATE:
         return
 
-    if not isinstance(STATE, CellsExecutedState):
+    if not isinstance(STATE.IPYSTATE, CellsExecutedState):
         raise RuntimeError("Cannot stop executing if we haven't started yet.")
-    STATE.should_stop = True
+    STATE.IPYSTATE.should_stop = True
 
 
-def _optionally_stop(cells_executed_state: CellsExecutedState) -> None:
+def _optionally_stop() -> None:
     """
     Stop tracing if the `stop()` was called in the cell and should_stop was set.
     """
     global STATE
+    if not isinstance(STATE.IPYSTATE, CellsExecutedState):
+        raise RuntimeError("Cannot end executing if we haven't started yet.")
 
     # If stop was triggered during in this cell, clean up
-    if not cells_executed_state.should_stop:
+    if not STATE.IPYSTATE.should_stop:
         return
-    STATE = None
+    STATE.IPYSTATE = None
     ipython: InteractiveShell = get_ipython()  # type: ignore
     ipython.input_transformers_post.remove(input_transformer_post)
-    cells_executed_state.tracer.db.close()
+    STATE.db.close()
     # Remove the cells we stored
     cleanup_cells()
     # Reset the exception handling

@@ -191,7 +191,9 @@ call_7 = CallNode(
     ],
 )
 mutate_1 = MutateNode(
-    source_id="9ba930cc-0e6a-482a-ba14-4d6e153cf231",
+    source_id=LookupNode(
+        name="db",
+    ).id,
     call_id=CallNode(
         source_location=SourceLocation(
             lineno=6,
