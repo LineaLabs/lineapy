@@ -29,6 +29,7 @@ from lineapy.execution.executor import (
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.linea_context import LineaGlobalContext
+from lineapy.operator import BaseOperator
 from lineapy.utils.constants import GETATTR  # , IMPORT_STAR
 from lineapy.utils.lineabuiltins import l_tuple
 from lineapy.utils.utils import get_new_id
@@ -37,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class Tracer:
+class Tracer(BaseOperator):
     """
     Tracer is internal to Linea and it implements the "hidden APIs"
         that are setup by the transformer.
@@ -73,7 +74,6 @@ class Tracer:
                     for k, v in LineaGlobalContext.variable_name_to_node.items()
                 },
             )
-            # side_effects = []  # type:ignore
         except ArtifactSaveException as exc_info:
             logger.error("Artifact could not be saved.")
             logger.debug(exc_info)

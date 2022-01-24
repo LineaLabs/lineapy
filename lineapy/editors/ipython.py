@@ -17,6 +17,7 @@ from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.linea_context import LineaGlobalContext
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.logging_config import configure_logging
 
@@ -68,16 +69,20 @@ def input_transformer_post(lines: List[str]) -> List[str]:
     code = "".join(lines)
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
+        # Configure logging so that we the linea db prints it has connected.
         configure_logging()
-        db = RelationalLineaDB.from_environment(STATE.db_url)
+        ipython_globals = STATE.ipython.user_global_ns
+        lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
+            SessionType.JUPYTER, ipython_globals
+        )
+        # db = RelationalLineaDB.from_environment(STATE.db_url)
         # pass in globals from ipython so that `get_ipthon()` works
         # and things like `!cat df.csv` work in the notebook
-        ipython_globals = STATE.ipython.user_global_ns
         tracer = Tracer(
-            db, SessionType.JUPYTER, STATE.session_name, ipython_globals
+            # db, SessionType.JUPYTER, STATE.session_name, ipython_globals
         )
 
-        STATE = CellsExecutedState(tracer, code=code)
+        STATE = CellsExecutedState(code=code)
     else:
         STATE.code = code
 
@@ -106,7 +111,7 @@ def _end_cell() -> object:
     execution_count: int = get_ipython().execution_count  # type: ignore
     location = JupyterCell(
         execution_count=execution_count,
-        session_id=STATE.tracer.session_context.id,
+        session_id=LineaGlobalContext.session_context.id,
     )
     code = STATE.code
     # Write the code text to a file for error reporting

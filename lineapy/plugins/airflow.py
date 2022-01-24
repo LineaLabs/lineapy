@@ -6,7 +6,7 @@ from jinja2 import Environment, FileSystemLoader
 from typing_extensions import TypedDict
 
 import lineapy
-from lineapy.instrumentation.tracer import Tracer
+from lineapy.linea_context import LineaGlobalContext
 from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
 
@@ -63,7 +63,6 @@ def split_code_blocks(code: str, func_name: str):
 
 
 def sliced_airflow_dag(
-    tracer: Tracer,
     slice_names: List[str],
     func_name: str,
     airflow_task_dependencies: str,
@@ -71,7 +70,6 @@ def sliced_airflow_dag(
     """
     Returns a an Airflow DAG of the sliced code.
 
-    :param tracer: the tracer object.
     :param slice_names: list of slice names to be used as tasks.
     :param func_name: name of the DAG and corresponding functions and task prefixes,
                       i.e. "sliced_housing_dag"
@@ -94,9 +92,9 @@ def sliced_airflow_dag(
     artifacts_code = {}
     for slice_name in slice_names:
         # TODO - use lgcontext's function here
-        artifact_var = tracer.artifact_var_name(slice_name)
+        artifact_var = LineaGlobalContext.artifact_var_name(slice_name)
         # TODO - use lgcontext's slice - need instance for this
-        slice_code = tracer.slice(slice_name)
+        slice_code = LineaGlobalContext.slice(slice_name)
         artifacts_code[artifact_var] = slice_code
         # "'p value' >> 'y'" needs to be replaced by "sliced_housing_dag_p >> sliced_housing_dag_y"
         airflow_task_dependencies = airflow_task_dependencies.replace(
@@ -106,7 +104,9 @@ def sliced_airflow_dag(
     return to_airflow(
         artifacts_code=artifacts_code,
         dag_name=func_name,
-        working_directory=Path(tracer.session_context.working_directory),
+        working_directory=Path(
+            LineaGlobalContext.session_context.working_directory
+        ),
         task_dependencies=airflow_task_dependencies,
     )
 
