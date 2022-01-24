@@ -21,6 +21,7 @@ from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.linea_context import LineaGlobalContext
 from lineapy.plugins.airflow import sliced_airflow_dag
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.logging_config import (
@@ -132,17 +133,21 @@ def file(
     )
 
     # Run the code:
-    db = RelationalLineaDB.from_environment()
-    tracer = Tracer(db, SessionType.SCRIPT)
+    # db = RelationalLineaDB.from_environment()
+    # tracer = Tracer(db, SessionType.SCRIPT)
+    lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
+        session_type=SessionType.SCRIPT
+    )
+
     # Redirect all stdout to stderr, so its not printed.
     with redirect_stdout(sys.stderr):
 
-        transform(code, path, tracer)
+        transform(code, path, lgcontext.tracer)
 
     # Print the slice:
-    artifact = db.get_artifact_by_name(artifact_name)
+    artifact = lgcontext.db.get_artifact_by_name(artifact_name)
     api_artifact = LineaArtifact(
-        db=db,
+        db=lgcontext.db,
         execution_id=artifact.execution_id,
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
@@ -233,7 +238,12 @@ def python(
     set_custom_excepthook()
     tree = rich.tree.Tree(f"📄 {file_name}")
 
-    db = RelationalLineaDB.from_environment(db_url)
+    # db = RelationalLineaDB.from_environment(db_url)
+    # FIXME - pass db url here. might not do because db url is supposed to be
+    # written into the env rather than passed around
+    lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
+        session_type=SessionType.SCRIPT
+    )
     code = file_name.read_text()
 
     if print_source:
@@ -249,20 +259,20 @@ def python(
     # To pick up relative data paths
     os.chdir(file_name.parent)
 
-    tracer = Tracer(db, SessionType.SCRIPT)
-    transform(code, file_name, tracer)
+    # tracer = Tracer(db, SessionType.SCRIPT)
+    transform(code, file_name, lgcontext.tracer)
 
     if visualize:
         from lineapy.visualizer import Visualizer
 
-        Visualizer.for_public(tracer).render_pdf_file()
+        Visualizer.for_public(lgcontext).render_pdf_file()
 
     if slice and not export_slice and not export_slice_to_airflow_dag:
         for _slice in slice:
             tree.add(
                 rich.console.Group(
                     f"Slice of {repr(_slice)}",
-                    rich.syntax.Syntax(tracer.slice(_slice), "python"),
+                    rich.syntax.Syntax(lgcontext.slice(_slice), "python"),
                 )
             )
 
@@ -271,8 +281,7 @@ def python(
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
-            # TODO use lgcontext's slice - need an instance for this
-            full_code = tracer.slice(_slice)
+            full_code = lgcontext.slice(_slice)
             pathlib.Path(f"{_export_slice}.py").write_text(full_code)
 
     if export_slice_to_airflow_dag:
@@ -283,17 +292,17 @@ def python(
             exit(1)
 
         full_code = sliced_airflow_dag(
-            tracer,
+            lgcontext,
             slice,
             export_slice_to_airflow_dag,
             airflow_task_dependencies,
         )
         pathlib.Path(f"{export_slice_to_airflow_dag}.py").write_text(full_code)
 
-    tracer.db.close()
+    lgcontext.db.close()
     if print_graph:
         graph_code = prettify(
-            tracer.graph.print(
+            lgcontext.graph.print(
                 include_source_location=False,
                 include_id_field=False,
                 include_session=False,

@@ -63,6 +63,7 @@ def split_code_blocks(code: str, func_name: str):
 
 
 def sliced_airflow_dag(
+    lgcontext: LineaGlobalContext,
     slice_names: List[str],
     func_name: str,
     airflow_task_dependencies: str,
@@ -70,6 +71,7 @@ def sliced_airflow_dag(
     """
     Returns a an Airflow DAG of the sliced code.
 
+    :param lgcontext: linea's global context.
     :param slice_names: list of slice names to be used as tasks.
     :param func_name: name of the DAG and corresponding functions and task prefixes,
                       i.e. "sliced_housing_dag"
@@ -91,10 +93,8 @@ def sliced_airflow_dag(
 
     artifacts_code = {}
     for slice_name in slice_names:
-        # TODO - use lgcontext's function here
-        artifact_var = LineaGlobalContext.artifact_var_name(slice_name)
-        # TODO - use lgcontext's slice - need instance for this
-        slice_code = LineaGlobalContext.slice(slice_name)
+        artifact_var = lgcontext.artifact_var_name(slice_name)
+        slice_code = lgcontext.slice(slice_name)
         artifacts_code[artifact_var] = slice_code
         # "'p value' >> 'y'" needs to be replaced by "sliced_housing_dag_p >> sliced_housing_dag_y"
         airflow_task_dependencies = airflow_task_dependencies.replace(
