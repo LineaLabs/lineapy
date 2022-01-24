@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import InitVar, dataclass, field
 from enum import Enum
-from typing import Union
+from typing import Dict, Union
+
+from lineapy.data.types import Node, SessionType
 
 
 class TRACER_EVENTS(Enum):
@@ -14,6 +16,11 @@ class TRACER_EVENTS(Enum):
 
 @dataclass
 class GlobalContext(ABC):
+    session_type: InitVar[SessionType]
+    variable_name_to_node: Dict[str, Node] = field(
+        default_factory=dict, init=False
+    )
+
     def notify(
         self, operator: object, event: Union[None, TRACER_EVENTS]
     ) -> None:

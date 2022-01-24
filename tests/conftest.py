@@ -20,7 +20,8 @@ from lineapy.db.utils import (
     resolve_default_db_path,
 )
 from lineapy.execution.executor import Executor
-from lineapy.instrumentation.tracer import Tracer
+
+# from lineapy.instrumentation.tracer import Tracer
 from lineapy.linea_context import LineaGlobalContext
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.constants import DB_SQLITE_PREFIX
@@ -189,11 +190,13 @@ class ExecuteFixture:
         lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
             SessionType.SCRIPT
         )
-        tracer = Tracer()
-        transform(code, source_code_path, tracer)
+        # tracer = Tracer()
+        transform(code, source_code_path, lgcontext.tracer)
 
         if self.visualize:
-            Visualizer.for_test_cli(lgcontext, tracer).render_pdf_file()
+            Visualizer.for_test_cli(
+                lgcontext, lgcontext.tracer
+            ).render_pdf_file()
 
         # Verify snapshot of graph
         if snapshot:
@@ -224,7 +227,9 @@ class ExecuteFixture:
             self.svg_snapshot._update_snapshots = res.created or res.updated
             # If we aren't updating snapshots, dont even bother trying to generate the SVG
             svg_text = (
-                Visualizer.for_test_snapshot(lgcontext, tracer).render_svg()
+                Visualizer.for_test_snapshot(
+                    lgcontext, lgcontext.tracer
+                ).render_svg()
                 if self.snapshot._update_snapshots
                 else ""
             )

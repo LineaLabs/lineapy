@@ -14,6 +14,7 @@ from lineapy.execution.executor import Executor
 from lineapy.global_context import GlobalContext
 from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.instrumentation.mutation_tracker import MutationTracker
+from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils.utils import get_new_id
 
 
@@ -21,7 +22,6 @@ from lineapy.utils.utils import get_new_id
 class LineaGlobalContext(GlobalContext):
     db: RelationalLineaDB = field(init=False)
     session_context: SessionContext = field(init=False)
-    session_type: InitVar[SessionType]
     session_name: InitVar[Optional[str]] = None
     globals_: InitVar[Optional[Dict[str, object]]] = None
 
@@ -29,7 +29,7 @@ class LineaGlobalContext(GlobalContext):
     execution_context: Optional[ExecutionContext] = None
     executor: Executor = field(init=False)
     mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
-    variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
+    tracer: Tracer = field(init=False)
 
     def __post_init__(
         self,
@@ -47,7 +47,7 @@ class LineaGlobalContext(GlobalContext):
             LineaGlobalContext.executor = Executor(
                 LineaGlobalContext.db, globals()
             )
-            LineaGlobalContext.variable_name_to_node = {}
+            GlobalContext.variable_name_to_node = {}
         LineaGlobalContext.session_context = SessionContext(
             id=get_new_id(),
             environment_type=session_type,
@@ -57,6 +57,9 @@ class LineaGlobalContext(GlobalContext):
             execution_id=LineaGlobalContext.executor.execution.id,
         )
         LineaGlobalContext.db.write_context(LineaGlobalContext.session_context)
+        tracer = Tracer()
+        tracer._context_manager = self
+        LineaGlobalContext.tracer = tracer
 
     @classmethod
     def discard_existing_and_create_new_session(
@@ -75,16 +78,15 @@ class LineaGlobalContext(GlobalContext):
         )
         return Graph(nodes, self.session_context)
 
-    @classmethod
     @property
-    def values(cls) -> Dict[str, object]:
+    def values(self) -> Dict[str, object]:
         """
         Returns a mapping of variable names to their values, by joining
         the scoping information with the executor values.
         """
         return {
-            k: LineaGlobalContext.executor.get_value(n.id)
-            for k, n in LineaGlobalContext.variable_name_to_node.items()
+            k: self.executor.get_value(n.id)
+            for k, n in self.variable_name_to_node.items()
         }
 
     @property
