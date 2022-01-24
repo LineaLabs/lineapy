@@ -169,7 +169,7 @@ def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:
     artifact = LineaGlobalContext.db.get_artifact_by_name(
         artifact_name, version
     )
-    return LineaArtifact(
+    linea_artifact = LineaArtifact(
         db=LineaGlobalContext.db,
         execution_id=artifact.execution_id,
         node_id=artifact.node_id,

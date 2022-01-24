@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from IPython.core.interactiveshell import InteractiveShell
-from IPython.display import DisplayHandle, DisplayObject
+from IPython.display import DisplayHandle
 
 
 @dataclass
@@ -28,11 +28,3 @@ class CellsExecutedState:
     # to signal that at the end of this cell we should stop tracing.
     # We don't stop immediately, so we can return the proper value from the cell
     should_stop: bool = field(default=False)
-
-    def create_visualize_display_object(self) -> DisplayObject:
-        """
-        Returns a jupyter display object for the visualization.
-        """
-        from lineapy.visualizer import Visualizer
-
-        return Visualizer.for_public(self.tracer).ipython_display_object()

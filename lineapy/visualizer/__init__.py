@@ -113,14 +113,14 @@ class Visualizer:
         return cls(options)
 
     @classmethod
-    def for_public(cls, tracer: Tracer) -> Visualizer:
+    def for_public(cls, lgcontext=None) -> Visualizer:
         """
         Create a graph for our public API, when showing the whole graph.
         """
         options = VisualGraphOptions(
-            tracer.graph,
+            lgcontext.graph,
             None,
-            None,
+            lgcontext=lgcontext,
             highlight_node=None,
             show_implied_mutations=False,
             show_views=False,
