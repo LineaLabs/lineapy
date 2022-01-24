@@ -11,17 +11,19 @@ from lineapy.db.utils import MEMORY_DB_URL
 from lineapy.editors.states import CellsExecutedState, StartedState
 from lineapy.execution.context import ExecutionContext
 from lineapy.execution.executor import Executor
+from lineapy.global_context import GlobalContext
 from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.utils.utils import get_new_id
 
 
 @dataclass
-class LineaGlobalContext:
+class LineaGlobalContext(GlobalContext):
     db: RelationalLineaDB = field(init=False)
     session_context: SessionContext = field(init=False)
     session_type: InitVar[SessionType]
     session_name: InitVar[Optional[str]] = None
+    globals_: InitVar[Optional[Dict[str, object]]] = None
 
     STATE: Union[None, StartedState, CellsExecutedState] = None
     execution_context: Optional[ExecutionContext] = None
@@ -33,11 +35,15 @@ class LineaGlobalContext:
         self,
         session_type: SessionType,
         session_name: Optional[str],
+        globals_: Optional[Dict[str, object]],
     ):
         if not hasattr(LineaGlobalContext, "db"):
             LineaGlobalContext.db = RelationalLineaDB.from_environment(
                 MEMORY_DB_URL
             )
+        if session_type != SessionType.JUPYTER or not hasattr(
+            LineaGlobalContext, "executor"
+        ):
             LineaGlobalContext.executor = Executor(
                 LineaGlobalContext.db, globals()
             )
@@ -47,17 +53,18 @@ class LineaGlobalContext:
             environment_type=session_type,
             creation_time=datetime.now(),
             working_directory=getcwd(),
-            session_name=session_name,
-            execution_id=self.executor.execution.id,
+            session_name="test",
+            execution_id=LineaGlobalContext.executor.execution.id,
         )
         LineaGlobalContext.db.write_context(LineaGlobalContext.session_context)
 
     @classmethod
     def discard_existing_and_create_new_session(
-        cls, session_type
+        cls, session_type, globals_=None
     ) -> "LineaGlobalContext":
-        return cls(session_type)
+        return cls(session_type, globals_)
 
+    @classmethod
     @property
     def graph(self) -> Graph:
         """
@@ -92,6 +99,7 @@ class LineaGlobalContext:
             if artifact.name is not None
         }
 
+    @classmethod
     def artifact_var_name(self, artifact_name: str) -> str:
         """
         Returns the variable name for the given artifact.
@@ -111,9 +119,11 @@ class LineaGlobalContext:
             return ""
         return artifact_line[: _col_offset - 3]
 
+    @classmethod
     def session_artifacts(self) -> List[ArtifactORM]:
         return self.db.get_artifacts_for_session(self.session_context.id)
 
+    @classmethod
     def slice(self, name: str) -> str:
         artifact = LineaGlobalContext.db.get_artifact_by_name(name)
-        return get_program_slice(self.graph, [artifact.node_id])
+        return get_program_slice(LineaGlobalContext.graph, [artifact.node_id])
