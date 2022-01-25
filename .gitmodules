@@ -1,0 +1,3 @@
+[submodule "tests/integration/numpy/tutorials"]
+	path = tests/integration/numpy/tutorials
+	url = git@github.com:numpy/numpy-tutorials.git

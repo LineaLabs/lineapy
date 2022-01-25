@@ -9,6 +9,12 @@ This repository contains a few different components:
 
 ## First-time Setup
 
+To run our tests, first download the submodules:
+
+```
+git submodule update --init --recursive.
+```
+
 ### Conda
 
 ```bash
