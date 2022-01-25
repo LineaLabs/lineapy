@@ -1,26 +1,26 @@
 # `lineapy`
 
-Lineapy is a Python library for capturing, analyzing, and automating data 
+Lineapy is a Python library for capturing, analyzing, and automating data
 science workflows.
 
-On a high-level, Linea traces the code executed to get an 
-**understanding of the code and its context**. 
-These understanding of your development process allow Linea to 
+On a high-level, Linea traces the code executed to get an
+**understanding of the code and its context**.
+These understanding of your development process allow Linea to
 provide a set of tools that help you get more value out of your work.
 
-A natural unit of organization for these code are variables in the code---both 
-their value and the code used to create them. Our features revolve around these 
+A natural unit of organization for these code are variables in the code---both
+their value and the code used to create them. Our features revolve around these
 units, which we call _artifacts_.
 
 ## Features
 
 We are still early in the process, and we currently support the following features:
 
-- **Code cleanup**: often when working with data, we don't know what efforts 
-will pan out. When we do have something we want to keep, we can save it as an 
-artifact and create a version of the code that only includes the pieces necessary 
-to recreate that artifact. This is called "Program Slicing" in the literature. 
-Linea's slicing feature makes it easy to share and re-execute these work.
+- **Code cleanup**: often when working with data, we don't know what efforts
+  will pan out. When we do have something we want to keep, we can save it as an
+  artifact and create a version of the code that only includes the pieces necessary
+  to recreate that artifact. This is called "Program Slicing" in the literature.
+  Linea's slicing feature makes it easy to share and re-execute these work.
   - This is done automatically by calling the `lineapy.save` API on the variable of interest.
   - `/tests/housing.py` contains an example.
 - **Pipeline extraction**: Automatic creation of [Airflow DAGs](https://github.com/LineaLabs/lineapy/issues/236) (and related systems) from Linea artifacts. Note that we take a radically different approach that tools like Papermill, because we are actually _analyzing the code_ to automatically instrument the optimizations.
@@ -36,20 +36,21 @@ Linea's slicing feature makes it easy to share and re-execute these work.
 
 We are working towards a number of other features and have [created issues to describe some of them in Github, tagged with `User Story`](https://github.com/LineaLabs/lineapy/labels/User%20Story), which include:
 
-- Metadata search e.g. "Find all charts that use this column from this table" 
-[see issues on analyzing data sources](https://github.com/LineaLabs/lineapy/issues/22) 
-and [analyzing SQL](https://github.com/LineaLabs/lineapy/issues/272)).
+- Metadata search e.g. "Find all charts that use this column from this table"
+  [see issues on analyzing data sources](https://github.com/LineaLabs/lineapy/issues/22)
+  and [analyzing SQL](https://github.com/LineaLabs/lineapy/issues/272)).
 - Enhanced execution based versioning.
 - Integration with existing infra, e.g., AWS, Airflow
 - Support execution scale up, e.g., automatically creating the same version of the code with Dask.
 
-If you have any feedback for us, please get in touch! We welcome feedback on 
-Github, either by commenting on existing issues or creating new ones. You can 
+If you have any feedback for us, please get in touch! We welcome feedback on
+Github, either by commenting on existing issues or creating new ones. You can
 also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
 
 ## Installing
 
 You can run `lineapy` through three options:
+
 1. Github CodeSpaces
 2. Docker image
 3. DIY: clone the repository
@@ -58,11 +59,11 @@ We'll describe the options below.
 
 ### Github Codespaces
 
-Click the green "<> Code" button above (in the homepage), and in the "Codespaces" 
+Click the green "<> Code" button above (in the homepage), and in the "Codespaces"
 tab you can click on the gray button "New codespace".
 
-The first time you load it might take a while to download Docker. Once the 
-VS Code interface loads, after a few seconds, the "PORTS" tab on the lower 
+The first time you load it might take a while to download Docker. Once the
+VS Code interface loads, after a few seconds, the "PORTS" tab on the lower
 panel should load (per the image below).
 
 ![Screenshot of VS Code ports on Codespaces](./ports.png)
@@ -98,11 +99,10 @@ $ lineapy --slice "p value" tests/housing.py
 ...
 ```
 
-Note that if you are not using Codespaces and are manually running Airflow and JupyterLab, 
-we also created convenient Makefile configs to start Airflow (`make airflow_start`) on 
+Note that if you are not using Codespaces and are manually running Airflow and JupyterLab,
+we also created convenient Makefile configs to start Airflow (`make airflow_start`) on
 [`localhost:8080`](http://localhost:8080) and JupyterLab (`make jupyterlab_start`)
 on [`localhost:8888`](http://localhost:8888).
-
 
 ## Specific Instructions for Cli and Jupyter
 
@@ -162,17 +162,14 @@ $ lineapy --print-source tests/housing.py --slice 'p value'
 
 You can also run Linea interactively in a notebook or IPython.
 
-The easiest way to do this to tell IPython to load the `lineapy` extension
-by default, by setting the `InteractiveShellApp.extensions` extension to include
-`lineapy`.
+However, to do so the `lineapy` extension needs to be loaded. We have provided wrapper CLI commands to do this transperently, `lineapy ipython` and `lineapy jupyter`. For example you can run `lineapy jupyter lab` to start JupyterLab with
+the required extension auto loading.
 
-If you are developing from this repository, we have created some ipython config files
-which have this enabled. So you can turn on tracing by telling IPython to look
-at those:
+This sets the `InteractiveShellApp.extensions` configuration option to include
+`lineapy` for the kernel.
 
 ```python
-$ env IPYTHONDIR=$PWD/.ipython ipython
-env IPYTHONDIR=$PWD/.ipython ipython
+$ lineapy ipython
 Python 3.9.7 (default, Sep 16 2021, 08:50:36)
 Type 'copyright', 'credits' or 'license' for more information
 IPython 7.29.0 -- An enhanced Interactive Python. Type '?' for help.
@@ -201,7 +198,7 @@ If you have an existing notebook, you can try running it through linea, to see i
 still works, and to save the resulting graph. For example:
 
 ```bash
-env IPYTHONDIR=$PWD/.ipython jupyter nbconvert --to notebook --execute examples/Explorations.ipynb --inplace --allow-errors
+lineapy jupyter nbconvert --to notebook --execute examples/Explorations.ipynb --inplace --allow-errors
 ```
 
 If you would like to change the database that linea talks to, you can use the
@@ -210,8 +207,8 @@ to use an in memory database instead of writing to disk.
 
 ## Known Bugs in Python Language Support
 
-In order to properly slice your code, we have to understand different Python 
-language features and libraries. We are working to add coverage to support all 
-of Python, as well as make our analysis more accurate. We have 
-[a number of open issues to track what things we know we don't support in Python, tagged under `Language Support`](https://github.com/LineaLabs/lineapy/labels/Language%20Support). 
+In order to properly slice your code, we have to understand different Python
+language features and libraries. We are working to add coverage to support all
+of Python, as well as make our analysis more accurate. We have
+[a number of open issues to track what things we know we don't support in Python, tagged under `Language Support`](https://github.com/LineaLabs/lineapy/labels/Language%20Support).
 Feel free to open more if come across code that doesn't run or doesn't properly slice.

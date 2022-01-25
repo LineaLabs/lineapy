@@ -1,6 +1,8 @@
 import logging
 import os
 import pathlib
+import subprocess
+import tempfile
 from typing import List
 
 import click
@@ -26,7 +28,12 @@ We are using click because our package will likely already have a dependency on
 logger = logging.getLogger(__name__)
 
 
-@click.command()
+@click.group()
+def linea_cli():
+    pass
+
+
+@linea_cli.command()
 @click.option("--db-url", default=None, help=OVERRIDE_HELP_TEXT)
 @click.option(
     "--slice",
@@ -73,7 +80,7 @@ logger = logging.getLogger(__name__)
     "file_name",
     type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
 )
-def linea_cli(
+def python(
     file_name: pathlib.Path,
     db_url: str,
     slice: List[str],  # cast tuple into list
@@ -161,6 +168,36 @@ def linea_cli(
 
     console = rich.console.Console()
     console.print(tree)
+
+
+@linea_cli.command(context_settings={"ignore_unknown_options": True})
+@click.argument("jupyter_args", nargs=-1, type=click.UNPROCESSED)
+def jupyter(jupyter_args):
+    setup_ipython_dir()
+    subprocess.run(["jupyter", *jupyter_args])
+
+
+@linea_cli.command(context_settings={"ignore_unknown_options": True})
+@click.argument("ipython_args", nargs=-1, type=click.UNPROCESSED)
+def ipython(ipython_args):
+    setup_ipython_dir()
+    subprocess.run(["ipython", *ipython_args])
+
+
+def setup_ipython_dir() -> None:
+    """
+    Set the ipython directory to include the lineapy extension by default
+    """
+    ipython_dir_name = tempfile.mkdtemp()
+    # Make a default profile with the extension added to the ipython and kernel
+    # configs
+    profile_dir = pathlib.Path(ipython_dir_name) / "profile_default"
+    profile_dir.mkdir()
+    settings = 'c.InteractiveShellApp.extensions = ["lineapy"]'
+    (profile_dir / "ipython_config.py").write_text(settings)
+    (profile_dir / "ipython_kernel_config.py").write_text(settings)
+
+    os.environ["IPYTHONDIR"] = ipython_dir_name
 
 
 if __name__ == "__main__":
