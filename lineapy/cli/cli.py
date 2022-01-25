@@ -16,14 +16,11 @@ import rich.tree
 from nbconvert.preprocessors import ExecutePreprocessor
 
 from lineapy.data.types import SessionType
-from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.apis import LineaArtifact
-from lineapy.instrumentation.tracer import Tracer
 from lineapy.linea_context import LineaGlobalContext
 from lineapy.plugins.airflow import sliced_airflow_dag
-from lineapy.transformer.node_transformer import transform
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
     configure_logging,
@@ -93,10 +90,13 @@ def notebook(
     # Print the slice:
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
-    db = RelationalLineaDB.from_environment()
-    artifact = db.get_artifact_by_name(artifact_name)
+    # db = RelationalLineaDB.from_environment()
+    lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
+        session_type=SessionType.SCRIPT
+    )
+    artifact = lgcontext.db.get_artifact_by_name(artifact_name)
     api_artifact = LineaArtifact(
-        db=db,
+        db=lgcontext.db,
         execution_id=artifact.execution_id,
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
@@ -142,7 +142,7 @@ def file(
     # Redirect all stdout to stderr, so its not printed.
     with redirect_stdout(sys.stderr):
 
-        transform(code, path, lgcontext.tracer)
+        lgcontext.transform(code, path, lgcontext.tracer)
 
     # Print the slice:
     artifact = lgcontext.db.get_artifact_by_name(artifact_name)
@@ -260,7 +260,7 @@ def python(
     os.chdir(file_name.parent)
 
     # tracer = Tracer(db, SessionType.SCRIPT)
-    transform(code, file_name, lgcontext.tracer)
+    lgcontext.transform(code, file_name)
 
     if visualize:
         from lineapy.visualizer import Visualizer

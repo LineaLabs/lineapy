@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Dict, Union
 
 from lineapy.data.types import Node, SessionType
+from lineapy.db.db import RelationalLineaDB
 
 
 class TRACER_EVENTS(Enum):

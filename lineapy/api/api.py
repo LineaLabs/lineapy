@@ -14,7 +14,6 @@ from lineapy.db.relational import SessionContextORM
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
-from lineapy.linea_context import LineaGlobalContext
 from lineapy.plugins import airflow as airflow_plugin
 from lineapy.utils.utils import get_value_type
 
@@ -164,13 +163,11 @@ def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact
     """
-    # execution_context = get_context()
-    # db = execution_context.executor.db
-    artifact = LineaGlobalContext.db.get_artifact_by_name(
-        artifact_name, version
-    )
+    execution_context = get_context()
+    db = execution_context.executor.db
+    artifact = db.get_artifact_by_name(artifact_name, version)
     linea_artifact = LineaArtifact(
-        db=LineaGlobalContext.db,
+        db=db,
         execution_id=artifact.execution_id,
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
@@ -191,8 +188,8 @@ def catalog() -> LineaCatalog:
         An object of the class `LineaCatalog` that allows for printing and exporting artifacts metadata.
     """
 
-    # execution_context = get_context()
-    return LineaCatalog(LineaGlobalContext.db)
+    execution_context = get_context()
+    return LineaCatalog(execution_context.executor.db)
 
 
 def to_airflow(

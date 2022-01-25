@@ -20,10 +20,7 @@ from lineapy.db.utils import (
     resolve_default_db_path,
 )
 from lineapy.execution.executor import Executor
-
-# from lineapy.instrumentation.tracer import Tracer
 from lineapy.linea_context import LineaGlobalContext
-from lineapy.transformer.node_transformer import transform
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -191,12 +188,10 @@ class ExecuteFixture:
             SessionType.SCRIPT
         )
         # tracer = Tracer()
-        transform(code, source_code_path, lgcontext.tracer)
+        lgcontext.transform(code, source_code_path)
 
         if self.visualize:
-            Visualizer.for_test_cli(
-                lgcontext, lgcontext.tracer
-            ).render_pdf_file()
+            Visualizer.for_test_cli(lgcontext).render_pdf_file()
 
         # Verify snapshot of graph
         if snapshot:
@@ -241,7 +236,7 @@ class ExecuteFixture:
             ].success = True
 
         # Verify that execution works again, with a new session
-        new_executor = Executor(LineaGlobalContext.db, globals())
+        new_executor = Executor(lgcontext.db, globals())
         current_working_dir = os.getcwd()
         os.chdir(self.tmp_path)
         new_executor.execute_graph(lgcontext.graph)
