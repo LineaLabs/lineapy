@@ -59,7 +59,7 @@ but I have given them names for readability):
       id='getattr',
       name='getattr'
    )
-   # The literal node represents a literal primitibe python value, like strings, ints,
+   # The literal node represents a literal primitive python value, like strings, ints,
    # floats, etc. In this case it is the string "inf"
    LiteralNode(
       id='inf_str',
@@ -209,10 +209,11 @@ Jupyter / IPython
 We also supporting tracing using IPython (and so by proxy, Jupyter).
 
 This is implemented in the [`ipython.py`](lineapy/ipython.py) file. That file
-provides three main entrypoints:
+provides three main entry points:
 
 #. `start()`: Starts tracing by adding a function to `input_transformers_post <https://ipython.readthedocs.io/en/stable/config/inputtransforms.html#string-based-transformations>`_ which takes in a list of strings of the cell contents, and returns a list of strings which are executed by IPython.
-#. `stop()`: Stops the tracing, removing this function from the `input_transformers_post`. This is not strictly neccesary now that we support querying linea inside of our tracing, so it could be removed and we could remove some of the logic in here.
+#. `stop()`: Stops the tracing, removing this function from the `input_transformers_post`.
+This is not strictly necessary now that we support querying linea inside of our tracing, so it could be removed and we could remove some of the logic in here.
 #. `visualize()`: output a visual of the current state of the graph.
 
 In our input transformer, we save the code from the cell in a global
@@ -232,7 +233,7 @@ for handling exceptions in Jupyter. Instead, we set override the
 2. Parsing the AST
 ~~~~~~~~~~~~~~~~~~
 
-Once we have initialized lineapy with ther user's code, we traverse that through the
+Once we have initialized lineapy with the user's code, we traverse that through the
 python AST using a visitor defined in [`node_transformer.py`](lineapy/transformer/node_transformer.py).
 
 As we traverse the AST, we create nodes for each piece of it.
@@ -261,9 +262,9 @@ for keeping a mapping of each node and its value after being executed.
 
 It returns a number of "side effects" which say things like "Node xxx was modified"
 that the tracer can then handle. These are created based on the `inspect_function`'s
-side effects that are decribed below.
+side effects that are described below.
 
-5. Determing function side effects
+5. Determine function side effects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When we try to execute a `CallNode`, we need to know things like "does this
@@ -301,7 +302,7 @@ Re-execution (steps 4-5)
 
 We can re-execute a graph to re-run the Python function calls that were saved in it.
 
-We keep the executor seperate from the tracer, in order to facilitate this, so that
+We keep the executor separate from the tracer, in order to facilitate this, so that
 we only need the `Executor` for re-execution, using the `execute_graph` method,
 which simply iterates through a number of nodes and executes each of them.
 
@@ -330,7 +331,7 @@ and teaching purposes. This is implemented in the
 
 #. :class:`lineapy.visualizer`: Provides a `Visualizer` object which is the publicly exposed
    interface for visualizing a graph. In supports creating it for a number of
-   different scenarious, each with their own configurations set. For example,
+   different scenarios, each with their own configurations set. For example,
    we want to show more detail in our testing than in our public API.
    The visualizer also optionally supports taking a `Tracer` object, along
    with the required `Graph` object, to show more details that are present
@@ -345,7 +346,7 @@ and teaching purposes. This is implemented in the
 #. :meth:`lineapy.visualizer.visual_graph.to_visual_graph`: This takes in the Graph and (optional) Tracer and returns
    a list of nodes and edges in a form that is closer to how Graphviz works.
    The goal of having this extra abstraction layer, as opposed to just emitting
-   graphviz directly, is ensure a logically consistant rendering. It is similar
+   graphviz directly, is ensure a logically consistent rendering. It is similar
    to the MVC paradigm, or like React's components. This would be equivalent
    to the props, where as the graphviz file is equivalent to taking those
    props and then rendering them.
@@ -353,7 +354,7 @@ and teaching purposes. This is implemented in the
 Whenever a new node type is added, or any is modified, the graphviz and visual_graph
 files should be updated to handle it.
 
-Outputing to airflow
+Outputting to airflow
 ~~~~~~~~~~~~~~~~~~~~
 
 On top of just slicing the code, we also support creating an Airflow DAG out
@@ -378,7 +379,7 @@ Cross cutting concerns
 Code Analysis (steps 3-5)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There are also a number of code analysis pieces that span the tracer-executor-inpsect function,
+There are also a number of code analysis pieces that span the tracer-executor-inspect function,
 which we describe here.
 
 Python Globals
@@ -399,7 +400,7 @@ The only exception to this is when dealing with execs and black boxes, which we
 touch on below.
 
 Note: This is currently a problem for expressions like `a = b` which are entirely
-erased. This is fine for re-execution, but for slicing, this line is then ommitted
+erased. This is fine for re-execution, but for slicing, this line is then omitted
 in the slice. We might want to re-consider this choice and instead have some
 way to persist the variables in the graph, possibly with some form of Assign
 and Load nodes.
@@ -436,7 +437,7 @@ Once we start with these two concepts a few things fall out:
 
 #. We need to know during each function call what nodes are directly mutated.
 #. We need a way in the graph to have any later references to a node that was
-   mutated implictly also depend on the call node that mutated it, so that this
+   mutated implicitly also depend on the call node that mutated it, so that this
    will be included in the slice.
 #. We need to know during each call what views were added.
 #. We need to know when a node is mutated, what other nodes are views of it.
@@ -476,10 +477,10 @@ wrote to and which it read from, in order to add it properly to the graph.
 
 The life of a black box node goes through a number of stages:
 
-#. In the `node_transformer` when we see the AST statments that correspond
+#. In the `node_transformer` when we see the AST statements that correspond
    to things like for loops, we tell the `Tracer` to add a a literal
    node for the string, and then a `CallNode` which execs the string.
-   We differentiate between execing a "statement" versus an "expression",
+   We differentiate between exec-ing a "statement" versus an "expression",
    since an expression will return some value, while a statement does not.
 #. The functions we use to do the `exec` are defined in :mod:`lineapy.lineabuiltins`, :func:`lineapy.lineabuiltins.l_exec_statement` and :func:`lineapy.lineabuiltins.l_exec_expr`. Along with
    actually calling `exec`, they set up the source code context, so that
@@ -507,7 +508,7 @@ The life of a black box node goes through a number of stages:
    the value that was set in the globals when executing that node.
 
 One subtle case to consider is that globals are not only read and wrote during
-the execution of our exec nodes, but also potentially during exeuction of functions
+the execution of our exec nodes, but also potentially during execution of functions
 that were defined in them, or any other function that modifies or sets a global.
 
 For example:
@@ -544,9 +545,9 @@ but also what part of it we depend on like "we depend on the return value of nod
 "we depend on the global x set by node XXX" or "we depend on the mutated value of node YYY set by
 calling XXX."
 
-For now though, we do have this assymetry, where the global inputs show up
+For now though, we do have this asymmetry, where the global inputs show up
 as the `global_reads` property on the `CallNode` and the global outputs show up
-as seperate `GlobalNode`s.
+as separate `GlobalNode`s.
 
 External side effects
 +++++++++++++++++++++

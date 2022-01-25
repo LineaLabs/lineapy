@@ -1,6 +1,5 @@
 """
-User exposed APIs.
-Should keep it very clean.
+User exposed objects through the :ref:`lineapy.apis`.
 """
 from __future__ import annotations
 

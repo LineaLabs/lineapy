@@ -37,8 +37,8 @@
   annotations:
   - criteria:
      function_names:
-      - upload_file
-      - upload_fileobj
+     - upload_file
+     - upload_fileobj
     side_effects:
     - mutated_value:
         external_state: file_system
