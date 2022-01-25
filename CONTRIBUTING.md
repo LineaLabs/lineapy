@@ -20,7 +20,7 @@ pip install -e .
 (We support python 3.8+ for now and you can initialize a conda environment with python 3.8 as well if you desire)
 
 We also support using [`pre-commit`](https://github.com/pre-commit/pre-commit)
-to run linting before commiting:
+to run linting before committing:
 
 ```bash
 # Installs pre commit hook to run linting before commit:

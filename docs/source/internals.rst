@@ -484,7 +484,7 @@ The life of a black box node goes through a number of stages:
    since an expression will return some value, while a statement does not.
 #. The functions we use to do the `exec` are defined in :mod:`lineapy.lineabuiltins`, :func:`lineapy.lineabuiltins.l_exec_statement` and :func:`lineapy.lineabuiltins.l_exec_expr`. Along with
    actually calling `exec`, they set up the source code context, so that
-   exceptions raised in code that is `exec`ed has the proper trace-back
+   exceptions raised in code that is `exec`ed has the proper traceback
    and also make sure to use it uses the correct globals.
 #. Before this call node is executed, we set the :class:`lineapy.execution.context.ExecutionContext`, which is a global storing the current node and executor being called.
    This allows us to use the current binding of the global variables in the `l_exec_expr`
