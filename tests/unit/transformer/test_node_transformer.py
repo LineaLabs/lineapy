@@ -9,7 +9,7 @@ import asttokens
 import pytest
 from mock import MagicMock, patch
 
-from lineapy.transformer.node_transformer import NodeTransformer, transform
+from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.transformer.source_giver import SourceGiver
 
 
@@ -20,21 +20,6 @@ def _get_ast_node(code):
         SourceGiver().transform(node)
 
     return node
-
-
-@patch(
-    "lineapy.transformer.node_transformer.NodeTransformer",
-)
-def test_transform_fn(nt_mock: MagicMock):
-    """
-    Test that the transform function calls the NodeTransformer
-    """
-    mocked_tracer = MagicMock()
-    source_location = MagicMock()
-    transform("x = 1", source_location, mocked_tracer)
-    nt_mock.assert_called_once_with("x = 1", source_location, mocked_tracer)
-    mocked_tracer.db.commit.assert_called_once()
-    # TODO - test that source giver is called only for 3.7 and below
 
 
 class TestNodeTransformer:
@@ -118,7 +103,9 @@ class TestNodeTransformer:
 
     @pytest.fixture(autouse=True)
     def before_everything(self):
-        nt = NodeTransformer(
+        nt = NodeTransformer()
+        nt._context_manager = MagicMock()
+        nt.set_context(
             "", MagicMock(), MagicMock()  # SourceCodeLocation(0, 0, 0, 0)
         )
         assert nt is not None

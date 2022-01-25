@@ -95,7 +95,7 @@ class Visualizer:
         return cls(options)
 
     @classmethod
-    def for_test_cli(cls, lgcontext, tracer: Tracer) -> Visualizer:
+    def for_test_cli(cls, lgcontext) -> Visualizer:
         """
         Create a graph to use when visualizing after passing in `--visualize`
         during testing.

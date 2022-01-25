@@ -3,16 +3,14 @@ from typing import Optional
 
 from lineapy.global_context import GlobalContext
 
-# from lineapy.linea_context import LineaGlobalContext
-
 
 @dataclass
 class BaseOperator:
     _context_manager: Optional[GlobalContext] = field(init=False)
 
-    def __post_init__(self, c_manager: GlobalContext = None):
-        # this is dumb but trying out for now
-        self._context_manager = c_manager  # LineaGlobalContext()
+    # def __post_init__(self, c_manager: GlobalContext = None):
+    #     # this is dumb but trying out for now
+    #     self._context_manager = c_manager  # LineaGlobalContext()
 
     @property
     def context_manager(self) -> Optional[GlobalContext]:

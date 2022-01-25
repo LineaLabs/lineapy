@@ -4,22 +4,19 @@ adding to input_transformers_post.
 """
 from __future__ import annotations
 
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import display
 
 from lineapy.data.types import JupyterCell, SessionType
-from lineapy.db.db import RelationalLineaDB
 from lineapy.editors.ipython_cell_storage import cleanup_cells, get_cell_path
 from lineapy.editors.states import CellsExecutedState, StartedState
 from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.global_context import IPYTHON_EVENTS
-from lineapy.instrumentation.tracer import Tracer
 from lineapy.linea_context import LineaGlobalContext
-from lineapy.transformer.node_transformer import transform
 from lineapy.utils.logging_config import configure_logging
 
 __all__ = ["_end_cell", "start", "stop", "visualize"]
@@ -128,18 +125,18 @@ def _end_cell() -> object:
     execution_count: int = get_ipython().execution_count  # type: ignore
     location = JupyterCell(
         execution_count=execution_count,
-        session_id=LineaGlobalContext.session_context.id,
+        session_id=STATE.session_context.id,
     )
     # TODO: type issues here
     code = STATE.IPYSTATE.code  # type: ignore
     # Write the code text to a file for error reporting
     get_cell_path(location).write_text(code)
 
-    last_node = transform(code, location, STATE.tracer)
-    # if STATE.visualize_display_handle:
-    #     STATE.visualize_display_handle.update(
-    #         STATE.create_visualize_display_object()
-    #     )
+    last_node = STATE.transform(code, location)
+    if STATE.IPYSTATE.visualize_display_handle:
+        STATE.IPYSTATE.visualize_display_handle.update(
+            STATE.create_visualize_display_object()
+        )
 
     # Return the last value so it will be printed, if we don't end
     # in a semicolon

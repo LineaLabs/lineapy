@@ -11,12 +11,10 @@ import rich.syntax
 import rich.tree
 
 from lineapy.data.types import SessionType
-from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.linea_context import LineaGlobalContext
 from lineapy.plugins.airflow import sliced_airflow_dag
-from lineapy.transformer.node_transformer import transform
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
@@ -116,7 +114,7 @@ def python(
     os.chdir(file_name.parent)
 
     # tracer = Tracer(db, SessionType.SCRIPT)
-    transform(code, file_name, lgcontext.tracer)
+    lgcontext.transform(code, file_name)
 
     if visualize:
         from lineapy.visualizer import Visualizer

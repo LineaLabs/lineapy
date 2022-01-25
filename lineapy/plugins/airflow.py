@@ -87,7 +87,7 @@ def sliced_airflow_dag(
     return to_airflow(
         artifacts_code,
         func_name,
-        Path(LineaGlobalContext.session_context.working_directory),
+        Path(lgcontext.session_context.working_directory),
         airflow_task_dependencies,
     )
 
