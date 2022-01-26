@@ -37,7 +37,6 @@ def numpy_tutorial_virtualenv():
                 "python",
                 "-m",
                 "venv",
-                "--upgrade-deps",
                 TUTORIALS_VIRTUALENV_DIR,
             ],
             check=True,
