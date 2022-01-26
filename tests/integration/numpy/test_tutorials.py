@@ -1,4 +1,7 @@
+import os
 import pathlib
+import subprocess
+from re import sub
 
 import pytest
 
@@ -9,28 +12,60 @@ LINEAPY_DIR = (pathlib.Path(lineapy.__file__) / "../..").resolve()
 TUTORIALS = (pathlib.Path(__file__) / "../tutorials").resolve()
 TUTORIAL_REQUIREMENTS = TUTORIALS / "requirements.txt"
 
+TUTORIALS_VIRTUALENV_DIR = (
+    pathlib.Path(__file__) / "../tutorial_venv"
+).resolve()
 
-@pytest.fixture(scope="function")
-def numpy_tutorial_virtualenv(virtualenv):
 
-    virtualenv.run(
-        # Need nbconvert and ipyknerel for executing notebooks
-        f"pip install -r {TUTORIAL_REQUIREMENTS} -e {LINEAPY_DIR} nbconvert ipykernel",
-        capture=False,
-    )
-    return virtualenv
+@pytest.fixture(scope="session", autouse=True)
+def numpy_tutorial_virtualenv():
+    """
+    Create a virtualenv directory for the numpy tutorial, if it doesn't exist, and prepend it to the path.
+    """
+    old_path = os.environ["PATH"]
+    os.environ["PATH"] += os.pathsep + str(TUTORIALS_VIRTUALENV_DIR / "bin")
+
+    if not TUTORIALS_VIRTUALENV_DIR.exists():
+        subprocess.run(
+            ["python", "-m", "venv", TUTORIALS_VIRTUALENV_DIR], check=True
+        )
+        subprocess.run(
+            [
+                "pip",
+                "install",
+                "-r",
+                TUTORIAL_REQUIREMENTS,
+                "-e",
+                LINEAPY_DIR,
+                # Need nbconvert and ipyknerel for executing notebooks
+                "nbconvert",
+                "ipykernel",
+            ],
+            check=True,
+        )
+    yield
+    os.environ["PATH"] = old_path
 
 
 class TestApplications:
-    def test_moores_law(self, numpy_tutorial_virtualenv):
-        numpy_tutorial_virtualenv.run(
-            f"jupytext --execute {TUTORIALS/ 'content/mooreslaw-tutorial.md'}",
-            capture=False,
+    def test_moores_law(self):
+        subprocess.run(
+            [
+                "jupytext",
+                "--execute",
+                TUTORIALS / "content/mooreslaw-tutorial.md",
+            ],
+            check=True,
         )
 
     @pytest.mark.xfail
     def test_moores_law_lineapy(self, numpy_tutorial_virtualenv):
-        numpy_tutorial_virtualenv.run(
-            f"lineapy jupytext --execute {TUTORIALS/ 'content/mooreslaw-tutorial.md'}",
-            capture=False,
+        subprocess.run(
+            [
+                "lineapy",
+                "jupytext",
+                "--execute",
+                TUTORIALS / "content/mooreslaw-tutorial.md",
+            ],
+            check=True,
         )
