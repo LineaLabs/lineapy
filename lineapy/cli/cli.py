@@ -4,17 +4,21 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+from io import TextIOWrapper
 from typing import List
 
 import click
+import nbformat
 import rich
 import rich.syntax
 import rich.tree
+from nbconvert.preprocessors import ExecutePreprocessor
 
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
+from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import sliced_airflow_dag
 from lineapy.transformer.node_transformer import transform
@@ -32,6 +36,51 @@ logger = logging.getLogger(__name__)
 @click.group()
 def linea_cli():
     pass
+
+
+@linea_cli.command()
+@click.argument("file", type=click.File())
+@click.argument("artifact_name", type=str)
+@click.argument("artifact_value", type=str)
+def notebook(file: TextIOWrapper, artifact_name: str, artifact_value: str):
+    """
+    Executes the notebook, save an artifact, and prints a value.
+
+    For example, if your notebooks as dataframe with value `df`, then this will print the slice for it:
+
+        lineapy notebook my_notebook.ipynb my_df df
+
+    You can also reference side effect values, like `file_system`
+
+        lineapy notebook my_notebook.ipynb notebook_file_system lineapy.file_system
+    """
+    # Create the notebook:
+    notebook = nbformat.read(file, nbformat.NO_CONVERT)
+    notebook["cells"].append(
+        nbformat.v4.new_code_cell(
+            "import lineapy\n"
+            f"lineapy.save({artifact_value}, {repr(artifact_name)})"
+        )
+    )
+
+    # Run the notebook:
+    setup_ipython_dir()
+    exec_proc = ExecutePreprocessor(timeout=None)
+    exec_proc.preprocess(notebook)
+
+    # Print the slice:
+    # TODO: duplicated with `get` but no context set, should rewrite eventually
+    # to not duplicate
+    db = RelationalLineaDB.from_environment(None)
+    artifact = db.get_artifact_by_name(artifact_name)
+    api_artifact = LineaArtifact(
+        db=db,
+        execution_id=artifact.execution_id,
+        node_id=artifact.node_id,
+        session_id=artifact.node.session_id,
+        name=artifact_name,
+    )
+    print(api_artifact.code)
 
 
 @linea_cli.command()

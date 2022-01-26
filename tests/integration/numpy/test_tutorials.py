@@ -1,7 +1,9 @@
+import ast
 import os
 import pathlib
 import subprocess
 
+import astor
 import pytest
 
 import lineapy
@@ -74,12 +76,42 @@ class TestApplications:
         )
 
     def test_moores_law_lineapy(self):
-        subprocess.run(
+
+        os.chdir(TUTORIALS / "content")
+        notebook = subprocess.run(
             [
-                "lineapy",
                 "jupytext",
-                "--execute",
-                TUTORIALS / "content/mooreslaw-tutorial.md",
+                "mooreslaw-tutorial.md",
+                "--to",
+                "ipynb",
+                "--out",
+                "-",
             ],
             check=True,
-        )
+            capture_output=True,
+        ).stdout
+
+        sliced_code = subprocess.run(
+            [
+                "lineapy",
+                "notebook",
+                "-",
+                "mooreslaw_fs",
+                "lineapy.file_system",
+            ],
+            check=True,
+            capture_output=True,
+            input=notebook,
+        ).stdout
+
+        desired_slice = (
+            (pathlib.Path(__file__) / "../mooreslaw_fs.py").resolve()
+        ).read_text()
+        # Compare code by transforming both to AST, and back to source,
+        # to remove comments
+        assert normalize_source(sliced_code) == normalize_source(desired_slice)
+
+
+def normalize_source(code: str) -> str:
+    a = ast.parse(code)
+    return astor.to_source(a)
