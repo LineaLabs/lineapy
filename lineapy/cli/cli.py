@@ -184,6 +184,13 @@ def ipython(ipython_args):
     subprocess.run(["ipython", *ipython_args])
 
 
+@linea_cli.command(context_settings={"ignore_unknown_options": True})
+@click.argument("jupytext_args", nargs=-1, type=click.UNPROCESSED)
+def jupytext(jupytext_args):
+    setup_jupytext_dir()
+    subprocess.run(["jupytext", *jupytext_args])
+
+
 def setup_ipython_dir() -> None:
     """
     Set the ipython directory to include the lineapy extension by default

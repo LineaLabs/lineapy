@@ -70,6 +70,7 @@ setup(
         "scour==0.38.2",
         "pyyaml",
         "asttokens",
+        "isort",
     ],
     extras_require={
         "dev": [
