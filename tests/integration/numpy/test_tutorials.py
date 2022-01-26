@@ -16,7 +16,7 @@ TUTORIALS_VIRTUALENV_DIR = (
 ).resolve()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(autouse=True)
 def numpy_tutorial_virtualenv():
     """
     Create a virtualenv directory for the numpy tutorial, if it doesn't exist, and prepend it to the path.
@@ -60,7 +60,10 @@ def numpy_tutorial_virtualenv():
 
 
 class TestApplications:
+    @pytest.mark.skip
     def test_moores_law(self):
+        # This tests makes sure we can run the notebook without linea
+        # We can skip it usuallyt to save time.
         subprocess.run(
             [
                 "jupytext",
