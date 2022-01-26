@@ -70,8 +70,7 @@ class TestApplications:
             check=True,
         )
 
-    @pytest.mark.xfail
-    def test_moores_law_lineapy(self, numpy_tutorial_virtualenv):
+    def test_moores_law_lineapy(self):
         subprocess.run(
             [
                 "lineapy",

@@ -179,6 +179,7 @@ def check_function_against_annotation(
         if (
             base_module is not None
             and function.__name__ == criteria.class_method_name
+            and hasattr(try_import(base_module), criteria.base_class)
             and (
                 isinstance(
                     function.__self__,  # type: ignore
@@ -331,7 +332,9 @@ class FunctionInspector:
                     return fun.__module__.split(".")[0]
                 return None
 
-            if function.__module__ in self.specs:
+            # numpy ufunc objects dont have modules
+            module = getattr(function, "__module__", None)
+            if module in self.specs:
                 yield from _check_annotation(
                     function,
                     args,
