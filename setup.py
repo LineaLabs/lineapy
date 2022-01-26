@@ -104,6 +104,7 @@ setup(
             "pg",
             "psycopg2",
             "pytest-xdist",
+            "sphinx-autobuild",
         ]
     },
     include_package_data=True,
