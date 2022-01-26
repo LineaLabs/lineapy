@@ -2,6 +2,7 @@ import logging
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
 from typing import List
 
@@ -174,21 +175,24 @@ def python(
 @click.argument("jupyter_args", nargs=-1, type=click.UNPROCESSED)
 def jupyter(jupyter_args):
     setup_ipython_dir()
-    subprocess.run(["jupyter", *jupyter_args])
+    res = subprocess.run(["jupyter", *jupyter_args])
+    sys.exit(res.returncode)
 
 
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("ipython_args", nargs=-1, type=click.UNPROCESSED)
 def ipython(ipython_args):
     setup_ipython_dir()
-    subprocess.run(["ipython", *ipython_args])
+    res = subprocess.run(["ipython", *ipython_args])
+    sys.exit(res.returncode)
 
 
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("jupytext_args", nargs=-1, type=click.UNPROCESSED)
 def jupytext(jupytext_args):
     setup_ipython_dir()
-    subprocess.run(["jupytext", *jupytext_args])
+    res = subprocess.run(["jupytext", *jupytext_args])
+    sys.exit(res.returncode)
 
 
 def setup_ipython_dir() -> None:
