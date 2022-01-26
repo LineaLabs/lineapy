@@ -50,7 +50,7 @@
 #
 # imported with the following commands
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import statsmodels.api as sm
 
@@ -120,12 +120,12 @@ Moores_law = lambda year: np.exp(B_M) * np.exp(A_M * year)
 
 ML_1971 = Moores_law(1971)
 ML_1973 = Moores_law(1973)
-print(
-    "In 1973, G. Moore expects {:.0f} transistors on Intels chips".format(
-        ML_1973
-    )
-)
-print("This is x{:.2f} more transistors than 1971".format(ML_1973 / ML_1971))
+# print(
+#     "In 1973, G. Moore expects {:.0f} transistors on Intels chips".format(
+#         ML_1973
+#     )
+# )
+# print("This is x{:.2f} more transistors than 1971".format(ML_1973 / ML_1971))
 
 # ## Loading historical manufacturing data to your workspace
 #
@@ -176,8 +176,8 @@ data = np.loadtxt(
 year = data[:, 1]  # grab the second column and assign
 transistor_count = data[:, 0]  # grab the first column and assign
 
-print("year:\t\t", year[:10])
-print("trans. cnt:\t", transistor_count[:10])
+# print("year:\t\t", year[:10])
+# print("trans. cnt:\t", transistor_count[:10])
 # -
 
 # You are creating a function that predicts the transistor count given a
@@ -230,7 +230,7 @@ model = sm.OLS(yi, Z)
 # [`summary`](https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.RegressionResults.summary.html) to view results as such,
 
 results = model.fit()
-print(results.summary())
+# print(results.summary())
 
 # The __OLS Regression Results__ summary gives a lot of information about
 # the regressors, $\mathbf{Z},$ and observations, $\mathbf{y}.$ The most
@@ -270,12 +270,12 @@ B = AB[1]
 #
 # $\Delta (xFactor) = \frac{\partial}{\partial A}(e^{2A})\Delta A = 2Ae^{2A}\Delta A$
 
-print("Rate of semiconductors added on a chip every 2 years:")
-print(
-    "\tx{:.2f} +/- {:.2f} semiconductors per chip".format(
-        np.exp((A) * 2), 2 * A * np.exp(2 * A) * 0.006
-    )
-)
+# print("Rate of semiconductors added on a chip every 2 years:")
+# print(
+#     "\tx{:.2f} +/- {:.2f} semiconductors per chip".format(
+#         np.exp((A) * 2), 2 * A * np.exp(2 * A) * 0.006
+#     )
+# )
 
 # Based upon your least-squares regression model, the number of
 # semiconductors per chip increased by a factor of $1.98\pm 0.01$ every two
@@ -312,20 +312,20 @@ print(
 # +
 transistor_count_predicted = np.exp(B) * np.exp(A * year)
 transistor_Moores_law = Moores_law(year)
-plt.style.use("fivethirtyeight")
-plt.semilogy(year, transistor_count, "s", label="MOS transistor count")
-plt.semilogy(year, transistor_count_predicted, label="linear regression")
+# plt.style.use("fivethirtyeight")
+# plt.semilogy(year, transistor_count, "s", label="MOS transistor count")
+# plt.semilogy(year, transistor_count_predicted, label="linear regression")
 
 
-plt.plot(year, transistor_Moores_law, label="Moore's Law")
-plt.title(
-    "MOS transistor count per microprocessor\n"
-    + "every two years \n"
-    + "Transistor count was x{:.2f} higher".format(np.exp(A * 2))
-)
-plt.xlabel("year introduced")
-plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
-plt.ylabel("# of transistors\nper microprocessor")
+# plt.plot(year, transistor_Moores_law, label="Moore's Law")
+# plt.title(
+#     "MOS transistor count per microprocessor\n"
+#     + "every two years \n"
+#     + "Transistor count was x{:.2f} higher".format(np.exp(A * 2))
+# )
+# plt.xlabel("year introduced")
+# plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+# plt.ylabel("# of transistors\nper microprocessor")
 # -
 
 # _A scatter plot of MOS transistor count per microprocessor every two years with a red line for the ordinary least squares prediction and an orange line for Moore's law._
@@ -361,29 +361,29 @@ plt.ylabel("# of transistors\nper microprocessor")
 # for $\pm\frac{1}{2}~years.
 
 # +
-transistor_count2017 = transistor_count[year == 2017]
-print(
-    transistor_count2017.max(),
-    transistor_count2017.min(),
-    transistor_count2017.mean(),
-)
+# transistor_count2017 = transistor_count[year == 2017]
+# print(
+#     transistor_count2017.max(),
+#     transistor_count2017.min(),
+#     transistor_count2017.mean(),
+# )
 y = np.linspace(2016.5, 2017.5)
-your_model2017 = np.exp(B) * np.exp(A * y)
+# your_model2017 = np.exp(B) * np.exp(A * y)
 Moore_Model2017 = Moores_law(y)
 
-plt.plot(
-    2017 * np.ones(np.sum(year == 2017)),
-    transistor_count2017,
-    "ro",
-    label="2017",
-    alpha=0.2,
-)
-plt.plot(2017, transistor_count2017.mean(), "g+", markersize=20, mew=6)
+# plt.plot(
+#     2017 * np.ones(np.sum(year == 2017)),
+#     transistor_count2017,
+#     "ro",
+#     label="2017",
+#     alpha=0.2,
+# )
+# plt.plot(2017, transistor_count2017.mean(), "g+", markersize=20, mew=6)
 
-plt.plot(y, your_model2017, label="Your prediction")
-plt.plot(y, Moore_Model2017, label="Moores law")
-plt.ylabel("# of transistors\nper microprocessor")
-plt.legend()
+# plt.plot(y, your_model2017, label="Your prediction")
+# plt.plot(y, Moore_Model2017, label="Moores law")
+# plt.ylabel("# of transistors\nper microprocessor")
+# plt.legend()
 # -
 
 # The result is that your model is close to the mean, but Gordon
@@ -427,7 +427,7 @@ notes += (
     )
 )
 notes += "regression_csts: linear regression constants A and B for log(transistor_count)=A*year+B"
-print(notes)
+# print(notes)
 
 np.savez(
     "mooreslaw_regression.npz",
@@ -439,9 +439,9 @@ np.savez(
     regression_csts=AB,
 )
 
-results = np.load("mooreslaw_regression.npz")
+# results = np.load("mooreslaw_regression.npz")
 
-print(results["regression_csts"][1])
+# print(results["regression_csts"][1])
 
 # ! ls
 
@@ -478,7 +478,7 @@ head += (
     )
 )
 head += "year:, transistor_count:, transistor_count_predicted:, transistor_Moores_law:"
-print(head)
+# print(head)
 
 # Build a single 2D array to export to csv. Tabular data is inherently two
 # dimensional. You need to organize your data to fit this 2D structure.

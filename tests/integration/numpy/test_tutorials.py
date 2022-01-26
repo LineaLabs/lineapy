@@ -76,7 +76,6 @@ class TestApplications:
         )
 
     def test_moores_law_lineapy(self):
-
         os.chdir(TUTORIALS / "content")
         notebook = subprocess.run(
             [
