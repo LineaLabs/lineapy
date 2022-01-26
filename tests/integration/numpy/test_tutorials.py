@@ -102,13 +102,14 @@ class TestApplications:
             capture_output=True,
             input=notebook,
         ).stdout
-
-        desired_slice = (
-            (pathlib.Path(__file__) / "../mooreslaw_fs.py").resolve()
-        ).read_text()
+        sliced_path = (pathlib.Path(__file__) / "../mooreslaw_fs.py").resolve()
+        desired_slice = (sliced_path).read_text()
         # Compare code by transforming both to AST, and back to source,
         # to remove comments
         assert normalize_source(sliced_code) == normalize_source(desired_slice)
+
+        # Verify running normalized version works
+        subprocess.run(["python", sliced_path], check=True)
 
 
 def normalize_source(code: str) -> str:
