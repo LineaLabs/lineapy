@@ -23,11 +23,23 @@ def numpy_tutorial_virtualenv():
     Create a virtualenv directory for the numpy tutorial, if it doesn't exist, and prepend it to the path.
     """
     old_path = os.environ["PATH"]
-    os.environ["PATH"] += os.pathsep + str(TUTORIALS_VIRTUALENV_DIR / "bin")
+    os.environ["PATH"] = (
+        str(TUTORIALS_VIRTUALENV_DIR / "bin") + os.pathsep + old_path
+    )
+    # Remove ipythondir set for all tests, so that they are not run with linea by default
+    old_ipython_dir = os.environ["IPYTHONDIR"]
+    del os.environ["IPYTHONDIR"]
 
     if not TUTORIALS_VIRTUALENV_DIR.exists():
         subprocess.run(
-            ["python", "-m", "venv", TUTORIALS_VIRTUALENV_DIR], check=True
+            [
+                "python",
+                "-m",
+                "venv",
+                "--upgrade-deps",
+                TUTORIALS_VIRTUALENV_DIR,
+            ],
+            check=True,
         )
         subprocess.run(
             [
@@ -45,6 +57,7 @@ def numpy_tutorial_virtualenv():
         )
     yield
     os.environ["PATH"] = old_path
+    os.environ["IPYTHONDIR"] = old_ipython_dir
 
 
 class TestApplications:
