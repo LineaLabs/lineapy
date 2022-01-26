@@ -187,7 +187,7 @@ def ipython(ipython_args):
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("jupytext_args", nargs=-1, type=click.UNPROCESSED)
 def jupytext(jupytext_args):
-    setup_jupytext_dir()
+    setup_ipython_dir()
     subprocess.run(["jupytext", *jupytext_args])
 
 
