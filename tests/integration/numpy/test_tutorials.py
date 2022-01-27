@@ -22,6 +22,9 @@ TUTORIALS_VIRTUALENV_DIR = (
 def numpy_tutorial_virtualenv():
     """
     Create a virtualenv directory for the numpy tutorial, if it doesn't exist, and prepend it to the path.
+
+    We create a custom fixture instead of using the `virtualenv` fixturte so we can cache
+    the virtualenv at a relative path, to not remake it every time.
     """
     old_path = os.environ["PATH"]
     os.environ["PATH"] = (
@@ -60,55 +63,59 @@ def numpy_tutorial_virtualenv():
     os.environ["IPYTHONDIR"] = old_ipython_dir
 
 
-class TestApplications:
-    @pytest.mark.skip
-    def test_moores_law(self):
-        # This tests makes sure we can run the notebook without linea
-        # We can skip it usuallyt to save time.
-        subprocess.run(
-            [
-                "jupytext",
-                "--execute",
-                TUTORIALS / "content/mooreslaw-tutorial.md",
-            ],
-            check=True,
-        )
+@pytest.mark.parametrize(
+    "source_file,slice,sliced_file",
+    [
+        pytest.param(
+            "mooreslaw-tutorial.md",
+            "lineapy.file_system",
+            "mooreslaw_fs.py",
+            id="mooreslaw",
+        ),
+        pytest.param(
+            "tutorial-deep-learning-on-mnist.md",
+            "(weights_1, weights_2)",
+            "mnist_weights.py",
+            id="mnist",
+            marks=pytest.mark.skip(reason="for loop, conditional"),
+        ),
+    ],
+)
+def test_tutorials(source_file, slice, sliced_file):
+    os.chdir(TUTORIALS / "content")
+    notebook = subprocess.run(
+        [
+            "jupytext",
+            source_file,
+            "--to",
+            "ipynb",
+            "--out",
+            "-",
+        ],
+        check=True,
+        capture_output=True,
+    ).stdout
 
-    def test_moores_law_lineapy(self):
-        os.chdir(TUTORIALS / "content")
-        notebook = subprocess.run(
-            [
-                "jupytext",
-                "mooreslaw-tutorial.md",
-                "--to",
-                "ipynb",
-                "--out",
-                "-",
-            ],
-            check=True,
-            capture_output=True,
-        ).stdout
+    sliced_code = subprocess.run(
+        [
+            "lineapy",
+            "notebook",
+            "-",
+            "{source_file}:{slice}",
+            slice,
+        ],
+        check=True,
+        capture_output=True,
+        input=notebook,
+    ).stdout.decode()
+    sliced_path = (pathlib.Path(__file__) / ".." / sliced_file).resolve()
+    desired_slice = (sliced_path).read_text()
+    # Compare code by transforming both to AST, and back to source,
+    # to remove comments
+    assert normalize_source(sliced_code) == normalize_source(desired_slice)
 
-        sliced_code = subprocess.run(
-            [
-                "lineapy",
-                "notebook",
-                "-",
-                "mooreslaw_fs",
-                "lineapy.file_system",
-            ],
-            check=True,
-            capture_output=True,
-            input=notebook,
-        ).stdout.decode()
-        sliced_path = (pathlib.Path(__file__) / "../mooreslaw_fs.py").resolve()
-        desired_slice = (sliced_path).read_text()
-        # Compare code by transforming both to AST, and back to source,
-        # to remove comments
-        assert normalize_source(sliced_code) == normalize_source(desired_slice)
-
-        # Verify running normalized version works
-        subprocess.run(["python", sliced_path], check=True)
+    # Verify running normalized version works
+    subprocess.run(["python", sliced_path], check=True)
 
 
 def normalize_source(code: str) -> str:

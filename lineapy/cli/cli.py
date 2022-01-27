@@ -59,7 +59,10 @@ def notebook(file: TextIOWrapper, artifact_name: str, artifact_value: str):
     notebook["cells"].append(
         nbformat.v4.new_code_cell(
             "import lineapy\n"
-            f"lineapy.save({artifact_value}, {repr(artifact_name)})"
+            # Save to a new variable first, so that if artifact value is composite, the slice of creating it
+            # won't include the `lineapy.save` line.
+            f"linea_artifact_value = {artifact_value}\n"
+            f"lineapy.save(linea_artifact_value, {repr(artifact_name)})"
         )
     )
 
