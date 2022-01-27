@@ -40,13 +40,11 @@ def linea_cli():
 
 @linea_cli.command()
 @click.argument("file", type=click.File())
-@click.argument("artifact_name", type=str, help="Name to save the artifact to")
-@click.argument(
-    "artifact_value", type=str, help="Value to save as an artifact"
-)
+@click.argument("artifact_name")
+@click.argument("artifact_value", type=str)
 def notebook(file: TextIOWrapper, artifact_name: str, artifact_value: str):
     """
-    Executes the notebook, save an artifact, and prints a value.
+    Executes the notebook FILE, saves the value ARTIFACT_VALUE with name ARTIFACT_NAME, and prints the sliced code.
 
     For example, if your notebooks as dataframe with value `df`, then this will print the slice for it:
 
