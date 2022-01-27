@@ -111,7 +111,7 @@ class LineaArtifact:
         )
         return path
 
-    def visualize(self, path: Optional[str]) -> None:
+    def visualize(self, path: Optional[str] = None) -> None:
         """
         Displays the graph for this artifact.
 
