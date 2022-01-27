@@ -7,6 +7,26 @@
       side_effects:
         - mutated_value:
             external_state: file_system
+- base_module: gym.wrappers.monitor
+  annotations:
+    - criteria:
+        base_class: Monitor
+        class_method_name: seed
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF # self is a keyword...
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT
+    - criteria:
+        base_class: Monitor
+        class_method_name: reset
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF # self is a keyword...
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT
 - module: pandas
   annotations:
     - criteria:

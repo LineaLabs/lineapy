@@ -18,6 +18,15 @@ TUTORIALS_VIRTUALENV_DIR = (
 ).resolve()
 
 
+class WrongSlice(Exception):
+    """
+    Raised when the slice was incorrect. Used to differentiate that and failing on not being able to slice
+    at all, or not being able to execute the sliced notebook
+    """
+
+    pass
+
+
 @pytest.fixture(autouse=True)
 def numpy_tutorial_virtualenv():
     """
@@ -63,6 +72,7 @@ def numpy_tutorial_virtualenv():
     os.environ["IPYTHONDIR"] = old_ipython_dir
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "source_file,slice,sliced_file",
     [
@@ -77,11 +87,21 @@ def numpy_tutorial_virtualenv():
             "(weights_1, weights_2)",
             "mnist_weights.py",
             id="mnist",
-            marks=pytest.mark.skip(reason="for loop, conditional"),
+            marks=pytest.mark.xfail(
+                reason="for loop, conditional", raises=WrongSlice
+            ),
+        ),
+        pytest.param(
+            "tutorial-deep-reinforcement-learning-with-pong-from-pixels.md",
+            "model",
+            "pong_model.py",
+            id="pong",
+            marks=pytest.mark.xfail(reason="for loop", raises=WrongSlice),
         ),
     ],
 )
-def test_tutorials(source_file, slice, sliced_file):
+def test_tutorials(request, source_file, slice, sliced_file):
+
     os.chdir(TUTORIALS / "content")
     notebook = subprocess.run(
         [
@@ -96,26 +116,29 @@ def test_tutorials(source_file, slice, sliced_file):
         capture_output=True,
     ).stdout
 
+    args = ["lineapy", "notebook", "-", "{source_file}:{slice}", slice]
+    # If you pass the --visualize flag to pytest, then output a visualize of the slice to `out.pdf`
+    if request.config.getoption("--visualize"):
+        args += [
+            "--visualize-slice",
+            LINEAPY_DIR / "out.pdf",
+        ]
+
     sliced_code = subprocess.run(
-        [
-            "lineapy",
-            "notebook",
-            "-",
-            "{source_file}:{slice}",
-            slice,
-        ],
-        check=True,
-        capture_output=True,
-        input=notebook,
+        args, check=True, capture_output=True, input=notebook
     ).stdout.decode()
     sliced_path = (pathlib.Path(__file__) / ".." / sliced_file).resolve()
-    desired_slice = (sliced_path).read_text()
-    # Compare code by transforming both to AST, and back to source,
-    # to remove comments
-    assert normalize_source(sliced_code) == normalize_source(desired_slice)
 
     # Verify running normalized version works
     subprocess.run(["python", sliced_path], check=True)
+
+    desired_slice = (sliced_path).read_text()
+    try:
+        # Compare code by transforming both to AST, and back to source,
+        # to remove comments
+        assert normalize_source(sliced_code) == normalize_source(desired_slice)
+    except AssertionError:
+        raise WrongSlice()
 
 
 def normalize_source(code: str) -> str:

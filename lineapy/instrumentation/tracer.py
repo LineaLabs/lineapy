@@ -306,17 +306,19 @@ class Tracer:
             library=library,
             source_location=source_location,
         )
-        if alias is not None:
-            self.variable_name_to_node[alias] = node
-        else:
-            self.variable_name_to_node[name] = node
         self.process_node(node)
+
+        if attributes is None:
+            if alias is not None:
+                self.variable_name_to_node[alias] = node
+            else:
+                self.variable_name_to_node[name] = node
 
         # for the attributes imported, we need to add them to the local lookup
         #  that yields the importnode's id for the `function_module` field,
         #  see `graph_with_basic_image`.
 
-        if attributes is not None:
+        else:
             if IMPORT_STAR in attributes:
                 attributes = {
                     attr: attr
