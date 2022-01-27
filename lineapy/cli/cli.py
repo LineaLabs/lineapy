@@ -40,8 +40,10 @@ def linea_cli():
 
 @linea_cli.command()
 @click.argument("file", type=click.File())
-@click.argument("artifact_name", type=str)
-@click.argument("artifact_value", type=str)
+@click.argument("artifact_name", type=str, help="Name to save the artifact to")
+@click.argument(
+    "artifact_value", type=str, help="Value to save as an artifact"
+)
 def notebook(file: TextIOWrapper, artifact_name: str, artifact_value: str):
     """
     Executes the notebook, save an artifact, and prints a value.
