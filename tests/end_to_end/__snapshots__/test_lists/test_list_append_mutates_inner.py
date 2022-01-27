@@ -5,13 +5,13 @@ from lineapy.utils.utils import get_new_id
 
 source_1 = SourceCode(
     code="""import lineapy
-x = []
-y = [x]
-x.append(10)
-y[0].append(11)
+xinner = []
+youter = [xinner]
+xinner.append(10)
+youter[0].append(11)
 
-lineapy.save(x, \'x\')
-lineapy.save(y, \'y\')
+lineapy.save(xinner, \'xinner\')
+lineapy.save(youter, \'youter\')
 """,
     location=PosixPath("[source file path]"),
 )
@@ -30,9 +30,9 @@ import_1 = ImportNode(
 call_1 = CallNode(
     source_location=SourceLocation(
         lineno=2,
-        col_offset=4,
+        col_offset=9,
         end_lineno=2,
-        end_col_offset=6,
+        end_col_offset=11,
         source_code=source_1.id,
     ),
     function_id=LookupNode(
@@ -44,7 +44,7 @@ call_4 = CallNode(
         lineno=4,
         col_offset=0,
         end_lineno=4,
-        end_col_offset=12,
+        end_col_offset=17,
         source_code=source_1.id,
     ),
     function_id=CallNode(
@@ -52,7 +52,7 @@ call_4 = CallNode(
             lineno=4,
             col_offset=0,
             end_lineno=4,
-            end_col_offset=8,
+            end_col_offset=13,
             source_code=source_1.id,
         ),
         function_id=LookupNode(
@@ -69,9 +69,9 @@ call_4 = CallNode(
         LiteralNode(
             source_location=SourceLocation(
                 lineno=4,
-                col_offset=9,
+                col_offset=14,
                 end_lineno=4,
-                end_col_offset=11,
+                end_col_offset=16,
                 source_code=source_1.id,
             ),
             value=10,
@@ -82,9 +82,9 @@ mutate_2 = MutateNode(
     source_id=CallNode(
         source_location=SourceLocation(
             lineno=3,
-            col_offset=4,
+            col_offset=9,
             end_lineno=3,
-            end_col_offset=7,
+            end_col_offset=17,
             source_code=source_1.id,
         ),
         function_id=LookupNode(
@@ -99,7 +99,7 @@ call_5 = CallNode(
         lineno=5,
         col_offset=0,
         end_lineno=5,
-        end_col_offset=4,
+        end_col_offset=9,
         source_code=source_1.id,
     ),
     function_id=LookupNode(
@@ -110,9 +110,9 @@ call_5 = CallNode(
         LiteralNode(
             source_location=SourceLocation(
                 lineno=5,
-                col_offset=2,
+                col_offset=7,
                 end_lineno=5,
-                end_col_offset=3,
+                end_col_offset=8,
                 source_code=source_1.id,
             ),
             value=0,
@@ -124,7 +124,7 @@ call_7 = CallNode(
         lineno=5,
         col_offset=0,
         end_lineno=5,
-        end_col_offset=15,
+        end_col_offset=20,
         source_code=source_1.id,
     ),
     function_id=CallNode(
@@ -132,7 +132,7 @@ call_7 = CallNode(
             lineno=5,
             col_offset=0,
             end_lineno=5,
-            end_col_offset=11,
+            end_col_offset=16,
             source_code=source_1.id,
         ),
         function_id=LookupNode(
@@ -149,9 +149,9 @@ call_7 = CallNode(
         LiteralNode(
             source_location=SourceLocation(
                 lineno=5,
-                col_offset=12,
+                col_offset=17,
                 end_lineno=5,
-                end_col_offset=14,
+                end_col_offset=19,
                 source_code=source_1.id,
             ),
             value=11,
@@ -167,7 +167,7 @@ call_9 = CallNode(
         lineno=7,
         col_offset=0,
         end_lineno=7,
-        end_col_offset=20,
+        end_col_offset=30,
         source_code=source_1.id,
     ),
     function_id=CallNode(
@@ -199,12 +199,12 @@ call_9 = CallNode(
         LiteralNode(
             source_location=SourceLocation(
                 lineno=7,
-                col_offset=16,
+                col_offset=21,
                 end_lineno=7,
-                end_col_offset=19,
+                end_col_offset=29,
                 source_code=source_1.id,
             ),
-            value="x",
+            value="xinner",
         ).id,
     ],
 )
@@ -213,7 +213,7 @@ call_11 = CallNode(
         lineno=8,
         col_offset=0,
         end_lineno=8,
-        end_col_offset=20,
+        end_col_offset=30,
         source_code=source_1.id,
     ),
     function_id=CallNode(
@@ -242,12 +242,12 @@ call_11 = CallNode(
         LiteralNode(
             source_location=SourceLocation(
                 lineno=8,
-                col_offset=16,
+                col_offset=21,
                 end_lineno=8,
-                end_col_offset=19,
+                end_col_offset=29,
                 source_code=source_1.id,
             ),
-            value="y",
+            value="youter",
         ).id,
     ],
 )

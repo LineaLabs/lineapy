@@ -15,20 +15,20 @@ y.append(10)
     assert res.slice("x") == code
 
 
-def test_list_append_mutates(execute):
-    code = """x = []
-x.append(10)
-"""
-    res = execute(code, artifacts=["x"])
-    assert res.slice("x") == code
+# def test_list_append_mutates(execute):
+#     code = """x = []
+# x.append(10)
+# """
+#     res = execute(code, artifacts=["x"])
+#     assert res.slice("x") == code
 
 
 def test_list_append_mutates_inner(execute):
-    code = """x = []
-y = [x]
-x.append(10)
-y[0].append(11)
+    code = """xinner = []
+youter = [xinner]
+xinner.append(10)
+youter[0].append(11)
 """
-    res = execute(code, artifacts=["x", "y"])
-    assert res.slice("x") == code
-    assert res.slice("y") == code
+    res = execute(code, artifacts=["xinner", "youter"])
+    assert res.slice("xinner") == code
+    assert res.slice("youter") == code

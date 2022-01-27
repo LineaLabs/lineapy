@@ -94,10 +94,10 @@ def test_execute_import_exception(executor: Executor):
 
     user_exception: UserException = excinfo.value
 
-    with raises(ZeroDivisionError) as excinfo:
+    with raises(ZeroDivisionError) as excinfo2:
         import lineapy.utils.__error_on_load  # noqa
     # Verify string is same as builtin exception
-    assert str(excinfo.value) == str(user_exception.__cause__)
+    assert str(excinfo2.value) == str(user_exception.__cause__)
 
 
 def test_execute_call(executor: Executor):

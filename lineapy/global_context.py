@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from enum import Enum
-from typing import Dict, List, Union, cast
+from typing import Dict, List, Union
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import Node, SessionContext, SessionType
@@ -91,7 +91,6 @@ class GlobalContext(ABC):
     def slice(self, name: str) -> str:
         artifact = self.db.get_artifact_by_name(name)
         return get_program_slice(
-            # dunno why i need to do this yetx
             self.graph,
             [artifact.node_id],
         )
