@@ -13,7 +13,8 @@ from lineapy.data.types import (
     SourceCodeLocation,
 )
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.utils import MEMORY_DB_URL
+
+# from lineapy.db.utils import MEMORY_DB_URL
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.editors.states import CellsExecutedState, StartedState
 from lineapy.exceptions.user_exception import RemoveFrames, UserException
@@ -71,7 +72,7 @@ class LineaGlobalContext(GlobalContext):
         cls, session_type: SessionType, session_name: Optional[str] = None
     ) -> "LineaGlobalContext":
         # FIXME - this shouldnt be memory url - read from env by default
-        db = RelationalLineaDB.from_environment(MEMORY_DB_URL)
+        db = RelationalLineaDB.from_environment(None)
         return cls(session_type, db, session_name)
 
     @classmethod
