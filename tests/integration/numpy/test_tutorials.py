@@ -2,7 +2,6 @@ import ast
 import os
 import pathlib
 import subprocess
-import sys
 
 import astor
 import pytest
@@ -73,10 +72,7 @@ def numpy_tutorial_virtualenv():
     os.environ["IPYTHONDIR"] = old_ipython_dir
 
 
-@pytest.mark.skipif(
-    sys.version_info < (3, 9), reason="requires python3.9 or higher"
-)
-@pytest.mark.slow
+@pytest.mark.integration
 @pytest.mark.parametrize(
     "source_file,slice,sliced_file",
     [
@@ -101,6 +97,20 @@ def numpy_tutorial_virtualenv():
             "pong_model.py",
             id="pong",
             marks=pytest.mark.xfail(reason="for loop", raises=WrongSlice),
+        ),
+        pytest.param(
+            "tutorial-nlp-from-scratch.md",
+            "lineapy.file_system",
+            "speaches_fs.py",
+            id="speaches",
+            marks=pytest.mark.skip(reason="never completes"),
+        ),
+        pytest.param(
+            "tutorial-x-ray-image-processing.md",
+            "lineapy.file_system",
+            "x_ray_fs.py",
+            id="x-ray",
+            marks=pytest.mark.xfail(reason="importing submodule broken"),
         ),
     ],
 )
