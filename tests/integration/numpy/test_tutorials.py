@@ -117,7 +117,7 @@ def test_tutorials(request, source_file, slice, sliced_file):
             "-",
         ],
         check=True,
-        capture_output=True,
+        stdout=subprocess.PIPE,
     ).stdout
 
     args = ["lineapy", "notebook", "-", "{source_file}:{slice}", slice]
@@ -129,14 +129,14 @@ def test_tutorials(request, source_file, slice, sliced_file):
         ]
 
     sliced_code = subprocess.run(
-        args, check=True, capture_output=True, input=notebook
+        args, check=True, stdout=subprocess.PIPE, input=notebook
     ).stdout.decode()
     sliced_path = (pathlib.Path(__file__) / ".." / sliced_file).resolve()
 
     # Verify running normalized version works
     subprocess.run(["python", sliced_path], check=True)
 
-    desired_slice = (sliced_path).read_text()
+    desired_slice = sliced_path.read_text()
     try:
         # Compare code by transforming both to AST, and back to source,
         # to remove comments
