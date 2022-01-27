@@ -21,7 +21,7 @@ from lineapy.execution.globals_dict import GlobalsDict
 
 if TYPE_CHECKING:
     from lineapy.data.types import CallNode, LineaID
-    from lineapy.execution.executor import Executor
+    from lineapy.global_context import GlobalContext
 
 _global_variables: GlobalsDict = GlobalsDict()
 _current_context: Optional[ExecutionContext] = None
@@ -37,7 +37,7 @@ class ExecutionContext:
     # The current node being executed
     node: CallNode
     # The executor that is running
-    executor: Executor
+    lgcontext: GlobalContext
 
     _input_globals: Mapping[str, object]
     _input_node_ids: Mapping[str, LineaID]
@@ -51,7 +51,7 @@ class ExecutionContext:
 
 
 def set_context(
-    executor: Executor,
+    lgcontext: GlobalContext,
     variables: Optional[Dict[str, LineaID]],
     node: CallNode,
 ) -> None:
@@ -67,19 +67,25 @@ def set_context(
     # Note: We need to save our inputs so that we can check what has changed
     # at the end
     assert not _global_variables
+    # ensure that the context is valid and has an executor
+    # poor man's method of skipping mypy errors when executing lgcontext.executor
+    assert lgcontext and hasattr(lgcontext, "executor")
+    # lgcontext = cast(LineaGlobalContext, lgcontext)
     # The first time this is run, variables is set, and we know
     # the scoping, so we set all of the variables we know.
     # The subsequent times, we only use those that were recorded
     input_node_ids = variables or node.global_reads
     input_globals = {
-        k: executor._id_to_value[id_] for k, id_ in input_node_ids.items()
+        # TODO - fix this by moving to global context
+        k: lgcontext.executor._id_to_value[id_]  # type: ignore
+        for k, id_ in input_node_ids.items()
     }
 
     _global_variables.setup_globals(input_globals)
 
     _current_context = ExecutionContext(
         node=node,
-        executor=executor,
+        lgcontext=lgcontext,  # type: ignore
         _input_globals=input_globals,
         _input_node_ids=input_node_ids,
     )

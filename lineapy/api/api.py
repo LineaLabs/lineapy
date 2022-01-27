@@ -5,13 +5,13 @@ User facing APIs.
 import pickle
 import types
 from datetime import datetime
+from typing import cast
 
 from lineapy.data.types import Artifact, NodeValue
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
-
-# from lineapy.linea_context import LineaGlobalContext
+from lineapy.linea_context import LineaGlobalContext
 from lineapy.utils.utils import get_value_type
 
 """
@@ -41,9 +41,11 @@ def save(reference: object, name: str) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact (value, version), and other automation capabilities, such as `to_airflow`.
     """
+    # TODO switch to using lgcontext
     execution_context = get_context()
-    executor = execution_context.executor
-    db = executor.db
+    lgcontext = cast(LineaGlobalContext, execution_context.lgcontext)
+    executor = lgcontext.executor
+    db = lgcontext.db
     call_node = execution_context.node
 
     # If this value is stored as a global in the executor (meaning its an external side effect)
@@ -147,7 +149,7 @@ def get(artifact_name: str) -> LineaArtifact:
         information we have stored about the artifact
     """
     execution_context = get_context()
-    db = execution_context.executor.db
+    db = execution_context.lgcontext.db  # type: ignore
     artifact = db.get_artifact_by_name(artifact_name)
     return LineaArtifact(
         db=db,
@@ -166,4 +168,4 @@ def catalog() -> LineaCatalog:
         An object of the class `LineaCatalog` that allows for printing and exporting artifacts metadata.
     """
     execution_context = get_context()
-    return LineaCatalog(execution_context.executor.db)
+    return LineaCatalog(execution_context.lgcontext.db)  # type: ignore

@@ -4,8 +4,10 @@ import builtins
 import importlib.util
 import logging
 import operator
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
+
+from lineapy.operator import BaseOperator
 
 try:
     from functools import singledispatchmethod  # type: ignore
@@ -16,6 +18,7 @@ except ImportError:  # pragma: no cover
 
 from os import chdir, getcwd
 from typing import (
+    TYPE_CHECKING,
     Callable,
     Dict,
     Hashable,
@@ -26,6 +29,9 @@ from typing import (
     Union,
     cast,
 )
+
+if TYPE_CHECKING:
+    from lineapy.global_context import GlobalContext
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -39,7 +45,6 @@ from lineapy.data.types import (
     MutateNode,
     Node,
 )
-from lineapy.db.db import RelationalLineaDB
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import (
@@ -79,8 +84,7 @@ class PrivateExecuteResult:
     side_effects: SideEffects
 
 
-@dataclass
-class Executor:
+class Executor(BaseOperator):
     """
     An executor that is responsible for executing a graph, either node by
     node as it is created, or in a batch, after the fact.
@@ -91,9 +95,6 @@ class Executor:
     You can also query for the time a node took to execute or its value, using `get_value` and `get_execution_time`.
     """
 
-    # The database to use for saving the execution
-    db: RelationalLineaDB
-
     # The globals for this execution, to use when trying to lookup a value
     # Note: This is set in Jupyter so that `get_ipython` is defined
     _globals: dict[str, object]
@@ -101,33 +102,34 @@ class Executor:
     # The execution to record the values in
     # This is accessed via the ExecutionContext, which is set when executing a node
     # so that artifacts created during the execution know which execution they should refer to.
-    execution: Execution = field(init=False)
+    execution: Execution
 
     # TODO:
     _function_inspector = FunctionInspector()
-    _id_to_value: dict[LineaID, object] = field(default_factory=dict)
-    _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
-        default_factory=dict
-    )
+    _id_to_value: dict[LineaID, object] = {}
+    _execution_time: dict[LineaID, Tuple[datetime, datetime]] = {}
     # Mapping of bound method node ids to the ID of the instance they are bound to
-    _node_to_bound_self: Dict[LineaID, LineaID] = field(default_factory=dict)
+    _node_to_bound_self: Dict[LineaID, LineaID] = {}
 
     # Mapping of call node to the globals that were updated
     # TODO: rename to variable
-    _node_to_globals: Dict[LineaID, Dict[str, object]] = field(
-        default_factory=dict
-    )
+    _node_to_globals: Dict[LineaID, Dict[str, object]] = {}
 
     # Mapping of values to their nodes. Currently the only values
     # in here are external state values
-    _value_to_node: Dict[Hashable, LineaID] = field(default_factory=dict)
+    _value_to_node: Dict[Hashable, LineaID] = {}
 
-    def __post_init__(self):
+    def __init__(
+        self, context_manager: GlobalContext, globals: dict[str, object]
+    ) -> None:
+        self.context_manager = context_manager
         self.execution = Execution(
             id=get_new_id(),
             timestamp=datetime.now(),
         )
-        self.db.write_execution(self.execution)
+        # TODO - migrate to context manager
+        self.context_manager.db.write_execution(self.execution)  # type: ignore
+        self._globals = globals
 
     def get_execution_time(
         self, node_id: LineaID
@@ -265,7 +267,7 @@ class Executor:
         logger.debug("Calling function %s %s %s", fn, args, kwargs)
 
         # Set up our execution context, with our globals and node
-        set_context(self, variables, node)
+        set_context(self.context_manager, variables, node)
 
         try:
             start_time = datetime.now()
@@ -411,7 +413,8 @@ class Executor:
             self.execute_node(node, variables=None)
         chdir(prev_working_dir)
         # Add executed nodes to DB
-        self.db.session.commit()
+        # TODO - migrate to context manager
+        self.context_manager.db.session.commit()  # type: ignore
 
     def _translate_pointer(
         self, node: CallNode, pointer: ValuePointer

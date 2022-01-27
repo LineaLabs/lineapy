@@ -52,9 +52,7 @@ def start(
         InteractiveShell._get_exc_info = custom_get_exc_info
 
     ipython.input_transformers_post.append(input_transformer_post)
-    STATE = LineaGlobalContext.discard_existing_and_create_new_session(
-        SessionType.JUPYTER
-    )
+    STATE = LineaGlobalContext.create_new_context(SessionType.JUPYTER)
     STATE.notify(
         event=IPYTHON_EVENTS.StartedState,
         operator=None,

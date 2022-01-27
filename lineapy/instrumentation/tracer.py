@@ -1,5 +1,4 @@
 import logging
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from lineapy.data.types import (
@@ -12,7 +11,6 @@ from lineapy.data.types import (
     LookupNode,
     MutateNode,
     Node,
-    SessionContext,
     SourceLocation,
 )
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -24,6 +22,7 @@ from lineapy.execution.executor import (
     Variable,
     ViewOfNodes,
 )
+from lineapy.global_context import GlobalContext
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.operator import BaseOperator
@@ -34,7 +33,6 @@ from lineapy.utils.utils import get_new_id
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class Tracer(BaseOperator):
     """
     Tracer is internal to Linea and it implements the "hidden APIs"
@@ -48,12 +46,13 @@ class Tracer(BaseOperator):
     - Executes the program, using the `Executor`.
     """
 
-    # globals_: InitVar[Optional[Dict[str, object]]] = None # dont know where this is used. maybe replaced by mutation tracker?
+    # session_context: SessionContext = field(init=False)
+    mutation_tracker: MutationTracker = MutationTracker()
 
-    session_context: SessionContext = field(init=False)
-    # executor: Executor = field(init=False)
-    mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
+    def __init__(self, context_manager: GlobalContext) -> None:
+        self.context_manager = context_manager
 
+    # TODO migrate to lgcontext
     def process_node(self, node: Node) -> None:
         """
         Execute a node, and adds it to the database.
@@ -64,11 +63,12 @@ class Tracer(BaseOperator):
         # If an artifact could not be created, quitely return without saving the node to the DB.
         ##
         try:
-            side_effects = self._context_manager.executor.execute_node(
+            # TODO - fix this by moving to notify function and handling in the context manager
+            side_effects = self.context_manager.executor.execute_node(  # type: ignore
                 node,
                 {
                     k: v.id
-                    for k, v in self._context_manager.variable_name_to_node.items()
+                    for k, v in self.context_manager.variable_name_to_node.items()
                 },
             )
         except ArtifactSaveException as exc_info:
@@ -106,13 +106,13 @@ class Tracer(BaseOperator):
                     )
                     self.process_node(mutate_node)
 
-        self._context_manager.db.write_node(node)
+        self.context_manager.db.write_node(node)
 
     def _resolve_pointer(self, ptr: ExecutorPointer) -> LineaID:
         if isinstance(ptr, ID):
             return ptr.id
         if isinstance(ptr, Variable):
-            return self._context_manager.variable_name_to_node[ptr.name].id
+            return self.context_manager.variable_name_to_node[ptr.name].id
         # Handle external state case, by making a lookup node for it
         if isinstance(ptr, ExternalState):
             return self.lookup_node(ptr.external_state).id
@@ -149,12 +149,12 @@ class Tracer(BaseOperator):
         # Add the retrieved globals as global reads to the call node
         node.global_reads = {
             var: self.mutation_tracker.get_latest_mutate_node(
-                self._context_manager.variable_name_to_node[var].id
+                self.context_manager.variable_name_to_node[var].id
             )
             for var in retrieved
             # Only save reads from variables that we have already saved variables for
             # Assume that all other reads are for variables assigned inside the call
-            if var in self._context_manager.variable_name_to_node
+            if var in self.context_manager.variable_name_to_node
         }
 
         # Create a new global node for each added/updated
@@ -166,7 +166,7 @@ class Tracer(BaseOperator):
                 call_id=node.id,
             )
             self.process_node(global_node)
-            self._context_manager.variable_name_to_node[var] = global_node
+            self.context_manager.variable_name_to_node[var] = global_node
 
     # TODO migrate to lgcontext
     def lookup_node(
@@ -185,13 +185,13 @@ class Tracer(BaseOperator):
           - custom runtime, e.g., get_ipython
 
         """
-        if variable_name in self._context_manager.variable_name_to_node:
+        if variable_name in self.context_manager.variable_name_to_node:
             # user define var and fun def
-            return self._context_manager.variable_name_to_node[variable_name]
+            return self.context_manager.variable_name_to_node[variable_name]
         else:
             new_node = LookupNode(
                 id=get_new_id(),
-                session_id=self._context_manager.session_context.id,
+                session_id=self.context_manager.session_context.id,
                 name=variable_name,
                 source_location=source_location,
             )
@@ -221,14 +221,14 @@ class Tracer(BaseOperator):
         library = Library(id=get_new_id(), name=name)
         node = ImportNode(
             id=get_new_id(),
-            session_id=self._context_manager.session_context.id,
+            session_id=self.context_manager.session_context.id,
             library=library,
             source_location=source_location,
         )
         if alias is not None:
-            self._context_manager.variable_name_to_node[alias] = node
+            self.context_manager.variable_name_to_node[alias] = node
         else:
-            self._context_manager.variable_name_to_node[name] = node
+            self.context_manager.variable_name_to_node[name] = node
         self.process_node(node)
 
         # for the attributes imported, we need to add them to the local lookup
@@ -240,7 +240,7 @@ class Tracer(BaseOperator):
             if IMPORT_STAR in attributes:
                 attributes = {
                     attr: attr
-                    for attr in dir(self._context_manager.values[library.name])
+                    for attr in dir(self.context_manager.values[library.name])
                     if not attr.startswith("__")
                 }
             for alias, original_name in attributes.items():
@@ -259,8 +259,8 @@ class Tracer(BaseOperator):
         #   requirement; should prob refactor later
         # and we cannot just modify the runtime value because
         #   it's already written to disk
-        self._context_manager.db.add_lib_to_session_context(
-            self._context_manager.session_context.id, library
+        self.context_manager.db.add_lib_to_session_context(
+            self.context_manager.session_context.id, library
         )
         return
 
@@ -272,7 +272,7 @@ class Tracer(BaseOperator):
         # this literal should be assigned or used later
         node = LiteralNode(
             id=get_new_id(),
-            session_id=self._context_manager.session_context.id,
+            session_id=self.context_manager.session_context.id,
             value=value,
             source_location=source_location,
         )
@@ -298,7 +298,7 @@ class Tracer(BaseOperator):
         """
         node = CallNode(
             id=get_new_id(),
-            session_id=self._context_manager.session_context.id,
+            session_id=self.context_manager.session_context.id,
             function_id=function_node.id,
             positional_args=[
                 self.mutation_tracker.get_latest_mutate_node(n.id)
@@ -328,7 +328,7 @@ class Tracer(BaseOperator):
         to trace where in some code a node is assigned, we can record that again.
         """
         logger.debug("assigning %s = %s", variable_name, value_node)
-        self._context_manager.variable_name_to_node[variable_name] = value_node
+        self.context_manager.variable_name_to_node[variable_name] = value_node
         return
 
     def tuple(
