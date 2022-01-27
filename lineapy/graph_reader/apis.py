@@ -111,17 +111,19 @@ class LineaArtifact:
         )
         return path
 
-    def visualize(self) -> None:
+    def visualize(self, path: Optional[str]) -> None:
         """
         Displays the graph for this artifact.
+
+        If a path is provided, will save it to that file instead.
         """
         from lineapy.visualizer import Visualizer
 
-        display(
-            Visualizer.for_public_node(
-                self._graph, self.node_id
-            ).ipython_display_object()
-        )
+        visualizer = Visualizer.for_public_node(self._graph, self.node_id)
+        if path:
+            visualizer.render_pdf_file(path)
+        else:
+            display(visualizer.ipython_display_object())
 
 
 class LineaCatalog:

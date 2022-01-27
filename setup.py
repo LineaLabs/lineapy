@@ -71,6 +71,7 @@ setup(
         "pyyaml",
         "asttokens",
         "isort",
+        "graphviz",
     ],
     extras_require={
         "dev": [
@@ -95,7 +96,6 @@ setup(
             "nbval",
             "coveralls",
             "seaborn",
-            "graphviz",
             "pre-commit",
             "SQLAlchemy[mypy]>=1.4.0",
             "sphinx",

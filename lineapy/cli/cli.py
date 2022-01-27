@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 from io import TextIOWrapper
-from typing import List
+from typing import List, Optional
 
 import click
 import nbformat
@@ -42,7 +42,17 @@ def linea_cli():
 @click.argument("file", type=click.File())
 @click.argument("artifact_name")
 @click.argument("artifact_value", type=str)
-def notebook(file: TextIOWrapper, artifact_name: str, artifact_value: str):
+@click.option(
+    "--visualize-slice",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Create a visualization for the sliced code, save it to this path",
+)
+def notebook(
+    file: TextIOWrapper,
+    artifact_name: str,
+    artifact_value: str,
+    visualize_slice: Optional[pathlib.Path],
+):
     """
     Executes the notebook FILE, saves the value ARTIFACT_VALUE with name ARTIFACT_NAME, and prints the sliced code.
 
@@ -58,11 +68,18 @@ def notebook(file: TextIOWrapper, artifact_name: str, artifact_value: str):
     notebook = nbformat.read(file, nbformat.NO_CONVERT)
     notebook["cells"].append(
         nbformat.v4.new_code_cell(
-            "import lineapy\n"
-            # Save to a new variable first, so that if artifact value is composite, the slice of creating it
-            # won't include the `lineapy.save` line.
-            f"linea_artifact_value = {artifact_value}\n"
-            f"lineapy.save(linea_artifact_value, {repr(artifact_name)})"
+            (
+                "import lineapy\n"
+                # Save to a new variable first, so that if artifact value is composite, the slice of creating it
+                # won't include the `lineapy.save` line.
+                f"linea_artifact_value = {artifact_value}\n"
+                f"linea_artifact = lineapy.save(linea_artifact_value, {repr(artifact_name)})\n"
+            )
+            + (
+                f"linea_artifact.visualize({repr(str(visualize_slice.resolve()))})"
+                if visualize_slice
+                else ""
+            )
         )
     )
 
