@@ -4,8 +4,10 @@ import builtins
 import importlib.util
 import logging
 import operator
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
+
+from lineapy.global_context import GlobalContext
 
 try:
     from functools import singledispatchmethod  # type: ignore
@@ -39,7 +41,6 @@ from lineapy.data.types import (
     MutateNode,
     Node,
 )
-from lineapy.db.db import RelationalLineaDB
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import (
@@ -80,7 +81,6 @@ class PrivateExecuteResult:
     side_effects: SideEffects
 
 
-@dataclass
 class Executor(BaseOperator):
     """
     An executor that is responsible for executing a graph, either node by
@@ -102,33 +102,42 @@ class Executor(BaseOperator):
     # The execution to record the values in
     # This is accessed via the ExecutionContext, which is set when executing a node
     # so that artifacts created during the execution know which execution they should refer to.
-    execution: Execution = field(init=False)
+    execution: Execution
 
     # TODO:
-    _function_inspector = FunctionInspector()
-    _id_to_value: dict[LineaID, object] = field(default_factory=dict)
-    _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
-        default_factory=dict
-    )
+    _id_to_value: dict[LineaID, object]
+    _execution_time: dict[LineaID, Tuple[datetime, datetime]]
     # Mapping of bound method node ids to the ID of the instance they are bound to
-    _node_to_bound_self: Dict[LineaID, LineaID] = field(default_factory=dict)
+    _node_to_bound_self: Dict[LineaID, LineaID]
 
     # Mapping of call node to the globals that were updated
     # TODO: rename to variable
-    _node_to_globals: Dict[LineaID, Dict[str, object]] = field(
-        default_factory=dict
-    )
+    _node_to_globals: Dict[LineaID, Dict[str, object]]
 
     # Mapping of values to their nodes. Currently the only values
     # in here are external state values
-    _value_to_node: Dict[Hashable, LineaID] = field(default_factory=dict)
+    _value_to_node: Dict[Hashable, LineaID]
 
-    def init_context(self):
+    def __init__(
+        self,
+        context_manager: GlobalContext,
+        _globals: dict[str, object] = globals(),
+    ):
+        self.context_manager = context_manager
         self.execution = Execution(
             id=get_new_id(),
             timestamp=datetime.now(),
         )
         self.context_manager.db.write_execution(self.execution)
+        self._globals = _globals
+
+        # other defaults
+        self._function_inspector = FunctionInspector()
+        self._id_to_value = {}
+        self._execution_time = {}
+        self._node_to_bound_self = {}
+        self._node_to_globals = {}
+        self._value_to_node = {}
 
     def get_execution_time(
         self, node_id: LineaID
