@@ -41,7 +41,10 @@ def executor(linea_db):
     Creates a new executor with the default globals
     """
     # TODO mock the context manager
-    exc = Executor(MagicMock(), globals=globals())
+    # exc = Executor(MagicMock(), _globals=globals())
+    exc = Executor(_globals=globals())
+    exc.context_manager = MagicMock()
+    exc.init_context()
     return exc
 
 

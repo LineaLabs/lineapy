@@ -64,7 +64,10 @@ class LineaGlobalContext(GlobalContext):
         """
         __globals = exoptions.get("globals", globals())
         # TODO - add globals back in
-        executor = Executor(self, __globals)
+        # executor = Executor(self, __globals)
+        executor = Executor(__globals)
+        executor.context_manager = self
+        executor.init_context()
         self.executor = executor
 
     @classmethod
