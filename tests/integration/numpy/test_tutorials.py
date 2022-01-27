@@ -2,6 +2,7 @@ import ast
 import os
 import pathlib
 import subprocess
+import sys
 
 import astor
 import pytest
@@ -72,6 +73,9 @@ def numpy_tutorial_virtualenv():
     os.environ["IPYTHONDIR"] = old_ipython_dir
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 9), reason="requires python3.9 or higher"
+)
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "source_file,slice,sliced_file",
