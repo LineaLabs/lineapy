@@ -26,7 +26,7 @@ class GlobalContext(ABC):
     session_type: SessionType
     db: RelationalLineaDB
     session_context: SessionContext
-    variable_name_to_node: Dict[str, Node]  # = {}
+    variable_name_to_node: Dict[str, Node]
 
     def __init__(self, session_type, db):
         self.session_type = session_type

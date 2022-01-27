@@ -63,11 +63,7 @@ class LineaGlobalContext(GlobalContext):
         Associates a new executor with the current context.
         """
         __globals = exoptions.get("globals", globals())
-        # TODO - add globals back in
-        # executor = Executor(self, __globals)
-        executor = Executor(__globals)
-        executor.context_manager = self
-        executor.init_context()
+        executor = Executor(self, __globals)
         self.executor = executor
 
     @classmethod
