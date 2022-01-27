@@ -324,7 +324,7 @@ class Tracer:
                 # Import star behavior copied from python docs
                 # https://docs.python.org/3/reference/simple_stmts.html#the-import-statement
                 if hasattr(module_value, "__all__"):
-                    public_names = module_value.__all__
+                    public_names = module_value.__all__  # type: ignore
                 else:
                     public_names = [
                         attr
