@@ -8,11 +8,15 @@ from lineapy.data.types import (
     SessionType,
 )
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.linea_context import LineaGlobalContext
 
 
 @fixture
 def tracer(linea_db):
-    return Tracer(linea_db, SessionType.SCRIPT)
+    c_manager = LineaGlobalContext.create_new_context_with_db(
+        SessionType.SCRIPT, linea_db
+    )
+    return c_manager.tracer
 
 
 def test_lookup_builtin(tracer: Tracer):
@@ -71,8 +75,8 @@ def test_exec(tracer: Tracer):
     tracer.call(
         tracer.lookup_node("l_exec_statement"), None, tracer.literal("x = y")
     )
-    assert isinstance(tracer.lookup_node("x"), GlobalNode)
-    assert set(tracer.values.keys()) == {"x", "y"}
+    assert isinstance(tracer.lookup_node("x"), GlobalNode) is True
+    assert set(tracer.context_manager.values.keys()) == {"x", "y"}
 
 
 def test_implicit_dependency(tracer: Tracer):
