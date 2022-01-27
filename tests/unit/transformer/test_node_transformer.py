@@ -7,7 +7,7 @@ import sys
 
 import asttokens
 import pytest
-from mock import MagicMock, patch
+from mock import MagicMock
 
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.transformer.source_giver import SourceGiver

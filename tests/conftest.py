@@ -19,7 +19,6 @@ from lineapy.db.utils import (
     MEMORY_DB_URL,
     resolve_default_db_path,
 )
-from lineapy.execution.executor import Executor
 from lineapy.linea_context import LineaGlobalContext
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
@@ -184,8 +183,8 @@ class ExecuteFixture:
         source_code_path.write_text(code)
 
         # Verify snapshot of source of user transformed code
-        lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
-            SessionType.SCRIPT
+        lgcontext = LineaGlobalContext.create_new_context_with_db(
+            SessionType.SCRIPT, self.db
         )
         # tracer = Tracer()
         lgcontext.transform(code, source_code_path)
@@ -236,7 +235,8 @@ class ExecuteFixture:
             ].success = True
 
         # Verify that execution works again, with a new session
-        new_executor = Executor(lgcontext.db, globals())
+        lgcontext._add_new_executor()
+        new_executor = lgcontext.executor
         current_working_dir = os.getcwd()
         os.chdir(self.tmp_path)
         new_executor.execute_graph(lgcontext.graph)

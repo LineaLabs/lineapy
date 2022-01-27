@@ -241,7 +241,7 @@ def python(
     # db = RelationalLineaDB.from_environment(db_url)
     # FIXME - pass db url here. might not do because db url is supposed to be
     # written into the env rather than passed around
-    lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
+    lgcontext = LineaGlobalContext.create_new_context(
         session_type=SessionType.SCRIPT
     )
     code = file_name.read_text()

@@ -9,6 +9,7 @@ This should cover `execution/executor.py`
 """
 
 import operator
+from unittest.mock import MagicMock
 
 from pytest import fixture, mark, param, raises
 
@@ -40,8 +41,9 @@ def executor(linea_db):
     """
     Creates a new executor with the default globals
     """
-
-    return Executor(db=linea_db, _globals=globals())
+    # TODO mock the context manager
+    exc = Executor(MagicMock(), globals=globals())
+    return exc
 
 
 def test_execute_import(executor: Executor):

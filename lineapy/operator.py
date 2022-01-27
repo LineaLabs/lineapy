@@ -1,19 +1,15 @@
-from dataclasses import dataclass, field
-from typing import Optional
-
 from lineapy.global_context import GlobalContext
 
 
-@dataclass
 class BaseOperator:
-    _context_manager: Optional[GlobalContext] = field(init=False)
+    _context_manager: GlobalContext
 
-    # def __post_init__(self, c_manager: GlobalContext = None):
+    # def __post_init__(self, context_manager: GlobalContext):
     #     # this is dumb but trying out for now
-    #     self._context_manager = c_manager  # LineaGlobalContext()
+    #     self._context_manager = context_manager  # LineaGlobalContext()
 
     @property
-    def context_manager(self) -> Optional[GlobalContext]:
+    def context_manager(self) -> GlobalContext:
         return self._context_manager
 
     @context_manager.setter

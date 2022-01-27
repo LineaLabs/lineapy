@@ -81,7 +81,7 @@ class NodeTransformer(ast.NodeTransformer, BaseOperator):
         self.source_code = SourceCode(
             id=get_new_id(), code=code, location=location
         )
-        self._context_manager.db.write_source_code(self.source_code)  # type: ignore
+        self.context_manager.db.write_source_code(self.source_code)  # type: ignore
         self.tracer = tracer
         # Set __file__ to the pathname of the file
         if isinstance(location, Path):
@@ -180,8 +180,9 @@ class NodeTransformer(ast.NodeTransformer, BaseOperator):
         if isinstance(node.value, ast.Constant):
             elemlist = cast(Iterable, node.value.value)
         elif isinstance(node.value, ast.Name):
+            # TODO - not sure how to handle mypy errors here
             elemlist = cast(
-                Iterable, self._context_manager.values[node.value.id]
+                Iterable, self.context_manager.values[node.value.id]  # type: ignore
             )
         elif isinstance(node.value, ast.Str):
             elemlist = cast(Iterable, node.value.s)
