@@ -5,5 +5,5 @@
 	path = tests/integration/sources/pytorch-vision
 	url = git@github.com:pytorch/vision.git
 [submodule "tests/sources/pytorch-tutorials"]
-	path = tests/sources/pytorch-tutorials
+	path = tests/integration/sources/pytorch-tutorials
 	url = git@github.com:pytorch/tutorials.git
