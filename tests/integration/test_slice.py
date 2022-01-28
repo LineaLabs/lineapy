@@ -9,6 +9,7 @@ import astor
 from pytest import mark, param
 
 INTEGRATION_DIR = pathlib.Path(__file__).parent
+LINEAPY_DIR = INTEGRATION_DIR.parent.parent
 
 
 # Mapping of virtualenv name to the requirements in it
@@ -85,16 +86,29 @@ PARAMS = [
         id="pytorch-vision-tensor-transform",
         marks=mark.xfail(reason="with statement", raises=AssertionError),
     ),
+    ##
+    # PyTorch Tutorials
+    ##
+    param(
+        "pytorch",
+        "pytorch-tutorials/beginner_source/Intro_to_TorchScript_tutorial.py",
+        "lineapy.file_system",
+        "pytorch-intro-torchscript.py",
+        id="pytorch-tutorial-intro-torchscript",
+        marks=mark.xfail(reason="class statement", raises=AssertionError),
+    ),
 ]
 
 
 @mark.integration
 @mark.parametrize("venv,source_file,slice_value,sliced_file", PARAMS)
 def test_slice(
-    venv: str, source_file: str, slice_value: str, sliced_file: str
+    venv: str, source_file: str, slice_value: str, sliced_file: str, request
 ) -> None:
     with use_virtualenv(venv):
-        sliced_code = slice_file(source_file, slice_value)
+        sliced_code = slice_file(
+            source_file, slice_value, request.config.getoption("--visualize")
+        )
 
         # Verify running manually sliced version works
         sliced_path = INTEGRATION_DIR / "slices" / sliced_file
@@ -105,7 +119,7 @@ def test_slice(
         assert normalize_source(sliced_code) == normalize_source(desired_slice)
 
 
-def slice_file(source_file: str, slice_value: str) -> str:
+def slice_file(source_file: str, slice_value: str, visualize: bool) -> str:
     """
     Slices the file for the value and returns the code
     """
@@ -117,8 +131,24 @@ def slice_file(source_file: str, slice_value: str) -> str:
 
     artifact_name = f"{source_file}:{slice}"
 
+    additional_args: List[Union[str, pathlib.Path]] = (
+        [
+            "--visualize-slice",
+            LINEAPY_DIR / "out.pdf",
+        ]
+        if visualize
+        else []
+    )
+
     if file_ending == ".py":
-        args = ["lineapy", "file", file_name, artifact_name, slice_value]
+        args = [
+            "lineapy",
+            "file",
+            file_name,
+            artifact_name,
+            slice_value,
+            *additional_args,
+        ]
 
         return subprocess.run(
             args, check=True, stdout=subprocess.PIPE
@@ -137,7 +167,14 @@ def slice_file(source_file: str, slice_value: str) -> str:
             stdout=subprocess.PIPE,
         ).stdout
 
-        args = ["lineapy", "notebook", "-", artifact_name, slice_value]
+        args = [
+            "lineapy",
+            "notebook",
+            "-",
+            artifact_name,
+            slice_value,
+            *additional_args,
+        ]
 
         return subprocess.run(
             args, check=True, stdout=subprocess.PIPE, input=notebook
@@ -170,10 +207,8 @@ def use_virtualenv(name: str):
             ],
             check=True,
         )
-        additional_args = VIRTUAL_ENVS[name]
-        lineapy_dir = INTEGRATION_DIR.parent.parent
         subprocess.run(
-            ["pip", "install", "-e", lineapy_dir, *additional_args],
+            ["pip", "install", "-e", LINEAPY_DIR, *VIRTUAL_ENVS[name]],
             check=True,
         )
     yield

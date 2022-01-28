@@ -1,3 +1,11 @@
+- module: torch.jit._script
+  annotations:
+    - criteria:
+        class_method_name: save
+        class_instance: ScriptModule
+      side_effects:
+        - mutated_value:
+            external_state: file_system
 - module: numpy
   annotations:
     - criteria:
