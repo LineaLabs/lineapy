@@ -2,6 +2,7 @@ import ast
 import os
 import pathlib
 import subprocess
+import typing
 
 import astor
 
@@ -35,7 +36,9 @@ def normalize_source(code: str) -> str:
     return astor.to_source(a)
 
 
-def create_virtualenv(name: str, additional_pip_install_args: list[str]):
+def create_virtualenv(
+    name: str, additional_pip_install_args: typing.List[str]
+):
     """
     Create a virtualenv directory, if it doesn't exist, and prepend the bin it to the path.
 
