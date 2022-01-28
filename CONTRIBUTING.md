@@ -9,10 +9,19 @@ This repository contains a few different components:
 
 ## First-time Setup
 
+To run our tests, first download the submodules:
+
+```
+git submodule update --init --recursive.
+```
+
 ### Conda
 
 ```bash
-conda create --name lineapy python=3.9 postgresql graphviz
+conda create --name lineapy python=3.9 \
+    postgresql \
+    graphviz \
+    cmake # needed for building deps of numpy tutorial on mac
 conda activate lineapy
 pip install -r requirements.txt
 pip install -e .

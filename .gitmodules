@@ -1,0 +1,9 @@
+[submodule "tests/integration/numpy/tutorials"]
+	path = tests/integration/sources/numpy-tutorials
+	url = git@github.com:numpy/numpy-tutorials.git
+[submodule "tests/integration/pytorch/vision"]
+	path = tests/integration/sources/pytorch-vision
+	url = git@github.com:pytorch/vision.git
+[submodule "tests/sources/pytorch-tutorials"]
+	path = tests/integration/sources/pytorch-tutorials
+	url = git@github.com:pytorch/tutorials.git

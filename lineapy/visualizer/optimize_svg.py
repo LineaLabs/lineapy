@@ -4,8 +4,7 @@ Optimizes an SVG file to reduce the size in the notebook.
 
 import subprocess
 import tempfile
-
-from path import Path
+from pathlib import Path
 
 # https://github.com/scour-project/scour#usage
 OPTIONS = [

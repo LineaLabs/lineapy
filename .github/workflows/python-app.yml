@@ -21,16 +21,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7.11', '3.8', '3.9']
+        python-version: ["3.7.11", "3.8", "3.9"]
     steps:
       - uses: actions/checkout@v2
         with:
           lfs: true
+          submodules: "recursive"
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install graphviz
+        # Note: Also need to add ffmpeg to run numpy integration tests, but omitting for time
         run: sudo apt-get install -y graphviz
       - name: Install dependencies
         run: |
@@ -38,11 +40,13 @@ jobs:
       - name: Test with pytest
         run: |
           pytest -v
-  black:
+  pre-commit:
+    name: ${{ matrix.id }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9']
+        python-version: ["3.9"]
+        id: [black, flake8, isort, mypy]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -51,46 +55,4 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: pre-commit/action@v2.0.3
         with:
-          extra_args: black --all-files
-  flake8:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.7', '3.8', '3.9']
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: pre-commit/action@v2.0.3
-        with:
-          extra_args: flake8 --all-files
-  imports:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.7', '3.8', '3.9']
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: pre-commit/action@v2.0.3
-        with:
-          extra_args: isort --all-files
-  mypy:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.7', '3.8', '3.9']
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: pre-commit/action@v2.0.3
-        with:
-          extra_args: mypy --all-files
+          extra_args: ${{ matrix.id }} --all-files

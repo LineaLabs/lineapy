@@ -146,22 +146,24 @@ def check_function_against_annotation(
     The checking for __self__ is for sometimes when it's a class instantiation method.
     """
 
+    # torch nn Predictor has no __name__
+    function_name = getattr(function, "__name__", None)
     if isinstance(criteria, FunctionName):
-        if criteria.function_name == function.__name__:
+        if criteria.function_name == function_name:
             return True
         return False
     if isinstance(criteria, FunctionNames):
-        if function.__name__ in criteria.function_names:
+        if function_name in criteria.function_names:
             return True
         return False
     if isinstance(criteria, ClassMethodName):
-        if function.__name__ == criteria.class_method_name and _check_class(
+        if function_name == criteria.class_method_name and _check_class(
             criteria, module, function
         ):
             return True
         return False
     if isinstance(criteria, ClassMethodNames):
-        if function.__name__ in criteria.class_method_names and _check_class(
+        if function_name in criteria.class_method_names and _check_class(
             criteria, module, function
         ):
             return True
@@ -178,7 +180,8 @@ def check_function_against_annotation(
     ):
         if (
             base_module is not None
-            and function.__name__ == criteria.class_method_name
+            and function_name == criteria.class_method_name
+            and hasattr(try_import(base_module), criteria.base_class)
             and (
                 isinstance(
                     function.__self__,  # type: ignore
@@ -331,7 +334,9 @@ class FunctionInspector:
                     return fun.__module__.split(".")[0]
                 return None
 
-            if function.__module__ in self.specs:
+            # numpy ufunc objects dont have modules
+            module = getattr(function, "__module__", None)
+            if module in self.specs:
                 yield from _check_annotation(
                     function,
                     args,
