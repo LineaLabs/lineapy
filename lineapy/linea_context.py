@@ -1,17 +1,10 @@
 import ast
 import sys
-from datetime import datetime
-from os import getcwd
 from typing import Dict, Optional, Union
 
 from IPython.display import DisplayObject
 
-from lineapy.data.types import (
-    Node,
-    SessionContext,
-    SessionType,
-    SourceCodeLocation,
-)
+from lineapy.data.types import LineaID, Node, SessionType, SourceCodeLocation
 from lineapy.db.db import RelationalLineaDB
 
 # from lineapy.db.utils import MEMORY_DB_URL
@@ -23,11 +16,9 @@ from lineapy.global_context import IPYTHON_EVENTS, TRACER_EVENTS, GlobalContext
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.node_transformer import NodeTransformer
-from lineapy.utils.utils import get_new_id
 
 
 class LineaGlobalContext(GlobalContext):
-    session_name: Optional[str]
     globals_: Optional[Dict[str, object]]
 
     IPYSTATE: Union[None, StartedState, CellsExecutedState] = None
@@ -42,15 +33,15 @@ class LineaGlobalContext(GlobalContext):
         db: RelationalLineaDB,
         session_name: Optional[str],
     ):
-        super().__init__(session_type, db)
-        # self.session_type = session_type
-        self.session_name = session_name
+        super().__init__(session_type, session_name, db)
         if session_type == SessionType.JUPYTER and self.IPYSTATE is None:
-            return
-        self.db = db
-        self._add_new_executor()
-        self._create_new_session()
-        self._add_new_tracer()
+            # do not create these yet
+            # TODO consider creating a different instance type for ipython per saul
+            pass
+        else:
+            self._add_new_executor()
+            self._add_new_tracer()
+            self._create_new_session(self.execution_id)
 
     def _add_new_tracer(self) -> None:
         """
@@ -65,6 +56,7 @@ class LineaGlobalContext(GlobalContext):
         """
         __globals = exoptions.get("globals", globals())
         executor = Executor(self, __globals)
+        self.execution_id: LineaID = executor.execution.id
         self.executor = executor
 
     @classmethod
@@ -163,17 +155,6 @@ class LineaGlobalContext(GlobalContext):
         if event == IPYTHON_EVENTS.CellsExecutedState:
             _globals = kwargs.get("globals", None)
             self._add_new_executor(globals=_globals)
-            self._create_new_session()
+            self._create_new_session(self.execution_id)
             self._add_new_tracer()
             self.IPYSTATE = CellsExecutedState(code=kwargs["code"])
-
-    def _create_new_session(self):
-        self.session_context = SessionContext(
-            id=get_new_id(),
-            environment_type=self.session_type,
-            creation_time=datetime.now(),
-            working_directory=getcwd(),
-            session_name=self.session_name,
-            execution_id=self.executor.execution.id,
-        )
-        self.db.write_context(self.session_context)
