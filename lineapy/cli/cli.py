@@ -4,6 +4,7 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+from contextlib import redirect_stdout
 from io import TextIOWrapper
 from typing import List, Optional
 
@@ -68,18 +69,7 @@ def notebook(
     notebook = nbformat.read(file, nbformat.NO_CONVERT)
     notebook["cells"].append(
         nbformat.v4.new_code_cell(
-            (
-                "import lineapy\n"
-                # Save to a new variable first, so that if artifact value is composite, the slice of creating it
-                # won't include the `lineapy.save` line.
-                f"linea_artifact_value = {artifact_value}\n"
-                f"linea_artifact = lineapy.save(linea_artifact_value, {repr(artifact_name)})\n"
-            )
-            + (
-                f"linea_artifact.visualize({repr(str(visualize_slice.resolve()))})"
-                if visualize_slice
-                else ""
-            )
+            generate_save_code(artifact_name, artifact_value, visualize_slice)
         )
     )
 
@@ -101,6 +91,72 @@ def notebook(
         name=artifact_name,
     )
     print(api_artifact.code)
+
+
+@linea_cli.command()
+@click.argument(
+    "path",
+    type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
+)
+@click.argument("artifact_name")
+@click.argument("artifact_value", type=str)
+@click.option(
+    "--visualize-slice",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Create a visualization for the sliced code, save it to this path",
+)
+def file(
+    path: pathlib.Path,
+    artifact_name: str,
+    artifact_value: str,
+    visualize_slice: Optional[pathlib.Path],
+):
+    """
+    Executes python at PATH, saves the value ARTIFACT_VALUE with name ARTIFACT_NAME, and prints the sliced code.
+    """
+    # Create the code:
+    code = path.read_text()
+    code = code + generate_save_code(
+        artifact_name, artifact_value, visualize_slice
+    )
+
+    # Run the code:
+    db = RelationalLineaDB.from_environment(None)
+    tracer = Tracer(db, SessionType.SCRIPT)
+    # Redirect all stdout to stderr, so its not printed.
+    with redirect_stdout(sys.stderr):
+
+        transform(code, path, tracer)
+
+    # Print the slice:
+    artifact = db.get_artifact_by_name(artifact_name)
+    api_artifact = LineaArtifact(
+        db=db,
+        execution_id=artifact.execution_id,
+        node_id=artifact.node_id,
+        session_id=artifact.node.session_id,
+        name=artifact_name,
+    )
+    print(api_artifact.code)
+
+
+def generate_save_code(
+    artifact_name: str,
+    artifact_value: str,
+    visualize_slice: Optional[pathlib.Path],
+) -> str:
+
+    return (
+        "\nimport lineapy\n"
+        # Save to a new variable first, so that if artifact value is composite, the slice of creating it
+        # won't include the `lineapy.save` line.
+        f"linea_artifact_value = {artifact_value}\n"
+        f"linea_artifact = lineapy.save(linea_artifact_value, {repr(artifact_name)})\n"
+    ) + (
+        f"linea_artifact.visualize({repr(str(visualize_slice.resolve()))})"
+        if visualize_slice
+        else ""
+    )
 
 
 @linea_cli.command()

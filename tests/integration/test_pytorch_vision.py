@@ -15,12 +15,12 @@ from .utils import (
 @pytest.fixture(autouse=True)
 def pytorch_virtualenv():
     yield from create_virtualenv(
-        "pytorch", ["torch==1.10.2", "torchvision==0.11.3"]
+        "pytorch", ["torch==1.10.2", "torchvision==0.11.3", "matplotlib"]
     )
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(raises=WrongSlice)
+@pytest.mark.xfail(reason="with statement", raises=WrongSlice)
 def test_vision_plot_scripted_tensor_transforms():
     os.chdir(get_source_path("pytorch-vision/gallery"))
 
@@ -29,7 +29,7 @@ def test_vision_plot_scripted_tensor_transforms():
         "file",
         "plot_scripted_tensor_transforms.py",
         "plot_scripted_tensor_transforms_fs",
-        "lineapy.filesystem",
+        "lineapy.file_system",
     ]
 
     sliced_code = subprocess.run(
