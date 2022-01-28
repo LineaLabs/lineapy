@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from abc import ABC
+from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Union
+from os import getcwd
+from typing import Dict, List, Optional, Union
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import Node, SessionContext, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
 from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.utils.utils import get_new_id
 
 
 class TRACER_EVENTS(Enum):
@@ -24,14 +27,27 @@ class IPYTHON_EVENTS(Enum):
 
 class GlobalContext(ABC):
     session_type: SessionType
+    session_name: Optional[str]
     db: RelationalLineaDB
     session_context: SessionContext
     variable_name_to_node: Dict[str, Node]
 
-    def __init__(self, session_type, db):
+    def __init__(self, session_type, session_name, db):
         self.session_type = session_type
         self.db = db
+        self.session_name = session_name
         self.variable_name_to_node = {}
+
+    def _create_new_session(self, execution_id) -> None:
+        self.session_context = SessionContext(
+            id=get_new_id(),
+            environment_type=self.session_type,
+            creation_time=datetime.now(),
+            working_directory=getcwd(),
+            session_name=self.session_name,
+            execution_id=execution_id,
+        )
+        self.db.write_context(self.session_context)
 
     def notify(
         self,
