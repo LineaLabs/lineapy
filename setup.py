@@ -72,6 +72,10 @@ setup(
         "asttokens",
         "isort",
         "graphviz",
+        "IPython",
+        "jinja2",
+        "nbformat",
+        "nbconvert",
     ],
     extras_require={
         "dev": [
