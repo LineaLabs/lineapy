@@ -101,8 +101,7 @@ def input_transformer_post(lines: List[str]) -> List[str]:
     code = "".join(lines)
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
-        # Configure logging so that we the linea db prints it has connected.
-        configure_logging("INFO")
+        configure_logging()
         db = RelationalLineaDB.from_environment(STATE.db_url)
         # pass in globals from ipython so that `get_ipthon()` works
         # and things like `!cat df.csv` work in the notebook
