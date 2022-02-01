@@ -46,7 +46,7 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_logging():
-    configure_logging("INFO")
+    configure_logging()
 
 
 class PythonSnapshotExtension(SingleFileSnapshotExtension):
