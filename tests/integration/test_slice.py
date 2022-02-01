@@ -196,24 +196,25 @@ def use_virtualenv(name: str):
     # Remove ipythondir set for all tests, so that they are not run with linea by default
     old_ipython_dir = os.environ["IPYTHONDIR"]
     del os.environ["IPYTHONDIR"]
-
-    if not virtualenv_dir.exists():
-        subprocess.run(
-            [
-                "python",
-                "-m",
-                "venv",
-                virtualenv_dir,
-            ],
-            check=True,
-        )
-        subprocess.run(
-            ["pip", "install", "-e", LINEAPY_DIR, *VIRTUAL_ENVS[name]],
-            check=True,
-        )
-    yield
-    os.environ["PATH"] = old_path
-    os.environ["IPYTHONDIR"] = old_ipython_dir
+    try:
+        if not virtualenv_dir.exists():
+            subprocess.run(
+                [
+                    "python",
+                    "-m",
+                    "venv",
+                    virtualenv_dir,
+                ],
+                check=True,
+            )
+            subprocess.run(
+                ["pip", "install", "-e", LINEAPY_DIR, *VIRTUAL_ENVS[name]],
+                check=True,
+            )
+        yield
+    finally:
+        os.environ["PATH"] = old_path
+        os.environ["IPYTHONDIR"] = old_ipython_dir
 
 
 def normalize_source(code: str) -> str:
