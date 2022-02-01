@@ -21,6 +21,9 @@ The tests have the `integration` mark so that they are not run by default. So to
 
 Also, all the tests which have failing slices, are currently marked as xfailed, so will not raise errors by default. If you do want to see the errors, you can use `--runxfail` and use `-vv` to print out the full diff.
 
+Most tests do succeed in producing a slice, but the slice just happens to be wrong, so they are marked with `raises=AssertionError`. This is so that pytest knows they should only fail there, not at an earlier step. However,
+some tests don't succeed in even producing a slice, and those are just marked `xfail` without a reason.
+
 So if you wanted to say run the `numpy-mnist` test to see how the written slice
 differs from the generated slice, you could do:
 
