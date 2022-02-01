@@ -7,3 +7,6 @@
 [submodule "tests/sources/pytorch-tutorials"]
 	path = tests/integration/sources/pytorch-tutorials
 	url = git@github.com:pytorch/tutorials.git
+[submodule "tests/integration/sources/dask-examples"]
+	path = tests/integration/sources/dask-examples
+	url = git@github.com:dask/dask-examples.git
