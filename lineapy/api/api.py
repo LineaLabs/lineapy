@@ -78,18 +78,23 @@ def save(reference: object, name: str) -> LineaArtifact:
                 value_type=get_value_type(reference),
             )
         )
-    db.write_artifact(
-        Artifact(
-            node_id=value_node_id,
-            execution_id=execution_id,
-            date_created=datetime.now(),
-            name=name,
+        # we have to commit eagerly because if we just add it
+        #   to the queue, the `res` value may have mutated
+        #   and that's incorrect.
+        db.commit()
+    # If we have already saved this same artifact, with the same name,
+    # then don't write it again.
+    if not db.artifact_in_db(
+        node_id=value_node_id, execution_id=execution_id, name=name
+    ):
+        db.write_artifact(
+            Artifact(
+                node_id=value_node_id,
+                execution_id=execution_id,
+                date_created=datetime.now(),
+                name=name,
+            )
         )
-    )
-    # we have to commit eagerly because if we just add it
-    #   to the queue, the `res` value may have mutated
-    #   and that's incorrect.
-    db.commit()
 
     return LineaArtifact(
         db=db,
