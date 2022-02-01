@@ -17,11 +17,20 @@ VIRTUAL_ENVS: Dict[str, List[Union[str, pathlib.Path]]] = {
     "numpy-tutorials": [
         "-r",
         (INTEGRATION_DIR / "sources/numpy-tutorials/requirements.txt"),
-        # Need nbconvert and ipyknerel for executing notebooks
+        # Need nbconvert for executing notebooks
         "nbconvert",
-        "ipykernel",
     ],
     "pytorch": ["torch==1.10.2", "torchvision==0.11.3", "matplotlib"],
+    # TODO: Switch this to create a conda env based on the `environment.yml`
+    # in the folder
+    "dask-examples": [
+        "dask",
+        "dask-image",
+        "scikit-image",
+        "numpy",
+        "pandas",
+        "matplotlib",
+    ],
 }
 
 # A list of the params to test
@@ -97,6 +106,17 @@ PARAMS = [
         id="pytorch-tutorial-intro-torchscript",
         marks=mark.xfail(reason="class statement", raises=AssertionError),
     ),
+    ##
+    # Dask Examples
+    ##
+    param(
+        "dask-examples",
+        "dask-examples/applications/image-processing.ipynb",
+        "lineapy.file_system",
+        "dask_examples_image_processing.py",
+        id="dask_examples_image_processing",
+        marks=mark.xfail(reason="importing submodule broken"),
+    ),
 ]
 
 
@@ -112,7 +132,8 @@ def test_slice(
 
         # Verify running manually sliced version works
         sliced_path = INTEGRATION_DIR / "slices" / sliced_file
-        subprocess.run(["python", sliced_path], check=True)
+        # Run with ipython so `get_ipython()` is available for sliced magics
+        subprocess.run(["ipython", sliced_path], check=True)
         desired_slice = sliced_path.read_text()
 
         # Compare normalized sliced
@@ -154,6 +175,8 @@ def slice_file(source_file: str, slice_value: str, visualize: bool) -> str:
             args, check=True, stdout=subprocess.PIPE
         ).stdout.decode()
     elif file_ending == ".md":
+        # To run a jupytext markdown file,
+        # first convert to notebook then pipe to runing the notebook
         notebook = subprocess.run(
             [
                 "jupytext",
@@ -178,6 +201,19 @@ def slice_file(source_file: str, slice_value: str, visualize: bool) -> str:
 
         return subprocess.run(
             args, check=True, stdout=subprocess.PIPE, input=notebook
+        ).stdout.decode()
+    elif file_ending == ".ipynb":
+        args = [
+            "lineapy",
+            "notebook",
+            file_name,
+            artifact_name,
+            slice_value,
+            *additional_args,
+        ]
+
+        return subprocess.run(
+            args, check=True, stdout=subprocess.PIPE
         ).stdout.decode()
     else:
         raise NotImplementedError()
@@ -208,7 +244,18 @@ def use_virtualenv(name: str):
                 check=True,
             )
             subprocess.run(
-                ["pip", "install", "-e", LINEAPY_DIR, *VIRTUAL_ENVS[name]],
+                [
+                    "pip",
+                    "install",
+                    # Include ipython as well so we can use it to test the slice
+                    "ipython",
+                    "ipykernel",
+                    # Include Jupyter Lab so we can launch from venv to test things manually
+                    "jupyterlab",
+                    "-e",
+                    LINEAPY_DIR,
+                    *VIRTUAL_ENVS[name],
+                ],
                 check=True,
             )
         yield
