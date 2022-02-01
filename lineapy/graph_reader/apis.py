@@ -7,7 +7,7 @@ import logging
 from dataclasses import dataclass, field
 from os import environ
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from IPython.display import display
 
@@ -66,7 +66,11 @@ class LineaArtifact:
         nodes = self.db.get_nodes_for_session(self.session_id)
         return Graph(nodes, session_context)
 
-    def to_airflow(self, filename: Optional[str] = None) -> Path:
+    def to_airflow(
+        self,
+        airflow_dag_config: Optional[Dict[str, Any]] = None,
+        filename: Optional[str] = None,
+    ) -> Path:
         """
         Writes the airflow job to a path on disk.
 
@@ -88,7 +92,7 @@ class LineaArtifact:
         working_dir = Path(session_orm.working_directory)
 
         airflow_code = to_airflow(
-            {self.name: self.code}, self.name, working_dir
+            airflow_dag_config, {self.name: self.code}, self.name, working_dir
         )
         if filename:
             path = Path(filename)

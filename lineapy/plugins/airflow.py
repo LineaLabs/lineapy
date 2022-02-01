@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 import isort
 from jinja2 import Environment, FileSystemLoader
@@ -8,6 +8,17 @@ import lineapy
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
+
+
+class AirflowConfig:
+    def __init__(self, airflow_dag_config: Optional[Dict[str, Any]] = None):
+        """
+        Args:
+            airflow_dag_config: Configs of Airflow DAG model. See
+            https://airflow.apache.org/_api/airflow/models/dag/index.html#airflow.models.dag.DAG
+                for the full spec.
+        """
+        self.airflow_dag_config = airflow_dag_config or {}
 
 
 def split_code_blocks(code: str, func_name: str):
@@ -93,10 +104,11 @@ def sliced_airflow_dag(
 
 
 def to_airflow(
+    airflow_dag_config: Optional[Dict[str, Any]],
     artifacts_code: Dict[str, str],
     func_name: str,
     working_directory: Path,
-    task_dependencies: str = "",
+    task_dependencies: Optional[str],
 ) -> str:
     """
     Transforms sliced code into airflow code.
@@ -128,11 +140,31 @@ def to_airflow(
         _code_blocks.append(_code_block)
         _task_names.append(artifact_func_name)
 
+    OWNER = "airflow"
+    RETRIES = 2
+    START_DATE = "days_ago(1)"
+    SCHEDULE_IMTERVAL = "*/15 * * * *"
+    MAX_ACTIVE_RUNS = 1
+    CATCHUP = "False"
+    if airflow_dag_config:
+        OWNER = airflow_dag_config.get("owner", None)
+        RETRIES = airflow_dag_config.get("retries", None)
+        START_DATE = airflow_dag_config.get("start_date", None)
+        SCHEDULE_IMTERVAL = airflow_dag_config.get("schedule_interval", None)
+        MAX_ACTIVE_RUNS = airflow_dag_config.get("max_active_runs", None)
+        CATCHUP = airflow_dag_config.get("catchup", None)
+
     full_code = AIRFLOW_DAG_TEMPLATE.render(
         import_blocks=_import_blocks,
         working_dir_str=working_dir_str,
         code_blocks=_code_blocks,
         DAG_NAME=func_name,
+        OWNER=OWNER,
+        RETRIES=RETRIES,
+        START_DATE=START_DATE,
+        SCHEDULE_IMTERVAL=SCHEDULE_IMTERVAL,
+        MAX_ACTIVE_RUNS=MAX_ACTIVE_RUNS,
+        CATCHUP=CATCHUP,
         tasks=_task_names,
         task_dependencies=task_dependencies,
     )
