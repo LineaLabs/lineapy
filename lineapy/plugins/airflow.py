@@ -10,17 +10,6 @@ from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
 
 
-class AirflowConfig:
-    def __init__(self, airflow_dag_config: Optional[Dict[str, Any]] = None):
-        """
-        Args:
-            airflow_dag_config: Configs of Airflow DAG model. See
-            https://airflow.apache.org/_api/airflow/models/dag/index.html#airflow.models.dag.DAG
-                for the full spec.
-        """
-        self.airflow_dag_config = airflow_dag_config or {}
-
-
 def split_code_blocks(code: str, func_name: str):
     """
     Split the list of code lines to import, main code and main func blocks.
