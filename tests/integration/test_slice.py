@@ -46,17 +46,14 @@ PARAMS = [
         "numpy-tutorials/content/mooreslaw-tutorial.md",
         # Value to slice on
         "lineapy.file_system",
-        # File with ground truth slice
-        "numpy_mooreslaw_fs.py",
-        # ID which is displayed in output
-        id="numpy-mooreslaw",
+        # ID which is displayed in output and used to lookup the slice file
+        id="numpy_mooreslaw",
     ),
     param(
         "numpy-tutorials",
         "numpy-tutorials/content/tutorial-deep-learning-on-mnist.md",
         "(weights_1, weights_2)",
-        "numpy_mnist_weights.py",
-        id="numpy-mnist",
+        id="numpy_mnist",
         marks=mark.xfail(
             reason="for loop, conditional", raises=AssertionError
         ),
@@ -65,24 +62,21 @@ PARAMS = [
         "numpy-tutorials",
         "numpy-tutorials/content/tutorial-deep-reinforcement-learning-with-pong-from-pixels.md",
         "model",
-        "numpy_pong_model.py",
-        id="numpy-pong",
+        id="numpy_pong",
         marks=mark.xfail(reason="for loop", raises=AssertionError),
     ),
     param(
         "numpy-tutorials",
         "numpy-tutorials/content/tutorial-nlp-from-scratch.md",
         "lineapy.file_system",
-        "numpy_speaches_fs.py",
-        id="numpy-speaches",
+        id="numpy_speaches",
         marks=mark.skip(reason="never completes"),
     ),
     param(
         "numpy-tutorials",
         "numpy-tutorials/content/tutorial-x-ray-image-processing.md",
         "lineapy.file_system",
-        "numpy_x_ray_fs.py",
-        id="numpy-x-ray",
+        id="numpy_x_ray",
         marks=mark.xfail(reason="importing submodule broken"),
     ),
     ##
@@ -92,8 +86,7 @@ PARAMS = [
         "pytorch",
         "pytorch-vision/gallery/plot_scripted_tensor_transforms.py",
         "lineapy.file_system",
-        "pytorch_plot_scripted_tensor_transforms_fs.py",
-        id="pytorch-vision-tensor-transform",
+        id="pytorch_vision_tensor_transform",
         marks=mark.xfail(reason="with statement", raises=AssertionError),
     ),
     ##
@@ -103,8 +96,7 @@ PARAMS = [
         "pytorch",
         "pytorch-tutorials/beginner_source/Intro_to_TorchScript_tutorial.py",
         "lineapy.file_system",
-        "pytorch-intro-torchscript.py",
-        id="pytorch-tutorial-intro-torchscript",
+        id="pytorch_intro_torchscript",
         marks=mark.xfail(reason="class statement", raises=AssertionError),
     ),
     ##
@@ -114,7 +106,6 @@ PARAMS = [
         "dask-examples",
         "dask-examples/applications/image-processing.ipynb",
         "lineapy.file_system",
-        "dask_examples_image_processing.py",
         id="dask_examples_image_processing",
         marks=mark.xfail(reason="importing submodule broken"),
     ),
@@ -127,7 +118,7 @@ PARAMS = [
         "model",
         "tensorflow_image_classification.py",
         id="tensorflow_image_classification",
-        # marks=mark.xfail(reason="importing submodule broken"),
+        marks=mark.xfail(reason="cant install"),
     ),
 ]
 
