@@ -34,11 +34,7 @@ ENVS: Dict[str, Environment] = {
         conda_env=(
             INTEGRATION_DIR / "sources/numpy-tutorials/environment.yml"
         ),
-        conda_deps=[
-            "cmake",
-            # Add this as conda arg to help with version resolution till https://github.com/numpy/numpy-tutorials/pull/125 is merged
-            "jupyter-book",
-        ],
+        conda_deps=["cmake"],
     ),
     "pytorch": Environment(
         pip=[
@@ -275,6 +271,7 @@ def use_env(name: str):
                 ],
                 check=True,
             )
+            env_file.unlink()
         yield
     finally:
         os.environ["PATH"] = old_path
@@ -335,7 +332,14 @@ def create_env_file(env: Environment) -> Path:
         "channels": list(channels),
         "dependencies": [*dependencies, {"pip": pip_dependencies}],
     }
-    fd, path = tempfile.mkstemp(text=True, suffix=".yaml")
+    fd, path = tempfile.mkstemp(
+        text=True,
+        suffix=".yaml",
+        # Create it in the same directory as the conda env file, if we used one,
+        # so that relative paths in the conda env to `requirements.txt` files
+        # are resolved properly
+        dir=env.conda_env.parent if env.conda_env else None,
+    )
     with os.fdopen(fd, "w") as fp:
         yaml.dump(yaml_file, fp)
     return Path(path)
