@@ -9,7 +9,7 @@ All of the tests so far of the same form, so they are all parameters of the same
 In each the test:
 
 1. Creates a virtualenv for the project we are testing against in `venvs/<virtualenv name>`, if that directory does not exist. Inside this virtualenv, we install a development build of LineaPy as well as any requirements needed to run the tests.
-2. Load the hand written ground truth slice of the file from the `slices/<slice name>` directory.
+2. Load the hand written ground truth slice of the file from the `slices/<test id>.py` directory.
 3. Run the ground truth slice, to make sure that it is accurate.
 4. Load the source file, in some subpath of `sources/` (all of the projects so far are added as submodules under that directory), and feed it into a `lineapy cli` command
    to create a slice for it.
@@ -28,7 +28,7 @@ So if you wanted to say run the `numpy-mnist` test to see how the written slice
 differs from the generated slice, you could do:
 
 ```bash
-$ pytest 'tests/integration/test_slice.py::test_slice[numpy-mnist]' --runxfail -vv -m 'integration'
+$ pytest 'tests/integration/test_slice.py::test_slice[numpy_mnist]' --runxfail -vv -m 'integration'
 ================================================================================== test session starts ===================================================================================
 platform darwin -- Python 3.9.7, pytest-6.2.5, py-1.11.0, pluggy-1.0.0 -- /opt/homebrew/Caskroom/miniconda/base/envs/lineapy/bin/python
 cachedir: .pytest_cache
