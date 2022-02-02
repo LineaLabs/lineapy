@@ -1,37 +1,58 @@
+from __future__ import annotations
+
 import ast
 import contextlib
 import os
 import pathlib
 import subprocess
-from typing import Dict, List, Union
+import tempfile
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 import astor
+import yaml
 from pytest import mark, param
 
 INTEGRATION_DIR = pathlib.Path(__file__).parent
 LINEAPY_DIR = INTEGRATION_DIR.parent.parent
 
 
-# Mapping of virtualenv name to the requirements in it
-VIRTUAL_ENVS: Dict[str, List[Union[str, pathlib.Path]]] = {
-    "numpy-tutorials": [
-        "-r",
-        (INTEGRATION_DIR / "sources/numpy-tutorials/requirements.txt"),
-        # Need nbconvert for executing notebooks
-        "nbconvert",
-    ],
-    "pytorch": ["torch==1.10.2", "torchvision==0.11.3", "matplotlib"],
-    # TODO: Switch this to create a conda env based on the `environment.yml`
-    # in the folder
-    "dask-examples": [
-        "dask",
-        "dask-image",
-        "scikit-image",
-        "numpy",
-        "pandas",
-        "matplotlib",
-    ],
-    "tensorflow-docs": ["tensorflow-macos", "matplotlib", "pillow", "numpy"],
+@dataclass
+class Environment:
+    # List of args to pass to pip install ...
+    pip: list[str] = field(default_factory=list)
+    # The conda environment file to use
+    conda_env: Optional[Path] = None
+    # List of additional conda packages to install
+    conda_deps: list[str] = field(default_factory=list)
+
+
+# Mapping of the environment name to the requirements in it
+ENVS: Dict[str, Environment] = {
+    "numpy-tutorials": Environment(
+        conda_env=(
+            INTEGRATION_DIR / "sources/numpy-tutorials/environment.yml"
+        ),
+        conda_deps=[
+            "cmake",
+            # Add this as conda arg to help with version resolution till https://github.com/numpy/numpy-tutorials/pull/125 is merged
+            "jupyter-book",
+        ],
+    ),
+    "pytorch": Environment(
+        pip=[
+            f"-r {INTEGRATION_DIR / 'sources/pytorch-tutorials/requirements.txt'}",
+        ]
+    ),
+    "dask-examples": Environment(
+        conda_env=(
+            INTEGRATION_DIR / "sources/dask-examples/binder/environment.yml"
+        ),
+    ),
+    "tensorflow-docs": Environment(
+        conda_deps=["tensorflow", "matplotlib", "pillow", "numpy"]
+    ),
 }
 
 # A list of the params to test
@@ -40,7 +61,7 @@ PARAMS = [
     # Numpy Tutorials
     ##
     param(
-        # Name of virtualenv to use
+        # Name of environment to use
         "numpy-tutorials",
         # File to extract a slice from
         "numpy-tutorials/content/mooreslaw-tutorial.md",
@@ -116,17 +137,16 @@ PARAMS = [
         "tensorflow-docs",
         "tensorflow-docs/site/en/tutorials/images/classification.ipynb",
         "model",
-        "tensorflow_image_classification.py",
         id="tensorflow_image_classification",
-        marks=mark.xfail(reason="cant install"),
+        # marks=mark.xfail(reason="cant install"),
     ),
 ]
 
 
 @mark.integration
-@mark.parametrize("venv,source_file,slice_value", PARAMS)
-def test_slice(request, venv: str, source_file: str, slice_value: str) -> None:
-    with use_virtualenv(venv):
+@mark.parametrize("env,source_file,slice_value", PARAMS)
+def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
+    with use_env(env):
         sliced_code = slice_file(
             source_file, slice_value, request.config.getoption("--visualize")
         )
@@ -151,7 +171,7 @@ def slice_file(source_file: str, slice_value: str, visualize: bool) -> str:
     file_ending = resolved_source_path.suffix
     file_name = resolved_source_path.name
 
-    artifact_name = f"{source_file}:{slice}"
+    artifact_name = f"{source_file}:{slice_value}"
 
     additional_args: List[Union[str, pathlib.Path]] = (
         [
@@ -221,41 +241,37 @@ def slice_file(source_file: str, slice_value: str, visualize: bool) -> str:
 
 
 @contextlib.contextmanager
-def use_virtualenv(name: str):
+def use_env(name: str):
     """
-    Activates the virtualenv with NAME, creating it if it does not exist.
+    Activates the conda environment with NAME, creating it if it does not exist.
 
     On exit of the context manager, it resets the path and ipython directory.
     """
-    virtualenv_dir = INTEGRATION_DIR / "venvs" / name
+    env = ENVS[name]
+    env_dir = INTEGRATION_DIR / "envs" / name
+
     old_path = os.environ["PATH"]
-    os.environ["PATH"] = str(virtualenv_dir / "bin") + os.pathsep + old_path
+    os.environ["PATH"] = str(env_dir / "bin") + os.pathsep + old_path
     # Remove ipythondir set for all tests, so that they are not run with linea by default
     old_ipython_dir = os.environ["IPYTHONDIR"]
     del os.environ["IPYTHONDIR"]
+
     try:
-        if not virtualenv_dir.exists():
+        if env_dir.exists():
+            print(f"Using previously created env {env_dir}")
+        else:
+            env_file = create_env_file(env)
+            print(f"Creating env from generated file: {env_file}")
             subprocess.run(
                 [
-                    "python",
-                    "-m",
-                    "venv",
-                    virtualenv_dir,
-                ],
-                check=True,
-            )
-            subprocess.run(
-                [
-                    "pip",
-                    "install",
-                    # Include ipython as well so we can use it to test the slice
-                    "ipython",
-                    "ipykernel",
-                    # Include Jupyter Lab so we can launch from venv to test things manually
-                    "jupyterlab",
-                    "-e",
-                    LINEAPY_DIR,
-                    *VIRTUAL_ENVS[name],
+                    "conda",
+                    "env",
+                    "create",
+                    "--verbose",
+                    "-f",
+                    env_file,
+                    "-p",
+                    env_dir,
                 ],
                 check=True,
             )
@@ -271,3 +287,55 @@ def normalize_source(code: str) -> str:
     """
     a = ast.parse(code)
     return astor.to_source(a)
+
+
+def create_env_file(env: Environment) -> Path:
+    """
+    Creates a temporary env file with these dependencies as well as the default ones required for lineapy.
+    """
+    channels: set[str] = {"conda-forge"}
+    # Start with all lineapy deps
+    dependencies: list[str] = [
+        # Downgrade jupyter client https://github.com/jupyter/jupyter_console/issues/241
+        "jupyter_client=6.1.12",
+        "python>=3.7,<3.10",
+        "Pillow",
+        "astor",
+        "click>=8.0.0",
+        "pydantic",
+        "SQLAlchemy",
+        "networkx",
+        "black",
+        "rich",
+        "astpretty",
+        "scour=0.38.2",
+        "pyyaml",
+        "asttokens",
+        "isort",
+        "graphviz",
+        "IPython",
+        "jinja2",
+        "nbformat",
+        "nbconvert",
+        *env.conda_deps,
+    ]
+    pip_dependencies = [f"-e {LINEAPY_DIR}", *env.pip]
+    if env.conda_env:
+        loaded_conda_env = yaml.safe_load(env.conda_env.read_text())
+        channels.update(loaded_conda_env.get("channels", []))
+        for dep in loaded_conda_env.get("dependencies", []):
+            if isinstance(dep, str):
+                dependencies.append(dep)
+            # If the dependency is a dict, assume its a pip list of requirements
+            elif isinstance(dep, dict):
+                pip_dependencies.extend(dep["pip"])
+            else:
+                raise NotImplementedError()
+    yaml_file = {
+        "channels": list(channels),
+        "dependencies": [*dependencies, {"pip": pip_dependencies}],
+    }
+    fd, path = tempfile.mkstemp(text=True, suffix=".yaml")
+    with os.fdopen(fd, "w") as fp:
+        yaml.dump(yaml_file, fp)
+    return Path(path)

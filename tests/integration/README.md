@@ -8,7 +8,7 @@ All of the tests so far of the same form, so they are all parameters of the same
 
 In each the test:
 
-1. Creates a virtualenv for the project we are testing against in `venvs/<virtualenv name>`, if that directory does not exist. Inside this virtualenv, we install a development build of LineaPy as well as any requirements needed to run the tests.
+1. Creates a conda environment for the project we are testing against in `envs/<virtualenv name>`, if that directory does not exist. Inside this environemtn, we install a development build of lineapy as well as any requirements needed to run the tests.
 2. Load the hand written ground truth slice of the file from the `slices/<test id>.py` directory.
 3. Run the ground truth slice, to make sure that it is accurate.
 4. Load the source file, in some subpath of `sources/` (all of the projects so far are added as submodules under that directory), and feed it into a `lineapy cli` command
