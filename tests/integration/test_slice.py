@@ -124,7 +124,7 @@ PARAMS = [
 
 
 @mark.integration
-@mark.parametrize("venv,source_file,slice_value,sliced_file", PARAMS)
+@mark.parametrize("venv,source_file,slice_value", PARAMS)
 def test_slice(request, venv: str, source_file: str, slice_value: str) -> None:
     with use_virtualenv(venv):
         sliced_code = slice_file(
