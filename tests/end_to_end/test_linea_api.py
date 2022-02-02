@@ -56,3 +56,19 @@ lineapy.save(y, 'y')
 y = lineapy.get('x').value + 10
 """
     )
+
+
+def test_save_twice(execute):
+    res = execute(
+        """import lineapy
+x = 100
+lineapy.save(x, 'x')
+lineapy.save(x, 'x')
+y = 100
+lineapy.save(y, 'y')
+"""
+    )
+    assert res.values["x"] == 100
+    assert res.artifacts["x"] == "x = 100\n"
+    assert res.values["y"] == 100
+    assert res.artifacts["y"] == "y = 100\n"

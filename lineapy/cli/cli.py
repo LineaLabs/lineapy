@@ -23,7 +23,10 @@ from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import sliced_airflow_dag
 from lineapy.transformer.node_transformer import transform
-from lineapy.utils.logging_config import configure_logging
+from lineapy.utils.logging_config import (
+    LOGGING_ENV_VARIABLE,
+    configure_logging,
+)
 from lineapy.utils.utils import prettify
 
 """
@@ -35,8 +38,16 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-def linea_cli():
-    pass
+@click.option(
+    "--verbose",
+    help="Print out logging for graph creation and execution",
+    is_flag=True,
+)
+def linea_cli(verbose: bool):
+    # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
+    if verbose:
+        os.environ[LOGGING_ENV_VARIABLE] = "DEBUG"
+    configure_logging()
 
 
 @linea_cli.command()
@@ -193,11 +204,6 @@ def generate_save_code(
     is_flag=True,
 )
 @click.option(
-    "--verbose",
-    help="Print out logging for graph creation and execution",
-    is_flag=True,
-)
-@click.option(
     "--visualize",
     help="Visualize the resulting graph with Graphviz",
     is_flag=True,
@@ -215,11 +221,9 @@ def python(
     airflow_task_dependencies: str,
     print_source: bool,
     print_graph: bool,
-    verbose: bool,
     visualize: bool,
 ):
     set_custom_excepthook()
-    configure_logging("INFO" if verbose else "WARNING")
     tree = rich.tree.Tree(f"📄 {file_name}")
 
     db = RelationalLineaDB.from_environment(db_url)
