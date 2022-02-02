@@ -31,6 +31,7 @@ VIRTUAL_ENVS: Dict[str, List[Union[str, pathlib.Path]]] = {
         "pandas",
         "matplotlib",
     ],
+    "tensorflow-docs": ["tensorflow-macos", "matplotlib", "pillow", "numpy"],
 }
 
 # A list of the params to test
@@ -116,6 +117,17 @@ PARAMS = [
         "dask_examples_image_processing.py",
         id="dask_examples_image_processing",
         marks=mark.xfail(reason="importing submodule broken"),
+    ),
+    ##
+    # Tensorflow Docs
+    ##
+    param(
+        "tensorflow-docs",
+        "tensorflow-docs/site/en/tutorials/images/classification.ipynb",
+        "model",
+        "tensorflow_image_classification.py",
+        id="tensorflow_image_classification",
+        # marks=mark.xfail(reason="importing submodule broken"),
     ),
 ]
 
