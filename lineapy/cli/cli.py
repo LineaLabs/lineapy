@@ -2,22 +2,31 @@ import logging
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
-from typing import List
+from contextlib import redirect_stdout
+from io import TextIOWrapper
+from typing import List, Optional
 
 import click
+import nbformat
 import rich
 import rich.syntax
 import rich.tree
+from nbconvert.preprocessors import ExecutePreprocessor
 
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
+from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import sliced_airflow_dag
 from lineapy.transformer.node_transformer import transform
-from lineapy.utils.logging_config import configure_logging
+from lineapy.utils.logging_config import (
+    LOGGING_ENV_VARIABLE,
+    configure_logging,
+)
 from lineapy.utils.utils import prettify
 
 """
@@ -29,8 +38,136 @@ logger = logging.getLogger(__name__)
 
 
 @click.group()
-def linea_cli():
-    pass
+@click.option(
+    "--verbose",
+    help="Print out logging for graph creation and execution",
+    is_flag=True,
+)
+def linea_cli(verbose: bool):
+    # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
+    if verbose:
+        os.environ[LOGGING_ENV_VARIABLE] = "DEBUG"
+    configure_logging()
+
+
+@linea_cli.command()
+@click.argument("file", type=click.File())
+@click.argument("artifact_name")
+@click.argument("artifact_value", type=str)
+@click.option(
+    "--visualize-slice",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Create a visualization for the sliced code, save it to this path",
+)
+def notebook(
+    file: TextIOWrapper,
+    artifact_name: str,
+    artifact_value: str,
+    visualize_slice: Optional[pathlib.Path],
+):
+    """
+    Executes the notebook FILE, saves the value ARTIFACT_VALUE with name ARTIFACT_NAME, and prints the sliced code.
+
+    For example, if your notebooks as dataframe with value `df`, then this will print the slice for it:
+
+        lineapy notebook my_notebook.ipynb my_df df
+
+    You can also reference side effect values, like `file_system`
+
+        lineapy notebook my_notebook.ipynb notebook_file_system lineapy.file_system
+    """
+    # Create the notebook:
+    notebook = nbformat.read(file, nbformat.NO_CONVERT)
+    notebook["cells"].append(
+        nbformat.v4.new_code_cell(
+            generate_save_code(artifact_name, artifact_value, visualize_slice)
+        )
+    )
+
+    # Run the notebook:
+    setup_ipython_dir()
+    exec_proc = ExecutePreprocessor(timeout=None)
+    exec_proc.preprocess(notebook)
+
+    # Print the slice:
+    # TODO: duplicated with `get` but no context set, should rewrite eventually
+    # to not duplicate
+    db = RelationalLineaDB.from_environment(None)
+    artifact = db.get_artifact_by_name(artifact_name)
+    api_artifact = LineaArtifact(
+        db=db,
+        execution_id=artifact.execution_id,
+        node_id=artifact.node_id,
+        session_id=artifact.node.session_id,
+        name=artifact_name,
+    )
+    print(api_artifact.code)
+
+
+@linea_cli.command()
+@click.argument(
+    "path",
+    type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
+)
+@click.argument("artifact_name")
+@click.argument("artifact_value", type=str)
+@click.option(
+    "--visualize-slice",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Create a visualization for the sliced code, save it to this path",
+)
+def file(
+    path: pathlib.Path,
+    artifact_name: str,
+    artifact_value: str,
+    visualize_slice: Optional[pathlib.Path],
+):
+    """
+    Executes python at PATH, saves the value ARTIFACT_VALUE with name ARTIFACT_NAME, and prints the sliced code.
+    """
+    # Create the code:
+    code = path.read_text()
+    code = code + generate_save_code(
+        artifact_name, artifact_value, visualize_slice
+    )
+
+    # Run the code:
+    db = RelationalLineaDB.from_environment(None)
+    tracer = Tracer(db, SessionType.SCRIPT)
+    # Redirect all stdout to stderr, so its not printed.
+    with redirect_stdout(sys.stderr):
+
+        transform(code, path, tracer)
+
+    # Print the slice:
+    artifact = db.get_artifact_by_name(artifact_name)
+    api_artifact = LineaArtifact(
+        db=db,
+        execution_id=artifact.execution_id,
+        node_id=artifact.node_id,
+        session_id=artifact.node.session_id,
+        name=artifact_name,
+    )
+    print(api_artifact.code)
+
+
+def generate_save_code(
+    artifact_name: str,
+    artifact_value: str,
+    visualize_slice: Optional[pathlib.Path],
+) -> str:
+
+    return (
+        "\nimport lineapy\n"
+        # Save to a new variable first, so that if artifact value is composite, the slice of creating it
+        # won't include the `lineapy.save` line.
+        f"linea_artifact_value = {artifact_value}\n"
+        f"linea_artifact = lineapy.save(linea_artifact_value, {repr(artifact_name)})\n"
+    ) + (
+        f"linea_artifact.visualize({repr(str(visualize_slice.resolve()))})"
+        if visualize_slice
+        else ""
+    )
 
 
 @linea_cli.command()
@@ -67,11 +204,6 @@ def linea_cli():
     is_flag=True,
 )
 @click.option(
-    "--verbose",
-    help="Print out logging for graph creation and execution",
-    is_flag=True,
-)
-@click.option(
     "--visualize",
     help="Visualize the resulting graph with Graphviz",
     is_flag=True,
@@ -89,11 +221,9 @@ def python(
     airflow_task_dependencies: str,
     print_source: bool,
     print_graph: bool,
-    verbose: bool,
     visualize: bool,
 ):
     set_custom_excepthook()
-    configure_logging("INFO" if verbose else "WARNING")
     tree = rich.tree.Tree(f"📄 {file_name}")
 
     db = RelationalLineaDB.from_environment(db_url)
@@ -174,14 +304,24 @@ def python(
 @click.argument("jupyter_args", nargs=-1, type=click.UNPROCESSED)
 def jupyter(jupyter_args):
     setup_ipython_dir()
-    subprocess.run(["jupyter", *jupyter_args])
+    res = subprocess.run(["jupyter", *jupyter_args])
+    sys.exit(res.returncode)
 
 
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("ipython_args", nargs=-1, type=click.UNPROCESSED)
 def ipython(ipython_args):
     setup_ipython_dir()
-    subprocess.run(["ipython", *ipython_args])
+    res = subprocess.run(["ipython", *ipython_args])
+    sys.exit(res.returncode)
+
+
+@linea_cli.command(context_settings={"ignore_unknown_options": True})
+@click.argument("jupytext_args", nargs=-1, type=click.UNPROCESSED)
+def jupytext(jupytext_args):
+    setup_ipython_dir()
+    res = subprocess.run(["jupytext", *jupytext_args])
+    sys.exit(res.returncode)
 
 
 def setup_ipython_dir() -> None:

@@ -118,7 +118,7 @@ as well.
 
 ```bash
 $ lineapy --help
-Usage: lineapy [OPTIONS] FILE_NAME
+Usage: lineapy python [OPTIONS] FILE_NAME
 
 Options:
   --db-url TEXT                   Set the DB URL. If None, will default to
@@ -151,10 +151,10 @@ Options:
 
 # Run linea on a Python file to analyze it.
 # --visualize creates a visual representation of the underlying graph and displays it
-$ lineapy --print-source --visualize tests/simple.py
+$ lineapy python --print-source --visualize tests/simple.py
 ...
 # Use --slice to slice the code to that which is needed to recompute an artifact
-$ lineapy --print-source tests/housing.py --slice 'p value'
+$ lineapy python --print-source tests/housing.py --slice 'p value'
 ...
 ```
 
@@ -162,7 +162,8 @@ $ lineapy --print-source tests/housing.py --slice 'p value'
 
 You can also run Linea interactively in a notebook or IPython.
 
-However, to do so the `lineapy` extension needs to be loaded. We have provided wrapper CLI commands to do this transperently, `lineapy ipython` and `lineapy jupyter`. For example you can run `lineapy jupyter lab` to start JupyterLab with
+To do so the `lineapy` extension needs to be loaded. We have provided wrapper CLI commands to do this transparently,
+`lineapy ipython` and `lineapy jupyter`. For example you can run `lineapy jupyter lab` to start JupyterLab with
 the required extension auto loading.
 
 This sets the `InteractiveShellApp.extensions` configuration option to include

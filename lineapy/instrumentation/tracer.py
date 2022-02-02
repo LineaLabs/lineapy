@@ -306,23 +306,32 @@ class Tracer:
             library=library,
             source_location=source_location,
         )
-        if alias is not None:
-            self.variable_name_to_node[alias] = node
-        else:
-            self.variable_name_to_node[name] = node
         self.process_node(node)
+
+        if attributes is None:
+            if alias is not None:
+                self.variable_name_to_node[alias] = node
+            else:
+                self.variable_name_to_node[name] = node
 
         # for the attributes imported, we need to add them to the local lookup
         #  that yields the importnode's id for the `function_module` field,
         #  see `graph_with_basic_image`.
 
-        if attributes is not None:
+        else:
             if IMPORT_STAR in attributes:
-                attributes = {
-                    attr: attr
-                    for attr in dir(self.values[library.name])
-                    if not attr.startswith("__")
-                }
+                module_value = self.executor.get_value(node.id)
+                # Import star behavior copied from python docs
+                # https://docs.python.org/3/reference/simple_stmts.html#the-import-statement
+                if hasattr(module_value, "__all__"):
+                    public_names = module_value.__all__  # type: ignore
+                else:
+                    public_names = [
+                        attr
+                        for attr in dir(module_value)
+                        if not attr.startswith("_")
+                    ]
+                attributes = {attr: attr for attr in public_names}
             for alias, original_name in attributes.items():
                 # self.function_name_to_function_module_import_id[a] = node.id
                 self.assign(

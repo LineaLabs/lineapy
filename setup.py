@@ -70,6 +70,12 @@ setup(
         "scour==0.38.2",
         "pyyaml",
         "asttokens",
+        "isort",
+        "graphviz",
+        "IPython",
+        "jinja2",
+        "nbformat",
+        "nbconvert",
     ],
     extras_require={
         "dev": [
@@ -94,7 +100,6 @@ setup(
             "nbval",
             "coveralls",
             "seaborn",
-            "graphviz",
             "pre-commit",
             "SQLAlchemy[mypy]>=1.4.0",
             "sphinx",

@@ -265,6 +265,24 @@ class RelationalLineaDB:
         )
         self.session.add(artifact_orm)
 
+    def artifact_in_db(
+        self, node_id: LineaID, execution_id: LineaID, name: str
+    ) -> bool:
+        """
+        Returns true if the artifact is already in the DB.
+        """
+        return self.session.query(
+            self.session.query(ArtifactORM)
+            .filter(
+                and_(
+                    ArtifactORM.node_id == node_id,
+                    ArtifactORM.execution_id == execution_id,
+                    ArtifactORM.name == name,
+                )
+            )
+            .exists()
+        ).scalar()
+
     def write_execution(self, execution: Execution) -> None:
 
         execution_orm = ExecutionORM(

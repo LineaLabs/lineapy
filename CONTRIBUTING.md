@@ -9,10 +9,19 @@ This repository contains a few different components:
 
 ## First-time Setup
 
+To run our tests, first download the submodules:
+
+```
+git submodule update --init --recursive.
+```
+
 ### Conda
 
 ```bash
-conda create --name lineapy python=3.9 postgresql graphviz
+conda create --name lineapy python=3.9 \
+    postgresql \
+    graphviz \
+    cmake # needed for building deps of numpy tutorial on mac
 conda activate lineapy
 pip install -r requirements.txt
 pip install -e .
@@ -60,7 +69,7 @@ docker run --rm -it -p 8080:8080 -p 8888:8888 -v $PWD:/workspaces/lineapy lineap
 
 ## Debugging (in VSC)
 
-`.vscode/launch.json` has a VSC debug configuration for `lineapy` which executes `lineapy --slice "p value" tests/housing.py` through VSC "Run and Debug" dialog.
+`.vscode/launch.json` has a VSC debug configuration for `lineapy` which executes `lineapy python --slice "p value" tests/housing.py` through VSC "Run and Debug" dialog.
 
 ## Tests
 
@@ -71,12 +80,20 @@ pytest tests
 ```
 
 If using docker, please add appropriate tests and ensure all tests are working using
-`make test`. Any args to pytest can be passed using args="xxx". Eg, individual tests can be run using `make test args="<path_to_test_file>"`.
+`make test`. Any args to pytest can be passed using args="xxx". Eg, individual 
+tests can be run using `make test args="<path_to_test_file>"`.
 
-Some tests have been marked "slow". These typically take > 0.5s and can be skipped by passing the args `-m "not slow"` when running pytest.
+Some tests have been marked "slow". These typically take > 0.5s and can be skipped 
+by passing the args `pytest tests -m "not slow"` when running pytest.
 
-We also added some tests which run airflow to verify that it works on the code we produce. These also take a lot longer, they create their own virtualenv
-with airflow in it, and create a new airflow DB. By default, those are not run. To run them, use `-m "airflow"` when running pytest.
+There are also integration tests that are tested against external libraries. These tests
+also take a while and many of them are currently xfailing. To run them, use
+`pytest tests -m "integration"` (in the root dir).
+
+We also added some tests which run airflow to verify that it works on the code we produce. 
+These also take a lot longer, they create their own virtualenv
+with airflow in it, and create a new airflow DB. By default, those are not run. 
+To run them, use `pytests tests -m "airflow"` when running pytest.
 
 ### Logging
 
@@ -97,8 +114,10 @@ pytest -p no:logging -s
 
 ### Snapshots
 
-Some tests use use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test, to make it easier to update generate code and graphs.
-If you mean to change the tracing or graph spec, or added a new test that uses it, then run `pytest --snapshot-update` to update the saved snapshots.
+Some tests use use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test,
+to make it easier to update generate code and graphs.
+If you mean to change the tracing or graph spec, or added a new test that uses it,
+then run `pytest --snapshot-update` to update the saved snapshots.
 If using docker, you can use `make test args="--snapshot-update"` to update snapshots.
 
 We also generate snapshots for a visualization of the graph as SVG. These are
@@ -133,7 +152,7 @@ and re-run it manually
 Sliced code can be exported to an Airflow DAG using the following command:
 
 ```
-lineapy tests/housing.py --slice "p value" --airflow sliced_housing_dag
+lineapy python tests/housing.py --slice "p value" --airflow sliced_housing_dag
 ```
 
 This creates a `sliced_housing_dag.py` file in the current dir. It can be executed with:
@@ -172,7 +191,8 @@ After creating your trace, you can load it [in
 Speedscope](https://www.speedscope.app/).
 
 In this example, we are inspecting calls to `transform`.
-We see that it cumulatively takes up 12% of total time and that most of the time inside of it is spent visiting imports, as well as committing to the DB:
+We see that it cumulatively takes up 12% of total time and that most of the 
+time inside of it is spent visiting imports, as well as committing to the DB:
 
 <img width="2560" alt="Screen Shot 2021-10-12 at 2 29 10 PM" src="https://user-images.githubusercontent.com/1186124/137037002-18f29bd8-db02-4924-9855-5f3db9d2d0ee.png">
 
@@ -214,11 +234,16 @@ to any value.
 
 ## Before Committing
 
-Please ensure linting and `typecheck`s are done before opening a PR. When using docker, this can be done using `make lint` and `make typecheck` respectively. A pre-commit hook that runs `make blackfix lint typecheck build test` will fix any fixable issues and ensure build and test works.
+Please ensure linting and `typecheck`s are done before opening a PR. When using docker,
+this can be done using `make lint` and `make typecheck` respectively. A
+pre-commit hook that runs `make blackfix lint typecheck build test` will fix
+any fixable issues and ensure build and test works.
 
 ## Github Actions
 
-The tests are run on Github Actions. If you are trying to debug a failure that happens on Github Actions, you can try using [`act`](https://github.com/nektos/act), which will run it locally through docker:
+The tests are run on Github Actions. If you are trying to debug a failure that
+happens on Github Actions, you can try using [`act`](https://github.com/nektos/act),
+which will run it locally through docker:
 
 ```bash
 brew install act

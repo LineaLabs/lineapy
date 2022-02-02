@@ -5,16 +5,21 @@ User facing APIs.
 import pickle
 import types
 from datetime import datetime
+from os import environ
+from pathlib import Path
+from typing import Dict
 
 from lineapy.data.types import Artifact, NodeValue
+from lineapy.db.relational import SessionContextORM
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
+from lineapy.plugins import airflow as airflow_plugin
 from lineapy.utils.utils import get_value_type
 
 """
 Dev notes: We should keep these external APIs as small as possible, and unless
-there is a very compelling use case, not support more than 
+there is a very compelling use case, not support more than
 one way to access the same feature.
 """
 
@@ -78,18 +83,23 @@ def save(reference: object, name: str) -> LineaArtifact:
                 value_type=get_value_type(reference),
             )
         )
-    db.write_artifact(
-        Artifact(
-            node_id=value_node_id,
-            execution_id=execution_id,
-            date_created=datetime.now(),
-            name=name,
+        # we have to commit eagerly because if we just add it
+        #   to the queue, the `res` value may have mutated
+        #   and that's incorrect.
+        db.commit()
+    # If we have already saved this same artifact, with the same name,
+    # then don't write it again.
+    if not db.artifact_in_db(
+        node_id=value_node_id, execution_id=execution_id, name=name
+    ):
+        db.write_artifact(
+            Artifact(
+                node_id=value_node_id,
+                execution_id=execution_id,
+                date_created=datetime.now(),
+                name=name,
+            )
         )
-    )
-    # we have to commit eagerly because if we just add it
-    #   to the queue, the `res` value may have mutated
-    #   and that's incorrect.
-    db.commit()
 
     return LineaArtifact(
         db=db,
@@ -165,3 +175,53 @@ def catalog() -> LineaCatalog:
     """
     execution_context = get_context()
     return LineaCatalog(execution_context.executor.db)
+
+
+def to_airflow(
+    artifacts_code: Dict[str, str],
+    dag_name: str,
+    task_dependencies: str = "",
+) -> Path:
+    """
+    Writes the airflow job to a path on disk.
+
+    :param artifacts_code: map of artifact names to be included in the DAG to their source code.
+    :param dag_name: name of the DAG and corresponding functions and task prefixes,
+    i.e. "sliced_housing_dag"
+    :param airflow_task_dependencies: task dependencies in Airflow format,
+    i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
+    This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
+    and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
+    Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
+    and "sliced_housing_dag_y" depends on them.
+    :return: string containing the path of the Airflow DAG file that was exported.
+    """
+    execution_context = get_context()
+    db = execution_context.executor.db
+    session_orm = db.session.query(SessionContextORM).all()
+    working_dir = (
+        Path(session_orm[0].working_directory)
+        if len(session_orm) > 0
+        else Path.home()
+    )
+
+    airflow_code = airflow_plugin.to_airflow(
+        artifacts_code, dag_name, working_dir, task_dependencies
+    )
+    # Save dag to dags folder in airflow home
+    # Otherwise default to default airflow home in home directory
+    path = (
+        (
+            Path(environ["AIRFLOW_HOME"])
+            if "AIRFLOW_HOME" in environ
+            else Path.home() / "airflow"
+        )
+        / "dags"
+        / f"{dag_name}.py"
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(airflow_code)
+    print(
+        f"Added Airflow DAG named '{dag_name}'. Start a run from the Airflow UI or CLI."
+    )
+    return path
