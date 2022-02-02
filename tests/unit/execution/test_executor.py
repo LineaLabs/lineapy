@@ -21,6 +21,7 @@ from lineapy.data.types import (
     LiteralNode,
     LookupNode,
     MutateNode,
+    PositionalArgument,
 )
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.executor import (
@@ -117,7 +118,7 @@ def test_execute_call(executor: Executor):
             id=id_,
             session_id="unused",
             function_id="neg",
-            positional_args=["one"],
+            positional_args=[PositionalArgument("one")],
         )
     )
     # There should be no side effects
@@ -185,7 +186,7 @@ def test_execute_call_mutable_input_vars(executor: Executor):
         CallNode(
             id="assign_call",
             function_id="l_exec_statement",
-            positional_args=["assign_str"],
+            positional_args=[PositionalArgument("assign_str")],
             session_id="",
         ),
         {"x": LineaID("list")},
@@ -274,7 +275,10 @@ def test_execute_mutate(executor: Executor):
         CallNode(
             id="append_method",
             function_id="getattr",
-            positional_args=["list", "append_str"],
+            positional_args=[
+                PositionalArgument("list"),
+                PositionalArgument("append_str"),
+            ],
             session_id="",
         )
     )
@@ -286,7 +290,7 @@ def test_execute_mutate(executor: Executor):
         CallNode(
             id="call_append",
             function_id="append_method",
-            positional_args=["one"],
+            positional_args=[PositionalArgument("one")],
             session_id="",
         )
     )
@@ -341,7 +345,7 @@ def test_execute_global(executor: Executor):
         CallNode(
             id="assign_call",
             function_id="l_exec_statement",
-            positional_args=["assign_str"],
+            positional_args=[PositionalArgument("assign_str")],
             session_id="",
         )
     )

@@ -2,7 +2,7 @@ import logging
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from os import getcwd
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
@@ -15,6 +15,7 @@ from lineapy.data.types import (
     LookupNode,
     MutateNode,
     Node,
+    PositionalArgument,
     SessionContext,
     SessionType,
     SourceLocation,
@@ -366,12 +367,26 @@ class Tracer:
         self.process_node(node)
         return node
 
+    def __get_positional_arguments(self, arguments):
+        for arg in arguments:
+            if isinstance(arg, tuple):
+                yield PositionalArgument(
+                    self.mutation_tracker.get_latest_mutate_node(arg[1].id),
+                    arg[0],
+                )
+
+            else:
+                yield PositionalArgument(
+                    self.mutation_tracker.get_latest_mutate_node(arg.id),
+                    False,
+                )
+
     def call(
         self,
         function_node: Node,
         source_location: Optional[SourceLocation],
         # function_name: str,
-        *arguments: Node,
+        *arguments: Union[Node, Tuple[bool, Node]],
         **keyword_arguments: Node,
     ) -> CallNode:
         """
@@ -383,14 +398,12 @@ class Tracer:
         - The call looks up if it's a locally defined function. We decided
           that this is better for program slicing.
         """
+
         node = CallNode(
             id=get_new_id(),
             session_id=self.session_context.id,
             function_id=function_node.id,
-            positional_args=[
-                self.mutation_tracker.get_latest_mutate_node(n.id)
-                for n in arguments
-            ],
+            positional_args=self.__get_positional_arguments(arguments),
             keyword_args={
                 k: self.mutation_tracker.get_latest_mutate_node(n.id)
                 for k, n, in keyword_arguments.items()

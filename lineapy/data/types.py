@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, NewType, Optional, Union
 
 from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
 
 
 class SessionType(Enum):
@@ -314,6 +315,12 @@ class ImportNode(BaseNode):
     library: Library
 
 
+@dataclass
+class PositionalArgument:
+    id: LineaID
+    starred: bool = False
+
+
 class CallNode(BaseNode):
     """
     - `function_id`: node containing the value of the function call, which
@@ -327,7 +334,7 @@ class CallNode(BaseNode):
     node_type: NodeType = NodeType.CallNode
 
     function_id: LineaID
-    positional_args: List[LineaID] = []
+    positional_args: List[PositionalArgument] = []
     keyword_args: Dict[str, LineaID] = {}
 
     # Mapping of global variables that need to be set to call this function
@@ -337,7 +344,7 @@ class CallNode(BaseNode):
 
     def parents(self) -> Iterable[LineaID]:
         yield self.function_id
-        yield from self.positional_args
+        yield from [node.id for node in self.positional_args]
         yield from self.keyword_args.values()
         yield from self.global_reads.values()
         yield from self.implicit_dependencies

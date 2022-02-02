@@ -12,16 +12,6 @@ x = func(*name)
 """,
     location=PosixPath("[source file path]"),
 )
-literal_8 = LiteralNode(
-    source_location=SourceLocation(
-        lineno=4,
-        col_offset=7,
-        end_lineno=4,
-        end_col_offset=15,
-        source_code=source_1.id,
-    ),
-    value="myname",
-)
 call_2 = CallNode(
     source_location=SourceLocation(
         lineno=5,
@@ -52,23 +42,15 @@ call_2 = CallNode(
         ).id,
     ).id,
     positional_args=[
-        LiteralNode(
-            value="m",
-        ).id,
-        LiteralNode(
-            value="y",
-        ).id,
-        LiteralNode(
-            value="n",
-        ).id,
-        LiteralNode(
-            value="a",
-        ).id,
-        LiteralNode(
-            value="m",
-        ).id,
-        LiteralNode(
-            value="e",
-        ).id,
+        *LiteralNode(
+            source_location=SourceLocation(
+                lineno=4,
+                col_offset=7,
+                end_lineno=4,
+                end_col_offset=15,
+                source_code=source_1.id,
+            ),
+            value="myname",
+        ).id
     ],
 )

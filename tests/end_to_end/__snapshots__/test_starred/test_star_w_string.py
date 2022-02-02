@@ -40,23 +40,15 @@ call_2 = CallNode(
         ).id,
     ).id,
     positional_args=[
-        LiteralNode(
-            value="m",
-        ).id,
-        LiteralNode(
-            value="y",
-        ).id,
-        LiteralNode(
-            value="n",
-        ).id,
-        LiteralNode(
-            value="a",
-        ).id,
-        LiteralNode(
-            value="m",
-        ).id,
-        LiteralNode(
-            value="e",
-        ).id,
+        *LiteralNode(
+            source_location=SourceLocation(
+                lineno=3,
+                col_offset=8,
+                end_lineno=3,
+                end_col_offset=16,
+                source_code=source_1.id,
+            ),
+            value="myname",
+        ).id
     ],
 )

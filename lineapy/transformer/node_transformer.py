@@ -293,8 +293,9 @@ class NodeTransformer(ast.NodeTransformer):
         for arg in node.args:
             # special case for starred, we need to unpack shit
             if isinstance(arg, ast.Starred):
-                for n in self.visit(arg):
-                    argument_nodes.append(n)
+                # for n in self.visit(arg):
+                #    argument_nodes.append(n)
+                argument_nodes.append((True, self.visit(arg.value)))
             else:
                 argument_nodes.append(self.visit(arg))
         keyword_argument_nodes = {

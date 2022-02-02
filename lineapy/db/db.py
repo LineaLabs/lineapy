@@ -25,6 +25,7 @@ from lineapy.data.types import (
     MutateNode,
     Node,
     NodeValue,
+    PositionalArgument,
     SessionContext,
     SourceCode,
     SourceLocation,
@@ -198,7 +199,9 @@ class RelationalLineaDB:
                 **args,
                 function_id=node.function_id,
                 positional_args={
-                    PositionalArgORM(index=i, arg_node_id=v)
+                    PositionalArgORM(
+                        index=i, starred=v.starred, arg_node_id=v.id
+                    )
                     for i, v in enumerate(node.positional_args)
                 },
                 keyword_args={
@@ -345,7 +348,10 @@ class RelationalLineaDB:
                     (
                         # Not sure why we need cast here, index field isn't optional
                         # but mypy thinks it is
-                        (cast(int, p.index), p.arg_node_id)
+                        (
+                            cast(int, p.index),
+                            PositionalArgument(p.arg_node_id, p.starred),
+                        )
                         for p in node.positional_args
                     ),
                     key=lambda p: p[0],

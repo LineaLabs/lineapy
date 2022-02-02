@@ -13,7 +13,12 @@ from pydantic.fields import SHAPE_DICT, SHAPE_LIST
 if TYPE_CHECKING:
     from lineapy.data.graph import Graph
 
-from lineapy.data.types import LineaID, NodeType, SourceCode
+from lineapy.data.types import (
+    LineaID,
+    NodeType,
+    PositionalArgument,
+    SourceCode,
+)
 
 
 @dataclass
@@ -151,6 +156,17 @@ class GraphPrinter:
                 continue
             if tp == LineaID and shape == SHAPE_LIST:
                 args = [self.lookup_id(id_) for id_ in v]
+                # Arguments are unordered and we need to sort them to
+                #   make sure that the diffing do not create false negatives
+                v_str = "[" + ", ".join(args) + "]"
+            elif tp == PositionalArgument and shape == SHAPE_LIST:
+                # special case for positional arguments here because we added starred args support.
+                # the only difference will be an appearance of a star in front of the node reference
+                # eg positional_args = [callnode.id] vs positional_args = [*callnode.id]
+                args = [
+                    id_.starred * "*" + str(self.lookup_id(id_.id))
+                    for id_ in v
+                ]
                 # Arguments are unordered and we need to sort them to
                 #   make sure that the diffing do not create false negatives
                 v_str = "[" + ", ".join(args) + "]"
