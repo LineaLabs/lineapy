@@ -47,7 +47,7 @@ ENVS: Dict[str, Environment] = {
         ),
     ),
     "tensorflow-docs": Environment(
-        conda_deps=["tensorflow", "matplotlib", "pillow", "numpy"]
+        conda_deps=["tensorflow=2.6", "matplotlib", "pillow", "numpy"]
     ),
 }
 
@@ -134,7 +134,7 @@ PARAMS = [
         "tensorflow-docs/site/en/tutorials/images/classification.ipynb",
         "model",
         id="tensorflow_image_classification",
-        # marks=mark.xfail(reason="cant install"),
+        marks=mark.xfail(reason="cant pickle tensorflow model"),
     ),
 ]
 
@@ -314,6 +314,8 @@ def create_env_file(env: Environment) -> Path:
         "jinja2",
         "nbformat",
         "nbconvert",
+        "ipykernel",
+        "pip",
         *env.conda_deps,
     ]
     pip_dependencies = [f"-e {LINEAPY_DIR}", *env.pip]
