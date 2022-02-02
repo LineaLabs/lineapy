@@ -10,3 +10,6 @@
 [submodule "tests/integration/sources/dask-examples"]
 	path = tests/integration/sources/dask-examples
 	url = git@github.com:dask/dask-examples.git
+[submodule "tests/integration/sources/tensorflow-docs"]
+	path = tests/integration/sources/tensorflow-docs
+	url = git@github.com:tensorflow/docs.git
