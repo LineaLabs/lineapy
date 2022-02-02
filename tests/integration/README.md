@@ -105,5 +105,4 @@ So to add a new test, you have to:
 
 There are a number of possible improvements to this setup that we could implement, if so desired:
 
-1. Use [the param "id" as the slice filename](https://stackoverflow.com/a/67056955), to make it easier to know which param corresponds to which slice file.
 2. Save the currently generated slices as snapshots, so that we can also see what those are, even if they are not correct, and we can know when they change.

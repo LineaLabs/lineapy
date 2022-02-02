@@ -125,16 +125,14 @@ PARAMS = [
 
 @mark.integration
 @mark.parametrize("venv,source_file,slice_value,sliced_file", PARAMS)
-def test_slice(
-    venv: str, source_file: str, slice_value: str, sliced_file: str, request
-) -> None:
+def test_slice(request, venv: str, source_file: str, slice_value: str) -> None:
     with use_virtualenv(venv):
         sliced_code = slice_file(
             source_file, slice_value, request.config.getoption("--visualize")
         )
 
         # Verify running manually sliced version works
-        sliced_path = INTEGRATION_DIR / "slices" / sliced_file
+        sliced_path = INTEGRATION_DIR / f"slices/{request.node.callspec.id}.py"
         # Run with ipython so `get_ipython()` is available for sliced magics
         subprocess.run(["ipython", sliced_path], check=True)
         desired_slice = sliced_path.read_text()
