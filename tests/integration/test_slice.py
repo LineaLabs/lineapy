@@ -40,8 +40,19 @@ ENVS: Dict[str, Environment] = {
     ),
     "pytorch": Environment(
         pip=[
-            f"-r {INTEGRATION_DIR / 'sources/pytorch-tutorials/.devcontainer/requirements.txt'}",
-            "rich==11.1.0",
+            line
+            for line in (
+                INTEGRATION_DIR
+                / "sources/pytorch-tutorials/.devcontainer/requirements.txt"
+            )
+            .read_text()
+            .splitlines()
+            if (
+                line
+                and not line.startswith("#")
+                # remove awscli dependency because its incompatible with recent rich
+                and "awscli" not in line
+            )
         ],
     ),
     "dask-examples": Environment(
@@ -262,16 +273,7 @@ def use_env(name: str):
             env_file = create_env_file(env)
             print(f"Creating env from generated file: {env_file}")
             subprocess.run(
-                [
-                    "conda",
-                    "env",
-                    "create",
-                    "--verbose",
-                    "-f",
-                    env_file,
-                    "-p",
-                    env_dir,
-                ],
+                ["conda", "env", "create", "-f", env_file, "-p", env_dir],
                 check=True,
             )
             env_file.unlink()
