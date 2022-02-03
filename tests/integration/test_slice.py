@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 
 import astor
+import pip
 import yaml
 from pytest import mark, param
 
@@ -63,7 +64,7 @@ ENVS: Dict[str, Environment] = {
         ),
     ),
     "tensorflow-docs": Environment(
-        conda_deps=["tensorflow=2.6", "matplotlib", "pillow", "numpy"],
+        conda_deps=["tensorflow=2.6", "matplotlib", "pillow", "numpy"]
     ),
 }
 
@@ -168,6 +169,13 @@ PARAMS = [
             reason="cant install tensorflow_decision_forests on mac"
         ),
     ),
+    param(
+        "tensorflow-docs",
+        "tensorflow-docs/site/en/tutorials/load_data/csv.ipynb",
+        "lineapy.file_system",
+        id="tensorflow_load_csv",
+        marks=mark.xfail(reason="import error"),
+    ),
 ]
 
 
@@ -183,6 +191,12 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
         # Get manually sliced version
         test_id = request.node.callspec.id
         sliced_path = INTEGRATION_DIR / f"slices/{test_id}.py"
+        # If the sliced file does not exist, copy the source file to it
+        if not sliced_path.exists():
+            print(
+                f"Copying file to slice {sliced_path}. Manually edit this slice."
+            )
+            write_python_file(resolved_source_path, sliced_path)
 
         desired_slice = normalize_source(sliced_path.read_text())
 
@@ -286,6 +300,34 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
         return subprocess.run(
             args, check=True, stdout=subprocess.PIPE
         ).stdout.decode()
+    else:
+        raise NotImplementedError()
+
+
+def write_python_file(
+    source_path: pathlib.Path, target_path: pathlib.Path
+) -> None:
+    """
+    Loads the source path and writes it as a Python file to the target path.
+    """
+    file_ending = source_path.suffix
+    if file_ending == ".py":
+        target_path.write_text(source_path.read_text())
+    elif file_ending == ".ipynb":
+        subprocess.run(
+            [
+                "jupyter",
+                "nbconvert",
+                "--to",
+                "python",
+                source_path,
+                "--output-dir",
+                target_path.parent,
+                "--output",
+                target_path.name,
+            ],
+            check=True,
+        )
     else:
         raise NotImplementedError()
 

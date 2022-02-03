@@ -9,7 +9,8 @@ All of the tests so far of the same form, so they are all parameters of the same
 In each the test:
 
 1. Creates a conda environment for the project we are testing against in `envs/<virtualenv name>`, if that directory does not exist. Inside this environemtn, we install a development build of lineapy as well as any requirements needed to run the tests.
-2. Load the hand written ground truth slice of the file from the `slices/<test id>.py` directory.
+2. Load the hand written ground truth slice of the file from the `slices/<test id>.py` directory. If one does not exist, it will create one
+   with the whole Python file.
 3. Overwrite the ground truth file with a prettified version of the source and information about it.
 4. Run the ground truth slice, to make sure that it is accurate.
 5. Load the source file, in some subpath of `sources/` (all of the projects so far are added as submodules under that directory), and feed it into a `lineapy cli` command
@@ -99,8 +100,11 @@ So to add a new test, you have to:
 
 1. Add the sources to the `sources` subfolder. Often, this can be done [using `git submodule add <git url> sources/<desired name>`](https://git-scm.com/book/en/v2/Git-Tools-Submodules#_starting_submodules).
 2. Specify the virtualenv requirements to run the tests in the `VIRTUAL_ENVS` dictionary in `test_slice.py`.
-3. Manually create a slice for the file you want to run in `slices`.
-4. Add a param for this test in `PARAMS` list in `test_slice.py`.
+3. Add a param for this test in `PARAMS` list in `test_slice.py`.
+4. Run the test with `pytest 'tests/integration/test_slice.py::test_slice[<id>]' -m 'integration' to create a slice file for it
+5. Manually edit the slice file to make it accurate.
+6. Re-run the test. If it passes, that's great! If not, add an `xfail` with a `reason=` to describe why. If it only failed on comparing
+   the slices, add a `raises=AssertionError` to document that the test passed up until the assert.
 
 ## Possible Improvements
 
