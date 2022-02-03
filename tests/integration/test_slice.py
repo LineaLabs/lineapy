@@ -176,6 +176,13 @@ PARAMS = [
         id="tensorflow_load_csv",
         marks=mark.xfail(reason="import error"),
     ),
+    param(
+        "tensorflow-docs",
+        "tensorflow-docs/site/en/tutorials/keras/regression.ipynb",
+        "lineapy.file_system",
+        id="tensorflow_regression",
+        marks=mark.xfail(reason="time magic"),
+    ),
 ]
 
 
