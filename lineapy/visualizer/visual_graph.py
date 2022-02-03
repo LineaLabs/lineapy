@@ -228,12 +228,12 @@ def process_node(
 
         if node.keyword_args:
             kwargs_contents: List[str] = []
-            for k, kw_id in node.keyword_args.items():
-                sub_id = f"k_{k}"
-                kwargs_contents.append(f"<{sub_id}> {k}")
+            for kw in node.keyword_args:
+                sub_id = f"k_{kw.key}"
+                kwargs_contents.append(f"<{sub_id}> {kw.key}")
                 vg.edge(
                     VisualEdge(
-                        VisualEdgeID(kw_id),
+                        VisualEdgeID(kw.value),
                         VisualEdgeID(n_id, sub_id),
                         VisualEdgeType.KEYWORD_ARG,
                     )

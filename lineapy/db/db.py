@@ -17,6 +17,7 @@ from lineapy.data.types import (
     GlobalNode,
     ImportNode,
     JupyterCell,
+    KeywordArgument,
     Library,
     LineaID,
     LiteralNode,
@@ -205,8 +206,10 @@ class RelationalLineaDB:
                     for i, v in enumerate(node.positional_args)
                 },
                 keyword_args={
-                    KeywordArgORM(name=k, arg_node_id=v)
-                    for k, v in node.keyword_args.items()
+                    KeywordArgORM(
+                        name=v.key, arg_node_id=v.value, starred=v.starred
+                    )
+                    for v in node.keyword_args
                 },
                 global_reads={
                     GlobalReferenceORM(
@@ -357,7 +360,10 @@ class RelationalLineaDB:
                     key=lambda p: p[0],
                 )
             ]
-            keyword_args = {n.name: n.arg_node_id for n in node.keyword_args}
+            keyword_args = [
+                KeywordArgument(n.name, n.arg_node_id, n.starred)
+                for n in node.keyword_args
+            ]
             global_reads = {
                 gr.variable_name: gr.variable_node_id
                 for gr in node.global_reads

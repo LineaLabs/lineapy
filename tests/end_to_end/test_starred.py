@@ -1,7 +1,6 @@
 import pytest
 
 
-@pytest.mark.xfail
 def test_starred_executes(execute):
     CODE = """def func(a,b):
     return a+b
@@ -10,7 +9,7 @@ args = {'a':1, 'b':2}
 ret = func(**args)
 """
     ret = execute(CODE)
-    assert ret == 3
+    assert ret.values["ret"] == 3
 
 
 def test_starred2_executes(execute):

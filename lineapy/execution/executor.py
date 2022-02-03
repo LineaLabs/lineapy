@@ -265,10 +265,13 @@ class Executor:
                 )
             else:
                 args.append(self._id_to_value[p_arg.id])
-        kwargs = {
-            k: self._id_to_value[arg_id]
-            for k, arg_id in node.keyword_args.items()
-        }
+        kwargs = {}
+        for k in node.keyword_args:
+            if k.starred:
+                kwargs.update(cast(Dict, self._id_to_value[k.value]))
+            else:
+                kwargs.update({k.key: self._id_to_value[k.value]})
+
         logger.debug("Calling function %s %s %s", fn, args, kwargs)
 
         # Set up our execution context, with our globals and node
@@ -431,7 +434,10 @@ class Executor:
                 node.positional_args[pointer.positional_argument_index].id
             )
         elif isinstance(pointer, KeywordArgument):
-            return ID(node.keyword_args[pointer.argument_keyword])
+            # these come from annotation specs so should not need to worry about ** dicts
+            for k in node.keyword_args:
+                if k.key == pointer.argument_keyword:
+                    return ID(k.value)
         elif isinstance(pointer, Result):
             return ID(node.id)
         elif isinstance(pointer, BoundSelfOfFunction):

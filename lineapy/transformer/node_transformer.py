@@ -299,7 +299,10 @@ class NodeTransformer(ast.NodeTransformer):
             else:
                 argument_nodes.append(self.visit(arg))
         keyword_argument_nodes = {
-            cast(str, arg.arg): self.visit(arg.value) for arg in node.keywords
+            (
+                cast(str, arg.arg) if arg.arg is not None else f"unpack_{i}"
+            ): self.visit(arg.value)
+            for i, arg in enumerate(node.keywords)
         }
         function_node = self.visit(node.func)
 

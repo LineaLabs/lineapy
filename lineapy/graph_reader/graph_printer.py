@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from lineapy.data.graph import Graph
 
 from lineapy.data.types import (
+    KeywordArgument,
     LineaID,
     NodeType,
     PositionalArgument,
@@ -170,6 +171,13 @@ class GraphPrinter:
                 # Arguments are unordered and we need to sort them to
                 #   make sure that the diffing do not create false negatives
                 v_str = "[" + ", ".join(args) + "]"
+            elif tp == KeywordArgument and shape == SHAPE_LIST:
+                # Sort kwargs on printing for consistant ordering
+                args = [
+                    f"{repr(kwa.key)}: {self.lookup_id(kwa.value)}"
+                    for kwa in sorted(v, key=lambda x: x.key)
+                ]
+                v_str = "{" + ", ".join(args) + "}"
             elif tp == LineaID and shape == SHAPE_DICT:
                 # Sort kwargs on printing for consistant ordering
                 args = [

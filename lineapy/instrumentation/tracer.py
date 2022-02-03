@@ -9,6 +9,7 @@ from lineapy.data.types import (
     CallNode,
     GlobalNode,
     ImportNode,
+    KeywordArgument,
     Library,
     LineaID,
     LiteralNode,
@@ -381,6 +382,14 @@ class Tracer:
                     False,
                 )
 
+    def __get_keyword_arguments(self, keyword_arguments):
+        for k, n in keyword_arguments.items():
+            values = self.mutation_tracker.get_latest_mutate_node(n.id)
+            if k.startswith("unpack_"):
+                yield KeywordArgument("**", values, True)
+            else:
+                yield KeywordArgument(k, values, False)
+
     def call(
         self,
         function_node: Node,
@@ -404,10 +413,7 @@ class Tracer:
             session_id=self.session_context.id,
             function_id=function_node.id,
             positional_args=self.__get_positional_arguments(arguments),
-            keyword_args={
-                k: self.mutation_tracker.get_latest_mutate_node(n.id)
-                for k, n, in keyword_arguments.items()
-            },
+            keyword_args=self.__get_keyword_arguments(keyword_arguments),
             source_location=source_location,
             global_reads={},
             implicit_dependencies=[],
