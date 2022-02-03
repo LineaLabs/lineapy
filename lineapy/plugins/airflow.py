@@ -85,19 +85,19 @@ def sliced_airflow_dag(
         )
 
     return to_airflow(
-        artifacts_code,
-        func_name,
-        Path(tracer.session_context.working_directory),
-        airflow_task_dependencies,
+        artifacts_code=artifacts_code,
+        dag_name=func_name,
+        working_directory=Path(tracer.session_context.working_directory),
+        task_dependencies=airflow_task_dependencies,
     )
 
 
 def to_airflow(
-    airflow_dag_config: Optional[Dict[str, Any]],
     artifacts_code: Dict[str, str],
-    func_name: str,
+    dag_name: str,
     working_directory: Path,
-    task_dependencies: Optional[str],
+    task_dependencies: Optional[str] = None,
+    airflow_dag_config: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Transforms sliced code into airflow code.
@@ -121,7 +121,7 @@ def to_airflow(
     _task_names = []
     for artifact_name, sliced_code in artifacts_code.items():
         # We split the code in import and code blocks and form a function that calculates the artifact
-        artifact_func_name = f"{func_name}_{artifact_name}"
+        artifact_func_name = f"{dag_name}_{artifact_name}"
         _import_block, _code_block, _ = split_code_blocks(
             sliced_code, artifact_func_name
         )
@@ -147,7 +147,7 @@ def to_airflow(
         import_blocks=_import_blocks,
         working_dir_str=working_dir_str,
         code_blocks=_code_blocks,
-        DAG_NAME=func_name,
+        DAG_NAME=dag_name,
         OWNER=OWNER,
         RETRIES=RETRIES,
         START_DATE=START_DATE,

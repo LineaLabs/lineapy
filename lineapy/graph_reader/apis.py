@@ -92,7 +92,10 @@ class LineaArtifact:
         working_dir = Path(session_orm.working_directory)
 
         airflow_code = to_airflow(
-            airflow_dag_config, {self.name: self.code}, self.name, working_dir
+            artifacts_code={self.name: self.code},
+            dag_name=self.name,
+            working_directory=working_dir,
+            airflow_dag_config=airflow_dag_config,
         )
         if filename:
             path = Path(filename)
