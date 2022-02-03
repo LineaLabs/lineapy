@@ -18,3 +18,6 @@
 	path = tests/integration/sources/tensorflow-docs
 	url = git@github.com:tensorflow/docs.git
 	ignore = all
+[submodule "tests/integration/sources/tensorflow-decision-forests"]
+	path = tests/integration/sources/tensorflow-decision-forests
+	url = git@github.com:tensorflow/decision-forests.git

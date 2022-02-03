@@ -63,7 +63,7 @@ ENVS: Dict[str, Environment] = {
         ),
     ),
     "tensorflow-docs": Environment(
-        conda_deps=["tensorflow=2.6", "matplotlib", "pillow", "numpy"]
+        conda_deps=["tensorflow=2.6", "matplotlib", "pillow", "numpy"],
     ),
 }
 
@@ -158,6 +158,15 @@ PARAMS = [
         "lineapy.file_system",
         id="tensorflow_preprocessing_layers",
         marks=mark.xfail(reason="complex assignments"),
+    ),
+    param(
+        "tensorflow-docs",
+        "tensorflow-decision-forests/documentation/tutorials/beginner_colab.ipynb",
+        "lineapy.file_system",
+        id="tensorflow_decision_forests_beginner",
+        marks=mark.xfail(
+            reason="cant install tensorflow_decision_forests on mac"
+        ),
     ),
 ]
 
