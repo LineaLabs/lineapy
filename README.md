@@ -57,9 +57,9 @@ There are three options for getting started quickly:
 
 1. Github CodeSpaces - This is our demo environment where everything (including JupyterLab & Airflow) is already set up for you. You can get started immediately without having to install anything.
 2. Docker - If you prefer to run things locally, then you can download our `lineapy` Docker image and run it.
-3. DIY: clone the repository to build & install `lineapy` locally.
+3. DIY - if you want to dig deeper, then you can clone the repository to build & install `lineapy` locally.
 
-We'll describe these options below.
+We'll describe each of these options in more details below.
 
 ### Github Codespaces
 
