@@ -14,6 +14,8 @@ import astor
 import yaml
 from pytest import mark, param
 
+from lineapy.utils.utils import prettify
+
 INTEGRATION_DIR = pathlib.Path(__file__).parent
 LINEAPY_DIR = INTEGRATION_DIR.parent.parent
 
@@ -150,6 +152,13 @@ PARAMS = [
         id="tensorflow_image_classification",
         marks=mark.xfail(reason="cant pickle tensorflow model"),
     ),
+    param(
+        "tensorflow-docs",
+        "tensorflow-docs/site/en/tutorials/structured_data/preprocessing_layers.ipynb",
+        "lineapy.file_system",
+        id="tensorflow_preprocessing_layers",
+        marks=mark.xfail(reason="complex assignments"),
+    ),
 ]
 
 
@@ -157,31 +166,53 @@ PARAMS = [
 @mark.parametrize("env,source_file,slice_value", PARAMS)
 def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
     with use_env(env):
-        sliced_code = slice_file(
-            source_file, slice_value, request.config.getoption("--visualize")
-        )
 
-        # Verify running manually sliced version works
-        sliced_path = INTEGRATION_DIR / f"slices/{request.node.callspec.id}.py"
+        # change to source directory
+        resolved_source_path = INTEGRATION_DIR / "sources" / source_file
+        os.chdir(resolved_source_path.parent)
+
+        # Get manually sliced version
+        test_id = request.node.callspec.id
+        sliced_path = INTEGRATION_DIR / f"slices/{test_id}.py"
+
+        desired_slice = normalize_source(sliced_path.read_text())
+
+        # Overwrite the manual slice with the transformed code and a header
+        header = (
+            f"# This is the manual slice of:\n"
+            f"#  {slice_value}\n"
+            "# from file:\n"
+            f"#  sources/{source_file}\n"
+            "\n"
+            "# To verify that linea produces the same slice, run:\n"
+            f"#  pytest -m integration --runxfail -vv 'tests/integration/test_slice.py::test_slice[{test_id}]'\n\n"
+        )
+        sliced_path.write_text(header + desired_slice)
+
+        # Verify that manually sliced version works
         # Run with ipython so `get_ipython()` is available for sliced magics
         subprocess.run(["ipython", sliced_path], check=True)
-        desired_slice = sliced_path.read_text()
 
-        # Compare normalized sliced
-        assert normalize_source(sliced_code) == normalize_source(desired_slice)
+        # Slice the file with lineapy
+        sliced_code = slice_file(
+            resolved_source_path,
+            slice_value,
+            request.config.getoption("--visualize"),
+        )
+
+        # Verify slice is the same as desired slice
+        assert normalize_source(sliced_code) == desired_slice
 
 
-def slice_file(source_file: str, slice_value: str, visualize: bool) -> str:
+def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
     """
     Slices the file for the value and returns the code
     """
-    resolved_source_path = INTEGRATION_DIR / "sources" / source_file
-    os.chdir(resolved_source_path.parent)
 
-    file_ending = resolved_source_path.suffix
-    file_name = resolved_source_path.name
+    file_ending = source_path.suffix
+    file_name = source_path.name
 
-    artifact_name = f"{source_file}:{slice_value}"
+    artifact_name = f"{file_name}:{slice_value}"
 
     additional_args: List[Union[str, pathlib.Path]] = (
         [
@@ -285,10 +316,11 @@ def use_env(name: str):
 
 def normalize_source(code: str) -> str:
     """
-    Normalize the source code by going to and from AST, to remove all formatting and comments
+    Normalize the source code by going to and from AST, to remove all formatting and comments,
+    then prettifying with black.
     """
     a = ast.parse(code)
-    return astor.to_source(a)
+    return prettify(astor.to_source(a))
 
 
 def create_env_file(env: Environment) -> Path:
