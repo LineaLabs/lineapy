@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 
 import astor
-import pip
 import yaml
 from pytest import mark, param
 
@@ -64,7 +63,8 @@ ENVS: Dict[str, Environment] = {
         ),
     ),
     "tensorflow-docs": Environment(
-        conda_deps=["tensorflow=2.6", "matplotlib", "pillow", "numpy"]
+        conda_deps=["tensorflow=2.6", "matplotlib", "pillow", "numpy"],
+        pip=["tensorflow_hub"],
     ),
 }
 
@@ -182,6 +182,13 @@ PARAMS = [
         "lineapy.file_system",
         id="tensorflow_regression",
         marks=mark.xfail(reason="time magic"),
+    ),
+    param(
+        "tensorflow-docs",
+        "tensorflow-docs/site/en/tutorials/images/transfer_learning_with_hub.ipynb",
+        "lineapy.file_system",
+        id="tensorflow_transfer_hub",
+        marks=mark.xfail(reason="for loop", raises=AssertionError),
     ),
 ]
 
