@@ -22,6 +22,8 @@ LINEAPY_DIR = INTEGRATION_DIR.parent.parent
 class Environment:
     # List of args to pass to pip install ...
     pip: list[str] = field(default_factory=list)
+    # Extra conda channels to add
+    conda_channels: list[str] = field(default_factory=list)
     # The conda environment file to use
     conda_env: Optional[Path] = None
     # List of additional conda packages to install
@@ -38,8 +40,9 @@ ENVS: Dict[str, Environment] = {
     ),
     "pytorch": Environment(
         pip=[
-            f"-r {INTEGRATION_DIR / 'sources/pytorch-tutorials/requirements.txt'}",
-        ]
+            f"-r {INTEGRATION_DIR / 'sources/pytorch-tutorials/.devcontainer/requirements.txt'}",
+            "rich==11.1.0",
+        ],
     ),
     "dask-examples": Environment(
         conda_env=(
@@ -290,7 +293,7 @@ def create_env_file(env: Environment) -> Path:
     """
     Creates a temporary env file with these dependencies as well as the default ones required for lineapy.
     """
-    channels: set[str] = {"conda-forge"}
+    channels: set[str] = {"conda-forge", *env.conda_channels}
     # Start with all lineapy deps
     dependencies: list[str] = [
         # Downgrade jupyter client https://github.com/jupyter/jupyter_console/issues/241
