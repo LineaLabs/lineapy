@@ -5,16 +5,16 @@ science workflows.
 
 On a high-level, Linea traces the code executed to get an
 **understanding of the code and its context**.
-These understanding of your development process allow Linea to
+This understanding of your development process allow Linea to
 provide a set of tools that help you get more value out of your work.
 
-A natural unit of organization for these code are variables in the code---both
+A natural unit of organization for code are variables in the code---both
 their value and the code used to create them. Our features revolve around these
 units, which we call _artifacts_.
 
 ## Features
 
-We are still early in the process, and we currently support the following features:
+We are still early in the process but we currently support the following features:
 
 - **Code cleanup**: often when working with data, we don't know what efforts
   will pan out. When we do have something we want to keep, we can save it as an
@@ -23,14 +23,14 @@ We are still early in the process, and we currently support the following featur
   Linea's slicing feature makes it easy to share and re-execute these work.
   - This is done automatically by calling the `lineapy.save` API on the variable of interest.
   - `/tests/housing.py` contains an example.
-- **Pipeline extraction**: Automatic creation of [Airflow DAGs](https://github.com/LineaLabs/lineapy/issues/236) (and related systems) from Linea artifacts. Note that we take a radically different approach that tools like Papermill, because we are actually _analyzing the code_ to automatically instrument the optimizations.
+- **Pipeline extraction**: Automatic creation of [Airflow DAGs](https://github.com/LineaLabs/lineapy/issues/236) (and related systems) from Linea artifacts. Note that we take a radically different approach from tools like Papermill, because we are actually _analyzing the code_ to automatically instrument the optimizations.
   - This is done via the API `.to_airflow()` on a linea artifact that is returned either through `.save` or `.get`.
     By default, the generated airflow file is placed under your home directory's `airflow/dag` folders.
-  - `examples/Demo_1_Preprocessing.ipynb` and `examples/Demo_2_Modeling.ipynb` contains two end-to-end examples.
+  - `examples/Demo_1_Preprocessing.ipynb` and `examples/Demo_2_Modeling.ipynb` contain two end-to-end examples.
 - **Artifact store**: Saving and getting artifacts from different sessions/notebooks/scripts.
   - This is done via `lineapy.get` API of artifacts that were saved via `lineapy.save`.
   - You can also view a catalog of saved artifacts through the API `lineapy.catalog`.
-  - `examples/1_Explorations.ipynb` + `/examples/2_APIs.ipynb` contains an example for all three APIs.
+  - `examples/1_Explorations.ipynb` + `/examples/2_APIs.ipynb` contain examples for all three APIs.
 
 ### Future Features
 
@@ -47,15 +47,19 @@ If you have any feedback for us, please get in touch! We welcome feedback on
 Github, either by commenting on existing issues or creating new ones. You can
 also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
 
-## Installing
+## Getting Started
 
-You can run `lineapy` through three options:
+![Linea high level overview](./overview.png)
 
-1. Github CodeSpaces
-2. Docker image
-3. DIY: clone the repository
+You can use `lineapy` by importing the library to your favorite notebook, saving artifacts, retrieving existing ones, or exporting them to airflow DAGs. Once exported, you can use the Airflow dashboard to run these DAGs (as shown in the image above).
 
-We'll describe the options below.
+There are three options for getting started quickly:
+
+1. Github CodeSpaces - This is our demo environment where everything (including JupyterLab & Airflow) is already set up for you. You can get started immediately without having to install anything.
+2. Docker - If you prefer to run things locally, then you can download our `lineapy` Docker image and run it.
+3. DIY: clone the repository to build & install `lineapy` locally.
+
+We'll describe these options below.
 
 ### Github Codespaces
 
@@ -64,7 +68,7 @@ tab you can click on the gray button "New codespace".
 
 The first time you load it might take a while to download Docker. Once the
 VS Code interface loads, after a few seconds, the "PORTS" tab on the lower
-panel should load (per the image below).
+panel should load (see the image below).
 
 ![Screenshot of VS Code ports on Codespaces](./ports.png)
 
@@ -81,8 +85,7 @@ to the end, then you will see the Airflow jobs deployed in the dashboard!
 2. Now you can pull and run our image to slice Python code:
 
 ```bash
-$ docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main lineapy --slice "p value" tests/housing.py
-...
+docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main lineapy python --slice "p value" tests/housing.py
 ```
 
 ### Repository
@@ -90,13 +93,12 @@ $ docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main lineapy --
 You can also run Linea by cloning this repository and running the `lineapy`:
 
 ```bash
-$ git clone git@github.com:LineaLabs/lineapy.git
-$ cd lineapy
+git clone git@github.com:LineaLabs/lineapy.git
+cd lineapy
 # Linea currently requires Python 3.8+
-$ pip install -r requirements.txt
-$ python setup.py install
-$ lineapy --slice "p value" tests/housing.py
-...
+pip install -r requirements.txt
+python setup.py install
+lineapy python --slice "p value" tests/housing.py
 ```
 
 Note that if you are not using Codespaces and are manually running Airflow and JupyterLab,
@@ -117,7 +119,7 @@ stores the semantics of your code into a database, which we are working on expos
 as well.
 
 ```bash
-$ lineapy --help
+$ lineapy python --help
 Usage: lineapy python [OPTIONS] FILE_NAME
 
 Options:
