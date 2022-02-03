@@ -153,6 +153,20 @@ class NodeTransformer(ast.NodeTransformer):
                 f"Don't know how to transform {type(node).__name__}"
             )
 
+    def visit_Ellipsis(self, node: ast.Ellipsis) -> LiteralNode:
+        """
+        Note
+        ----
+
+        Deprecated in Python 3.8
+        """
+        if sys.version_info >= (3, 8):
+            raise NotImplementedError(
+                "Ellipsis nodes are deprecated since Python 3.8"
+            )
+        else:
+            return self.tracer.literal(..., self.get_source(node))
+
     def visit_Str(self, node: ast.Str) -> LiteralNode:
         """
         Note
