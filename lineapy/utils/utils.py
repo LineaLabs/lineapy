@@ -35,6 +35,8 @@ def get_literal_value_from_string(
         return None
     if literal_type == LiteralType.String:
         return val
+    if literal_type == LiteralType.Ellipsis:
+        return ...
     raise NotImplementedError(f"Unsupported literal type: {literal_type}")
 
 
