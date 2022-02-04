@@ -1,5 +1,6 @@
 import ast
 import logging
+from pathlib import Path
 import sys
 from typing import Any, Iterable, Optional, cast
 
@@ -120,6 +121,9 @@ class NodeTransformer(ast.NodeTransformer):
         )
         tracer.db.write_source_code(self.source_code)
         self.tracer = tracer
+        # Set __file__ to the pathname of the file
+        if isinstance(location, Path):
+            tracer.executor.module_file = str(location)
         # The result of the last line, a node if it was an expression,
         # None if it was a statement. Used by ipython to grab the last value
         self.last_statement_result: Optional[Node] = None

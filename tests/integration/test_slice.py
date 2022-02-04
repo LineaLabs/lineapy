@@ -66,7 +66,9 @@ ENVS: Dict[str, Environment] = {
         conda_deps=["tensorflow=2.6", "matplotlib", "pillow", "numpy"],
         pip=["tensorflow_hub"],
     ),
-    "xgboost": Environment(conda_deps=["xgboost", "scikit-learn", "numpy"]),
+    "xgboost": Environment(
+        conda_deps=["xgboost", "scikit-learn", "numpy", "scipy"]
+    ),
 }
 
 # A list of the params to test
@@ -201,6 +203,12 @@ PARAMS = [
         id="xgboost_sklearn_examples",
         marks=mark.xfail(reason="garbage collection"),
     ),
+    param(
+        "xgboost",
+        "xgboost/demo/guide-python/basic_walkthrough.py",
+        "lineapy.file_system",
+        id="xgboost_basic_walkthrough",
+    ),
 ]
 
 
@@ -211,7 +219,8 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
 
         # change to source directory
         resolved_source_path = INTEGRATION_DIR / "sources" / source_file
-        os.chdir(resolved_source_path.parent)
+        source_dir = resolved_source_path.parent
+        os.chdir(source_dir)
 
         # Get manually sliced version
         test_id = request.node.callspec.id
@@ -235,13 +244,22 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
             "# To verify that linea produces the same slice, run:\n"
             f"#  pytest -m integration --runxfail -vv 'tests/integration/test_slice.py::test_slice[{test_id}]'\n\n"
         )
-        sliced_path.write_text(header + desired_slice)
+        sliced_file_contents = header + desired_slice
+        sliced_path.write_text(sliced_file_contents)
 
         # Verify that manually sliced version works
         # Run with ipython so `get_ipython()` is available for sliced magics
-        subprocess.run(["ipython", sliced_path], check=True)
+        # Copy to file in source directory, so __file__ resolves properly in sliced code
+        with tempfile.NamedTemporaryFile(
+            dir=source_dir, suffix=".py"
+        ) as tmp_file:
+            print(f"\n\nRunning tmp slice at {tmp_file.name}")
+            tmp_file.write(sliced_file_contents.encode())
+            tmp_file.flush()
+            subprocess.run(["ipython", tmp_file.name], check=True)
 
         # Slice the file with lineapy
+        print(f"\n\nRunning lineapy to slice {resolved_source_path}")
         sliced_code = slice_file(
             resolved_source_path,
             slice_value,

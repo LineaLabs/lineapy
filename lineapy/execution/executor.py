@@ -98,6 +98,10 @@ class Executor:
     # Note: This is set in Jupyter so that `get_ipython` is defined
     _globals: dict[str, object]
 
+    # The __file__ for the module being executed
+    # https://docs.python.org/3/reference/import.html#file__
+    module_file: Optional[str] = None
+
     # The execution to record the values in
     # This is accessed via the ExecutionContext, which is set when executing a node
     # so that artifacts created during the execution know which execution they should refer to.
@@ -457,6 +461,10 @@ class Executor:
         """
         Lookup a value from a string identifier.
         """
+        if name == "__file__":
+            if self.module_file:
+                return self.module_file
+            raise ValueError("No __file__ set")
         if hasattr(builtins, name):
             return getattr(builtins, name)
         if hasattr(operator, name):
