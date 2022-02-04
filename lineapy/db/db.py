@@ -353,7 +353,9 @@ class RelationalLineaDB:
                         # but mypy thinks it is
                         (
                             cast(int, p.index),
-                            PositionalArgument(p.arg_node_id, p.starred),
+                            PositionalArgument(
+                                id=p.arg_node_id, starred=p.starred
+                            ),
                         )
                         for p in node.positional_args
                     ),
@@ -361,7 +363,9 @@ class RelationalLineaDB:
                 )
             ]
             keyword_args = [
-                KeywordArgument(n.name, n.arg_node_id, n.starred)
+                KeywordArgument(
+                    key=n.name, value=n.arg_node_id, starred=n.starred
+                )
                 for n in node.keyword_args
             ]
             global_reads = {

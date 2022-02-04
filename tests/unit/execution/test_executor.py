@@ -74,10 +74,10 @@ def test_execute_import_nonexistant(executor: Executor):
 
     user_exception: UserException = excinfo.value
 
-    with raises(ImportError) as excinfo:
+    with raises(ImportError) as excinfo2:
         import nonexistant_module  # noqa
     # Verify string is same as builtin exception
-    assert str(excinfo.value) == str(user_exception.__cause__)
+    assert str(excinfo2.value) == str(user_exception.__cause__)
 
 
 def test_execute_import_exception(executor: Executor):
@@ -94,10 +94,10 @@ def test_execute_import_exception(executor: Executor):
 
     user_exception: UserException = excinfo.value
 
-    with raises(ZeroDivisionError) as excinfo:
+    with raises(ZeroDivisionError) as excinfo2:
         import lineapy.utils.__error_on_load  # noqa
     # Verify string is same as builtin exception
-    assert str(excinfo.value) == str(user_exception.__cause__)
+    assert str(excinfo2.value) == str(user_exception.__cause__)
 
 
 def test_execute_call(executor: Executor):
@@ -118,7 +118,7 @@ def test_execute_call(executor: Executor):
             id=id_,
             session_id="unused",
             function_id="neg",
-            positional_args=[PositionalArgument("one")],
+            positional_args=[PositionalArgument(id=LineaID("one"))],
         )
     )
     # There should be no side effects
@@ -186,7 +186,7 @@ def test_execute_call_mutable_input_vars(executor: Executor):
         CallNode(
             id="assign_call",
             function_id="l_exec_statement",
-            positional_args=[PositionalArgument("assign_str")],
+            positional_args=[PositionalArgument(id=LineaID("assign_str"))],
             session_id="",
         ),
         {"x": LineaID("list")},
@@ -276,8 +276,8 @@ def test_execute_mutate(executor: Executor):
             id="append_method",
             function_id="getattr",
             positional_args=[
-                PositionalArgument("list"),
-                PositionalArgument("append_str"),
+                PositionalArgument(id=LineaID("list")),
+                PositionalArgument(id=LineaID("append_str")),
             ],
             session_id="",
         )
@@ -290,7 +290,7 @@ def test_execute_mutate(executor: Executor):
         CallNode(
             id="call_append",
             function_id="append_method",
-            positional_args=[PositionalArgument("one")],
+            positional_args=[PositionalArgument(id=LineaID("one"))],
             session_id="",
         )
     )

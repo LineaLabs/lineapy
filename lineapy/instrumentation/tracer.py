@@ -372,23 +372,23 @@ class Tracer:
         for arg in arguments:
             if isinstance(arg, tuple):
                 yield PositionalArgument(
-                    self.mutation_tracker.get_latest_mutate_node(arg[1].id),
-                    arg[0],
+                    id=self.mutation_tracker.get_latest_mutate_node(arg[1].id),
+                    starred=arg[0],
                 )
 
             else:
                 yield PositionalArgument(
-                    self.mutation_tracker.get_latest_mutate_node(arg.id),
-                    False,
+                    id=self.mutation_tracker.get_latest_mutate_node(arg.id),
+                    starred=False,
                 )
 
     def __get_keyword_arguments(self, keyword_arguments):
         for k, n in keyword_arguments.items():
             values = self.mutation_tracker.get_latest_mutate_node(n.id)
             if k.startswith("unpack_"):
-                yield KeywordArgument("**", values, True)
+                yield KeywordArgument(key="**", value=values, starred=True)
             else:
-                yield KeywordArgument(k, values, False)
+                yield KeywordArgument(key=k, value=values, starred=False)
 
     def call(
         self,
