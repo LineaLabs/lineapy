@@ -345,7 +345,7 @@ def test_execute_global(executor: Executor):
         CallNode(
             id="assign_call",
             function_id="l_exec_statement",
-            positional_args=[PositionalArgument("assign_str")],
+            positional_args=[PositionalArgument(id=LineaID("assign_str"))],
             session_id="",
         )
     )
