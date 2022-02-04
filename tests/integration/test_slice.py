@@ -208,6 +208,7 @@ PARAMS = [
         "xgboost/demo/guide-python/basic_walkthrough.py",
         "lineapy.file_system",
         id="xgboost_basic_walkthrough",
+        marks=mark.xfail(reason="import error"),
     ),
 ]
 
