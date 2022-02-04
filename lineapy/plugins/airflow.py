@@ -3,11 +3,25 @@ from typing import Any, Dict, List, Optional
 
 import isort
 from jinja2 import Environment, FileSystemLoader
+from typing_extensions import TypedDict
 
 import lineapy
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
+
+AirflowDagConfig = TypedDict(
+    "AirflowDagConfig",
+    {
+        "owner": str,
+        "retries": int,
+        "start_date": str,
+        "schedule_interval": str,
+        "max_active_runs": int,
+        "catchup": str,
+    },
+    total=False,
+)
 
 
 def split_code_blocks(code: str, func_name: str):
@@ -97,7 +111,7 @@ def to_airflow(
     dag_name: str,
     working_directory: Path,
     task_dependencies: Optional[str] = None,
-    airflow_dag_config: Optional[Dict[str, Any]] = None,
+    airflow_dag_config: Optional[AirflowDagConfig] = None,
 ) -> str:
     """
     Transforms sliced code into airflow code.
@@ -136,12 +150,16 @@ def to_airflow(
     MAX_ACTIVE_RUNS = 1
     CATCHUP = "False"
     if airflow_dag_config:
-        OWNER = airflow_dag_config.get("owner", None)
-        RETRIES = airflow_dag_config.get("retries", None)
-        START_DATE = airflow_dag_config.get("start_date", None)
-        SCHEDULE_IMTERVAL = airflow_dag_config.get("schedule_interval", None)
-        MAX_ACTIVE_RUNS = airflow_dag_config.get("max_active_runs", None)
-        CATCHUP = airflow_dag_config.get("catchup", None)
+        OWNER = airflow_dag_config.get("owner", OWNER)
+        RETRIES = airflow_dag_config.get("retries", RETRIES)
+        START_DATE = airflow_dag_config.get("start_date", START_DATE)
+        SCHEDULE_IMTERVAL = airflow_dag_config.get(
+            "schedule_interval", SCHEDULE_IMTERVAL
+        )
+        MAX_ACTIVE_RUNS = airflow_dag_config.get(
+            "max_active_runs", MAX_ACTIVE_RUNS
+        )
+        CATCHUP = airflow_dag_config.get("catchup", CATCHUP)
 
     full_code = AIRFLOW_DAG_TEMPLATE.render(
         import_blocks=_import_blocks,

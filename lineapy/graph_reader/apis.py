@@ -16,7 +16,7 @@ from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.plugins.airflow import to_airflow
+from lineapy.plugins.airflow import AirflowDagConfig, to_airflow
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class LineaArtifact:
 
     def to_airflow(
         self,
-        airflow_dag_config: Optional[Dict[str, Any]] = None,
+        airflow_dag_config: Optional[AirflowDagConfig] = None,
         filename: Optional[str] = None,
     ) -> Path:
         """
