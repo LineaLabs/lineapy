@@ -21,3 +21,6 @@
 [submodule "tests/integration/sources/tensorflow-decision-forests"]
 	path = tests/integration/sources/tensorflow-decision-forests
 	url = git@github.com:tensorflow/decision-forests.git
+[submodule "tests/integration/sources/xgboost"]
+	path = tests/integration/sources/xgboost
+	url = git@github.com:dmlc/xgboost.git

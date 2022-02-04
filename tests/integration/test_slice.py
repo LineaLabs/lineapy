@@ -66,6 +66,7 @@ ENVS: Dict[str, Environment] = {
         conda_deps=["tensorflow=2.6", "matplotlib", "pillow", "numpy"],
         pip=["tensorflow_hub"],
     ),
+    "xgboost": Environment(conda_deps=["xgboost", "scikit-learn", "numpy"]),
 }
 
 # A list of the params to test
@@ -189,6 +190,16 @@ PARAMS = [
         "lineapy.file_system",
         id="tensorflow_transfer_hub",
         marks=mark.xfail(reason="for loop", raises=AssertionError),
+    ),
+    ##
+    # XGBoost
+    ##
+    param(
+        "xgboost",
+        "xgboost/demo/guide-python/sklearn_examples.py",
+        "lineapy.file_system",
+        id="xgboost_sklearn_examples",
+        marks=mark.xfail(reason="garbage collection"),
     ),
 ]
 
