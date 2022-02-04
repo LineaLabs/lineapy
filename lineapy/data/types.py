@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, NewType, Optional, Union
 
 from pydantic import BaseModel
-from pydantic.dataclasses import dataclass
 
 
 class SessionType(Enum):
@@ -315,14 +314,12 @@ class ImportNode(BaseNode):
     library: Library
 
 
-@dataclass
-class PositionalArgument:
+class PositionalArgument(BaseModel):
     id: LineaID
     starred: bool = False
 
 
-@dataclass
-class KeywordArgument:
+class KeywordArgument(BaseModel):
     key: str
     value: LineaID
     starred: bool = False
