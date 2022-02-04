@@ -17,6 +17,7 @@ from lineapy.data.types import (
     GlobalNode,
     ImportNode,
     JupyterCell,
+    KeywordArgument,
     Library,
     LineaID,
     LiteralNode,
@@ -25,6 +26,7 @@ from lineapy.data.types import (
     MutateNode,
     Node,
     NodeValue,
+    PositionalArgument,
     SessionContext,
     SourceCode,
     SourceLocation,
@@ -198,12 +200,16 @@ class RelationalLineaDB:
                 **args,
                 function_id=node.function_id,
                 positional_args={
-                    PositionalArgORM(index=i, arg_node_id=v)
+                    PositionalArgORM(
+                        index=i, starred=v.starred, arg_node_id=v.id
+                    )
                     for i, v in enumerate(node.positional_args)
                 },
                 keyword_args={
-                    KeywordArgORM(name=k, arg_node_id=v)
-                    for k, v in node.keyword_args.items()
+                    KeywordArgORM(
+                        name=v.key, arg_node_id=v.value, starred=v.starred
+                    )
+                    for v in node.keyword_args
                 },
                 global_reads={
                     GlobalReferenceORM(
@@ -345,13 +351,23 @@ class RelationalLineaDB:
                     (
                         # Not sure why we need cast here, index field isn't optional
                         # but mypy thinks it is
-                        (cast(int, p.index), p.arg_node_id)
+                        (
+                            cast(int, p.index),
+                            PositionalArgument(
+                                id=p.arg_node_id, starred=p.starred
+                            ),
+                        )
                         for p in node.positional_args
                     ),
                     key=lambda p: p[0],
                 )
             ]
-            keyword_args = {n.name: n.arg_node_id for n in node.keyword_args}
+            keyword_args = [
+                KeywordArgument(
+                    key=n.name, value=n.arg_node_id, starred=n.starred
+                )
+                for n in node.keyword_args
+            ]
             global_reads = {
                 gr.variable_name: gr.variable_node_id
                 for gr in node.global_reads

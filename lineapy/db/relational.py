@@ -33,6 +33,7 @@ from datetime import datetime
 from typing import Union
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     Column,
     DateTime,
@@ -253,9 +254,10 @@ class PositionalArgORM(Base):
     call_node_id: str = Column(
         ForeignKey("call_node.id"), primary_key=True, nullable=False
     )
-    arg_node_id: str = Column(
+    arg_node_id: LineaID = Column(
         ForeignKey("node.id"), primary_key=True, nullable=False
     )
+    starred: bool = Column(Boolean, nullable=False, default=False)
     index = Column(Integer, primary_key=True, nullable=False)
     argument = relationship(BaseNodeORM, uselist=False)
 
@@ -265,10 +267,11 @@ class KeywordArgORM(Base):
     call_node_id: str = Column(
         ForeignKey("call_node.id"), primary_key=True, nullable=False
     )
-    arg_node_id: str = Column(
+    arg_node_id: LineaID = Column(
         ForeignKey("node.id"), primary_key=True, nullable=False
     )
-    name = Column(String, primary_key=True, nullable=False)
+    starred: bool = Column(Boolean, nullable=False, default=False)
+    name: str = Column(String, primary_key=True, nullable=False)
     argument = relationship(BaseNodeORM, uselist=False)
 
 

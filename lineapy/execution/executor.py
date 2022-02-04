@@ -255,13 +255,21 @@ class Executor:
         # If we are getting an attribute, save the value in case
         # we later call it as a bound method and need to track its mutations
         if fn is getattr:
-            self._node_to_bound_self[node.id] = node.positional_args[0]
+            self._node_to_bound_self[node.id] = node.positional_args[0].id
 
-        args = [self._id_to_value[arg_id] for arg_id in node.positional_args]
-        kwargs = {
-            k: self._id_to_value[arg_id]
-            for k, arg_id in node.keyword_args.items()
-        }
+        args: List[object] = []
+        for p_arg in node.positional_args:
+            if p_arg.starred:
+                args.extend(cast(Iterable, self._id_to_value[p_arg.id]))
+            else:
+                args.append(self._id_to_value[p_arg.id])
+        kwargs = {}
+        for k in node.keyword_args:
+            if k.starred:
+                kwargs.update(cast(Dict, self._id_to_value[k.value]))
+            else:
+                kwargs.update({k.key: self._id_to_value[k.value]})
+
         logger.debug("Calling function %s %s %s", fn, args, kwargs)
 
         # Set up our execution context, with our globals and node
@@ -420,9 +428,14 @@ class Executor:
         Maps from a pointer output by the inspect function, to one output by the executor.
         """
         if isinstance(pointer, PositionalArg):
-            return ID(node.positional_args[pointer.positional_argument_index])
+            return ID(
+                node.positional_args[pointer.positional_argument_index].id
+            )
         elif isinstance(pointer, KeywordArgument):
-            return ID(node.keyword_args[pointer.argument_keyword])
+            # these come from annotation specs so should not need to worry about ** dicts
+            for k in node.keyword_args:
+                if k.key == pointer.argument_keyword:
+                    return ID(k.value)
         elif isinstance(pointer, Result):
             return ID(node.id)
         elif isinstance(pointer, BoundSelfOfFunction):

@@ -41,35 +41,36 @@ class TestNodeTransformer:
     nt: NodeTransformer
 
     basic_tests_list = [
-        ("a[2:3]", "Slice", 2),
-        ("a[2:3:2]", "Slice", 2),
-        ("a[2:3]", "Subscript", 2),
-        ("a.x", "Attribute", 1),
-        ("{'a': 1}", "Dict", 1),
-        ("a < b", "Compare", 1),
-        ("a not in []", "Compare", 3),
-        ("a + b", "BinOp", 1),
-        ("a or b", "BoolOp", 1),
-        ("[1,2]", "List", 1),
+        ("a[2:3]", "Slice", 1, 2),
+        ("a[2:3:2]", "Slice", 1, 2),
+        ("a[2:3]", "Subscript", 1, 2),
+        ("a.x", "Attribute", 1, 1),
+        ("{'a': 1}", "Dict", 1, 1),
+        ("a < b", "Compare", 1, 1),
+        ("a not in []", "Compare", 1, 3),
+        ("a + b", "BinOp", 1, 1),
+        ("a or b", "BoolOp", 1, 1),
+        ("[1,2]", "List", 1, 1),
         # set is xfailing right now
-        # ("{1,2}", "Set", 1),
+        # ("{1,2}", "Set", 1, 1),
         # tuple eventually calls tracer.call but we've mocked out the whole thing
-        ("(1,2)", "Tuple", 0),
-        ("not True", "UnaryOp", 1),
-        ("assert True", "Assert", 1),
-        ("fn(*args)", "Expr", 1),
-        ("fn(*args)", "Call", 1),
-        ("fn(*args)", "Starred", 1),
-        ("fn(*args)", "Name", 1),
-        ("print(*'mystring')", "Starred", 1),
+        ("(1,2)", "Tuple", 1, 0),
+        ("not True", "UnaryOp", 1, 1),
+        ("assert True", "Assert", 1, 1),
+        ("fn(*args)", "Expr", 1, 1),
+        ("fn(*args)", "Call", 1, 1),
+        # this reflects and update where we dont visit starred anymore
+        ("fn(*args)", "Starred", 0, 1),
+        ("fn(*args)", "Name", 1, 1),
+        ("print(*'mystring')", "Starred", 0, 1),
         # calls tracer.trace_import but this list checks for tracer.call calls
-        ("import math", "Import", 0),
+        ("import math", "Import", 1, 0),
         # calls tracer.trace_import but this list checks for tracer.call calls
         # TODO - importfrom calls transform_utils which should really be mocked out and
         # tested on their own, in true spirit of unit testing
-        ("from math import sqrt", "ImportFrom", 0),
-        ("a, b = (1,2)", "Assign", 2),
-        ("lambda x: x + 10", "Lambda", 1),
+        ("from math import sqrt", "ImportFrom", 1, 0),
+        ("a, b = (1,2)", "Assign", 1, 2),
+        ("lambda x: x + 10", "Lambda", 1, 1),
     ]
 
     # TODO handle visit_Name as its own test
@@ -101,20 +102,23 @@ class TestNodeTransformer:
     ]
 
     if sys.version_info < (3, 8):
-        basic_tests_list += (("10", "Num", 0),)
+        basic_tests_list += (("10", "Num", 1, 0),)
         # extslice does not call tracer.call but it contains a slice node.
         # that along with subscript will result in two calls
-        basic_tests_list += (("a[:,3]", "ExtSlice", 2),)
+        basic_tests_list += (("a[:,3]", "ExtSlice", 1, 2),)
         basic_test_ids += ["num"]
         basic_test_ids += ["extslice"]
     else:
         # this will break with 3.7
-        basic_tests_list += (("10", "Constant", 0),)
-        basic_tests_list += (("a[:,3]", "Slice", 2),)
+        basic_tests_list += (("10", "Constant", 1, 0),)
+        basic_tests_list += (("a[:,3]", "Slice", 1, 2),)
         basic_test_ids += ["constant"]
         basic_test_ids += ["slice_with_ext"]
 
-    basic_tests = ("code, visitor, call_count", basic_tests_list)
+    basic_tests = (
+        "code, visitor, visitor_count, call_count",
+        basic_tests_list,
+    )
 
     @pytest.fixture(autouse=True)
     def before_everything(self):
@@ -193,7 +197,9 @@ class TestNodeTransformer:
     # catch all for any ast nodes that do not have if conditions and/or very little logic
 
     @pytest.mark.parametrize(*basic_tests, ids=basic_test_ids)
-    def test_code_visited_calls_tracer_call(self, code, visitor, call_count):
+    def test_code_visited_calls_tracer_call(
+        self, code, visitor, visitor_count, call_count
+    ):
         self.nt._get_code_from_node = MagicMock()
         test_node = _get_ast_node(code)
         self.nt.visit(test_node)
@@ -203,9 +209,11 @@ class TestNodeTransformer:
         assert tracer_fn.call_count == call_count
 
     @pytest.mark.parametrize(*basic_tests, ids=basic_test_ids)
-    def test_code_visits_right_visitor(self, code, visitor, call_count):
+    def test_code_visits_right_visitor(
+        self, code, visitor, visitor_count, call_count
+    ):
         test_node = _get_ast_node(code)
         self.nt.__setattr__("visit_" + visitor, MagicMock())
         nt_visitor = self.nt.__getattribute__("visit_" + visitor)
         self.nt.visit(test_node)
-        nt_visitor.assert_called_once()
+        nt_visitor.call_count == visitor_count

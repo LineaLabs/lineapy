@@ -61,7 +61,7 @@ def save(reference: object, name: str) -> LineaArtifact:
     else:
         # Lookup the first arguments id, which is the id for the value, and
         # save that as the artifact
-        value_node_id = call_node.positional_args[0]
+        value_node_id = call_node.positional_args[0].id
 
     execution_id = executor.execution.id
     timing = executor.get_execution_time(value_node_id)

@@ -2,19 +2,21 @@ import logging
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from os import getcwd
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
     GlobalNode,
     ImportNode,
+    KeywordArgument,
     Library,
     LineaID,
     LiteralNode,
     LookupNode,
     MutateNode,
     Node,
+    PositionalArgument,
     SessionContext,
     SessionType,
     SourceLocation,
@@ -366,15 +368,52 @@ class Tracer:
         self.process_node(node)
         return node
 
+    def __get_positional_arguments(self, arguments):
+        for arg in arguments:
+            if isinstance(arg, tuple):
+                yield PositionalArgument(
+                    id=self.mutation_tracker.get_latest_mutate_node(arg[1].id),
+                    starred=arg[0],
+                )
+
+            else:
+                yield PositionalArgument(
+                    id=self.mutation_tracker.get_latest_mutate_node(arg.id),
+                    starred=False,
+                )
+
+    def __get_keyword_arguments(self, keyword_arguments):
+        for k, n in keyword_arguments.items():
+            values = self.mutation_tracker.get_latest_mutate_node(n.id)
+            if k.startswith("unpack_"):
+                yield KeywordArgument(key="**", value=values, starred=True)
+            else:
+                yield KeywordArgument(key=k, value=values, starred=False)
+
     def call(
         self,
         function_node: Node,
         source_location: Optional[SourceLocation],
         # function_name: str,
-        *arguments: Node,
+        *arguments: Union[Node, Tuple[bool, Node]],
         **keyword_arguments: Node,
     ) -> CallNode:
         """
+        :param function_node: the function node to call/execute
+        :param source_location: the source info from user code
+        :param arguments: positional arguments. These are passed as either Nodes (named nodes, constants, etc)
+                            or tuples (starred, the node) where the starred is a boolean to indicate whether
+                            the argument is supposed to be splatted before passing to the function (This is
+                            the case where you might call a function like so `foo(1, *[2, 3])`). The boolean is made
+                            optional simply to support the legacy way of calling this function and not having to pass
+                            the tuples for every single case from node_transformer
+        :param keyword_arguments: keyword arguments. These are passed as a dictionary of keyword arguments to the
+                                    function. Similar to *positional_arguments, the keyword arguments can also be splatted
+                                    by naming the key as `unpack_<index>` where <index> is the index of the argument. In this
+                                    case, the dictionary will be unpacked and passed as keyword arguments to the function.
+                                    The keyword arguments are processed in order of passing so any keyword conflicts will
+                                    result in the last value accepted as the value for the keyword.
+        :return: a call node
         NOTE
         ----
         - It's important for the call to return the call node
@@ -383,18 +422,13 @@ class Tracer:
         - The call looks up if it's a locally defined function. We decided
           that this is better for program slicing.
         """
+
         node = CallNode(
             id=get_new_id(),
             session_id=self.session_context.id,
             function_id=function_node.id,
-            positional_args=[
-                self.mutation_tracker.get_latest_mutate_node(n.id)
-                for n in arguments
-            ],
-            keyword_args={
-                k: self.mutation_tracker.get_latest_mutate_node(n.id)
-                for k, n, in keyword_arguments.items()
-            },
+            positional_args=self.__get_positional_arguments(arguments),
+            keyword_args=self.__get_keyword_arguments(keyword_arguments),
             source_location=source_location,
             global_reads={},
             implicit_dependencies=[],

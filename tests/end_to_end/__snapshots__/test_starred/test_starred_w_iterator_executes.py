@@ -15,6 +15,37 @@ x = func(*it)
 """,
     location=PosixPath("[source file path]"),
 )
+call_2 = CallNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=5,
+        end_lineno=6,
+        end_col_offset=15,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        source_location=SourceLocation(
+            lineno=6,
+            col_offset=5,
+            end_lineno=6,
+            end_col_offset=9,
+            source_code=source_1.id,
+        ),
+        name="iter",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=5,
+                col_offset=7,
+                end_lineno=5,
+                end_col_offset=15,
+                source_code=source_1.id,
+            ),
+            value="myname",
+        ).id
+    ],
+)
 call_4 = CallNode(
     source_location=SourceLocation(
         lineno=7,
@@ -52,39 +83,7 @@ call_4 = CallNode(
                 ),
                 name="next",
             ).id,
-            positional_args=[
-                CallNode(
-                    source_location=SourceLocation(
-                        lineno=6,
-                        col_offset=5,
-                        end_lineno=6,
-                        end_col_offset=15,
-                        source_code=source_1.id,
-                    ),
-                    function_id=LookupNode(
-                        source_location=SourceLocation(
-                            lineno=6,
-                            col_offset=5,
-                            end_lineno=6,
-                            end_col_offset=9,
-                            source_code=source_1.id,
-                        ),
-                        name="iter",
-                    ).id,
-                    positional_args=[
-                        LiteralNode(
-                            source_location=SourceLocation(
-                                lineno=5,
-                                col_offset=7,
-                                end_lineno=5,
-                                end_col_offset=15,
-                                source_code=source_1.id,
-                            ),
-                            value="myname",
-                        ).id
-                    ],
-                ).id
-            ],
+            positional_args=[call_2.id],
         ).id
     ],
 )
@@ -118,21 +117,5 @@ call_5 = CallNode(
             ],
         ).id,
     ).id,
-    positional_args=[
-        LiteralNode(
-            value="y",
-        ).id,
-        LiteralNode(
-            value="n",
-        ).id,
-        LiteralNode(
-            value="a",
-        ).id,
-        LiteralNode(
-            value="m",
-        ).id,
-        LiteralNode(
-            value="e",
-        ).id,
-    ],
+    positional_args=[*call_2.id],
 )

@@ -314,6 +314,17 @@ class ImportNode(BaseNode):
     library: Library
 
 
+class PositionalArgument(BaseModel):
+    id: LineaID
+    starred: bool = False
+
+
+class KeywordArgument(BaseModel):
+    key: str
+    value: LineaID
+    starred: bool = False
+
+
 class CallNode(BaseNode):
     """
     - `function_id`: node containing the value of the function call, which
@@ -327,8 +338,8 @@ class CallNode(BaseNode):
     node_type: NodeType = NodeType.CallNode
 
     function_id: LineaID
-    positional_args: List[LineaID] = []
-    keyword_args: Dict[str, LineaID] = {}
+    positional_args: List[PositionalArgument] = []
+    keyword_args: List[KeywordArgument] = []
 
     # Mapping of global variables that need to be set to call this function
     global_reads: Dict[str, LineaID] = {}
@@ -337,8 +348,8 @@ class CallNode(BaseNode):
 
     def parents(self) -> Iterable[LineaID]:
         yield self.function_id
-        yield from self.positional_args
-        yield from self.keyword_args.values()
+        yield from [node.id for node in self.positional_args]
+        yield from [node.value for node in self.keyword_args]
         yield from self.global_reads.values()
         yield from self.implicit_dependencies
 

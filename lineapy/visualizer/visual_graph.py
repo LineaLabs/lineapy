@@ -214,12 +214,12 @@ def process_node(
         )
         if node.positional_args:
             args_contents: List[str] = []
-            for i, a_id in enumerate(node.positional_args):
+            for i, p_id in enumerate(node.positional_args):
                 sub_id = f"p_{i}"
                 args_contents.append(f"<{sub_id}> {i}")
                 vg.edge(
                     VisualEdge(
-                        VisualEdgeID(a_id),
+                        VisualEdgeID(p_id.id),
                         VisualEdgeID(n_id, sub_id),
                         VisualEdgeType.POSITIONAL_ARG,
                     )
@@ -228,12 +228,12 @@ def process_node(
 
         if node.keyword_args:
             kwargs_contents: List[str] = []
-            for k, a_id in node.keyword_args.items():
-                sub_id = f"k_{k}"
-                kwargs_contents.append(f"<{sub_id}> {k}")
+            for kw in node.keyword_args:
+                sub_id = f"k_{kw.key}"
+                kwargs_contents.append(f"<{sub_id}> {kw.key}")
                 vg.edge(
                     VisualEdge(
-                        VisualEdgeID(a_id),
+                        VisualEdgeID(kw.value),
                         VisualEdgeID(n_id, sub_id),
                         VisualEdgeType.KEYWORD_ARG,
                     )
@@ -257,11 +257,11 @@ def process_node(
             contents += "| {{" + "|".join(global_reads_contents) + "} | vars }"
 
         if node.implicit_dependencies:
-            for ii, a_id in enumerate(node.implicit_dependencies):
+            for ii, im_id in enumerate(node.implicit_dependencies):
                 sub_id = f"i_{ii}"
                 vg.edge(
                     VisualEdge(
-                        VisualEdgeID(a_id),
+                        VisualEdgeID(im_id),
                         VisualEdgeID(n_id),
                         VisualEdgeType.IMPLICIT_DEPENDENCY,
                     )
