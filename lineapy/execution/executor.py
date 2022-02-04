@@ -257,12 +257,10 @@ class Executor:
         if fn is getattr:
             self._node_to_bound_self[node.id] = node.positional_args[0].id
 
-        args = []
+        args: List[object] = []
         for p_arg in node.positional_args:
             if p_arg.starred:
-                args.extend(
-                    [v for v in cast(Iterable, self._id_to_value[p_arg.id])]
-                )
+                args.extend(cast(Iterable, self._id_to_value[p_arg.id]))
             else:
                 args.append(self._id_to_value[p_arg.id])
         kwargs = {}
