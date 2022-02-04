@@ -1,7 +1,7 @@
 import ast
 import logging
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Any, Iterable, Optional, cast
 
 from lineapy.data.types import (
