@@ -24,6 +24,8 @@ dag = DAG(
     dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
 )
 {% endfor %}
+{% if task_dependencies is not none %}
 {{ task_dependencies }}
+{%endif %}
 {% endblock %}
 
