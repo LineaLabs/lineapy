@@ -73,3 +73,28 @@ NameError: name 'matplotlib' is not defined
 ```
 
 When we do the `import x.y` form, we bind the result of importing `x.y` to the local variable `x.y` (which is not even a valid variable name. Instead, we need to import `x.y` but only bind `x` locally, because `x` will have a `y` attribute once, `x.y` is imported.
+
+## Possible Solutions
+
+What we are missing is the behavior that importing a submodule will update the parent module with a reference to it.
+
+In this way, we can see a module import of:
+
+```python
+import x.y.z
+import x.y.q
+
+```
+
+Can be seen as first importing each submodule and then assigning them.
+
+```python
+x = import_module('x')
+x.y = import_module('x.y')
+x.y.z = import_module('x.y.z')
+x.y.q = import_module('x.y.q')
+```
+
+We could model this currently, if we view the import of a submodule as doing a `setattr` of the parent, like above.
+
+In this way, we can see that determing what imports are neccesary when accessing a nested module, is similar to the problem of general field sensititivty analysis, which we have so far punted on.
