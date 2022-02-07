@@ -131,4 +131,169 @@ We can see that it seperates the import into two pieces described above:
 
 We can also see there where we call `getattr` it uses ` IMPORT_FROM` bytecode, to handle getting the `z` submodule or property from `x.y`.
 
-Now we know how it translates these, lets take a look at how these bytecode instructions are interpreted:
+Now we know how it translates these, lets take a look at how these bytecode instructions are interpreted.
+
+The cpython bytecode executor is defined in [`ceval.c`](https://github.com/python/cpython/blob/main/Python/ceval.c).
+
+We can see that `IMPORT_NAME` calls the `import_name` function:
+
+```c
+        TARGET(IMPORT_NAME) {
+            PyObject *name = GETITEM(names, oparg);
+            PyObject *fromlist = POP();
+            PyObject *level = TOP();
+            PyObject *res;
+            res = import_name(tstate, frame, name, fromlist, level);
+            Py_DECREF(level);
+            Py_DECREF(fromlist);
+            SET_TOP(res);
+            if (res == NULL)
+                goto error;
+            DISPATCH();
+        }
+```
+
+and the `IMPORT_FROM` call the `import_from` function:
+
+```c
+        TARGET(IMPORT_FROM) {
+            PyObject *name = GETITEM(names, oparg);
+            PyObject *from = TOP();
+            PyObject *res;
+            res = import_from(tstate, from, name);
+            PUSH(res);
+            if (res == NULL)
+                goto error;
+            DISPATCH();
+        }
+```
+
+In `import_name`, it get the `__import__` function and calls that. It has a "fast path" if the `__import__`
+function is the builtin import function, then it can call that directly, instead of having to do the whole function setup dance:
+
+```c
+static PyObject *
+import_name(PyThreadState *tstate, InterpreterFrame *frame,
+            PyObject *name, PyObject *fromlist, PyObject *level)
+{
+    _Py_IDENTIFIER(__import__);
+    PyObject *import_func, *res;
+    PyObject* stack[5];
+
+    import_func = _PyDict_GetItemIdWithError(frame->f_builtins, &PyId___import__);
+    if (import_func == NULL) {
+        if (!_PyErr_Occurred(tstate)) {
+            _PyErr_SetString(tstate, PyExc_ImportError, "__import__ not found");
+        }
+        return NULL;
+    }
+    PyObject *locals = frame->f_locals;
+    /* Fast path for not overloaded __import__. */
+    if (import_func == tstate->interp->import_func) {
+        int ilevel = _PyLong_AsInt(level);
+        if (ilevel == -1 && _PyErr_Occurred(tstate)) {
+            return NULL;
+        }
+        res = PyImport_ImportModuleLevelObject(
+                        name,
+                        frame->f_globals,
+                        locals == NULL ? Py_None :locals,
+                        fromlist,
+                        ilevel);
+        return res;
+    }
+
+    Py_INCREF(import_func);
+
+    stack[0] = name;
+    stack[1] = frame->f_globals;
+    stack[2] = locals == NULL ? Py_None : locals;
+    stack[3] = fromlist;
+    stack[4] = level;
+    res = _PyObject_FastCall(import_func, stack, 5);
+    Py_DECREF(import_func);
+    return res;
+}
+```
+
+In `import_from`, it takes care of the logic we talked about above with relative imports. It first tries to do an attribute lookup. If that fails, it does an import of the full module, by appending the submodule name to the full package name (I have omitted the error case because it's long and deals with circular imports, which are out of scope).
+
+```c
+static PyObject *
+import_from(PyThreadState *tstate, PyObject *v, PyObject *name)
+{
+    PyObject *x;
+    PyObject *fullmodname, *pkgname, *pkgpath, *pkgname_or_unknown, *errmsg;
+
+    if (_PyObject_LookupAttr(v, name, &x) != 0) {
+        return x;
+    }
+    /* Issue #17636: in case this failed because of a circular relative
+       import, try to fallback on reading the module directly from
+       sys.modules. */
+    pkgname = _PyObject_GetAttrId(v, &PyId___name__);
+    if (pkgname == NULL) {
+        goto error;
+    }
+    if (!PyUnicode_Check(pkgname)) {
+        Py_CLEAR(pkgname);
+        goto error;
+    }
+    fullmodname = PyUnicode_FromFormat("%U.%U", pkgname, name);
+    if (fullmodname == NULL) {
+        Py_DECREF(pkgname);
+        return NULL;
+    }
+    x = PyImport_GetModule(fullmodname);
+    Py_DECREF(fullmodname);
+    if (x == NULL && !_PyErr_Occurred(tstate)) {
+        goto error;
+    }
+    Py_DECREF(pkgname);
+    return x;
+```
+
+In our `import_name`, we can see that it calls `PyImport_ImportModuleLevelObject`. This in term eventually calls `importlib._find_and_load` which calls `_find_and_load_unlocked`. This is finally the place where it calls `setattr` on the parent module:
+
+```python
+def _find_and_load_unlocked(name, import_):
+    path = None
+    parent = name.rpartition('.')[0]
+    parent_spec = None
+    if parent:
+        if parent not in sys.modules:
+            _call_with_frames_removed(import_, parent)
+        # Crazy side-effects!
+        if name in sys.modules:
+            return sys.modules[name]
+        parent_module = sys.modules[parent]
+        try:
+            path = parent_module.__path__
+        except AttributeError:
+            msg = (_ERR_MSG + '; {!r} is not a package').format(name, parent)
+            raise ModuleNotFoundError(msg, name=name) from None
+        parent_spec = parent_module.__spec__
+        child = name.rpartition('.')[2]
+    spec = _find_spec(name, path)
+    if spec is None:
+        raise ModuleNotFoundError(_ERR_MSG.format(name), name=name)
+    else:
+        if parent_spec:
+            # Temporarily add child we are currently importing to parent's
+            # _uninitialized_submodules for circular import tracking.
+            parent_spec._uninitialized_submodules.append(child)
+        try:
+            module = _load_unlocked(spec)
+        finally:
+            if parent_spec:
+                parent_spec._uninitialized_submodules.pop()
+    if parent:
+        # Set the module as an attribute on its parent.
+        parent_module = sys.modules[parent]
+        try:
+            setattr(parent_module, child, module)
+        except AttributeError:
+            msg = f"Cannot set an attribute on {parent!r} for child module {child!r}"
+            _warnings.warn(msg, ImportWarning)
+    return module
+```
