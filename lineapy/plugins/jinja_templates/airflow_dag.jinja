@@ -1,10 +1,3 @@
-{% set OWNER = "airflow" %}
-{% set RETRIES = 2 %}
-{% set START_DATE = "days_ago(1)" %}
-{% set SCHEDULE_IMTERVAL = "*/15 * * * *" %}
-{% set MAX_ACTIVE_RUNS = 1 %}
-{% set CATCHUP = "False" %}
-
 {% extends "base_dag.jinja" %}
 
 {% block plugin_import_block %}
@@ -31,6 +24,8 @@ dag = DAG(
     dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
 )
 {% endfor %}
+{% if task_dependencies is not none %}
 {{ task_dependencies }}
+{%endif %}
 {% endblock %}
 

@@ -16,7 +16,7 @@ from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.graph_reader.program_slice import get_program_slice
-from lineapy.plugins.airflow import to_airflow
+from lineapy.plugins.airflow import AirflowDagConfig, to_airflow
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,11 @@ class LineaArtifact:
         nodes = self.db.get_nodes_for_session(self.session_id)
         return Graph(nodes, session_context)
 
-    def to_airflow(self, filename: Optional[str] = None) -> Path:
+    def to_airflow(
+        self,
+        airflow_dag_config: Optional[AirflowDagConfig] = None,
+        filename: Optional[str] = None,
+    ) -> Path:
         """
         Writes the airflow job to a path on disk.
 
@@ -88,7 +92,10 @@ class LineaArtifact:
         working_dir = Path(session_orm.working_directory)
 
         airflow_code = to_airflow(
-            {self.name: self.code}, self.name, working_dir
+            artifacts_code={self.name: self.code},
+            dag_name=self.name,
+            working_directory=working_dir,
+            airflow_dag_config=airflow_dag_config,
         )
         if filename:
             path = Path(filename)
