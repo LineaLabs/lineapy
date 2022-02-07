@@ -98,3 +98,37 @@ x.y.q = import_module('x.y.q')
 We could model this currently, if we view the import of a submodule as doing a `setattr` of the parent, like above.
 
 In this way, we can see that determing what imports are neccesary when accessing a nested module, is similar to the problem of general field sensititivty analysis, which we have so far punted on.
+
+
+## How does (c)Python handle it?
+
+To get some more background on how we might be able to understand this issue, lets first see how cpython handles it. First, let's take a look at the bytecode emitted for an import:
+
+```bash
+$ python -c 'import dis; dis.dis("import x.y.z")'
+  1           0 LOAD_CONST               0 (0)
+              2 LOAD_CONST               1 (None)
+              4 IMPORT_NAME              0 (x.y.z)
+              6 STORE_NAME               1 (x)
+              8 LOAD_CONST               1 (None)
+             10 RETURN_VALUE
+
+$ python -c 'import dis; dis.dis("from x.y import z")'
+  1           0 LOAD_CONST               0 (0)
+              2 LOAD_CONST               1 (('z',))
+              4 IMPORT_NAME              0 (x.y)
+              6 IMPORT_FROM              1 (z)
+              8 STORE_NAME               1 (z)
+             10 POP_TOP
+             12 LOAD_CONST               2 (None)
+             14 RETURN_VALUE
+```
+
+We can see that it seperates the import into two pieces described above:
+
+1. Load the module with `IMPORT_NAME`
+2. Set the attribute locally with `STORE_NAME`.
+
+We can also see there where we call `getattr` it uses ` IMPORT_FROM` bytecode, to handle getting the `z` submodule or property from `x.y`.
+
+Now we know how it translates these, lets take a look at how these bytecode instructions are interpreted:
