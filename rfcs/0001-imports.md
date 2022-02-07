@@ -297,3 +297,12 @@ def _find_and_load_unlocked(name, import_):
             _warnings.warn(msg, ImportWarning)
     return module
 ```
+
+## Solutions
+
+We can see that even a simpler thing like imports is quite subtle in Python. I did not even touch on `from x import *` here, which we also need to cover.
+
+We can also see the tension in whether to use runtime information to build the graph or not. For example, `from x import y` could either be `y = __import__('x').y` 
+or `y = __import('x.y').y` dependinh on whether `y` is currently present as an attribute of the `x` module or whether its a submodule.
+
+Should this information be in "the graph"? Part of the confusion here stems from the fact that our graph is a static construct, whereas in reality the "graph" for a program evolves as we learn more information about it. Right now we have to draw a (somewhat arbitrary) line in the sand about what we represent at the graph level, and what we handle at runtime.
