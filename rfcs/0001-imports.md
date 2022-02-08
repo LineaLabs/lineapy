@@ -306,3 +306,9 @@ We can also see the tension in whether to use runtime information to build the g
 or `y = __import('x.y').y` dependinh on whether `y` is currently present as an attribute of the `x` module or whether its a submodule.
 
 Should this information be in "the graph"? Part of the confusion here stems from the fact that our graph is a static construct, whereas in reality the "graph" for a program evolves as we learn more information about it. Right now we have to draw a (somewhat arbitrary) line in the sand about what we represent at the graph level, and what we handle at runtime.
+
+---
+
+Grumbling aside, if we try to draw out some design constraints for our current system they could be:
+
+1. Use as much runtime information as possible to compute the graph, given that you know the runtime information is consistant regardless of the environment. This means if we know at runtime that `x` is a submodule of `y`, then we can build into the graph that `from y import x` should do an import of `y.x` before calling the `getattr`.
