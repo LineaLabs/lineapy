@@ -8,7 +8,7 @@ All of the tests so far of the same form, so they are all parameters of the same
 
 In each the test:
 
-1. Creates a conda environment for the project we are testing against in `envs/<virtualenv name>`, if that directory does not exist. Inside this environemtn, we install a development build of lineapy as well as any requirements needed to run the tests.
+1. Creates a conda environment for the project we are testing against in `envs/<virtualenv name>`, if that directory does not exist. Inside this environment, we install a development build of lineapy as well as any requirements needed to run the tests.
 2. Load the hand written ground truth slice of the file from the `slices/<test id>.py` directory. If one does not exist, it will create one from the source file. Also prettify the file and save it back, to remove comments unneccesary spaces.
 3. Run the ground truth slice, to make sure that it is accurate.
 4. Run the lineapy CLI on the source file (in `sources/`) to create a slice of it.
