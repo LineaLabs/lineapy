@@ -1,4 +1,4 @@
-# Imports 
+# Imports
 
 The goal of this RFC is to propose a way to improve our way of dealing with imports.
 
@@ -11,10 +11,9 @@ The outline of this RFC is:
 5. Document how other software handles Python imports
 6. Propose a concrete solution for lineapy.
 
-
 ## Python Imports
 
-*An overview of Python's imports, summerized from ["5. The import system"](https://docs.python.org/3/reference/import.html)*.
+_An overview of Python's imports, summerized from ["5. The import system"](https://docs.python.org/3/reference/import.html)_.
 
 In Python, imports are the method for loading code from another module. The `import` statement does two main tasks:
 
@@ -22,7 +21,6 @@ In Python, imports are the method for loading code from another module. The `imp
 2. Binds names in local scope to pieces of the module
 
 Modules can nested within one another to make submodules. Submodules can be accessed as attributes of the parent module, if they are loaded. This is the main part that is not implemented correctly currently. It's documented under the ["Submodules"](https://docs.python.org/3/reference/import.html#submodules) section of the Python docs.
-
 
 ## Current Approach in `lineapy`
 
@@ -40,8 +38,7 @@ An import from of an attribute in the module:
 import attribute from module
 ```
 
-Both of these use `importlib` to first get a `module` object. In the case of the first, we then bind that module object to it's name as a local variable.  For the second, we bind each attribute as a name, getting that attribute from the module
-
+Both of these use `importlib` to first get a `module` object. In the case of the first, we then bind that module object to it's name as a local variable. For the second, we bind each attribute as a name, getting that attribute from the module
 
 ## Shortcomings
 
@@ -59,7 +56,6 @@ AttributeError: module 'matplotlib' has no attribute 'pyplot'
 ```
 
 When trying to performing a `getattr(x, "y")`, and if `x.y` has not been imported, then `y` will not be an attribute of the `x` module yet.
-
 
 Second, we cannot import a submodule and then refer to the parent module:
 
@@ -98,7 +94,6 @@ x.y.q = import_module('x.y.q')
 We could model this currently, if we view the import of a submodule as doing a `setattr` of the parent, like above.
 
 In this way, we can see that determing what imports are neccesary when accessing a nested module, is similar to the problem of general field sensititivty analysis, which we have so far punted on.
-
 
 ## How does (c)Python handle it?
 
@@ -298,17 +293,121 @@ def _find_and_load_unlocked(name, import_):
     return module
 ```
 
-## Solutions
+## Possible Solution
 
-We can see that even a simpler thing like imports is quite subtle in Python. I did not even touch on `from x import *` here, which we also need to cover.
+One possible solution is to treat each import any parent imports, and to keep submodules as "views" of their parents. That way, importing a submodule will "modify" the parent, and make sure that we keep it.
 
-We can also see the tension in whether to use runtime information to build the graph or not. For example, `from x import y` could either be `y = __import__('x').y` 
-or `y = __import('x.y').y` dependinh on whether `y` is currently present as an attribute of the `x` module or whether its a submodule.
+Doing this wouldn't let us slice two different submodule imports, like:
 
-Should this information be in "the graph"? Part of the confusion here stems from the fact that our graph is a static construct, whereas in reality the "graph" for a program evolves as we learn more information about it. Right now we have to draw a (somewhat arbitrary) line in the sand about what we represent at the graph level, and what we handle at runtime.
+```python
+import x.y
+import x.z
 
----
+slice(x.y.method())
+# This should slice out `import x.z`
+```
 
-Grumbling aside, if we try to draw out some design constraints for our current system they could be:
+but I think that is fine for the time being. We haven't been doing any slicing based off of which attribute you access, so I think it's ok to keep this for modules as well. When we want to tackle tracking properties, we can tackle this case as well.
 
-1. Use as much runtime information as possible to compute the graph, given that you know the runtime information is consistant regardless of the environment. This means if we know at runtime that `x` is a submodule of `y`, then we can build into the graph that `from y import x` should do an import of `y.x` before calling the `getattr`.
+We keep our own internal version of `sys.modules` to map each module name to the ID of the node which imports
+that module. We also make all imports relative to their parents, so that we can track all the view relationships.
+
+Here, I convert the `ModuleNode` into a function call, `l_import` to make it more clear that it is simply
+a function call to import the module, and there is nothing special about the node.
+
+```python
+
+##
+# Linea builtins
+##
+def l_import(name: str, base_module: types.ModuleType = None) -> types.ModuleType:
+    """
+    Imports and returns a module. If the base_module is provided, the module
+    will be a submodule of the base.
+
+    Modifes the `base_module` if provided and adds a view between them.
+    """
+    assert "." not in name
+    full_name = base_module.__name__ + "." + name if base_module else name
+    __import__(full_name)
+    return sys.modules[full_name]
+
+##
+# Tracer
+##
+
+class Tracer:
+    # Mapping of module name to node of module.
+    modules: dict[str, LineaID] = {}
+
+    def import_module(self, name: str) -> LineaID:
+        """
+        Import a module. If we have already imported it, just return its ID.
+        Otherwise, create new module nodes for each submodule in its parents and return it.
+        """
+        if name in self.modules:
+            return self.modules[name]
+        # Recursively go up the tree, to try to get parents, and if we don't have them, import them
+        *parents, module_name = name.split(".")
+        if parents:
+            parent_module = self.import_module(".".join(parents))
+            module = l_import(module_name, parent_module)
+        else:
+            module = l_import(module_name)
+
+        self.modules[name] = module
+        return module
+
+```
+
+Here is some pseudocode to handle the most common cases in the tracer:
+
+`from x import y`:
+
+```python
+def handle_from_import(self, base: str, from_: str) -> None:
+    """
+    If `x.y` is a module, load that, otherwise get the `y` attribute of `x`.
+    """
+    complete_name = f"{base}.{from_}"
+    if is_module(complete_name):
+        value = self.import_module(complete_name)
+    else:
+        value = self.call("getattr", self.import_module(base), from_)
+    self.assign(from_, value)
+```
+
+`import x.y`:
+
+```python
+def handle_import(self, module_name: str) -> None:
+    """
+    Load the module `x.y` and set the base module.
+    """
+    self.import_module(module_name)
+    base_module = module_name.split(".")[0]
+    self.assign(base_module, self.import_module(base_module))
+```
+
+`import x.y as z`:
+
+```python
+def handle_import(self, module_name: str, as_: str) -> None:
+    """
+    Import the full module and set it to the name
+    """
+    self.assign(as_, self.import_module(module_name))
+```
+
+`from x.y import *`:
+
+```python
+def handle_import(self, module_name: str) -> None:
+    """
+    Import the module, get all public attributes, and set them as globals
+    """
+    module_node = self.import_module(module_name)
+    module = self.executor.get_value(module_node.id)
+    for attr in get_public_attributes(module):
+        self.assign(attr, self.call("getattr", module_node, attr))
+```
