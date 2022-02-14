@@ -1,3 +1,7 @@
+import lineapy.graph_reader.program_slice as ps
+from lineapy.execution.executor import Executor
+
+
 def test_mutate(execute):
     """
     Tests that calling a mutate function in an exec properly tracks it.
@@ -52,6 +56,14 @@ if True:
     x.append(1)
 """
     res = execute(c, artifacts=["x"])
+    artifact_id = res.db.get_artifact_by_name("x").node_id
+    # slice_nodes = res.graph.get_ancestors(artifact_id)
+    # slice_graph = res.graph.get_subgraph(slice_nodes)
+    slice_graph = ps.get_slice_graph(res.graph, [artifact_id])
+    res_slice = Executor(res.db, globals())
+    res_slice.execute_graph(slice_graph)
+    assert res_slice.get_value(artifact_id) == res.values["x"]
+
     assert (
         res.artifacts["x"]
         == """if True:

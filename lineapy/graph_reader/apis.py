@@ -15,7 +15,11 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import BaseNodeORM, SessionContextORM
-from lineapy.graph_reader.program_slice import get_program_slice
+from lineapy.execution.executor import Executor
+from lineapy.graph_reader.program_slice import (
+    get_slice_graph,
+    get_source_code_from_graph,
+)
 from lineapy.plugins.airflow import AirflowDagConfig, to_airflow
 
 logger = logging.getLogger(__name__)
@@ -52,12 +56,19 @@ class LineaArtifact:
         return value.value
 
     @property
+    def _subgraph(self) -> Graph:
+        """
+        Return the slice subgraph for the artifact
+        """
+        return get_slice_graph(self._graph, [self.node_id])
+
+    @property
     def code(self) -> str:
         """
         Return the slices code for the artifact
         """
         # FIXME: this seems a little heavy to just get the slice?
-        return get_program_slice(self._graph, [self.node_id])
+        return get_source_code_from_graph(self._subgraph)
 
     @property
     def _graph(self) -> Graph:
@@ -131,6 +142,15 @@ class LineaArtifact:
             visualizer.render_pdf_file(path)
         else:
             display(visualizer.ipython_display_object())
+
+    def execute(self) -> object:
+        """
+        Executes the artifact graph.
+
+        """
+        slice_exec = Executor(self.db, globals())
+        slice_exec.execute_graph(self._subgraph)
+        return slice_exec.get_value(self.node_id)
 
 
 class LineaCatalog:
