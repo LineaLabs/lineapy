@@ -70,30 +70,10 @@ NameError: name 'matplotlib' is not defined
 
 When we do the `import x.y` form, we bind the result of importing `x.y` to the local variable `x.y` (which is not even a valid variable name. Instead, we need to import `x.y` but only bind `x` locally, because `x` will have a `y` attribute once, `x.y` is imported.
 
-## Possible Solutions
+## Required Behavior
 
-What we are missing is the behavior that importing a submodule will update the parent module with a reference to it.
+What we are missing is the behavior that importing a submodule will update the parent module with a reference to it. Also, we need to fix the problem where importing `x.y` binds to variable `x.y`. Instead, it should only bind to variable `x` but then modify the import.
 
-In this way, we can see a module import of:
-
-```python
-import x.y.z
-import x.y.q
-
-```
-
-Can be seen as first importing each submodule and then assigning them.
-
-```python
-x = import_module('x')
-x.y = import_module('x.y')
-x.y.z = import_module('x.y.z')
-x.y.q = import_module('x.y.q')
-```
-
-We could model this currently, if we view the import of a submodule as doing a `setattr` of the parent, like above.
-
-In this way, we can see that determing what imports are neccesary when accessing a nested module, is similar to the problem of general field sensititivty analysis, which we have so far punted on.
 
 ## How does (c)Python handle it?
 
@@ -293,9 +273,55 @@ def _find_and_load_unlocked(name, import_):
     return module
 ```
 
-## Possible Solution
+## Possible Solutions
 
-One possible solution is to treat each import any parent imports, and to keep submodules as "views" of their parents. That way, importing a submodule will "modify" the parent, and make sure that we keep it.
+### Producing setattr calls
+One way to model this then would be to turn model imports into setattr calls:
+
+```python
+import x.y.z
+import x.y.q
+```
+This would be converted into:
+
+```python
+x = l_import('x')
+x.y = l_import('x.y')
+x.y.z = l_import('x.y.z')
+x.y.q = l_import('x.y.q')
+```
+
+(Here, I convert the `ImportNode` into a function call, `l_import` to make it more clear that it is simply
+a function call to import the module and there is nothing special about the node.)
+
+We could model this currently, if we treat view the import of a submodule as doing a `setattr` of the parent, like above.
+
+However, one thing that makes this tricky is that we need to know when we add a `l_import(...)` call, what is the node for the parent call that
+is updated? In some ways, this is similar to saying "path x/y/z.py was updated in this function" because we would have to implicitly look up nodes
+for the parent paths and update them.
+
+We don't support this currently, so implementing this change would require a larger refactor of how we treat these special "global/side effect" values.
+
+### Import as a relative operation
+
+The thing that was slightly challenging about the previous solution was that we had a function `l_import` which has an implicit dependency on the "parent" import. What if instead of having this be implicit, we make it explicit by adding this as an argument? Then our current mechanisms for modifying nodes are more readily applicable. So it would translate to:
+
+```python
+x = l_import('x')
+x_y = l_import('y', x)
+x_y_z = l_import('z', x_y)
+x_y_q = l_import('q', x_y)
+```
+
+This is closer to the Python built in behavior, where you have a global `sys.modules` where it has a pointer to each module. And to import a child, you
+grab the parent from this and update it. 
+
+I propose that we take this solution, where we keep our own internal version of `sys.modules` to map each module name to the ID of the node which imports
+that module. We also make all imports relative to their parents, so that we can track all the modifications easily.
+
+This means having more special casing for imports in our tracer, we will need a new table to keep track of them. Eventually, this could possibly be subsumed by the functionality to do path based file side effects, but instead of tackling that now, I opt to defer that till we implement that feature.
+
+### Drawbacks
 
 Doing this wouldn't let us slice two different submodule imports, like:
 
@@ -304,16 +330,16 @@ import x.y
 import x.z
 
 slice(x.y.method())
-# This should slice out `import x.z`
+# This should slice out `import x.z` but with this solution would output both of the imports
 ```
 
 but I think that is fine for the time being. We haven't been doing any slicing based off of which attribute you access, so I think it's ok to keep this for modules as well. When we want to tackle tracking properties, we can tackle this case as well.
 
-We keep our own internal version of `sys.modules` to map each module name to the ID of the node which imports
-that module. We also make all imports relative to their parents, so that we can track all the view relationships.
+### Detail
 
-Here, I convert the `ImportNode` into a function call, `l_import` to make it more clear that it is simply
-a function call to import the module, and there is nothing special about the node.
+
+Here I sketch some details of how we could implement most of this:
+
 
 ```python
 
@@ -325,7 +351,7 @@ def l_import(name: str, base_module: types.ModuleType = None) -> types.ModuleTyp
     Imports and returns a module. If the base_module is provided, the module
     will be a submodule of the base.
 
-    Modifes the `base_module` if provided and adds a view between them.
+    Marks the `base_module` as modified if provided.
     """
     assert "." not in name
     full_name = base_module.__name__ + "." + name if base_module else name
