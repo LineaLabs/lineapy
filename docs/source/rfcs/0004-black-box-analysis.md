@@ -46,6 +46,50 @@ Before proceeding to how we could solve these problems, lets make them concrete 
 ```python
 url = "http://"
 if not path.exists():
-    
+    download(url, path)
 ```
 
+In this example, we download a file if the path does not exist. Currently, this won't show up as reading the `url` global if the path does exist. So this is a limitation of the current approach of runtime tracing.
+
+### 2. Modified Globals
+
+```python
+for row in df:
+    print("row", row)
+```
+
+In this example, we are iterating through a dataframe and printing out the rows. In our current approach though we assume the worst case, that the variable `df` is modified because it was read. So we will include this for loop in a slice of `df`, when in reality it does not modify it.
+
+### 3. Adding/changing globals
+
+```python
+downloaded_file = False
+if not path.exists():
+    download(url, path)
+    downloaded_file = True
+```
+
+In this example, the global variable `downloaded_file` is only set if the file has not already been downloaded. If it has, then we won't know that this block could influence that value. So if we sliced on it, it would not include this block.
+
+
+### 4. Views of globals
+
+```python
+train_data = []
+test_data = []
+for i in range(10):
+    train_data.append(get_train(i))
+    test_data.append(get_test(i))
+test_data.append(10)
+```
+
+In this loop, we load both the `train_data` and `test_data`, so we assume that they are now views of one another. Then we append to the `test_data`, so now if we slice on the `train_data` we will include this append, when we shouldn't be including it.
+
+### 5. Side effects
+
+```python
+with TempFile() as t:
+    t.write(x)
+```
+
+If we slice this on the filesystem, we won't know this block writes to it, so we won't include it, because of our best case assumptiont that blocks don't write to the file system.
