@@ -84,6 +84,7 @@ class LiteralType(Enum):
     Float = auto()
     Boolean = auto()
     NoneType = auto()
+    Ellipsis = auto()
 
 
 class ValueType(Enum):

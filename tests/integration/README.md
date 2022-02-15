@@ -8,12 +8,11 @@ All of the tests so far of the same form, so they are all parameters of the same
 
 In each the test:
 
-1. Creates a virtualenv for the project we are testing against in `venvs/<virtualenv name>`, if that directory does not exist. Inside this virtualenv, we install a development build of LineaPy as well as any requirements needed to run the tests.
-2. Load the hand written ground truth slice of the file from the `slices/<slice name>` directory.
+1. Creates a conda environment for the project we are testing against in `envs/<virtualenv name>`, if that directory does not exist. Inside this environment, we install a development build of lineapy as well as any requirements needed to run the tests.
+2. Load the hand written ground truth slice of the file from the `slices/<test id>.py` directory. If one does not exist, it will create one from the source file. Also prettify the file and save it back, to remove comments unneccesary spaces.
 3. Run the ground truth slice, to make sure that it is accurate.
-4. Load the source file, in some subpath of `sources/` (all of the projects so far are added as submodules under that directory), and feed it into a `lineapy cli` command
-   to create a slice for it.
-5. Assert that the created slice is equal to the ground truth slice, modulo comments and formatting, by first normalizing the Python syntax, by going to and from AST.
+4. Run the lineapy CLI on the source file (in `sources/`) to create a slice of it.
+5. Assert that the created slice is equal to the ground truth slice, after prettifying each.
 
 ## Running tests
 
@@ -28,7 +27,7 @@ So if you wanted to say run the `numpy-mnist` test to see how the written slice
 differs from the generated slice, you could do:
 
 ```bash
-$ pytest 'tests/integration/test_slice.py::test_slice[numpy-mnist]' --runxfail -vv -m 'integration'
+$ pytest 'tests/integration/test_slice.py::test_slice[numpy_mnist]' --runxfail -vv -m 'integration'
 ================================================================================== test session starts ===================================================================================
 platform darwin -- Python 3.9.7, pytest-6.2.5, py-1.11.0, pluggy-1.0.0 -- /opt/homebrew/Caskroom/miniconda/base/envs/lineapy/bin/python
 cachedir: .pytest_cache
@@ -98,12 +97,14 @@ So to add a new test, you have to:
 
 1. Add the sources to the `sources` subfolder. Often, this can be done [using `git submodule add <git url> sources/<desired name>`](https://git-scm.com/book/en/v2/Git-Tools-Submodules#_starting_submodules).
 2. Specify the virtualenv requirements to run the tests in the `VIRTUAL_ENVS` dictionary in `test_slice.py`.
-3. Manually create a slice for the file you want to run in `slices`.
-4. Add a param for this test in `PARAMS` list in `test_slice.py`.
+3. Add a param for this test in `PARAMS` list in `test_slice.py`.
+4. Run the test with `pytest 'tests/integration/test_slice.py::test_slice[<id>]' -m 'integration' to create a slice file for it
+5. Manually edit the slice file to make it accurate.
+6. Re-run the test. If it passes, that's great! If not, add an `xfail` with a `reason=` to describe why. If it only failed on comparing
+   the slices, add a `raises=AssertionError` to document that the test passed up until the assert.
 
 ## Possible Improvements
 
 There are a number of possible improvements to this setup that we could implement, if so desired:
 
-1. Use [the param "id" as the slice filename](https://stackoverflow.com/a/67056955), to make it easier to know which param corresponds to which slice file.
 2. Save the currently generated slices as snapshots, so that we can also see what those are, even if they are not correct, and we can know when they change.

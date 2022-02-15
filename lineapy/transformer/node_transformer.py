@@ -1,6 +1,7 @@
 import ast
 import logging
 import sys
+from pathlib import Path
 from typing import Any, Iterable, Optional, cast
 
 from lineapy.data.types import (
@@ -120,6 +121,9 @@ class NodeTransformer(ast.NodeTransformer):
         )
         tracer.db.write_source_code(self.source_code)
         self.tracer = tracer
+        # Set __file__ to the pathname of the file
+        if isinstance(location, Path):
+            tracer.executor.module_file = str(location)
         # The result of the last line, a node if it was an expression,
         # None if it was a statement. Used by ipython to grab the last value
         self.last_statement_result: Optional[Node] = None
@@ -152,6 +156,20 @@ class NodeTransformer(ast.NodeTransformer):
             raise NotImplementedError(
                 f"Don't know how to transform {type(node).__name__}"
             )
+
+    def visit_Ellipsis(self, node: ast.Ellipsis) -> LiteralNode:
+        """
+        Note
+        ----
+
+        Deprecated in Python 3.8
+        """
+        if sys.version_info >= (3, 8):
+            raise NotImplementedError(
+                "Ellipsis nodes are deprecated since Python 3.8"
+            )
+        else:
+            return self.tracer.literal(..., self.get_source(node))
 
     def visit_Str(self, node: ast.Str) -> LiteralNode:
         """

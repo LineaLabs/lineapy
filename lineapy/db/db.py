@@ -116,6 +116,8 @@ class RelationalLineaDB:
             return LiteralType.Float
         elif val is None:
             return LiteralType.NoneType
+        elif val is ...:
+            return LiteralType.Ellipsis
         raise NotImplementedError(f"Literal {val} is of type {type(val)}.")
 
     def write_library(
