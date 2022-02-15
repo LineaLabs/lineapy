@@ -312,7 +312,7 @@ but I think that is fine for the time being. We haven't been doing any slicing b
 We keep our own internal version of `sys.modules` to map each module name to the ID of the node which imports
 that module. We also make all imports relative to their parents, so that we can track all the view relationships.
 
-Here, I convert the `ModuleNode` into a function call, `l_import` to make it more clear that it is simply
+Here, I convert the `ImportNode` into a function call, `l_import` to make it more clear that it is simply
 a function call to import the module, and there is nothing special about the node.
 
 ```python
