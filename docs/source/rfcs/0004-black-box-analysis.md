@@ -30,4 +30,22 @@ We are currently attempting to answer those questions by looking at the runtime 
 4. Views of globals: *worst case assumption* We assume all mutable variables that were passed in and all that were added now are views of one another.
 5. Side effects: *best case assumption* We assume no side effects were caused in the function.
 
+## Problems with current behavior
+
+Obviously, the worst and best case assumption are problematic. In the worst case assumption, we will end up including pieces we don't need in the slice. Whereas in the best case assumption, we remove pieces that are actually needed.
+
+The runtime analysis is actually also problematic, for a different reason. We often don't want to know "what variables were modified during this execution" but a broader question of "what variables *could* be modified when we run this code in this context?" This comes up if we have behavior that is non deterministic or depends on some external state. We want to model all possibles outcomes, not only those that occur. 
+
+
+## Example problems
+
+Before proceeding to how we could solve these problems, lets make them concrete by articulating an example that shows the problem of our current approach with each of the five areas. We also have real world use cases to cover these, but we don't use them here, because they often conflate multiple problems.
+
+### 1. Reading globals
+
+```python
+url = "http://"
+if not path.exists():
+    
+```
 
