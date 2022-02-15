@@ -6,7 +6,7 @@ import sys
 import tempfile
 from contextlib import redirect_stdout
 from io import TextIOWrapper
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 import click
 import nbformat
@@ -208,6 +208,12 @@ def generate_save_code(
     help="Visualize the resulting graph with Graphviz",
     is_flag=True,
 )
+@click.option(
+    "--arg",
+    "-a",
+    multiple=True,
+    help="Args to pass to the underlying Python script",
+)
 @click.argument(
     "file_name",
     type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
@@ -222,6 +228,7 @@ def python(
     print_source: bool,
     print_graph: bool,
     visualize: bool,
+    arg: Iterable[str],
 ):
     set_custom_excepthook()
     tree = rich.tree.Tree(f"📄 {file_name}")
@@ -236,6 +243,8 @@ def python(
             )
         )
 
+    # Set the args to those passed in
+    sys.argv = [str(file_name), *arg]
     # Change the working directory to that of the script,
     # To pick up relative data paths
     os.chdir(file_name.parent)

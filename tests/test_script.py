@@ -1,4 +1,5 @@
 import subprocess
+import tempfile
 
 import pytest
 
@@ -9,6 +10,30 @@ def test_cli_entrypoint():
     Verifies that the "--help" CLI command is aliased to the `lineapy` executable
     """
     subprocess.check_call(["lineapy", "--help"])
+
+
+@pytest.mark.slow
+def test_pass_arg():
+    """
+    Verifies that the arg is pass into the command
+    """
+    code = """import sys
+import lineapy
+lineapy.save(sys.argv[1], "first_arg")"""
+    with tempfile.NamedTemporaryFile() as f:
+        f.write(code.encode())
+        f.flush()
+        subprocess.check_call(
+            [
+                "lineapy",
+                "python",
+                f.name,
+                "--slice",
+                "first_arg",
+                "--arg",
+                "an arg",
+            ]
+        )
 
 
 @pytest.mark.slow
