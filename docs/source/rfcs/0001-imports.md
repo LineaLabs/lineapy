@@ -248,7 +248,7 @@ import_from(PyThreadState *tstate, PyObject *v, PyObject *name)
     return x;
 ```
 
-In our `import_name`, we can see that it calls `PyImport_ImportModuleLevelObject`. This in term eventually calls `importlib._find_and_load` which calls `_find_and_load_unlocked`. This is finally the place where it calls `setattr` on the parent module:
+In our `import_name`, we can see that it calls `PyImport_ImportModuleLevelObject`. This in turn eventually calls `importlib._find_and_load` which calls `_find_and_load_unlocked`. This is finally the place where it calls `setattr` on the parent module:
 
 ```python
 def _find_and_load_unlocked(name, import_):
