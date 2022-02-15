@@ -6,7 +6,7 @@ import sys
 import tempfile
 from contextlib import redirect_stdout
 from io import TextIOWrapper
-from typing import List, Optional, Iterable
+from typing import Iterable, List, Optional
 
 import click
 import nbformat
@@ -209,7 +209,10 @@ def generate_save_code(
     is_flag=True,
 )
 @click.option(
-    "--arg", "-a", multiple=True, help="Args to pass to the underlying Python script"
+    "--arg",
+    "-a",
+    multiple=True,
+    help="Args to pass to the underlying Python script",
 )
 @click.argument(
     "file_name",
