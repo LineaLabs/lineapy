@@ -49,7 +49,7 @@ also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lin
 
 ## Getting Started
 
-![Linea high level overview](./overview.pdf)
+![Linea high level overview](./overview.png)
 
 You can use `lineapy` by importing the library to your favorite notebook, saving artifacts, retrieving existing ones, or exporting them to airflow DAGs. Once exported, you can use the Airflow dashboard to run these DAGs (as shown in the image above).
 
