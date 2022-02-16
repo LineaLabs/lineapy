@@ -49,7 +49,7 @@ also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lin
 
 ## Getting Started
 
-![Linea high level overview](./overview.png)
+![Linea high level overview](./overview.pdf)
 
 You can use `lineapy` by importing the library to your favorite notebook, saving artifacts, retrieving existing ones, or exporting them to airflow DAGs. Once exported, you can use the Airflow dashboard to run these DAGs (as shown in the image above).
 
@@ -88,7 +88,7 @@ to the end, then you will see the Airflow jobs deployed in the dashboard!
 docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main lineapy python --slice "p value" tests/housing.py
 ```
 
-### Repository
+### DIY - Cloning the Repository
 
 You can also run Linea by cloning this repository and running the `lineapy`:
 
@@ -157,7 +157,7 @@ $ lineapy python --print-source --visualize tests/simple.py
 ...
 # Use --slice to slice the code to that which is needed to recompute an artifact
 $ lineapy python --print-source tests/housing.py --slice 'p value'
-...
+
 ```
 
 ### Jupyter and IPython
