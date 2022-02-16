@@ -1,3 +1,7 @@
+Author: Saul
+Reviewer: Yifan
+Date: February 15, 2022
+
 # Black Box Analysis RFC
 
 ## Background
