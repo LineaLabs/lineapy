@@ -7,7 +7,7 @@ import types
 from datetime import datetime
 from os import environ
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 from lineapy.data.types import Artifact, NodeValue
 from lineapy.db.relational import SessionContextORM
@@ -15,6 +15,7 @@ from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.plugins import airflow as airflow_plugin
+from lineapy.utils.constants import VERSION_DATE_STRING
 from lineapy.utils.utils import get_value_type
 
 """
@@ -24,7 +25,9 @@ one way to access the same feature.
 """
 
 
-def save(reference: object, name: str) -> LineaArtifact:
+def save(
+    reference: object, name: str, version: Optional[str] = None
+) -> LineaArtifact:
     """
     Publishes the object to the Linea DB.
 
@@ -33,16 +36,20 @@ def save(reference: object, name: str) -> LineaArtifact:
     reference: Union[object, ExternalState]
         The reference could be a variable name, in which case Linea will save
         the value of the variable, with out default serialization mechanism.
-        Alternatively, it could be a "side effect" reference, which currently includes either `lineapy.file_system` or `lineapy.db`. Linea will save the associated process that creates the final side effects.
-        We are in the process of adding more side effect references, including `assert`s.
+        Alternatively, it could be a "side effect" reference, which currently includes either :class:`lineapy.file_system` or :class:`lineapy.db`.
+        Linea will save the associated process that creates the final side effects.
+        We are in the process of adding more side effect references, including `assert` statements.
     name: str
         The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
+    version: Optional[str]
+        The version is used to create a new version of the artifact. If none is passed, a default version datetime string will be used.
+        The format of default version is in :const:`lineapy.utils.constants.VERSION_DATE_STRING`.
 
     Returns
     -------
     LineaArtifact
         returned value offers methods to access
-        information we have stored about the artifact (value, version), and other automation capabilities, such as `to_airflow`.
+        information we have stored about the artifact (value, version), and other automation capabilities, such as :func:`to_airflow`.
     """
     execution_context = get_context()
     executor = execution_context.executor
@@ -66,6 +73,17 @@ def save(reference: object, name: str) -> LineaArtifact:
     execution_id = executor.execution.id
     timing = executor.get_execution_time(value_node_id)
 
+    linea_artifact = LineaArtifact(
+        db=db,
+        execution_id=execution_id,
+        node_id=value_node_id,
+        session_id=call_node.session_id,
+        name=name,
+        version=version
+        if version
+        else datetime.now().strftime(VERSION_DATE_STRING),
+    )
+
     # serialize value to db if we haven't before
     # (happens with multiple artifacts pointing to the same value)
     if not db.node_value_in_db(
@@ -77,7 +95,7 @@ def save(reference: object, name: str) -> LineaArtifact:
             NodeValue(
                 node_id=value_node_id,
                 value=reference,
-                execution_id=executor.execution.id,
+                execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
                 value_type=get_value_type(reference),
@@ -90,7 +108,10 @@ def save(reference: object, name: str) -> LineaArtifact:
     # If we have already saved this same artifact, with the same name,
     # then don't write it again.
     if not db.artifact_in_db(
-        node_id=value_node_id, execution_id=execution_id, name=name
+        node_id=value_node_id,
+        execution_id=execution_id,
+        name=name,
+        version=linea_artifact.version,
     ):
         db.write_artifact(
             Artifact(
@@ -98,16 +119,11 @@ def save(reference: object, name: str) -> LineaArtifact:
                 execution_id=execution_id,
                 date_created=datetime.now(),
                 name=name,
+                version=linea_artifact.version,
             )
         )
 
-    return LineaArtifact(
-        db=db,
-        execution_id=executor.execution.id,
-        node_id=value_node_id,
-        session_id=call_node.session_id,
-        name=name,
-    )
+    return linea_artifact
 
 
 def _can_save_to_db(value: object) -> bool:
@@ -187,13 +203,14 @@ def to_airflow(
 
     :param artifacts_code: map of artifact names to be included in the DAG to their source code.
     :param dag_name: name of the DAG and corresponding functions and task prefixes,
-    i.e. "sliced_housing_dag"
+                     i.e. "sliced_housing_dag"
+
     :param airflow_task_dependencies: task dependencies in Airflow format,
-    i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-    This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
-    and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
-    Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
-    and "sliced_housing_dag_y" depends on them.
+                                      i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
+                                      This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
+                                      and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
+                                      Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
+                                      and "sliced_housing_dag_y" depends on them.
     :return: string containing the path of the Airflow DAG file that was exported.
     """
     execution_context = get_context()

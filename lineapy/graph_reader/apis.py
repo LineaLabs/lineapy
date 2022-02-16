@@ -1,18 +1,19 @@
 """
-User exposed objects through the :ref:`lineapy.apis`.
+User exposed objects through the :mod:`lineapy.apis`.
 """
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from datetime import datetime
 from os import environ
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from IPython.display import display
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID
+from lineapy.data.types import Artifact, LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.execution.executor import Executor
@@ -21,6 +22,7 @@ from lineapy.graph_reader.program_slice import (
     get_source_code_from_graph,
 )
 from lineapy.plugins.airflow import AirflowDagConfig, to_airflow
+from lineapy.utils.constants import VERSION_DATE_STRING
 
 logger = logging.getLogger(__name__)
 
@@ -35,15 +37,18 @@ class LineaArtifact:
     """
 
     """
-    DEV NOTE:
-    - Currently versions is still confusing. We need to sort it our before
-      we expose to users.
+    NOTE:
+    - currently LineaArtifact does not hold information about date created. 
+      with new versioning needs, it will be required that we know about a "latest" version.
+      Currently catalog does this by using the pydantic Artifact object instead of this object.
+      
     """
     db: RelationalLineaDB = field(repr=False)
     execution_id: LineaID
     node_id: LineaID
     session_id: LineaID
     name: str
+    version: str = field(default=datetime.now().strftime(VERSION_DATE_STRING))
 
     @property
     def value(self) -> object:
@@ -168,7 +173,7 @@ class LineaCatalog:
 
     def __init__(self, db):
         self.db = db
-        self.artifacts = self.db.get_all_artifacts()
+        self.artifacts: List[Artifact] = self.db.get_all_artifacts()
 
     @property
     def print(self) -> str:
