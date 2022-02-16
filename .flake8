@@ -1,5 +1,5 @@
 [flake8]
-extend-exclude = __snapshots__,examples,sliced_housing_dag.py,./lineapy/editors/ipython.py,.ipython,tutorials,slices,sources,envs
+extend-exclude = __snapshots__,examples,sliced_housing_dag.py,./lineapy/editors/ipython.py,.ipython,tutorials,slices,sources,venvs,*housing.py,tests/integration
 per-file-ignores =
     # ignore get_ipython missing 
     lineapy/ipython.py: F821

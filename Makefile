@@ -54,7 +54,7 @@ build-docs:
 
 test:
 	make deps
-	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow and not airflow" tests/
+	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow and not airflow and not integration" tests/
 
 test-github-action:
 	docker-compose run --rm ${service_name} pytest ${args}
@@ -70,11 +70,20 @@ test-airflow:
 	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/
 
 lint:
-	docker run --rm -v "${PWD}":/apps alpine/flake8:latest --verbose . && \
-	docker-compose run --rm ${service_name} isort . --check
+	docker run --rm -v "${PWD}":/apps alpine/flake8:latest --verbose . 
+#	this seems to be causing issues with our submodules. skipping for now
+#	&& \ 
+#	docker-compose run --rm ${service_name} isort . --check
 
 blackfix:
 	docker run --rm -v "${PWD}":/data cytopia/black .
+
+lint-dev:
+	flake8 --verbose . && \
+	isort . --check
+
+blackfix-dev:
+	black .
 
 typecheck:
 	docker-compose run --rm ${service_name} dmypy run -- --follow-imports=skip .

@@ -7,7 +7,8 @@ Guide for beginners
 
 If you run into initiation errors, such as the following
 
-.. code-block:: python
+.. code-block::
+
     ---------------------------------------------------------------------------
     RuntimeError                              Traceback (most recent call last)
     /tmp/ipykernel_101389/3008679649.py in <module>
@@ -34,8 +35,8 @@ If you run into initiation errors, such as the following
 
 
 It's likely that lineapy is not setup properly.
-For Jupyter Notebooks, we currently require that you start it with `env IPYTHONDIR=$PWD/.ipython jupyter notebook`
-(changing it soon to `lineapy jupyter notebook` or `lab` if you are using that).
+For Jupyter Notebooks, we currently require that you start it with :code:`env IPYTHONDIR=$PWD/.ipython jupyter notebook`
+(changing it soon to :code:`lineapy jupyter notebook` or :code:`lineapy jupyter lab` if you are using that).
 If that does not work, please try running ``%load_ext lineapy`` in your notebook.
 
 If your notebook is stuck in a frozen state, please restart (we are actively working on eliminating these edge cases).
@@ -53,5 +54,5 @@ Guide for contributors
 There are currently three ways to contribute!
 
 1. You can try out our tool and complete our `survey <https://docs.google.com/forms/d/1K9Ch7_SC7KWgvxTC2wnnfUer8FXN-xojFlYoJastRG4/viewform?edit_requested=true>`__.
-2. If you are here to contribute new library annotations, :ref:`review the documentation  here <lib_annotations>`.
+2. If you are here to contribute new library annotations, :ref:`review the documentation here <lib_annotations>`.
 3. You can find issues on `Github with the label "help wanted" <https://github.com/LineaLabs/lineapy/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22>`__.
