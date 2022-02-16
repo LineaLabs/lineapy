@@ -157,7 +157,6 @@ $ lineapy python --print-source --visualize tests/simple.py
 ...
 # Use --slice to slice the code to that which is needed to recompute an artifact
 $ lineapy python --print-source tests/housing.py --slice 'p value'
-
 ```
 
 ### Jupyter and IPython
@@ -214,4 +213,19 @@ In order to properly slice your code, we have to understand different Python
 language features and libraries. We are working to add coverage to support all
 of Python, as well as make our analysis more accurate. We have
 [a number of open issues to track what things we know we don't support in Python, tagged under `Language Support`](https://github.com/LineaLabs/lineapy/labels/Language%20Support).
-Feel free to open more if come across code that doesn't run or doesn't properly slice.
+Feel free to open more issues if you come across code that doesn't run or doesn't properly slice.
+
+## What's next? Read the docs!
+Before you can [contribute](https://github.com/LineaLabs/lineapy/CONTRIBUTING.md) to our code base, we highly recommend you look at our docs to get a better understanding of `lineapy`.
+
+### Building docs
+
+When you are in the root directory, running the following command
+
+```bash
+sphinx-autobuild docs/source/ docs/build/html/
+```
+
+And any changes in the rst files in the `/docs` directory will be detected and
+and the html refreshed. However, changes in the doc strings in code will not be
+picked up, and you'd have to run the command again to refresh.
