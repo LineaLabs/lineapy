@@ -261,11 +261,26 @@ In the trace, we can see that in offset 16 the `CALL_METHOD` is invoked. We don'
 
 Looking at the third item from the top of the stack, we will see it's the `write` method and know this modifies the filesystem.
 
-TODO:
-Document that now we have a way to produce a list of functions called
-We can feed that to our inspect analysis to see if we can find any side effects (document iterable corner case).
+### Using settrace
 
-Then talk about tracking view/mutations
+Based on these examples, we can see that we have a way to use `settrace` to understand what functions are called in a block of code.
+
+At a high level, this is how we could use that functionality to better analyze the black boxes:
+
+1. Let's assume we have a way to enable tracing for some code, and when it is done, are returning a list of all functions called in that code, with their args and kwargs, as well as return values.
+2. The `exec` hapens in the `l_exec_statement` inside of `lineabuiltins`. It's only inside this exec that we want to use this tracing. Once we enable it there, we add the list of
+   functions called into the `context`, in a new field.
+3. Then, in the Executor, we see once we are done if we have any function calls in the context. If we do, we need to translate those to side effects.
+
+For 1, we have to understand every bytecode operation that triggers a function call, and correctly understand what parts of the stack are neccesary to look at to determine the arguments. One corner case
+here is also around iterators which we pass with `*` into the
+function. We don't want to iterate through these in the analaysis, since this is a destructive operation. So one a current workaround could be to just assume they are empty and not track their values.
+
+For 3, we have to use the results of the side effects for each function call to come up with a composite side effect for the whole black box.
+
+Generally, we know the Python IDs of all the objects passed in as globals. We can use object IDs to identigy which objects are passed where. So similar to our curreent state processing, but
+at the end we only emit the changes to the globals passed in
+or any globals that were set or any side effects.
 
 ## Ramifications for function tracing
 
@@ -283,3 +298,5 @@ If we used the `set_trace` approach, we could see that a `setitem` is being call
 
 In this way, we could limit our own hand annotations to Python functions which are written in C or are performance critical (having settrace enabled during
 a function's execution will slow it down). This would allow us to cover a greate percentage of third party libraries that we see.
+
+However, I propose holding off on using this approach more generaly, for a future PR, to minimize the size of this change.
