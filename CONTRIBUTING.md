@@ -1,36 +1,36 @@
 # Contributing to lineapy
 
 **Table of contents**
-   1. [Where to Start?]()
-      1. [Build & Read the Docs]()
-      2. [Set up the Environment]()
-      3. [Our Git Model]()
-      4. [Contribute]()
-   2. [Testing]()
-      1. [Snapshots]()
-      2. [XFail Tests]()
-      3. [Integration Tests]()
-      4. [Notebook Tests]()
-      5. [Slow Tests]()
-      6. [Airflow Tests]()
-      7. [Additional Notes on Docker Testing]()
-   3. [Debugging]()
-      1. [VSC]()
-      2. [Visual Graphs]()
-      3. [Logging]()
-      4. [Debug Flags]()
-      5. [Additional Utilities]()
-         1. [AST Inspection]()
-         2. [Github Actions]()
-   4. [Additional Notes]()
-      1. [Performance Profiling]()
-      2. [Known Issues]()
-      3. [Using venv instead of Conda]()
-      4. [Further Readings]()
+   1. [Where to Start?](#where-to-start)
+      1. [Build & Read the Docs](#build-and-read-the-docs)
+      2. [Set up the Environment](#set-up-the-environment)
+      3. [Our Git Model](#our-git-model)
+      4. [Contribute](#contribute)
+   2. [Testing](#testing)
+      1. [Snapshots](#snapshots)
+      2. [XFail Tests](#xfail-tests)
+      3. [Integration Tests](#integration-tests)
+      4. [Notebook Tests](#notebook-tests)
+      5. [Slow Tests](#slow-tests)
+      6. [Airflow Tests](#airflow-tests)
+      7. [Additional Notes on Docker Testing](#additional-notes-on-docker-testing)
+   3. [Debugging](#debugging)
+      1. [VSC](#vsc)
+      2. [Visual Graphs](#visual-graphs)
+      3. [Logging](#logging)
+      4. [Debug Flags](#debug-flags)
+      5. [Additional Utilities](#additional-utilities)
+         1. [AST Inspection](#ast-inspection)
+         2. [Github Actions](#github-actions)
+   4. [Additional Notes](#additional-notes)
+      1. [Performance Profiling](#performance-profiling)
+      2. [Known Issues](#known-issues)
+      3. [Using venv instead of Conda](#using-venv-instead-of-conda)
+      4. [Further Readings](#further-readings)
 
-## Where to Start
+## 1. Where to Start
 
-### 1.1. Build & read the docs
+### 1.1. Build and read the docs
 
 Run the following command in the root directory
 
@@ -47,7 +47,7 @@ We recommend you at least read the following sections in the docs before getting
 
 
 ### 1.2. Set up the environment
-There are two main ways to set up `lineapy` locally either using Conda or using Docker. If you prefer to use venv instead of Conda, then please follow the instructions [here]()
+There are two main ways to set up `lineapy` locally either using Conda or using Docker. If you prefer to use venv instead of Conda, then please follow the instructions [here](#using-venv-instead-of-conda)
 
 
 #### First-time Setup
@@ -162,7 +162,7 @@ git push
 
 H. Create a PR to merge your branch
 
-Note - if you're using Docker as your local environment, please check [here]() for additional details about testing
+Note - if you're using Docker as your local environment, please check [here](#additional-notes-on-docker-testing) for additional details about testing
 
 ## 2. Testing
 
@@ -311,7 +311,7 @@ act
 
 ### 4.1. Performance Profiling
 
-Please see [this]() for notes on profiling.
+Please see [this](https://github.com/LineaLabs/lineapy/blob/main/PERFORMANCE.md) for notes on profiling.
 
 ### 4.2. Known Issues
 
@@ -360,4 +360,4 @@ pytest tests
 ```
 
 ### 4.4. Further Readings
-The [Docker]() and [make]() files are good starting point to see the main components of `lineapy`
+The [Docker](https://github.com/LineaLabs/lineapy/blob/main/Dockerfile) and [make](https://github.com/LineaLabs/lineapy/blob/main/Makefile) files are good starting point to see the main components of `lineapy`
