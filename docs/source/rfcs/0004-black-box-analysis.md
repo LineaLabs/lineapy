@@ -1,4 +1,5 @@
 Author: Saul
+Reviewer: Yifan
 Date: February 15, 2022
 
 # Black Box Analysis RFC
@@ -94,7 +95,7 @@ If we slice this on the filesystem, we won't know this block writes to it, so we
 
 ## Possible Solutions
 
-Our current way we solve these problems in the rest of the code is a mix of runtime tracing (calling functions) and static time analysis (analyzing the AST to determine when a variable is defined or accessed).
+Our current way we solve these problems in the non black box analyais is a mix of runtime tracing (e.g. calling functions and observing their results) and static time analysis (analyzing the AST to determine when a variable is defined or accessed).
 
 When we call functions, we also look them up in our manually defined annotations table, to see if calling them will do things like mutate an arg, touch the filesystem, or add a view between the argument and return value.
 
