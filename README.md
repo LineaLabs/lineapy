@@ -53,15 +53,15 @@ also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lin
 
 You can use `lineapy` by importing the library to your favorite notebook, saving artifacts, retrieving existing ones, or exporting them to airflow DAGs. Once exported, you can use the Airflow dashboard to run these DAGs (as shown in the image above).
 
-There are three options for getting started quickly:
+***There are three options for getting started quickly:***
 
-1. Github CodeSpaces - This is our demo environment where everything (including JupyterLab & Airflow) is already set up for you. You can get started immediately without having to install anything.
-2. Docker - If you prefer to run things locally, then you can download our `lineapy` Docker image and run it.
-3. DIY - if you want to dig deeper, then you can clone the repository to build & install `lineapy` locally.
+1. **Github CodeSpaces** - This is our demo environment where everything (including JupyterLab & Airflow) is already set up for you. You can get started immediately without having to install anything.
+2. **Docker** - If you prefer to run things locally, then you can download our `lineapy` Docker image and run it.
+3. **DIY** - if you want to dig deeper, then you can clone the repository to build & install `lineapy` locally.
 
 We'll describe each of these options in more details below.
 
-### Github Codespaces
+### 1. Github Codespaces
 
 Click the green "<> Code" button above (in the homepage), and in the "Codespaces"
 tab you can click on the gray button "New codespace".
@@ -78,17 +78,17 @@ If you click the same globe icon next to Airflow, it will open port 8080.
 By default, lab will have two demo notebooks open. Run Demo 1, and then Demo 2
 to the end, then you will see the Airflow jobs deployed in the dashboard!
 
-### Docker
+### 2. Docker
 
-1. First install Docker and then authenticate to the [Github Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry)
+2.1. First install Docker and then authenticate to the [Github Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry)
    so you can pull our private image.
-2. Now you can pull and run our image to slice Python code:
+2.2. Now you can pull and run our image to slice Python code:
 
 ```bash
 docker run --rm -v $PWD:/app -w /app ghcr.io/linealabs/lineapy:main lineapy python --slice "p value" tests/housing.py
 ```
 
-### DIY - Cloning the Repository
+### 3. DIY - Cloning the Repository
 
 You can also run Linea by cloning this repository and running the `lineapy`:
 
@@ -215,17 +215,16 @@ of Python, as well as make our analysis more accurate. We have
 [a number of open issues to track what things we know we don't support in Python, tagged under `Language Support`](https://github.com/LineaLabs/lineapy/labels/Language%20Support).
 Feel free to open more issues if you come across code that doesn't run or doesn't properly slice.
 
-## What's next? Read the docs!
+## What's next?
+
+### Read the docs!
+
 Before you can [contribute](https://github.com/LineaLabs/lineapy/CONTRIBUTING.md) to our code base, we highly recommend you look at our docs to get a better understanding of `lineapy`.
 
-### Building docs
+### Build the docs
 
-When you are in the root directory, running the following command
+In the root directory, run the following command
 
 ```bash
 sphinx-autobuild docs/source/ docs/build/html/
 ```
-
-And any changes in the rst files in the `/docs` directory will be detected and
-and the html refreshed. However, changes in the doc strings in code will not be
-picked up, and you'd have to run the command again to refresh.
