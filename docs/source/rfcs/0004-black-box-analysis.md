@@ -120,4 +120,5 @@ If we did go down that route, we could use something like Python's built in `sys
 
 I have some experience with this approach, using it in the [`python-record-api` project](https://github.com/data-apis/python-record-api) to gather information on how different libraries called libraries like NumPy or Pandas, by recording the types of every call to their APIs.
 
-If we took this approach, we would have to track which globals ended up with which views and such, but we wouldn't have to do any formal analysis of Python or any type analysis.
+If we took this approach, we would have to track which globals ended up with which views and such, but we wouldn't have to do any formal analysis of Python or any type analysis. Out of all the examples we saw observing real notebooks, this would fix all of them besides one that was dependent on the current
+state of the file system. For this one, we could at least tell users to re-run the notebook on a clean environment, if they want the slice to support that use case.
