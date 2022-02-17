@@ -261,6 +261,12 @@ In the trace, we can see that in offset 16 the `CALL_METHOD` is invoked. We don'
 
 Looking at the third item from the top of the stack, we will see it's the `write` method and know this modifies the filesystem.
 
+TODO:
+Document that now we have a way to produce a list of functions called
+We can feed that to our inspect analysis to see if we can find any side effects (document iterable corner case).
+
+Then talk about tracking view/mutations
+
 ## Ramifications for function tracing
 
 One interesting result of this approach is that we could use it to attempt to infer the side effects inside of a function, based on its contents.
