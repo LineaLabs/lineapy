@@ -95,13 +95,13 @@ If we slice this on the filesystem, we won't know this block writes to it, so we
 
 ## Possible Solutions
 
-Our current way we solve these problems in the non black box analyais is a mix of runtime tracing (e.g. calling functions and observing their results) and static time analysis (analyzing the AST to determine when a variable is defined or accessed).
+Our current way we solve these problems in the non black box analysis is a mix of runtime tracing (e.g. calling functions and observing their results) and static time analysis (analyzing the AST to determine when a variable is defined or accessed).
 
 When we call functions, we also look them up in our manually defined annotations table, to see if calling them will do things like mutate an arg, touch the filesystem, or add a view between the argument and return value.
 
-This is exactly the information we need to improve our analysis above.
+This table of annotations has the information we need to answer the questions above, about if a variable is mutated or a side is triggered. The answer to these questions for the whole black box is formed from some composition of the answers for all the functions called within the black box. But currently, we don't know all the functions that are called within the black box.
 
-There are two main route we can go down here. The first is adding additional **runtime tracking** to understand what functions are called. The second is to add more **static analysis** to see what functions _could_ be called given some external state (whether a file exists or not).
+There are two main route we can go down to determine them. The first is adding additional **runtime tracking** to understand what functions are called. The second is to add more **static analysis** to see what functions _could_ be called given some external state (whether a file exists or not).
 
 **Runtime tracking** could help us better resolve the problems where we currently just make an assumption (2, 4, and 5).
 It wouldn't help us resolve the issues that already use runtime analysis, because we wouldn't know of paths the program didn't go down (1, and 3).
