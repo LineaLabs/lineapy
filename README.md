@@ -219,7 +219,7 @@ Feel free to open more issues if you come across code that doesn't run or doesn'
 
 ### Read the docs!
 
-Before you can [contribute](https://github.com/LineaLabs/lineapy/CONTRIBUTING.md) to our code base, we highly recommend you look at our docs to get a better understanding of `lineapy`.
+Before you can [contribute](https://github.com/LineaLabs/lineapy/blob/main/CONTRIBUTING.md) to our code base, we highly recommend you look at our docs to get a better understanding of `lineapy`.
 
 ### Build the docs
 
