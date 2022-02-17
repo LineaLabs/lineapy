@@ -1,33 +1,34 @@
 # Contributing to lineapy
 
 **Table of contents**
-   1. [Where to Start?](#where-to-start)
-      1. [Build & Read the Docs](#build-and-read-the-docs)
-      2. [Set up the Environment](#set-up-the-environment)
-      3. [Our Git Model](#our-git-model)
-      4. [Contribute](#contribute)
-   2. [Testing](#testing)
-      1. [Snapshots](#snapshots)
-      2. [XFail Tests](#xfail-tests)
-      3. [Integration Tests](#integration-tests)
-      4. [Notebook Tests](#notebook-tests)
-      5. [Slow Tests](#slow-tests)
-      6. [Airflow Tests](#airflow-tests)
-      7. [Additional Notes on Docker Testing](#additional-notes-on-docker-testing)
-   3. [Debugging](#debugging)
-      1. [VSC](#vsc)
-      2. [Visual Graphs](#visual-graphs)
-      3. [Logging](#logging)
-      4. [Debug Flags](#debug-flags)
-      5. [Additional Utilities](#additional-utilities)
-         1. [AST Inspection](#ast-inspection)
-         2. [Github Actions](#github-actions)
-   4. [Additional Notes](#additional-notes)
-      1. [Performance Profiling](#performance-profiling)
-      2. [Known Issues](#known-issues)
-      3. [Using venv instead of Conda](#using-venv-instead-of-conda)
-      4. [Further Readings](#further-readings)
+   1. [Where to Start?](#1-where-to-start)
+      1. [Build & Read the Docs](#11-build-and-read-the-docs)
+      2. [Set up the Environment](#12-set-up-the-environment)
+      3. [Our Git Model](#13-our-git-model)
+      4. [Contribute](#14-contribute)
+   2. [Testing](#2-testing)
+      1. [Snapshots](#21-snapshots)
+      2. [XFail Tests](#22-xfail-tests)
+      3. [Integration Tests](#23-integration-tests)
+      4. [Notebook Tests](#24-notebook-tests)
+      5. [Slow Tests](#25-slow-tests)
+      6. [Airflow Tests](#26-airflow-tests)
+      7. [Additional Notes on Docker Testing](#27-additional-notes-on-docker-testing)
+   3. [Debugging](#3-debugging)
+      1. [VSC](#31-vsc)
+      2. [Visual Graphs](#32-visual-graphs)
+      3. [Logging](#33-logging)
+      4. [Debug Flags](#34-debug-flags)
+      5. [Additional Utilities](#35-additional-utilities)
+         1. [AST Inspection](#351-ast-inspection)
+         2. [Github Actions](#352-github-actions)
+   4. [Additional Notes](#4-additional-notes)
+      1. [Performance Profiling](#41-performance-profiling)
+      2. [Known Issues](#42-known-issues)
+      3. [Using venv instead of Conda](#43-using-venv-instead-of-conda)
+      4. [Further Readings](#44-further-readings)
 
+https://github.com/LineaLabs/lineapy/blob/update_docs/CONTRIBUTING.md#1-where-to-start
 ## 1. Where to Start
 
 ### 1.1. Build and read the docs
@@ -47,7 +48,7 @@ We recommend you at least read the following sections in the docs before getting
 
 
 ### 1.2. Set up the environment
-There are two main ways to set up `lineapy` locally either using Conda or using Docker. If you prefer to use venv instead of Conda, then please follow the instructions [here](#using-venv-instead-of-conda)
+There are two main ways to set up `lineapy` locally either using Conda or using Docker. If you prefer to use venv instead of Conda, then please follow the instructions [here](#43-using-venv-instead-of-conda)
 
 
 #### First-time Setup
@@ -162,7 +163,7 @@ git push
 
 H. Create a PR to merge your branch
 
-Note - if you're using Docker as your local environment, please check [here](#additional-notes-on-docker-testing) for additional details about testing
+Note - if you're using Docker as your local environment, please check [here](#27-additional-notes-on-docker-testing) for additional details about testing
 
 ## 2. Testing
 
