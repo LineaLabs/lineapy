@@ -130,4 +130,150 @@ One con for this approach is that it will significantly slow down the execution 
 
 ## `sys.settrace` solution details
 
-`sys.settrace`
+### `settrace` background
+
+`sys.settrace(trace_fn)` is a builtin way to trace Python code execution.
+
+We want to use it to see what functions are called in a black box init.
+
+To give a flavor of how this tracing could function, I put together
+a `settrace` logger from ["The unreasonable effectiveness of sys.settrace (and sys.setprofile)
+CPython"](https://explog.in/notes/settrace.html) and augmented it by also printing items off the top
+of the bytecode stack using the code from [this gist](https://gist.github.com/crusaderky/cf0575cfeeee8faa1bb1b3480bc4a87a).
+
+I also changed it to only include the tracing when the code object is the same one we are evaulating.
+If we don't have this, then it will continue tracing _inside_ functions that are called from our black box, which is not what we want.
+
+The updated file looks like this:
+
+```python
+import sys
+from pathlib import Path
+
+import opcode
+
+
+def clean_locals(locals: dict) -> dict:
+    """
+    Returns the locals with the __builtins__
+    """
+    return {k: v for k, v in locals.items() if k != "__builtins__"}
+
+
+CURRENT_CODE_OBJECT = None
+
+
+def show_trace(frame, event, arg):
+    code = frame.f_code
+    if code != CURRENT_CODE_OBJECT:
+        return show_trace
+    frame.f_trace_opcodes = True
+    offset = frame.f_lasti
+    print(f"| {event:10} | {str(arg):>4} |", end=" ")
+    print(f"{frame.f_lineno:>4} | {frame.f_lasti:>6} |", end=" ")
+    print(
+        f"{opcode.opname[code.co_code[offset]]:<18} | {str(clean_locals(frame.f_locals)):<35} |"
+    )
+    return show_trace
+
+
+def trace_exec(globals, code):
+    """
+    Trace some code as would would with an exec block
+    """
+    global CURRENT_CODE_OBJECT
+    header = f"| {'event':10} | {'arg':>4} | line | offset | {'opcode':^18} | {'locals':^35} |"
+    print(header)
+    CURRENT_CODE_OBJECT = compile(code, "", "exec")
+    sys.settrace(show_trace)
+    exec(CURRENT_CODE_OBJECT, globals)
+    sys.settrace(None)
+```
+
+Now we can use `trace_exec` function to try out some of our examples we listed above, and imagine how we could use their traces
+to understand them.
+
+#### Example 1
+
+We can try execing a version of our first example, to see how we could use the results to
+determine that it writes to the file system and doesn't modify it's arguments:
+
+```python
+def download(*args):
+    print("downloading", args)
+
+
+trace_exec(
+    {
+        "path": Path("non-existant-path"),
+        "url": "some-url",
+        "download": download,
+    },
+    """if not path.exists():
+        download(url, path)""",
+)
+```
+
+This produces this tracing output:
+
+```
+| event      | |                                 stack[0] |                                 stack[1] | line | offset |       opcode       |
+| call       |                                      None |                                     None |    1 |     -1 | <0>                |
+| line       |                                      None |                                     None |    1 |      0 | LOAD_NAME          |
+| opcode     |                                      None |                                     None |    1 |      0 | LOAD_NAME          |
+| opcode     |                         non-existant-path |                                     None |    1 |      2 | LOAD_METHOD        |
+| opcode     |                         non-existant-path | <function Path.exists at 0x7fdbc8073a60> |    1 |      4 | CALL_METHOD        |
+| opcode     |                                     False |                                     None |    1 |      6 | POP_JUMP_IF_TRUE   |
+| line       |                                      None |                                     None |    2 |      8 | LOAD_NAME          |
+| opcode     |                                      None |                                     None |    2 |      8 | LOAD_NAME          |
+| opcode     |     <function download at 0x7fdbc80754c0> |                                     None |    2 |     10 | LOAD_NAME          |
+| opcode     |                                  some-url |    <function download at 0x7fdbc80754c0> |    2 |     12 | LOAD_NAME          |
+| opcode     |                         non-existant-path |                                 some-url |    2 |     14 | CALL_FUNCTION      |
+downloading ('some-url', PosixPath('non-existant-path'))
+| opcode     |                                      None |                                     None |    2 |     16 | POP_TOP            |
+| opcode     |                                      None |                                     None |    2 |     18 | LOAD_CONST         |
+| opcode     |                                      None |                                     None |    2 |     20 | RETURN_VALUE       |
+| return     |                                      None |                                     None |    2 |     20 | RETURN_VALUE       |
+```
+
+For each bytecode instruction, we can see what is being called, the `opcode`, and we can see the top two values on the stack.
+
+On offset 4, we can see the first method is called, `Path.exists` on the path argument. We can pass this to our side effect analysis, to know that `path.exists()` does
+not modify the arg.
+
+Then, on offset `14`, we can see the second method is called, `download` on the url and path arguments. We can pass this to our side effect analysis, and if know that `download`
+updates the
+
+### Example 4
+
+Let's try the last example, which is writing a tempfile, and see how we can understand
+we wrote to the filesystem from that trace:
+
+```python
+trace_exec(
+    {"tempfile": tempfile},
+    """with tempfile.TemporaryFile() as t:
+    t.write(b"10")""",
+)
+```
+
+In the trace, we can see that in offset 16 the `CALL_METHOD` is invoked. We don't actually see the method, since this exists farther up in the stack, but we do see the argument, the self `<_io.BufferedRandom name=4>` and the arg `b'10'`.
+
+Looking at the third item from the top of the stack, we will see it's the `write` method and know this modifies the filesystem.
+
+## Ramifications for function tracing
+
+One interesting result of this approach is that we could use it to attempt to infer the side effects inside of a function, based on its contents.
+
+For example, let's say I have a function like this:
+
+```python
+def set_item(x, y):
+    x[y] = 1
+```
+
+Unless we annotate it, we won't know that this function is mutating the `x` arg.
+If we used the `set_trace` approach, we could see that a `setitem` is being called on the `x` arg, and infer this from the contents of the function.
+
+In this way, we could limit our own hand annotations to Python functions which are written in C or are performance critical (having settrace enabled during
+a function's execution will slow it down). This would allow us to cover a greate percentage of third party libraries that we see.
