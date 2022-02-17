@@ -122,3 +122,8 @@ I have some experience with this approach, using it in the [`python-record-api` 
 
 If we took this approach, we would have to track which globals ended up with which views and such, but we wouldn't have to do any formal analysis of Python or any type analysis. Out of all the examples we saw observing real notebooks, this would fix all of them besides one that was dependent on the current
 state of the file system. For this one, we could at least tell users to re-run the notebook on a clean environment, if they want the slice to support that use case.
+
+If we wanted to do runtime analysis, we could instead try to re-use our existing machinery have for the top level statements to do this. However, this would be more work than the `sys.set_trace` approach, because it would require diving up the black box into a number of seperate nodes. We don't really care about that for this issue, we just want to know as a whole which variables it accessed and which ones it mutated and the side effects. So it is much less work
+to not have to change our current behavior to account for things like for loops, and instead just use the `sys.set_trace` approach.
+
+One con for this approach is that it will significantly slow down the execution for very large for loops. We could have some sort of heuristic, however, if we see cases where this comes up, to stop tracing in loops after a certain point. This would not change our design much, so would be straightforward to add after.
