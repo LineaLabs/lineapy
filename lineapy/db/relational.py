@@ -116,7 +116,7 @@ class ArtifactORM(Base):
     )
     name = Column(String, nullable=True, primary_key=True)
     date_created = Column(DateTime, nullable=False)
-    version = Column(String, nullable=True, primary_key=True)
+    version = Column(String, nullable=False, primary_key=True)
 
     node: BaseNodeORM = relationship(
         "BaseNodeORM", uselist=False, lazy="joined", innerjoin=True

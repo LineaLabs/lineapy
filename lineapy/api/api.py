@@ -38,9 +38,6 @@ def save(reference: object, name: str) -> LineaArtifact:
         We are in the process of adding more side effect references, including `assert` statements.
     name: str
         The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
-    version: Optional[str]
-        The version is used to create a new version of the artifact. If none is passed, a default version datetime string will be used.
-        The format of default version is in :const:`lineapy.utils.constants.VERSION_DATE_STRING`.
 
     Returns
     -------
@@ -157,6 +154,8 @@ def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:
     artifact_name: str
         name of the artifact. Note that if you do not remember the artifact,
         you can use the catalog to browse the options
+    version: Optional[str]
+        version of the artifact. If None, the latest version will be returned.
 
     Returns
     -------
