@@ -69,7 +69,7 @@ bytes_ = Call(Lookup("bytes"), [Call(Lookup("l_list"), [y])], line=5)
 f_write_bytes = Call(f_write, [bytes_], line=5)
 mutated_fs = Mutate(Lookup("file_system"), f_write_bytes, line=5)
 # import lineapy
-lineapy = Import("lineapy", line=6)
+lineapy = Call(Lookup("l_import"), ["lineapy"], line=6)
 # lineapy.save(lineapy.file_system, "fs")
 save = Call(Lookup("getattr"), [lineapy, Literal("save")], line=7)
 fs = Call(Lookup("getattr"), [lineapy, Literal("file_system")], implicit=[mutated_fs], line=7)
@@ -81,16 +81,22 @@ This would not execute, but for this RFC, let's use this toy way of writing the 
 This toy implementation would look something like this:
 
 ```python
+class Node:
+    def parents(self):
+        raise NotImplementedError()
+
+
 @dataclass
-class Literal:
+class Literal(Node):
     value: object
     line: Optional[int] = None
 
     def parents(self):
         return []
 
+
 @dataclass
-class Call:
+class Call(Node):
     fn: Node
     args: List[Node]
     implicit: List[Node] = field(default_factory=list)
@@ -99,10 +105,12 @@ class Call:
     def parents(self):
         return self.args + self.implicit
 
+
 @dataclass
-class Lookup:
+class Lookup(Node):
     name: str
     line: Optional[int] = None
+
 
 def ancestors(node):
     for p in node.parents():
@@ -126,6 +134,124 @@ def save(value, name):
 So we can see that in our current implementation, the scoping is not explicit
 in the graph. We need it to make the graph, but once we are in the graph form,
 it's erased.
+
+### Explicit Scope Behavior
+
+Now, let's imagine how we would compile it if we had explit scoping.
+
+Let's imagine we have a global State that looks like this:
+
+```python
+@dataclass
+class State:
+    # Mapping from name to value
+    namespace: Dict[str, object]
+    # Mapping from module name to module for all loaded modules
+    modules: Dict[str, types.ModuleType]
+    # Mapping from path to file contents
+    fs: Dict[str, bytes]
+    # Mapping from name to the value of the artifact
+    artifacts: Dict[str, object]
+
+def set_var(state, name, value):
+    new_namespace = {**state.namespace, name: value}
+    return replace(state, namespace=new_namespace)
+
+def get_var(state, name):
+    return state.namespace[name]
+
+def with_state(state, fn, *args, **kwargs):
+    res = fn(*args, **kwargs)
+    return (, res)
+
+def
+```
+
+We can think about our program as a function that takes in a State and returns a new State, like this:
+
+```python
+
+def my_program(state):
+    # x = 100
+    state = Call(
+        Lookup("set_var"), [state, Literal("x"), Literal(100)], line=1
+    )
+
+    # y = x + 1
+    res_y = Call(
+        Lookup("add"),
+        [
+            Call(Lookup("get_var"), [state, Literal("x")]),
+            Literal(1),
+        ],
+    )
+    state = Call(Lookup("set_var"), [state, Literal("y"), res_y], line=2)
+
+    # z = y + 1
+    res_z = Call(
+        Lookup("add"),
+        [
+            Call(Lookup("get_var"), [state, Literal("y")]),
+            Literal(1),
+        ],
+    )
+    state = Call(Lookup("set_var"), [state, Literal("z"), res_z], line=2)
+
+    # f = open("some_path")
+    res_f = Call(
+        Call(Lookup("get_var"), [state, Literal("y")]),
+        [Literal("some_path")],
+        line=4,
+    )
+    state = Call(Lookup("set_var"), [state, Literal("f"), res_f], line=2)
+
+    # f.write(bytes([y]))
+    f_write = Call(
+        Lookup("getattr"),
+        [Call(Lookup("get_var"), [state, Literal("f")]), Literal("write")],
+        line=5,
+    )
+    bytes_ = Call(
+        Lookup("bytes"),
+        [
+            Call(
+                Lookup("l_list"),
+                [Call(Lookup("get_var"), [state, Literal("y")])],
+            )
+        ],
+        line=5,
+    )
+    f_write_bytes = Call(f_write, [bytes_], line=5)
+    state_and_res = Call(Lookup("with_state"), [state, f_write_bytes])
+    state = Call(Lookup("getitem"), [state_and_res, Literal(0)])
+    # import lineapy
+    lineapy = Call(Lookup("l_import"), [Literal("lineapy")], line=6)
+    state_and_res = Call(Lookup("with_state"), [state, lineapy])
+    state = Call(Lookup("getitem"), [state_and_res, Literal(0)])
+    # lineapy.save(lineapy.file_system, "fs")
+    save = Call(
+        Lookup("getattr"),
+        [
+            Call(Lookup("get_var"), [state, Literal("lineapy")]),
+            Literal("save"),
+        ],
+        line=7,
+    )
+    fs = Call(
+        Lookup("getattr"),
+        [
+            Call(Lookup("get_var"), [state, Literal("lineapy")]),
+            Literal("file_system"),
+        ],
+        line=7,
+    )
+    # TODO: Thread state through all the getattrs? and through the call?
+    save_fs = Call(save, [fs, Literal("fs")], line=7)
+
+    return state
+
+
+```
 
 ##
 
