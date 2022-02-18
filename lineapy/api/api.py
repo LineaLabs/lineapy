@@ -15,7 +15,6 @@ from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.plugins import airflow as airflow_plugin
-from lineapy.utils.constants import VERSION_DATE_STRING
 from lineapy.utils.utils import get_value_type
 
 """
@@ -25,9 +24,7 @@ one way to access the same feature.
 """
 
 
-def save(
-    reference: object, name: str, version: Optional[str] = None
-) -> LineaArtifact:
+def save(reference: object, name: str) -> LineaArtifact:
     """
     Publishes the object to the Linea DB.
 
@@ -79,9 +76,6 @@ def save(
         node_id=value_node_id,
         session_id=call_node.session_id,
         name=name,
-        version=version
-        if version
-        else datetime.now().strftime(VERSION_DATE_STRING),
     )
 
     # serialize value to db if we haven't before
@@ -154,7 +148,7 @@ def _can_save_to_db(value: object) -> bool:
     return True
 
 
-def get(artifact_name: str) -> LineaArtifact:
+def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:
     """
     Gets an artifact from the DB.
 
@@ -172,14 +166,19 @@ def get(artifact_name: str) -> LineaArtifact:
     """
     execution_context = get_context()
     db = execution_context.executor.db
-    artifact = db.get_artifact_by_name(artifact_name)
-    return LineaArtifact(
+    artifact = db.get_artifact_by_name(artifact_name, version)
+    linea_artifact = LineaArtifact(
         db=db,
         execution_id=artifact.execution_id,
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
         name=artifact_name,
     )
+    # doing this thing because we dont initialize the version when defining LineaArtifact
+    if artifact.version:
+        linea_artifact.version = artifact.version
+
+    return linea_artifact
 
 
 def catalog() -> LineaCatalog:

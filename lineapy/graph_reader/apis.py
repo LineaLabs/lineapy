@@ -22,7 +22,7 @@ from lineapy.graph_reader.program_slice import (
     get_source_code_from_graph,
 )
 from lineapy.plugins.airflow import AirflowDagConfig, to_airflow
-from lineapy.utils.constants import VERSION_DATE_STRING, VERSION_UNSET
+from lineapy.utils.constants import VERSION_DATE_STRING
 
 logger = logging.getLogger(__name__)
 
@@ -48,11 +48,10 @@ class LineaArtifact:
     node_id: LineaID
     session_id: LineaID
     name: str
-    version: str = field(default=VERSION_UNSET, repr=False)
+    version: str = field(init=False, repr=False)
 
     def __post_init__(self):
-        if self.version == VERSION_UNSET:
-            self.version = datetime.now().strftime(VERSION_DATE_STRING)
+        self.version = datetime.now().strftime(VERSION_DATE_STRING)
 
     @property
     def value(self) -> object:
@@ -182,7 +181,10 @@ class LineaCatalog:
     @property
     def print(self) -> str:
         return "\n".join(
-            [f"{a.name}, {a.date_created}" for a in self.artifacts]
+            [
+                f"{a.name}:{a.version} created on {a.date_created}"
+                for a in self.artifacts
+            ]
         )
 
     def __str__(self) -> str:
@@ -201,6 +203,10 @@ class LineaCatalog:
             e.g., `cat_df = pd.DataFrame(catalog.export())`.
         """
         return [
-            {"artifact_name": a.name, "date_created": a.date_created}
+            {
+                "artifact_name": a.name,
+                "artifact_version": a.version,
+                "date_created": a.date_created,
+            }
             for a in self.artifacts
         ]
