@@ -2,7 +2,10 @@ import pathlib
 from dataclasses import dataclass
 from typing import Dict
 
+import isort
+
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils.utils import prettify
 
 
 @dataclass
@@ -58,9 +61,14 @@ class BasePlugin:
             _import_block, _code_block, _ = self._split_code_blocks(
                 sliced_code, artifact_name
             )
-            full_import_block += _import_block
-            full_code_block += _code_block
+            full_import_block += "\n" + _import_block
+            full_code_block += "\n" + _code_block
 
-        pathlib.Path(f"{module_name}.py").write_text(
-            full_import_block + full_code_block
+        # Sort imports and move them to the top
+        full_code = isort.code(
+            full_import_block + full_code_block,
+            float_to_top=True,
+            profile="black",
         )
+        full_code = prettify(full_code)
+        pathlib.Path(f"{module_name}.py").write_text(full_code)
