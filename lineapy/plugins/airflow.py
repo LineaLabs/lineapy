@@ -24,6 +24,44 @@ AirflowDagConfig = TypedDict(
 )
 
 
+def split_code_blocks(code: str, func_name: str):
+    """
+    Split the list of code lines to import, main code and main func blocks.
+    The code block is added under a function with given name.
+
+    :param code: the source code to split.
+    :param func_name: name of the function to create.
+    :return: strings representing import_block, code_block, main_block.
+    """
+    # We split the lines in import and code blocks and join them to full code test
+    lines = code.split("\n")
+    # Imports are at the top, find where they end
+    end_of_imports_line_num = 0
+    import_open_bracket = False
+    while (
+        "import" in lines[end_of_imports_line_num]
+        or "#" in lines[end_of_imports_line_num]
+        or "" == lines[end_of_imports_line_num]
+        or "    " in lines[end_of_imports_line_num]
+        and import_open_bracket
+        or ")" in lines[end_of_imports_line_num]
+        and import_open_bracket
+    ):
+        if "(" in lines[end_of_imports_line_num]:
+            import_open_bracket = True
+        elif ")" in lines[end_of_imports_line_num]:
+            import_open_bracket = False
+        end_of_imports_line_num += 1
+    # everything from here down needs to be under def()
+    # TODO Support arguments to the func
+    code_block = f"def {func_name}():\n\t" + "\n\t".join(
+        lines[end_of_imports_line_num:]
+    )
+    import_block = "\n".join(lines[:end_of_imports_line_num])
+    main_block = f"""if __name__ == "__main__":\n\tprint({func_name}())"""
+    return import_block, code_block, main_block
+
+
 class AirflowPlugin(BasePlugin):
     def sliced_airflow_dag(
         self,

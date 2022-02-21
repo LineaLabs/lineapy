@@ -20,7 +20,7 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.plugins.airflow import AirflowDagConfig
+from lineapy.plugins.airflow import AirflowDagConfig, to_airflow
 
 logger = logging.getLogger(__name__)
 
