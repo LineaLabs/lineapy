@@ -61,6 +61,6 @@ class BasePlugin:
             full_import_block += _import_block
             full_code_block += _code_block
 
-            pathlib.Path(f"{module_name}.py").write_text(
-                full_import_block + full_code_block
-            )
+        pathlib.Path(f"{module_name}.py").write_text(
+            full_import_block + full_code_block
+        )

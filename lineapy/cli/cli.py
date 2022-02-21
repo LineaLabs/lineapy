@@ -21,7 +21,7 @@ from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.plugins.airflow import sliced_airflow_dag
+from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
@@ -281,13 +281,12 @@ def python(
             )
             exit(1)
 
-        full_code = sliced_airflow_dag(
-            tracer,
+        ap = AirflowPlugin(tracer)
+        ap.sliced_airflow_dag(
             slice,
             export_slice_to_airflow_dag,
             airflow_task_dependencies,
         )
-        pathlib.Path(f"{export_slice_to_airflow_dag}.py").write_text(full_code)
 
     tracer.db.close()
     if print_graph:
