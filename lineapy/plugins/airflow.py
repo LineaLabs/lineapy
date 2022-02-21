@@ -1,8 +1,14 @@
-from typing import List
+from pathlib import Path
+from typing import Dict, List, Optional
 
+import isort
+from jinja2 import Environment, FileSystemLoader
 from typing_extensions import TypedDict
 
+import lineapy
 from lineapy.plugins.base import BasePlugin
+from lineapy.utils.config import linea_folder
+from lineapy.utils.utils import prettify
 
 AirflowDagConfig = TypedDict(
     "AirflowDagConfig",
@@ -53,3 +59,77 @@ class AirflowPlugin(BasePlugin):
             artifacts_code[artifact_var] = slice_code
         self.generate_python_module(func_name, artifacts_code)
         # TODO self.generate_infra(airflow_task_dependencies)
+
+
+def to_airflow(
+    artifacts_code: Dict[str, str],
+    dag_name: str,
+    working_directory: Path,
+    task_dependencies: Optional[str] = None,
+    airflow_dag_config: Optional[AirflowDagConfig] = None,
+) -> str:
+    """
+    Transforms sliced code into airflow code.
+    """
+
+    working_dir_str = repr(
+        str(working_directory.relative_to((linea_folder() / "..").resolve()))
+    )
+
+    template_loader = FileSystemLoader(
+        searchpath=str(
+            (Path(lineapy.__file__) / "../plugins/jinja_templates").resolve()
+        )
+    )
+    template_env = Environment(loader=template_loader)
+
+    AIRFLOW_DAG_TEMPLATE = template_env.get_template("airflow_dag.jinja")
+
+    _import_blocks = []
+    _code_blocks = []
+    _task_names = []
+    for artifact_name, sliced_code in artifacts_code.items():
+        # We split the code in import and code blocks and form a function that calculates the artifact
+        artifact_func_name = f"{dag_name}_{artifact_name}"
+        _import_block, _code_block, _ = split_code_blocks(
+            sliced_code, artifact_func_name
+        )
+        _import_blocks.append(_import_block)
+        _code_blocks.append(_code_block)
+        _task_names.append(artifact_func_name)
+
+    OWNER = "airflow"
+    RETRIES = 2
+    START_DATE = "days_ago(1)"
+    SCHEDULE_IMTERVAL = "*/15 * * * *"
+    MAX_ACTIVE_RUNS = 1
+    CATCHUP = "False"
+    if airflow_dag_config:
+        OWNER = airflow_dag_config.get("owner", OWNER)
+        RETRIES = airflow_dag_config.get("retries", RETRIES)
+        START_DATE = airflow_dag_config.get("start_date", START_DATE)
+        SCHEDULE_IMTERVAL = airflow_dag_config.get(
+            "schedule_interval", SCHEDULE_IMTERVAL
+        )
+        MAX_ACTIVE_RUNS = airflow_dag_config.get(
+            "max_active_runs", MAX_ACTIVE_RUNS
+        )
+        CATCHUP = airflow_dag_config.get("catchup", CATCHUP)
+
+    full_code = AIRFLOW_DAG_TEMPLATE.render(
+        import_blocks=_import_blocks,
+        working_dir_str=working_dir_str,
+        code_blocks=_code_blocks,
+        DAG_NAME=dag_name,
+        OWNER=OWNER,
+        RETRIES=RETRIES,
+        START_DATE=START_DATE,
+        SCHEDULE_IMTERVAL=SCHEDULE_IMTERVAL,
+        MAX_ACTIVE_RUNS=MAX_ACTIVE_RUNS,
+        CATCHUP=CATCHUP,
+        tasks=_task_names,
+        task_dependencies=task_dependencies,
+    )
+    # Sort imports and move them to the top
+    full_code = isort.code(full_code, float_to_top=True, profile="black")
+    return prettify(full_code)
