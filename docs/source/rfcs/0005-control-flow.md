@@ -160,17 +160,20 @@ def set_var(state, name, value):
 def get_var(state, name):
     return state.namespace[name]
 
-def with_state(state, fn, *args, **kwargs):
-    res = fn(*args, **kwargs)
-    return (, res)
 
-def
+def save_artifact(state, name, value):
+    new_artifacts = {**state.artifacts, name: value}
+    return replace(state, artifacts=new_artifacts)
+
+
+def setitems(d, *keys_and_values):
+    return {**d, **dict(keys_and_values)}
+
 ```
 
 We can think about our program as a function that takes in a State and returns a new State, like this:
 
 ```python
-
 def my_program(state):
     # x = 100
     state = Call(
@@ -224,10 +227,12 @@ def my_program(state):
     f_write_bytes = Call(f_write, [bytes_], line=5)
     state_and_res = Call(Lookup("with_state"), [state, f_write_bytes])
     state = Call(Lookup("getitem"), [state_and_res, Literal(0)])
+
     # import lineapy
     lineapy = Call(Lookup("l_import"), [Literal("lineapy")], line=6)
     state_and_res = Call(Lookup("with_state"), [state, lineapy])
     state = Call(Lookup("getitem"), [state_and_res, Literal(0)])
+
     # lineapy.save(lineapy.file_system, "fs")
     save = Call(
         Lookup("getattr"),
@@ -237,23 +242,119 @@ def my_program(state):
         ],
         line=7,
     )
-    fs = Call(
-        Lookup("getattr"),
+    state_and_fs = Call(
+        Lookup("with_state"),
         [
-            Call(Lookup("get_var"), [state, Literal("lineapy")]),
-            Literal("file_system"),
+            state,
+            Call(
+                Lookup("getattr"),
+                [
+                    Call(Lookup("get_var"), [state, Literal("lineapy")]),
+                    Literal("file_system"),
+                ],
+                line=7,
+            ),
         ],
-        line=7,
     )
-    # TODO: Thread state through all the getattrs? and through the call?
-    save_fs = Call(save, [fs, Literal("fs")], line=7)
+    state = Call(Lookup("getitem"), [state_and_fs, Literal(0)])
+    fs = Call(Lookup("getitem"), [state_and_fs, Literal(1)])
+
+    state_and_artifact = Call(
+        Lookup("with_state"), [state, Call(save, [fs, Literal("fs")], line=7)]
+    )
+    state = Call(Lookup("getitem"), [state_and_artifact, Literal(0)])
+
+    return state
+```
+
+This does look quite a bit more complicated than the previous implementation,
+because we are threading the state through everything that needs it.
+
+Before proceeding, let's rewrite it again in a more readable form, where instead
+of creating the `Node`s directly, we use function application to create them.
+
+We assume any local we use that is not defined translate to a `Lookup`. We also add
+an extra `line` function to add the proper line mapping to nodes:
+
+```python
+
+def my_program(state):
+    # x = 100
+    state = set_var(state, "x", line(1, 100))
+
+    # y = x + 1
+    state = set_var(state, "y", line(2, add(get_var(state, "x"), 1)))
+
+    # z = y + 1
+    state = set_var(state, "z", line(3, add(get_var(state, "y"), 1)))
+
+    # f = open("some_path")
+    state = set_var(state, "f", line(4, get_var(state, "open")("some_path")))
+
+    # f.write(bytes([y]))
+    f_write = getattr(get_var(state, "f"), "write")
+    bytes_ = bytes(l_list(get_var(state, "y")))
+    f_write_bytes = line(5, f_write(bytes_))
+    state = getitem(with_state(state, f_write_bytes), 0)
+
+    # import lineapy
+    state = line(6, getitem(with_state(state, l_import("lineapy")), 0))
+
+    # lineapy.save(lineapy.file_system, "fs")
+    save = getattr(get_var(state, "lineapy"), "save")
+    state_and_fs = with_state(
+        state, getattr(get_var(state, "lineapy"), "file_system")
+    )
+    state = getitem(state_and_fs, 0)
+    fs = getitem(state_and_fs, 1)
+
+    state_and_artifact = with_state(state, line(7, save(fs, "fs")))
+    state = getitem(state_and_artifact, 0)
 
     return state
 
-
 ```
 
-##
+This format is atleast a bit more readable, but is equivalent to the previous.
+
+After evaluating the program, we want to know what all the artifacts are. What their values are and
+what nodes are needed to create them. One way we can do that is to define certain patterns which
+correspond to replacements to make on the graph. By continually evaluating these
+replacements whenever they match, we end up with a normalized version of the graph.
+
+For now, we emit writing the explicit replacements, that we would need, but
+can add thse if more detail is needed. After the replacements, we should end
+up with a graph like this:
+
+```python
+def my_program_transformed(state):
+    x = line(1, 100)
+    y = line(2, add(x, 1))
+    z = line(3, add(z, 1))
+    f = line(4, get_var(state, "open")("some_path"))
+    f_write = line(5, getattr(f, "write")(bytes(l_list(y))))
+    fs = modifies_fs(
+        getattr(state, "fs"),
+        f_write,
+    )
+    return State(
+        namespace=setitems(
+            getattr(state, "variables"), "x", x, "y", y, "z", z, "f", f
+        ),
+        modules=getattr(state, "modules"),
+        fs=fs,
+        artifacts=setitems(getattr(state, "artifacts"), "fs", fs),
+    )
+```
+
+From this representation, we can look at the `fs` artifact and see all it's ancestors
+to see what lines are needed to recreate it.
+
+This way of evaluating what lines are required to re-execute a certain artifact
+differs from our current implementation by moving much of the functionality that
+we have in the tracer and executor into a graph replacement framework.
+
+Next, we will see how this help us deal with control flow in a consistant manner.
 
 ## Background
 
