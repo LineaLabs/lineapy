@@ -144,6 +144,7 @@ class Artifact(BaseModel):
 
     date_created: datetime.datetime
     name: Optional[str]
+    version: Optional[str]
 
     class Config:
         orm_mode = True

@@ -74,14 +74,17 @@ def sliced_airflow_dag(
     :param tracer: the tracer object.
     :param slice_names: list of slice names to be used as tasks.
     :param func_name: name of the DAG and corresponding functions and task prefixes,
-    i.e. "sliced_housing_dag"
+                      i.e. "sliced_housing_dag"
+
     :param airflow_task_dependencies: task dependencies in Airflow format,
-    i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-    This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
-    and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
-    Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
-    and "sliced_housing_dag_y" depends on them.
+                                      i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
+                                      This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
+                                      and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
+                                      Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
+                                      and "sliced_housing_dag_y" depends on them.
+
     :return: string containing the code of the Airflow DAG running this slice
+
     """
 
     # Remove quotes

@@ -96,7 +96,7 @@ class RelationalLineaDB:
         Base.metadata.create_all(engine)
 
     @classmethod
-    def from_environment(cls, url: Optional[str]) -> RelationalLineaDB:
+    def from_environment(cls, url: Optional[str] = None) -> RelationalLineaDB:
         f"""
         Creates a new database.
 
@@ -270,11 +270,12 @@ class RelationalLineaDB:
             execution_id=artifact.execution_id,
             name=artifact.name,
             date_created=artifact.date_created,
+            version=artifact.version,
         )
         self.session.add(artifact_orm)
 
     def artifact_in_db(
-        self, node_id: LineaID, execution_id: LineaID, name: str
+        self, node_id: LineaID, execution_id: LineaID, name: str, version: str
     ) -> bool:
         """
         Returns true if the artifact is already in the DB.
@@ -286,6 +287,7 @@ class RelationalLineaDB:
                     ArtifactORM.node_id == node_id,
                     ArtifactORM.execution_id == execution_id,
                     ArtifactORM.name == name,
+                    ArtifactORM.version == version,
                 )
             )
             .exists()
@@ -472,16 +474,20 @@ class RelationalLineaDB:
             .all()
         )
 
-    def get_artifact_by_name(self, artifact_name: str) -> ArtifactORM:
+    def get_artifact_by_name(
+        self, artifact_name: str, version: Optional[str] = None
+    ) -> ArtifactORM:
         """
         Gets the most recent artifact with a certain name.
+        If a version is not specified, it will return the most recent
+        version sorted by date_created
         """
-        res = (
-            self.session.query(ArtifactORM)
-            .filter(ArtifactORM.name == artifact_name)
-            .order_by(ArtifactORM.date_created.desc())
-            .first()
+        res_query = self.session.query(ArtifactORM).filter(
+            ArtifactORM.name == artifact_name
         )
+        if version:
+            res_query = res_query.filter(ArtifactORM.version == version)
+        res = res_query.order_by(ArtifactORM.date_created.desc()).first()
         assert res
         return res
 

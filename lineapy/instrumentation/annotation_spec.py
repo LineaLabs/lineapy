@@ -240,11 +240,13 @@ class ClassMethodNames(BaseModel):
     as in :class:`~lineapy.instrumentation.annotation_spec.ClassMethodName`).
 
     .. code-block:: yaml
+
         - criteria:
             class_method_names:
             - to_csv
             - to_parquet
             class_instance: DataFrame
+
     """
 
     class_instance: str

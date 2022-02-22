@@ -87,7 +87,9 @@ def get_source_segment(source, node, padded=False):
         or `end_col_offset`) is missing, return None.
 
         If *padded* is `True`, the first line of a multi-line statement will
-    be padded with spaces to match its original position.
+        be padded with spaces to match its original position.
+
+
     """
     try:
         if node.end_lineno is None or node.end_col_offset is None:
