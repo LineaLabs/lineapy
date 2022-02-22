@@ -235,7 +235,7 @@ If using Docker, please add appropriate tests and ensure all tests are working u
 `make test`. Any args to pytest can be passed using args="xxx". e.g., individual
 tests can be run using `make test args="<path_to_test_file>"`.
 
-Please ensure linting and `typecheck`s are done before commiting your code. When using docker, this can be done using `make lint` and `make typecheck` respectively. A
+Please ensure linting and `typecheck`s are done before committing your code. When using docker, this can be done using `make lint` and `make typecheck` respectively. A
 pre-commit hook that runs `make blackfix lint typecheck build test` will fix
 any fixable issues and ensure build and test works.
 
@@ -316,7 +316,7 @@ Please see [this](https://github.com/LineaLabs/lineapy/blob/main/PERFORMANCE.md)
 
 ### 4.2. Known Issues
 
-Note - on macOS Monterey & using conda's Python 3.8.11, installing the requirements fails due to a failure in building fastparquet==0.7.2
+Note - on M1 chip with macOS Monterey & using conda's Python 3.8.11, installing the requirements fails due to a failure in building fastparquet==0.7.2
 Downgrading to 0.7.0 solves the issue - simply change the fastparquet version in requirements.txt
 
 ### 4.3. Using venv instead of Conda
@@ -338,7 +338,8 @@ brew install postgresql
 brew install graphviz
 ```
 
-* Rust
+* [Optional] Rust (this was at a time needed, but we were not able to reproduce
+this dependency requirement in later tries)
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
