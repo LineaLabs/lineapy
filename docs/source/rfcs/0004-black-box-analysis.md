@@ -257,6 +257,33 @@ trace_exec(
 )
 ```
 
+```
+| event      | |                                 stack[0] |                                 stack[1] | line | offset |       opcode       |
+| call       |                                      None |                                     None |    1 |     -1 | <0>                |
+| line       |                                      None |                                     None |    1 |      0 | LOAD_NAME          |
+| opcode     |                                      None |                                     None |    1 |      0 | LOAD_NAME          |
+| opcode     |  <module 'tempfile' from '/usr/local/Caskroom/miniconda/base/envs/lineapy/lib/python3.9/tempfile.py'> |                                     None |    1 |      2 | LOAD_METHOD        |
+| opcode     |  <function TemporaryFile at 0x7fd208046700> |                                     None |    1 |      4 | CALL_METHOD        |
+| opcode     |               <_io.BufferedRandom name=4> |                                     None |    1 |      6 | SETUP_WITH         |
+| opcode     |               <_io.BufferedRandom name=4> | <built-in method __exit__ of _io.BufferedRandom object at 0x7fd20811d510> |    1 |      8 | STORE_NAME         |
+| line       |  <built-in method __exit__ of _io.BufferedRandom object at 0x7fd20811d510> |                                     None |    2 |     10 | LOAD_NAME          |
+| opcode     |  <built-in method __exit__ of _io.BufferedRandom object at 0x7fd20811d510> |                                     None |    2 |     10 | LOAD_NAME          |
+| opcode     |               <_io.BufferedRandom name=4> | <built-in method __exit__ of _io.BufferedRandom object at 0x7fd20811d510> |    2 |     12 | LOAD_METHOD        |
+| opcode     |               <_io.BufferedRandom name=4> | <method 'write' of '_io.BufferedRandom' objects> |    2 |     14 | LOAD_CONST         |
+| opcode     |                                     b'10' |              <_io.BufferedRandom name=4> |    2 |     16 | CALL_METHOD        |
+| opcode     |                                         2 | <built-in method __exit__ of _io.BufferedRandom object at 0x7fd20811d510> |    2 |     18 | POP_TOP            |
+| opcode     |  <built-in method __exit__ of _io.BufferedRandom object at 0x7fd20811d510> |                                     None |    2 |     20 | POP_BLOCK          |
+| opcode     |  <built-in method __exit__ of _io.BufferedRandom object at 0x7fd20811d510> |                                     None |    2 |     22 | LOAD_CONST         |
+| opcode     |                                      None | <built-in method __exit__ of _io.BufferedRandom object at 0x7fd20811d510> |    2 |     24 | DUP_TOP            |
+| opcode     |                                      None |                                     None |    2 |     26 | DUP_TOP            |
+| opcode     |                                      None |                                     None |    2 |     28 | CALL_FUNCTION      |
+| opcode     |                                      None |                                     None |    2 |     30 | POP_TOP            |
+| opcode     |                                      None |                                     None |    2 |     32 | JUMP_FORWARD       |
+| opcode     |                                      None |                                     None |    2 |     50 | LOAD_CONST         |
+| opcode     |                                      None |                                     None |    2 |     52 | RETURN_VALUE       |
+| return     |                                      None |                                     None |    2 |     52 | RETURN_VALUE       |
+```
+
 In the trace, we can see that in offset 16 the `CALL_METHOD` is invoked. We don't actually see the method, since this exists farther up in the stack, but we do see the argument, the self `<_io.BufferedRandom name=4>` and the arg `b'10'`.
 
 Looking at the third item from the top of the stack, we will see it's the `write` method and know this modifies the filesystem.
