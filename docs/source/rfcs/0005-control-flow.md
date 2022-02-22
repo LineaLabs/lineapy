@@ -32,7 +32,7 @@ functional forms, by moving all of the state (io, globals, etc) into an explicit
 state variable that is passed through the graph, to enable us to break up black boxes
 and generates slices for parts of them.
 
-## Example
+## Simple Example
 
 Let's start with a simple example, to motivate this idea. We will show it is represented
 currently and then how we could change the implementation.
@@ -339,7 +339,7 @@ def my_program_transformed(state):
     )
     return State(
         namespace=setitems(
-            getattr(state, "variables"), "x", x, "y", y, "z", z, "f", f
+            getattr(state, "namespace"), "x", x, "y", y, "z", z, "f", f
         ),
         modules=getattr(state, "modules"),
         fs=fs,
@@ -354,7 +354,147 @@ This way of evaluating what lines are required to re-execute a certain artifact
 differs from our current implementation by moving much of the functionality that
 we have in the tracer and executor into a graph replacement framework.
 
+## If Control Flow Example
+
 Next, we will see how this help us deal with control flow in a consistant manner.
+
+Let's say we start with this program:
+
+```python
+if cond:
+    a = b
+    c = d
+else:
+    a = b + 1
+    c = d + 1
+```
+
+and we want to slice on `c`. We should end up with this slice:
+
+```python
+if cond:
+    c = d
+else:
+    c = d + 1
+```
+
+To create a graph for this, we start by adding an `if_` ternary operator:
+
+```python
+def if_(cond, true_branch, false_branch):
+    return true_branch if cond else false_branch
+```
+
+Since we can now treat our program state as a value, we can use this functional
+operator to create a graph for our program:
+
+```python
+line_2_state = set_var(state, "a", line(2, get_var(state, "b")))
+line_3_state = set_var(line_2_state, "c", line(3, get_var(line_2_state, "d")))
+
+line_5_state = set_var(state, "a", line(5, add(get_var(state, "b")), 1))
+line_6_state = set_var(line_6_state, "c", line(6, get_var(line_6_state, "d")))
+
+
+state = if_(
+    line(1, get_var(state, "cond")),
+    line_3_state,
+    line_6_state,
+)
+```
+
+Running our transforms to deal with `get_var` and `set_var` we end up with this resulting graph:
+
+```python
+a_true = line(2, get_var(state, "b"))
+c_true = line(3, get_var(state, "d"))
+
+a_false = line(5, add(get_var(state, "b"), 1))
+c_false = line(6, add(get_var(state, "d"), 1))
+
+state = if_(
+    line(1, get_var(state, "cond")),
+    replace_namespace(
+        state,
+        setitems(
+            getattr(state, "namespace"),
+            "a",
+            a_true,
+            "c",
+            c_true,
+        ),
+    ),
+    replace_namespace(
+        state,
+        setitems(
+            getattr(state, "namespace"),
+            "a",
+            a_false_,
+            "c",
+            c_false_,
+        ),
+    ),
+)
+```
+
+Since the `if_` has the same `replace_namespace(state, x)` in both conditions,
+we can move it inside:
+
+```python
+a_true = line(2, get_var(state, "b"))
+c_true = line(3, get_var(state, "d"))
+
+a_false = line(5, add(get_var(state, "b"), 1))
+c_false = line(6, add(get_var(state, "d"), 1))
+
+state = replace_namespace(
+    state,
+    if_(
+        line(1, get_var(state, "cond")),
+        setitems(
+            getattr(state, "namespace"),
+            "a",
+            a_true,
+            "c",
+            c_true,
+        ),
+        setitems(
+            getattr(state, "namespace"),
+            "a",
+            a_false_,
+            "c",
+            c_false_,
+        ),
+    ),
+)
+```
+
+Since the setitems is also mostly the same in both branches, we can move
+the `if_` into the assignment statements:
+
+```python
+cond = line(1, get_var(state, "cond"))
+
+a_true = line(2, get_var(state, "b"))
+c_true = line(3, get_var(state, "d"))
+
+a_false = line(5, add(get_var(state, "b"), 1))
+c_false = line(6, add(get_var(state, "d"), 1))
+
+state = replace_namespace(
+    state,
+    setitems(
+        getattr(state, "namespace"),
+        "a",
+        if_(cond, a_true, a_false),
+        "c",
+        if_(cond, b_true, b_false),
+    ),
+)
+```
+
+From there, if we get the `c` variable, we see that it will not include the
+value for the a definitions.
 
 ## Background
 
