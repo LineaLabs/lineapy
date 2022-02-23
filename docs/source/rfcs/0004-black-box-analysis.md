@@ -141,62 +141,9 @@ a `settrace` logger from ["The unreasonable effectiveness of sys.settrace (and s
 CPython"](https://explog.in/notes/settrace.html) and augmented it by also printing items off the top
 of the bytecode stack using the code from [this gist](https://gist.github.com/crusaderky/cf0575cfeeee8faa1bb1b3480bc4a87a).
 
-I also changed it to only include the tracing when the code object is the same one we are evaulating.
-If we don't have this, then it will continue tracing _inside_ functions that are called from our black box, which is not what we want.
-
-The updated file looks like this:
-
-```python
-import sys
-from pathlib import Path
-
-import opcode
-
-
-def clean_locals(locals: dict) -> dict:
-    """
-    Returns the locals with the __builtins__
-    """
-    return {k: v for k, v in locals.items() if k != "__builtins__"}
-
-
-CURRENT_CODE_OBJECT = None
-
-
-def show_trace(frame, event, arg):
-    code = frame.f_code
-    if code != CURRENT_CODE_OBJECT:
-        return show_trace
-    frame.f_trace_opcodes = True
-    offset = frame.f_lasti
-    print(f"| {event:10} | {str(arg):>4} |", end=" ")
-    print(f"{frame.f_lineno:>4} | {frame.f_lasti:>6} |", end=" ")
-    print(
-        f"{opcode.opname[code.co_code[offset]]:<18} | {str(clean_locals(frame.f_locals)):<35} |"
-    )
-    return show_trace
-
-
-def trace_exec(globals, code):
-    """
-    Trace some code as would would with an exec block
-    """
-    global CURRENT_CODE_OBJECT
-    header = f"| {'event':10} | {'arg':>4} | line | offset | {'opcode':^18} | {'locals':^35} |"
-    print(header)
-    CURRENT_CODE_OBJECT = compile(code, "", "exec")
-    sys.settrace(show_trace)
-    exec(CURRENT_CODE_OBJECT, globals)
-    sys.settrace(None)
-```
-
-Now we can use `trace_exec` function to try out some of our examples we listed above, and imagine how we could use their traces
-to understand them.
 
 #### Example 1
-
-We can try execing a version of our first example, to see how we could use the results to
-determine that it writes to the file system and doesn't modify it's arguments:
+We can use this on our examples to see our tracing output:
 
 ```python
 def download(*args):
@@ -323,7 +270,9 @@ def set_item(x, y):
 Unless we annotate it, we won't know that this function is mutating the `x` arg.
 If we used the `set_trace` approach, we could see that a `setitem` is being called on the `x` arg, and infer this from the contents of the function.
 
-In this way, we could limit our own hand annotations to Python functions which are written in C or are performance critical (having settrace enabled during
+In this way, we could limit our own hand annotations to Python functions which are written in C or are performance critical (https://my.15five.com/one-on-one/user/7064998/one-on-one/47244121/ settrace enabled during
 a function's execution will slow it down). This would allow us to cover a greate percentage of third party libraries that we see.
 
 However, I propose holding off on using this approach more generaly, for a future PR, to minimize the size of this change.
+
+So for this PR, it would only cover understanding side effects for control flow, but not for user defined classes or functions.
