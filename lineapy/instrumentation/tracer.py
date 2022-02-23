@@ -404,16 +404,17 @@ class Tracer:
         :param arguments: positional arguments. These are passed as either Nodes (named nodes, constants, etc)
                             or tuples (starred, the node) where the starred is a boolean to indicate whether
                             the argument is supposed to be splatted before passing to the function (This is
-                            the case where you might call a function like so `foo(1, *[2, 3])`). The boolean is made
+                            the case where you might call a function like so ``foo(1, *[2, 3])`` ). The boolean is made
                             optional simply to support the legacy way of calling this function and not having to pass
                             the tuples for every single case from node_transformer
         :param keyword_arguments: keyword arguments. These are passed as a dictionary of keyword arguments to the
-                                    function. Similar to *positional_arguments, the keyword arguments can also be splatted
-                                    by naming the key as `unpack_<index>` where <index> is the index of the argument. In this
+                                    function. Similar to ``*positional_arguments``, the keyword arguments can also be splatted
+                                    by naming the key as ``unpack_<index>`` where <index> is the index of the argument. In this
                                     case, the dictionary will be unpacked and passed as keyword arguments to the function.
                                     The keyword arguments are processed in order of passing so any keyword conflicts will
                                     result in the last value accepted as the value for the keyword.
         :return: a call node
+
         NOTE
         ----
         - It's important for the call to return the call node

@@ -1,1 +1,4 @@
 __pycache__
+tests/integration
+.git
+*housing.py

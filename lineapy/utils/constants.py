@@ -44,3 +44,7 @@ IS = operator.is_.__name__
 ISNOT = operator.is_not.__name__
 IN = operator.__contains__.__name__
 NOT = operator.not_.__name__
+
+
+# linea internal defaults
+VERSION_DATE_STRING = "%Y-%m-%dT%H:%M:%S"

@@ -92,7 +92,7 @@ def notebook(
     # Print the slice:
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
-    db = RelationalLineaDB.from_environment(None)
+    db = RelationalLineaDB.from_environment()
     artifact = db.get_artifact_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
@@ -132,7 +132,7 @@ def file(
     )
 
     # Run the code:
-    db = RelationalLineaDB.from_environment(None)
+    db = RelationalLineaDB.from_environment()
     tracer = Tracer(db, SessionType.SCRIPT)
     # Redirect all stdout to stderr, so its not printed.
     with redirect_stdout(sys.stderr):
