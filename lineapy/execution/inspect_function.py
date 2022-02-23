@@ -311,10 +311,15 @@ class FunctionInspector:
 
         # we have a special case here whose structure is not
         #   shared with any other cases...
-        if (
-            isinstance(function, BuiltinMethodType)
-            and function.__name__ == "append"
-            and isinstance(function.__self__, list)
+        if isinstance(function, BuiltinMethodType) and (
+            (
+                function.__name__ == "append"
+                and isinstance(function.__self__, list)
+            )
+            or (
+                function.__name__ == "add"
+                and isinstance(function.__self__, set)
+            )
         ):
             # list.append(value)
             yield MutatedValue(

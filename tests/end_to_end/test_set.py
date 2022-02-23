@@ -9,7 +9,6 @@ def test_set_init(execute):
     assert res.values["x"] == {1, 2}
 
 
-@pytest.mark.xfail(reason="sets not fully supported")
 def test_set_add_mutates(execute):
     code = """x = set()
 x.add(10)
@@ -18,7 +17,6 @@ x.add(10)
     assert res.slice("x") == code
 
 
-@pytest.mark.xfail(reason="sets not fully supported")
 def test_set_getitem_view(execute):
     code = """y = set()
 x = [y]
@@ -28,7 +26,6 @@ y.add(10)
     assert res.slice("x") == code
 
 
-@pytest.mark.xfail(reason="sets not fully supported")
 def test_set_add_mutates_inner(execute):
     code = """x = set()
 y = [x]
