@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_set_init(execute):
     code = """x={1,1,2}
 """
