@@ -309,72 +309,60 @@ class FunctionInspector:
         creates view relationships between them.
         """
 
-        # we have a special case here whose structure is not
-        #   shared with any other cases...
-        if isinstance(function, BuiltinMethodType) and (
-            (
-                function.__name__ == "append"
-                and isinstance(function.__self__, list)
+        def get_root_module(fun: Callable):
+            if hasattr(fun, "__module__") and fun.__module__ is not None:
+                return fun.__module__.split(".")[0]
+            return None
+
+        # numpy ufunc objects dont have modules
+        module = getattr(function, "__module__", None)
+        if module in self.specs:
+            yield from _check_annotation(
+                function,
+                args,
+                kwargs,
+                result,
+                self.specs[function.__module__],
+                module=function.__module__,
             )
-            or (
-                function.__name__ == "add"
-                and isinstance(function.__self__, set)
-            )
-        ):
-            # list.append(value)
-            yield MutatedValue(
-                mutated_value=BoundSelfOfFunction(self_ref="SELF_REF")
-            )
-            if is_mutable(args[0]):
-                yield ViewOfValues(
-                    views=[
-                        BoundSelfOfFunction(self_ref="SELF_REF"),
-                        PositionalArg(positional_argument_index=0),
-                    ]
-                )
         else:
-
-            def get_root_module(fun: Callable):
-                if hasattr(fun, "__module__") and fun.__module__ is not None:
-                    return fun.__module__.split(".")[0]
-                return None
-
-            # numpy ufunc objects dont have modules
-            module = getattr(function, "__module__", None)
-            if module in self.specs:
+            root_module = get_root_module(function)
+            if root_module is not None and root_module in self.specs:
                 yield from _check_annotation(
                     function,
                     args,
                     kwargs,
                     result,
-                    self.specs[function.__module__],
-                    module=function.__module__,
+                    self.specs[root_module],
+                    module=root_module,
                 )
-            else:
-                root_module = get_root_module(function)
-                if root_module is not None and root_module in self.specs:
-                    yield from _check_annotation(
-                        function,
-                        args,
-                        kwargs,
-                        result,
-                        self.specs[root_module],
-                        module=root_module,
-                    )
 
-            if not isinstance(function, MethodType):
-                # base classes have to be a method type, helps skip through
-                #   some options
-                return
-            for base_spec_module in self.base_specs:
-                # there doesn't seem to be a way to hash thru this...
-                # so we'll loop for now
-                yield from _check_annotation(
+        if not isinstance(function, MethodType):
+            # base classes have to be a method type, helps skip through
+            #   some options
+            if (
+                isinstance(function, BuiltinMethodType)
+                and function.__module__ is None
+            ):
+                # adding type ignore because for some reason mypy thinks this code is unreachable
+                yield from _check_annotation(  # type: ignore
                     function,
                     args,
                     kwargs,
                     result,
-                    self.base_specs[base_spec_module],
-                    base_spec_module=base_spec_module,
+                    self.specs[BuiltinMethodType.__name__],
+                    module=BuiltinMethodType.__name__,
                 )
             return
+        for base_spec_module in self.base_specs:
+            # there doesn't seem to be a way to hash thru this...
+            # so we'll loop for now
+            yield from _check_annotation(
+                function,
+                args,
+                kwargs,
+                result,
+                self.base_specs[base_spec_module],
+                base_spec_module=base_spec_module,
+            )
+        return
