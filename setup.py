@@ -86,7 +86,6 @@ setup(
             "fastparquet",
             "syrupy==1.4.5",
             "mypy",
-            "isort",
             "pytest",
             "matplotlib",
             # Coveralls doesn't work with 6.0
@@ -94,7 +93,6 @@ setup(
             "coverage[toml]<6.0",
             "pytest-cov",
             "jupyterlab",
-            "ipython",
             "pdbpp",
             "pytest-virtualenv",
             "nbval",
