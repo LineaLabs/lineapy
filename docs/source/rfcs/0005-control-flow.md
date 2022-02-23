@@ -72,7 +72,9 @@ mutated_fs = Mutate(Lookup("file_system"), f_write_bytes, line=5)
 lineapy = Call(Lookup("l_import"), ["lineapy"], line=6)
 # lineapy.save(lineapy.file_system, "fs")
 save = Call(Lookup("getattr"), [lineapy, Literal("save")], line=7)
-fs = Call(Lookup("getattr"), [lineapy, Literal("file_system")], implicit=[mutated_fs], line=7)
+fs = Call(
+    Lookup("getattr"), [lineapy, Literal("file_system")], implicit=[mutated_fs], line=7
+)
 save_fs = Call(save, [fs, Literal("fs")], line=7)
 ```
 
@@ -117,8 +119,9 @@ def ancestors(node):
         yield from ancestors(p)
     yield node
 
+
 def lines_for_node(node):
-    return {n.line for n in  ancestors(node) if n.line is not None }
+    return {n.line for n in ancestors(node) if n.line is not None}
 
 
 # lineapy.save function
@@ -153,9 +156,11 @@ class State:
     # Mapping from name to the value of the artifact
     artifacts: Dict[str, object]
 
+
 def set_var(state, name, value):
     new_namespace = {**state.namespace, name: value}
     return replace(state, namespace=new_namespace)
+
 
 def get_var(state, name):
     return state.namespace[name]
@@ -168,7 +173,6 @@ def save_artifact(state, name, value):
 
 def setitems(d, *keys_and_values):
     return {**d, **dict(keys_and_values)}
-
 ```
 
 We can think about our program as a function that takes in a State and returns a new State, like this:
@@ -176,9 +180,7 @@ We can think about our program as a function that takes in a State and returns a
 ```python
 def my_program(state):
     # x = 100
-    state = Call(
-        Lookup("set_var"), [state, Literal("x"), Literal(100)], line=1
-    )
+    state = Call(Lookup("set_var"), [state, Literal("x"), Literal(100)], line=1)
 
     # y = x + 1
     res_y = Call(
@@ -277,7 +279,6 @@ We assume any local we use that is not defined translate to a `Lookup`. We also 
 an extra `line` function to add the proper line mapping to nodes:
 
 ```python
-
 def my_program(state):
     # x = 100
     state = set_var(state, "x", line(1, 100))
@@ -302,9 +303,7 @@ def my_program(state):
 
     # lineapy.save(lineapy.file_system, "fs")
     save = getattr(get_var(state, "lineapy"), "save")
-    state_and_fs = with_state(
-        state, getattr(get_var(state, "lineapy"), "file_system")
-    )
+    state_and_fs = with_state(state, getattr(get_var(state, "lineapy"), "file_system"))
     state = getitem(state_and_fs, 0)
     fs = getitem(state_and_fs, 1)
 
@@ -312,7 +311,6 @@ def my_program(state):
     state = getitem(state_and_artifact, 0)
 
     return state
-
 ```
 
 This format is atleast a bit more readable, but is equivalent to the previous.
@@ -338,9 +336,7 @@ def my_program_transformed(state):
         f_write,
     )
     return State(
-        namespace=setitems(
-            getattr(state, "namespace"), "x", x, "y", y, "z", z, "f", f
-        ),
+        namespace=setitems(getattr(state, "namespace"), "x", x, "y", y, "z", z, "f", f),
         modules=getattr(state, "modules"),
         fs=fs,
         artifacts=setitems(getattr(state, "artifacts"), "fs", fs),
@@ -437,8 +433,8 @@ state = if_(
 )
 ```
 
-Since the `if_` has the same `replace_namespace(state, x)` in both conditions,
-we can move it inside:
+Now, we can use this property that `if_(cond, f(x), f(y)) == f(if_(cond, x, y))` to
+move the if statement inside the state:
 
 ```python
 a_true = line(2, get_var(state, "b"))
@@ -496,6 +492,129 @@ state = replace_namespace(
 From there, if we get the `c` variable, we see that it will not include the
 value for the a definitions.
 
+## While control flow example
+
+We can also show how this could work with a `while` loop, which any for loop can
+be transformed into.
+
+Let's say we have this code:
+
+```python
+s = 0
+i = 0
+while i < 10:
+    i += 1
+    print("Loop", i)
+    s += xs[i]
+```
+
+We want to slice it to remove the `print` statement. We can assume this print statement changes our state, by adding to some `stdout` variable, or something like that.
+
+Alternatively, we also might want to slice just for the standard out, and remove the actual summing!
+
+To transform this, let's add a functional `while_` which keeps calling
+a function on data to transform it, till the stopping condition is reached:
+
+```python
+T = TypeVar("T")
+
+
+def while_(value: T, cond: Callable[[T], bool], body: Callable[[T], T]) -> T:
+    """
+    Keeps calling the `body` function on `value` until the cond returns false.
+    """
+    while cond(value):
+        value = body(value)
+    return value
+```
+
+```python
+state = line(1, set_var(state, "s", 0))
+state = line(2, set_var(state, "i", 0))
+
+
+def cond(state):
+    return line(3, less(get_var(state, "i"), 10))
+
+
+def body(state):
+    state = set_var(state, "i", line(4, add(get_var(state, "i"), 1)))
+    state = with_state(state, line(5, print_("Loop", get_var(state, "i"))))[0]
+    return set_var(
+        state,
+        "s",
+        line(
+            6,
+            add(
+                get_var(state, "s"),
+                getitem(get_var(state, "xs"), get_var(state, "i")),
+            ),
+        ),
+    )
+
+
+state = while_(state, cond, loop)
+```
+
+Now, similar to the `if` example, let's first normalize with respect to the variables
+and other state modifications, before trying to look in the loop:
+
+```python
+state = replace_namespace(
+    state,
+    setitems(
+        getattr(state, "namespace"),
+        "s",
+        line(
+            1,
+            0,
+        ),
+        "i",
+        line(
+            2,
+            0,
+        ),
+    ),
+)
+
+
+def cond(state):
+    return line(3, less(get_var(state, "i"), 10))
+
+
+def body(state):
+    new_i = line(
+        4,
+        add(
+            get_var(state, "i"),
+            1,
+        ),
+    )
+    return replace(
+        state,
+        namespace=setitems(
+            getattr(state, "namespace"),
+            "i",
+            new_i,
+            "s",
+            line(
+                6,
+                add(
+                    get_var(state, "s"),
+                    getitem(get_var(state, "xs"), new_i),
+                ),
+            ),
+        ),
+        stdout=modify_stdout(
+            getattr(state, "stdout"),
+            print_("Loop", new_i),
+        ),
+    )
+
+
+state = while_(state, cond, loop)
+```
+
 ## Background
 
 Guido's post on https://gvanrossum.github.io/formal/informal.html
@@ -518,6 +637,10 @@ https://gvanrossum.github.io/formal/scopesblog.html
 > - A namespace is a runtime concept, you can think of it as a dictionary mapping variable names to values (objects). When the intepreter looks something up in a namespace, it is essentially looking for a key in a dictionary. Function namespaces are implemented without using an actual dictionary, but this is an implementation detail. In fact, that other namespaces are implemented using dictionaries is also an implementation detail. For the description of formal semantics, we don’t care about these implementation details – we just use the term namespace.
 >
 > When compiling source code, the compiler uses the scope of a variable to decide what kind of code to generate for the interpreter to look up that variable’s value or to store a value into it. This generated code refers to one or more namespaces, never to scopes (which don’t exist at runtime).
+
+```
+
+```
 
 ```
 
