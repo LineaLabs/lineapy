@@ -15,6 +15,7 @@ from lineapy.instrumentation.annotation_spec import (
     Annotation,
     BaseClassMethodName,
     BoundSelfOfFunction,
+    BuiltInMethodOrFunctionName,
     ClassMethodName,
     ClassMethodNames,
     Criteria,
@@ -175,6 +176,14 @@ def check_function_against_annotation(
         ):
             return True
         return False
+    if isinstance(criteria, BuiltInMethodOrFunctionName) and hasattr(
+        function, "__self__"
+    ):
+        if function_name == criteria.bound_function_name and (
+            type(function.__self__).__name__ == criteria.class_name  # type: ignore
+        ):
+            return True
+        return False
     if isinstance(criteria, BaseClassMethodName) and hasattr(
         function, "__self__"
     ):
@@ -308,61 +317,61 @@ class FunctionInspector:
         Inspects a function and returns how calling it mutates the args/result and
         creates view relationships between them.
         """
-
-        def get_root_module(fun: Callable):
-            if hasattr(fun, "__module__") and fun.__module__ is not None:
-                return fun.__module__.split(".")[0]
-            return None
-
-        # numpy ufunc objects dont have modules
-        module = getattr(function, "__module__", None)
-        if module in self.specs:
-            yield from _check_annotation(
+        if (
+            isinstance(function, BuiltinMethodType)
+            and function.__module__ is None
+        ):
+            # adding type ignore because for some reason mypy thinks this code is unreachable
+            yield from _check_annotation(  # type: ignore
                 function,
                 args,
                 kwargs,
                 result,
-                self.specs[function.__module__],
-                module=function.__module__,
+                self.specs[BuiltinMethodType.__name__],
+                module=BuiltinMethodType.__name__,
             )
         else:
-            root_module = get_root_module(function)
-            if root_module is not None and root_module in self.specs:
+            def get_root_module(fun: Callable):
+                if hasattr(fun, "__module__") and fun.__module__ is not None:
+                    return fun.__module__.split(".")[0]
+                return None
+
+            # numpy ufunc objects dont have modules
+            module = getattr(function, "__module__", None)
+            if module in self.specs:
                 yield from _check_annotation(
                     function,
                     args,
                     kwargs,
                     result,
-                    self.specs[root_module],
-                    module=root_module,
+                    self.specs[function.__module__],
+                    module=function.__module__,
                 )
+            else:
+                root_module = get_root_module(function)
+                if root_module is not None and root_module in self.specs:
+                    yield from _check_annotation(
+                        function,
+                        args,
+                        kwargs,
+                        result,
+                        self.specs[root_module],
+                        module=root_module,
+                    )
 
-        if not isinstance(function, MethodType):
-            # base classes have to be a method type, helps skip through
-            #   some options
-            if (
-                isinstance(function, BuiltinMethodType)
-                and function.__module__ is None
-            ):
-                # adding type ignore because for some reason mypy thinks this code is unreachable
-                yield from _check_annotation(  # type: ignore
+            if not isinstance(function, MethodType):
+                # base classes have to be a method type, helps skip through
+                #   some options
+                return
+            for base_spec_module in self.base_specs:
+                # there doesn't seem to be a way to hash thru this...
+                # so we'll loop for now
+                yield from _check_annotation(
                     function,
                     args,
                     kwargs,
                     result,
-                    self.specs[BuiltinMethodType.__name__],
-                    module=BuiltinMethodType.__name__,
+                    self.base_specs[base_spec_module],
+                    base_spec_module=base_spec_module,
                 )
             return
-        for base_spec_module in self.base_specs:
-            # there doesn't seem to be a way to hash thru this...
-            # so we'll loop for now
-            yield from _check_annotation(
-                function,
-                args,
-                kwargs,
-                result,
-                self.base_specs[base_spec_module],
-                base_spec_module=base_spec_module,
-            )
-        return

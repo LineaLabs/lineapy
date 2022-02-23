@@ -37,7 +37,6 @@ y[0].add(11)
     assert res.slice("y") == code
 
 
-@pytest.mark.xfail(reason="sets not fully supported")
 def test_update_set_mutates(execute):
     code = """x = set()
 x.update({1,1,2})
