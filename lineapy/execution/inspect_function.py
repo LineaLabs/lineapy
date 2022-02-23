@@ -331,6 +331,7 @@ class FunctionInspector:
                 module=BuiltinMethodType.__name__,
             )
         else:
+
             def get_root_module(fun: Callable):
                 if hasattr(fun, "__module__") and fun.__module__ is not None:
                     return fun.__module__.split(".")[0]
