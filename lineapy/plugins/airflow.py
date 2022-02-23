@@ -74,13 +74,13 @@ class AirflowPlugin(BasePlugin):
         file in Airflow format and an example Dockerfile and requirements.txt that can be used to run this.
 
         :param slice_names: list of slice names to be used as tasks.
-        :param func_name: name of the Pyhon module the generated code will be saved to
+        :param func_name: name of the Pyhon module the generated code will be saved to.
         :param airflow_task_dependencies: task dependencies in an Airflow format,
-        i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-        This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
-        and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
-        Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
-        and "sliced_housing_dag_y" depends on them.
+                                            i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
+                                            This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
+                                            and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
+                                            Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
+                                            and "sliced_housing_dag_y" depends on them.
         """
 
         # Remove quotes
