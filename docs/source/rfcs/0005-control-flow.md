@@ -615,6 +615,12 @@ def body(state):
 state = while_(state, cond, loop)
 ```
 
+Finally, we have to create a transformation so that the while loop moves
+inside of the state, both for the stdout and for the namespaces:
+
+TODO: Instead change to demand dependent graphs, where normalized form is only extracted
+after the transformation looking for say variable `x` or for the filesystem...
+
 ## Background
 
 Guido's post on https://gvanrossum.github.io/formal/informal.html
