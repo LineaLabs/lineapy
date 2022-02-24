@@ -6,24 +6,24 @@ from lineapy.utils.utils import get_new_id
 source_1 = SourceCode(
     code="""import pandas as pd
 df = pd.DataFrame({"id": [1,2]})
-df["id"].sum()
+x = df["id"].sum()
 """,
     location=PosixPath("[source file path]"),
 )
 call_8 = CallNode(
     source_location=SourceLocation(
         lineno=3,
-        col_offset=0,
+        col_offset=4,
         end_lineno=3,
-        end_col_offset=14,
+        end_col_offset=18,
         source_code=source_1.id,
     ),
     function_id=CallNode(
         source_location=SourceLocation(
             lineno=3,
-            col_offset=0,
+            col_offset=4,
             end_lineno=3,
-            end_col_offset=12,
+            end_col_offset=16,
             source_code=source_1.id,
         ),
         function_id=LookupNode(
@@ -33,9 +33,9 @@ call_8 = CallNode(
             CallNode(
                 source_location=SourceLocation(
                     lineno=3,
-                    col_offset=0,
+                    col_offset=4,
                     end_lineno=3,
-                    end_col_offset=8,
+                    end_col_offset=12,
                     source_code=source_1.id,
                 ),
                 function_id=LookupNode(
@@ -150,9 +150,9 @@ call_8 = CallNode(
                     LiteralNode(
                         source_location=SourceLocation(
                             lineno=3,
-                            col_offset=3,
+                            col_offset=7,
                             end_lineno=3,
-                            end_col_offset=7,
+                            end_col_offset=11,
                             source_code=source_1.id,
                         ),
                         value="id",
