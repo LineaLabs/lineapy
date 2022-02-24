@@ -241,7 +241,7 @@ Based on these examples, we can see that we have a way to use `settrace` to unde
 
 At a high level, this is how we could use that functionality to better analyze the black boxes:
 
-1. Let's assume we have a way to enable tracing for some code, and when it is done, are returning a list of all functions called in that code, with their args and kwargs, as well as return values.
+1. Let's assume we can enable tracing for some code, and when it is done, return a list of all functions called in that code, with their args and kwargs, as well as return values.
 2. The `exec` hapens in the `l_exec_statement` inside of `lineabuiltins`. It's only inside this exec that we want to use this tracing. Once we enable it there, we add the list of
    functions called into the `context`, in a new field.
 3. Then, in the Executor, we see once we are done if we have any function calls in the context. If we do, we need to translate those to side effects.
