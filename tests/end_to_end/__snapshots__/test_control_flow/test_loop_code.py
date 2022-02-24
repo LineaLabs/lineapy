@@ -12,8 +12,7 @@ for x in range(9):
     b+=x
 x = sum(a)
 y = x + b
-lineapy.save(y, \'y\')
-""",
+lineapy.save(y, \'y\')""",
     location=PosixPath("[source file path]"),
 )
 call_1 = CallNode(
