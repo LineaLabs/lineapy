@@ -700,7 +700,9 @@ state = replace(
 )
 ```
 
-It is unclear to me at this time though how we can do this type of transformation in a rigorous manner.
+It is unclear to me at this time though how we can do this type of transformation in a rigorous manner,
+so I am unclear in general if there are ways we can use graph replacement to normalize the graph in some manner, to create
+a form that is ameanable to program slicing.
 
 ## Background
 
