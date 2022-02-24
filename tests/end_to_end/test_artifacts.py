@@ -3,20 +3,21 @@ from datetime import datetime
 from lineapy.utils.constants import VERSION_DATE_STRING
 
 
-def test_simple_slice(execute, python_snapshot):
+def test_simple_slice(execute):
     SIMPLE_SLICE = """import lineapy
 a = 2
 b = 2
 c = min(b,5)
 b
-lineapy.save(c, 'c')
+lineapy.save(c, "c")
 """
     res = execute(
         SIMPLE_SLICE,
         snapshot=False,
     )
 
-    assert res.slice("c") == python_snapshot
+    assert res.slice("c") == """b = 2\nc = min(b,5)\n"""
+
 
 def test_set_one_artifact(execute):
     code = """import lineapy
