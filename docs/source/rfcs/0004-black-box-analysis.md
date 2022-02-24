@@ -271,7 +271,7 @@ Unless we annotate it, we won't know that this function is mutating the `x` arg.
 If we used the `set_trace` approach, we could see that a `setitem` is being called on the `x` arg, and infer this from the contents of the function.
 
 In this way, we could limit our own hand annotations to Python functions which are written in C or are performance critical (settrace enabled during
-a function's execution will slow it down). This would allow us to cover a greate percentage of third party libraries that we see.
+a function's execution will slow it down). This would allow us to cover a greater percentage of third party libraries that we see.
 
 However, I propose holding off on using this approach more generaly, for a future PR, to minimize the size of this change.
 
