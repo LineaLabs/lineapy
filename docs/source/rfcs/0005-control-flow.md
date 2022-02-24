@@ -616,10 +616,91 @@ state = while_(state, cond, loop)
 ```
 
 Finally, we have to create a transformation so that the while loop moves
-inside of the state, both for the stdout and for the namespaces:
+inside of the state, both for the stdout and for the namespaces. At this point, we can see which nodes are
+required to produce the stdout side effects as opposed to those needed to updates the namespace variables:
 
-TODO: Instead change to demand dependent graphs, where normalized form is only extracted
-after the transformation looking for say variable `x` or for the filesystem...
+```python
+def cond(state):
+    return line(3, less(get_var(state, "i"), 10))
+
+
+def namespace_body(state):
+    new_i = line(
+        4,
+        add(
+            get_var(state, "i"),
+            1,
+        ),
+    )
+    return replace(
+        state,
+        namespace=setitems(
+            getattr(state, "namespace"),
+            "i",
+            new_i,
+            "s",
+            line(
+                6,
+                add(
+                    get_var(state, "s"),
+                    getitem(get_var(state, "xs"), new_i),
+                ),
+            ),
+        ),
+    )
+
+
+def stdout_body(state):
+    new_i = line(
+        4,
+        add(
+            get_var(state, "i"),
+            1,
+        ),
+    )
+    return replace(
+        state,
+        namespace=setitems(
+            getattr(state, "namespace"),
+            "i",
+            new_i,
+        ),
+        stdout=modify_stdout(
+            getattr(state, "stdout"),
+            print_("Loop", new_i),
+        ),
+    )
+
+
+init_namespace_state = setitems(
+    getattr(state, "namespace"),
+    "s",
+    line(
+        1,
+        0,
+    ),
+    "i",
+    line(
+        2,
+        0,
+    ),
+)
+init_stdout_state = setitems(
+    getattr(state, "namespace"),
+    "i",
+    line(
+        2,
+        0,
+    ),
+)
+state = replace(
+    state,
+    namespace=while_(init_namespace_state, cond, namespace_body),
+    stdout=while_(init_stdout_state, cond, stdout_body),
+)
+```
+
+It is unclear to me at this time though how we can do this type of transformation in a rigorous manner.
 
 ## Background
 
