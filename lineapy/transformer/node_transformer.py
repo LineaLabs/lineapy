@@ -395,6 +395,7 @@ class NodeTransformer(ast.NodeTransformer):
         - Constant, e.g., `a = 1`
         - Call, e.g., `a = foo()`
         """
+
         if isinstance(target, ast.Subscript):
             index = target.slice
             # note: isinstance(index, ast.List) only works for pandas,
@@ -433,11 +434,15 @@ class NodeTransformer(ast.NodeTransformer):
                     ),
                 )
         elif isinstance(target, ast.Name):
+            print('\n1.yay', target.id)
             variable_name = target.id
             self.tracer.assign(
                 variable_name,
                 value_node,
             )
+        # e.g. `x = y`
+        elif isinstance(target, ast.alias):
+            print('am I doing this right?')
         else:
             raise NotImplementedError(
                 "Other assignment types are not supported"
