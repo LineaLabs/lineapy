@@ -1,14 +1,3 @@
-def test_function_definition_without_side_effect(execute):
-    FUNCTION_DEFINITION_CODE = """def foo(a, b):
-    return a - b
-c = foo(b=1, a=2)
-d = foo(5,1)
-"""
-    res = execute(FUNCTION_DEFINITION_CODE)
-    assert res.values["c"] == 1
-    assert res.values["d"] == 4
-
-
 def test_function_definition_without_side_effect_artifacts(execute):
     code = """b=30
 def foo(a):

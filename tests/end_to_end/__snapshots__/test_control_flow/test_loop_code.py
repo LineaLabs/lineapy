@@ -12,7 +12,9 @@ for x in range(9):
     b+=x
 x = sum(a)
 y = x + b
-lineapy.save(y, \'y\')""",
+
+lineapy.save(y, \'y\')
+""",
     location=PosixPath("[source file path]"),
 )
 call_1 = CallNode(
@@ -65,17 +67,17 @@ global_2 = GlobalNode(
 )
 call_6 = CallNode(
     source_location=SourceLocation(
-        lineno=9,
+        lineno=10,
         col_offset=0,
-        end_lineno=9,
+        end_lineno=10,
         end_col_offset=20,
         source_code=source_1.id,
     ),
     function_id=CallNode(
         source_location=SourceLocation(
-            lineno=9,
+            lineno=10,
             col_offset=0,
-            end_lineno=9,
+            end_lineno=10,
             end_col_offset=12,
             source_code=source_1.id,
         ),
@@ -146,9 +148,9 @@ call_6 = CallNode(
         ).id,
         LiteralNode(
             source_location=SourceLocation(
-                lineno=9,
+                lineno=10,
                 col_offset=16,
-                end_lineno=9,
+                end_lineno=10,
                 end_col_offset=19,
                 source_code=source_1.id,
             ),

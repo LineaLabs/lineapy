@@ -71,8 +71,9 @@ art = lineapy.get("x")
 art_version = art.version
 """
     res = execute(code, snapshot=False)
-    assert res.values["art_version"] == datetime.now().strftime(
-        VERSION_DATE_STRING
+    # doing this because if the test runs at the edge of the second it fails sometimes
+    assert res.values["art_version"].startswith(
+        datetime.now().strftime("%Y-%m-%dT%H:%M:")
     )
     assert res.slice("x") == "x = 1\n"
 
