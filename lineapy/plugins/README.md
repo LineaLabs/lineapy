@@ -23,7 +23,7 @@ In the example above `slice_names` is list of names of the artifacts that you wa
 
 `tracer` is the `Tracer` object for the Linea session in which these artifacts had been saved (see the main lineapy README).
 
-After executing `sliced_airflow_dag` as in this example, three files will be froduced:
+After executing `sliced_airflow_dag` as in this example, three files will be produced:
 - `sliced_housing_dag.py` - The Airflow DAG file
 - `requirements.txt` - Python packages required to run this DAG and the artifct-producing tasks within it
 - `Dockerfile` - An example Dockerfile to produce a minimal container that can successfuly exacute this DAG
