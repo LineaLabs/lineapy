@@ -1,5 +1,5 @@
-import pathlib
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict
 
 import isort
@@ -71,4 +71,4 @@ class BasePlugin:
             profile="black",
         )
         full_code = prettify(full_code)
-        pathlib.Path(f"{module_name}.py").write_text(full_code)
+        Path(f"{module_name}.py").write_text(full_code)

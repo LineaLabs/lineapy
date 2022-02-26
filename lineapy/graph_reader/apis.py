@@ -13,7 +13,7 @@ from typing import List, Optional
 from IPython.display import display
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import Artifact, LineaID
+from lineapy.data.types import Artifact, LineaID, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.execution.executor import Executor
@@ -21,7 +21,8 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.plugins.airflow import AirflowDagConfig, to_airflow
+from lineapy.instrumentation.tracer import Tracer
+from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.utils.constants import VERSION_DATE_STRING
 
 logger = logging.getLogger(__name__)
@@ -38,12 +39,13 @@ class LineaArtifact:
 
     """
     NOTE:
-    - currently LineaArtifact does not hold information about date created. 
+    - currently LineaArtifact does not hold information about date created.
       with new versioning needs, it will be required that we know about a "latest" version.
       Currently catalog does this by using the pydantic Artifact object instead of this object.
 
     """
     db: RelationalLineaDB = field(repr=False)
+    # tracer: Tracer
     execution_id: LineaID
     node_id: LineaID
     session_id: LineaID
@@ -51,6 +53,7 @@ class LineaArtifact:
     version: str = field(init=False, repr=False)
 
     def __post_init__(self):
+        # self.tracer = Tracer(self.db, SessionType.JUPYTER)
         self.version = datetime.now().strftime(VERSION_DATE_STRING)
 
     @property
@@ -110,12 +113,6 @@ class LineaArtifact:
         )
         working_dir = Path(session_orm.working_directory)
 
-        airflow_code = to_airflow(
-            artifacts_code={self.name: self.code},
-            dag_name=self.name,
-            working_directory=working_dir,
-            airflow_dag_config=airflow_dag_config,
-        )
         if filename:
             path = Path(filename)
         else:
@@ -131,7 +128,15 @@ class LineaArtifact:
                 / f"{self.name}.py"
             )
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(airflow_code)
+
+        tracer = Tracer(self.db, SessionType.JUPYTER)
+        airflow_code = AirflowPlugin(tracer).sliced_airflow_dag(
+            slice_names=[self.name],
+            func_name=self.name,
+            airflow_directory=path,
+            airflow_dag_config=airflow_dag_config,
+        )
+
         print(
             f"Added Airflow DAG named '{self.name}'. Start a run from the Airflow UI or CLI."
         )

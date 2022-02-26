@@ -63,11 +63,90 @@ def split_code_blocks(code: str, func_name: str):
 
 
 class AirflowPlugin(BasePlugin):
+    def to_airflow(
+        self,
+        dag_name: str,
+        task_names: List[str],
+        task_dependencies: Optional[str] = None,
+        airflow_dag_config: Optional[AirflowDagConfig] = None,
+    ) -> str:
+        """
+        Create an Airflow DAG.
+
+        :param dag_name: Name of the DAG and the python file it is saved in
+        :param airflow_task_dependencies: task dependencies in an Airflow format,
+                                            i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
+                                            This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
+                                            and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
+                                            Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
+                                            and "sliced_housing_dag_y" depends on them.
+        :param airflow_dag_config: Configs of Airflow DAG model. See
+            https://airflow.apache.org/_api/airflow/models/dag/index.html#airflow.models.dag.DAG
+            for the full spec.
+        """
+
+        working_directory = Path(self.tracer.session_context.working_directory)
+        working_dir_str = repr(
+            str(
+                working_directory.relative_to(
+                    (linea_folder() / "..").resolve()
+                )
+            )
+        )
+
+        template_loader = FileSystemLoader(
+            searchpath=str(
+                (
+                    Path(lineapy.__file__) / "../plugins/jinja_templates"
+                ).resolve()
+            )
+        )
+        template_env = Environment(loader=template_loader)
+
+        AIRFLOW_DAG_TEMPLATE = template_env.get_template("airflow_dag.jinja")
+
+        OWNER = "airflow"
+        RETRIES = 2
+        START_DATE = "days_ago(1)"
+        SCHEDULE_IMTERVAL = "*/15 * * * *"
+        MAX_ACTIVE_RUNS = 1
+        CATCHUP = "False"
+        if airflow_dag_config:
+            OWNER = airflow_dag_config.get("owner", OWNER)
+            RETRIES = airflow_dag_config.get("retries", RETRIES)
+            START_DATE = airflow_dag_config.get("start_date", START_DATE)
+            SCHEDULE_IMTERVAL = airflow_dag_config.get(
+                "schedule_interval", SCHEDULE_IMTERVAL
+            )
+            MAX_ACTIVE_RUNS = airflow_dag_config.get(
+                "max_active_runs", MAX_ACTIVE_RUNS
+            )
+            CATCHUP = airflow_dag_config.get("catchup", CATCHUP)
+
+        full_code = AIRFLOW_DAG_TEMPLATE.render(
+            working_dir_str=working_dir_str,
+            DAG_NAME=dag_name,
+            OWNER=OWNER,
+            RETRIES=RETRIES,
+            START_DATE=START_DATE,
+            SCHEDULE_IMTERVAL=SCHEDULE_IMTERVAL,
+            MAX_ACTIVE_RUNS=MAX_ACTIVE_RUNS,
+            CATCHUP=CATCHUP,
+            tasks=task_names,
+            task_dependencies=task_dependencies,
+        )
+        # Sort imports and move them to the top
+        full_code = isort.code(full_code, float_to_top=True, profile="black")
+        full_code = prettify(full_code)
+        Path(f"{dag_name}_dag.py").write_text(full_code)
+
     def sliced_airflow_dag(
         self,
         slice_names: List[str],
         func_name: str,
-        airflow_task_dependencies: str,
+        airflow_task_dependencies: Optional[str] = None,
+        airflow_directory: Optional[str] = None,
+        airflow_dag_config: Optional[AirflowDagConfig] = None,
     ):
         """
         Creates an Airflow DAG from the sliced code. This includes a python file with one function per slice, task dependencies
@@ -84,18 +163,28 @@ class AirflowPlugin(BasePlugin):
         """
 
         # Remove quotes
-        airflow_task_dependencies = airflow_task_dependencies.replace(
-            "\\'", ""
-        )
-        airflow_task_dependencies = airflow_task_dependencies.replace("'", "")
+        if airflow_task_dependencies:
+            airflow_task_dependencies = airflow_task_dependencies.replace(
+                "\\'", ""
+            )
+            airflow_task_dependencies = airflow_task_dependencies.replace(
+                "'", ""
+            )
 
         artifacts_code = {}
+        task_names = []
         for slice_name in slice_names:
             artifact_var = self.tracer.artifact_var_name(slice_name)
             slice_code = self.tracer.slice(slice_name)
             artifacts_code[artifact_var] = slice_code
+            # "'p value' >> 'y'" needs to be replaced by "sliced_housing_dag_p >> sliced_housing_dag_y"
+            task_name = f"{artifact_var}"
+            task_names.append(task_name)
+            airflow_task_dependencies = airflow_task_dependencies.replace(
+                slice_name, task_name
+            )
         self.generate_python_module(func_name, artifacts_code)
-        # TODO self.generate_infra(airflow_task_dependencies)
+        self.to_airflow(func_name, task_names, airflow_task_dependencies)
 
 
 def to_airflow(
