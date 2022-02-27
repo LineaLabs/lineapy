@@ -7,6 +7,7 @@ import isort
 
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
+from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
 
@@ -85,3 +86,8 @@ class BasePlugin:
                 )
             )
         )
+
+    def generate_infra(self, dockerfile_name: str):
+        DOCKERFILE_TEMPLATE = load_plugin_template("dockerfile.jinja")
+        dockerfile = DOCKERFILE_TEMPLATE.render()
+        Path(dockerfile_name).write_text(dockerfile)
