@@ -620,10 +620,30 @@ inside of the state, both for the stdout and for the namespaces. At this point, 
 required to produce the stdout side effects as opposed to those needed to updates the namespace variables:
 
 ```python
-def cond(state):
-    return line(3, less(get_var(state, "i"), 10))
+# We split the while loop into two while loops, one which updates the state
+# and one which updates the stdout, so that we can slice on each
+
+# The inital state for the namespace loop just has the namesapce
+namespace_init = setitems(
+    getattr(state, "namespace"),
+    "s",
+    line(
+        1,
+        0,
+    ),
+    "i",
+    line(
+        2,
+        0,
+    ),
+)
+
+# The namespace conditional gets the "i" variable from the namesapce
+def namespace_cond(state):
+    return line(3, less(getitem(state, "i"), 10))
 
 
+# The namespace body updates only the namespace
 def namespace_body(state):
     new_i = line(
         4,
@@ -632,24 +652,44 @@ def namespace_body(state):
             1,
         ),
     )
-    return replace(
-        state,
-        namespace=setitems(
-            getattr(state, "namespace"),
-            "i",
-            new_i,
-            "s",
-            line(
-                6,
-                add(
-                    get_var(state, "s"),
-                    getitem(get_var(state, "xs"), new_i),
-                ),
+    return setitems(
+        getattr(state, "namespace"),
+        "i",
+        new_i,
+        "s",
+        line(
+            6,
+            add(
+                get_var(state, "s"),
+                getitem(get_var(state, "xs"), new_i),
             ),
         ),
     )
 
 
+namespace = (while_(namespace_init, namespace_cond, namespace_body),)
+
+
+# The stdout only needs the `i` variable in the namespace, not the `s`
+
+stdout_init = reaplce(
+    state,
+    namespace=setitems(
+        getattr(state, "namespace"),
+        "i",
+        line(
+            2,
+            0,
+        ),
+    ),
+)
+
+# The stdout conditional gets the "i" variable from the namespace from the state
+def namespace_cond(state):
+    return line(3, less(get_var(state, "i"), 10))
+
+
+# The stdout body updates the `i` as well as the `stdout`.
 def stdout_body(state):
     new_i = line(
         4,
@@ -672,31 +712,17 @@ def stdout_body(state):
     )
 
 
-init_namespace_state = setitems(
-    getattr(state, "namespace"),
-    "s",
-    line(
-        1,
-        0,
-    ),
-    "i",
-    line(
-        2,
-        0,
-    ),
+# We compute the stdout loop with includes the full state, then get the
+# stdout
+stdout = getattr(
+    while_(init_stdout_state, cond, stdout_body),
+    "stdout",
 )
-init_stdout_state = setitems(
-    getattr(state, "namespace"),
-    "i",
-    line(
-        2,
-        0,
-    ),
-)
+
 state = replace(
     state,
-    namespace=while_(init_namespace_state, cond, namespace_body),
-    stdout=while_(init_stdout_state, cond, stdout_body),
+    namespace=namespace,
+    stdout=stdout,
 )
 ```
 
@@ -711,7 +737,7 @@ Now this is really turning into more of an exploration than an RFC, but I wanted
 To re-orient, where we left is that we were having trouble figuring out to how to take a while loop with updates both the local namespace and to the IO (stdout),
 and sepearete those changes, so that we can see which parts of the while loop touch IO and which touch the namespace.
 
-The strategy is to re-formulate the imperative while loop in a functional form. 
+The strategy is to re-formulate the imperative while loop in a functional form.
 
 The paper ["Modular, Compositional, and Executable Formal Semantics for LLVM IR"](https://perso.ens-lyon.fr/yannick.zakowski/papers/vellvm_design.pdf), published last year, ends up solving a similar problem. They are trying to come up with a formal semantics for LLVM IR in order to prove the correctness of certain IR level transformations. At the core of their reasoning, is the ability to understand whether two LLVM IRs are semantically equivalent. This is similar to our end goal, of being able to understand if removing a line from a file will result in the same semantics, with respect to certain behaviors.
 
