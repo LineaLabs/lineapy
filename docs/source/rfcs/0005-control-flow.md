@@ -410,9 +410,9 @@ c_false = line(6, add(get_var(state, "d"), 1))
 
 state = if_(
     line(1, get_var(state, "cond")),
-    replace_namespace(
+    replace(
         state,
-        setitems(
+        namespace=setitems(
             getattr(state, "namespace"),
             "a",
             a_true,
@@ -420,9 +420,9 @@ state = if_(
             c_true,
         ),
     ),
-    replace_namespace(
+    replace(
         state,
-        setitems(
+        namespace=setitems(
             getattr(state, "namespace"),
             "a",
             a_false_,
@@ -443,9 +443,9 @@ c_true = line(3, get_var(state, "d"))
 a_false = line(5, add(get_var(state, "b"), 1))
 c_false = line(6, add(get_var(state, "d"), 1))
 
-state = replace_namespace(
+state = replace(
     state,
-    if_(
+    namespace=if_(
         line(1, get_var(state, "cond")),
         setitems(
             getattr(state, "namespace"),
@@ -477,9 +477,9 @@ c_true = line(3, get_var(state, "d"))
 a_false = line(5, add(get_var(state, "b"), 1))
 c_false = line(6, add(get_var(state, "d"), 1))
 
-state = replace_namespace(
+state = replace(
     state,
-    setitems(
+    namespace=setitems(
         getattr(state, "namespace"),
         "a",
         if_(cond, a_true, a_false),
@@ -560,9 +560,9 @@ Now, similar to the `if` example, let's first normalize with respect to the vari
 and other state modifications, before trying to look in the loop:
 
 ```python
-state = replace_namespace(
+state = replace(
     state,
-    setitems(
+    namespace=setitems(
         getattr(state, "namespace"),
         "s",
         line(
