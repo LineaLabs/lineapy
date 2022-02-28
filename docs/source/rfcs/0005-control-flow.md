@@ -704,6 +704,23 @@ It is unclear to me at this time though how we can do this type of transformatio
 so I am unclear in general if there are ways we can use graph replacement to normalize the graph in some manner, to create
 a form that is ameanable to program slicing.
 
+---
+
+Now this is really turning into more of an exploration than an RFC, but I wanted to share a few others thoughts I had on the problem from reading a couple of recent papers this weekend.
+
+To re-orient, where we left is that we were having trouble figuring out to how to take a while loop with updates both the local namespace and to the IO (stdout),
+and sepearete those changes, so that we can see which parts of the while loop touch IO and which touch the namespace.
+
+The strategy is to re-formulate the imperative while loop in a functional form. 
+
+The paper ["Modular, Compositional, and Executable Formal Semantics for LLVM IR"](https://perso.ens-lyon.fr/yannick.zakowski/papers/vellvm_design.pdf), published last year, ends up solving a similar problem. They are trying to come up with a formal semantics for LLVM IR in order to prove the correctness of certain IR level transformations. At the core of their reasoning, is the ability to understand whether two LLVM IRs are semantically equivalent. This is similar to our end goal, of being able to understand if removing a line from a file will result in the same semantics, with respect to certain behaviors.
+
+They use the technique of ["Interaction Trees"](https://arxiv.org/abs/1906.00046), which they use to represent in a (monadic) functional form the state transitions of LLVM. Like in our case, they have events which impact the environment in different way, such as writing/reading from global state, or causing IO. The ITrees interface lets them decompose these effects:
+
+> Importantly, since ITrees themselves form a monad, we do not have to interpret the whole interface at once: for instance, the state monad transformer StateT 𝑆 allows us to interpret the state events StE𝑆 of an ITree of type itree(E ⊕ StES ⊕ F) A into StateT 𝑆 (itree (𝐸 ⊕ 𝐹 ) ) AÐthe state events are interpreted in isolation.
+
+So although we are not interested in a formally proving the correctness of our understanding of Python, it seems possible that we could gain by trying to use similar tools to those being developed in the formal theorum proving world, to model and reason about imperative stateful language behavior.
+
 ## Background
 
 Guido's post on https://gvanrossum.github.io/formal/informal.html
@@ -726,11 +743,3 @@ https://gvanrossum.github.io/formal/scopesblog.html
 > - A namespace is a runtime concept, you can think of it as a dictionary mapping variable names to values (objects). When the intepreter looks something up in a namespace, it is essentially looking for a key in a dictionary. Function namespaces are implemented without using an actual dictionary, but this is an implementation detail. In fact, that other namespaces are implemented using dictionaries is also an implementation detail. For the description of formal semantics, we don’t care about these implementation details – we just use the term namespace.
 >
 > When compiling source code, the compiler uses the scope of a variable to decide what kind of code to generate for the interpreter to look up that variable’s value or to store a value into it. This generated code refers to one or more namespaces, never to scopes (which don’t exist at runtime).
-
-```
-
-```
-
-```
-
-```
