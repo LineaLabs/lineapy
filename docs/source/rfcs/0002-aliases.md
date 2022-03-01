@@ -1,3 +1,7 @@
+Author: Saul
+Reviewer: Yifan
+Date: February 8, 2022
+
 # Alias RFC
 
 Currently this code will break in linea:
@@ -36,7 +40,7 @@ One reason this bug comes about is because we don't store anything about variabl
 This works in most cases, because we don't actually care about the variable names for re-execution.
 
 So alternatively we could try to move the variable analysis into the graph that we save. We could treat variable as mutable pointers, and create a "mutate node"
-whenever they change. For example, 
+whenever they change. For example,
 
 However, this is a larger change, so until other issues with variables come up, it seems simpler to stick with the `l_alias` noop call, which adds minimal complications,
 besides a special case in the AST parser.

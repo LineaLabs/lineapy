@@ -1,3 +1,7 @@
+Author: Saul
+Reviewer: Yifan
+Date: February 5, 2022
+
 # Imports
 
 The goal of this RFC is to propose a way to improve our way of dealing with imports.
@@ -73,7 +77,6 @@ When we do the `import x.y` form, we bind the result of importing `x.y` to the l
 ## Required Behavior
 
 What we are missing is the behavior that importing a submodule will update the parent module with a reference to it. Also, we need to fix the problem where importing `x.y` binds to variable `x.y`. Instead, it should only bind to variable `x` but then modify the import.
-
 
 ## How does (c)Python handle it?
 
@@ -276,12 +279,14 @@ def _find_and_load_unlocked(name, import_):
 ## Possible Solutions
 
 ### Producing setattr calls
+
 One way to model this then would be to turn model imports into setattr calls:
 
 ```python
 import x.y.z
 import x.y.q
 ```
+
 This would be converted into:
 
 ```python
@@ -314,7 +319,7 @@ x_y_q = l_import('q', x_y)
 ```
 
 This is closer to the Python built in behavior, where you have a global `sys.modules` where it has a pointer to each module. And to import a child, you
-grab the parent from this and update it. 
+grab the parent from this and update it.
 
 I propose that we take this solution, where we keep our own internal version of `sys.modules` to map each module name to the ID of the node which imports
 that module. We also make all imports relative to their parents, so that we can track all the modifications easily.
@@ -337,9 +342,7 @@ but I think that is fine for the time being. We haven't been doing any slicing b
 
 ### Detail
 
-
 Here I sketch some details of how we could implement most of this:
-
 
 ```python
 
