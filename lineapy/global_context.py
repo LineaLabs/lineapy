@@ -7,7 +7,7 @@ from os import getcwd
 from typing import Dict, List, Optional, Union
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import Node, SessionContext, SessionType
+from lineapy.data.types import LineaID, Node, SessionContext, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
 from lineapy.graph_reader.program_slice import get_program_slice
@@ -68,6 +68,9 @@ class GlobalContext(ABC):
 
     @property
     def values(self) -> Dict[str, object]:
+        pass
+
+    def get_value(self, node_id: LineaID) -> object:
         pass
 
     @property

@@ -243,7 +243,7 @@ class Tracer(BaseOperator):
 
         else:
             if IMPORT_STAR in attributes:
-                module_value = self.context_manager.executor.get_value(node.id)
+                module_value = self.context_manager.get_value(node.id)
                 # Import star behavior copied from python docs
                 # https://docs.python.org/3/reference/simple_stmts.html#the-import-statement
                 if hasattr(module_value, "__all__"):

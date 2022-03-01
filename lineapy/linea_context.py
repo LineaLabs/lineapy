@@ -87,6 +87,12 @@ class LineaGlobalContext(GlobalContext):
             for k, n in self.variable_name_to_node.items()
         }
 
+    def get_value(self, node_id: LineaID) -> object:
+        """
+        Returns the value of the node with the given id.
+        """
+        return self.executor.get_value(node_id)
+
     def transform(
         self, code: str, location: SourceCodeLocation
     ) -> Optional[Node]:
