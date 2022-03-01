@@ -85,7 +85,7 @@ class NodeTransformer(ast.NodeTransformer, BaseOperator):
         self.tracer = tracer
         # Set __file__ to the pathname of the file
         if isinstance(location, Path):
-            tracer.executor.module_file = str(location)
+            self.context_manager.executor.module_file = str(location)  # type: ignore
         # The result of the last line, a node if it was an expression,
         # None if it was a statement. Used by ipython to grab the last value
         self.last_statement_result: Optional[Node] = None

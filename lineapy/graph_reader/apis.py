@@ -13,14 +13,14 @@ from typing import List, Optional
 from IPython.display import display
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import Artifact, LineaID
+from lineapy.data.types import Artifact, LineaID, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import BaseNodeORM, SessionContextORM
-from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
+from lineapy.linea_context import LineaGlobalContext
 from lineapy.plugins.airflow import AirflowDagConfig, to_airflow
 from lineapy.utils.constants import VERSION_DATE_STRING
 
@@ -156,9 +156,12 @@ class LineaArtifact:
         Executes the artifact graph.
 
         """
-        slice_exec = Executor(self.db, globals())
-        slice_exec.execute_graph(self._subgraph)
-        return slice_exec.get_value(self.node_id)
+        sliced_lgcontext = LineaGlobalContext.create_new_context_with_db(
+            SessionType.SCRIPT, self.db
+        )
+        # slice_exec = Executor(self.db, globals())
+        sliced_lgcontext.executor.execute_graph(self._subgraph)
+        return sliced_lgcontext.executor.get_value(self.node_id)
 
 
 class LineaCatalog:

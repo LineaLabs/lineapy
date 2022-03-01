@@ -74,7 +74,7 @@ all_print = catalog.print
 """
     res = execute(code, snapshot=False)
     db_values = res.values["all_artifacts"]
-    assert len(db_values) == 2
+    assert len(db_values) == 4
     # ensure that both the artifacts have same name and value
     assert db_values[0]["artifact_name"] == "x"
     assert db_values[1]["artifact_name"] == "x"

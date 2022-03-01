@@ -215,8 +215,9 @@ def to_airflow(
                                       and "sliced_housing_dag_y" depends on them.
     :return: string containing the path of the Airflow DAG file that was exported.
     """
+    # TODO - this doesnt seem to have a proper test yet.
     execution_context = get_context()
-    db = execution_context.executor.db
+    db = execution_context.lgcontext.db
     session_orm = db.session.query(SessionContextORM).all()
     working_dir = (
         Path(session_orm[0].working_directory)

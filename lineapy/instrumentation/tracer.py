@@ -1,5 +1,4 @@
 import logging
-from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple, Union
 
 from lineapy.data.types import (
@@ -14,7 +13,6 @@ from lineapy.data.types import (
     MutateNode,
     Node,
     PositionalArgument,
-    SessionContext,
     SourceLocation,
 )
 from lineapy.exceptions.db_exceptions import ArtifactSaveException

@@ -1,5 +1,6 @@
 import lineapy.graph_reader.program_slice as ps
-from lineapy.execution.executor import Executor
+from lineapy.data.types import SessionType
+from lineapy.linea_context import LineaGlobalContext
 
 
 def test_mutate(execute):
@@ -60,9 +61,12 @@ if True:
     # slice_nodes = res.graph.get_ancestors(artifact_id)
     # slice_graph = res.graph.get_subgraph(slice_nodes)
     slice_graph = ps.get_slice_graph(res.graph, [artifact_id])
-    res_slice = Executor(res.db, globals())
-    res_slice.execute_graph(slice_graph)
-    assert res_slice.get_value(artifact_id) == res.values["x"]
+    res_slice_lgcontext = LineaGlobalContext.create_new_context_with_db(
+        SessionType.SCRIPT, res.db
+    )
+    # res_slice = Executor(res.db, globals())
+    res_slice_lgcontext.executor.execute_graph(slice_graph)
+    assert res_slice_lgcontext.get_value(artifact_id) == res.values["x"]
 
     assert (
         res.artifacts["x"]

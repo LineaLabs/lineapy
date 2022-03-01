@@ -6,9 +6,9 @@ from lineapy.utils.utils import get_new_id
 source_1 = SourceCode(
     code="""import lineapy
 x = 1
-lineapy.save(x, "x")
+lineapy.save(x, "xold")
 
-res = lineapy.get("x")
+res = lineapy.get("xold")
 y = res.value + 1
 lineapy.save(y, "y")
 """,
@@ -31,7 +31,7 @@ call_2 = CallNode(
         lineno=3,
         col_offset=0,
         end_lineno=3,
-        end_col_offset=20,
+        end_col_offset=23,
         source_code=source_1.id,
     ),
     function_id=CallNode(
@@ -68,10 +68,10 @@ call_2 = CallNode(
                 lineno=3,
                 col_offset=16,
                 end_lineno=3,
-                end_col_offset=19,
+                end_col_offset=22,
                 source_code=source_1.id,
             ),
-            value="x",
+            value="xold",
         ).id,
     ],
 )
@@ -131,7 +131,7 @@ call_8 = CallNode(
                                 lineno=5,
                                 col_offset=6,
                                 end_lineno=5,
-                                end_col_offset=22,
+                                end_col_offset=25,
                                 source_code=source_1.id,
                             ),
                             function_id=CallNode(
@@ -158,10 +158,10 @@ call_8 = CallNode(
                                         lineno=5,
                                         col_offset=18,
                                         end_lineno=5,
-                                        end_col_offset=21,
+                                        end_col_offset=24,
                                         source_code=source_1.id,
                                     ),
-                                    value="x",
+                                    value="xold",
                                 ).id
                             ],
                         ).id,

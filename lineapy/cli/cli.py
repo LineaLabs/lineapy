@@ -74,6 +74,7 @@ def notebook(
 
         lineapy notebook my_notebook.ipynb notebook_file_system lineapy.file_system
     """
+    # TODO - this endpoint needs a test case as well
     # Create the notebook:
     notebook = nbformat.read(file, nbformat.NO_CONVERT)
     notebook["cells"].append(
@@ -91,7 +92,7 @@ def notebook(
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
     # db = RelationalLineaDB.from_environment()
-    lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
+    lgcontext = LineaGlobalContext.create_new_context(
         session_type=SessionType.SCRIPT
     )
     artifact = lgcontext.db.get_artifact_by_name(artifact_name)
@@ -126,6 +127,7 @@ def file(
     """
     Executes python at PATH, saves the value ARTIFACT_VALUE with name ARTIFACT_NAME, and prints the sliced code.
     """
+    # TODO - this endpoint needs a test case
     # Create the code:
     code = path.read_text()
     code = code + generate_save_code(
@@ -135,14 +137,14 @@ def file(
     # Run the code:
     # db = RelationalLineaDB.from_environment()
     # tracer = Tracer(db, SessionType.SCRIPT)
-    lgcontext = LineaGlobalContext.discard_existing_and_create_new_session(
+    lgcontext = LineaGlobalContext.create_new_context(
         session_type=SessionType.SCRIPT
     )
 
     # Redirect all stdout to stderr, so its not printed.
     with redirect_stdout(sys.stderr):
 
-        lgcontext.transform(code, path, lgcontext.tracer)
+        lgcontext.transform(code, path)
 
     # Print the slice:
     artifact = lgcontext.db.get_artifact_by_name(artifact_name)

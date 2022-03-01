@@ -5,7 +5,7 @@ from lineapy.utils.utils import get_new_id
 
 source_1 = SourceCode(
     code="""import lineapy
-y = lineapy.get(\'x\').value + 10
+y = lineapy.get(\'xx\').value + 10
 lineapy.save(y, \'y\')
 """,
     location=PosixPath("[source file path]"),
@@ -54,7 +54,7 @@ call_6 = CallNode(
                 lineno=2,
                 col_offset=4,
                 end_lineno=2,
-                end_col_offset=31,
+                end_col_offset=32,
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
@@ -66,7 +66,7 @@ call_6 = CallNode(
                         lineno=2,
                         col_offset=4,
                         end_lineno=2,
-                        end_col_offset=26,
+                        end_col_offset=27,
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
@@ -78,7 +78,7 @@ call_6 = CallNode(
                                 lineno=2,
                                 col_offset=4,
                                 end_lineno=2,
-                                end_col_offset=20,
+                                end_col_offset=21,
                                 source_code=source_1.id,
                             ),
                             function_id=CallNode(
@@ -105,10 +105,10 @@ call_6 = CallNode(
                                         lineno=2,
                                         col_offset=16,
                                         end_lineno=2,
-                                        end_col_offset=19,
+                                        end_col_offset=20,
                                         source_code=source_1.id,
                                     ),
-                                    value="x",
+                                    value="xx",
                                 ).id
                             ],
                         ).id,
@@ -120,9 +120,9 @@ call_6 = CallNode(
                 LiteralNode(
                     source_location=SourceLocation(
                         lineno=2,
-                        col_offset=29,
+                        col_offset=30,
                         end_lineno=2,
-                        end_col_offset=31,
+                        end_col_offset=32,
                         source_code=source_1.id,
                     ),
                     value=10,
