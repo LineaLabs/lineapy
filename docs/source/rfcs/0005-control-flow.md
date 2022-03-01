@@ -1,5 +1,8 @@
 Author: Saul
+
 Date: February 18, 2022
+
+Status: Rejected for now/draft
 
 # Decomposing Control Flow RFC
 
