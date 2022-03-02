@@ -21,6 +21,7 @@ from lineapy.db.utils import (
 )
 from lineapy.execution.executor import Executor
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
@@ -277,3 +278,8 @@ def housing_tracer(execute):
 
     code = (tests_dir / "housing.py").read_text()
     return execute(code, snapshot=False)
+
+
+@pytest.fixture
+def airflow_plugin(housing_tracer):
+    return AirflowPlugin(housing_tracer)

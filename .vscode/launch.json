@@ -10,6 +10,7 @@
             "request": "launch",
             "module": "lineapy.cli.cli",
             "args": [
+                "python",
                 "--slice",
                 "p value",
                 "tests/housing.py",
@@ -21,6 +22,7 @@
             "request": "launch",
             "module": "lineapy.cli.cli",
             "args": [
+                "python",
                 "--slice",
                 "p value",
                 "--slice",
@@ -34,6 +36,7 @@
             "request": "launch",
             "module": "lineapy.cli.cli",
             "args": [
+                "python",
                 "--slice",
                 "p value",
                 "--export-slice",
@@ -51,6 +54,7 @@
             "request": "launch",
             "module": "lineapy.cli.cli",
             "args": [
+                "python",
                 "--slice",
                 "p value",
                 "--slice",
