@@ -5,50 +5,6 @@ import pytest
 
 from lineapy.plugins.airflow import split_code_blocks
 
-# @pytest.mark.parametrize(
-#     "code, func_name, import_block, code_block, main_block",
-#     [
-#         (
-#             """import numpy\na = 1""",
-#             "abc",
-#             "import numpy",
-#             "def abc():\n\ta = 1",
-#             'if __name__ == "__main__":\n\tprint(abc())',
-#         ),
-#         (
-#             """from typing import (
-#     Callable,
-#     Dict,
-#     Hashable,
-#     Iterable,
-#     List,
-#     Optional,
-#     Tuple,
-#     Union,
-# )
-# a = 1
-# """,
-#             "abc",
-#             """from typing import (
-#     Callable,
-#     Dict,
-#     Hashable,
-#     Iterable,
-#     List,
-#     Optional,
-#     Tuple,
-#     Union,
-# )""",
-#             "def abc():\n\ta = 1\n\t",
-#             'if __name__ == "__main__":\n\tprint(abc())',
-#         ),
-#     ],
-#     ids=[
-#         "single_import",
-#         "multi_line_import",
-#     ],
-# )
-
 
 @pytest.mark.parametrize(
     "casename",
