@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -35,24 +36,20 @@ def split_code_blocks(code: str, func_name: str):
     """
     # We split the lines in import and code blocks and join them to full code test
     lines = code.split("\n")
+    joinedcode = """
+""".join(
+        lines
+    )
+    ast_tree = ast.parse(code)
     # Imports are at the top, find where they end
     end_of_imports_line_num = 0
-    import_open_bracket = False
-    while (
-        "import" in lines[end_of_imports_line_num]
-        or "#" in lines[end_of_imports_line_num]
-        or "" == lines[end_of_imports_line_num]
-        or "    " in lines[end_of_imports_line_num]
-        and import_open_bracket
-        or ")" in lines[end_of_imports_line_num]
-        and import_open_bracket
-    ):
-        if "(" in lines[end_of_imports_line_num]:
-            import_open_bracket = True
-        elif ")" in lines[end_of_imports_line_num]:
-            import_open_bracket = False
-        end_of_imports_line_num += 1
-    # everything from here down needs to be under def()
+    for node in ast_tree.body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            continue
+        else:
+            end_of_imports_line_num = node.lineno - 1
+            break
+
     # TODO Support arguments to the func
     code_block = f"def {func_name}():\n\t" + "\n\t".join(
         lines[end_of_imports_line_num:]

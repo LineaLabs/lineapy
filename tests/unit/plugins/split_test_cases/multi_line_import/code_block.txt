@@ -1,0 +1,3 @@
+def multi_line_import():
+	a = 1
+	
