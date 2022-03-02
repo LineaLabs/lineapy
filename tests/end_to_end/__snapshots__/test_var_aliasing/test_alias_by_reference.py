@@ -110,7 +110,7 @@ literal_6 = LiteralNode(
     ),
     value=2,
 )
-call_4 = CallNode(
+call_5 = CallNode(
     source_location=SourceLocation(
         lineno=5,
         col_offset=5,
@@ -123,7 +123,7 @@ call_4 = CallNode(
     ).id,
     positional_args=[mutate_1.id, literal_6.id],
 )
-call_6 = CallNode(
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=6,
         col_offset=5,
@@ -150,7 +150,7 @@ call_6 = CallNode(
         ).id
     ],
 )
-call_7 = CallNode(
+call_8 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=4,
@@ -168,5 +168,19 @@ call_7 = CallNode(
         ),
         name="sum",
     ).id,
-    positional_args=[mutate_1.id],
+    positional_args=[
+        CallNode(
+            source_location=SourceLocation(
+                lineno=2,
+                col_offset=0,
+                end_lineno=2,
+                end_col_offset=5,
+                source_code=source_1.id,
+            ),
+            function_id=LookupNode(
+                name="l_alias",
+            ).id,
+            positional_args=[call_1.id],
+        ).id
+    ],
 )

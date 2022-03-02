@@ -30,3 +30,16 @@ b = a
     res = execute(VARIABLE_ALIAS_CODE)
     assert res.values["a"] == 1.2
     assert res.values["b"] == 1.2
+
+
+def test_var_alias_code(execute):
+    code = """import lineapy
+x = 100
+y = x
+x = 200
+lineapy.save(y, "y")
+"""
+    res = execute(code)
+    assert res.slice("y") == "x = 100\ny = x\n"
+    assert res.values["x"] == 200
+    assert res.values["y"] == 100

@@ -29,31 +29,6 @@ literal_2 = LiteralNode(
     ),
     value=1,
 )
-call_2 = CallNode(
-    source_location=SourceLocation(
-        lineno=6,
-        col_offset=4,
-        end_lineno=6,
-        end_col_offset=9,
-        source_code=source_1.id,
-    ),
-    function_id=LookupNode(
-        name="add",
-    ).id,
-    positional_args=[
-        LiteralNode(
-            source_location=SourceLocation(
-                lineno=5,
-                col_offset=4,
-                end_lineno=5,
-                end_col_offset=5,
-                source_code=source_1.id,
-            ),
-            value=4,
-        ).id,
-        literal_2.id,
-    ],
-)
 literal_6 = LiteralNode(
     source_location=SourceLocation(
         lineno=8,
@@ -64,7 +39,46 @@ literal_6 = LiteralNode(
     ),
     value=10,
 )
-call_6 = CallNode(
+call_5 = CallNode(
+    source_location=SourceLocation(
+        lineno=10,
+        col_offset=0,
+        end_lineno=10,
+        end_col_offset=5,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_alias",
+    ).id,
+    positional_args=[
+        CallNode(
+            source_location=SourceLocation(
+                lineno=6,
+                col_offset=4,
+                end_lineno=6,
+                end_col_offset=9,
+                source_code=source_1.id,
+            ),
+            function_id=LookupNode(
+                name="add",
+            ).id,
+            positional_args=[
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=5,
+                        col_offset=4,
+                        end_lineno=5,
+                        end_col_offset=5,
+                        source_code=source_1.id,
+                    ),
+                    value=4,
+                ).id,
+                literal_2.id,
+            ],
+        ).id
+    ],
+)
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=12,
         col_offset=0,

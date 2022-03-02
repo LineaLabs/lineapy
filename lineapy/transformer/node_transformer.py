@@ -376,10 +376,11 @@ class NodeTransformer(ast.NodeTransformer):
         target = node.targets[0]
         # handle special case of assigning aliases e.g. x = y
         if isinstance(target, ast.Name) and isinstance(node.value, ast.Name):
+            value_node = self.visit(node.value)
             new_node = self.tracer.call(
                 self.tracer.lookup_node(l_alias.__name__),
                 self.get_source(node),
-                self.visit(node.value),
+                value_node,
             )
             self.tracer.assign(
                 target.id,
