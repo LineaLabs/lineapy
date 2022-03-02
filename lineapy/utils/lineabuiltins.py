@@ -168,6 +168,7 @@ def l_exec_expr(code: str) -> object:
 
     return res
 
+
 @register
 def l_alias(item: object) -> object:
     return item

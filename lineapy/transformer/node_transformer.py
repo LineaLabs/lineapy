@@ -51,6 +51,7 @@ from lineapy.utils.constants import (
     SUB,
 )
 from lineapy.utils.lineabuiltins import (
+    l_alias,
     l_assert,
     l_dict,
     l_dict_kwargs_sentinel,
@@ -373,11 +374,23 @@ class NodeTransformer(ast.NodeTransformer):
         """
         assert len(node.targets) == 1
         target = node.targets[0]
-        self.visit_assign_value(
-            target,
-            self.visit(node.value),
-            self.get_source(node),
-        )
+        # handle special case of assigning aliases e.g. x = y
+        if isinstance(target, ast.Name) and isinstance(node.value, ast.Name):
+            new_node = self.tracer.call(
+                self.tracer.lookup_node(l_alias.__name__),
+                self.get_source(node),
+                self.visit(node.value),
+            )
+            self.tracer.assign(
+                target.id,
+                new_node,
+            )
+        else:
+            self.visit_assign_value(
+                target,
+                self.visit(node.value),
+                self.get_source(node),
+            )
 
     def visit_assign_value(
         self,
@@ -434,15 +447,11 @@ class NodeTransformer(ast.NodeTransformer):
                     ),
                 )
         elif isinstance(target, ast.Name):
-            print('\n1.yay', target.id)
             variable_name = target.id
             self.tracer.assign(
                 variable_name,
                 value_node,
             )
-        # e.g. `x = y`
-        elif isinstance(target, ast.alias):
-            print('am I doing this right?')
         else:
             raise NotImplementedError(
                 "Other assignment types are not supported"
