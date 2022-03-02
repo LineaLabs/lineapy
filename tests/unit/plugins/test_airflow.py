@@ -51,7 +51,13 @@ from lineapy.plugins.airflow import split_code_blocks
 
 
 @pytest.mark.parametrize(
-    "casename", ["single_import", "multi_line_import", "demo_1_preprocessing"]
+    "casename",
+    [
+        "single_import",
+        "multi_line_import",
+        "demo_1_preprocessing",
+        "heartbeat",
+    ],
 )
 def test_split_code_blocks(casename):
     test_folder = (
