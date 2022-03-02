@@ -24,10 +24,10 @@ from lineapy.data.types import (
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
-from lineapy.execution.executor import (
+from lineapy.execution.executor import Executor
+from lineapy.execution.side_effects import (
     ID,
     AccessedGlobals,
-    Executor,
     ExecutorPointer,
     ImplicitDependencyNode,
     Variable,

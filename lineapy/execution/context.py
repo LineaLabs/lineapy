@@ -15,9 +15,20 @@ This module exposes three global functions, which are meant to be used like:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Mapping, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional
 
-from lineapy.execution.globals_dict import GlobalsDict
+from lineapy.execution.globals_dict import GlobalsDict, GlobalsDictResult
+from lineapy.execution.inspect_function import is_mutable
+from lineapy.execution.side_effects import (
+    ID,
+    AccessedGlobals,
+    ExecutorPointer,
+    MutatedNode,
+    SideEffect,
+    SideEffects,
+    Variable,
+    ViewOfNodes,
+)
 
 if TYPE_CHECKING:
     from lineapy.data.types import CallNode, LineaID
@@ -38,8 +49,10 @@ class ExecutionContext:
     # The executor that is running
     executor: Executor
 
-    _input_globals: Mapping[str, object]
+    # Mapping from each input global to its ID
     _input_node_ids: Mapping[str, LineaID]
+    # Mapping from each input global to whether it is mutable
+    _input_globals_mutable: Mapping[str, bool]
 
     @property
     def global_variables(self) -> Dict[str, object]:
@@ -79,8 +92,10 @@ def set_context(
     _current_context = ExecutionContext(
         node=node,
         executor=executor,
-        _input_globals=input_globals,
         _input_node_ids=input_node_ids,
+        _input_globals_mutable={
+            k: is_mutable(v) for k, v in input_globals.items()
+        },
     )
 
 
@@ -99,20 +114,63 @@ def teardown_context() -> ContextResult:
     global _current_context
     if not _current_context:
         raise RuntimeError("No context set")
+    prev_context = _current_context
     # Place in try/finally block so that context is always removed,
     # in case one test fails here, but the next should succeed
     try:
         res = _global_variables.teardown_globals()
-        # To get the accessed inputs, we map each k that was accessed to its node ID
-        accessed_inputs = {
-            k: _current_context._input_node_ids[k] for k in res.accessed_inputs
-        }
     finally:
         _current_context = None
-    return ContextResult(accessed_inputs, res.added_or_modified)
+
+    return ContextResult(
+        res.added_or_modified,
+        list(_compute_side_effects(prev_context, res)),
+    )
+
+
+def _compute_side_effects(
+    context: ExecutionContext, globals_result: GlobalsDictResult
+) -> Iterable[SideEffect]:
+    # Any nodes that we retrieved that were mutable, assume were mutated
+    # Filter the vars by if the value is mutable
+    mutable_input_vars: List[ExecutorPointer] = [
+        ID(context._input_node_ids[name])
+        for name in globals_result.accessed_inputs
+        if context._input_globals_mutable[name]
+    ]
+    accessed_globals = AccessedGlobals(
+        globals_result.accessed_inputs,
+        list(globals_result.added_or_modified.keys()),
+    )
+    if accessed_globals.added_or_updated or accessed_globals.retrieved:
+        yield accessed_globals
+
+    yield from map(MutatedNode, mutable_input_vars)
+
+    # Now we mark all the mutable input variables as well as mutable
+    # output variables as all views of one another
+    # Note that we retrieve the input IDs before executing,
+    # and refer to the output IDs as variables after executing
+    # This will mean any accessed mutable variables will resolve
+    # to the node they pointed to before the function call
+    # and mutated ones will refer to the new GlobalNodes that
+    # were created when processing `AccessedGlobals`
+
+    mutable_output_vars: List[ExecutorPointer] = [
+        Variable(k)
+        for k, v in globals_result.added_or_modified.items()
+        if is_mutable(v)
+    ]
+    input_output_vars_view = ViewOfNodes(
+        mutable_input_vars + mutable_output_vars
+    )
+    if len(input_output_vars_view.pointers) > 1:
+        yield input_output_vars_view
 
 
 @dataclass
 class ContextResult:
-    accessed_inputs: Dict[str, LineaID]
+    # Mapping of global name to value for every global which was added or updated
     added_or_modified: Dict[str, object]
+    # List of side effects added during the execution.
+    side_effects: SideEffects
