@@ -253,6 +253,7 @@ Sometimes it's helpful to see a visual representation of the graph
 and the tracers state, while debugging a test. Run the tests with `--visualize`
 to have it save a `tracer.pdf` file whenever it run an execution.
 
+You can also run tests with `pytest --snapshot-update test_name`, which will create snapshots in `__snapshots__/test_name/` folder for the particular test you're running
 Note: This requires graphviz to be installed.
 
 
