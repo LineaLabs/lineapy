@@ -1,8 +1,9 @@
 def test_list_setitem_mutates(execute):
-    code = """x = []
-x.append(10)
+    code = """x = [1]
+x[0] = 10
 """
     res = execute(code, artifacts=["x"])
+    assert res.values["x"] == [10]
     assert res.slice("x") == code
 
 

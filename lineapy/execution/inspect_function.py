@@ -15,6 +15,7 @@ from lineapy.instrumentation.annotation_spec import (
     Annotation,
     BaseClassMethodName,
     BoundSelfOfFunction,
+    BuiltInMethodOrFunctionName,
     ClassMethodName,
     ClassMethodNames,
     Criteria,
@@ -175,6 +176,14 @@ def check_function_against_annotation(
         ):
             return True
         return False
+    if isinstance(criteria, BuiltInMethodOrFunctionName) and hasattr(
+        function, "__self__"
+    ):
+        if function_name == criteria.bound_function_name and (
+            type(function.__self__).__name__ == criteria.class_name  # type: ignore
+        ):
+            return True
+        return False
     if isinstance(criteria, BaseClassMethodName) and hasattr(
         function, "__self__"
     ):
@@ -308,25 +317,19 @@ class FunctionInspector:
         Inspects a function and returns how calling it mutates the args/result and
         creates view relationships between them.
         """
-
-        # we have a special case here whose structure is not
-        #   shared with any other cases...
         if (
             isinstance(function, BuiltinMethodType)
-            and function.__name__ == "append"
-            and isinstance(function.__self__, list)
+            and function.__module__ is None
         ):
-            # list.append(value)
-            yield MutatedValue(
-                mutated_value=BoundSelfOfFunction(self_ref="SELF_REF")
+            # adding type ignore because for some reason mypy thinks this code is unreachable
+            yield from _check_annotation(  # type: ignore
+                function,
+                args,
+                kwargs,
+                result,
+                self.specs[BuiltinMethodType.__name__],
+                module=BuiltinMethodType.__name__,
             )
-            if is_mutable(args[0]):
-                yield ViewOfValues(
-                    views=[
-                        BoundSelfOfFunction(self_ref="SELF_REF"),
-                        PositionalArg(positional_argument_index=0),
-                    ]
-                )
         else:
 
             def get_root_module(fun: Callable):

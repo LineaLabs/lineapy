@@ -1,3 +1,7 @@
+Author: Saul
+Reviewer: Yifan
+Date: February 8, 2022
+
 # Unpacking
 
 ## Background
@@ -19,7 +23,6 @@ On the left side of the `=`, a tuple or a list is equivalent.
 
 This shows up in the AST in the `ast.Assign` node.
 
-
 ## Current Lineapy Behavior
 
 We currently do not support this type of assignments. We only support basic assignment and a special case for
@@ -33,7 +36,6 @@ $ echo 'a, b = (x for x in range(2))' > tmp.py
 $ lineapy python tmp.py
 TypeError: 'generator' object is not subscriptable
 ```
-
 
 ## Python Behavior
 
@@ -90,13 +92,12 @@ of the next arg, so its a detail of how the bytecode is stored. So the main stor
 with an arg value of `513`. Let's see [what the Python docs have to say about it](https://docs.python.org/3/library/dis.html#opcode-UNPACK_EX):
 
 > Implements assignment with a starred target: Unpacks an iterable in TOS into individual values, where the total number of values can be smaller than the number of items in the iterable: one of the new values will be a list of all leftover items.
-> 
+>
 > The low byte of counts is the number of values before the list value, the high byte of counts the number of values after it. The resulting values are put onto the stack right-to-left.
 
 So it's actually two bytes. If we unpack it, the high bytes are 2 and the low bytes are 1. So this means we want to unpack the first two values, and the last 1 value, and keep the rest in the middle.
 
 These two opcodes cover all of the complex unpacking.
-
 
 ## Proposed Behavior
 
@@ -110,10 +111,10 @@ If we did so, we could implement the bytecodes as two builtin functions:
 def l_unpack_sequence(xs: Iterable[T], n: int) -> list[T]:
     """
     Asserts the iterable `xs` is of length `n` and turns it into a list.
-    
+
     The same as `l_list` but asserts the length. This was modeled after the UNPACK_SEQUENCE
     bytecode to be used in unpacking
-    
+
     The result should be a view of the input.
     """
     res = list(xs)
@@ -128,7 +129,7 @@ def l_unpack_ex(xs: Iterable[T], before: int, after: int) -> list[Union[T, list[
     """
     Slits the iterable `xs` into three pieces and then joins them [*first, middle, *list]
     The first of length `before`, the last of length `after`, and the middle whatever is remaining.
-    
+
     Modeled after the UNPACK_EX bytecode to be used in unpacking.
     """
     res: list[Union[T, list[T]] = []
@@ -143,7 +144,7 @@ def l_unpack_ex(xs: Iterable[T], before: int, after: int) -> list[Union[T, list[
     return [*before_list, after_list, *middle_list]
 ```
 
-Now lets look at our examples. 
+Now lets look at our examples.
 
 ```python
 x, y = z

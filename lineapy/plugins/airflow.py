@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -6,7 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 from typing_extensions import TypedDict
 
 import lineapy
-from lineapy.instrumentation.tracer import Tracer
+from lineapy.plugins.base import BasePlugin
 from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
 
@@ -35,24 +36,20 @@ def split_code_blocks(code: str, func_name: str):
     """
     # We split the lines in import and code blocks and join them to full code test
     lines = code.split("\n")
+    joinedcode = """
+""".join(
+        lines
+    )
+    ast_tree = ast.parse(code)
     # Imports are at the top, find where they end
     end_of_imports_line_num = 0
-    import_open_bracket = False
-    while (
-        "import" in lines[end_of_imports_line_num]
-        or "#" in lines[end_of_imports_line_num]
-        or "" == lines[end_of_imports_line_num]
-        or "    " in lines[end_of_imports_line_num]
-        and import_open_bracket
-        or ")" in lines[end_of_imports_line_num]
-        and import_open_bracket
-    ):
-        if "(" in lines[end_of_imports_line_num]:
-            import_open_bracket = True
-        elif ")" in lines[end_of_imports_line_num]:
-            import_open_bracket = False
-        end_of_imports_line_num += 1
-    # everything from here down needs to be under def()
+    for node in ast_tree.body:
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            continue
+        else:
+            end_of_imports_line_num = node.lineno - 1
+            break
+
     # TODO Support arguments to the func
     code_block = f"def {func_name}():\n\t" + "\n\t".join(
         lines[end_of_imports_line_num:]
@@ -62,51 +59,40 @@ def split_code_blocks(code: str, func_name: str):
     return import_block, code_block, main_block
 
 
-def sliced_airflow_dag(
-    tracer: Tracer,
-    slice_names: List[str],
-    func_name: str,
-    airflow_task_dependencies: str,
-) -> str:
-    """
-    Returns a an Airflow DAG of the sliced code.
+class AirflowPlugin(BasePlugin):
+    def sliced_airflow_dag(
+        self,
+        slice_names: List[str],
+        func_name: str,
+        airflow_task_dependencies: str,
+    ):
+        """
+        Creates an Airflow DAG from the sliced code. This includes a python file with one function per slice, task dependencies
+        file in Airflow format and an example Dockerfile and requirements.txt that can be used to run this.
 
-    :param tracer: the tracer object.
-    :param slice_names: list of slice names to be used as tasks.
-    :param func_name: name of the DAG and corresponding functions and task prefixes,
-                      i.e. "sliced_housing_dag"
+        :param slice_names: list of slice names to be used as tasks.
+        :param func_name: name of the Pyhon module the generated code will be saved to.
+        :param airflow_task_dependencies: task dependencies in an Airflow format,
+                                            i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
+                                            This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
+                                            and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
+                                            Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
+                                            and "sliced_housing_dag_y" depends on them.
+        """
 
-    :param airflow_task_dependencies: task dependencies in Airflow format,
-                                      i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-                                      This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
-                                      and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
-                                      Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
-                                      and "sliced_housing_dag_y" depends on them.
-
-    :return: string containing the code of the Airflow DAG running this slice
-
-    """
-
-    # Remove quotes
-    airflow_task_dependencies = airflow_task_dependencies.replace("\\'", "")
-    airflow_task_dependencies = airflow_task_dependencies.replace("'", "")
-
-    artifacts_code = {}
-    for slice_name in slice_names:
-        artifact_var = tracer.artifact_var_name(slice_name)
-        slice_code = tracer.slice(slice_name)
-        artifacts_code[artifact_var] = slice_code
-        # "'p value' >> 'y'" needs to be replaced by "sliced_housing_dag_p >> sliced_housing_dag_y"
+        # Remove quotes
         airflow_task_dependencies = airflow_task_dependencies.replace(
-            slice_name, f"{func_name}_{artifact_var}"
+            "\\'", ""
         )
+        airflow_task_dependencies = airflow_task_dependencies.replace("'", "")
 
-    return to_airflow(
-        artifacts_code=artifacts_code,
-        dag_name=func_name,
-        working_directory=Path(tracer.session_context.working_directory),
-        task_dependencies=airflow_task_dependencies,
-    )
+        artifacts_code = {}
+        for slice_name in slice_names:
+            artifact_var = self.tracer.artifact_var_name(slice_name)
+            slice_code = self.tracer.slice(slice_name)
+            artifacts_code[artifact_var] = slice_code
+        self.generate_python_module(func_name, artifacts_code)
+        # TODO self.generate_infra(airflow_task_dependencies)
 
 
 def to_airflow(
