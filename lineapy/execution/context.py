@@ -49,9 +49,9 @@ class ExecutionContext:
     # The executor that is running
     executor: Executor
 
-    # Mapping from each input global to its ID
+    # Mapping from each input global name to its ID
     _input_node_ids: Mapping[str, LineaID]
-    # Mapping from each input global to whether it is mutable
+    # Mapping from each input global name to whether it is mutable
     _input_globals_mutable: Mapping[str, bool]
 
     @property
