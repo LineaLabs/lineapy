@@ -173,7 +173,9 @@ def l_exec_expr(code: str) -> object:
 def l_alias(item: object) -> object:
     return item
 
-T = TypeVar('T')  # Any type.
+
+T = TypeVar('T')
+
 
 @register
 def l_unpack_sequence(xs: Iterable[T], n: int) -> list[T]:
@@ -194,25 +196,25 @@ def l_unpack_sequence(xs: Iterable[T], n: int) -> list[T]:
             f"not enough values to unpack (expected {n}, got {actual_n})")
     return res
 
-#
-# @register
-# def l_unpack_ex(xs: Iterable[T], before: int, after: int) -> list[Union[T, list[T]]]:
-#     """
-#     Slits the iterable `xs` into three pieces and then joins them [*first, middle, *list]
-#     The first of length `before`, the last of length `after`, and the middle whatever is remaining.
-#
-#     Modeled after the UNPACK_EX bytecode to be used in unpacking.
-#     """
-#     res: list[Union[T, list[T]] = []
-#     xs_list = list(xs)
-#     xs_n = len(xs_list)
-#     min_values = before + after
-#     if xs_n < min_values:
-#         raise ValueError(f"not enough values to unpack (expected at least {min_values}, got {xs_n})")
-#     before_list = xs[:before]
-#     after_list = xs[-after:]
-#     middle_list = xs[before:-after]
-#     return [*before_list, after_list, *middle_list]
+
+@register
+def l_unpack_ex(xs: Iterable[T], before: int, after: int) -> list[Union[T, list[T]]]:
+    """
+    Slits the iterable `xs` into three pieces and then joins them [*first, middle, *list]
+    The first of length `before`, the last of length `after`, and the middle whatever is remaining.
+
+    Modeled after the UNPACK_EX bytecode to be used in unpacking.
+    """
+    # res: list[Union[T, list[T]] = []
+    xs_list = list(xs)
+    xs_n = len(xs_list)
+    min_values = before + after
+    if xs_n < min_values:
+        raise ValueError(f"not enough values to unpack (expected at least {min_values}, got {xs_n})")
+    before_list = xs[:before]
+    after_list = xs[-after:]
+    middle_list = xs[before:-after]
+    return [*before_list, after_list, *middle_list]
 
 
 file_system = register(ExternalState(external_state="file_system"))
