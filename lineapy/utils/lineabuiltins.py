@@ -169,6 +169,15 @@ def l_exec_expr(code: str) -> object:
     return res
 
 
+@register
+def l_alias(item: object) -> object:
+    """
+    No op function that returns the same item.
+    We use function to support var aliasing (e.g., x = y) by creating an l_alias node
+    """
+    return item
+
+
 file_system = register(ExternalState(external_state="file_system"))
 db = register(ExternalState(external_state="db"))
 

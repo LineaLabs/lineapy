@@ -51,6 +51,7 @@ from lineapy.utils.constants import (
     SUB,
 )
 from lineapy.utils.lineabuiltins import (
+    l_alias,
     l_assert,
     l_dict,
     l_dict_kwargs_sentinel,
@@ -373,11 +374,24 @@ class NodeTransformer(ast.NodeTransformer):
         """
         assert len(node.targets) == 1
         target = node.targets[0]
-        self.visit_assign_value(
-            target,
-            self.visit(node.value),
-            self.get_source(node),
-        )
+        # handle special case of assigning aliases e.g. x = y
+        if isinstance(target, ast.Name) and isinstance(node.value, ast.Name):
+            value_node = self.visit(node.value)
+            new_node = self.tracer.call(
+                self.tracer.lookup_node(l_alias.__name__),
+                self.get_source(node),
+                value_node,
+            )
+            self.tracer.assign(
+                target.id,
+                new_node,
+            )
+        else:
+            self.visit_assign_value(
+                target,
+                self.visit(node.value),
+                self.get_source(node),
+            )
 
     def visit_assign_value(
         self,
@@ -395,6 +409,7 @@ class NodeTransformer(ast.NodeTransformer):
         - Constant, e.g., `a = 1`
         - Call, e.g., `a = foo()`
         """
+
         if isinstance(target, ast.Subscript):
             index = target.slice
             # note: isinstance(index, ast.List) only works for pandas,
