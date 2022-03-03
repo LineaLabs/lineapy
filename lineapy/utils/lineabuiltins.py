@@ -1,5 +1,5 @@
 import sys
-from typing import Dict, List, Mapping, Optional, Tuple, TypeVar, Union
+from typing import Dict, Iterable, List, Mapping, Optional, Tuple, TypeVar, Union
 
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.execution.context import get_context
@@ -172,6 +172,47 @@ def l_exec_expr(code: str) -> object:
 @register
 def l_alias(item: object) -> object:
     return item
+
+T = TypeVar('T')  # Any type.
+
+@register
+def l_unpack_sequence(xs: Iterable[T], n: int) -> list[T]:
+    """
+    Asserts the iterable `xs` is of length `n` and turns it into a list.
+
+    The same as `l_list` but asserts the length. This was modeled after the UNPACK_SEQUENCE
+    bytecode to be used in unpacking
+
+    The result should be a view of the input.
+    """
+    res = list(xs)
+    actual_n = len(res)
+    if actual_n > n:
+        raise ValueError(f"too many values to unpack (expected {n})")
+    if actual_n < n:
+        raise ValueError(
+            f"not enough values to unpack (expected {n}, got {actual_n})")
+    return res
+
+#
+# @register
+# def l_unpack_ex(xs: Iterable[T], before: int, after: int) -> list[Union[T, list[T]]]:
+#     """
+#     Slits the iterable `xs` into three pieces and then joins them [*first, middle, *list]
+#     The first of length `before`, the last of length `after`, and the middle whatever is remaining.
+#
+#     Modeled after the UNPACK_EX bytecode to be used in unpacking.
+#     """
+#     res: list[Union[T, list[T]] = []
+#     xs_list = list(xs)
+#     xs_n = len(xs_list)
+#     min_values = before + after
+#     if xs_n < min_values:
+#         raise ValueError(f"not enough values to unpack (expected at least {min_values}, got {xs_n})")
+#     before_list = xs[:before]
+#     after_list = xs[-after:]
+#     middle_list = xs[before:-after]
+#     return [*before_list, after_list, *middle_list]
 
 
 file_system = register(ExternalState(external_state="file_system"))

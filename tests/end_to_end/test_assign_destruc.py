@@ -6,3 +6,7 @@ def test_assignment_destructuring(execute):
 
 # TODO - add test case for slice
 #
+# a, b = c
+# a, *rest = c
+# [a, b], *rest = c
+# a = b = c
