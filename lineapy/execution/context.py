@@ -114,14 +114,9 @@ def teardown_context() -> ContextResult:
     global _current_context
     if not _current_context:
         raise RuntimeError("No context set")
+    res = _global_variables.teardown_globals()
     prev_context = _current_context
-    # Place in try/finally block so that context is always removed,
-    # in case one test fails here, but the next should succeed
-    try:
-        res = _global_variables.teardown_globals()
-    finally:
-        _current_context = None
-
+    _current_context = None
     return ContextResult(
         res.added_or_modified,
         list(_compute_side_effects(prev_context, res)),
