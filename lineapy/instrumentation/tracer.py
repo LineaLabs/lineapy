@@ -4,7 +4,6 @@ from datetime import datetime
 from os import getcwd
 from typing import Dict, List, Optional, Tuple, Union
 
-from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
     GlobalNode,
@@ -22,7 +21,6 @@ from lineapy.data.types import (
     SourceLocation,
 )
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import ArtifactORM
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.executor import (
     ID,
@@ -33,9 +31,8 @@ from lineapy.execution.executor import (
     Variable,
     ViewOfNodes,
 )
-from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.instrumentation.mutation_tracker import MutationTracker
+from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
 from lineapy.utils.lineabuiltins import l_tuple
 from lineapy.utils.utils import get_new_id
@@ -51,11 +48,9 @@ class Tracer:
     session_name: InitVar[Optional[str]] = None
     globals_: InitVar[Optional[Dict[str, object]]] = None
 
-    variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
+    tracer_context: TracerContext = field(init=False)
 
-    session_context: SessionContext = field(init=False)
     executor: Executor = field(init=False)
-    mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
 
     def __post_init__(
         self,
@@ -75,7 +70,8 @@ class Tracer:
         - Executes the program, using the `Executor`.
         """
         self.executor = Executor(self.db, globals_ or globals())
-        self.session_context = SessionContext(
+        # TODO - maybe cleaner to do this in tracer context init itself
+        session_context = SessionContext(
             id=get_new_id(),
             environment_type=session_type,
             creation_time=datetime.now(),
@@ -83,15 +79,11 @@ class Tracer:
             session_name=session_name,
             execution_id=self.executor.execution.id,
         )
-        self.db.write_context(self.session_context)
-
-    @property
-    def graph(self) -> Graph:
-        """
-        Creates a graph by fetching all the nodes about this session from the DB.
-        """
-        nodes = self.db.get_nodes_for_session(self.session_context.id)
-        return Graph(nodes, self.session_context)
+        self.db.write_context(session_context)
+        self.tracer_context = TracerContext(
+            session_context=session_context, db=self.db
+        )
+        # self.tracer_context.tracer_context = MutationTracker()
 
     @property
     def values(self) -> Dict[str, object]:
@@ -101,46 +93,13 @@ class Tracer:
         """
         return {
             k: self.executor.get_value(n.id)
-            for k, n in self.variable_name_to_node.items()
+            # for k, n in self.tracer_context.variable_name_to_node.items()
+            for k, n in self.tracer_context.get_nodes()
         }
 
     @property
     def artifacts(self) -> Dict[str, str]:
-        """
-        Returns a mapping of artifact names to their sliced code.
-        """
-
-        return {
-            artifact.name: get_program_slice(self.graph, [artifact.node_id])
-            for artifact in self.session_artifacts()
-            if artifact.name is not None
-        }
-
-    def session_artifacts(self) -> List[ArtifactORM]:
-        return self.db.get_artifacts_for_session(self.session_context.id)
-
-    def slice(self, name: str) -> str:
-        artifact = self.db.get_artifact_by_name(name)
-        return get_program_slice(self.graph, [artifact.node_id])
-
-    def artifact_var_name(self, artifact_name: str) -> str:
-        """
-        Returns the variable name for the given artifact.
-        i.e. in lineapy.save(p, "p value") "p" is returned
-        """
-        artifact = self.db.get_artifact_by_name(artifact_name)
-        if not artifact.node or not artifact.node.source_code:
-            return ""
-        _line_no = artifact.node.lineno if artifact.node.lineno else 0
-        artifact_line = str(artifact.node.source_code.code).split("\n")[
-            _line_no - 1
-        ]
-        _col_offset = (
-            artifact.node.col_offset if artifact.node.col_offset else 0
-        )
-        if _col_offset < 3:
-            return ""
-        return artifact_line[: _col_offset - 3]
+        return self.tracer_context.artifacts
 
     def process_node(self, node: Node) -> None:
         """
@@ -153,7 +112,12 @@ class Tracer:
         ##
         try:
             side_effects = self.executor.execute_node(
-                node, {k: v.id for k, v in self.variable_name_to_node.items()}
+                node,
+                {
+                    k: v.id
+                    # for k, v in self.tracer_context.variable_name_to_node.items()
+                    for k, v in self.tracer_context.get_nodes()
+                },
             )
         except ArtifactSaveException as exc_info:
             logger.error("Artifact could not be saved.")
@@ -168,7 +132,7 @@ class Tracer:
                 )
             elif isinstance(e, ViewOfNodes):
                 if len(e.pointers) > 0:  # skip if empty
-                    self.mutation_tracker.set_as_viewers_of_eachother(
+                    self.tracer_context.set_as_viewers_of_eachother(
                         *map(self._resolve_pointer, e.pointers)
                     )
             elif isinstance(e, AccessedGlobals):
@@ -181,7 +145,7 @@ class Tracer:
                 for (
                     mutate_node_id,
                     source_id,
-                ) in self.mutation_tracker.set_as_mutated(mutated_node_id):
+                ) in self.tracer_context.set_as_mutated(mutated_node_id):
                     mutate_node = MutateNode(
                         id=mutate_node_id,
                         session_id=node.session_id,
@@ -196,7 +160,9 @@ class Tracer:
         if isinstance(ptr, ID):
             return ptr.id
         if isinstance(ptr, Variable):
-            return self.variable_name_to_node[ptr.name].id
+            return self.tracer_context.get_node_id_from_variable_name(
+                ptr.name
+            )  # self.tracer_context.variable_name_to_node[ptr.name].id
         # Handle external state case, by making a lookup node for it
         if isinstance(ptr, ExternalState):
             return self.lookup_node(ptr.external_state).id
@@ -214,9 +180,7 @@ class Tracer:
         # Only call nodes can refer to implicit dependencies
         assert isinstance(node, CallNode)
         node.implicit_dependencies.append(
-            self.mutation_tracker.get_latest_mutate_node(
-                implicit_dependency_id
-            )
+            self.tracer_context.get_latest_mutate_node(implicit_dependency_id)
         )
 
     def _process_accessed_globals(
@@ -231,15 +195,9 @@ class Tracer:
         assert isinstance(node, CallNode)
 
         # Add the retrieved globals as global reads to the call node
-        node.global_reads = {
-            var: self.mutation_tracker.get_latest_mutate_node(
-                self.variable_name_to_node[var].id
-            )
-            for var in retrieved
-            # Only save reads from variables that we have already saved variables for
-            # Assume that all other reads are for variables assigned inside the call
-            if var in self.variable_name_to_node
-        }
+        node.global_reads = self.tracer_context.get_filtered_mutated_nodes(
+            retrieved
+        )
 
         # Create a new global node for each added/updated
         for var in added_or_updated:
@@ -250,7 +208,8 @@ class Tracer:
                 call_id=node.id,
             )
             self.process_node(global_node)
-            self.variable_name_to_node[var] = global_node
+            # self.tracer_context.variable_name_to_node[var] = global_node
+            self.tracer_context.update_node_by_variable_name(var, global_node)
 
     def lookup_node(
         self,
@@ -268,13 +227,15 @@ class Tracer:
           - custom runtime, e.g., get_ipython
 
         """
-        if variable_name in self.variable_name_to_node:
+        if variable_name in self.tracer_context.variable_name_to_node:
             # user define var and fun def
-            return self.variable_name_to_node[variable_name]
+            return self.tracer_context.get_node_from_variable_name(
+                variable_name
+            )
         else:
             new_node = LookupNode(
                 id=get_new_id(),
-                session_id=self.session_context.id,
+                session_id=self.tracer_context.get_session_id(),
                 name=variable_name,
                 source_location=source_location,
             )
@@ -304,17 +265,20 @@ class Tracer:
         library = Library(id=get_new_id(), name=name)
         node = ImportNode(
             id=get_new_id(),
-            session_id=self.session_context.id,
+            session_id=self.tracer_context.get_session_id(),
             library=library,
             source_location=source_location,
         )
         self.process_node(node)
 
         if attributes is None:
-            if alias is not None:
-                self.variable_name_to_node[alias] = node
-            else:
-                self.variable_name_to_node[name] = node
+            self.tracer_context.update_node_by_variable_name(
+                alias or name, node
+            )
+            # if alias is not None:
+            #     self.tracer_context.variable_name_to_node[alias] = node
+            # else:
+            #     self.tracer_context.variable_name_to_node[name] = node
 
         # for the attributes imported, we need to add them to the local lookup
         #  that yields the importnode's id for the `function_module` field,
@@ -350,7 +314,9 @@ class Tracer:
         #   requirement; should prob refactor later
         # and we cannot just modify the runtime value because
         #   it's already written to disk
-        self.db.add_lib_to_session_context(self.session_context.id, library)
+        self.db.add_lib_to_session_context(
+            self.tracer_context.get_session_id(), library
+        )
         return
 
     def literal(
@@ -361,7 +327,7 @@ class Tracer:
         # this literal should be assigned or used later
         node = LiteralNode(
             id=get_new_id(),
-            session_id=self.session_context.id,
+            session_id=self.tracer_context.get_session_id(),
             value=value,
             source_location=source_location,
         )
@@ -372,19 +338,19 @@ class Tracer:
         for arg in arguments:
             if isinstance(arg, tuple):
                 yield PositionalArgument(
-                    id=self.mutation_tracker.get_latest_mutate_node(arg[1].id),
+                    id=self.tracer_context.get_latest_mutate_node(arg[1].id),
                     starred=arg[0],
                 )
 
             else:
                 yield PositionalArgument(
-                    id=self.mutation_tracker.get_latest_mutate_node(arg.id),
+                    id=self.tracer_context.get_latest_mutate_node(arg.id),
                     starred=False,
                 )
 
     def __get_keyword_arguments(self, keyword_arguments):
         for k, n in keyword_arguments.items():
-            values = self.mutation_tracker.get_latest_mutate_node(n.id)
+            values = self.tracer_context.get_latest_mutate_node(n.id)
             if k.startswith("unpack_"):
                 yield KeywordArgument(key="**", value=values, starred=True)
             else:
@@ -426,7 +392,7 @@ class Tracer:
 
         node = CallNode(
             id=get_new_id(),
-            session_id=self.session_context.id,
+            session_id=self.tracer_context.get_session_id(),
             function_id=function_node.id,
             positional_args=self.__get_positional_arguments(arguments),
             keyword_args=self.__get_keyword_arguments(keyword_arguments),
@@ -450,7 +416,10 @@ class Tracer:
         to trace where in some code a node is assigned, we can record that again.
         """
         logger.debug("assigning %s = %s", variable_name, value_node)
-        self.variable_name_to_node[variable_name] = value_node
+        self.tracer_context.update_node_by_variable_name(
+            variable_name, value_node
+        )
+        # self.tracer_context.variable_name_to_node[variable_name] = value_node
         return
 
     def tuple(
@@ -461,3 +430,7 @@ class Tracer:
             source_location,
             *args,
         )
+
+    # keeping this because too many places use tracer.slice
+    def slice(self, name: str) -> str:
+        return self.tracer_context.slice(name)

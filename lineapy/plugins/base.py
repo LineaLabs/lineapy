@@ -4,13 +4,13 @@ from typing import Dict
 
 import isort
 
-from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.utils import prettify
 
 
 @dataclass
 class BasePlugin:
-    tracer: Tracer
+    tracer_context: TracerContext
 
     def _split_code_blocks(self, code: str, func_name: str):
         """

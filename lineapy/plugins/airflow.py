@@ -88,8 +88,8 @@ class AirflowPlugin(BasePlugin):
 
         artifacts_code = {}
         for slice_name in slice_names:
-            artifact_var = self.tracer.artifact_var_name(slice_name)
-            slice_code = self.tracer.slice(slice_name)
+            artifact_var = self.tracer_context.artifact_var_name(slice_name)
+            slice_code = self.tracer_context.slice(slice_name)
             artifacts_code[artifact_var] = slice_code
         self.generate_python_module(func_name, artifacts_code)
         # TODO self.generate_infra(airflow_task_dependencies)

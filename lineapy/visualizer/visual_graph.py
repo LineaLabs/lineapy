@@ -34,7 +34,7 @@ from lineapy.data.types import (
     Node,
     NodeType,
 )
-from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer_context import TracerContext
 
 
 @dataclass
@@ -47,7 +47,7 @@ class VisualGraphOptions:
     graph: Graph
     # The tracer is optional, if provided, will let us show some additional
     # information, like variables.
-    tracer: Optional[Tracer]
+    tracer_context: Optional[TracerContext]
 
     # Whether to highlight a certain node.
     # For now, this will only show that node and its ancestors.
@@ -67,7 +67,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     """
     Returns a visual graph based on the options.
     """
-    tracer = options.tracer
+    tracer_context = options.tracer_context
     graph = options.graph
     vg = VisualGraph()
 
@@ -77,17 +77,17 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
     # First create a mapping of each node ID to all of its artifact names
     id_to_artifacts: Dict[str, List[Optional[str]]] = defaultdict(list)
     if options.show_artifacts:
-        if not tracer:
+        if not tracer_context:
             raise RuntimeError("Cannot show artifacts without tracer")
-        for a in tracer.session_artifacts():
+        for a in tracer_context.session_artifacts():
             id_to_artifacts[a.node_id].append(a.name)
 
     # Then create a mapping of each node to the variables which point to it
     id_to_variables: Dict[str, List[str]] = defaultdict(list)
     if options.show_variables:
-        if not tracer:
+        if not tracer_context:
             raise RuntimeError("Cannot show implied mutations without tracer")
-        for name, node in tracer.variable_name_to_node.items():
+        for name, node in tracer_context.get_nodes():
             id_to_variables[node.id].append(name)
 
     # First add all the nodes from the session
@@ -99,7 +99,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
             ExtraLabel(v, ExtraLabelType.VARIABLE)
             for v in id_to_variables[node.id]
         ]
-        contents = process_node(vg, node, options)
+        contents = process_node(vg, node)
         vg.node(VisualNode(node.id, node.node_type, contents, extra_labels))
 
     # For now, our algorithm for making nodes based on source locations is:
@@ -154,10 +154,10 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
         )
     # Then we can add all the additional information from the tracer
     if options.show_implied_mutations:
-        if not tracer:
+        if not tracer_context:
             raise RuntimeError("Cannot show implied mutations without tracer")
         # the mutate nodes
-        for source, mutate in tracer.mutation_tracker.source_to_mutate.items():
+        for source, mutate in tracer_context.source_to_mutate.items():
             vg.edge(
                 VisualEdge(
                     VisualEdgeID(source),
@@ -167,14 +167,14 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
             )
 
     if options.show_views:
-        if not tracer:
+        if not tracer_context:
             raise RuntimeError("Cannot show views without tracer")
 
         # Create a set of unique pairs of viewers, where order doesn't matter
         # Since they aren't directed
         viewer_pairs: Set[FrozenSet[LineaID]] = {
             frozenset([source, viewer])
-            for source, viewers in tracer.mutation_tracker.viewers.items()
+            for source, viewers in tracer_context.viewers.items()
             for viewer in viewers
         }
         for source, target in viewer_pairs:
@@ -191,9 +191,7 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
 
 
 # TODO: Make single dispatch based on node type
-def process_node(
-    vg: VisualGraph, node: Node, options: VisualGraphOptions
-) -> str:
+def process_node(vg: VisualGraph, node: Node) -> str:
     """
     Returns the contents of a node and add its edges.
     """
