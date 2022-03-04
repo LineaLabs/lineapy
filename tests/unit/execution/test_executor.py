@@ -24,10 +24,10 @@ from lineapy.data.types import (
     PositionalArgument,
 )
 from lineapy.exceptions.user_exception import UserException
-from lineapy.execution.executor import (
+from lineapy.execution.executor import Executor
+from lineapy.execution.side_effects import (
     ID,
     AccessedGlobals,
-    Executor,
     MutatedNode,
     Variable,
     ViewOfNodes,

@@ -36,12 +36,10 @@ class Visualizer:
         """
         Renders a PDF file for the graph and tries to open it.
         """
-        self.digraph.render(filename, view=True, format="pdf", quiet=True)
+        self.digraph.render(filename, view=True, format="pdf")
 
     def render_svg(self) -> str:
-        return optimize_svg(
-            self.digraph.pipe(format="svg", quiet=True).decode()
-        )
+        return optimize_svg(self.digraph.pipe(format="svg").decode())
 
     def ipython_display_object(self) -> DisplayObject:
         svg_text = self.render_svg()

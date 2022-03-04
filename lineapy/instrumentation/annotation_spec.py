@@ -253,6 +253,17 @@ class ClassMethodNames(BaseModel):
     class_method_names: List[str]
 
 
+class BuiltInMethodOrFunctionName(BaseModel):
+    """
+    A special case of to capture items of the type ``builtin_method_or_function_name``.
+    Examples include functions like list.append, set.add, etc. These show up as BuiltinMethodType
+    but arent in the module builtins, intead they are methods inside internal classes like list/set/dict etc.
+    """
+
+    bound_function_name: str
+    class_name: str
+
+
 class BaseClassMethodName(BaseModel):
     """
     Baseclass methods allow us to cover more cases.
@@ -280,6 +291,7 @@ Criteria = Union[
     ClassMethodNames,
     FunctionName,
     ClassMethodName,
+    BuiltInMethodOrFunctionName,
     BaseClassMethodName,
 ]
 

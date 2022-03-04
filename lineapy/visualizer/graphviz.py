@@ -240,7 +240,7 @@ def node_type_to_kwargs(
 ) -> Dict[str, object]:
     if isinstance(node_type, SourceLineType):
         return {
-            "shape": "text",
+            "shape": "plaintext",
             "fontcolor": color(FONT_COLOR, highlighted),
         }
     return {

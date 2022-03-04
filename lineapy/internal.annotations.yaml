@@ -6,7 +6,7 @@
     - views:
       - result: RESULT
       - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
-
+  
 - module: builtins
   annotations:
   - criteria:
@@ -16,6 +16,36 @@
         positional_argument_index: 0
     - views:
       - positional_argument_index: 2
+      - positional_argument_index: 0
+
+- module: builtin_function_or_method
+  annotations:
+  - criteria:
+      bound_function_name: add
+      class_name: set
+    side_effects:
+    - mutated_value:
+        self_ref: SELF_REF
+    - views:
+      - self_ref: SELF_REF
+      - positional_argument_index: 0
+  - criteria:
+      bound_function_name: update
+      class_name: set
+    side_effects:
+    - mutated_value:
+        self_ref: SELF_REF
+    - views:
+      - self_ref: SELF_REF
+      - positional_argument_index: 0
+  - criteria:
+      bound_function_name: append
+      class_name: list
+    side_effects:
+    - mutated_value:
+        self_ref: SELF_REF
+    - views:
+      - self_ref: SELF_REF
       - positional_argument_index: 0
 
 - module: _operator

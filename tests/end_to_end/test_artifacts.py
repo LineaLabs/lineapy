@@ -3,6 +3,22 @@ from datetime import datetime
 from lineapy.utils.constants import VERSION_DATE_STRING
 
 
+def test_simple_slice(execute):
+    SIMPLE_SLICE = """import lineapy
+a = 2
+b = 2
+c = min(b,5)
+b
+lineapy.save(c, "c")
+"""
+    res = execute(
+        SIMPLE_SLICE,
+        snapshot=False,
+    )
+
+    assert res.slice("c") == """b = 2\nc = min(b,5)\n"""
+
+
 def test_set_one_artifact(execute):
     code = """import lineapy
 x = []
@@ -55,8 +71,9 @@ art = lineapy.get("x")
 art_version = art.version
 """
     res = execute(code, snapshot=False)
-    assert res.values["art_version"] == datetime.now().strftime(
-        VERSION_DATE_STRING
+    # doing this because if the test runs at the edge of the second it fails sometimes
+    assert res.values["art_version"].startswith(
+        datetime.now().strftime("%Y-%m-%dT%H:%M:")
     )
     assert res.slice("x") == "x = 1\n"
 

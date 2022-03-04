@@ -1,0 +1,42 @@
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+from sklearn.linear_model import LogisticRegression #Logistic Model
+from sklearn.model_selection import train_test_split # Splitting into train and test
+missing_values = ['?', '--', ' ', 'NA', 'N/A', '-'] #Sometimes Missing Values are't in form of NaN
+df = pd.read_csv('heart.csv', delimiter = ',', na_values = missing_values)
+df.drop_duplicates(keep = 'first', inplace = True)
+Continuous_features = [feature for feature in df.columns if len(df[feature].unique())>25]
+def outliers(df_out, drop = False):
+    for each_feature in df_out.columns:
+        feature_data = df_out[each_feature]
+        Q1 = np.percentile(feature_data, 25.) # 25th percentile of the data of the given feature
+        Q3 = np.percentile(feature_data, 75.) # 75th percentile of the data of the given feature
+        IQR = Q3-Q1 #Interquartile Range
+        outlier_step = IQR * 1.5 #That's we were talking about above
+        outliers = feature_data[~((feature_data >= Q1 - outlier_step) & (feature_data <= Q3 + outlier_step))].index.tolist()  
+        if not drop:
+            print('For the feature {}, No of Outliers is {}'.format(each_feature, len(outliers)))
+        if drop:
+            df.drop(outliers, inplace = True, errors = 'ignore')
+            print('Outliers from {} feature removed'.format(each_feature))
+outliers(df[Continuous_features])
+outliers(df[Continuous_features], drop = True)
+Categorial_features = [feature for feature in df.columns if len(df[feature].unique())<=25]
+for each_feature in Categorial_features:
+    print('No of Categorial Values in Feature {} is {} as {}'.format(each_feature, len(df[each_feature].unique()), df[each_feature].unique()))
+df = df.fillna(df.median())
+df = df.astype({'ca': int, 'thal': int}) 
+X = df.drop(['fbs', 'chol', 'trestbps', 'restecg', 'target'], axis =1)
+Y = df['target']
+encoded_cp = pd.get_dummies(df['cp'], prefix = "cp")
+encoded_ca = pd.get_dummies(df['ca'], prefix = "ca")
+encoded_thal = pd.get_dummies(df['thal'], prefix = "thal")
+encoded_slope = pd.get_dummies(df['slope'], prefix = "slope")
+X = pd.concat([X,encoded_cp, encoded_ca, encoded_thal, encoded_slope], axis = 1)
+X = X.drop(columns = ['cp', 'ca', 'thal', 'slope'], axis = 1)
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+standard_X = scaler.fit_transform(X)
+X_train, X_test, y_train, y_test = train_test_split(standard_X,Y,test_size = 0.2,random_state=43, shuffle = True)
+logreg_with_l1 = LogisticRegression(penalty = 'l1', C = 1, solver = 'liblinear')
+logreg_with_l1.fit(X_train, y_train)
