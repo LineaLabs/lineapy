@@ -6,7 +6,6 @@ import os
 import pathlib
 import subprocess
 import tempfile
-import types
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
@@ -388,7 +387,7 @@ def use_env(name: str):
     On exit of the context manager, it resets the path and ipython directory.
     """
     env = ENVS[name]
-    if isinstance(env, types.FunctionType):
+    if callable(env):
         env = env()
     env_dir = INTEGRATION_DIR / "envs" / name
 
