@@ -21,6 +21,13 @@ class TracerContext:
     mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
+    @classmethod
+    def reload_session(
+        cls, db: RelationalLineaDB, session_id: LineaID
+    ) -> "TracerContext":
+        session_context = db.get_session_context(session_id)
+        return cls(db, session_context)
+
     def __getattr__(self, __name: str) -> Any:
         mutation_tracker_method = getattr(self.mutation_tracker, __name, None)
         if mutation_tracker_method is not None:
