@@ -52,7 +52,7 @@ ENVS: Dict[str, Environment] = {
             if (
                 line
                 and not line.startswith("#")
-                # remove awscli dependency because its incompatible with recent rich
+                # remove awscli dependency because its incompatible with recent rich version
                 and "awscli" not in line
             )
         ],
