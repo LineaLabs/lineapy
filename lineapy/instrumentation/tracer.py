@@ -105,10 +105,6 @@ class Tracer:
             for k, n in self.variable_name_to_node.items()
         }
 
-    # @property
-    # def artifacts(self) -> Dict[str, str]:
-    #     return self.tracer_context.artifacts
-
     def process_node(self, node: Node) -> None:
         """
         Execute a node, and adds it to the database.
@@ -281,11 +277,6 @@ class Tracer:
         if attributes is None:
             self.variable_name_to_node[alias or name] = node
 
-            # if alias is not None:
-            #     self.tracer_context.variable_name_to_node[alias] = node
-            # else:
-            #     self.tracer_context.variable_name_to_node[name] = node
-
         # for the attributes imported, we need to add them to the local lookup
         #  that yields the importnode's id for the `function_module` field,
         #  see `graph_with_basic_image`.
@@ -320,9 +311,7 @@ class Tracer:
         #   requirement; should prob refactor later
         # and we cannot just modify the runtime value because
         #   it's already written to disk
-        self.db.add_lib_to_session_context(
-            self.get_session_id(), library
-        )
+        self.db.add_lib_to_session_context(self.get_session_id(), library)
         return
 
     def literal(
@@ -433,7 +422,3 @@ class Tracer:
             source_location,
             *args,
         )
-
-    # keeping this because too many places use tracer.slice
-    # def slice(self, name: str) -> str:
-    #     return self.tracer_context.slice(name)
