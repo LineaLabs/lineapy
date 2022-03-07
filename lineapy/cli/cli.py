@@ -251,19 +251,18 @@ def python(
 
     tracer = Tracer(db, SessionType.SCRIPT)
     transform(code, file_name, tracer)
-    tracer_context = tracer.tracer_context
 
     if visualize:
         from lineapy.visualizer import Visualizer
 
-        Visualizer.for_public(tracer_context).render_pdf_file()
+        Visualizer.for_public(tracer).render_pdf_file()
 
     if slice and not export_slice and not export_slice_to_airflow_dag:
         for _slice in slice:
             tree.add(
                 rich.console.Group(
                     f"Slice of {repr(_slice)}",
-                    rich.syntax.Syntax(tracer_context.slice(_slice), "python"),
+                    rich.syntax.Syntax(tracer.slice(_slice), "python"),
                 )
             )
 
@@ -272,7 +271,7 @@ def python(
             print("Please specify --slice. It is required for --export-slice")
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
-            full_code = tracer_context.slice(_slice)
+            full_code = tracer.slice(_slice)
             pathlib.Path(f"{_export_slice}.py").write_text(full_code)
 
     if export_slice_to_airflow_dag:
@@ -282,7 +281,7 @@ def python(
             )
             exit(1)
 
-        ap = AirflowPlugin(tracer_context)
+        ap = AirflowPlugin(tracer.tracer_context)
         ap.sliced_airflow_dag(
             slice,
             export_slice_to_airflow_dag,
@@ -292,7 +291,7 @@ def python(
     db.close()
     if print_graph:
         graph_code = prettify(
-            tracer_context.graph.print(
+            tracer.graph.print(
                 include_source_location=False,
                 include_id_field=False,
                 include_session=False,

@@ -188,15 +188,14 @@ class ExecuteFixture:
         # Verify snapshot of source of user transformed code
         tracer = Tracer(self.db, SessionType.SCRIPT)
         transform(code, source_code_path, tracer)
-        tracer_context = tracer.tracer_context
 
         if self.visualize:
-            Visualizer.for_test_cli(tracer_context).render_pdf_file()
+            Visualizer.for_test_cli(tracer).render_pdf_file()
 
         # Verify snapshot of graph
         if snapshot:
             graph_str = (
-                tracer_context.graph.print(
+                tracer.graph.print(
                     include_imports=True,
                     include_id_field=False,
                     include_session=False,
@@ -204,7 +203,7 @@ class ExecuteFixture:
                 )
                 .replace(str(source_code_path), "[source file path]")
                 .replace(
-                    tracer_context.session_context.working_directory,
+                    tracer.session_context.working_directory,
                     DUMMY_WORKING_DIR,
                 )
             )
@@ -222,7 +221,7 @@ class ExecuteFixture:
             self.svg_snapshot._update_snapshots = res.created or res.updated
             # If we aren't updating snapshots, dont even bother trying to generate the SVG
             svg_text = (
-                Visualizer.for_test_snapshot(tracer_context).render_svg()
+                Visualizer.for_test_snapshot(tracer).render_svg()
                 if self.snapshot._update_snapshots
                 else ""
             )
@@ -237,7 +236,7 @@ class ExecuteFixture:
         new_executor = Executor(self.db, globals())
         current_working_dir = os.getcwd()
         os.chdir(self.tmp_path)
-        new_executor.execute_graph(tracer_context.graph)
+        new_executor.execute_graph(tracer.graph)
         os.chdir(current_working_dir)
 
         return tracer

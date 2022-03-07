@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from dataclasses import InitVar, dataclass, field
 
-from lineapy.instrumentation.tracer_context import TracerContext
-
 try:
     import graphviz
 except ModuleNotFoundError:
@@ -14,6 +12,7 @@ except ModuleNotFoundError:
 from IPython.display import HTML, DisplayObject
 
 from lineapy.data.graph import Graph
+from lineapy.instrumentation.tracer import Tracer
 from lineapy.visualizer.graphviz import to_graphviz
 from lineapy.visualizer.optimize_svg import optimize_svg
 from lineapy.visualizer.visual_graph import VisualGraphOptions
@@ -75,13 +74,13 @@ class Visualizer:
         return HTML(html_text)
 
     @classmethod
-    def for_test_snapshot(cls, tracer_context: TracerContext) -> Visualizer:
+    def for_test_snapshot(cls, tracer: Tracer) -> Visualizer:
         """
         Create a graph for saving as a snapshot, to help with visual diffs in PRs.
         """
         options = VisualGraphOptions(
-            tracer_context.graph,
-            tracer_context,
+            tracer.graph,
+            tracer,
             highlight_node=None,
             # This is genenerally repetative, and we can avoid it.
             show_implied_mutations=False,
@@ -93,7 +92,7 @@ class Visualizer:
         return cls(options)
 
     @classmethod
-    def for_test_cli(cls, tracer_context: TracerContext) -> Visualizer:
+    def for_test_cli(cls, tracer: Tracer) -> Visualizer:
         """
         Create a graph to use when visualizing after passing in `--visualize`
         during testing.
@@ -101,8 +100,8 @@ class Visualizer:
         Show as much as we can for debugging.
         """
         options = VisualGraphOptions(
-            tracer_context.graph,
-            tracer_context,
+            tracer.graph,
+            tracer,
             highlight_node=None,
             show_implied_mutations=True,
             show_views=True,
@@ -112,13 +111,13 @@ class Visualizer:
         return cls(options)
 
     @classmethod
-    def for_public(cls, tracer_context: TracerContext) -> Visualizer:
+    def for_public(cls, tracer: Tracer) -> Visualizer:
         """
         Create a graph for our public API, when showing the whole graph.
         """
         options = VisualGraphOptions(
-            tracer_context.graph,
-            tracer_context,
+            tracer.graph,
+            tracer,
             highlight_node=None,
             show_implied_mutations=False,
             show_views=False,
@@ -137,7 +136,7 @@ class Visualizer:
         """
         options = VisualGraphOptions(
             graph,
-            tracer_context=None,
+            tracer=None,
             highlight_node=node_id,
             show_implied_mutations=False,
             show_views=False,
