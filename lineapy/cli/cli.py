@@ -192,7 +192,7 @@ def generate_save_code(
 )
 @click.option(
     "--airflow-task-dependencies",
-    default=None,
+    default="",
     help="Optional flag for --airflow. Specifies tasks dependencies in Airflow format, i.e. 'p value' >> 'y' or 'p value', 'x' >> 'y'. Put slice names under single quotes.",
 )
 @click.option(
