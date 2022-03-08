@@ -203,7 +203,7 @@ class ExecuteFixture:
                 )
                 .replace(str(source_code_path), "[source file path]")
                 .replace(
-                    tracer.session_context.working_directory,
+                    tracer.get_working_dir(),
                     DUMMY_WORKING_DIR,
                 )
             )

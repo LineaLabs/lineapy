@@ -4,6 +4,7 @@ from datetime import datetime
 from os import getcwd
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
     GlobalNode,
@@ -21,6 +22,7 @@ from lineapy.data.types import (
     SourceLocation,
 )
 from lineapy.db.db import RelationalLineaDB
+from lineapy.db.relational import ArtifactORM
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.executor import (
     ID,
@@ -86,13 +88,6 @@ class Tracer:
         self.tracer_context = TracerContext(
             session_context=session_context, db=self.db
         )
-
-    def __getattr__(self, __name: str) -> Any:
-        tracer_context_method = getattr(self.tracer_context, __name, None)
-        if tracer_context_method is not None:
-            return tracer_context_method
-        else:
-            raise AttributeError(f"{__name} not found in Tracer")
 
     @property
     def values(self) -> Dict[str, object]:
@@ -422,3 +417,24 @@ class Tracer:
             source_location,
             *args,
         )
+
+    # tracer context method wrappers from here on
+    def get_session_id(self) -> LineaID:
+        return self.tracer_context.get_session_id()
+
+    @property
+    def graph(self) -> Graph:
+        return self.tracer_context.graph
+
+    def session_artifacts(self) -> List[ArtifactORM]:
+        return self.tracer_context.session_artifacts()
+
+    @property
+    def artifacts(self) -> Dict[str, str]:
+        return self.tracer_context.artifacts
+
+    def slice(self, name: str) -> str:
+        return self.tracer_context.slice(name)
+
+    def get_working_dir(self) -> str:
+        return self.tracer_context.session_context.working_directory
