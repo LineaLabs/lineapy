@@ -139,7 +139,7 @@ def _end_cell() -> object:
     execution_count: int = get_ipython().execution_count  # type: ignore
     location = JupyterCell(
         execution_count=execution_count,
-        session_id=STATE.tracer.session_context.id,
+        session_id=STATE.tracer.get_session_id(),
     )
     code = STATE.code
     # Write the code text to a file for error reporting

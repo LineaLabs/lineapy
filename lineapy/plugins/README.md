@@ -15,7 +15,7 @@ Airflow DAG is a `.py` file in itself, which uses `AirflowRunner` and `AirflowCo
 slice_names = ["p value", "y"]
 func_name = "sliced_housing_dag"
 airflow_task_dependencies = "'p value' >> 'y'"
-ap = AirflowPlugin(tracer)
+ap = AirflowPlugin(tracer_context)
 ap.sliced_airflow_dag(slice_names, func_name, airflow_task_dependencies)
 ```
 
