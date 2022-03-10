@@ -14,7 +14,7 @@ This module exposes three global functions, which are meant to be used like:
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional
 
 from lineapy.execution.globals_dict import GlobalsDict, GlobalsDictResult
@@ -54,12 +54,26 @@ class ExecutionContext:
     # Mapping from each input global name to whether it is mutable
     _input_globals_mutable: Mapping[str, bool]
 
+    # Additional side effects triggered during this executiong.
+    # The exec function will add to this and we will retrieve it at the end.
+    side_effects: List[SideEffect] = field(default_factory=list)
+
     @property
     def global_variables(self) -> Dict[str, object]:
         """
         The current globals dictionary
         """
         return _global_variables
+
+    @property
+    def input_nodes(self) -> Mapping[LineaID, object]:
+        """
+        Returns a mapping of input node IDs to their objects
+        """
+        return {
+            id_: self.global_variables[name]
+            for name, id_ in self._input_node_ids.items()
+        }
 
 
 def set_context(
@@ -117,10 +131,9 @@ def teardown_context() -> ContextResult:
     res = _global_variables.teardown_globals()
     prev_context = _current_context
     _current_context = None
-    return ContextResult(
-        res.added_or_modified,
-        list(_compute_side_effects(prev_context, res)),
-    )
+    side_effects = prev_context.side_effects
+    side_effects.extend(_compute_side_effects(prev_context, res))
+    return ContextResult(res.added_or_modified, side_effects)
 
 
 def _compute_side_effects(

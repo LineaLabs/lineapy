@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import sys
 from typing import Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
+from lineapy.system_tracing.function_calls_to_side_effects import (
+    function_calls_to_side_effects,
+)
+from lineapy.system_tracing.record_function_calls import record_function_calls
 
 # Keep a list of builtin functions we want to expose to the user as globals
 # Then at the end, make a dict out of all of them, from their names
@@ -140,10 +146,19 @@ def l_exec_statement(code: str) -> None:
         path = "<unkown>"
     bytecode = compile(code, path, "exec")
 
-    # We use the same globals dict for all exec calls, so that when we update it
-    # in the executor, it will updates for all scopes that functions defined in exec
-    # have
-    exec(bytecode, context.global_variables)
+    # Enable the system tracer to record all function calls within the compiled bytecode
+    with record_function_calls(code=bytecode) as function_calls:
+        # We use the same globals dict for all exec calls, so that when we update it
+        # in the executor, it will updates for all scopes that functions defined in exec
+        # have
+        exec(bytecode, context.global_variables)
+
+    side_effects = function_calls_to_side_effects(
+        context.executor._function_inspector,
+        function_calls,
+        context.input_nodes,
+    )
+    context.side_effects.extend(side_effects)
 
 
 @register
