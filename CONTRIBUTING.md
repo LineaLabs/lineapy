@@ -1,34 +1,36 @@
 # Contributing to lineapy
 
 **Table of contents**
-   1. [Where to Start?](#1-where-to-start)
-      1. [Build & Read the Docs](#11-build-and-read-the-docs)
-      2. [Set up the Environment](#12-set-up-the-environment)
-      3. [Our Git Model](#13-our-git-model)
-      4. [Contribute](#14-contribute)
-   2. [Testing](#2-testing)
-      1. [Snapshots](#21-snapshots)
-      2. [XFail Tests](#22-xfail-tests)
-      3. [Integration Tests](#23-integration-tests)
-      4. [Notebook Tests](#24-notebook-tests)
-      5. [Slow Tests](#25-slow-tests)
-      6. [Airflow Tests](#26-airflow-tests)
-      7. [Additional Notes on Docker Testing](#27-additional-notes-on-docker-testing)
-   3. [Debugging](#3-debugging)
-      1. [VSC](#31-vsc)
-      2. [Visual Graphs](#32-visual-graphs)
-      3. [Logging](#33-logging)
-      4. [Debug Flags](#34-debug-flags)
-      5. [Additional Utilities](#35-additional-utilities)
-         1. [AST Inspection](#351-ast-inspection)
-         2. [Github Actions](#352-github-actions)
-   4. [Additional Notes](#4-additional-notes)
-      1. [Performance Profiling](#41-performance-profiling)
-      2. [Known Issues](#42-known-issues)
-      3. [Using venv instead of Conda](#43-using-venv-instead-of-conda)
-      4. [Further Readings](#44-further-readings)
+
+1.  [Where to Start?](#1-where-to-start)
+    1. [Build & Read the Docs](#11-build-and-read-the-docs)
+    2. [Set up the Environment](#12-set-up-the-environment)
+    3. [Our Git Model](#13-our-git-model)
+    4. [Contribute](#14-contribute)
+2.  [Testing](#2-testing)
+    1. [Snapshots](#21-snapshots)
+    2. [XFail Tests](#22-xfail-tests)
+    3. [Integration Tests](#23-integration-tests)
+    4. [Notebook Tests](#24-notebook-tests)
+    5. [Slow Tests](#25-slow-tests)
+    6. [Airflow Tests](#26-airflow-tests)
+    7. [Additional Notes on Docker Testing](#27-additional-notes-on-docker-testing)
+3.  [Debugging](#3-debugging)
+    1. [VSC](#31-vsc)
+    2. [Visual Graphs](#32-visual-graphs)
+    3. [Logging](#33-logging)
+    4. [Debug Flags](#34-debug-flags)
+    5. [Additional Utilities](#35-additional-utilities)
+       1. [AST Inspection](#351-ast-inspection)
+       2. [Github Actions](#352-github-actions)
+4.  [Additional Notes](#4-additional-notes)
+    1. [Performance Profiling](#41-performance-profiling)
+    2. [Known Issues](#42-known-issues)
+    3. [Using venv instead of Conda](#43-using-venv-instead-of-conda)
+    4. [Further Readings](#44-further-readings)
 
 https://github.com/LineaLabs/lineapy/blob/update_docs/CONTRIBUTING.md#1-where-to-start
+
 ## 1. Where to Start
 
 ### 1.1. Build and read the docs
@@ -39,21 +41,21 @@ Run the following command in the root directory
 sphinx-autobuild docs/source/ docs/build/html/
 ```
 
-Note - *if you're modifying the docs:* Any changes in the rst files in the `/docs` directory will be detected and the html refreshed. However, changes in the doc strings in code will not be picked up, and you'll have to rebuild the docs to refresh.
+Note - _if you're modifying the docs:_ Any changes in the rst files in the `/docs` directory will be detected and the html refreshed. However, changes in the doc strings in code will not be picked up, and you'll have to rebuild the docs to refresh.
 
 We recommend you at least read the following sections in the docs before getting started.
-* What is a Linea Graph
-* Creating Graphs
-* Reading Graphs
 
+- What is a Linea Graph
+- Creating Graphs
+- Reading Graphs
 
 ### 1.2. Set up the environment
-There are two main ways to set up `lineapy` locally either using Conda or using Docker. If you prefer to use venv instead of Conda, then please follow the instructions [here](#43-using-venv-instead-of-conda)
 
+There are two main ways to set up `lineapy` locally either using Conda or using Docker. If you prefer to use venv instead of Conda, then please follow the instructions [here](#43-using-venv-instead-of-conda)
 
 #### First-time Setup
 
-First download the submodules so you can run our tests:
+(optional) First download the submodules so you can run our tests, if you want to run the integration tests:
 
 ```
 git submodule update --init --recursive .
@@ -77,8 +79,6 @@ pytest tests
 
 (We support python 3.8+ for now and you can initialize a conda environment with python 3.8 as well if you desire)
 
-
-
 ##### Export to Airflow (Optional)
 
 Sliced code can be exported to an Airflow DAG using the following command:
@@ -99,6 +99,7 @@ airflow dags test sliced_housing_dag_dag $(date '+%Y-%m-%d') -S .
 ##### Prerequisites
 
 Remove the following folders (if they exist) and create a Docker network
+
 ```bash
 rm -rf build dist
 docker network create lineapy
@@ -127,7 +128,6 @@ git checkout -b TicketOrBranchName
 git branch --set-upstream-to=origin/<branch> TicketOrBranchName
 ```
 
-
 B. Work on code
 
 C. Add your code changes `git add new_code_files`
@@ -148,7 +148,6 @@ consuming and you might not want to have to wait to run them on every commit.
 
 The pre commit config also pins the versions of the packages. To update them to
 the latest, run `pre-commit autoupdate`.
-
 
 E. finally run tests `pytest tests`
 
@@ -173,7 +172,6 @@ black --line-length 79 --check . # TODO is this line optional
 pytest tests
 ```
 
-
 ### 2.1. Snapshots
 
 Some tests use [`syrupy`](https://github.com/tophat/syrupy) for snapshot test,
@@ -191,7 +189,6 @@ default, since their source is not deterministic.
 ### 2.2. XFail tests
 
 We also use [pytest's xfail](https://docs.pytest.org/en/latest/how-to/skipping.html#xfail-mark-test-functions-as-expected-to-fail) to mark tests that are expected to fail, because of a known bug. To have them run anyway, run `--run-xfail`.
-
 
 ### 2.3. Integration tests
 
@@ -220,14 +217,12 @@ and re-run it manually
 Some tests have been marked "slow". These typically take > 0.5s and can be skipped
 by passing the args `pytest tests -m "not slow"` when running pytest.
 
-
 ### 2.6. Airflow tests
 
 We also added some tests which run airflow to verify that it works on the code we produce.
 These also take a lot longer, they create their own virtualenv
 with airflow in it, and create a new airflow DB. By default, those are not run.
 To run them, use `pytests tests -m "airflow"` when running pytest.
-
 
 ### 2.7. Additional notes on Docker testing
 
@@ -239,7 +234,6 @@ Please ensure linting and `typecheck`s are done before committing your code. Whe
 pre-commit hook that runs `make blackfix lint typecheck build test` will fix
 any fixable issues and ensure build and test works.
 
-
 ## 3. Debugging
 
 ### 3.1. VSC
@@ -248,14 +242,12 @@ any fixable issues and ensure build and test works.
 
 ### 3.2. Visual Graphs
 
-
 Sometimes it's helpful to see a visual representation of the graph
 and the tracers state, while debugging a test. Run the tests with `--visualize`
 to have it save a `tracer.pdf` file whenever it run an execution.
 
 You can also run tests with `pytest --snapshot-update test_name`, which will create snapshots in `__snapshots__/test_name/` folder for the particular test you're running
 Note: This requires graphviz to be installed.
-
 
 ### 3.3. Logging
 
@@ -296,6 +288,7 @@ If you want to inspect the AST of some Python code for debugging, you can run:
 ```bash
 ./tests/tools/test_validate_annotation_spec.py
 ```
+
 #### 3.5.2. Github Actions
 
 Tests are run on Github Actions. If you are trying to debug a failure that
@@ -307,7 +300,6 @@ brew install act
 act
 # When it prompts, the "medium" image seems to work out alright.
 ```
-
 
 ## 4. Additional Notes
 
@@ -324,14 +316,15 @@ Downgrading to 0.7.0 solves the issue - simply change the fastparquet version in
 
 If you prefer using venv, then you need to install the following prerequisites first
 
-* Python
+- Python
 
 Note - for Apple users, DON'T use the native Python that comes with macOS, instead install one from brew
+
 ```bash
 brew install python #for the latest version or python@3.8
 ```
 
-* OpenSSL, postgres, and graphviz
+- OpenSSL, postgres, and graphviz
 
 ```bash
 brew install openssl
@@ -339,8 +332,8 @@ brew install postgresql
 brew install graphviz
 ```
 
-* [Optional] Rust (this was at a time needed, but we were not able to reproduce
-this dependency requirement in later tries)
+- [Optional] Rust (this was at a time needed, but we were not able to reproduce
+  this dependency requirement in later tries)
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -348,7 +341,6 @@ source $HOME/.cargo/env
 ```
 
 Now you're ready to create your venv
-
 
 ```bash
 python3.9 -m venv lineapy # or python3.8
@@ -363,4 +355,5 @@ pytest tests
 ```
 
 ### 4.4. Further Readings
+
 The [Docker](https://github.com/LineaLabs/lineapy/blob/main/Dockerfile) and [make](https://github.com/LineaLabs/lineapy/blob/main/Makefile) files are good starting point to see the main components of `lineapy`

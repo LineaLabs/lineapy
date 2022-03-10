@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import astor
 import yaml
@@ -22,7 +22,7 @@ LINEAPY_DIR = INTEGRATION_DIR.parent.parent
 
 @dataclass
 class Environment:
-    # List of args to pass to pip install ...
+    # List of args to pass to pip install
     pip: list[str] = field(default_factory=list)
     # Extra conda channels to add
     conda_channels: list[str] = field(default_factory=list)
@@ -32,15 +32,18 @@ class Environment:
     conda_deps: list[str] = field(default_factory=list)
 
 
-# Mapping of the environment name to the requirements in it
-ENVS: Dict[str, Environment] = {
+# Mapping of the environment name to the environment with the requirements in it.
+# Also allow a thunk to the Environment, so that the value is not evaluated
+# until the test is run, so that if the sources are not available this won't
+# trigger an error if these tests are skipped
+ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
     "numpy-tutorials": Environment(
         conda_env=(
             INTEGRATION_DIR / "sources/numpy-tutorials/environment.yml"
         ),
         conda_deps=["cmake"],
     ),
-    "pytorch": Environment(
+    "pytorch": lambda: Environment(
         pip=[
             line
             for line in (
@@ -52,7 +55,7 @@ ENVS: Dict[str, Environment] = {
             if (
                 line
                 and not line.startswith("#")
-                # remove awscli dependency because its incompatible with recent rich
+                # remove awscli dependency because its incompatible with recent rich version
                 and "awscli" not in line
             )
         ],
@@ -384,6 +387,8 @@ def use_env(name: str):
     On exit of the context manager, it resets the path and ipython directory.
     """
     env = ENVS[name]
+    if callable(env):
+        env = env()
     env_dir = INTEGRATION_DIR / "envs" / name
 
     old_path = os.environ["PATH"]

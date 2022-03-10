@@ -26,7 +26,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           lfs: true
-          submodules: "recursive"
+          # Don't check out submodules, they are not needed to run the tests by default
+          # submodules: "recursive"
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:

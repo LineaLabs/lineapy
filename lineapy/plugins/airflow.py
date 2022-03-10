@@ -167,8 +167,8 @@ class AirflowPlugin(BasePlugin):
         artifacts_code = {}
         task_names = []
         for slice_name in slice_names:
-            artifact_var = self.tracer.artifact_var_name(slice_name)
-            slice_code = self.tracer.slice(slice_name)
+            artifact_var = self.tracer_context.artifact_var_name(slice_name)
+            slice_code = self.tracer_context.slice(slice_name)
             artifacts_code[artifact_var] = slice_code
             # "'p value' >> 'y'" needs to be replaced by "sliced_housing_dag_p >> sliced_housing_dag_y"
             task_name = f"{artifact_var}"
