@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 import isort
 
 from lineapy.instrumentation.tracer_context import TracerContext
+from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
 
 
@@ -50,7 +51,10 @@ class BasePlugin:
         return import_block, code_block, main_block
 
     def generate_python_module(
-        self, module_name: str, artifacts_code: Dict[str, str]
+        self,
+        module_name: str,
+        artifacts_code: Dict[str, str],
+        output_dir: Optional[str] = None,
     ):
         """
         Generate python module code and save to a file.
@@ -71,4 +75,17 @@ class BasePlugin:
             profile="black",
         )
         full_code = prettify(full_code)
-        Path(f"{module_name}.py").write_text(full_code)
+        output_dir_path = Path(output_dir) if output_dir else Path.cwd()
+        (output_dir_path / f"{module_name}.py").write_text(full_code)
+
+    def get_relative_working_dir_as_str(self):
+        working_directory = Path(
+            self.tracer_context.session_context.working_directory
+        )
+        return repr(
+            str(
+                working_directory.relative_to(
+                    (linea_folder() / "..").resolve()
+                )
+            )
+        )

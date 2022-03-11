@@ -13,15 +13,14 @@ from typing import List, Optional
 from IPython.display import display
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import Artifact, LineaID, SessionType
+from lineapy.data.types import Artifact, LineaID
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.instrumentation.tracer import Tracer
+from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.utils.constants import VERSION_DATE_STRING
 
@@ -45,7 +44,6 @@ class LineaArtifact:
 
     """
     db: RelationalLineaDB = field(repr=False)
-    # tracer: Tracer
     execution_id: LineaID
     node_id: LineaID
     session_id: LineaID
@@ -53,7 +51,6 @@ class LineaArtifact:
     version: str = field(init=False, repr=False)
 
     def __post_init__(self):
-        # self.tracer = Tracer(self.db, SessionType.JUPYTER)
         self.version = datetime.now().strftime(VERSION_DATE_STRING)
 
     @property
@@ -90,7 +87,7 @@ class LineaArtifact:
 
     def to_airflow(
         self,
-        airflow_dag_config: Optional[AirflowDagConfig] = None,
+        airflow_dag_config: AirflowDagConfig = {},
         filename: Optional[str] = None,
     ) -> Path:
         """
@@ -98,21 +95,6 @@ class LineaArtifact:
 
         If a filename is not passed in, will write the dag to the airflow home.
         """
-        # We have to look up the session based on the node, since
-        # thats where we save the working directory.
-        # TODO: Move into DB and make session a relation of node.
-        node_orm = (
-            self.db.session.query(BaseNodeORM)
-            .filter(BaseNodeORM.id == self.node_id)
-            .one()
-        )
-        session_orm = (
-            self.db.session.query(SessionContextORM)
-            .filter(SessionContextORM.id == node_orm.session_id)
-            .one()
-        )
-        working_dir = Path(session_orm.working_directory)
-
         if filename:
             path = Path(filename)
         else:
@@ -129,11 +111,12 @@ class LineaArtifact:
             )
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        tracer = Tracer(self.db, SessionType.JUPYTER)
-        airflow_code = AirflowPlugin(tracer).sliced_airflow_dag(
+        # TODO - this bit needs more testing
+        tracer_context = TracerContext.reload_session(self.db, self.session_id)
+        _ = AirflowPlugin(tracer_context).sliced_airflow_dag(
             slice_names=[self.name],
-            func_name=self.name,
-            airflow_directory=path,
+            module_name=self.name,
+            output_dir=str(path.parent),  # do i need repr of a str here?
             airflow_dag_config=airflow_dag_config,
         )
 
