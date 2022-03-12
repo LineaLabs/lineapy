@@ -1,14 +1,16 @@
-import ast
 from pathlib import Path
 from typing import List, Optional
 
 import isort
 from typing_extensions import TypedDict
 
+from lineapy.graph_reader.program_slice import (
+    get_program_slice_by_artifact_name,
+)
 from lineapy.plugins.base import BasePlugin
 from lineapy.utils.utils import prettify
 
-from .utils import load_plugin_template
+from .utils import load_plugin_template, safe_var_name
 
 AirflowDagConfig = TypedDict(
     "AirflowDagConfig",
@@ -22,36 +24,6 @@ AirflowDagConfig = TypedDict(
     },
     total=False,
 )
-
-
-def split_code_blocks(code: str, func_name: str):
-    """
-    Split the list of code lines to import, main code and main func blocks.
-    The code block is added under a function with given name.
-
-    :param code: the source code to split.
-    :param func_name: name of the function to create.
-    :return: strings representing import_block, code_block, main_block.
-    """
-    # We split the lines in import and code blocks and join them to full code test
-    lines = code.split("\n")
-    ast_tree = ast.parse(code)
-    # Imports are at the top, find where they end
-    end_of_imports_line_num = 0
-    for node in ast_tree.body:
-        if isinstance(node, (ast.Import, ast.ImportFrom)):
-            continue
-        else:
-            end_of_imports_line_num = node.lineno - 1
-            break
-
-    # TODO Support arguments to the func
-    code_block = f"def {func_name}():\n\t" + "\n\t".join(
-        lines[end_of_imports_line_num:]
-    )
-    import_block = "\n".join(lines[:end_of_imports_line_num])
-    main_block = f"""if __name__ == "__main__":\n\tprint({func_name}())"""
-    return import_block, code_block, main_block
 
 
 class AirflowPlugin(BasePlugin):
@@ -136,10 +108,10 @@ class AirflowPlugin(BasePlugin):
         task_names = []
         for slice_name in slice_names:
             # the or part handles lineapy.db or lineapy.filesystem types of artifacts
-            artifact_var = (
-                self.tracer_context.artifact_var_name(slice_name) or slice_name
+            artifact_var = safe_var_name(slice_name) or slice_name
+            slice_code = get_program_slice_by_artifact_name(
+                self.db, slice_name
             )
-            slice_code = self.tracer_context.slice(slice_name)
             artifacts_code[artifact_var] = slice_code
             # "'p value' >> 'y'" needs to be replaced by "sliced_housing_dag_p >> sliced_housing_dag_y"
             task_name = f"{artifact_var}"

@@ -14,7 +14,6 @@ from lineapy.db.relational import SessionContextORM
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
-from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.utils.utils import get_value_type
 
@@ -195,7 +194,7 @@ def catalog() -> LineaCatalog:
 # TODO - this piece needs to test more than just the output of jupyter cell.
 # we need to ensure all the required files (python module and the dag file) get written to the right place.
 def to_airflow(
-    artifacts: List[LineaArtifact],
+    artifacts: List[str],
     dag_name: str,
     task_dependencies: str = "",
 ) -> Path:
@@ -236,11 +235,10 @@ def to_airflow(
         else Path.home() / "airflow"
     ) / "dags"
 
-    tracer_context = TracerContext.reload_session(db, last_session.id)
-    artifact_names = [a.name for a in artifacts]
+    # artifact_names = [a.name for a in artifacts]
 
-    AirflowPlugin(tracer_context).sliced_airflow_dag(
-        artifact_names,
+    AirflowPlugin(db, last_session.id).sliced_airflow_dag(
+        artifacts,
         dag_name,
         task_dependencies,
         output_dir=str(output_dir_path),

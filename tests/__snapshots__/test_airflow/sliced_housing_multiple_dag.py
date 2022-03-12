@@ -20,10 +20,10 @@ dag = DAG(
 )
 
 
-p = PythonOperator(
+p_value = PythonOperator(
     dag=dag,
-    task_id="p_task",
-    python_callable=sliced_housing_multiple.p,
+    task_id="p_value_task",
+    python_callable=sliced_housing_multiple.p_value,
 )
 
 y = PythonOperator(

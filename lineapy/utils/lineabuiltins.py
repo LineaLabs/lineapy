@@ -17,6 +17,7 @@ if sys.version_info >= (3, 8):
         def __name__(self) -> str:
             ...
 
+
 else:
 
     class HasName:
@@ -34,6 +35,7 @@ if sys.version_info >= (3, 8):
     def register(b: "HAS_NAME") -> "HAS_NAME":
         _builtins.append(b)
         return b
+
 
 else:
 

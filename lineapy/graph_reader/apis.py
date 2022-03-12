@@ -20,7 +20,6 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.utils.constants import VERSION_DATE_STRING
 
@@ -112,8 +111,7 @@ class LineaArtifact:
         path.parent.mkdir(parents=True, exist_ok=True)
 
         # TODO - this bit needs more testing
-        tracer_context = TracerContext.reload_session(self.db, self.session_id)
-        _ = AirflowPlugin(tracer_context).sliced_airflow_dag(
+        _ = AirflowPlugin(self.db, self.session_id).sliced_airflow_dag(
             slice_names=[self.name],
             module_name=self.name,
             output_dir=str(path.parent),  # do i need repr of a str here?

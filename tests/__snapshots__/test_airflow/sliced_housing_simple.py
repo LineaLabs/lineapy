@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
 
-def p():
+def p_value():
     assets = pd.read_csv("ames_train_cleaned.csv")
 
     def is_new(col):
