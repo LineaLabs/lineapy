@@ -199,7 +199,9 @@ def l_unpack_sequence(xs: Iterable[T], n: int) -> List[T]:
     res = list(xs)
     actual_n = len(res)
     if actual_n > n:
-        raise ValueError(f"too many values to unpack (expected {n})")
+        raise ValueError(
+            f"too many values to unpack (expected {n}), got {actual_n})"
+        )
     if actual_n < n:
         raise ValueError(
             f"not enough values to unpack (expected {n}, got {actual_n})"
@@ -217,7 +219,6 @@ def l_unpack_ex(
 
     Modeled after the UNPACK_EX bytecode to be used in unpacking.
     """
-    # res: list[Union[T, list[T]] = []
     xs_list = list(xs)
     xs_n = len(xs_list)
     min_values = before + after

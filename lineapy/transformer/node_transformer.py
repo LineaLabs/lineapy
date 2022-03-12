@@ -58,6 +58,8 @@ from lineapy.utils.lineabuiltins import (
     l_exec_expr,
     l_exec_statement,
     l_list,
+    l_unpack_ex,
+    l_unpack_sequence,
 )
 from lineapy.utils.utils import get_new_id
 
@@ -374,36 +376,24 @@ class NodeTransformer(ast.NodeTransformer):
         """
         assert len(node.targets) == 1
         target = node.targets[0]
-        # handle special case of assigning aliases e.g. x = y
-        if isinstance(target, ast.Name) and isinstance(node.value, ast.Name):
-            value_node = self.visit(node.value)
-            new_node = self.tracer.call(
-                self.tracer.lookup_node(l_alias.__name__),
-                self.get_source(node),
-                value_node,
-            )
-            self.tracer.assign(
-                target.id,
-                new_node,
-            )
-        else:
-            self.visit_assign_value(
-                target,
-                self.visit(node.value),
-                self.get_source(node),
-            )
+        self.visit_assign_value(
+            target,
+            self.visit(node.value),
+            node.value,
+            self.get_source(node),
+        )
 
     def visit_assign_value(
         self,
         target: ast.AST,
         value_node: Node,
+        value_ast: ast.AST,
         source_location: Optional[SourceLocation] = None,
     ) -> None:
         """
         Visits assigning a target node to a value. This is extracted out of
         visit_assign, so we can call it multiple times and pass in the value as a node,
         instead of as AST, when we are assigning to a tuple.
-
         Assign currently special cases for:
         - Subscript, e.g., `ls[0] = 1`
         - Constant, e.g., `a = 1`
@@ -431,22 +421,92 @@ class NodeTransformer(ast.NodeTransformer):
                 self.visit(ast.Constant(target.attr)),
                 value_node,
             )
-        elif isinstance(target, ast.Tuple):
-            # Assigning to a tuple of values, is like indexing the value
+        elif isinstance(target, ast.List) or isinstance(target, ast.Tuple):
+            # Assigning to a tuple or list of values, is like indexing the value
             # and then assigning to each.
-            # Technically, its unpacking the sequence and setting it to each,
-            # but for now we just index and hope that all values we are assigning
-            # to multiple values can be indexed.
-            for i, target_el in enumerate(target.elts):
+            if not isinstance(value_ast, ast.List) and not isinstance(
+                value_ast, ast.Tuple
+            ):
+                raise NotImplementedError(
+                    "Other assignment types are not supported"
+                )
+            if any(
+                isinstance(target_el, ast.Starred) for target_el in target.elts
+            ):
+                before = 0
+                for target_el in target.elts:
+                    if isinstance(target_el, ast.Starred):
+                        break
+                    else:
+                        before += 1
+                after = len(target.elts) - before - 1
+                res = l_unpack_ex(value_ast.elts, before, after)
+                elem_nodes = [
+                    self.visit(elem)
+                    for elem in res[:before] + res[before + 1 :]
+                ]
+                for i, target_el in enumerate(
+                    target.elts[:before] + target.elts[-after:]
+                ):
+                    self.visit_assign_value(
+                        target_el,
+                        self.tracer.call(
+                            self.tracer.lookup_node(GET_ITEM),
+                            None,
+                            self.tracer.tuple(
+                                *elem_nodes,
+                                source_location=self.get_source(value_node),
+                            ),
+                            self.tracer.literal(i),
+                        ),
+                        value_ast,  # THIS SHOULD BE THE AST OF THE SLICED NODE
+                        source_location,  # THIS SHOULD BE THE SOURCE OF THE SLICED NODE
+                    )
+                rem_nodes = [self.visit(elem) for elem in res[before]]
                 self.visit_assign_value(
-                    target_el,
+                    target.elts[before],
                     self.tracer.call(
                         self.tracer.lookup_node(GET_ITEM),
                         None,
-                        value_node,
+                        self.tracer.tuple(
+                            *rem_nodes,
+                            source_location=self.get_source(value_node),
+                        ),
                         self.tracer.literal(i),
                     ),
+                    value_ast,  # THIS SHOULD BE THE AST OF THE SLICED NODE
+                    source_location,  # THIS SHOULD BE THE SOURCE OF THE SLICED NODE
                 )
+
+            else:
+                res = l_unpack_sequence(value_ast.elts, len(target.elts))
+                elem_nodes = [self.visit(elem) for elem in res]
+                for i, target_el in enumerate(target.elts):
+                    self.visit_assign_value(
+                        target_el,
+                        self.tracer.call(
+                            self.tracer.lookup_node(GET_ITEM),
+                            None,
+                            self.tracer.tuple(
+                                *elem_nodes,
+                                source_location=self.get_source(value_node),
+                            ),
+                            self.tracer.literal(i),
+                        ),
+                        value_ast,  # THIS SHOULD BE THE AST OF THE SLICED NODE
+                        source_location,
+                    )
+        # handle special case of assigning aliases e.g. x = y
+        elif isinstance(target, ast.Name) and isinstance(value_ast, ast.Name):
+            new_node = self.tracer.call(
+                self.tracer.lookup_node(l_alias.__name__),
+                source_location,
+                value_node,
+            )
+            self.tracer.assign(
+                target.id,
+                new_node,
+            )
         elif isinstance(target, ast.Name):
             variable_name = target.id
             self.tracer.assign(
@@ -459,6 +519,146 @@ class NodeTransformer(ast.NodeTransformer):
             )
 
         return None
+
+    # def visit_Assign(self, node: ast.Assign, value_node: Node = None) -> None:
+    #     """
+    #     TODO
+    #     ----
+    #     - None variable assignment, should be turned into a setattr call
+    #       not an assignment, so we might need to change the return signature
+    #       from ast.Expr.
+    #     Assign currently special cases for:
+    #     - Subscript, e.g., `ls[0] = 1`
+    #     - Constant, e.g., `a = 1`
+    #     - Call, e.g., `a = foo()`
+    #     """
+    #     if hasattr(node, 'targets') and len(node.targets) == 1:
+    #         target = node.targets[0]
+    #     else:
+    #         target = node
+    #     # handle special case of assigning aliases e.g. x = y
+    #     if isinstance(target, ast.Name) and isinstance(node.value, ast.Name):
+    #         self.tracer.assign(
+    #             target.id,
+    #             self.tracer.call(
+    #                 self.tracer.lookup_node(l_alias.__name__),
+    #                 self.get_source(node),
+    #                 self.visit(node.value),
+    #             ),
+    #         )
+    #     elif isinstance(target, ast.Name):
+    #         self.tracer.assign(
+    #             target.id,
+    #             self.visit(node.value),
+    #         )
+    #     elif isinstance(target, ast.Subscript):
+    #         # note: isinstance(index, ast.List) only works for pandas,
+    #         #  not Python lists
+    #         # if isinstance(index, (ast.Constant, ast.Name, ast.List, ast.Slice)):
+    #         self.tracer.call(
+    #             self.tracer.lookup_node(SET_ITEM),
+    #             self.get_source(node),
+    #             self.visit(target.value),
+    #             self.visit(target.slice),
+    #             self.visit(node.value),
+    #         )
+    #     # e.g. `x.y = 10`
+    #     elif isinstance(target, ast.Attribute):
+    #         self.tracer.call(
+    #             self.tracer.lookup_node(SET_ATTR),
+    #             self.get_source(node),
+    #             self.visit(target.value),
+    #             self.visit(ast.Constant(target.attr)),
+    #             self.visit(node.value),
+    #         )
+    #     # handle unpacking properly
+    #     elif isinstance(target, ast.List) or isinstance(target, ast.Tuple):
+    #         for i, target_el in enumerate(target.elts):
+    #             self.visit_Assign(
+    #                 target_el,
+    #                 self.tracer.call(
+    #                         self.tracer.lookup_node(GET_ITEM),
+    #                         None,
+    #                         self.visit(node.value),
+    #                         self.tracer.literal(i),
+    #                     ),
+    #                 )
+    #     else:
+    #         raise NotImplementedError(
+    #             "Other assignment types are not supported"
+    #         )
+
+    # def visit_assign_value(
+    #     self,
+    #     target: ast.AST,
+    #     value_node: Node,
+    #     source_location: Optional[SourceLocation] = None,
+    # ) -> None:
+    #     """
+    #     Visits assigning a target node to a value. This is extracted out of
+    #     visit_assign, so we can call it multiple times and pass in the value as a node,
+    #     instead of as AST, when we are assigning to a tuple.
+    #
+    #     Assign currently special cases for:
+    #     - Subscript, e.g., `ls[0] = 1`
+    #     - Constant, e.g., `a = 1`
+    #     - Call, e.g., `a = foo()`
+    #     """
+    # else:
+    #     self.visit_assign_value(
+    #         target,
+    #         self.visit(node.value),
+    #         self.get_source(node),
+    #     )
+    # elem_nodes = [self.visit(elem) for elem in node.dims]
+    # return self.tracer.tuple(
+    #     *elem_nodes,
+    #     source_location=self.get_source(node),
+    # )
+    # print('node.value', [self.visit(elem) for elem in node.value.elts])
+    # print('target', target)
+    # elem_nodes = [self.visit(elem) for elem in node.elts]
+    # return self.tracer.call(
+    #     self.tracer.lookup_node(l_list.__name__),
+    #     self.get_source(node),
+    #     *elem_nodes,
+    # res = l_unpack_sequence(node.value.elts, len(target.elts))
+    # print('res', res)
+    # for i, target_el in enumerate(target.elts):
+    #     self.tracer.assign(
+    #         target.id,
+    #         self.tracer.call(
+    #             self.tracer.lookup_node(l_alias.__name__),
+    #             self.get_source(node),
+    #             self.visit(node.value),
+    #         ),
+    #     )
+    # self.visit_assign_value(
+    #     target_el,
+    #     self.tracer.call(
+    #         self.tracer.lookup_node(GET_ITEM),
+    #         self.get_source(res),
+    #         self.visit(res[i]),
+    #         self.tracer.literal(i),
+    #     ),
+    # )
+    # elif isinstance(target, ast.Tuple):
+    # Assigning to a tuple of values, is like indexing the value
+    # and then assigning to each.
+    # Technically, its unpacking the sequence and setting it to each,
+    # but for now we just index and hope that all values we are assigning
+    # to multiple values can be indexed.
+    # for i, target_el in enumerate(target.elts):
+    #     self.visit_assign_value(
+    #         target_el,
+    #         self.tracer.call(
+    #             self.tracer.lookup_node(GET_ITEM),
+    #             None,
+    #             value_node,
+    #             self.tracer.literal(i),
+    #         ),
+    #     )
+    # return None
 
     def visit_UnaryOp(self, node: ast.UnaryOp) -> CallNode:
         ast_to_op_map = {
