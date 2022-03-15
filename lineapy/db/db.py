@@ -491,12 +491,13 @@ class RelationalLineaDB:
         assert res
         return res
 
-    def get_all_artifacts(self) -> List[Artifact]:
+    def get_all_artifacts(self) -> List[ArtifactORM]:
         """
         Used by the catalog to get all the artifacts
         """
         results = self.session.query(ArtifactORM).all()
-        return [Artifact.from_orm(r) for r in results]
+        # return [Artifact.from_orm(r) for r in results]
+        return results
 
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         """

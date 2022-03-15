@@ -17,8 +17,10 @@ if True:
         execution_id=artifact.execution_id,
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
-        name="x",
+        date_created=artifact.date_created,
+        name=artifact.name,
     )
+    full_graph_artifact.version = artifact.version
     slice_graph_artifact_res = full_graph_artifact.execute()
     assert slice_graph_artifact_res == res.values["x"]
     assert (

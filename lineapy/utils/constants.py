@@ -48,3 +48,4 @@ NOT = operator.not_.__name__
 
 # linea internal defaults
 VERSION_DATE_STRING = "%Y-%m-%dT%H:%M:%S"
+VERSION_PLACEHOLDER: str = "UNSET"

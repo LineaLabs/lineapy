@@ -114,7 +114,7 @@ class ArtifactORM(Base):
     execution_id: LineaID = Column(
         String, ForeignKey("execution.id"), primary_key=True
     )
-    name = Column(String, nullable=True, primary_key=True)
+    name = Column(String, nullable=False, default="Noname", primary_key=True)
     date_created = Column(DateTime, nullable=False)
     version = Column(String, nullable=False, primary_key=True)
 

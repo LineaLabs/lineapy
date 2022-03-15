@@ -8,20 +8,21 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from os import environ
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from IPython.display import display
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import Artifact, LineaID
+from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
+from lineapy.db.relational import ArtifactORM
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
-from lineapy.utils.constants import VERSION_DATE_STRING
+from lineapy.utils.constants import VERSION_DATE_STRING, VERSION_PLACEHOLDER
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class LineaArtifact:
     node_id: LineaID
     session_id: LineaID
     name: str
+    date_created: Optional[datetime] = field(default=None)
     version: str = field(init=False, repr=False)
 
     def __post_init__(self):
@@ -162,7 +164,22 @@ class LineaCatalog:
 
     def __init__(self, db):
         self.db = db
-        self.artifacts: List[Artifact] = self.db.get_all_artifacts()
+        db_artifacts: List[ArtifactORM] = self.db.get_all_artifacts()
+        self.artifacts: List[LineaArtifact] = []
+        for db_artifact in db_artifacts:
+            # TODO - allow setting version
+            l_artifact = LineaArtifact(
+                db=db,
+                execution_id=db_artifact.execution_id,
+                node_id=db_artifact.node_id,
+                session_id=db_artifact.node.session_id,
+                name=cast(str, db_artifact.name),
+                date_created=db_artifact.date_created,
+                # version=db_artifact.version,
+            )
+            # TODO - let linea artifact handle setting version in init
+            l_artifact.version = db_artifact.version or VERSION_PLACEHOLDER
+            self.artifacts.append(l_artifact)
 
     @property
     def print(self) -> str:
