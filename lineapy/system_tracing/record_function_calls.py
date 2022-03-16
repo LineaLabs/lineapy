@@ -8,7 +8,6 @@ from types import CodeType
 from typing import Dict, Iterable, Iterator, List
 
 from rich.console import Console
-from rich.pretty import Pretty
 from rich.table import Table
 
 from lineapy.system_tracing._op_stack import OpStack
@@ -26,7 +25,7 @@ def record_function_calls(code: CodeType) -> Iterator[List[FunctionCall]]:
         yield function_calls
     finally:
         settrace(None)
-        trace_fn.visualize()
+        # trace_fn.visualize()
 
 
 @dataclass
@@ -75,12 +74,10 @@ class TraceFunc:
         instruction = offset_to_instructions[frame.f_lasti]
 
         op_stack = OpStack(frame)
-        has_stack = op_stack._len > 0
 
         self.table.add_row(
             instruction.opname,
             instruction.argrepr,
-            Pretty(list(op_stack) if has_stack else []),
         )
         return self
 
