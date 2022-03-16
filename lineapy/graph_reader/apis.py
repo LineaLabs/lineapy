@@ -167,7 +167,6 @@ class LineaCatalog:
         db_artifacts: List[ArtifactORM] = self.db.get_all_artifacts()
         self.artifacts: List[LineaArtifact] = []
         for db_artifact in db_artifacts:
-            # TODO - allow setting version
             l_artifact = LineaArtifact(
                 db=db,
                 execution_id=db_artifact.execution_id,
@@ -175,9 +174,7 @@ class LineaCatalog:
                 session_id=db_artifact.node.session_id,
                 name=cast(str, db_artifact.name),
                 date_created=db_artifact.date_created,
-                # version=db_artifact.version,
             )
-            # TODO - let linea artifact handle setting version in init
             l_artifact.version = db_artifact.version or VERSION_PLACEHOLDER
             self.artifacts.append(l_artifact)
 
