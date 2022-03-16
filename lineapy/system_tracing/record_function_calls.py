@@ -117,7 +117,15 @@ class TraceFunc:
         return self
 
 
-UNARY_OPERATORS = {"UNARY_POSITIVE": operator.pos}
+UNARY_OPERATORS = {
+    "UNARY_POSITIVE": operator.pos,
+    "UNARY_NEGATIVE": operator.neg,
+    "UNARY_NOT": operator.not_,
+    "UNARY_INVERT": operator.inv,
+    "GET_ITER": iter,
+    # Generators not supported
+    # GET_YIELD_FROM_ITER
+}
 
 
 def resolve_bytecode_execution(
