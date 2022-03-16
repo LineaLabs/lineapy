@@ -9,4 +9,10 @@ def object_side_effects_to_side_effects(
     nodes: Mapping[LineaID, object],
     object_side_effects: Iterable[ObjectSideEffect],
 ) -> SideEffects:
+    """
+    Takes in the input nodes, as well as a number of side effects that refer to Python objects, and returns a number of
+    side effects that refer to node IDs.
+
+    It will only emit side effects that touch the input nodes,
+    """
     return []
