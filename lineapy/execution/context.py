@@ -41,7 +41,14 @@ _current_context: Optional[ExecutionContext] = None
 @dataclass
 class ExecutionContext:
     """
-    The context available to call nodes during an execution
+    This class is available during execution of CallNodes to the functions which are being called.
+
+    It is used as a side channel to pass in metadata about the execution, such as the current node, and other global nodes
+    (used during exec).
+
+    The `side_effects` property is read after the function is finished, by the executor, so that the
+    function can pass additional side effects that were triggered back to it indirectly. This is also
+    used by the exec functions.
     """
 
     # The current node being executed
