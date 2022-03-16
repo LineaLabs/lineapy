@@ -113,8 +113,6 @@ ValuePointer = Union[
     Result,
     BoundSelfOfFunction,
     ExternalState,
-    # TODO: Remove this? Seems to be unused now that we have changed how
-    # positional args work
     AllPositionalArgs,
 ]
 
