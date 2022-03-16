@@ -61,6 +61,10 @@ class ExecutionContext:
     # Mapping from each input global name to whether it is mutable
     _input_globals_mutable: Mapping[str, bool]
 
+    # Mapping of input node IDs to their values.
+    # Used by the exec function to understand what side effects to emit, by knowing the nodes associated with each global value used.
+    input_nodes: Mapping[LineaID, object]
+
     # Additional side effects triggered during this executiong.
     # The exec function will add to this and we will retrieve it at the end.
     side_effects: List[SideEffect] = field(default_factory=list)
@@ -71,17 +75,6 @@ class ExecutionContext:
         The current globals dictionary
         """
         return _global_variables
-
-    @property
-    def input_nodes(self) -> Mapping[LineaID, object]:
-        """
-        Returns a mapping of input node IDs to their values.
-        Used by the exec function to understand what side effects to emit, by knowing the nodes associated with each global value used.
-        """
-        return {
-            id_: self.global_variables[name]
-            for name, id_ in self._input_node_ids.items()
-        }
 
 
 def set_context(
@@ -117,6 +110,9 @@ def set_context(
         _input_node_ids=input_node_ids,
         _input_globals_mutable={
             k: is_mutable(v) for k, v in input_globals.items()
+        },
+        input_nodes={
+            id_: executor._id_to_value[id_] for id_ in input_node_ids.values()
         },
     )
 

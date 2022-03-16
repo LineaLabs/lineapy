@@ -7,7 +7,7 @@ from sys import settrace
 from types import CodeType
 from typing import Dict, Iterable, Iterator, List
 
-from rich.console import Console, Group
+from rich.console import Console
 from rich.pretty import Pretty
 from rich.table import Table
 
