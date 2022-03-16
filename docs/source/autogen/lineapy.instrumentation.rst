@@ -22,6 +22,12 @@ lineapy.instrumentation.tracer module
 .. automodule:: lineapy.instrumentation.tracer
    :members:
 
+lineapy.instrumentation.tracer\_context module
+----------------------------------------------
+
+.. automodule:: lineapy.instrumentation.tracer_context
+   :members:
+
 Module contents
 ---------------
 

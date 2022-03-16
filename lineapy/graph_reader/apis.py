@@ -31,25 +31,25 @@ logger = logging.getLogger(__name__)
 class LineaArtifact:
     """LineaArtifact
     exposes functionalities we offer around the artifact.
-    The current list is:
-    - code
-    - value
     """
 
-    """
-    NOTE:
-    - currently LineaArtifact does not hold information about date created.
-      with new versioning needs, it will be required that we know about a "latest" version.
-      Currently catalog does this by using the pydantic Artifact object instead of this object.
-
-    """
     db: RelationalLineaDB = field(repr=False)
     execution_id: LineaID
     node_id: LineaID
+    """node id of the artifact in the graph"""
     session_id: LineaID
+    """session id of the session that created the artifact"""
     name: str
+    """name of the artifact"""
     date_created: Optional[datetime] = field(default=None)
+    """Optional because date_created cannot be set by the user. 
+    it is supposed to be automatically set when the 
+    artifact gets saved to the db. so when creating lineaArtifact 
+    the first time, it will be unset. When you get the artifact or 
+    catalog of artifacts, we retrieve the date from db and 
+    it will be set."""
     version: str = field(init=False, repr=False)
+    """version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`"""
 
     def __post_init__(self):
         self.version = datetime.now().strftime(VERSION_DATE_STRING)

@@ -49,3 +49,12 @@ NOT = operator.not_.__name__
 # linea internal defaults
 VERSION_DATE_STRING = "%Y-%m-%dT%H:%M:%S"
 VERSION_PLACEHOLDER: str = "UNSET"
+"""sqlalchemy defaults to a type of Optional[str] even when a column is set to be not nullable. 
+This is per their documentation. One option is to add type:ignore for python objects that 
+should not be nulls and are mapped to sqlalchemy ORM objects. Alternately, as is here, 
+we can add a placeholder. This will be used like ``obj.property = ormobject.property or placeholder``. 
+This should separate out the ORM objects and their policy of setting all columns to be 
+Optional vs app objects that should reflect the app's expectation of not allowing nulls. 
+The app object's property does not get set to None and the ORM object doesnt need to worry 
+about knowing what the app is doing."""
+ARTIFACT_NAME_PLACEHOLDER: str = "NONAME"
