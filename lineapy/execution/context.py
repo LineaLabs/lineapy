@@ -75,7 +75,8 @@ class ExecutionContext:
     @property
     def input_nodes(self) -> Mapping[LineaID, object]:
         """
-        Returns a mapping of input node IDs to their objects
+        Returns a mapping of input node IDs to their values.
+        Used by the exec function to understand what side effects to emit, by knowing the nodes associated with each global value used.
         """
         return {
             id_: self.global_variables[name]
