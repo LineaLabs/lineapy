@@ -13,10 +13,10 @@ Airflow DAG is a `.py` file in itself, which uses `AirflowRunner` and `AirflowCo
 
 ```
 slice_names = ["p value", "y"]
-func_name = "sliced_housing_dag"
+module_name = "sliced_housing_dag"
 airflow_task_dependencies = "'p value' >> 'y'"
 ap = AirflowPlugin(tracer_context)
-ap.sliced_airflow_dag(slice_names, func_name, airflow_task_dependencies)
+ap.sliced_airflow_dag(slice_names, module_name, airflow_task_dependencies)
 ```
 
 In the example above `slice_names` is list of names of the artifacts that you want to include as Airflow DAG tasks. `airflow_task_dependencies` is the dependency relation between these classes (see the Airflow [docs](https://airflow.apache.org/docs/apache-airflow/stable/concepts/dags.html#task-dependencies) for the format of this string) and `func_name` is the name you want to give to the resulting DAG `.py` file.

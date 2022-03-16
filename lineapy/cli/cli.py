@@ -192,7 +192,7 @@ def generate_save_code(
 )
 @click.option(
     "--airflow-task-dependencies",
-    default="",
+    default=None,
     help="Optional flag for --airflow. Specifies tasks dependencies in Airflow format, i.e. 'p value' >> 'y' or 'p value', 'x' >> 'y'. Put slice names under single quotes.",
 )
 @click.option(
@@ -281,7 +281,7 @@ def python(
             )
             exit(1)
 
-        ap = AirflowPlugin(tracer.tracer_context)
+        ap = AirflowPlugin(db, tracer.tracer_context.get_session_id())
         ap.sliced_airflow_dag(
             slice,
             export_slice_to_airflow_dag,

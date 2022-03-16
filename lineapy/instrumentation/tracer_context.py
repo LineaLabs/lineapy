@@ -51,25 +51,6 @@ class TracerContext:
             if artifact.name is not None
         }
 
-    def artifact_var_name(self, artifact_name: str) -> str:
-        """
-        Returns the variable name for the given artifact.
-        i.e. in lineapy.save(p, "p value") "p" is returned
-        """
-        artifact = self.db.get_artifact_by_name(artifact_name)
-        if not artifact.node or not artifact.node.source_code:
-            return ""
-        _line_no = artifact.node.lineno if artifact.node.lineno else 0
-        artifact_line = str(artifact.node.source_code.code).split("\n")[
-            _line_no - 1
-        ]
-        _col_offset = (
-            artifact.node.col_offset if artifact.node.col_offset else 0
-        )
-        if _col_offset < 3:
-            return ""
-        return artifact_line[: _col_offset - 3]
-
     def slice(self, name: str) -> str:
         artifact = self.db.get_artifact_by_name(name)
         return get_program_slice(self.graph, [artifact.node_id])

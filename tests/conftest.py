@@ -282,4 +282,7 @@ def housing_tracer(execute):
 
 @pytest.fixture
 def airflow_plugin(housing_tracer):
-    return AirflowPlugin(housing_tracer.tracer_context)
+    return AirflowPlugin(
+        housing_tracer.tracer_context.db,
+        housing_tracer.tracer_context.get_session_id(),
+    )

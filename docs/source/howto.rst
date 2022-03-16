@@ -41,6 +41,15 @@ If that does not work, please try running ``%load_ext lineapy`` in your notebook
 
 If your notebook is stuck in a frozen state, please restart (we are actively working on eliminating these edge cases).
 
+If you are using PostgreSQL as your database, you might encounter the following error:
+
+.. code-block::
+
+    NoSuchModuleError: Can't load plugin: sqlalchemy.dialects:postgres
+
+
+This is caused by a change in SQLAlchemy where they dropped support for db urls of the form `postgres://` 
+Using `postgresql://` instead should fix this error.
 
 Guide for developers
 =====================
