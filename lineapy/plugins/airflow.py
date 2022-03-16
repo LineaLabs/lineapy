@@ -39,12 +39,10 @@ class AirflowPlugin(BasePlugin):
         Create an Airflow DAG.
 
         :param dag_name: Name of the DAG and the python file it is saved in
-        :param airflow_task_dependencies: task dependencies in an Airflow format,
-                                            i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-                                            This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
-                                            and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
-                                            Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
-                                            and "sliced_housing_dag_y" depends on them.
+        :param task_dependencies: task dependencies in an Airflow format,
+                                            i.e. "p_value >> y" and "p_value, x >> y".
+                                            Here "p_value" and "x" are independent tasks
+                                            and "y" depends on them.
         :param airflow_dag_config: Configs of Airflow DAG model. See
             https://airflow.apache.org/_api/airflow/models/dag/index.html#airflow.models.dag.DAG
             for the full spec.
@@ -87,12 +85,11 @@ class AirflowPlugin(BasePlugin):
 
         :param slice_names: list of slice names to be used as tasks.
         :param module_name: name of the Pyhon module the generated code will be saved to.
-        :param airflow_task_dependencies: task dependencies in an Airflow format,
+        :param airflow_task_dependencies: task dependencies in an artifact format,
                                             i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-                                            This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
-                                            and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
-                                            Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
-                                            and "sliced_housing_dag_y" depends on them.
+                                            This translates to "p_value >> y" and "p_value, x >> y" when converting to Airflow.
+        :param output_dir: directory to save the generated code to.
+        :param airflow_dag_config: Configs of Airflow DAG model.
         """
 
         # Remove quotes
@@ -107,15 +104,14 @@ class AirflowPlugin(BasePlugin):
         artifacts_code = {}
         task_names = []
         for slice_name in slice_names:
-            # the or part handles lineapy.db or lineapy.filesystem types of artifacts
-            artifact_var = safe_var_name(slice_name) or slice_name
+            artifact_var = safe_var_name(slice_name)
             slice_code = get_program_slice_by_artifact_name(
                 self.db, slice_name
             )
             artifacts_code[artifact_var] = slice_code
-            # "'p value' >> 'y'" needs to be replaced by "sliced_housing_dag_p >> sliced_housing_dag_y"
             task_name = f"{artifact_var}"
             task_names.append(task_name)
+            # "'p value' >> 'y'" gets replaced by "p_value >> y"
             if airflow_task_dependencies:
                 airflow_task_dependencies = airflow_task_dependencies.replace(
                     slice_name, task_name

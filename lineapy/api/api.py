@@ -207,10 +207,9 @@ def to_airflow(
 
     :param airflow_task_dependencies: task dependencies in Airflow format,
                                       i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-                                      This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
-                                      and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
-                                      Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
-                                      and "sliced_housing_dag_y" depends on them.
+                                      This translates to "p_value >> y" and "p_value, x >> y" respectively.
+                                      Here "p_value" and "x" are independent tasks
+                                      and "y" depends on them.
     :return: string containing the path of the Airflow DAG file that was exported.
     """
     execution_context = get_context()
@@ -220,22 +219,11 @@ def to_airflow(
         raise Exception("No sessions found in the database.")
     last_session = session_orm[0]
 
-    # last_session = (
-    #     db.session.query(SessionContextORM)
-    #     .order_by(SessionContextORM.creation_time.desc())
-    #     .first()
-    # )
-    # if len(session_orm) == 0:
-    #     raise Exception("No sessions found in the database.")
-    # last_session = session_orm[0]
-
     output_dir_path = (
         Path(environ["AIRFLOW_HOME"])
         if "AIRFLOW_HOME" in environ
         else Path.home() / "airflow"
     ) / "dags"
-
-    # artifact_names = [a.name for a in artifacts]
 
     AirflowPlugin(db, last_session.id).sliced_airflow_dag(
         artifacts,

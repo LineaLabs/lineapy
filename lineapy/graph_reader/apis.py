@@ -111,10 +111,10 @@ class LineaArtifact:
         path.parent.mkdir(parents=True, exist_ok=True)
 
         # TODO - this bit needs more testing
-        _ = AirflowPlugin(self.db, self.session_id).sliced_airflow_dag(
+        AirflowPlugin(self.db, self.session_id).sliced_airflow_dag(
             slice_names=[self.name],
             module_name=self.name,
-            output_dir=str(path.parent),  # do i need repr of a str here?
+            output_dir=str(path.parent),
             airflow_dag_config=airflow_dag_config,
         )
 
