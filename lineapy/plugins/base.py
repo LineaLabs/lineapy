@@ -87,7 +87,12 @@ class BasePlugin:
             )
         )
 
-    def generate_infra(self, dockerfile_name: str):
+    def generate_infra(
+        self,
+        dockerfile_name: str,
+        output_dir: Optional[str] = None,
+    ):
         DOCKERFILE_TEMPLATE = load_plugin_template("dockerfile.jinja")
         dockerfile = DOCKERFILE_TEMPLATE.render()
-        Path(dockerfile_name).write_text(dockerfile)
+        output_dir_path = Path(output_dir) if output_dir else Path.cwd()
+        (output_dir_path / dockerfile_name).write_text(dockerfile)
