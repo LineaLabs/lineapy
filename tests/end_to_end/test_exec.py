@@ -61,7 +61,7 @@ if True:
     artifact_id = res.db.get_artifact_by_name("x").node_id
     # slice_nodes = res.graph.get_ancestors(artifact_id)
     # slice_graph = res.graph.get_subgraph(slice_nodes)
-    slice_graph = ps.get_slice_graph(res.graph, [artifact_id])
+    slice_graph = ps.get_slice_graph(res.tracer_context.graph, [artifact_id])
     res_slice = Executor(res.db, globals())
     res_slice.execute_graph(slice_graph)
     assert res_slice.get_value(artifact_id) == res.values["x"]

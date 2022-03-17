@@ -9,8 +9,18 @@ def test_slice_airflow(python_snapshot, airflow_plugin):
     """
     Test the slice produced by airflow plugin against a snapshot.
     """
-    airflow_plugin.sliced_airflow_dag(["p value"], "sliced_housing_dag", "")
-    assert python_snapshot == pathlib.Path("sliced_housing_dag.py").read_text()
+    airflow_plugin.sliced_airflow_dag(
+        ["p value"],
+        "sliced_housing_simple",
+        "",
+        output_dir="__snapshots__/test_airflow",
+    )
+    assert (
+        python_snapshot
+        == pathlib.Path(
+            "__snapshots__/test_airflow/sliced_housing_simple.py"
+        ).read_text()
+    )
 
 
 @pytest.mark.slow
@@ -19,9 +29,17 @@ def test_multiple_slices_airflow(python_snapshot, airflow_plugin):
     Test producing ariflow DAG slicng several artifacts.
     """
     airflow_plugin.sliced_airflow_dag(
-        ["p value", "y"], "sliced_housing_dag", ""
+        ["p value", "y"],
+        "sliced_housing_multiple",
+        "",
+        output_dir="__snapshots__/test_airflow",
     )
-    assert python_snapshot == pathlib.Path("sliced_housing_dag.py").read_text()
+    assert (
+        python_snapshot
+        == pathlib.Path(
+            "__snapshots__/test_airflow/sliced_housing_multiple.py"
+        ).read_text()
+    )
 
 
 @pytest.mark.slow
@@ -33,10 +51,16 @@ def test_multiple_slices_airflow_with_task_dependencies(
     """
     airflow_plugin.sliced_airflow_dag(
         ["p value", "y"],
-        "sliced_housing_dag",
+        "sliced_housing_multiple_w_dependencies",
         "'p value' >> 'y'",
+        output_dir="__snapshots__/test_airflow",
     )
-    assert python_snapshot == pathlib.Path("sliced_housing_dag.py").read_text()
+    assert (
+        python_snapshot
+        == pathlib.Path(
+            "__snapshots__/test_airflow/sliced_housing_multiple_w_dependencies.py"
+        ).read_text()
+    )
 
 
 @pytest.mark.airflow
@@ -61,10 +85,27 @@ def test_run_airflow(virtualenv, tmp_path):
         [
             "cp",
             "-f",
-            "tests/__snapshots__/test_airflow/test_slice_airflow.py",
+            "tests/__snapshots__/test_airflow/sliced_housing_simple_dag.py",
+            "tests/__snapshots__/test_airflow/sliced_housing_simple.py",
             "tests/ames_train_cleaned.csv",
             str(dags_home),
         ]
     )
 
-    # TODO Start a local airflow server and test that the DAG runs successfully in it
+    # Run airflow in new virtual env so we don't end up with version conflicts
+    # with lineapy deps
+    # https://github.com/man-group/pytest-plugins/tree/master/pytest-virtualenv#installing-packages
+    virtualenv.run(
+        "pip install -r airflow-requirements.txt", capture=False, cd="."
+    )
+
+    # Set the airflow home for subsequent calls
+    virtualenv.env["AIRFLOW_HOME"] = str(airflow_home)
+    # We create a new DB for airflow for testing, so it's reproducible
+    virtualenv.run("airflow db init", capture=False)
+    virtualenv.run(
+        "airflow dags test sliced_housing_simple_dag 2020-10-19",
+        capture=False,
+        # Run in current root lineapy so that relative paths are accurate
+        cd=".",
+    )

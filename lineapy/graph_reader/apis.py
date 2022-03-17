@@ -15,13 +15,12 @@ from IPython.display import display
 from lineapy.data.graph import Graph
 from lineapy.data.types import Artifact, LineaID
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import BaseNodeORM, SessionContextORM
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.plugins.airflow import AirflowDagConfig, to_airflow
+from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.utils.constants import VERSION_DATE_STRING
 
 logger = logging.getLogger(__name__)
@@ -38,7 +37,7 @@ class LineaArtifact:
 
     """
     NOTE:
-    - currently LineaArtifact does not hold information about date created. 
+    - currently LineaArtifact does not hold information about date created.
       with new versioning needs, it will be required that we know about a "latest" version.
       Currently catalog does this by using the pydantic Artifact object instead of this object.
 
@@ -87,7 +86,7 @@ class LineaArtifact:
 
     def to_airflow(
         self,
-        airflow_dag_config: Optional[AirflowDagConfig] = None,
+        airflow_dag_config: AirflowDagConfig = {},
         filename: Optional[str] = None,
     ) -> Path:
         """
@@ -95,27 +94,6 @@ class LineaArtifact:
 
         If a filename is not passed in, will write the dag to the airflow home.
         """
-        # We have to look up the session based on the node, since
-        # thats where we save the working directory.
-        # TODO: Move into DB and make session a relation of node.
-        node_orm = (
-            self.db.session.query(BaseNodeORM)
-            .filter(BaseNodeORM.id == self.node_id)
-            .one()
-        )
-        session_orm = (
-            self.db.session.query(SessionContextORM)
-            .filter(SessionContextORM.id == node_orm.session_id)
-            .one()
-        )
-        working_dir = Path(session_orm.working_directory)
-
-        airflow_code = to_airflow(
-            artifacts_code={self.name: self.code},
-            dag_name=self.name,
-            working_directory=working_dir,
-            airflow_dag_config=airflow_dag_config,
-        )
         if filename:
             path = Path(filename)
         else:
@@ -131,7 +109,15 @@ class LineaArtifact:
                 / f"{self.name}.py"
             )
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(airflow_code)
+
+        # TODO - this bit needs more testing
+        AirflowPlugin(self.db, self.session_id).sliced_airflow_dag(
+            slice_names=[self.name],
+            module_name=self.name,
+            output_dir=str(path.parent),
+            airflow_dag_config=airflow_dag_config,
+        )
+
         print(
             f"Added Airflow DAG named '{self.name}'. Start a run from the Airflow UI or CLI."
         )
