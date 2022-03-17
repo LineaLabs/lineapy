@@ -146,11 +146,13 @@ def teardown_context() -> ContextResult:
     else:
         # Compute the side effects based on the function calls that happened, to understand what input nodes
         # were mutated, what views were added, and what other side effects were created.
-        side_effects = function_calls_to_side_effects(
-            _current_context.executor._function_inspector,
-            _current_context.function_calls,
-            _current_context.input_nodes,
-            res.added_or_modified,
+        side_effects = list(
+            function_calls_to_side_effects(
+                _current_context.executor._function_inspector,
+                _current_context.function_calls,
+                _current_context.input_nodes,
+                res.added_or_modified,
+            )
         )
     if res.accessed_inputs or res.added_or_modified:
         # Record that this execution accessed and saved certain globals, as first side effect
