@@ -108,10 +108,3 @@ lineapy.save(c, "c")
     assert res.slice("a") == "c = [1,2,3]\na, *b = c\n"
     assert res.slice("b") == "c = [1,2,3]\na, *b = c\n"
     assert res.slice("c") == "c = [1,2,3]\n"
-
-
-# def test_assignment_destructuring_chained(execute):
-#     res = execute("c=3\na=b=c\n")
-#     assert res.values["a"] == 3
-#     assert res.values["b"] == 3
-#     assert res.values["c"] == 3
