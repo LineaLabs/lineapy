@@ -11,7 +11,10 @@ from lineapy.system_tracing.function_call import FunctionCall
 
 # This callback is saved when we have an operator that had some function call. We need to defer some of the processing until the next bytecode instruction loads,
 # So that at the point, the return value will be in the stack and we can look at it.
-ReturnValueCallback = Optional[Callable[[OpStack], FunctionCall]]
+# Called with the opstack and the next instruction offset
+ReturnValueCallback = Optional[
+    Callable[[OpStack, int], Optional[FunctionCall]]
+]
 
 
 @dataclass
@@ -58,13 +61,15 @@ class TraceFunc:
         # If during last instruction we had some function call that needs a return value, trigger the callback with the current
         # stack, so it can get the return value.
         if self.return_value_callback:
-            self.function_calls.append(self.return_value_callback(op_stack))
+            function_call = self.return_value_callback(op_stack, frame.f_lasti)
+            if function_call:
+                self.function_calls.append(function_call)
             self.return_value_callback = None
 
         # Check if the current operation is a function call
         try:
             possible_function_call = resolve_bytecode_execution(
-                instruction.opname, instruction.argval, op_stack
+                instruction.opname, instruction.argval, op_stack, frame.f_lasti
             )
         except NotImplementedError:
             self.not_implemented_ops.add(instruction.opname)
@@ -80,7 +85,18 @@ class TraceFunc:
 
 
 # Bytecode operations that are not function calls
-NOT_FUNCTION_CALLS = {"NOP", "POP_TOP", "COPY", "SWAP"}
+NOT_FUNCTION_CALLS = {
+    "NOP",
+    "POP_TOP",
+    "COPY",
+    "SWAP",
+    #
+    "LOAD_CONST",
+    "LOAD_NAME",
+    "RETURN_VALUE",
+    "STORE_NAME",
+    "JUMP_ABSOLUTE",
+}
 
 UNARY_OPERATORS = {
     "UNARY_POSITIVE": operator.pos,
@@ -94,7 +110,7 @@ UNARY_OPERATORS = {
 
 
 def resolve_bytecode_execution(
-    name: str, value: object, stack: OpStack
+    name: str, value: object, stack: OpStack, offset: int
 ) -> Union[ReturnValueCallback, FunctionCall]:
     """
     Returns a function call corresponding to the bytecode executing on the current stack.
@@ -103,12 +119,24 @@ def resolve_bytecode_execution(
         return None
     if name in UNARY_OPERATORS:
         return unary_operator(UNARY_OPERATORS[name], stack)
+    if name == "FOR_ITER":
+        args = [stack[-1]]
+        # If the current instruction is the next one (i.e. the offset has increased by 2), then we didn't jump,
+        # meaning the iterator was not exhausted. Otherwise, we did jump, and it was, so don't add a function call for this.
+        # TODO: We don't support function calls which end in exceptions currently, if/when we do, we need to update this
+        return (
+            lambda post_stack, post_offset: FunctionCall(
+                next, args, {}, post_stack[-1]
+            )
+            if post_offset == offset + 2
+            else None
+        )
     raise NotImplementedError()
 
 
 def unary_operator(fn: Callable, stack: OpStack) -> ReturnValueCallback:
     args = [stack[-1]]
-    return lambda post_stack: FunctionCall(fn, args, {}, post_stack[-1])
+    return lambda post_stack, _: FunctionCall(fn, args, {}, post_stack[-1])
 
 
 def all_code_objects(code: CodeType) -> Iterable[CodeType]:

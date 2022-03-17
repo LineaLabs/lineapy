@@ -34,7 +34,6 @@ from lineapy.system_tracing.function_calls_to_side_effects import (
             # x and xs should be views of each other, since modifying one can modify the other
             [ViewOfNodes([ID(LineaID("xs_id")), Variable("x")])],
             id="loop view",
-            marks=pytest.mark.xfail(),
         ),
     ],
 )
@@ -57,11 +56,13 @@ def test_end_to_end(
     global_node_id_to_value = {id_: value for id_, value in inputs.values()}
 
     assert (
-        function_calls_to_side_effects(
-            function_inspector,
-            trace_fn.function_calls,
-            global_node_id_to_value,
-            res.added_or_modified,
+        list(
+            function_calls_to_side_effects(
+                function_inspector,
+                trace_fn.function_calls,
+                global_node_id_to_value,
+                res.added_or_modified,
+            )
         )
         == side_effects
     )

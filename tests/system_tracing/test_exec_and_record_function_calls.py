@@ -10,6 +10,8 @@ from lineapy.system_tracing.exec_and_record_function_calls import (
 from lineapy.system_tracing.function_call import FunctionCall
 from tests.util import IsInstance
 
+is_list_iter = IsInstance(type(iter([])))
+
 
 @pytest.mark.parametrize(
     "source_code,globals_,function_calls",
@@ -42,8 +44,12 @@ from tests.util import IsInstance
         pytest.param(
             "for _ in x: pass",
             {"x": [1, 2]},
-            [FunctionCall(iter, [[1, 2]], {}, IsInstance(type(iter([]))))],
-            id="GET_ITER",
+            [
+                FunctionCall(iter, [[1, 2]], {}, is_list_iter),
+                FunctionCall(next, [is_list_iter], {}, 1),
+                FunctionCall(next, [is_list_iter], {}, 2),
+            ],
+            id="GET_ITER and FOR_ITER",
         ),
     ],
 )
@@ -52,5 +58,5 @@ def test_exec_and_record_function_calls(
 ):
     code = compile(source_code, "", "exec")
     trace_fn = exec_and_record_function_calls(code, globals_)
-    # assert not trace_fn.not_implemented_ops
+    assert not trace_fn.not_implemented_ops
     assert trace_fn.function_calls == function_calls

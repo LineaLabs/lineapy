@@ -1,5 +1,3 @@
-from pytest import mark
-
 import lineapy.graph_reader.program_slice as ps
 from lineapy.execution.executor import Executor
 
@@ -109,7 +107,6 @@ x.append(10)
     assert res.artifacts["x"] == c
 
 
-@mark.xfail()
 def test_loop_no_mutate(execute):
     """
     Verifies that a loop which does not mutate, will not include a mutation

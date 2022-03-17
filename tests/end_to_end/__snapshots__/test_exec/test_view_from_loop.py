@@ -52,28 +52,27 @@ call_2 = CallNode(
     ).id,
     positional_args=[call_1.id],
 )
-call_3 = CallNode(
-    source_location=SourceLocation(
-        lineno=3,
-        col_offset=0,
-        end_lineno=4,
-        end_col_offset=8,
-        source_code=source_1.id,
-    ),
-    function_id=LookupNode(
-        name="l_exec_statement",
-    ).id,
-    positional_args=[
-        LiteralNode(
-            value="""for x in xs:
-    pass""",
-        ).id
-    ],
-    global_reads={"xs": call_2.id},
-)
 global_1 = GlobalNode(
     name="x",
-    call_id=call_3.id,
+    call_id=CallNode(
+        source_location=SourceLocation(
+            lineno=3,
+            col_offset=0,
+            end_lineno=4,
+            end_col_offset=8,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="l_exec_statement",
+        ).id,
+        positional_args=[
+            LiteralNode(
+                value="""for x in xs:
+    pass""",
+            ).id
+        ],
+        global_reads={"xs": call_2.id},
+    ).id,
 )
 call_5 = CallNode(
     source_location=SourceLocation(
@@ -114,11 +113,8 @@ call_5 = CallNode(
         ).id
     ],
 )
-mutate_3 = MutateNode(
-    source_id=MutateNode(
-        source_id=call_1.id,
-        call_id=call_3.id,
-    ).id,
+mutate_1 = MutateNode(
+    source_id=call_1.id,
     call_id=call_5.id,
 )
 call_7 = CallNode(
@@ -192,10 +188,7 @@ call_9 = CallNode(
     ).id,
     positional_args=[
         MutateNode(
-            source_id=MutateNode(
-                source_id=call_2.id,
-                call_id=call_3.id,
-            ).id,
+            source_id=call_2.id,
             call_id=call_5.id,
         ).id,
         LiteralNode(
