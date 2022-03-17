@@ -28,7 +28,6 @@ EXTERNAL_STATE_IDS: Dict[int, ExternalState] = {
 }
 
 
-# TODO: Add unit tests for all parts of this...
 def object_side_effects_to_side_effects(
     object_side_effects: Iterable[ObjectSideEffect],
     input_nodes: Mapping[LineaID, object],

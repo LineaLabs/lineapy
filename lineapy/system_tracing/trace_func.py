@@ -131,6 +131,7 @@ def resolve_bytecode_execution(
             if post_offset == offset + 2
             else None
         )
+    # TODO: Add support for more bytecode operations!
     raise NotImplementedError()
 
 
