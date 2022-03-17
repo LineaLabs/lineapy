@@ -69,7 +69,7 @@ class TestNodeTransformer:
         # TODO - importfrom calls transform_utils which should really be mocked out and
         # tested on their own, in true spirit of unit testing
         ("from math import sqrt", "ImportFrom", 1, 0),
-        ("a, b = (1,2)", "Assign", 1, 2),
+        ("a, b = (1,2)", "Assign", 1, 3),
         ("lambda x: x + 10", "Lambda", 1, 1),
     ]
 

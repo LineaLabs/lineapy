@@ -227,8 +227,12 @@ def l_unpack_ex(
             f"not enough values to unpack (expected at least {min_values}, got {xs_n})"
         )
     before_list = xs_list[:before]
-    after_list = xs_list[-after:]
-    middle_list = xs_list[before:-after]
+    if after != 0:
+        after_list = xs_list[-after:]
+        middle_list = xs_list[before:-after]
+    else:
+        after_list = []
+        middle_list = xs_list[before:]
     return [*before_list, middle_list, *after_list]
 
 
