@@ -21,7 +21,6 @@ if sys.version_info >= (3, 8):
         def __name__(self) -> str:
             ...
 
-
 else:
 
     class HasName:
@@ -39,7 +38,6 @@ if sys.version_info >= (3, 8):
     def register(b: "HAS_NAME") -> "HAS_NAME":
         _builtins.append(b)
         return b
-
 
 else:
 
@@ -146,10 +144,13 @@ def l_exec_statement(code: str) -> None:
     else:
         path = "<unkown>"
     bytecode = compile(code, path, "exec")
-
-    context.function_calls = exec_and_record_function_calls(
+    trace_fn = exec_and_record_function_calls(
         bytecode, context.global_variables
-    ).function_calls
+    )
+    # If we were able to understand all the opcode, then save the function calls, otherwise throw them away
+    # and depend on the worst case assumptions
+    if not trace_fn.not_implemented_ops:
+        context.function_calls = trace_fn.function_calls
 
 
 @register
