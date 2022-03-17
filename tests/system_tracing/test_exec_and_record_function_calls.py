@@ -1,5 +1,6 @@
 import operator
 from collections import Counter
+from inspect import trace
 from typing import List
 
 import pytest
@@ -51,7 +52,6 @@ def test_exec_and_record_function_calls(
     source_code: str, globals_, function_calls: List[FunctionCall]
 ):
     code = compile(source_code, "", "exec")
-    assert (
-        exec_and_record_function_calls(code, globals_).function_calls
-        == function_calls
-    )
+    trace_fn = exec_and_record_function_calls(code, globals_)
+    # assert not trace_fn.not_implemented_ops
+    assert trace_fn.function_calls == function_calls

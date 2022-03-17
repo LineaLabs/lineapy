@@ -24,14 +24,13 @@ iter_l = iter(outer_l)
     [
         pytest.param(
             [
-                FunctionCall(iter, [[1, 2]], {}, iter_l),
+                FunctionCall(iter, [outer_l], {}, iter_l),
                 FunctionCall(next, [iter_l], {}, inner_l),
             ],
             {"l_id": outer_l},
             {"i": inner_l},
             [ViewOfNodes([ID(LineaID("l_id")), Variable("i")])],
             id="iter view",
-            marks=pytest.mark.xfail(),
         ),
     ],
 )
@@ -43,11 +42,13 @@ def test_function_calls_to_side_effects(
     function_inspector,
 ):
     assert (
-        function_calls_to_side_effects(
-            function_inspector,
-            function_calls,
-            input_nodes,
-            output_globals,
+        list(
+            function_calls_to_side_effects(
+                function_inspector,
+                function_calls,
+                input_nodes,
+                output_globals,
+            )
         )
         == side_effects
     )

@@ -1,7 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 from itertools import chain
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Tuple, TypeVar
 
 from lineapy.data.types import LineaID
 from lineapy.utils.utils import get_new_id, remove_duplicates, remove_value
@@ -51,17 +51,7 @@ class MutationTracker:
         To process adding views between nodes, update the `viewers` data structure
         with all new viewers.
         """
-        # First, iterate through all items in the view
-        # and create a complete view set adding all their views as well
-        # since it is a transitivity relationionship.
-        complete_ids = list(
-            remove_duplicates(chain(ids, *(self.viewers[id_] for id_ in ids)))
-        )
-
-        # Now update the viewers data structure to include all the viewers,
-        # apart the id itself, which is not kept in the mapping.
-        for id_ in complete_ids:
-            self.viewers[id_] = list(remove_value(complete_ids, id_))
+        return set_as_viewers_generic(list(ids), self.viewers)
 
     def get_latest_mutate_node(self, node_id: LineaID) -> LineaID:
         """
@@ -100,3 +90,23 @@ class MutationTracker:
             self.source_to_mutate[source_id] = mutate_node_id
 
             yield mutate_node_id, source_id
+
+
+T = TypeVar("T")
+
+
+def set_as_viewers_generic(ids: List[T], viewers: Dict[T, List[T]]) -> None:
+    """
+    Generic version of method, so that we can use it in the settrace tracker as well
+    """
+    # First, iterate through all items in the view
+    # and create a complete view set adding all their views as well
+    # since it is a transitivity relationionship.
+    complete_ids = list(
+        remove_duplicates(chain(ids, *(viewers[id_] for id_ in ids)))
+    )
+
+    # Now update the viewers data structure to include all the viewers,
+    # apart the id itself, which is not kept in the mapping.
+    for id_ in complete_ids:
+        viewers[id_] = list(remove_value(complete_ids, id_))

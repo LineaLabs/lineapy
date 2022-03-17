@@ -2,7 +2,7 @@ from typing import Iterable, Mapping
 
 from lineapy.data.types import LineaID
 from lineapy.execution.inspect_function import FunctionInspector
-from lineapy.execution.side_effects import SideEffects
+from lineapy.execution.side_effects import SideEffect
 from lineapy.system_tracing._function_calls_to_object_side_effects import (
     function_calls_to_object_side_effects,
 )
@@ -17,7 +17,7 @@ def function_calls_to_side_effects(
     function_calls: Iterable[FunctionCall],
     input_nodes: Mapping[LineaID, object],
     output_globals: Mapping[str, object],
-) -> SideEffects:
+) -> Iterable[SideEffect]:
     """
     Translates a list of function calls to a list of side effects, by mapping objects to nodes.
 
