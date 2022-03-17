@@ -9,10 +9,6 @@ from typing import Callable, Dict, Iterable, List, Optional, Set, Union
 from lineapy.system_tracing._op_stack import OpStack
 from lineapy.system_tracing.function_call import FunctionCall
 
-# from rich.console import Console
-# from rich.table import Table
-
-
 # This callback is saved when we have an operator that had some function call. We need to defer some of the processing until the next bytecode instruction loads,
 # So that at the point, the return value will be in the stack and we can look at it.
 ReturnValueCallback = Optional[Callable[[OpStack], FunctionCall]]
@@ -34,29 +30,11 @@ class TraceFunc:
     # this function with the current stack to get the FunctionCall result.
     return_value_callback: ReturnValueCallback = field(default=None)
 
-    # Table of bytecode evaluations, for visualization.
-    # table: Table = field(
-    #     default_factory=lambda: Table(title="Bytecode Evaluations")
-    # )
-
     def __post_init__(self, code):
         self.code_to_offset_to_instruction = {
             code: {i.offset: i for i in get_instructions(code)}
             for code in all_code_objects(code)
         }
-
-        # self.table.add_column("Name", justify="right", no_wrap=True)
-        # self.table.add_column(
-        #     "Arg",
-        #     justify="right",
-        # )
-        # self.table.add_column(
-        #     "Stack",
-        # )
-
-    # def visualize(self):
-    #     console = Console()
-    #     console.print(self.table)
 
     def __call__(self, frame, event, arg):
         # Exit early if the code object for this frame is not one of the code objects we want to trace
@@ -98,10 +76,6 @@ class TraceFunc:
         elif possible_function_call:
             self.function_calls.append(possible_function_call)
 
-        # self.table.add_row(
-        #     instruction.opname,
-        #     instruction.argrepr,
-        # )
         return self
 
 
