@@ -375,25 +375,28 @@ class NodeTransformer(ast.NodeTransformer):
           not an assignment, so we might need to change the return signature
           from ast.Expr.
         """
-        assert len(node.targets) == 1
-        target = node.targets[0]
-        # handle special case of assigning aliases e.g. x = y
-        if isinstance(target, ast.Name) and isinstance(node.value, ast.Name):
-            new_node = self.tracer.call(
-                self.tracer.lookup_node(l_alias.__name__),
-                self.get_source(node),
-                self.visit(node.value),
-            )
-            self.tracer.assign(
-                target.id,
-                new_node,
-            )
-        else:
-            self.visit_assign_value(
-                target,
-                self.visit(node.value),
-                self.get_source(node),
-            )
+        # target assignments are handled from left to right in Python
+        # x = y = z -> x = z, y = z
+        for target in node.targets:
+            # handle special case of assigning aliases e.g. x = y
+            if isinstance(target, ast.Name) and isinstance(
+                node.value, ast.Name
+            ):
+                new_node = self.tracer.call(
+                    self.tracer.lookup_node(l_alias.__name__),
+                    self.get_source(node),
+                    self.visit(node.value),
+                )
+                self.tracer.assign(
+                    target.id,
+                    new_node,
+                )
+            else:
+                self.visit_assign_value(
+                    target,
+                    self.visit(node.value),
+                    self.get_source(node),
+                )
 
     def visit_assign_value(
         self,

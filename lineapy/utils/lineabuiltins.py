@@ -196,12 +196,15 @@ def l_unpack_sequence(xs: Iterable[T], n: int) -> List[T]:
 
     The result should be a view of the input.
     """
-    res = list(xs)
+    try:
+        res = list(xs)
+    except TypeError:
+        raise TypeError(
+            f"cannot unpack non-iterable {type(xs).__name__} object)"
+        )
     actual_n = len(res)
     if actual_n > n:
-        raise ValueError(
-            f"too many values to unpack (expected {n}), got {actual_n})"
-        )
+        raise ValueError(f"too many values to unpack (expected {n})")
     if actual_n < n:
         raise ValueError(
             f"not enough values to unpack (expected {n}, got {actual_n})"
@@ -219,7 +222,12 @@ def l_unpack_ex(
 
     Modeled after the UNPACK_EX bytecode to be used in unpacking.
     """
-    xs_list = list(xs)
+    try:
+        xs_list = list(xs)
+    except TypeError:
+        raise TypeError(
+            f"cannot unpack non-iterable {type(xs).__name__} object)"
+        )
     xs_n = len(xs_list)
     min_values = before + after
     if xs_n < min_values:
