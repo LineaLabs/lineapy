@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_starred_executes(execute):
     CODE = """def func(a,b):
     return a+b
@@ -57,9 +54,6 @@ x = func(*it)
     assert ret.values["x"] == ["y", "n", "a", "m", "e"]
 
 
-@pytest.mark.xfail(
-    reason="in some cases where return value is a generator, multiple assign calls are not supported"
-)
 def test_starred_w_zip(execute):
     CODE = """def func():
     for i in range(3):
