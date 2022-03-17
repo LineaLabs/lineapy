@@ -9,9 +9,6 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.system_tracing.exec_and_record_function_calls import (
     exec_and_record_function_calls,
 )
-from lineapy.system_tracing.function_calls_to_side_effects import (
-    function_calls_to_side_effects,
-)
 
 # Keep a list of builtin functions we want to expose to the user as globals
 # Then at the end, make a dict out of all of them, from their names
@@ -148,19 +145,9 @@ def l_exec_statement(code: str) -> None:
         path = "<unkown>"
     bytecode = compile(code, path, "exec")
 
-    # We use the same globals dict for all exec calls, so that when we update it
-    # in the executor, it will updates for all scopes that functions defined in exec
-    # have
-    function_calls = exec_and_record_function_calls(
+    context.function_calls = exec_and_record_function_calls(
         bytecode, context.global_variables
-    )
-
-    side_effects = function_calls_to_side_effects(
-        context.executor._function_inspector,
-        function_calls,
-        context.input_nodes,
-    )
-    context.side_effects.extend(side_effects)
+    ).function_calls
 
 
 @register

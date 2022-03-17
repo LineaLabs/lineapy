@@ -15,9 +15,20 @@ from lineapy.system_tracing.function_call import FunctionCall
 def function_calls_to_side_effects(
     function_inspector: FunctionInspector,
     function_calls: Iterable[FunctionCall],
-    nodes: Mapping[LineaID, object],
+    input_nodes: Mapping[LineaID, object],
+    output_globals: Mapping[str, object],
 ) -> SideEffects:
+    """
+    Translates a list of function calls to a list of side effects, by mapping objects to nodes.
+
+    :param function_inspector: The function inspector to use to lookup what side effects each function call has.
+    :param function_calls: The function calls that were recorded.
+    :param input_nodes: Mapping of node ID to value for all the nodes that were passed in to this execution.
+    :param output_globals: Mapping of global identifier to the value of all globals that were set during this execution.
+    """
     object_side_effects = function_calls_to_object_side_effects(
         function_inspector, function_calls
     )
-    return object_side_effects_to_side_effects(nodes, object_side_effects)
+    return object_side_effects_to_side_effects(
+        object_side_effects, input_nodes, output_globals
+    )

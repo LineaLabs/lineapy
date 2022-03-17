@@ -1,6 +1,7 @@
 import os.path as path
 import sys
 from ast import AST, dump
+from dataclasses import dataclass
 from os import remove
 
 from lineapy import save
@@ -65,3 +66,15 @@ lineapy.{save.__name__}(img, "Graph With Image")
 
 def get_project_directory():
     return path.abspath(path.join(__file__, "../.."))
+
+
+@dataclass
+class IsType:
+    """
+    Used in the tests so we can make sure a value has the same type as another, even if it is not equal.
+    """
+
+    tp: type
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.tp)

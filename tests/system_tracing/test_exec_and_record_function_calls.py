@@ -1,7 +1,6 @@
 import operator
 from collections import Counter
-from dataclasses import dataclass
-from typing import Iterator, List
+from typing import List
 
 import pytest
 
@@ -9,18 +8,7 @@ from lineapy.system_tracing.exec_and_record_function_calls import (
     exec_and_record_function_calls,
 )
 from lineapy.system_tracing.function_call import FunctionCall
-
-
-@dataclass
-class IsType:
-    """
-    Used in the tests so we can make sure a value has the same type as another, even if it is not equal.
-    """
-
-    tp: type
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.tp)
+from tests.util import IsType
 
 
 @pytest.mark.parametrize(
@@ -63,4 +51,7 @@ def test_exec_and_record_function_calls(
     source_code: str, globals_, function_calls: List[FunctionCall]
 ):
     code = compile(source_code, "", "exec")
-    assert exec_and_record_function_calls(code, globals_) == function_calls
+    assert (
+        exec_and_record_function_calls(code, globals_).function_calls
+        == function_calls
+    )

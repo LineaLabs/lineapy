@@ -29,11 +29,17 @@ from lineapy.execution.side_effects import (
     Variable,
     ViewOfNodes,
 )
+from lineapy.system_tracing.function_call import FunctionCall
+from lineapy.system_tracing.function_calls_to_side_effects import (
+    function_calls_to_side_effects,
+)
 
 if TYPE_CHECKING:
     from lineapy.data.types import CallNode, LineaID
     from lineapy.execution.executor import Executor
 
+# Use the same globals for all executions, so that a function compiled during one execution will have the same globals
+# as when it is later called, so we can see what globals have been written during that.
 _global_variables: GlobalsDict = GlobalsDict()
 _current_context: Optional[ExecutionContext] = None
 
@@ -65,9 +71,9 @@ class ExecutionContext:
     # Used by the exec function to understand what side effects to emit, by knowing the nodes associated with each global value used.
     input_nodes: Mapping[LineaID, object]
 
-    # Additional side effects triggered during this executiong.
+    # Additional function calls made in this call, to be processed for side effects at the end.
     # The exec function will add to this and we will retrieve it at the end.
-    side_effects: List[SideEffect] = field(default_factory=list)
+    function_calls: Optional[List[FunctionCall]] = field(default=None)
 
     @property
     def global_variables(self) -> Dict[str, object]:
@@ -98,22 +104,23 @@ def set_context(
     # the scoping, so we set all of the variables we know.
     # The subsequent times, we only use those that were recorded
     input_node_ids = variables or node.global_reads
-    input_globals = {
+
+    global_name_to_value = {
         k: executor._id_to_value[id_] for k, id_ in input_node_ids.items()
     }
+    _global_variables.setup_globals(global_name_to_value)
 
-    _global_variables.setup_globals(input_globals)
-
+    global_node_id_to_value = {
+        id_: executor._id_to_value[id_] for id_ in input_node_ids.values()
+    }
     _current_context = ExecutionContext(
-        node=node,
-        executor=executor,
         _input_node_ids=input_node_ids,
         _input_globals_mutable={
-            k: is_mutable(v) for k, v in input_globals.items()
+            k: is_mutable(v) for k, v in global_name_to_value.items()
         },
-        input_nodes={
-            id_: executor._id_to_value[id_] for id_ in input_node_ids.values()
-        },
+        node=node,
+        executor=executor,
+        input_nodes=global_node_id_to_value,
     )
 
 
@@ -133,13 +140,32 @@ def teardown_context() -> ContextResult:
     if not _current_context:
         raise RuntimeError("No context set")
     res = _global_variables.teardown_globals()
-    prev_context = _current_context
+    # If we didn't trace some function calls, use the legacy worst case assumptions for side effects
+    if _current_context.function_calls is None:
+        side_effects = list(_compute_side_effects(_current_context, res))
+    else:
+        # Compute the side effects based on the function calls that happened, to understand what input nodes
+        # were mutated, what views were added, and what other side effects were created.
+        side_effects = function_calls_to_side_effects(
+            _current_context.executor._function_inspector,
+            _current_context.function_calls,
+            _current_context.input_nodes,
+            res.added_or_modified,
+        )
+    if res.accessed_inputs or res.added_or_modified:
+        # Record that this execution accessed and saved certain globals, as first side effect
+        side_effects.insert(
+            0,
+            AccessedGlobals(
+                res.accessed_inputs,
+                list(res.added_or_modified.keys()),
+            ),
+        )
     _current_context = None
-    side_effects = prev_context.side_effects
-    side_effects.extend(_compute_side_effects(prev_context, res))
     return ContextResult(res.added_or_modified, side_effects)
 
 
+# TODO: Remove once we support tracking globals updated during calling user defined functions
 def _compute_side_effects(
     context: ExecutionContext, globals_result: GlobalsDictResult
 ) -> Iterable[SideEffect]:
@@ -150,13 +176,6 @@ def _compute_side_effects(
         for name in globals_result.accessed_inputs
         if context._input_globals_mutable[name]
     ]
-    accessed_globals = AccessedGlobals(
-        globals_result.accessed_inputs,
-        list(globals_result.added_or_modified.keys()),
-    )
-    if accessed_globals.added_or_updated or accessed_globals.retrieved:
-        yield accessed_globals
-
     yield from map(MutatedNode, mutable_input_vars)
 
     # Now we mark all the mutable input variables as well as mutable
@@ -173,11 +192,8 @@ def _compute_side_effects(
         for k, v in globals_result.added_or_modified.items()
         if is_mutable(v)
     ]
-    input_output_vars_view = ViewOfNodes(
-        mutable_input_vars + mutable_output_vars
-    )
-    if len(input_output_vars_view.pointers) > 1:
-        yield input_output_vars_view
+    if mutable_input_vars or mutable_output_vars:
+        yield ViewOfNodes(mutable_input_vars + mutable_output_vars)
 
 
 @dataclass

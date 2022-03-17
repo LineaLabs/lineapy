@@ -1,33 +1,16 @@
 from __future__ import annotations
 
 import operator
-from contextlib import contextmanager
 from dataclasses import InitVar, dataclass, field
 from dis import Instruction, get_instructions
-from sys import settrace
 from types import CodeType
-from typing import Callable, Dict, Iterable, Iterator, List, Optional, Union
+from typing import Callable, Dict, Iterable, List, Optional, Set, Union
 
 from lineapy.system_tracing._op_stack import OpStack
 from lineapy.system_tracing.function_call import FunctionCall
 
 # from rich.console import Console
 # from rich.table import Table
-
-
-@contextmanager
-def record_function_calls(code: CodeType) -> Iterator[List[FunctionCall]]:
-    """
-    Use tracing to record all function calls that have frames defined in one of the code objects contained in the code object passed in.
-    """
-
-    try:
-        trace_fn = TraceFunc(code)
-        settrace(trace_fn)
-        yield trace_fn.function_calls
-    finally:
-        settrace(None)
-        # trace_fn.visualize()
 
 
 # This callback is saved when we have an operator that had some function call. We need to defer some of the processing until the next bytecode instruction loads,
@@ -37,9 +20,10 @@ ReturnValueCallback = Optional[Callable[[OpStack], FunctionCall]]
 
 @dataclass
 class TraceFunc:
-
     code: InitVar[CodeType]
     function_calls: List[FunctionCall] = field(default_factory=list)
+    # Set of operations we encounter that we don't know how to handle
+    not_implemented_ops: Set[str] = field(default_factory=set)
 
     # Mapping of each code object that was passed in to its instructions, by offset, so we can quicjly look up what instruction we are looking at
     code_to_offset_to_instruction: Dict[
@@ -100,9 +84,13 @@ class TraceFunc:
             self.return_value_callback = None
 
         # Check if the current operation is a function call
-        possible_function_call = resolve_bytecode_execution(
-            instruction.opname, instruction.argval, op_stack
-        )
+        try:
+            possible_function_call = resolve_bytecode_execution(
+                instruction.opname, instruction.argval, op_stack
+            )
+        except NotImplementedError:
+            self.not_implemented_ops.add(instruction.opname)
+            possible_function_call = None
         # If resolving the function call needs to be deferred until after we have the return value, save teh callback
         if callable(possible_function_call):
             self.return_value_callback = possible_function_call
@@ -117,11 +105,15 @@ class TraceFunc:
         return self
 
 
+# Bytecode operations that are not function calls
+NOT_FUNCTION_CALLS = {"RETURN"}
+
 UNARY_OPERATORS = {
     "UNARY_POSITIVE": operator.pos,
     "UNARY_NEGATIVE": operator.neg,
     "UNARY_NOT": operator.not_,
     "UNARY_INVERT": operator.inv,
+    # TODO: ADd end to end test for this with view.
     "GET_ITER": iter,
     # Generators not supported
     # GET_YIELD_FROM_ITER
@@ -134,9 +126,11 @@ def resolve_bytecode_execution(
     """
     Returns a function call corresponding to the bytecode executing on the current stack.
     """
+    if name in NOT_FUNCTION_CALLS:
+        return None
     if name in UNARY_OPERATORS:
         return unary_operator(UNARY_OPERATORS[name], stack)
-    return None
+    raise NotImplementedError()
 
 
 def unary_operator(fn: Callable, stack: OpStack) -> ReturnValueCallback:

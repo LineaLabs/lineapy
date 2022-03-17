@@ -20,6 +20,7 @@ from lineapy.db.utils import (
     resolve_default_db_path,
 )
 from lineapy.execution.executor import Executor
+from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
@@ -283,3 +284,8 @@ def housing_tracer(execute):
 @pytest.fixture
 def airflow_plugin(housing_tracer):
     return AirflowPlugin(housing_tracer)
+
+
+@pytest.fixture(scope="session")
+def function_inspector():
+    return FunctionInspector()

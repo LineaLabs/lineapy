@@ -1,16 +1,24 @@
+import logging
+from sys import settrace
 from types import CodeType
-from typing import Dict, List
+from typing import Dict
 
-from lineapy.system_tracing.function_call import FunctionCall
-from lineapy.system_tracing.record_function_calls import record_function_calls
+from lineapy.system_tracing.trace_func import TraceFunc
+
+logger = logging.getLogger(__name__)
 
 
 def exec_and_record_function_calls(
     code: CodeType, globals_: Dict[str, object]
-) -> List[FunctionCall]:
+) -> TraceFunc:
     """
     Execute the code while recording all the function calls which originate from the code object.
     """
-    with record_function_calls(code=code) as function_calls:
+    trace_func = TraceFunc(code)
+    try:
+        settrace(trace_func)
         exec(code, globals_)
-    return function_calls
+    # Always stop tracing even if exception raised
+    finally:
+        settrace(None)
+    return trace_func

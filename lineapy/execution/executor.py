@@ -117,8 +117,9 @@ class Executor:
     # so that artifacts created during the execution know which execution they should refer to.
     execution: Execution = field(init=False)
 
-    # TODO:
-    _function_inspector = FunctionInspector()
+    _function_inspector: FunctionInspector = field(
+        default_factory=FunctionInspector
+    )
     _id_to_value: dict[LineaID, object] = field(default_factory=dict)
     _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
