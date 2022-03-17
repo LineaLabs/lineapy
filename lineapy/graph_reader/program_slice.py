@@ -3,6 +3,7 @@ from typing import DefaultDict, List, Set
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID, SourceCode
+from lineapy.db.db import RelationalLineaDB
 
 logger = logging.getLogger(__name__)
 
@@ -75,3 +76,12 @@ def get_program_slice(graph: Graph, sinks: List[LineaID]) -> str:
     subgraph = get_slice_graph(graph, sinks)
     logger.debug("Subgraph for %s: %s", sinks, subgraph)
     return get_source_code_from_graph(subgraph)
+
+
+def get_program_slice_by_artifact_name(
+    db: RelationalLineaDB, name: str
+) -> str:
+    artifact = db.get_artifact_by_name(name)
+    nodes = db.get_nodes_for_session(artifact.node.session_id)
+    graph = Graph(nodes, db.get_session_context(artifact.node.session_id))
+    return get_program_slice(graph, [artifact.node_id])

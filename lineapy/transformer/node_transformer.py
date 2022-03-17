@@ -216,6 +216,7 @@ class NodeTransformer(ast.NodeTransformer):
         else:
             return self.tracer.literal(node.value, self.get_source(node))
 
+    # FIXME - this is deprecated
     def visit_Starred(self, node: ast.Starred) -> Iterable[LiteralNode]:
         elemlist: Iterable = []
         if isinstance(node.value, ast.Constant):

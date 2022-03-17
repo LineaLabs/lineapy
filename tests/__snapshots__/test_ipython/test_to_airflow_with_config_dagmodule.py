@@ -1,15 +1,12 @@
 import os
 
+import a
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 
 if "." not in os.getcwd():
     os.chdir(".")
-
-
-def a_a():
-    a = [1, 2, 3]
 
 
 default_dag_args = {"owner": "airflow", "retries": 1, "start_date": days_ago(1)}
@@ -23,8 +20,8 @@ dag = DAG(
 )
 
 
-a_a = PythonOperator(
+a = PythonOperator(
     dag=dag,
-    task_id="a_a_task",
-    python_callable=a_a,
+    task_id="a_task",
+    python_callable=a.a,
 )

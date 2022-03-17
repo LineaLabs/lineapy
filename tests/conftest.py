@@ -203,7 +203,7 @@ class ExecuteFixture:
                 )
                 .replace(str(source_code_path), "[source file path]")
                 .replace(
-                    tracer.session_context.working_directory,
+                    tracer.get_working_dir(),
                     DUMMY_WORKING_DIR,
                 )
             )
@@ -282,4 +282,7 @@ def housing_tracer(execute):
 
 @pytest.fixture
 def airflow_plugin(housing_tracer):
-    return AirflowPlugin(housing_tracer)
+    return AirflowPlugin(
+        housing_tracer.tracer_context.db,
+        housing_tracer.tracer_context.get_session_id(),
+    )

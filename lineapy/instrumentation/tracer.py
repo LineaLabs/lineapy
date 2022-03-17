@@ -24,18 +24,18 @@ from lineapy.data.types import (
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
-from lineapy.execution.executor import (
+from lineapy.execution.executor import Executor
+from lineapy.execution.side_effects import (
     ID,
     AccessedGlobals,
-    Executor,
     ExecutorPointer,
     ImplicitDependencyNode,
     Variable,
     ViewOfNodes,
 )
-from lineapy.graph_reader.program_slice import get_program_slice
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
+from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
 from lineapy.utils.lineabuiltins import l_tuple
 from lineapy.utils.utils import get_new_id
@@ -53,7 +53,7 @@ class Tracer:
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
-    session_context: SessionContext = field(init=False)
+    tracer_context: TracerContext = field(init=False)
     executor: Executor = field(init=False)
     mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
 
@@ -75,7 +75,8 @@ class Tracer:
         - Executes the program, using the `Executor`.
         """
         self.executor = Executor(self.db, globals_ or globals())
-        self.session_context = SessionContext(
+        # TODO - maybe cleaner to do this in tracer context init itself
+        session_context = SessionContext(
             id=get_new_id(),
             environment_type=session_type,
             creation_time=datetime.now(),
@@ -83,15 +84,10 @@ class Tracer:
             session_name=session_name,
             execution_id=self.executor.execution.id,
         )
-        self.db.write_context(self.session_context)
-
-    @property
-    def graph(self) -> Graph:
-        """
-        Creates a graph by fetching all the nodes about this session from the DB.
-        """
-        nodes = self.db.get_nodes_for_session(self.session_context.id)
-        return Graph(nodes, self.session_context)
+        self.db.write_context(session_context)
+        self.tracer_context = TracerContext(
+            session_context=session_context, db=self.db
+        )
 
     @property
     def values(self) -> Dict[str, object]:
@@ -104,44 +100,6 @@ class Tracer:
             for k, n in self.variable_name_to_node.items()
         }
 
-    @property
-    def artifacts(self) -> Dict[str, str]:
-        """
-        Returns a mapping of artifact names to their sliced code.
-        """
-
-        return {
-            artifact.name: get_program_slice(self.graph, [artifact.node_id])
-            for artifact in self.session_artifacts()
-            if artifact.name is not None
-        }
-
-    def session_artifacts(self) -> List[ArtifactORM]:
-        return self.db.get_artifacts_for_session(self.session_context.id)
-
-    def slice(self, name: str) -> str:
-        artifact = self.db.get_artifact_by_name(name)
-        return get_program_slice(self.graph, [artifact.node_id])
-
-    def artifact_var_name(self, artifact_name: str) -> str:
-        """
-        Returns the variable name for the given artifact.
-        i.e. in lineapy.save(p, "p value") "p" is returned
-        """
-        artifact = self.db.get_artifact_by_name(artifact_name)
-        if not artifact.node or not artifact.node.source_code:
-            return ""
-        _line_no = artifact.node.lineno if artifact.node.lineno else 0
-        artifact_line = str(artifact.node.source_code.code).split("\n")[
-            _line_no - 1
-        ]
-        _col_offset = (
-            artifact.node.col_offset if artifact.node.col_offset else 0
-        )
-        if _col_offset < 3:
-            return ""
-        return artifact_line[: _col_offset - 3]
-
     def process_node(self, node: Node) -> None:
         """
         Execute a node, and adds it to the database.
@@ -153,7 +111,8 @@ class Tracer:
         ##
         try:
             side_effects = self.executor.execute_node(
-                node, {k: v.id for k, v in self.variable_name_to_node.items()}
+                node,
+                {k: v.id for k, v in self.variable_name_to_node.items()},
             )
         except ArtifactSaveException as exc_info:
             logger.error("Artifact could not be saved.")
@@ -274,7 +233,7 @@ class Tracer:
         else:
             new_node = LookupNode(
                 id=get_new_id(),
-                session_id=self.session_context.id,
+                session_id=self.get_session_id(),
                 name=variable_name,
                 source_location=source_location,
             )
@@ -304,17 +263,14 @@ class Tracer:
         library = Library(id=get_new_id(), name=name)
         node = ImportNode(
             id=get_new_id(),
-            session_id=self.session_context.id,
+            session_id=self.get_session_id(),
             library=library,
             source_location=source_location,
         )
         self.process_node(node)
 
         if attributes is None:
-            if alias is not None:
-                self.variable_name_to_node[alias] = node
-            else:
-                self.variable_name_to_node[name] = node
+            self.variable_name_to_node[alias or name] = node
 
         # for the attributes imported, we need to add them to the local lookup
         #  that yields the importnode's id for the `function_module` field,
@@ -350,7 +306,7 @@ class Tracer:
         #   requirement; should prob refactor later
         # and we cannot just modify the runtime value because
         #   it's already written to disk
-        self.db.add_lib_to_session_context(self.session_context.id, library)
+        self.db.add_lib_to_session_context(self.get_session_id(), library)
         return
 
     def literal(
@@ -361,7 +317,7 @@ class Tracer:
         # this literal should be assigned or used later
         node = LiteralNode(
             id=get_new_id(),
-            session_id=self.session_context.id,
+            session_id=self.get_session_id(),
             value=value,
             source_location=source_location,
         )
@@ -426,7 +382,7 @@ class Tracer:
 
         node = CallNode(
             id=get_new_id(),
-            session_id=self.session_context.id,
+            session_id=self.get_session_id(),
             function_id=function_node.id,
             positional_args=self.__get_positional_arguments(arguments),
             keyword_args=self.__get_keyword_arguments(keyword_arguments),
@@ -461,3 +417,24 @@ class Tracer:
             source_location,
             *args,
         )
+
+    # tracer context method wrappers from here on
+    def get_session_id(self) -> LineaID:
+        return self.tracer_context.get_session_id()
+
+    @property
+    def graph(self) -> Graph:
+        return self.tracer_context.graph
+
+    def session_artifacts(self) -> List[ArtifactORM]:
+        return self.tracer_context.session_artifacts()
+
+    @property
+    def artifacts(self) -> Dict[str, str]:
+        return self.tracer_context.artifacts
+
+    def slice(self, name: str) -> str:
+        return self.tracer_context.slice(name)
+
+    def get_working_dir(self) -> str:
+        return self.tracer_context.session_context.working_directory

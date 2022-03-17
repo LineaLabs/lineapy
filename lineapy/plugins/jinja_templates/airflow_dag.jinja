@@ -1,6 +1,7 @@
 {% extends "base_dag.jinja" %}
 
 {% block plugin_import_block %}
+import {{ DAG_NAME }}
 from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.python_operator import PythonOperator
@@ -21,7 +22,7 @@ dag = DAG(
 {% block plugin_tasks_block %}
 {% for TASK_NAME in tasks %}
 {{ TASK_NAME }} = PythonOperator(
-    dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ TASK_NAME }},
+    dag=dag, task_id="{{ TASK_NAME }}_task", python_callable={{ DAG_NAME }}.{{ TASK_NAME }},
 )
 {% endfor %}
 {% if task_dependencies is not none %}

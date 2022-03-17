@@ -17,7 +17,7 @@ Instead, this RFC is about how we can more accurately analyze the contents of th
 We need to analyze them, in order to understand:
 
 1. What global variables are read from in this black box?
-2. What global variables are modified in this black box?
+2. What global variables are mutated in this black box?
 3. What global variables are added or overwritten in this black box?
 4. Are there any views added between any of the previous global variables and the new ones added?
 5. Are there any side effects that are called in the black box, like writing to the filesystem?
@@ -27,7 +27,7 @@ We need to analyze them, in order to understand:
 We are currently attempting to answer those questions by looking at the runtime behavior, or either assuming the best or worst case, in the following ways:
 
 1. Reading globals: _runtime analysis_ We use a custom object for `globals()` so that we can detect whenever an object is read from it.
-2. Modifying globals: _worst case assumption_ We assume that all mutable variables that are read are modified.
+2. Mutated globals: _worst case assumption_ We assume that all mutable variables that are read are modified.
 3. Adding globals: _runtime analysis_ We compare the `globals()` before and after the execution to see if any new keys were added or if any of the values have "changed"
    (checking based on object identity, not object value).
 4. Views of globals: _worst case assumption_ We assume all mutable variables that were passed in and all that were added now are views of one another.

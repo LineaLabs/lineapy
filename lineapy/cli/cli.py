@@ -281,14 +281,14 @@ def python(
             )
             exit(1)
 
-        ap = AirflowPlugin(tracer)
+        ap = AirflowPlugin(db, tracer.tracer_context.get_session_id())
         ap.sliced_airflow_dag(
             slice,
             export_slice_to_airflow_dag,
             airflow_task_dependencies,
         )
 
-    tracer.db.close()
+    db.close()
     if print_graph:
         graph_code = prettify(
             tracer.graph.print(

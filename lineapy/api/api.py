@@ -7,14 +7,14 @@ import types
 from datetime import datetime
 from os import environ
 from pathlib import Path
-from typing import Dict, Optional
+from typing import List, Optional
 
 from lineapy.data.types import Artifact, NodeValue
 from lineapy.db.relational import SessionContextORM
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
-from lineapy.plugins import airflow as airflow_plugin
+from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.utils.utils import get_value_type
 
 """
@@ -191,52 +191,48 @@ def catalog() -> LineaCatalog:
     return LineaCatalog(execution_context.executor.db)
 
 
+# TODO - this piece needs to test more than just the output of jupyter cell.
+# we need to ensure all the required files (python module and the dag file) get written to the right place.
 def to_airflow(
-    artifacts_code: Dict[str, str],
+    artifacts: List[str],
     dag_name: str,
     task_dependencies: str = "",
 ) -> Path:
     """
     Writes the airflow job to a path on disk.
 
-    :param artifacts_code: map of artifact names to be included in the DAG to their source code.
+    :param artifacts: list of artifact names to be included in the DAG.
     :param dag_name: name of the DAG and corresponding functions and task prefixes,
                      i.e. "sliced_housing_dag"
 
     :param airflow_task_dependencies: task dependencies in Airflow format,
                                       i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-                                      This translates to "sliced_housing_dag_p >> sliced_housing_dag_y"
-                                      and "sliced_housing_dag_p,sliced_housing_dag_x >> sliced_housing_dag_y".
-                                      Here "sliced_housing_dag_p" and "sliced_housing_dag_x" are independent tasks
-                                      and "sliced_housing_dag_y" depends on them.
+                                      This translates to "p_value >> y" and "p_value, x >> y" respectively.
+                                      Here "p_value" and "x" are independent tasks
+                                      and "y" depends on them.
     :return: string containing the path of the Airflow DAG file that was exported.
     """
     execution_context = get_context()
     db = execution_context.executor.db
     session_orm = db.session.query(SessionContextORM).all()
-    working_dir = (
-        Path(session_orm[0].working_directory)
-        if len(session_orm) > 0
-        else Path.home()
+    if len(session_orm) == 0:
+        raise Exception("No sessions found in the database.")
+    last_session = session_orm[0]
+
+    output_dir_path = (
+        Path(environ["AIRFLOW_HOME"])
+        if "AIRFLOW_HOME" in environ
+        else Path.home() / "airflow"
+    ) / "dags"
+
+    AirflowPlugin(db, last_session.id).sliced_airflow_dag(
+        artifacts,
+        dag_name,
+        task_dependencies,
+        output_dir=str(output_dir_path),
     )
 
-    airflow_code = airflow_plugin.to_airflow(
-        artifacts_code, dag_name, working_dir, task_dependencies
-    )
-    # Save dag to dags folder in airflow home
-    # Otherwise default to default airflow home in home directory
-    path = (
-        (
-            Path(environ["AIRFLOW_HOME"])
-            if "AIRFLOW_HOME" in environ
-            else Path.home() / "airflow"
-        )
-        / "dags"
-        / f"{dag_name}.py"
-    )
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(airflow_code)
     print(
         f"Added Airflow DAG named '{dag_name}'. Start a run from the Airflow UI or CLI."
     )
-    return path
+    return output_dir_path / f"{dag_name}_dag.py"
