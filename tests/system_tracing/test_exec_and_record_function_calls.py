@@ -8,7 +8,7 @@ from lineapy.system_tracing.exec_and_record_function_calls import (
     exec_and_record_function_calls,
 )
 from lineapy.system_tracing.function_call import FunctionCall
-from tests.util import IsType
+from tests.util import IsInstance
 
 
 @pytest.mark.parametrize(
@@ -42,7 +42,7 @@ from tests.util import IsType
         pytest.param(
             "for _ in x: pass",
             {"x": [1, 2]},
-            [FunctionCall(iter, [[1, 2]], {}, IsType(type(iter([]))))],
+            [FunctionCall(iter, [[1, 2]], {}, IsInstance(type(iter([]))))],
             id="GET_ITER",
         ),
     ],

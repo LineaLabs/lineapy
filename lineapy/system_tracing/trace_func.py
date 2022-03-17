@@ -106,14 +106,13 @@ class TraceFunc:
 
 
 # Bytecode operations that are not function calls
-NOT_FUNCTION_CALLS = {"RETURN"}
+NOT_FUNCTION_CALLS = {"NOP", "POP_TOP", "COPY", "SWAP"}
 
 UNARY_OPERATORS = {
     "UNARY_POSITIVE": operator.pos,
     "UNARY_NEGATIVE": operator.neg,
     "UNARY_NOT": operator.not_,
     "UNARY_INVERT": operator.inv,
-    # TODO: ADd end to end test for this with view.
     "GET_ITER": iter,
     # Generators not supported
     # GET_YIELD_FROM_ITER

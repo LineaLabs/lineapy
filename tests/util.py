@@ -69,7 +69,7 @@ def get_project_directory():
 
 
 @dataclass
-class IsType:
+class IsInstance:
     """
     Used in the tests so we can make sure a value has the same type as another, even if it is not equal.
     """
@@ -78,3 +78,15 @@ class IsType:
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.tp)
+
+
+@dataclass
+class IsObject:
+    """
+    Used in tests to make sure that values are not just equal, but actually are the same object.
+    """
+
+    value: object
+
+    def __eq__(self, other: object) -> bool:
+        return self.value is other

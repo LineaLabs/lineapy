@@ -4,7 +4,6 @@ import sys
 from typing import Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
 from lineapy.editors.ipython_cell_storage import get_location_path
-from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.system_tracing.exec_and_record_function_calls import (
     exec_and_record_function_calls,
@@ -134,6 +133,9 @@ def l_exec_statement(code: str) -> None:
 
     :return: None. Since the code is a statement, it will not return anything
     """
+    # Move inside to avoid circular import with context using the lookups to trace
+    from lineapy.execution.context import get_context
+
     context = get_context()
     source_location = context.node.source_location
     if source_location:
@@ -162,6 +164,8 @@ def l_exec_expr(code: str) -> object:
     :return: it will return the result as well as the last argument.
 
     """
+    from lineapy.execution.context import get_context
+
     context = get_context()
 
     statement_code = f"{_EXEC_EXPRESSION_SAVED_NAME} = {code}"

@@ -9,7 +9,7 @@ from typing import List, Union
 
 
 @dataclass
-class ViewOfObject:
+class ViewOfObjects:
     objects: List[object]
 
 
@@ -23,4 +23,6 @@ class ImplicitDependencyObject:
     object: object
 
 
-ObjectSideEffect = Union[ViewOfObject, MutatedObject, ImplicitDependencyObject]
+ObjectSideEffect = Union[
+    ViewOfObjects, MutatedObject, ImplicitDependencyObject
+]
