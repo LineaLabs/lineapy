@@ -23,7 +23,7 @@ from lineapy.system_tracing._object_side_effect import (
 from lineapy.utils.lineabuiltins import LINEA_BUILTINS
 
 # Mapping of the ID of each external state object to its pointer
-EXTERNAL_STATE_IDS: dict[int, ExternalState] = {
+EXTERNAL_STATE_IDS: Dict[int, ExternalState] = {
     id(b): b for b in LINEA_BUILTINS.values() if isinstance(b, ExternalState)
 }
 
