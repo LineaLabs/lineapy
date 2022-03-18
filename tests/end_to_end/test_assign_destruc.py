@@ -178,7 +178,7 @@ def test_assignment_destructuring_chained_list(execute):
 
 def test_assignment_destructuring_chained_complex_list(execute):
     # a,b = c, *d = e[:]
-    res = execute("x=[1,2,3,4,5]\na , b = c, *d = x[:2]")
+    res = execute("x=[1,2,3,4,5]\na , b = c, *d = x[:2]",snapshot=False)
     assert res.values["x"] == [1, 2, 3, 4, 5]
     assert res.values["a"] == 1
     assert res.values["b"] == 2
@@ -188,7 +188,7 @@ def test_assignment_destructuring_chained_complex_list(execute):
 
 def test_assignment_destructuring_chained_complex_list_with_alias(execute):
     # a,b = c, *d = e[:]
-    res = execute("x=[1,2,3,4,5]\ne = x\na , b = c, *d = e[:2]")
+    res = execute("x=[1,2,3,4,5]\ne = x\na , b = c, *d = e[:2]",snapshot=False)
     assert res.values["x"] == [1, 2, 3, 4, 5]
     assert res.values["a"] == 1
     assert res.values["b"] == 2
