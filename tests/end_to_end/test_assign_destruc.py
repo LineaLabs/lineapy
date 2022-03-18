@@ -1,3 +1,4 @@
+import sys
 import traceback
 from typing import cast
 
@@ -33,7 +34,10 @@ def test_syntax_error_exception(execute):
         execute("a , *b = []]")
 
     inner_exception = cast(SyntaxError, e.value.__cause__)
-    assert inner_exception.text == "a , *b = []]"
+    if sys.version_info >= (3, 8):
+        assert inner_exception.text == "a , *b = []]"
+    else:
+        assert inner_exception.text == "a , *b = []]\n"
 
 
 def test_type_error_exception_starred(execute):
