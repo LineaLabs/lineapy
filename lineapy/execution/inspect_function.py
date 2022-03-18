@@ -16,6 +16,7 @@ from lineapy.instrumentation.annotation_spec import (
     BaseClassMethodName,
     BoundSelfOfFunction,
     BuiltInMethodOrFunctionName,
+    BuiltInMethodOrFunctionNames,
     ClassMethodName,
     ClassMethodNames,
     Criteria,
@@ -116,22 +117,35 @@ def get_specs() -> Tuple[
 
 
 def _check_class(
-    criteria: Union[ClassMethodName, ClassMethodNames],
+    criteria: Union[
+        ClassMethodName,
+        ClassMethodNames,
+        BuiltInMethodOrFunctionName,
+        BuiltInMethodOrFunctionNames,
+    ],
     module: Optional[str],
     function: Callable,
 ):
     """
     helper
     """
-    return (
-        hasattr(function, "__self__")
-        and module is not None
-        and module in sys.modules
-        and isinstance(
-            function.__self__,  # type: ignore
-            getattr(sys.modules[module], criteria.class_instance),
+    if isinstance(
+        criteria, (BuiltInMethodOrFunctionName, BuiltInMethodOrFunctionNames)
+    ):
+        return (
+            hasattr(function, "__self__")
+            and type(function.__self__).__name__ == criteria.class_name  # type: ignore
         )
-    )
+    else:
+        return (
+            hasattr(function, "__self__")
+            and module is not None
+            and module in sys.modules
+            and isinstance(
+                function.__self__,  # type: ignore
+                getattr(sys.modules[module], criteria.class_instance),
+            )
+        )
 
 
 def check_function_against_annotation(
@@ -176,11 +190,15 @@ def check_function_against_annotation(
         ):
             return True
         return False
-    if isinstance(criteria, BuiltInMethodOrFunctionName) and hasattr(
-        function, "__self__"
-    ):
-        if function_name == criteria.bound_function_name and (
-            type(function.__self__).__name__ == criteria.class_name  # type: ignore
+    if isinstance(criteria, BuiltInMethodOrFunctionName):
+        if function_name == criteria.bound_function_name and _check_class(
+            criteria, None, function
+        ):
+            return True
+        return False
+    if isinstance(criteria, BuiltInMethodOrFunctionNames):
+        if function_name in criteria.bound_function_names and _check_class(
+            criteria, None, function
         ):
             return True
         return False

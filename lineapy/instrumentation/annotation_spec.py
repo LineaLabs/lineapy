@@ -264,6 +264,15 @@ class BuiltInMethodOrFunctionName(BaseModel):
     class_name: str
 
 
+class BuiltInMethodOrFunctionNames(BaseModel):
+    """
+    Shorthand for a list of builtin method or function names of the same class.
+    """
+
+    bound_function_names: List[str]
+    class_name: str
+
+
 class BaseClassMethodName(BaseModel):
     """
     Baseclass methods allow us to cover more cases.
@@ -292,6 +301,7 @@ Criteria = Union[
     FunctionName,
     ClassMethodName,
     BuiltInMethodOrFunctionName,
+    BuiltInMethodOrFunctionNames,
     BaseClassMethodName,
 ]
 
