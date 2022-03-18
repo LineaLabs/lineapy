@@ -110,6 +110,23 @@ UNARY_OPERATORS = {
     # GET_YIELD_FROM_ITER
 }
 
+BINARY_OPERATIONS = {
+    "BINARY_POWER": operator.pow,
+    "BINARY_MULTIPLY": operator.mul,
+    "BINARY_MATRIX_MULTIPLY": operator.matmul,
+    "BINARY_FLOOR_DIVIDE": operator.floordiv,
+    "BINARY_TRUE_DIVIDE": operator.truediv,
+    "BINARY_MODULO": operator.mod,
+    "BINARY_ADD": operator.add,
+    "BINARY_SUBTRACT": operator.sub,
+    "BINARY_SUBSCR": operator.getitem,
+    "BINARY_LSHIFT": operator.lshift,
+    "BINARY_RSHIFT": operator.rshift,
+    "BINARY_AND": operator.and_,
+    "BINARY_XOR": operator.xor,
+    "BINARY_OR": operator.or_,
+}
+
 
 def resolve_bytecode_execution(
     name: str, value: object, stack: OpStack, offset: int
@@ -120,7 +137,15 @@ def resolve_bytecode_execution(
     if name in NOT_FUNCTION_CALLS:
         return None
     if name in UNARY_OPERATORS:
-        return unary_operator(UNARY_OPERATORS[name], stack)
+        args = [stack[-1]]
+        return lambda post_stack, _: FunctionCall(
+            UNARY_OPERATORS[name], args, {}, post_stack[-1]
+        )
+    if name in BINARY_OPERATIONS:
+        args = [stack[-2], stack[-1]]
+        return lambda post_stack, _: FunctionCall(
+            BINARY_OPERATIONS[name], args, {}, post_stack[-1]
+        )
     if name == "FOR_ITER":
         args = [stack[-1]]
         # If the current instruction is the next one (i.e. the offset has increased by 2), then we didn't jump,
@@ -135,11 +160,6 @@ def resolve_bytecode_execution(
         )
     # TODO: Add support for more bytecode operations!
     raise NotImplementedError()
-
-
-def unary_operator(fn: Callable, stack: OpStack) -> ReturnValueCallback:
-    args = [stack[-1]]
-    return lambda post_stack, _: FunctionCall(fn, args, {}, post_stack[-1])
 
 
 def all_code_objects(code: CodeType) -> Iterable[CodeType]:

@@ -4,6 +4,9 @@ from ast import AST, dump
 from dataclasses import dataclass
 from os import remove
 
+import numpy
+import numpy.typing
+
 from lineapy import save
 
 
@@ -90,3 +93,16 @@ class IsObject:
 
     def __eq__(self, other: object) -> bool:
         return self.value is other
+
+
+@dataclass
+class EqualsArray:
+    """
+    Used in tests for comparing a value against a NumPy array. Uses numpy.array_equal
+    because the __eq__ on arrays does not return a single value, but an array itself.
+    """
+
+    array: numpy.typing.ArrayLike
+
+    def __eq__(self, __o: object) -> bool:
+        return numpy.array_equal(self.array, __o)  # type: ignore
