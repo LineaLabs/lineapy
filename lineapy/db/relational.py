@@ -54,6 +54,7 @@ from lineapy.data.types import (
     SessionType,
     ValueType,
 )
+from lineapy.utils.constants import ARTIFACT_NAME_PLACEHOLDER
 
 Base = declarative_base()
 
@@ -114,7 +115,12 @@ class ArtifactORM(Base):
     execution_id: LineaID = Column(
         String, ForeignKey("execution.id"), primary_key=True
     )
-    name = Column(String, nullable=True, primary_key=True)
+    name = Column(
+        String,
+        nullable=False,
+        default=ARTIFACT_NAME_PLACEHOLDER,
+        primary_key=True,
+    )
     date_created = Column(DateTime, nullable=False)
     version = Column(String, nullable=False, primary_key=True)
 

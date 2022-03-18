@@ -23,6 +23,7 @@ from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils.constants import VERSION_PLACEHOLDER
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
     configure_logging,
@@ -100,7 +101,9 @@ def notebook(
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
         name=artifact_name,
+        date_created=artifact.date_created,
     )
+    api_artifact.version = artifact.version or VERSION_PLACEHOLDER
     print(api_artifact.code)
 
 
@@ -147,7 +150,9 @@ def file(
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
         name=artifact_name,
+        date_created=artifact.date_created,
     )
+    api_artifact.version = artifact.version or VERSION_PLACEHOLDER
     print(api_artifact.code)
 
 
