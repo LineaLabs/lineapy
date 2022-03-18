@@ -326,7 +326,7 @@ class Tracer:
 
     def __get_positional_arguments(self, arguments):
         for arg in arguments:
-            if isinstance(arg, tuple):
+            if isinstance(arg, tuple) or isinstance(arg, list):
                 yield PositionalArgument(
                     id=self.mutation_tracker.get_latest_mutate_node(arg[1].id),
                     starred=arg[0],
