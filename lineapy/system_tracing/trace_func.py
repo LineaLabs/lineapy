@@ -125,6 +125,20 @@ BINARY_OPERATIONS = {
     "BINARY_AND": operator.and_,
     "BINARY_XOR": operator.xor,
     "BINARY_OR": operator.or_,
+    # Inplace
+    "INPLACE_POWER": operator.ipow,
+    "INPLACE_MULTIPLY": operator.imul,
+    "INPLACE_MATRIX_MULTIPLY": operator.imatmul,
+    "INPLACE_FLOOR_DIVIDE": operator.ifloordiv,
+    "INPLACE_TRUE_DIVIDE": operator.itruediv,
+    "INPLACE_MODULO": operator.imod,
+    "INPLACE_ADD": operator.iadd,
+    "INPLACE_SUBTRACT": operator.isub,
+    "INPLACE_LSHIFT": operator.ilshift,
+    "INPLACE_RSHIFT": operator.irshift,
+    "INPLACE_AND": operator.iand,
+    "INPLACE_XOR": operator.ixor,
+    "INPLACE_OR": operator.ior,
 }
 
 

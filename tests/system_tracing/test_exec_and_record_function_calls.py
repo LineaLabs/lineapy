@@ -1,6 +1,7 @@
 import operator
 from collections import Counter
-from typing import List
+from dataclasses import dataclass
+from typing import Any, List
 
 import numpy
 import pytest
@@ -14,9 +15,22 @@ from tests.util import EqualsArray, IsInstance
 is_list_iter = IsInstance(type(iter([])))
 
 
+class IMatMul(EqualsArray):
+    """
+    Class to support inplace matrix multiply with Numpy matrices, for testing.
+    """
+
+    def __imatmul__(self, other: Any):
+        self.array = self.array @ other
+        return self
+
+
 @pytest.mark.parametrize(
     "source_code,globals_,function_calls",
     [
+        ##
+        # Unary Ops
+        ##
         pytest.param(
             # Example where unary positive returns different result than arg https://stackoverflow.com/a/18818979
             "+c",
@@ -52,6 +66,9 @@ is_list_iter = IsInstance(type(iter([])))
             ],
             id="GET_ITER and FOR_ITER",
         ),
+        ##
+        # Binary Ops
+        ##
         pytest.param(
             "x**y",
             {"x": 3, "y": 2},
@@ -132,19 +149,107 @@ is_list_iter = IsInstance(type(iter([])))
             "x & y",
             {"x": 5, "y": 2},
             [FunctionCall(operator.and_, [5, 2], {}, 0)],
-            id="BINARY_RSHIFT",
+            id="BINARY_AND",
         ),
         pytest.param(
             "x ^ y",
             {"x": 5, "y": 2},
             [FunctionCall(operator.xor, [5, 2], {}, 7)],
-            id="BINARY_RSHIFT",
+            id="BINARY_XOR",
         ),
         pytest.param(
             "x | y",
             {"x": 5, "y": 2},
             [FunctionCall(operator.or_, [5, 2], {}, 7)],
-            id="BINARY_RSHIFT",
+            id="BINARY_OR",
+        ),
+        pytest.param(
+            "x **= y",
+            {"x": 3, "y": 2},
+            [FunctionCall(operator.ipow, [3, 2], {}, 9)],
+            id="INPLACE_POWER",
+        ),
+        pytest.param(
+            "x *= y",
+            {"x": 2, "y": 4},
+            [FunctionCall(operator.imul, [2, 4], {}, 8)],
+            id="INPLACE_MULTIPLY",
+        ),
+        pytest.param(
+            "x @= y",
+            {"x": IMatMul(numpy.array([1, 2])), "y": numpy.array([3, 4])},
+            [
+                FunctionCall(
+                    operator.imatmul,
+                    [
+                        IMatMul(11),
+                        EqualsArray(numpy.array([3, 4])),
+                    ],
+                    {},
+                    IMatMul(11),
+                )
+            ],
+            id="INPLACE_MATRIX_MULTIPLY",
+        ),
+        pytest.param(
+            "x //= y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.ifloordiv, [5, 2], {}, 2)],
+            id="INPLACE_FLOOR_DIVIDE",
+        ),
+        pytest.param(
+            "x /= y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.itruediv, [5, 2], {}, 2.5)],
+            id="INPLACE_TRUE_DIVIDE",
+        ),
+        pytest.param(
+            "x %= y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.imod, [5, 2], {}, 1)],
+            id="INPLACE_MODULO",
+        ),
+        pytest.param(
+            "x += y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.iadd, [5, 2], {}, 7)],
+            id="INPLACE_ADD",
+        ),
+        pytest.param(
+            "x -= y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.isub, [5, 2], {}, 3)],
+            id="INPLACE_SUBTRACT",
+        ),
+        pytest.param(
+            "x <<= y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.ilshift, [5, 2], {}, 20)],
+            id="INPLACE_LSHIFT",
+        ),
+        pytest.param(
+            "x >>= y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.irshift, [5, 2], {}, 1)],
+            id="INPLACE_RSHIFT",
+        ),
+        pytest.param(
+            "x &= y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.iand, [5, 2], {}, 0)],
+            id="INPLACE_AND",
+        ),
+        pytest.param(
+            "x ^= y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.ixor, [5, 2], {}, 7)],
+            id="INPLACE_XOR",
+        ),
+        pytest.param(
+            "x |= y",
+            {"x": 5, "y": 2},
+            [FunctionCall(operator.ior, [5, 2], {}, 7)],
+            id="INPLACE_OR",
         ),
     ],
 )
