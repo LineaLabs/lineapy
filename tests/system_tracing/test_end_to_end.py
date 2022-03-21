@@ -66,6 +66,14 @@ from lineapy.utils.lineabuiltins import file_system
             id="with statement write",
             marks=pytest.mark.xfail(),
         ),
+        pytest.param(
+            "x, y = z",
+            {"z": ("z_id", [[], ()])},
+            [
+                ViewOfNodes([ID(LineaID("z_id")), Variable("x")]),
+            ],
+            id="unpacking view",
+        ),
     ],
 )
 def test_end_to_end(

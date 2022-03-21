@@ -6,6 +6,20 @@
     - views:
       - result: RESULT
       - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
+- module: lineapy.utils.lineabuiltins
+  annotations:
+  - criteria:
+      function_name: l_unpack_sequence
+    side_effects:
+    - views:
+      - result: RESULT
+      - positional_argument_index: 0
+  - criteria:
+      function_name: l_unpack_ex
+    side_effects:
+    - views:
+      - result: RESULT
+      - positional_argument_index: 0
   
 - module: builtins
   annotations:
