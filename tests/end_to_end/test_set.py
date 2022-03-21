@@ -40,3 +40,12 @@ x.update({1,1,2})
 """
     res = execute(code, artifacts=["x"])
     assert res.slice("x") == code
+
+
+def test_set_clear_mutates(execute):
+    code = """x = set()
+x.add(10)
+x.clear()
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.slice("x") == code
