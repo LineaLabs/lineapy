@@ -48,8 +48,6 @@
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
-        - views:
-          - self_ref: SELF_REF
     - criteria:
         # these methods take an argument
         bound_function_names:
@@ -75,8 +73,6 @@
       side_effects:
       - mutated_value:
           self_ref: SELF_REF
-      - views:
-        - self_ref: SELF_REF
     - criteria:
         # these methods take an argument
         # pop for dict takes an argument and it could be a var so we track it
@@ -99,8 +95,6 @@
       side_effects:
       - mutated_value:
           self_ref: SELF_REF
-      - views:
-        - self_ref: SELF_REF
 
 - module: _operator
   annotations:
