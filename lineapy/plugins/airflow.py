@@ -124,4 +124,4 @@ class AirflowPlugin(BasePlugin):
             output_dir,
             airflow_dag_config,
         )
-        self.generate_infra(f"Dockerfile_{module_name}", output_dir=output_dir)
+        self.generate_infra(module_name=module_name, output_dir=output_dir)

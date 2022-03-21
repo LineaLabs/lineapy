@@ -1,4 +1,5 @@
 import ast
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
@@ -7,7 +8,7 @@ import isort
 
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
-from lineapy.plugins.utils import load_plugin_template
+from lineapy.plugins.utils import get_lib_version_text, load_plugin_template
 from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import prettify
 
@@ -89,10 +90,22 @@ class BasePlugin:
 
     def generate_infra(
         self,
-        dockerfile_name: str,
+        module_name: str,
         output_dir: Optional[str] = None,
     ):
         DOCKERFILE_TEMPLATE = load_plugin_template("dockerfile.jinja")
-        dockerfile = DOCKERFILE_TEMPLATE.render()
+        dockerfile = DOCKERFILE_TEMPLATE.render(module_name=module_name)
         output_dir_path = Path(output_dir) if output_dir else Path.cwd()
-        (output_dir_path / dockerfile_name).write_text(dockerfile)
+        (output_dir_path / (module_name + "_Dockerfile")).write_text(
+            dockerfile
+        )
+        all_libs = self.db.get_libraries_for_session(self.session_id)
+        lib_names_text = ""
+        for lib in all_libs:
+            if lib.name in sys.modules:
+                text = get_lib_version_text(lib.name)
+                lib_names_text += f"{text}\n"
+        # lib_names_text = "\n".join([str(lib.name) for lib in all_libs])
+        (output_dir_path / (module_name + "_requirements.txt")).write_text(
+            lib_names_text
+        )

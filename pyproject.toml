@@ -1,12 +1,12 @@
 [tool.black]
 line-length = 79
-extend-exclude = '(__snapshots__|integration/slices|integration/sources|integration/envs)'
+extend-exclude = '(__snapshots__|integration/slices|integration/sources|integration/envs|outputs)'
 
 [tool.isort]
 profile = "black"
 skip_gitignore = true
 skip = ["__snapshots__"]
-skip_glob=["tests/integration/slices/*", "tests/integration/sources/*", "tests/integration/envs/*"]
+skip_glob=["tests/integration/slices/*", "tests/integration/sources/*", "tests/integration/envs/*", "tests/outputs/*"]
 line_length = 79
 
 [tool.coverage.run]
@@ -19,7 +19,7 @@ relative_files = true
 
 [tool.mypy]
 
-exclude = '(/__snapshots__/|sliced_housing_dag.py|tutorials/.*|integration/slices/.*|integration/sources/.*|integration/envs/.*)$'
+exclude = '(/__snapshots__/|sliced_housing_dag.py|tutorials/.*|integration/slices/.*|integration/sources/.*|integration/envs/.*|/outputs/)$'
 
 # https://docs.sqlalchemy.org/en/14/orm/extensions/mypy.html
 # https://pydantic-docs.helpmanual.io/mypy_plugin/#enabling-the-plugin

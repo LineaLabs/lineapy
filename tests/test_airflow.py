@@ -5,7 +5,7 @@ import pytest
 
 
 @pytest.mark.slow
-def test_slice_airflow(python_snapshot, airflow_plugin):
+def test_slice_airflow(airflow_plugin):
     """
     Test the slice produced by airflow plugin against a snapshot.
     """
@@ -13,14 +13,16 @@ def test_slice_airflow(python_snapshot, airflow_plugin):
         ["p value"],
         "sliced_housing_simple",
         "",
-        output_dir="__snapshots__/test_airflow",
+        output_dir="outputs/generated",
     )
-    assert (
-        python_snapshot
-        == pathlib.Path(
-            "__snapshots__/test_airflow/sliced_housing_simple.py"
-        ).read_text()
-    )
+    for file_endings in [".py", "_dag.py", "_Dockerfile", "_requirements.txt"]:
+        path = pathlib.Path(
+            "outputs/generated/sliced_housing_simple" + file_endings
+        )
+        path_expected = pathlib.Path(
+            "outputs/expected/sliced_housing_simple" + file_endings
+        )
+        assert path.read_text() == path_expected.read_text()
 
 
 @pytest.mark.slow
@@ -32,14 +34,16 @@ def test_multiple_slices_airflow(python_snapshot, airflow_plugin):
         ["p value", "y"],
         "sliced_housing_multiple",
         "",
-        output_dir="__snapshots__/test_airflow",
+        output_dir="outputs/generated",
     )
-    assert (
-        python_snapshot
-        == pathlib.Path(
-            "__snapshots__/test_airflow/sliced_housing_multiple.py"
-        ).read_text()
-    )
+    for file_endings in [".py", "_dag.py", "_Dockerfile", "_requirements.txt"]:
+        path = pathlib.Path(
+            "outputs/generated/sliced_housing_multiple" + file_endings
+        )
+        path_expected = pathlib.Path(
+            "outputs/expected/sliced_housing_multiple" + file_endings
+        )
+        assert path.read_text() == path_expected.read_text()
 
 
 @pytest.mark.slow
@@ -53,18 +57,24 @@ def test_multiple_slices_airflow_with_task_dependencies(
         ["p value", "y"],
         "sliced_housing_multiple_w_dependencies",
         "'p value' >> 'y'",
-        output_dir="__snapshots__/test_airflow",
+        output_dir="outputs/generated",
     )
-    assert (
-        python_snapshot
-        == pathlib.Path(
-            "__snapshots__/test_airflow/sliced_housing_multiple_w_dependencies.py"
-        ).read_text()
-    )
+
+    for file_endings in [".py", "_dag.py", "_Dockerfile", "_requirements.txt"]:
+        path = pathlib.Path(
+            "outputs/generated/sliced_housing_multiple_w_dependencies"
+            + file_endings
+        )
+        path_expected = pathlib.Path(
+            "outputs/expected/sliced_housing_multiple_w_dependencies"
+            + file_endings
+        )
+        assert path.read_text() == path_expected.read_text()
 
 
 @pytest.mark.airflow
 @pytest.mark.slow
+@pytest.mark.skip
 def test_run_airflow(virtualenv, tmp_path):
     """
     Verifies that the "--airflow" CLI command produces a working Airflow DAG
@@ -85,8 +95,8 @@ def test_run_airflow(virtualenv, tmp_path):
         [
             "cp",
             "-f",
-            "tests/__snapshots__/test_airflow/sliced_housing_simple_dag.py",
-            "tests/__snapshots__/test_airflow/sliced_housing_simple.py",
+            "tests/outputs/generated/sliced_housing_simple_dag.py",
+            "tests/outputs/generated/sliced_housing_simple.py",
             "tests/ames_train_cleaned.csv",
             str(dags_home),
         ]
