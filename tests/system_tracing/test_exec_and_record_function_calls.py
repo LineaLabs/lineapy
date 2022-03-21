@@ -419,6 +419,15 @@ class ContextManager:
             ],
             id="WITH_EXCEPT_START",
         ),
+        pytest.param(
+            "x, y = z",
+            {"z": [1, 2]},
+            [
+                FunctionCall(iter, [[1, 2]], res=is_list_iter),
+                FunctionCall(next, [is_list_iter], res=1),
+                FunctionCall(next, [is_list_iter], res=2),
+            ],
+        ),
     ],
 )
 def test_exec_and_record_function_calls(
