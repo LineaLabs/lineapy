@@ -113,9 +113,11 @@ NOT_FUNCTION_CALLS = {
     "LOAD_BUILD_CLASS",
     "STORE_NAME",
     "DELETE_NAME",
-    #
+    "STORE_GLOBAL",
+    "DELETE_GLOBAL",
     "LOAD_CONST",
     "LOAD_NAME",
+    #
     "JUMP_ABSOLUTE",
     "POP_BLOCK",
     "SETUP_LOOP",
@@ -324,6 +326,45 @@ def resolve_bytecode_execution(
                 yield FunctionCall(operator.getitem, [unpacked, i], res=v)
 
         return callback
+
+    if name == "STORE_ATTR":
+        # Implements ``TOS.name = TOS1``, where *namei* is the index of name in
+        # `co_names`.
+        return FunctionCall(setattr, [stack[-1], value, stack[-2]])
+    if name == "DELETE_ATTR":
+        # Implements ``del TOS.name``, using *namei* as index into :attr:`co_names`.
+        return FunctionCall(delattr, [stack[-1], value])
+
+    if name in {"BUILD_TUPLE", "BUILD_LIST", "BUILD_SET"}:
+        # Creates a tuple consuming *count* items from the stack, and pushes the
+        # resulting tuple onto the stack.
+        from lineapy.utils.lineabuiltins import l_list, l_set, l_tuple
+
+        INSTRUCTION_TO_FN = {
+            "BUILD_TUPLE": l_tuple,
+            "BUILD_LIST": l_list,
+            "BUILD_SET": l_set,
+        }
+        fn = INSTRUCTION_TO_FN[name]
+
+        args = [stack[-i - 1] for i in range(value)]
+        args.reverse()
+        return lambda post_stack, stack_offset: FunctionCall(
+            fn, args, res=post_stack[-1]
+        )
+
+    if name == "BUILD_MAP":
+        #    Pushes a new dictionary object onto the stack.  Pops ``2 * count`` items
+        #    so that the dictionary holds *count* entries:
+        #    ``{..., TOS3: TOS2, TOS1: TOS}``.
+        from lineapy.utils.lineabuiltins import l_dict, l_tuple
+
+        args = [(stack[-i * 2 - 2], stack[-i * 2 - 1]) for i in range(value)]
+        args.reverse()
+
+        return lambda post_stack, stack_offset: [
+            FunctionCall(l_tuple, [k, v], res=(k, v)) for k, v in args
+        ] + [FunctionCall(l_dict, args, res=post_stack[-1])]
     # TODO: Add support for more bytecode operations.
     # Adding in sequence from dis docs in Python.
 
@@ -345,41 +386,6 @@ def resolve_bytecode_execution(
             FunctionCall(enter_fn, [], res=post_stack[-1]),
         ]
 
-    if name == "BUILD_LIST":
-        # Works as `BUILD_TUPLE`, but creates a list.
-        from lineapy.utils.lineabuiltins import l_list
-
-        if value:
-            raise NotImplementedError
-
-        args = [stack[-i - 1] for i in range(value)]
-        return lambda post_stack, stack_offset: FunctionCall(
-            l_list, args, res=post_stack[-1]
-        )
-    if name == "BUILD_SET":
-        # Works as `BUILD_TUPLE`, but creates a set.
-        from lineapy.utils.lineabuiltins import l_set
-
-        if value:
-            raise NotImplementedError
-
-        args = [stack[-i - 1] for i in range(value)]
-        return lambda post_stack, stack_offset: FunctionCall(
-            l_set, args, res=post_stack[-1]
-        )
-    if name == "BUILD_MAP":
-        #    Pushes a new dictionary object onto the stack.  Pops ``2 * count`` items
-        #    so that the dictionary holds *count* entries:
-        #    ``{..., TOS3: TOS2, TOS1: TOS}``.
-        from lineapy.utils.lineabuiltins import l_dict
-
-        if value:
-            raise NotImplementedError
-
-        # args = [stack[-i - 1] for i in range(value)]
-        return lambda post_stack, stack_offset: FunctionCall(
-            l_dict, [], res=post_stack[-1]
-        )
     if name == "CALL_FUNCTION":
         # Calls a callable object with positional arguments.
         # *argc* indicates the number of positional arguments.

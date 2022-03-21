@@ -2,7 +2,7 @@ import operator
 from collections import Counter
 from dataclasses import dataclass
 from tempfile import NamedTemporaryFile
-from types import FunctionType, TracebackType
+from types import FunctionType, SimpleNamespace, TracebackType
 from typing import Any, List, Set
 
 import numpy
@@ -16,6 +16,7 @@ from lineapy.utils.lineabuiltins import (
     l_dict,
     l_list,
     l_set,
+    l_tuple,
     l_unpack_ex,
     l_unpack_sequence,
 )
@@ -456,6 +457,40 @@ class ContextManager:
                 ),
             ],
             id="UNPACK_EX",
+        ),
+        pytest.param(
+            "x.y = z",
+            {"x": SimpleNamespace(), "z": 10},
+            [FunctionCall(setattr, [SimpleNamespace(y=10), "y", 10])],
+            id="STORE_ATTR",
+        ),
+        pytest.param(
+            "[x, y]",
+            {"x": 1, "y": 2},
+            [FunctionCall(l_list, [1, 2], res=[1, 2])],
+            id="BUILD_LIST",
+        ),
+        pytest.param(
+            "(x, y)",
+            {"x": 1, "y": 2},
+            [FunctionCall(l_tuple, [1, 2], res=(1, 2))],
+            id="BUILD_TUPLE",
+        ),
+        pytest.param(
+            "{x, y}",
+            {"x": 1, "y": 2},
+            [FunctionCall(l_set, [1, 2], res={1, 2})],
+            id="BUILD_SET",
+        ),
+        pytest.param(
+            "{a: b, c: d}",
+            {"a": 1, "b": 2, "c": 1, "d": 4},
+            [
+                FunctionCall(l_tuple, [1, 2], res=(1, 2)),
+                FunctionCall(l_tuple, [1, 4], res=(1, 4)),
+                FunctionCall(l_dict, [(1, 2), (1, 4)], res={1: 4}),
+            ],
+            id="BUILD_MAP",
         ),
     ],
 )

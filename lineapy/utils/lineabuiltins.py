@@ -30,7 +30,6 @@ if sys.version_info >= (3, 8):
         def __name__(self) -> str:
             ...
 
-
 else:
 
     class HasName:
@@ -48,7 +47,6 @@ if sys.version_info >= (3, 8):
     def register(b: "HAS_NAME") -> "HAS_NAME":
         _builtins.append(b)
         return b
-
 
 else:
 
@@ -98,7 +96,7 @@ def l_dict(
     For example, if the user creates a dict like ``{1: 2, **d, 3: 4}``,
     then it will create a call like::
 
-    __build_dict__((1, 2), (__build_dict_kwargs_sentinel__(), d), (3, 4))
+    l_dict((1, 2), (l_dict_kwargs_sentinel(), d), (3, 4))
 
     We use a sentinel value instead of None, because None can be a valid
     dictionary key.
