@@ -18,7 +18,7 @@ repos:
         name: isort
         entry: isort .
         language: python
-        additional_dependencies: ["isort==5.10.0"]
+        additional_dependencies: ["isort==5.10.1"]
         types: [python]
         pass_filenames: false
   - repo: local
@@ -37,7 +37,7 @@ repos:
         name: mypy
         entry: mypy .
         language: python
-        additional_dependencies: ["mypy==0.931", "SQLAlchemy==1.4.28", "sqlalchemy[mypy]",
-                                  "mypy-extensions==0.4.3", "pydantic==1.8.2", "types-PyYAML"]
+        additional_dependencies: ["mypy==0.931", "SQLAlchemy==1.4.29", "sqlalchemy[mypy]",
+                                  "mypy-extensions==0.4.3", "pydantic==1.9.0", "types-PyYAML"]
         types: [python]
         pass_filenames: false
