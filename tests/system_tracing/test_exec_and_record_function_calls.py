@@ -10,7 +10,7 @@ from lineapy.system_tracing.exec_and_record_function_calls import (
     exec_and_record_function_calls,
 )
 from lineapy.system_tracing.function_call import FunctionCall
-from lineapy.utils.lineabuiltins import l_set
+from lineapy.utils.lineabuiltins import l_dict, l_list, l_set
 from tests.util import EqualsArray, IsInstance, IsMethod
 
 is_list_iter = IsInstance(type(iter([])))
@@ -283,6 +283,49 @@ class IMatMul(EqualsArray):
                 ),
             ],
             id="SET_ADD",
+        ),
+        pytest.param(
+            "[x for x in y]",
+            {"y": [1, 2]},
+            [
+                FunctionCall(iter, [[1, 2]], {}, is_list_iter),
+                FunctionCall(l_list, [], res=[1, 2]),
+                # First iteration
+                FunctionCall(next, [is_list_iter], {}, 1),
+                FunctionCall(
+                    getattr, [[1, 2], "append"], res=IsMethod([1, 2].append)
+                ),
+                FunctionCall(IsMethod([1, 2].append), [1]),
+                # Second iteration
+                FunctionCall(next, [is_list_iter], {}, 2),
+                FunctionCall(
+                    getattr, [[1, 2], "append"], res=IsMethod([1, 2].append)
+                ),
+                FunctionCall(IsMethod([1, 2].append), [2]),
+                # This last call is to the function made internally by Python for the list iterator
+                FunctionCall(
+                    IsInstance(FunctionType), [is_list_iter], res=[1, 2]
+                ),
+            ],
+            id="LIST_APPEND",
+        ),
+        pytest.param(
+            "{x: x + 1 for x in y}",
+            {"y": [1]},
+            [
+                # Setup
+                FunctionCall(iter, [[1]], {}, is_list_iter),
+                FunctionCall(l_dict, [], res={1: 2}),
+                # Iteration
+                FunctionCall(next, [is_list_iter], {}, 1),
+                FunctionCall(operator.add, [1, 1], res=2),
+                FunctionCall(operator.setitem, [{1: 2}, 1, 2]),
+                # Cleanup
+                FunctionCall(
+                    IsInstance(FunctionType), [is_list_iter], res={1: 2}
+                ),
+            ],
+            id="MAP_ADD",
         ),
     ],
 )

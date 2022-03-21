@@ -3,6 +3,7 @@ from __future__ import annotations
 import operator
 from dataclasses import InitVar, dataclass, field
 from dis import Instruction, get_instructions
+from sys import version_info
 from types import CodeType
 from typing import Any, Callable, Dict, Iterable, List, Set, Union
 
@@ -224,15 +225,63 @@ def resolve_bytecode_execution(
             FunctionCall(getattr, [set_, "add"], res=method),
             FunctionCall(method, [arg]),
         ]
+    if name == "LIST_APPEND":
+        # Calls `list.append(TOS1[-i], TOS)`.  Used to implement list comprehensions.
+        list_ = stack[-value - 1]
+        arg = stack[-1]
+        method = getattr(list_, "append")
+        return [
+            FunctionCall(getattr, [list_, "append"], res=method),
+            FunctionCall(method, [arg]),
+        ]
+    if name == "MAP_ADD":
+        #  Calls `dict.__setitem__(TOS1[-i], TOS1, TOS)`.  Used to implement dict comprehensions.
+        dict_ = stack[-value - 2]
+        # Version 3.8:  Map value is TOS and map key is TOS1. Before, those were reversed.
+        if version_info >= (3, 8):
+            key = stack[-2]
+            value = stack[-1]
+        else:
+            key = stack[-1]
+            value = stack[-2]
+        return FunctionCall(operator.setitem, [dict_, key, value])
 
     # TODO: Add support for more bytecode operations.
     # Adding in sequence from dis docs in Python.
+    if name == "BUILD_LIST":
+        # Works as `BUILD_TUPLE`, but creates a list.
+        from lineapy.utils.lineabuiltins import l_list
+
+        if value:
+            raise NotImplementedError
+
+        args = [stack[-i - 1] for i in range(value)]
+        return lambda post_stack, stack_offset: FunctionCall(
+            l_list, args, res=post_stack[-1]
+        )
     if name == "BUILD_SET":
+        # Works as `BUILD_TUPLE`, but creates a set.
         from lineapy.utils.lineabuiltins import l_set
+
+        if value:
+            raise NotImplementedError
 
         args = [stack[-i - 1] for i in range(value)]
         return lambda post_stack, stack_offset: FunctionCall(
             l_set, args, res=post_stack[-1]
+        )
+    if name == "BUILD_MAP":
+        #    Pushes a new dictionary object onto the stack.  Pops ``2 * count`` items
+        #    so that the dictionary holds *count* entries:
+        #    ``{..., TOS3: TOS2, TOS1: TOS}``.
+        from lineapy.utils.lineabuiltins import l_dict
+
+        if value:
+            raise NotImplementedError
+
+        # args = [stack[-i - 1] for i in range(value)]
+        return lambda post_stack, stack_offset: FunctionCall(
+            l_dict, [], res=post_stack[-1]
         )
     if name == "CALL_FUNCTION":
         # Calls a callable object with positional arguments.
