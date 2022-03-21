@@ -1,6 +1,8 @@
 import operator
 from collections import Counter
-from types import FunctionType
+from dataclasses import dataclass
+from tempfile import NamedTemporaryFile
+from types import FunctionType, TracebackType
 from typing import Any, List, Set
 
 import numpy
@@ -15,6 +17,7 @@ from tests.util import EqualsArray, IsInstance, IsMethod
 
 is_list_iter = IsInstance(type(iter([])))
 set_: Set[None] = set()
+opened_file = open(NamedTemporaryFile().name, "w")
 
 
 class IMatMul(EqualsArray):
@@ -25,6 +28,31 @@ class IMatMul(EqualsArray):
     def __imatmul__(self, other: Any):
         self.array = self.array @ other
         return self
+
+
+@dataclass
+class DummyContextManager:
+    """
+    Context manager which will stop exception from being propogated and return the value
+    """
+
+    value: object
+
+    def __enter__(self):
+        return self.value
+
+    def __exit__(self, *args):
+        # Silence excpetion raised
+        return True
+
+
+context_manager = DummyContextManager(100)
+
+
+@dataclass
+class ContextManager:
+
+    pass
 
 
 @pytest.mark.parametrize(
@@ -326,6 +354,70 @@ class IMatMul(EqualsArray):
                 ),
             ],
             id="MAP_ADD",
+        ),
+        pytest.param(
+            "with x: pass",
+            {"x": opened_file},
+            [
+                # Lookup exit method
+                FunctionCall(
+                    getattr,
+                    [opened_file, "__exit__"],
+                    {},
+                    opened_file.__exit__,
+                ),
+                # Enter
+                FunctionCall(
+                    getattr,
+                    [opened_file, "__enter__"],
+                    {},
+                    opened_file.__enter__,
+                ),
+                FunctionCall(opened_file.__enter__, [], {}, opened_file),
+                # Exit
+                FunctionCall(opened_file.__exit__, [None, None, None]),
+            ],
+            id="SETUP_WITH",
+        ),
+        pytest.param(
+            "with x: raise NotImplementedError()",
+            {"x": context_manager},
+            [
+                # Lookup exit method
+                FunctionCall(
+                    getattr,
+                    [context_manager, "__exit__"],
+                    {},
+                    context_manager.__exit__,
+                ),
+                # Enter
+                FunctionCall(
+                    getattr,
+                    [context_manager, "__enter__"],
+                    {},
+                    context_manager.__enter__,
+                ),
+                FunctionCall(
+                    context_manager.__enter__, [], {}, context_manager.value
+                ),
+                # Exception
+                FunctionCall(
+                    NotImplementedError,
+                    res=IsInstance(NotImplementedError),
+                ),
+                # Exit
+                FunctionCall(
+                    context_manager.__exit__,
+                    [
+                        NotImplementedError,
+                        IsInstance(NotImplementedError),
+                        IsInstance(TracebackType),
+                    ],
+                    {},
+                    True,
+                ),
+            ],
+            id="WITH_EXCEPT_START",
         ),
     ],
 )

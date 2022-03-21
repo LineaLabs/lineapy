@@ -102,10 +102,16 @@ NOT_FUNCTION_CALLS = {
     "POP_TOP",
     "COPY",
     "SWAP",
+    "RETURN_VALUE",
+    "YIELD_VALUE",
+    "YIELD_FROM",
+    "SETUP_ANNOTATIONS",
+    "POP_BLOCK",
+    "POP_EXCEPT",
+    "RERAISE",
     #
     "LOAD_CONST",
     "LOAD_NAME",
-    "RETURN_VALUE",
     "STORE_NAME",
     "JUMP_ABSOLUTE",
     "POP_BLOCK",
@@ -113,6 +119,10 @@ NOT_FUNCTION_CALLS = {
     "MAKE_FUNCTION",
     "LOAD_FAST",
     "STORE_FAST",
+    "DUP_TOP",
+    "JUMP_FORWARD",
+    "POP_JUMP_IF_TRUE",
+    "RAISE_VARARGS",
 }
 # TODO: When seeing most recent value, check stack we are in.
 
@@ -154,6 +164,11 @@ BINARY_OPERATIONS = {
     "INPLACE_XOR": operator.ixor,
     "INPLACE_OR": operator.ior,
 }
+
+##
+# Defer supprting imports until after imports are turned into call nodes
+##
+# IMPORT_STARIMPORT_STAR
 
 ##
 # Generator functions not supported
@@ -245,9 +260,36 @@ def resolve_bytecode_execution(
             key = stack[-1]
             value = stack[-2]
         return FunctionCall(operator.setitem, [dict_, key, value])
+    if name == "WITH_EXCEPT_START":
+        # Calls the function in position 7 on the stack with the top three
+        # items on the stack as arguments.
+        # Used to implement the call ``context_manager.__exit__(*exc_info())`` when an exception
+        # has occurred in a :keyword:`with` statement.
+        fn = stack[-7]
+        args = [stack[-1], stack[-2], stack[-3]]
+        return lambda post_stack, _: FunctionCall(fn, args, res=post_stack[-1])
 
     # TODO: Add support for more bytecode operations.
     # Adding in sequence from dis docs in Python.
+
+    if name == "SETUP_WITH":
+        # This opcode performs several operations before a with block starts.  First,
+        # it loads `__exit__` from the context manager and pushes it onto
+        # the stack for later use by `WITH_EXCEPT_START`.  Then,
+        # `__enter__` is called, and a finally block pointing to *delta*
+        # is pushed.  Finally, the result of calling the ``__enter__()`` method is pushed onto
+        # the stack.  The next opcode will either ignore it (`POP_TOP`), or
+        # store it in (a) variable(s) (`STORE_FAST`, `STORE_NAME`, or
+        # `UNPACK_SEQUENCE`).
+        x = stack[-1]
+        # The __enter__ bound method is never saved to the stack, so we recompute it to save in the function call
+        enter_fn = getattr(x, "__enter__")
+        return lambda post_stack, _: [
+            FunctionCall(getattr, [x, "__exit__"], res=post_stack[-2]),
+            FunctionCall(getattr, [x, "__enter__"], res=enter_fn),
+            FunctionCall(enter_fn, [], res=post_stack[-1]),
+        ]
+
     if name == "BUILD_LIST":
         # Works as `BUILD_TUPLE`, but creates a list.
         from lineapy.utils.lineabuiltins import l_list
