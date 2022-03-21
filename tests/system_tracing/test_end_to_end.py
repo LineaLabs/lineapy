@@ -4,6 +4,7 @@ and then to see the results.
 """
 
 
+from tempfile import NamedTemporaryFile
 from typing import Dict, Tuple
 
 import pytest
@@ -13,6 +14,8 @@ from lineapy.execution.globals_dict import GlobalsDict
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.execution.side_effects import (
     ID,
+    ImplicitDependencyNode,
+    MutatedNode,
     SideEffects,
     Variable,
     ViewOfNodes,
@@ -23,6 +26,7 @@ from lineapy.system_tracing.exec_and_record_function_calls import (
 from lineapy.system_tracing.function_calls_to_side_effects import (
     function_calls_to_side_effects,
 )
+from lineapy.utils.lineabuiltins import file_system
 
 
 @pytest.mark.parametrize(
@@ -41,6 +45,26 @@ from lineapy.system_tracing.function_calls_to_side_effects import (
             # y and xs should be views of each other, since y was derived from xs
             [ViewOfNodes([ID(LineaID("xs_id")), Variable("y")])],
             id="list comprehension view",
+        ),
+        pytest.param(
+            f"with open({repr(NamedTemporaryFile().name)}, 'w') as f: pass",
+            {},
+            [
+                ImplicitDependencyNode(file_system),
+                ViewOfNodes([Variable("f"), file_system]),
+            ],
+            id="with statement",
+        ),
+        pytest.param(
+            f"with open({repr(NamedTemporaryFile().name)}, 'w') as f: f.write('hi')",
+            {},
+            [
+                ImplicitDependencyNode(file_system),
+                ViewOfNodes([Variable("f"), file_system]),
+                MutatedNode(file_system),
+            ],
+            id="with statement write",
+            marks=pytest.mark.xfail(),
         ),
     ],
 )
