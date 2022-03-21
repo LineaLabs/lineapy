@@ -117,6 +117,10 @@ NOT_FUNCTION_CALLS = {
     "DELETE_GLOBAL",
     "LOAD_CONST",
     "LOAD_NAME",
+    "BUILD_STRING",
+    "END_FINALLY",
+    "WITH_CLEANUP_FINISH",
+    "WITH_CLEANUP_START",
     #
     "JUMP_ABSOLUTE",
     "POP_BLOCK",
@@ -195,6 +199,12 @@ BINARY_OPERATIONS = {
 # MATCH_SEQUENCE
 # MATCH_KEYS
 
+##
+# Not sure when these appear
+##
+# BUILD_CONST_KEY_MAP
+# LIST_TO_TUPLE
+
 
 def resolve_bytecode_execution(
     name: str, value: Any, stack: OpStack, offset: int
@@ -246,23 +256,11 @@ def resolve_bytecode_execution(
         return FunctionCall(operator.delitem, [stack[-2], stack[-1]])
     if name == "SET_ADD":
         # Calls ``set.add(TOS1[-i], TOS)``.  Used to implement set comprehensions.
-        set_ = stack[-value - 1]
-        arg = stack[-1]
-        method = getattr(set_, "add")
-        # Translate method call to getitem followed by function call, to match AST behavior
-        return [
-            FunctionCall(getattr, [set_, "add"], res=method),
-            FunctionCall(method, [arg]),
-        ]
+        return FunctionCall(getattr(stack[-value - 1], "add"), [stack[-1]])
     if name == "LIST_APPEND":
         # Calls `list.append(TOS1[-i], TOS)`.  Used to implement list comprehensions.
-        list_ = stack[-value - 1]
-        arg = stack[-1]
-        method = getattr(list_, "append")
-        return [
-            FunctionCall(getattr, [list_, "append"], res=method),
-            FunctionCall(method, [arg]),
-        ]
+        return FunctionCall(getattr(stack[-value - 1], "append"), [stack[-1]])
+
     if name == "MAP_ADD":
         #  Calls `dict.__setitem__(TOS1[-i], TOS1, TOS)`.  Used to implement dict comprehensions.
         dict_ = stack[-value - 2]
@@ -365,6 +363,9 @@ def resolve_bytecode_execution(
         return lambda post_stack, stack_offset: [
             FunctionCall(l_tuple, [k, v], res=(k, v)) for k, v in args
         ] + [FunctionCall(l_dict, args, res=post_stack[-1])]
+
+    if name == "LIST_EXTEND":
+        return FunctionCall(getattr(stack[-value - 1], "extend"), [stack[-1]])
     # TODO: Add support for more bytecode operations.
     # Adding in sequence from dis docs in Python.
 
@@ -379,12 +380,9 @@ def resolve_bytecode_execution(
         # `UNPACK_SEQUENCE`).
         x = stack[-1]
         # The __enter__ bound method is never saved to the stack, so we recompute it to save in the function call
-        enter_fn = getattr(x, "__enter__")
-        return lambda post_stack, _: [
-            FunctionCall(getattr, [x, "__exit__"], res=post_stack[-2]),
-            FunctionCall(getattr, [x, "__enter__"], res=enter_fn),
-            FunctionCall(enter_fn, [], res=post_stack[-1]),
-        ]
+        return lambda post_stack, _: FunctionCall(
+            getattr(x, "__enter__"), [], res=post_stack[-1]
+        )
 
     if name == "CALL_FUNCTION":
         # Calls a callable object with positional arguments.

@@ -310,7 +310,6 @@ class ContextManager:
                 FunctionCall(iter, [[1]], {}, is_list_iter),
                 FunctionCall(l_set, [], res={1}),
                 FunctionCall(next, [is_list_iter], {}, 1),
-                FunctionCall(getattr, [{1}, "add"], res=IsMethod({1}.add)),
                 FunctionCall(IsMethod({1}.add), [1]),
                 # This last call is to the function made internally by Python for the list iterator
                 FunctionCall(
@@ -327,15 +326,9 @@ class ContextManager:
                 FunctionCall(l_list, [], res=[1, 2]),
                 # First iteration
                 FunctionCall(next, [is_list_iter], {}, 1),
-                FunctionCall(
-                    getattr, [[1, 2], "append"], res=IsMethod([1, 2].append)
-                ),
                 FunctionCall(IsMethod([1, 2].append), [1]),
                 # Second iteration
                 FunctionCall(next, [is_list_iter], {}, 2),
-                FunctionCall(
-                    getattr, [[1, 2], "append"], res=IsMethod([1, 2].append)
-                ),
                 FunctionCall(IsMethod([1, 2].append), [2]),
                 # This last call is to the function made internally by Python for the list iterator
                 FunctionCall(
@@ -366,22 +359,7 @@ class ContextManager:
             "with x: pass",
             {"x": opened_file},
             [
-                # Lookup exit method
-                FunctionCall(
-                    getattr,
-                    [opened_file, "__exit__"],
-                    {},
-                    opened_file.__exit__,
-                ),
-                # Enter
-                FunctionCall(
-                    getattr,
-                    [opened_file, "__enter__"],
-                    {},
-                    opened_file.__enter__,
-                ),
                 FunctionCall(opened_file.__enter__, [], {}, opened_file),
-                # Exit
                 FunctionCall(opened_file.__exit__, [None, None, None]),
             ],
             id="SETUP_WITH",
@@ -390,20 +368,7 @@ class ContextManager:
             "with x: raise NotImplementedError()",
             {"x": context_manager},
             [
-                # Lookup exit method
-                FunctionCall(
-                    getattr,
-                    [context_manager, "__exit__"],
-                    {},
-                    context_manager.__exit__,
-                ),
                 # Enter
-                FunctionCall(
-                    getattr,
-                    [context_manager, "__enter__"],
-                    {},
-                    context_manager.__enter__,
-                ),
                 FunctionCall(
                     context_manager.__enter__, [], {}, context_manager.value
                 ),
@@ -491,6 +456,15 @@ class ContextManager:
                 FunctionCall(l_dict, [(1, 2), (1, 4)], res={1: 4}),
             ],
             id="BUILD_MAP",
+        ),
+        pytest.param(
+            "[1, *x]",
+            {"x": [2]},
+            [
+                FunctionCall(l_list, [1], res=[1, 2]),
+                FunctionCall(IsMethod([1, 2].extend), [[2]]),
+            ],
+            id="LIST_EXTEND",
         ),
     ],
 )
