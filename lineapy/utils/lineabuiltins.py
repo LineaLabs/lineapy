@@ -109,6 +109,11 @@ def l_tuple(*items) -> tuple:
 
 
 @register
+def l_set(*items) -> set:
+    return set(items)
+
+
+@register
 def l_assert(v: object, message: Optional[str] = None) -> None:
     if message is None:
         assert v

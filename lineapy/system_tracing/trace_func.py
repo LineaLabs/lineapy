@@ -4,7 +4,7 @@ import operator
 from dataclasses import InitVar, dataclass, field
 from dis import Instruction, get_instructions
 from types import CodeType
-from typing import Callable, Dict, Iterable, List, Optional, Set, Union
+from typing import Any, Callable, Dict, Iterable, List, Set, Union
 
 from lineapy.system_tracing._op_stack import OpStack
 from lineapy.system_tracing.function_call import FunctionCall
@@ -12,8 +12,8 @@ from lineapy.system_tracing.function_call import FunctionCall
 # This callback is saved when we have an operator that had some function call. We need to defer some of the processing until the next bytecode instruction loads,
 # So that at the point, the return value will be in the stack and we can look at it.
 # Called with the opstack and the next instruction offset
-ReturnValueCallback = Optional[
-    Callable[[OpStack, int], Optional[FunctionCall]]
+ReturnValueCallback = Callable[
+    [OpStack, int], Union[FunctionCall, None, Iterable[FunctionCall]]
 ]
 
 
@@ -29,9 +29,11 @@ class TraceFunc:
         CodeType, Dict[int, Instruction]
     ] = field(init=False)
 
-    # If set, then the previous bytecode instruction had a function call, and during the next call, we should call
+    # If set for the code object, then the previous bytecode instruction in the frame for that code object had a function call, and during the next call, we should call
     # this function with the current stack to get the FunctionCall result.
-    return_value_callback: ReturnValueCallback = field(default=None)
+    code_to_return_value_callback: Dict[CodeType, ReturnValueCallback] = field(
+        default_factory=dict
+    )
 
     def __post_init__(self, code):
         self.code_to_offset_to_instruction = {
@@ -60,11 +62,16 @@ class TraceFunc:
 
         # If during last instruction we had some function call that needs a return value, trigger the callback with the current
         # stack, so it can get the return value.
-        if self.return_value_callback:
-            function_call = self.return_value_callback(op_stack, frame.f_lasti)
-            if function_call:
+        if frame.f_code in self.code_to_return_value_callback:
+            return_value_callback = self.code_to_return_value_callback[
+                frame.f_code
+            ]
+            function_call = return_value_callback(op_stack, frame.f_lasti)
+            if isinstance(function_call, FunctionCall):
                 self.function_calls.append(function_call)
-            self.return_value_callback = None
+            elif function_call:
+                self.function_calls.extend(function_call)
+            del self.code_to_return_value_callback[frame.f_code]
 
         # Check if the current operation is a function call
         try:
@@ -76,10 +83,14 @@ class TraceFunc:
             possible_function_call = None
         # If resolving the function call needs to be deferred until after we have the return value, save teh callback
         if callable(possible_function_call):
-            self.return_value_callback = possible_function_call
+            self.code_to_return_value_callback[
+                frame.f_code
+            ] = possible_function_call
         # Otherwise, if we could resolve it fully now, add that to our function call
-        elif possible_function_call:
+        elif isinstance(possible_function_call, FunctionCall):
             self.function_calls.append(possible_function_call)
+        elif possible_function_call:
+            self.function_calls.extend(possible_function_call)
 
         return self
 
@@ -98,7 +109,11 @@ NOT_FUNCTION_CALLS = {
     "JUMP_ABSOLUTE",
     "POP_BLOCK",
     "SETUP_LOOP",
+    "MAKE_FUNCTION",
+    "LOAD_FAST",
+    "STORE_FAST",
 }
+# TODO: When seeing most recent value, check stack we are in.
 
 UNARY_OPERATORS = {
     "UNARY_POSITIVE": operator.pos,
@@ -106,8 +121,6 @@ UNARY_OPERATORS = {
     "UNARY_NOT": operator.not_,
     "UNARY_INVERT": operator.inv,
     "GET_ITER": iter,
-    # Generators not supported
-    # GET_YIELD_FROM_ITER
 }
 
 BINARY_OPERATIONS = {
@@ -141,27 +154,48 @@ BINARY_OPERATIONS = {
     "INPLACE_OR": operator.ior,
 }
 
+##
+# Generator functions not supported
+##
+
+# GET_YIELD_FROM_ITER
+# GET_AWAITABLE
+# GET_AITER
+# GET_ANEXT
+# END_ASYNC_FOR
+# BEFORE_ASYNC_WITH
+
 
 def resolve_bytecode_execution(
-    name: str, value: object, stack: OpStack, offset: int
-) -> Union[ReturnValueCallback, FunctionCall]:
+    name: str, value: Any, stack: OpStack, offset: int
+) -> Union[Iterable[FunctionCall], ReturnValueCallback, FunctionCall, None]:
     """
     Returns a function call corresponding to the bytecode executing on the current stack.
     """
     if name in NOT_FUNCTION_CALLS:
         return None
     if name in UNARY_OPERATORS:
+        # Unary operations take the top of the stack, apply the operation, and push the
+        # result back on the stack.
         args = [stack[-1]]
         return lambda post_stack, _: FunctionCall(
             UNARY_OPERATORS[name], args, {}, post_stack[-1]
         )
     if name in BINARY_OPERATIONS:
+        # Binary operations remove the top of the stack (TOS) and the second top-most
+        # stack item (TOS1) from the stack.  They perform the operation, and put the
+        # result back on the stack.
         args = [stack[-2], stack[-1]]
         return lambda post_stack, _: FunctionCall(
             BINARY_OPERATIONS[name], args, {}, post_stack[-1]
         )
     if name == "FOR_ITER":
+        # TOS is an `iterator`.  Call its `__next__` method.  If
+        # this yields a new value, push it on the stack (leaving the iterator below
+        # it).  If the iterator indicates it is exhausted, TOS is popped, and the byte
+        # code counter is incremented by *delta*.
         args = [stack[-1]]
+
         # If the current instruction is the next one (i.e. the offset has increased by 2), then we didn't jump,
         # meaning the iterator was not exhausted. Otherwise, we did jump, and it was, so don't add a function call for this.
         # TODO: We don't support function calls which end in exceptions currently, if/when we do, we need to update this
@@ -172,7 +206,47 @@ def resolve_bytecode_execution(
             if post_offset == offset + 2
             else None
         )
-    # TODO: Add support for more bytecode operations!
+    if name == "STORE_SUBSCR":
+        # Implements ``TOS1[TOS] = TOS2``.
+        return FunctionCall(
+            operator.setitem, [stack[-2], stack[-1], stack[-3]]
+        )
+    if name == "DELETE_SUBSCR":
+        # Implements ``del TOS1[TOS]``.
+        return FunctionCall(operator.delitem, [stack[-2], stack[-1]])
+    if name == "SET_ADD":
+        # Calls ``set.add(TOS1[-i], TOS)``.  Used to implement set comprehensions.
+        set_ = stack[-value - 1]
+        arg = stack[-1]
+        method = getattr(set_, "add")
+        # Translate method call to getitem followed by function call, to match AST behavior
+        return [
+            FunctionCall(getattr, [set_, "add"], res=method),
+            FunctionCall(method, [arg]),
+        ]
+
+    # TODO: Add support for more bytecode operations.
+    # Adding in sequence from dis docs in Python.
+    if name == "BUILD_SET":
+        from lineapy.utils.lineabuiltins import l_set
+
+        args = [stack[-i - 1] for i in range(value)]
+        return lambda post_stack, stack_offset: FunctionCall(
+            l_set, args, res=post_stack[-1]
+        )
+    if name == "CALL_FUNCTION":
+        # Calls a callable object with positional arguments.
+        # *argc* indicates the number of positional arguments.
+        # The top of the stack contains positional arguments, with the right-most
+        # argument on top.  Below the arguments is a callable object to call.
+        # `CALL_FUNCTION` pops all arguments and the callable object off the stack,
+        # calls the callable object with those arguments, and pushes the return value
+        # returned by the callable object.
+        args = list(reversed([stack[-i - 1] for i in range(value)]))
+        fn = stack[-value - 1]
+        return lambda post_stack, stack_offset: FunctionCall(
+            fn, args, res=post_stack[-1]
+        )
     raise NotImplementedError()
 
 

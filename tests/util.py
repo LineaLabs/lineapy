@@ -3,6 +3,7 @@ import sys
 from ast import AST, dump
 from dataclasses import dataclass
 from os import remove
+from typing import Callable
 
 import numpy
 import numpy.typing
@@ -81,6 +82,31 @@ class IsInstance:
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, self.tp)
+
+    # Add method so that mypy allows it as a callable
+    def __call__(self, *args, **kwds):
+        raise NotImplementedError()
+
+
+@dataclass
+class IsMethod:
+    """
+    Used in the tests so we can make sure a value is a bound method function.
+    """
+
+    method: Callable
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, type(self.method)):
+            return False
+        return (
+            self.method.__name__ == other.__name__  # type: ignore
+            and (self.method.__self__) == other.__self__  # type: ignore
+        )
+
+    # Add method so that mypy allows it as a callable
+    def __call__(self, *args, **kwds):
+        raise NotImplementedError()
 
 
 @dataclass

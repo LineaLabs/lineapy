@@ -1,7 +1,7 @@
 import operator
 from collections import Counter
-from dataclasses import dataclass
-from typing import Any, List
+from types import FunctionType
+from typing import Any, List, Set
 
 import numpy
 import pytest
@@ -10,9 +10,11 @@ from lineapy.system_tracing.exec_and_record_function_calls import (
     exec_and_record_function_calls,
 )
 from lineapy.system_tracing.function_call import FunctionCall
-from tests.util import EqualsArray, IsInstance
+from lineapy.utils.lineabuiltins import l_set
+from tests.util import EqualsArray, IsInstance, IsMethod
 
 is_list_iter = IsInstance(type(iter([])))
+set_: Set[None] = set()
 
 
 class IMatMul(EqualsArray):
@@ -250,6 +252,37 @@ class IMatMul(EqualsArray):
             {"x": 5, "y": 2},
             [FunctionCall(operator.ior, [5, 2], {}, 7)],
             id="INPLACE_OR",
+        ),
+        ##
+        # Other inplace args
+        ##
+        pytest.param(
+            "x[y] = z",
+            {"x": {}, "y": 1, "z": 2},
+            [FunctionCall(operator.setitem, [{1: 2}, 1, 2])],
+            id="STORE_SUBSCR",
+        ),
+        pytest.param(
+            "del x[y]",
+            {"x": {1: 2}, "y": 1},
+            [FunctionCall(operator.delitem, [{}, 1])],
+            id="DELETE_SUBSCR",
+        ),
+        pytest.param(
+            "{x for x in y}",
+            {"y": [1]},
+            [
+                FunctionCall(iter, [[1]], {}, is_list_iter),
+                FunctionCall(l_set, [], res={1}),
+                FunctionCall(next, [is_list_iter], {}, 1),
+                FunctionCall(getattr, [{1}, "add"], res=IsMethod({1}.add)),
+                FunctionCall(IsMethod({1}.add), [1]),
+                # This last call is to the function made internally by Python for the list iterator
+                FunctionCall(
+                    IsInstance(FunctionType), [is_list_iter], res={1}
+                ),
+            ],
+            id="SET_ADD",
         ),
     ],
 )

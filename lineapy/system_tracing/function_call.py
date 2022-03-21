@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Dict, List
 
 
@@ -11,6 +11,6 @@ class FunctionCall:
     """
 
     fn: Callable
-    args: List[object]
-    kwargs: Dict[str, object]
-    res: object
+    args: List[object] = field(default_factory=list)
+    kwargs: Dict[str, object] = field(default_factory=dict)
+    res: object = field(default=None)
