@@ -104,15 +104,15 @@ def save(reference: object, name: str) -> LineaArtifact:
         name=name,
         version=linea_artifact.version,
     ):
-        db.write_artifact(
-            Artifact(
-                node_id=value_node_id,
-                execution_id=execution_id,
-                date_created=datetime.now(),
-                name=name,
-                version=linea_artifact.version,
-            )
+        artifact_to_write = Artifact(
+            node_id=value_node_id,
+            execution_id=execution_id,
+            date_created=datetime.now(),
+            name=name,
+            version=linea_artifact.version,
         )
+        db.write_artifact(artifact_to_write)
+        linea_artifact.date_created = artifact_to_write.date_created
 
     return linea_artifact
 
@@ -172,6 +172,7 @@ def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:
         node_id=artifact.node_id,
         session_id=artifact.node.session_id,
         name=artifact_name,
+        date_created=artifact.date_created,
     )
     # doing this thing because we dont initialize the version when defining LineaArtifact
     if artifact.version:

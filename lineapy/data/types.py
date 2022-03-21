@@ -143,7 +143,7 @@ class Artifact(BaseModel):
     execution_id: LineaID
 
     date_created: datetime.datetime
-    name: Optional[str]
+    name: str
     version: Optional[str]
 
     class Config:

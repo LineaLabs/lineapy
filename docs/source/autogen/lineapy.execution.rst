@@ -28,6 +28,12 @@ lineapy.execution.inspect\_function module
 .. automodule:: lineapy.execution.inspect_function
    :members:
 
+lineapy.execution.side\_effects module
+--------------------------------------
+
+.. automodule:: lineapy.execution.side_effects
+   :members:
+
 Module contents
 ---------------
 

@@ -58,6 +58,8 @@ from lineapy.utils.lineabuiltins import (
     l_exec_expr,
     l_exec_statement,
     l_list,
+    l_unpack_ex,
+    l_unpack_sequence,
 )
 from lineapy.utils.utils import get_new_id
 
@@ -373,26 +375,28 @@ class NodeTransformer(ast.NodeTransformer):
           not an assignment, so we might need to change the return signature
           from ast.Expr.
         """
-        assert len(node.targets) == 1
-        target = node.targets[0]
-        # handle special case of assigning aliases e.g. x = y
-        if isinstance(target, ast.Name) and isinstance(node.value, ast.Name):
-            value_node = self.visit(node.value)
-            new_node = self.tracer.call(
-                self.tracer.lookup_node(l_alias.__name__),
-                self.get_source(node),
-                value_node,
-            )
-            self.tracer.assign(
-                target.id,
-                new_node,
-            )
-        else:
-            self.visit_assign_value(
-                target,
-                self.visit(node.value),
-                self.get_source(node),
-            )
+        # target assignments are handled from left to right in Python
+        # x = y = z -> x = z, y = z
+        for target in node.targets:
+            # handle special case of assigning aliases e.g. x = y
+            if isinstance(target, ast.Name) and isinstance(
+                node.value, ast.Name
+            ):
+                new_node = self.tracer.call(
+                    self.tracer.lookup_node(l_alias.__name__),
+                    self.get_source(node),
+                    self.visit(node.value),
+                )
+                self.tracer.assign(
+                    target.id,
+                    new_node,
+                )
+            else:
+                self.visit_assign_value(
+                    target,
+                    self.visit(node.value),
+                    self.get_source(node),
+                )
 
     def visit_assign_value(
         self,
@@ -404,13 +408,11 @@ class NodeTransformer(ast.NodeTransformer):
         Visits assigning a target node to a value. This is extracted out of
         visit_assign, so we can call it multiple times and pass in the value as a node,
         instead of as AST, when we are assigning to a tuple.
-
         Assign currently special cases for:
         - Subscript, e.g., `ls[0] = 1`
         - Constant, e.g., `a = 1`
         - Call, e.g., `a = foo()`
         """
-
         if isinstance(target, ast.Subscript):
             index = target.slice
             # note: isinstance(index, ast.List) only works for pandas,
@@ -432,21 +434,49 @@ class NodeTransformer(ast.NodeTransformer):
                 self.visit(ast.Constant(target.attr)),
                 value_node,
             )
-        elif isinstance(target, ast.Tuple):
-            # Assigning to a tuple of values, is like indexing the value
+        elif isinstance(target, ast.List) or isinstance(target, ast.Tuple):
+            # Assigning to a tuple or list of values, is like indexing the value
             # and then assigning to each.
-            # Technically, its unpacking the sequence and setting it to each,
-            # but for now we just index and hope that all values we are assigning
-            # to multiple values can be indexed.
+            if any(
+                isinstance(target_el, ast.Starred) for target_el in target.elts
+            ):
+                # count number of elements before and after the Starred item
+                before = 0
+                for target_el in target.elts:
+                    if isinstance(target_el, ast.Starred):
+                        break
+                    else:
+                        before += 1
+                after = len(target.elts) - before - 1
+                # get a proper unpacked list of CallNode
+                unpacked_nodes = self.tracer.call(
+                    self.tracer.lookup_node(l_unpack_ex.__name__),
+                    source_location,
+                    value_node,
+                    self.tracer.literal(before),
+                    self.tracer.literal(after),
+                )
+            else:
+                # get a proper unpacked list of CallNode
+                unpacked_nodes = self.tracer.call(
+                    self.tracer.lookup_node(l_unpack_sequence.__name__),
+                    source_location,
+                    value_node,
+                    self.tracer.literal(len(target.elts)),
+                )
+            # visit all elements of the new list
             for i, target_el in enumerate(target.elts):
+                if isinstance(target_el, ast.Starred):
+                    target_el = target_el.value
                 self.visit_assign_value(
                     target_el,
                     self.tracer.call(
                         self.tracer.lookup_node(GET_ITEM),
-                        None,
-                        value_node,
+                        source_location,
+                        unpacked_nodes,
                         self.tracer.literal(i),
                     ),
+                    source_location,
                 )
         elif isinstance(target, ast.Name):
             variable_name = target.id
