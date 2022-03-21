@@ -5,7 +5,7 @@ from dataclasses import InitVar, dataclass, field
 from dis import Instruction, get_instructions
 from sys import version_info
 from types import CodeType
-from typing import Any, Callable, Dict, Iterable, List, Set, Union
+from typing import Any, Callable, Dict, Iterable, List, Set, Tuple, Union
 
 from lineapy.system_tracing._op_stack import OpStack
 from lineapy.system_tracing.function_call import FunctionCall
@@ -121,16 +121,30 @@ NOT_FUNCTION_CALLS = {
     "END_FINALLY",
     "WITH_CLEANUP_FINISH",
     "WITH_CLEANUP_START",
-    #
-    "JUMP_ABSOLUTE",
-    "POP_BLOCK",
-    "SETUP_LOOP",
-    "MAKE_FUNCTION",
-    "LOAD_FAST",
-    "STORE_FAST",
-    "DUP_TOP",
     "JUMP_FORWARD",
     "POP_JUMP_IF_TRUE",
+    "POP_JUMP_IF_FALSE",
+    "JUMP_IF_NOT_EXC_MATCH",
+    "JUMP_IF_TRUE_OR_POP",
+    "JUMP_IF_FALSE_OR_POP",
+    "JUMP_ABSOLUTE",
+    "LOAD_GLOBAL",
+    "SETUP_FINALLY" "LOAD_FAST",
+    "STORE_FAST",
+    "DELETE_FAST",
+    "LOAD_CLOSURE",
+    "LOAD_DEREF",
+    "LOAD_CLASSDEREF",
+    "STORE_DEREF",
+    "DELETE_DEREF",
+    "RAISE_VARARGS",
+    "LOAD_METHOD",
+    "MAKE_FUNCTION",
+    #
+    "LOAD_FAST",
+    "POP_BLOCK",
+    "SETUP_LOOP",
+    "DUP_TOP",
     "RAISE_VARARGS",
 }
 # TODO: When seeing most recent value, check stack we are in.
@@ -174,10 +188,28 @@ BINARY_OPERATIONS = {
     "INPLACE_OR": operator.ior,
 }
 
+# Maybe of string compare ops, from dis.cmp_op, to operator
+COMPARE_OPS: Dict[str, Callable] = {
+    "<": operator.lt,
+    "<=": operator.le,
+    "==": operator.eq,
+    "!=": operator.neg,
+    ">": operator.gt,
+    ">=": operator.ge,
+}
+
+
+##
+# CALL_FUNCTION_EX is not supported, since we don't know all the args the function is called with, because we can't
+# safely iterate through the args
+##
+
 ##
 # Defer supprting imports until after imports are turned into call nodes
 ##
 # IMPORT_STARIMPORT_STAR
+# IMPORT_NAME
+# IMPORT_FROM
 
 ##
 # Generator functions not supported
@@ -204,6 +236,7 @@ BINARY_OPERATIONS = {
 ##
 # BUILD_CONST_KEY_MAP
 # LIST_TO_TUPLE
+# DICT_MERGE
 
 
 def resolve_bytecode_execution(
@@ -366,6 +399,101 @@ def resolve_bytecode_execution(
 
     if name == "LIST_EXTEND":
         return FunctionCall(getattr(stack[-value - 1], "extend"), [stack[-1]])
+
+    if name == "SET_UPDATE":
+        return FunctionCall(getattr(stack[-value - 1], "update"), [stack[-1]])
+
+    if name == "DICT_UPDATE":
+        return FunctionCall(getattr(stack[-value - 1], "update"), [stack[-1]])
+
+    if name == "LOAD_ATTR":
+        o = stack[-1]
+        return lambda post_stack, _: FunctionCall(
+            getattr, [o, value], res=post_stack[-1]
+        )
+
+    if name == "COMPARE_OP":
+        args = [stack[-2], stack[-1]]
+        return lambda post_stack, _: FunctionCall(
+            COMPARE_OPS[value], args, res=post_stack[-1]
+        )
+
+    if name == "IS_OP":
+        args = [stack[-2], stack[-1]]
+        return lambda post_stack, _: FunctionCall(
+            operator.is_, args, res=post_stack[-1]
+        )
+    if name == "CONTAINS_OP":
+        args = [stack[-1], stack[-2]]
+        return lambda post_stack, _: FunctionCall(
+            operator.contains, args, res=post_stack[-1]
+        )
+    if name == "CALL_FUNCTION":
+        # Calls a callable object with positional arguments.
+        # *argc* indicates the number of positional arguments.
+        # The top of the stack contains positional arguments, with the right-most
+        # argument on top.  Below the arguments is a callable object to call.
+        # `CALL_FUNCTION` pops all arguments and the callable object off the stack,
+        # calls the callable object with those arguments, and pushes the return value
+        # returned by the callable object.
+        args = list(reversed([stack[-i - 1] for i in range(value)]))
+        fn = stack[-value - 1]
+        return lambda post_stack, _: FunctionCall(fn, args, res=post_stack[-1])
+
+    if name == "CALL_FUNCTION_KW":
+        # Calls a callable object with positional (if any) and keyword arguments.
+        # *argc* indicates the total number of positional and keyword arguments.
+        # The top element on the stack contains a tuple with the names of the
+        # keyword arguments, which must be strings.
+        # Below that are the values for the keyword arguments,
+        # in the order corresponding to the tuple.
+        # Below that are positional arguments, with the right-most parameter on
+        # top.  Below the arguments is a callable object to call.
+        # ``CALL_FUNCTION_KW`` pops all arguments and the callable object off the stack,
+        # calls the callable object with those arguments, and pushes the return value
+        # returned by the callable object.
+        kwarg_names: Tuple[str, ...] = stack[-1]
+        n_kwargs = len(kwarg_names)
+        kwargs = {
+            k: stack[-i - 2] for i, k in enumerate(reversed(kwarg_names))
+        }
+        args = [stack[-i - 2] for i in reversed(range(n_kwargs, value))]
+        fn = stack[-value - 2]
+        return lambda post_stack, _: FunctionCall(
+            fn, args, kwargs, post_stack[-1]
+        )
+
+    if name == "CALL_METHOD":
+        # Calls a method.  *argc* is the number of positional arguments.
+        # Keyword arguments are not supported.  This opcode is designed to be used
+        # with `LOAD_METHOD`.  Positional arguments are on top of the stack.
+        # Below them, the two items described in `LOAD_METHOD` are on the
+        # stack (either ``self`` and an unbound method object or ``NULL`` and an
+        # arbitrary callable). All of them are popped and the return value is pushed.
+
+        args = list(reversed([stack[-i - 1] for i in range(value)]))
+        self_ = stack[-value - 1]
+        try:
+            method = stack[-value - 2]
+        # This is raised when it is NULL
+        except ValueError:
+            fn = self_
+        else:
+            fn = getattr(self_, method.__name__)
+        return lambda post_stack, _: FunctionCall(fn, args, res=post_stack[-1])
+
+    if name == "BUILD_SLICE":
+        # Pushes a slice object on the stack.  *argc* must be 2 or 3.  If it is 2,
+        # ``slice(TOS1, TOS)`` is pushed; if it is 3, ``slice(TOS2, TOS1, TOS)`` is
+        # pushed. See the :func:`slice` built-in function for more information.
+        if value == 2:
+            args = [stack[-2], stack[-1]]
+        else:
+            args = [stack[-3], stack[-2], stack[-1]]
+        return lambda post_stack, _: FunctionCall(
+            slice, args, res=post_stack[-1]
+        )
+
     # TODO: Add support for more bytecode operations.
     # Adding in sequence from dis docs in Python.
 
@@ -384,19 +512,6 @@ def resolve_bytecode_execution(
             getattr(x, "__enter__"), [], res=post_stack[-1]
         )
 
-    if name == "CALL_FUNCTION":
-        # Calls a callable object with positional arguments.
-        # *argc* indicates the number of positional arguments.
-        # The top of the stack contains positional arguments, with the right-most
-        # argument on top.  Below the arguments is a callable object to call.
-        # `CALL_FUNCTION` pops all arguments and the callable object off the stack,
-        # calls the callable object with those arguments, and pushes the return value
-        # returned by the callable object.
-        args = list(reversed([stack[-i - 1] for i in range(value)]))
-        fn = stack[-value - 1]
-        return lambda post_stack, stack_offset: FunctionCall(
-            fn, args, res=post_stack[-1]
-        )
     raise NotImplementedError()
 
 

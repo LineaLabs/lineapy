@@ -37,6 +37,13 @@ class IMatMul(EqualsArray):
         return self
 
 
+def create_list(a, b, c, d):
+    """
+    Function for testing kwargs
+    """
+    return [a, b, c, d]
+
+
 @dataclass
 class DummyContextManager:
     """
@@ -54,6 +61,9 @@ class DummyContextManager:
 
 
 context_manager = DummyContextManager(100)
+
+
+method_property = SimpleNamespace(a=lambda: 10)
 
 
 @dataclass
@@ -465,6 +475,100 @@ class ContextManager:
                 FunctionCall(IsMethod([1, 2].extend), [[2]]),
             ],
             id="LIST_EXTEND",
+        ),
+        pytest.param(
+            "{*x}",
+            {"x": [2]},
+            [
+                FunctionCall(l_set, [], res={2}),
+                FunctionCall(IsMethod({2}.update), [[2]]),
+            ],
+            id="SET_UPDATE",
+        ),
+        pytest.param(
+            "{**x}",
+            {"x": {1: 2}},
+            [
+                FunctionCall(l_dict, [], res={1: 2}),
+                FunctionCall(IsMethod({1: 2}.update), [{1: 2}]),
+            ],
+            id="DICT_UPDATE",
+        ),
+        pytest.param(
+            "x > y",
+            {"x": 3, "y": 1},
+            [
+                FunctionCall(operator.gt, [3, 1], res=True),
+            ],
+            id="COMPARE_OP",
+        ),
+        pytest.param(
+            "x is y",
+            {"x": 3, "y": 1},
+            [
+                FunctionCall(operator.is_, [3, 1], res=False),
+            ],
+            id="IS_OP",
+        ),
+        pytest.param(
+            "x in y",
+            {"x": 3, "y": [1]},
+            [
+                FunctionCall(operator.contains, [[1], 3], res=False),
+            ],
+            id="CONTAINS_OP",
+        ),
+        pytest.param(
+            "f(1, 2)",
+            {"f": operator.add},
+            [
+                FunctionCall(operator.add, [1, 2], res=3),
+            ],
+            id="CALL_FUNCTION",
+        ),
+        pytest.param(
+            "f(1, 2, c=3, d=4)",
+            {"f": create_list},
+            [
+                FunctionCall(
+                    create_list, [1, 2], {"c": 3, "d": 4}, res=[1, 2, 3, 4]
+                ),
+            ],
+            id="CALL_FUNCTION_KW",
+        ),
+        pytest.param(
+            "f.a()",
+            {"f": method_property},
+            [FunctionCall(method_property.a, res=10)],
+            id="CALL_METHOD function",
+        ),
+        pytest.param(
+            "f.append(10)",
+            {"f": []},
+            [FunctionCall(IsMethod([10].append), [10])],
+            id="CALL_METHOD method",
+        ),
+        pytest.param(
+            "x[0:2]",
+            {"x": [1, 2]},
+            [
+                FunctionCall(slice, [0, 2], res=slice(0, 2)),
+                FunctionCall(
+                    operator.getitem, [[1, 2], slice(0, 2)], res=[1, 2]
+                ),
+            ],
+            id="BUILD_SLICE 2",
+        ),
+        pytest.param(
+            "x[0:2:2]",
+            {"x": [1, 2]},
+            [
+                FunctionCall(slice, [0, 2, 2], res=slice(0, 2, 2)),
+                FunctionCall(
+                    operator.getitem, [[1, 2], slice(0, 2, 2)], res=[1]
+                ),
+            ],
+            id="BUILD_SLICE 3",
         ),
     ],
 )
