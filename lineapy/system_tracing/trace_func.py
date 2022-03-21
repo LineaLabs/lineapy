@@ -43,6 +43,7 @@ class TraceFunc:
         }
 
     def __call__(self, frame, event, arg):
+        code = frame.f_code
         # Exit early if the code object for this frame is not one of the code objects we want to trace
         if frame.f_code not in self.code_to_offset_to_instruction:
             return self
@@ -53,26 +54,27 @@ class TraceFunc:
         if event != "opcode":
             return self
 
+        offset = frame.f_lasti
         # Lookup the instruction we currently have based on the code object as well as the offset in that object
-        instruction = self.code_to_offset_to_instruction[frame.f_code][
-            frame.f_lasti
-        ]
+        instruction = self.code_to_offset_to_instruction[code][offset]
+        # We want to see the name and the arg for the actual instruction, not the arg, so increment until we get to that
+        while instruction.opname == "EXTENDED_ARG":
+            offset += 2
+            instruction = self.code_to_offset_to_instruction[code][offset]
 
         # Create an op stack around the frame so we can access the stack
         op_stack = OpStack(frame)
 
         # If during last instruction we had some function call that needs a return value, trigger the callback with the current
         # stack, so it can get the return value.
-        if frame.f_code in self.code_to_return_value_callback:
-            return_value_callback = self.code_to_return_value_callback[
-                frame.f_code
-            ]
+        if code in self.code_to_return_value_callback:
+            return_value_callback = self.code_to_return_value_callback[code]
             function_call = return_value_callback(op_stack, frame.f_lasti)
             if isinstance(function_call, FunctionCall):
                 self.function_calls.append(function_call)
             elif function_call:
                 self.function_calls.extend(function_call)
-            del self.code_to_return_value_callback[frame.f_code]
+            del self.code_to_return_value_callback[code]
 
         # Check if the current operation is a function call
         try:
@@ -84,9 +86,7 @@ class TraceFunc:
             possible_function_call = None
         # If resolving the function call needs to be deferred until after we have the return value, save teh callback
         if callable(possible_function_call):
-            self.code_to_return_value_callback[
-                frame.f_code
-            ] = possible_function_call
+            self.code_to_return_value_callback[code] = possible_function_call
         # Otherwise, if we could resolve it fully now, add that to our function call
         elif isinstance(possible_function_call, FunctionCall):
             self.function_calls.append(possible_function_call)
@@ -109,10 +109,13 @@ NOT_FUNCTION_CALLS = {
     "POP_BLOCK",
     "POP_EXCEPT",
     "RERAISE",
+    "LOAD_ASSERTION_ERROR",
+    "LOAD_BUILD_CLASS",
+    "STORE_NAME",
+    "DELETE_NAME",
     #
     "LOAD_CONST",
     "LOAD_NAME",
-    "STORE_NAME",
     "JUMP_ABSOLUTE",
     "POP_BLOCK",
     "SETUP_LOOP",
@@ -180,6 +183,15 @@ BINARY_OPERATIONS = {
 # GET_ANEXT
 # END_ASYNC_FOR
 # BEFORE_ASYNC_WITH
+
+##
+# Python 3.10 ops not supported
+##
+# COPY_DICT_WITHOUT_KEYS
+# GET_LEN
+# MATCH_MAPPING
+# MATCH_SEQUENCE
+# MATCH_KEYS
 
 
 def resolve_bytecode_execution(
@@ -269,6 +281,49 @@ def resolve_bytecode_execution(
         args = [stack[-1], stack[-2], stack[-3]]
         return lambda post_stack, _: FunctionCall(fn, args, res=post_stack[-1])
 
+    if name == "UNPACK_SEQUENCE":
+        # Unpacks TOS into *count* individual values, which are put onto the stack
+        # right-to-left.
+        from lineapy.utils.lineabuiltins import l_unpack_sequence
+
+        seq = stack[-1]
+
+        def callback(post_stack: OpStack, _):
+            # Replicate the behavior of using our internal functions for unpacking
+            unpacked = [post_stack[-i - 1] for i in range(value)]
+            yield FunctionCall(l_unpack_sequence, [seq, value], res=unpacked)
+            for i, v in enumerate(unpacked):
+                yield FunctionCall(operator.getitem, [unpacked, i], res=v)
+
+        return callback
+    if name == "UNPACK_EX":
+        # Implements assignment with a starred target: Unpacks an iterable in TOS into
+        # individual values, where the total number of values can be smaller than the
+        # number of items in the iterable: one of the new values will be a list of all
+        # leftover items.
+        #
+        # The low byte of *counts* is the number of values before the list value, the
+        # high byte of *counts* the number of values after it.  The resulting values
+        # are put onto the stack right-to-left.
+
+        from lineapy.utils.lineabuiltins import l_unpack_ex
+
+        seq = stack[-1]
+
+        count_left = value % 256
+        count_right = value >> 8
+
+        def callback(post_stack: OpStack, _):
+            unpacked = [
+                post_stack[-i - 1] for i in range(count_left + count_right + 1)
+            ]
+            yield FunctionCall(
+                l_unpack_ex, [seq, count_left, count_right], res=unpacked
+            )
+            for i, v in enumerate(unpacked):
+                yield FunctionCall(operator.getitem, [unpacked, i], res=v)
+
+        return callback
     # TODO: Add support for more bytecode operations.
     # Adding in sequence from dis docs in Python.
 

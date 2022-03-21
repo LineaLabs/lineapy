@@ -12,7 +12,13 @@ from lineapy.system_tracing.exec_and_record_function_calls import (
     exec_and_record_function_calls,
 )
 from lineapy.system_tracing.function_call import FunctionCall
-from lineapy.utils.lineabuiltins import l_dict, l_list, l_set
+from lineapy.utils.lineabuiltins import (
+    l_dict,
+    l_list,
+    l_set,
+    l_unpack_ex,
+    l_unpack_sequence,
+)
 from tests.util import EqualsArray, IsInstance, IsMethod
 
 is_list_iter = IsInstance(type(iter([])))
@@ -421,12 +427,35 @@ class ContextManager:
         ),
         pytest.param(
             "x, y = z",
-            {"z": [1, 2]},
+            {"z": (1, 2)},
             [
-                FunctionCall(iter, [[1, 2]], res=is_list_iter),
-                FunctionCall(next, [is_list_iter], res=1),
-                FunctionCall(next, [is_list_iter], res=2),
+                FunctionCall(l_unpack_sequence, [(1, 2), 2], res=[1, 2]),
+                FunctionCall(operator.getitem, [[1, 2], 0], res=1),
+                FunctionCall(operator.getitem, [[1, 2], 1], res=2),
             ],
+            id="UNPACK_SEQUENCE",
+        ),
+        pytest.param(
+            "a, *b, c, d = e",
+            {"e": range(6)},
+            [
+                FunctionCall(
+                    l_unpack_ex, [range(6), 1, 2], res=[0, [1, 2, 3], 4, 5]
+                ),
+                FunctionCall(
+                    operator.getitem, [[0, [1, 2, 3], 4, 5], 0], res=0
+                ),
+                FunctionCall(
+                    operator.getitem, [[0, [1, 2, 3], 4, 5], 1], res=[1, 2, 3]
+                ),
+                FunctionCall(
+                    operator.getitem, [[0, [1, 2, 3], 4, 5], 2], res=4
+                ),
+                FunctionCall(
+                    operator.getitem, [[0, [1, 2, 3], 4, 5], 3], res=5
+                ),
+            ],
+            id="UNPACK_EX",
         ),
     ],
 )
