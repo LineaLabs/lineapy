@@ -35,6 +35,13 @@ from lineapy.system_tracing.function_calls_to_side_effects import (
             [ViewOfNodes([ID(LineaID("xs_id")), Variable("x")])],
             id="loop view",
         ),
+        pytest.param(
+            "y = [x for x in xs]",
+            {"xs": ("xs_id", [[10]])},
+            # y and xs should be views of each other, since y was derived from xs
+            [ViewOfNodes([ID(LineaID("xs_id")), Variable("y")])],
+            id="list comprehension view",
+        ),
     ],
 )
 def test_end_to_end(
