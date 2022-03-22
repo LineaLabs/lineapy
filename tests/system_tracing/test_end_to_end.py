@@ -70,7 +70,7 @@ from lineapy.utils.lineabuiltins import file_system
             "x, y = z",
             {"z": ("z_id", [[], ()])},
             [
-                ViewOfNodes([ID(LineaID("z_id")), Variable("x")]),
+                ViewOfNodes([Variable("x"), ID(LineaID("z_id"))]),
             ],
             id="unpacking view",
         ),
