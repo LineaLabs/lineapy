@@ -26,28 +26,27 @@ call_1 = CallNode(
         name="l_list",
     ).id,
 )
-call_2 = CallNode(
-    source_location=SourceLocation(
-        lineno=3,
-        col_offset=0,
-        end_lineno=4,
-        end_col_offset=11,
-        source_code=source_1.id,
-    ),
-    function_id=LookupNode(
-        name="l_exec_statement",
-    ).id,
-    positional_args=[
-        LiteralNode(
-            value="""if True:
-    y = [x]""",
-        ).id
-    ],
-    global_reads={"x": call_1.id},
-)
 global_1 = GlobalNode(
     name="y",
-    call_id=call_2.id,
+    call_id=CallNode(
+        source_location=SourceLocation(
+            lineno=3,
+            col_offset=0,
+            end_lineno=4,
+            end_col_offset=11,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="l_exec_statement",
+        ).id,
+        positional_args=[
+            LiteralNode(
+                value="""if True:
+    y = [x]""",
+            ).id
+        ],
+        global_reads={"x": call_1.id},
+    ).id,
 )
 call_4 = CallNode(
     source_location=SourceLocation(
@@ -88,7 +87,7 @@ call_4 = CallNode(
         ).id
     ],
 )
-mutate_3 = MutateNode(
+mutate_2 = MutateNode(
     source_id=global_1.id,
     call_id=call_4.id,
 )
@@ -131,10 +130,7 @@ call_6 = CallNode(
     ).id,
     positional_args=[
         MutateNode(
-            source_id=MutateNode(
-                source_id=call_1.id,
-                call_id=call_2.id,
-            ).id,
+            source_id=call_1.id,
             call_id=call_4.id,
         ).id,
         LiteralNode(
