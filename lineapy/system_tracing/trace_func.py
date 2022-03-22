@@ -559,7 +559,6 @@ def resolve_bytecode_execution(
             str_ = stack[-1]
 
         which_conversion = cast(int, arg) & 0x03
-        print(arg)
         if which_conversion == 0x00:
             transformed_str = str_
             transform_calls = []
