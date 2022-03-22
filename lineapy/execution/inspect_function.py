@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 import sys
+from collections import defaultdict
 from types import BuiltinMethodType, MethodType
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
@@ -100,8 +101,8 @@ def get_specs() -> Tuple[
     """
     relative_path = "../*.annotations.yaml"
     path = os.path.join(os.path.dirname(__file__), relative_path)
-    valid_specs: Dict[str, List[Annotation]] = {}
-    valid_base_specs: Dict[str, List[Annotation]] = {}
+    valid_specs: Dict[str, List[Annotation]] = defaultdict(list)
+    valid_base_specs: Dict[str, List[Annotation]] = defaultdict(list)
     for filename in glob.glob(path):
         with open(filename, "r") as f:
             doc = yaml.safe_load(f)
@@ -110,9 +111,9 @@ def get_specs() -> Tuple[
                 if v is None:
                     continue
                 if v.module is not None:
-                    valid_specs[v.module] = v.annotations
+                    valid_specs[v.module].extend(v.annotations)
                 elif v.base_module is not None:
-                    valid_base_specs[v.base_module] = v.annotations
+                    valid_base_specs[v.base_module].extend(v.annotations)
     return valid_specs, valid_base_specs
 
 
