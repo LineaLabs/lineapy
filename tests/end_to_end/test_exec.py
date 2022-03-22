@@ -135,3 +135,14 @@ for x in xs:
     res = execute(c, artifacts=["x", "xs"])
     assert res.artifacts["xs"] == c
     assert res.artifacts["x"] == c
+
+
+def test_with_filesystem(execute):
+    """
+    Verifies that writing to the filesytem in a context manager is picked up
+    """
+    c = """from tempfile import TemporaryFile
+with TemporaryFile() as f:
+    f.write('some lines')"""
+    res = execute(c, artifacts=["lineapy.file_system"])
+    assert res.artifacts["lineapy.file_system"] == c
