@@ -6,6 +6,7 @@ import logging
 import operator
 from dataclasses import dataclass, field
 from datetime import datetime
+from itertools import chain
 from os import chdir, getcwd
 from typing import (
     Callable,
@@ -48,7 +49,6 @@ from lineapy.execution.side_effects import (
     ImplicitDependencyNode,
     MutatedNode,
     SideEffect,
-    SideEffects,
     ViewOfNodes,
 )
 from lineapy.instrumentation.annotation_spec import (
@@ -86,7 +86,7 @@ class PrivateExecuteResult:
     value: object
     start_time: datetime
     end_time: datetime
-    side_effects: SideEffects
+    side_effects: Iterable[SideEffect]
 
 
 @dataclass
@@ -163,7 +163,7 @@ class Executor:
 
     def execute_node(
         self, node: Node, variables: Optional[Dict[str, LineaID]] = None
-    ) -> SideEffects:
+    ) -> Iterable[SideEffect]:
         """
         Variables is the mapping from local variable names to their nodes. It
         is passed in on the first execution, but on re-executions it is empty.
@@ -209,8 +209,13 @@ class Executor:
                 # However, don't add any edges for mutate nodes, since
                 # they already should have it from the source
                 if not isinstance(node, MutateNode):
-                    res.side_effects.append(
-                        ImplicitDependencyNode(ID(self._value_to_node[value]))
+                    res.side_effects = chain(
+                        res.side_effects,
+                        [
+                            ImplicitDependencyNode(
+                                ID(self._value_to_node[value])
+                            )
+                        ],
                     )
                 # If this is a mutate node, then update the value to node to the new
                 # value, so we always get the last one
@@ -308,10 +313,22 @@ class Executor:
         self._node_to_globals[node.id] = globals_result.added_or_modified
 
         # Add all side effects from context as well as side effects from inspecting function.
-        side_effects = globals_result.side_effects + [
-            self._translate_side_effect(node, e)
-            for e in self._function_inspector.inspect(fn, args, kwargs, res)
-        ]
+        # Note: this is an iterable, so that each translated side effect is resolved after the previous
+        # one has been executed. This is so that when two implicit dependencies show up in the side effects,
+        # the first is executed, and set in the value_to_node, so that when the second is translated
+        # it is a pointer to that node that was created, instead of a lookup node.
+        # This shows up in the implicit dependencies, so alternatively we could move those to all nodes
+        # so that a lookup node could have an implicit dep on anotehr lookup node, and we would create two nodes
+        # for external state side effects
+        side_effects = chain(
+            globals_result.side_effects,
+            (
+                self._translate_side_effect(node, e)
+                for e in self._function_inspector.inspect(
+                    fn, args, kwargs, res
+                )
+            ),
+        )
 
         return PrivateExecuteResult(res, start_time, end_time, side_effects)
 
