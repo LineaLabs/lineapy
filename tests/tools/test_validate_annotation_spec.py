@@ -27,6 +27,7 @@ def test_validate_specs():
                         json.dumps(item, indent=4)
                     )
                 )
+
                 a = ModuleAnnotation(**item)
                 print(f"Successfully loaded spec {a}.\n")
     return all_valid_specs
