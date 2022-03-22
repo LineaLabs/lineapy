@@ -23,8 +23,8 @@ from lineapy.system_tracing._object_side_effect import (
 from lineapy.utils.lineabuiltins import LINEA_BUILTINS
 
 # Mapping of the ID of each external state object to its pointer
-EXTERNAL_STATE_IDS: Dict[int, ExternalState] = {
-    id(b): b for b in LINEA_BUILTINS.values() if isinstance(b, ExternalState)
+EXTERNAL_STATE_IDS: Dict[int, List[ExecutorPointer]] = {
+    id(b): [b] for b in LINEA_BUILTINS.values() if isinstance(b, ExternalState)
 }
 
 
@@ -46,43 +46,48 @@ def object_side_effects_to_side_effects(
     for object_side_effect in object_side_effects:
         tracker.process_side_effect(object_side_effect)
 
-    # mapping of object ids for the objects we care about, input nodes as well as external state, to the pointer to them
-    object_id_to_pointer: Dict[int, ExecutorPointer] = {
-        id(obj): ID(linea_id) for linea_id, obj in input_nodes.items()
-    }
-    object_id_to_pointer.update(EXTERNAL_STATE_IDS)
+    # mapping of object ids for the objects we care about, input nodes as well as external state, to the pointers to them
+    # One object ID can have multiple pointers, for example, when we have an alias.
+    object_id_to_pointers: Dict[int, List[ExecutorPointer]] = defaultdict(
+        list, EXTERNAL_STATE_IDS
+    )
+    for linea_id, obj in input_nodes.items():
+        object_id_to_pointers[id(obj)].append(ID(LineaID(linea_id)))
 
     # Return all implicit dependencies
     for id_ in tracker.implicit_dependencies:
-        if id_ in object_id_to_pointer:
-            yield ImplicitDependencyNode(object_id_to_pointer[id_])
+        for pointer in object_id_to_pointers[id_]:
+            yield ImplicitDependencyNode(pointer)
 
     # Return all mutated nodes
     for id_ in tracker.mutated:
-        if id_ in object_id_to_pointer:
-            yield MutatedNode(object_id_to_pointer[id_])
+        for pointer in object_id_to_pointers[id_]:
+            yield MutatedNode(pointer)
 
     # Return all views
+
     # For the views, we care about whether they include the ouputs as well, so lets add those to the objects we care about
-    object_id_to_pointer.update(
-        {id(value): Variable(name) for name, value in output_globals.items()}
-    )
+    for name, value in output_globals.items():
+        object_id_to_pointers[id(value)].append(Variable(name))
+
+        # Also add these as empty views, so they are processed if there are are multiple pointers for this id
+        tracker.viewers[id(value)]
     # ID of objects we have already emitted views for
     processed_view_ids: Set[int] = set()
+    # We iterate through all the sets of viewers we have recorded, and for each viewer set, look up all object
+    # pointers related to it and emit a view if we have more than one.
     for id_, views in tracker.viewers.items():
         if id_ in processed_view_ids:
             continue
         processed_view_ids.add(id_)
-        if id_ in object_id_to_pointer:
-            # subset of view that we care about
-            pointers = [object_id_to_pointer[id_]]
-            # Find all the objects that we care about and add them
-            for view_id in views:
-                processed_view_ids.add(view_id)
-                if view_id in object_id_to_pointer:
-                    pointers.append(object_id_to_pointer[view_id])
-            if len(pointers) > 1:
-                yield ViewOfNodes(pointers)
+        # subset of view that we care about
+        pointers = object_id_to_pointers[id_]
+        # Find all the objects that we care about and add them
+        for view_id in views:
+            processed_view_ids.add(view_id)
+            pointers.extend(object_id_to_pointers[view_id])
+        if len(pointers) > 1:
+            yield ViewOfNodes(pointers)
 
 
 @dataclass

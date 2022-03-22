@@ -74,6 +74,14 @@ from lineapy.utils.lineabuiltins import file_system
             ],
             id="unpacking view",
         ),
+        pytest.param(
+            "x = y",
+            {"y": ("y_id", [])},
+            [
+                ViewOfNodes([ID(LineaID("y_id")), Variable("x")]),
+            ],
+            id="alias view",
+        ),
     ],
 )
 def test_end_to_end(
