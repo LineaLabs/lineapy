@@ -13,9 +13,9 @@ on:
     paths:
       - "**.py"
       - "**.ipynb"
-concurrency:
-  group: "${{ github.head_ref || github.ref }}"
-  cancel-in-progress: true
+# concurrency:
+#   group: "${{ github.head_ref || github.ref }}"
+#   cancel-in-progress: true
 jobs:
   pytest:
     runs-on: ubuntu-latest
