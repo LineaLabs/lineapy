@@ -570,11 +570,56 @@ class ContextManager:
             ],
             id="BUILD_SLICE 3",
         ),
+        pytest.param(
+            "f'{x}'",
+            {"x": "x"},
+            [
+                FunctionCall(format, ["x", None], res="x"),
+            ],
+            id="FORMAT_VALUE as-is no spec",
+        ),
+        pytest.param(
+            "f'{x!r}'",
+            {"x": "x"},
+            [
+                FunctionCall(repr, ["x"], res="'x'"),
+                FunctionCall(format, ["'x'", None], res="'x'"),
+            ],
+            id="FORMAT_VALUE repr no spec",
+        ),
+        pytest.param(
+            "f'{x!s}'",
+            {"x": "x"},
+            [
+                FunctionCall(str, ["x"], res="x"),
+                FunctionCall(format, ["x", None], res="x"),
+            ],
+            id="FORMAT_VALUE str no spec",
+        ),
+        pytest.param(
+            "f'{x!a}'",
+            {"x": "x"},
+            [
+                FunctionCall(ascii, ["x"], res="'x'"),
+                FunctionCall(format, ["'x'", None], res="'x'"),
+            ],
+            id="FORMAT_VALUE ascii no spec",
+        ),
+        pytest.param(
+            "f'{x!r:4}'",
+            {"x": "x"},
+            [
+                FunctionCall(repr, ["x"], res="'x'"),
+                FunctionCall(format, ["'x'", "4"], res="'x' "),
+            ],
+            id="FORMAT_VALUE repr spec",
+        ),
     ],
 )
 def test_exec_and_record_function_calls(
     source_code: str, globals_, function_calls: List[FunctionCall]
 ):
+    print(source_code)
     code = compile(source_code, "", "exec")
     trace_fn = exec_and_record_function_calls(code, globals_)
     assert not trace_fn.not_implemented_ops

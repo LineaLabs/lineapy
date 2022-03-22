@@ -5,7 +5,18 @@ from dataclasses import InitVar, dataclass, field
 from dis import Instruction, get_instructions
 from sys import version_info
 from types import CodeType
-from typing import Any, Callable, Dict, Iterable, List, Set, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    cast,
+)
 
 from lineapy.system_tracing._op_stack import OpStack
 from lineapy.system_tracing.function_call import FunctionCall
@@ -79,7 +90,11 @@ class TraceFunc:
         # Check if the current operation is a function call
         try:
             possible_function_call = resolve_bytecode_execution(
-                instruction.opname, instruction.argval, op_stack, frame.f_lasti
+                instruction.opname,
+                instruction.argval,
+                instruction.arg,
+                op_stack,
+                frame.f_lasti,
             )
         except NotImplementedError:
             self.not_implemented_ops.add(instruction.opname)
@@ -100,6 +115,11 @@ class TraceFunc:
 NOT_FUNCTION_CALLS = {
     "NOP",
     "POP_TOP",
+    "ROT_TWO",
+    "ROT_THREE",
+    "ROT_FOUR",
+    "DUP_TOP",
+    "DUP_TOP_TWO",
     "COPY",
     "SWAP",
     "RETURN_VALUE",
@@ -142,12 +162,8 @@ NOT_FUNCTION_CALLS = {
     "RAISE_VARARGS",
     "LOAD_METHOD",
     "MAKE_FUNCTION",
-    #
-    "LOAD_FAST",
-    "POP_BLOCK",
+    "ROT_N",
     "SETUP_LOOP",
-    "DUP_TOP",
-    "RAISE_VARARGS",
 }
 # TODO: When seeing most recent value, check stack we are in.
 
@@ -232,6 +248,9 @@ COMPARE_OPS: Dict[str, Callable] = {
 # MATCH_MAPPING
 # MATCH_SEQUENCE
 # MATCH_KEYS
+# MATCH_CLASS
+# GEN_START
+
 
 ##
 # Not sure when these appear
@@ -242,7 +261,7 @@ COMPARE_OPS: Dict[str, Callable] = {
 
 
 def resolve_bytecode_execution(
-    name: str, value: Any, stack: OpStack, offset: int
+    name: str, value: Any, arg: Optional[int], stack: OpStack, offset: int
 ) -> Union[Iterable[FunctionCall], ReturnValueCallback, FunctionCall, None]:
     """
     Returns a function call corresponding to the bytecode executing on the current stack.
@@ -316,6 +335,21 @@ def resolve_bytecode_execution(
         args = [stack[-1], stack[-2], stack[-3]]
         return lambda post_stack, _: FunctionCall(fn, args, res=post_stack[-1])
 
+    if name == "SETUP_WITH":
+        # This opcode performs several operations before a with block starts.  First,
+        # it loads `__exit__` from the context manager and pushes it onto
+        # the stack for later use by `WITH_EXCEPT_START`.  Then,
+        # `__enter__` is called, and a finally block pointing to *delta*
+        # is pushed.  Finally, the result of calling the ``__enter__()`` method is pushed onto
+        # the stack.  The next opcode will either ignore it (`POP_TOP`), or
+        # store it in (a) variable(s) (`STORE_FAST`, `STORE_NAME`, or
+        # `UNPACK_SEQUENCE`).
+        x = stack[-1]
+        # The __enter__ bound method is never saved to the stack, so we recompute it to save in the function call
+        return lambda post_stack, _: FunctionCall(
+            getattr(x, "__enter__"), [], res=post_stack[-1]
+        )
+
     if name == "UNPACK_SEQUENCE":
         # Unpacks TOS into *count* individual values, which are put onto the stack
         # right-to-left.
@@ -345,8 +379,8 @@ def resolve_bytecode_execution(
 
         seq = stack[-1]
 
-        count_left = value % 256
-        count_right = value >> 8
+        count_left = cast(int, arg) % 256
+        count_right = cast(int, arg) >> 8
 
         def callback(post_stack: OpStack, _):
             unpacked = [
@@ -490,30 +524,67 @@ def resolve_bytecode_execution(
         # pushed. See the :func:`slice` built-in function for more information.
         if value == 2:
             args = [stack[-2], stack[-1]]
-        else:
+        elif value == 3:
             args = [stack[-3], stack[-2], stack[-1]]
+        else:
+            raise NotImplementedError()
+
         return lambda post_stack, _: FunctionCall(
             slice, args, res=post_stack[-1]
         )
+    if name == "FORMAT_VALUE":
+        # Used for implementing formatted literal strings (f-strings).  Pops
+        # an optional *fmt_spec* from the stack, then a required *value*.
+        # *flags* is interpreted as follows:
+        #
+        # * ``(flags & 0x03) == 0x00``: *value* is formatted as-is.
+        # * ``(flags & 0x03) == 0x01``: call :func:`str` on *value* before
+        #     formatting it.
+        # * ``(flags & 0x03) == 0x02``: call :func:`repr` on *value* before
+        #     formatting it.
+        # * ``(flags & 0x03) == 0x03``: call :func:`ascii` on *value* before
+        #     formatting it.
+        # * ``(flags & 0x04) == 0x04``: pop *fmt_spec* from the stack and use
+        #     it, else use an empty *fmt_spec*.
+        #
+        # Formatting is performed using :c:func:`PyObject_Format`.  The
+        # result is pushed on the stack.
+        have_format_spec = (cast(int, arg) & 0x04) == 0x04
 
-    # TODO: Add support for more bytecode operations.
-    # Adding in sequence from dis docs in Python.
+        if have_format_spec:
+            format_spec = stack[-1]
+            str_ = stack[-2]
+        else:
+            format_spec = None
+            str_ = stack[-1]
 
-    if name == "SETUP_WITH":
-        # This opcode performs several operations before a with block starts.  First,
-        # it loads `__exit__` from the context manager and pushes it onto
-        # the stack for later use by `WITH_EXCEPT_START`.  Then,
-        # `__enter__` is called, and a finally block pointing to *delta*
-        # is pushed.  Finally, the result of calling the ``__enter__()`` method is pushed onto
-        # the stack.  The next opcode will either ignore it (`POP_TOP`), or
-        # store it in (a) variable(s) (`STORE_FAST`, `STORE_NAME`, or
-        # `UNPACK_SEQUENCE`).
-        x = stack[-1]
-        # The __enter__ bound method is never saved to the stack, so we recompute it to save in the function call
-        return lambda post_stack, _: FunctionCall(
-            getattr(x, "__enter__"), [], res=post_stack[-1]
+        which_conversion = cast(int, arg) & 0x03
+        print(arg)
+        if which_conversion == 0x00:
+            transformed_str = str_
+            transform_calls = []
+        elif which_conversion == 0x01:
+            transformed_str = str(str_)
+            transform_calls = [FunctionCall(str, [str_], res=transformed_str)]
+        elif which_conversion == 0x02:
+            transformed_str = repr(str_)
+            transform_calls = [FunctionCall(repr, [str_], res=transformed_str)]
+        elif which_conversion == 0x03:
+            transformed_str = ascii(str_)
+            transform_calls = [
+                FunctionCall(ascii, [str_], res=transformed_str)
+            ]
+        else:
+            raise NotImplementedError()
+        return lambda post_stack, _: transform_calls + (
+            [
+                FunctionCall(
+                    format,
+                    [transformed_str, format_spec],
+                    res=post_stack[-1],
+                )
+            ]
         )
-
     raise NotImplementedError()
 
 
