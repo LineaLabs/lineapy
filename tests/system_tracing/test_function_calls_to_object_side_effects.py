@@ -1,3 +1,4 @@
+from tempfile import NamedTemporaryFile
 from typing import List, Set
 
 import pytest
@@ -23,6 +24,9 @@ list_: List[object] = []
 list_of_list = [list_]
 set_: Set[object] = set()
 
+filename = NamedTemporaryFile().name
+opened_file = open(filename, "w")
+
 
 @pytest.mark.parametrize(
     "function_calls,object_side_effects",
@@ -43,8 +47,11 @@ set_: Set[object] = set()
             id="mutated self",
         ),
         pytest.param(
-            [FunctionCall(open, [""], {}, None)],
-            [ImplicitDependencyObject(file_system)],
+            [FunctionCall(open, [filename, "w"], {}, opened_file)],
+            [
+                ImplicitDependencyObject(file_system),
+                ViewOfObjects([opened_file, file_system]),
+            ],
             id="implicit dependency on external state",
         ),
     ],
