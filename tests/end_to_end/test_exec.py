@@ -143,6 +143,7 @@ def test_with_filesystem(execute):
     """
     c = """from tempfile import TemporaryFile
 with TemporaryFile() as f:
-    f.write(b'some lines')"""
+    f.write(b'some lines')
+"""
     res = execute(c, artifacts=["lineapy.file_system"])
     assert res.artifacts["lineapy.file_system"] == c
