@@ -8,6 +8,9 @@ from typing import Any, Iterator, Optional, Sequence, Tuple, Union
 __all__ = ("OpStack",)
 
 
+# TODO: Cleanup file to remove what I don't need
+
+
 class Frame(Structure):
     _fields_: Tuple[Tuple[str, object], ...] = (
         ("ob_refcnt", c_ssize_t),
@@ -50,10 +53,7 @@ class OpStack(Sequence[Any]):
     def __repr__(self) -> str:
         if not self:
             return "<OpStack> (empty)>"
-        return "<OpStack ({})>\n- {}\n".format(
-            len(self),
-            "\n- ".join(repr(o) for o in reversed(self)),
-        )
+        return "<OpStack ({})>".format(len(self))
 
     def __len__(self):
         return self._len

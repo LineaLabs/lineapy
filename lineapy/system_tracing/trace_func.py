@@ -380,19 +380,20 @@ def resolve_bytecode_execution(
         args = [None, None, None]
         try:
             exc = stack[-1]
-        # TOP = None
         except ValueError:
+            exc = None
             fn = stack[-2]
-        else:
-            if isinstance(exc, int):
-                # WHY_RETURN and WHY_CONTINUE
-                if exc in {0x0008, 0x0020}:
-                    fn = stack[-3]
-                else:
-                    fn = stack[-2]
+        if exc is None:
+            fn = stack[-2]
+        elif isinstance(exc, int):
+            # WHY_RETURN and WHY_CONTINUE
+            if exc in {0x0008, 0x0020}:
+                fn = stack[-3]
             else:
-                args = [exc, stack[-2], stack[-3]]
-                fn = stack[-7]
+                fn = stack[-2]
+        else:
+            args = [exc, stack[-2], stack[-3]]
+            fn = stack[-7]
         return lambda post_stack, _: FunctionCall(fn, args, res=post_stack[-1])
     if name == "UNPACK_SEQUENCE":
         # Unpacks TOS into *count* individual values, which are put onto the stack
