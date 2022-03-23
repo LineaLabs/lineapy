@@ -39,7 +39,7 @@ import module
 An import from of an attribute in the module:
 
 ```python
-import attribute from module
+from module import attribute
 ```
 
 Both of these use `importlib` to first get a `module` object. In the case of the first, we then bind that module object to it's name as a local variable. For the second, we bind each attribute as a name, getting that attribute from the module
