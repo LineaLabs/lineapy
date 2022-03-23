@@ -349,6 +349,7 @@ Here I sketch some details of how we could implement most of this:
 ##
 # Linea builtins
 ##
+# Note: this should have annotations added to make the result depend on the base_module arg if provided.
 def l_import(name: str, base_module: types.ModuleType = None) -> types.ModuleType:
     """
     Imports and returns a module. If the base_module is provided, the module
