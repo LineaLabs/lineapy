@@ -23,8 +23,8 @@ from lineapy.system_tracing._object_side_effect import (
 from lineapy.utils.lineabuiltins import LINEA_BUILTINS
 
 # Mapping of the ID of each external state object to its pointer
-EXTERNAL_STATE_IDS: Dict[int, List[ExecutorPointer]] = {
-    id(b): [b] for b in LINEA_BUILTINS.values() if isinstance(b, ExternalState)
+EXTERNAL_STATE_IDS: Dict[int, ExecutorPointer] = {
+    id(b): b for b in LINEA_BUILTINS.values() if isinstance(b, ExternalState)
 }
 
 
@@ -48,9 +48,9 @@ def object_side_effects_to_side_effects(
 
     # mapping of object ids for the objects we care about, input nodes as well as external state, to the pointers to them
     # One object ID can have multiple pointers, for example, when we have an alias.
-    object_id_to_pointers: Dict[int, List[ExecutorPointer]] = defaultdict(
-        list, EXTERNAL_STATE_IDS
-    )
+    object_id_to_pointers: Dict[int, List[ExecutorPointer]] = defaultdict(list)
+    for object_id, pointer in EXTERNAL_STATE_IDS.items():
+        object_id_to_pointers[object_id].append(pointer)
     for linea_id, obj in input_nodes.items():
         object_id_to_pointers[id(obj)].append(ID(LineaID(linea_id)))
 
