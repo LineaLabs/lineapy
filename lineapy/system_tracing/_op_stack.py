@@ -1,17 +1,21 @@
 """
-Modified from https://gist.github.com/crusaderky/cf0575cfeeee8faa1bb1b3480bc4a87a
+Modified from https://gist.github.com/crusaderky/cf0575cfeeee8faa1bb1b3480bc4a87a,
+to remove all feature besides getting items from the top of the stack.
 """
 import sys
-from ctypes import POINTER, Structure, c_ssize_t, c_void_p, py_object, sizeof
+from ctypes import POINTER, Structure, c_ssize_t, c_void_p, py_object
+from types import FrameType
 from typing import Any, Tuple
 
 __all__ = ("OpStack",)
 
 
-# TODO: Cleanup file to remove what I don't need
-
-
 class Frame(Structure):
+    """
+    ctypes Structre (https://docs.python.org/3/library/ctypes.html#structures-and-unions) for a Python frame
+    object, so we can access the top of the stack.
+    """
+
     _fields_: Tuple[Tuple[str, object], ...] = (
         ("ob_refcnt", c_ssize_t),
         ("ob_type", c_void_p),
@@ -26,25 +30,17 @@ class Frame(Structure):
     )
 
 
+# The frame object has additional fields in debug mode
 if sys.flags.debug:
     Frame._fields_ = (
         ("_ob_next", POINTER(py_object)),
         ("_ob_prev", POINTER(py_object)),
     ) + Frame._fields_
 
-PTR_SIZE = sizeof(POINTER(py_object))
-F_VALUESTACK_OFFSET = sizeof(Frame) - 2 * PTR_SIZE
-F_STACKTOP_OFFSET = sizeof(Frame) - PTR_SIZE
-
 
 class OpStack:
-    __slots__ = ("_frame",)
-
-    def __init__(self, frame):
+    def __init__(self, frame: FrameType):
         self._frame = Frame.from_address(id(frame))
-
-    def __repr__(self) -> str:
-        return "<OpStack>"
 
     def __getitem__(self, item: int) -> Any:
         if item < 0:
