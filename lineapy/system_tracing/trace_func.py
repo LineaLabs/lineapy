@@ -138,9 +138,7 @@ NOT_FUNCTION_CALLS = {
     "LOAD_CONST",
     "LOAD_NAME",
     "BUILD_STRING",
-    "END_FINALLY",
     "WITH_CLEANUP_FINISH",
-    "WITH_CLEANUP_START",
     "JUMP_FORWARD",
     "POP_JUMP_IF_TRUE",
     "POP_JUMP_IF_FALSE",
@@ -164,8 +162,9 @@ NOT_FUNCTION_CALLS = {
     "MAKE_FUNCTION",
     "ROT_N",
     "SETUP_LOOP",
+    "END_FINALLY",
+    "POP_FINALLY",
 }
-# TODO: When seeing most recent value, check stack we are in.
 
 UNARY_OPERATORS = {
     "UNARY_POSITIVE": operator.pos,
@@ -214,6 +213,9 @@ COMPARE_OPS: Dict[str, Callable] = {
     "!=": operator.neg,
     ">": operator.gt,
     ">=": operator.ge,
+    # Python 3.7
+    "in": operator.contains,
+    "is": operator.is_,
 }
 
 
@@ -255,6 +257,7 @@ COMPARE_OPS: Dict[str, Callable] = {
 ##
 # Not sure when these appear
 ##
+
 # BUILD_CONST_KEY_MAP
 # LIST_TO_TUPLE
 # DICT_MERGE
@@ -350,6 +353,47 @@ def resolve_bytecode_execution(
             getattr(x, "__enter__"), [], res=post_stack[-1]
         )
 
+    if name == "WITH_CLEANUP_START":
+        # At the top of the stack are 1-6 values indicating
+        # how/why we entered the finally clause:
+        # - TOP = None
+        # - (TOP, SECOND) = (WHY_{RETURN,CONTINUE}), retval
+        # - TOP = WHY_*; no retval below it
+        # - (TOP, SECOND, THIRD) = exc_info()
+        #     (FOURTH, FITH, SIXTH) = previous exception for EXCEPT_HANDLER
+        # Below them is EXIT, the context.__exit__ bound method.
+        # In the last case, we must call
+        #     EXIT(TOP, SECOND, THIRD)
+        # otherwise we must call
+        #     EXIT(None, None, None)
+
+        # In the first three cases, we remove EXIT from the
+        # stack, leaving the rest in the same order.  In the
+        # fourth case, we shift the bottom 3 values of the
+        # stack down, and replace the empty spot with NULL.
+
+        # In addition, if the stack represents an exception,
+        # *and* the function call returns a 'true' value, we
+        # push WHY_SILENCED onto the stack.  END_FINALLY will
+        # then not re-raise the exception.  (But non-local
+        # gotos should still be resumed.)
+        args = [None, None, None]
+        try:
+            exc = stack[-1]
+        # TOP = None
+        except ValueError:
+            fn = stack[-2]
+        else:
+            if isinstance(exc, int):
+                # WHY_RETURN and WHY_CONTINUE
+                if exc in {0x0008, 0x0020}:
+                    fn = stack[-3]
+                else:
+                    fn = stack[-2]
+            else:
+                args = [exc, stack[-2], stack[-3]]
+                fn = stack[-7]
+        return lambda post_stack, _: FunctionCall(fn, args, res=post_stack[-1])
     if name == "UNPACK_SEQUENCE":
         # Unpacks TOS into *count* individual values, which are put onto the stack
         # right-to-left.
@@ -420,11 +464,83 @@ def resolve_bytecode_execution(
             fn, args, res=post_stack[-1]
         )
 
+    if name == "LIST_TO_TUPLE":
+        args = [stack[-1]]
+        return lambda post_stack, stack_offset: FunctionCall(
+            tuple, args, res=post_stack[-1]
+        )
+    # Python < 3.9
+    if name == "BUILD_TUPLE_UNPACK":
+        from lineapy.utils.lineabuiltins import l_list
+
+        # Compiles down to one empty list creation, followed by a number of extends, and then convert to tuple
+        args = [stack[-i - 1] for i in range(value)]
+        args.reverse()
+
+        def callback(post_stack: OpStack, _):
+            intermediate_list = list(post_stack[-1])
+            extend = intermediate_list.extend
+            return [
+                FunctionCall(l_list, res=intermediate_list),
+                *(FunctionCall(extend, [a]) for a in args),
+                FunctionCall(tuple, [intermediate_list], res=post_stack[-1]),
+            ]
+
+        return callback
+
+    if name == "BUILD_LIST_UNPACK":
+
+        # Compiles down to one empty list creation, followed by a number of extends
+        args = [stack[-i - 1] for i in range(value)]
+        args.reverse()
+        return lambda post_stack, stack_offset: [
+            FunctionCall(list, res=post_stack[-1])
+        ] + [
+            FunctionCall(getattr(post_stack[-1], "extend"), [a]) for a in args
+        ]
+    if name == "BUILD_TUPLE_UNPACK":
+
+        # Compiles down to one empty list creation, followed by a number of extends, and then convert to tuple
+        args = [stack[-i - 1] for i in range(value)]
+        args.reverse()
+
+        def callback(post_stack: OpStack, _):
+            intermediate_list = list(post_stack[-1])
+            extend = intermediate_list.extend
+            return [
+                FunctionCall(l_list, res=intermediate_list),
+                *(FunctionCall(extend, [a]) for a in args),
+                FunctionCall(tuple, [intermediate_list], res=post_stack[-1]),
+            ]
+
+        return callback
+    if name == "BUILD_SET_UNPACK":
+        from lineapy.utils.lineabuiltins import l_set
+
+        # Compiles down to one empty set creation, followed by a number of update
+        args = [stack[-i - 1] for i in range(value)]
+        args.reverse()
+        return lambda post_stack, stack_offset: [
+            FunctionCall(l_set, res=post_stack[-1])
+        ] + [
+            FunctionCall(getattr(post_stack[-1], "update"), [a]) for a in args
+        ]
+    if name == "BUILD_MAP_UNPACK":
+        from lineapy.utils.lineabuiltins import l_dict
+
+        # Compiles down to one empty dic creation, followed by a number of extends
+        args = [stack[-i - 1] for i in range(value)]
+        args.reverse()
+        return lambda post_stack, stack_offset: [
+            FunctionCall(l_dict, res=post_stack[-1])
+        ] + [
+            FunctionCall(getattr(post_stack[-1], "update"), [a]) for a in args
+        ]
     if name == "BUILD_MAP":
         #    Pushes a new dictionary object onto the stack.  Pops ``2 * count`` items
         #    so that the dictionary holds *count* entries:
         #    ``{..., TOS3: TOS2, TOS1: TOS}``.
-        from lineapy.utils.lineabuiltins import l_dict, l_tuple
+        from lineapy.utils.lineabuiltins import l_dict, l_tuple  # noqa: F811
 
         args = [(stack[-i * 2 - 2], stack[-i * 2 - 1]) for i in range(value)]
         args.reverse()
@@ -450,6 +566,8 @@ def resolve_bytecode_execution(
 
     if name == "COMPARE_OP":
         args = [stack[-2], stack[-1]]
+        if value == "in":
+            args.reverse()
         return lambda post_stack, _: FunctionCall(
             COMPARE_OPS[value], args, res=post_stack[-1]
         )

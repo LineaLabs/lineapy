@@ -1,6 +1,7 @@
 import operator
 from collections import Counter
 from dataclasses import dataclass
+from sys import version_info
 from tempfile import NamedTemporaryFile
 from types import FunctionType, SimpleNamespace, TracebackType
 from typing import Any, List, Set
@@ -70,6 +71,14 @@ method_property = SimpleNamespace(a=lambda: 10)
 class ContextManager:
 
     pass
+
+
+PYTHON_39 = version_info >= (3, 9)
+
+# # Add this mark to bytecode ops which were removed in 3.9
+# removed_in_39 = pytest.mark.skipif(version_info > (3, 8))
+# # Add this mark to tests for bytecode ops that were added in 3.9
+# added_in_39 = pytest.mark.skipif()
 
 
 @pytest.mark.parametrize(
@@ -468,20 +477,39 @@ class ContextManager:
             id="BUILD_MAP",
         ),
         pytest.param(
-            "[1, *x]",
-            {"x": [2]},
+            "[y, *x]",
+            {"x": [2], "y": 1},
             [
                 FunctionCall(l_list, [1], res=[1, 2]),
+                FunctionCall(IsMethod([1, 2].extend), [[2]]),
+            ]
+            if PYTHON_39
+            else [
+                FunctionCall(l_tuple, [1], res=(1,)),
+                FunctionCall(list, res=[1, 2]),
+                FunctionCall(IsMethod([1, 2].extend), [(1,)]),
                 FunctionCall(IsMethod([1, 2].extend), [[2]]),
             ],
             id="LIST_EXTEND",
         ),
         pytest.param(
-            "{*x}",
-            {"x": [2]},
+            "(*x, *y)",
+            {"x": [1], "y": [2]},
             [
-                FunctionCall(l_set, [], res={2}),
-                FunctionCall(IsMethod({2}.update), [[2]]),
+                FunctionCall(l_list, res=[1, 2]),
+                FunctionCall(IsMethod([1, 2].extend), [[1]]),
+                FunctionCall(IsMethod([1, 2].extend), [[2]]),
+                FunctionCall(tuple, [[1, 2]], res=(1, 2)),
+            ],
+            id="BUILD_TUPLE_UNPACK",
+        ),
+        pytest.param(
+            "{*x, *y}",
+            {"x": [1], "y": [2]},
+            [
+                FunctionCall(l_set, [], res={1, 2}),
+                FunctionCall(IsMethod({1, 2}.update), [[1]]),
+                FunctionCall(IsMethod({1, 2}.update), [[2]]),
             ],
             id="SET_UPDATE",
         ),
