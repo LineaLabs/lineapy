@@ -20,9 +20,9 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.7.11", "3.8", "3.9"]
-        fail-fast: false
     steps:
       - uses: actions/checkout@v2
         with:
