@@ -35,7 +35,7 @@
       side_effects:
         - mutated_value:
             external_state: file_system
-- base_module: gym.wrappers.monitor
+- module: gym.wrappers.monitor
   annotations:
     - criteria:
         base_class: Monitor
@@ -118,7 +118,7 @@
       side_effects:
         - mutated_value:
             external_state: file_system
-- base_module: sklearn.base
+- module: sklearn.base
   annotations:
     - criteria:
         base_class: BaseEstimator

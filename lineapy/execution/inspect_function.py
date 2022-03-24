@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 import sys
+from dataclasses import dataclass, field
 from types import BuiltinMethodType, MethodType
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
@@ -15,8 +16,6 @@ from lineapy.instrumentation.annotation_spec import (
     Annotation,
     BaseClassMethodName,
     BoundSelfOfFunction,
-    BuiltInMethodOrFunctionName,
-    BuiltInMethodOrFunctionNames,
     ClassMethodName,
     ClassMethodNames,
     Criteria,
@@ -76,14 +75,6 @@ def validate(item: Dict) -> Optional[ModuleAnnotation]:
     """
     try:
         spec = ModuleAnnotation(**item)
-        # check if the module is relevant for this run
-        # if spec.module is not None and try_import(spec.module) is None:
-        #     return None
-        # if (
-        #     spec.base_module is not None
-        #     and try_import(spec.base_module) is None
-        # ):
-        #     return None
         return spec
     except ValidationError as e:
         # want to warn the user but not break the whole thing
@@ -91,9 +82,7 @@ def validate(item: Dict) -> Optional[ModuleAnnotation]:
         return None
 
 
-def get_specs() -> Tuple[
-    Dict[str, List[Annotation]], Dict[str, List[Annotation]]
-]:
+def get_specs() -> Dict[str, List[Annotation]]:
     """
     yaml specs are for non-built in functions.
     Captures all the .annotations.yaml files in the lineapy directory.
@@ -101,7 +90,6 @@ def get_specs() -> Tuple[
     relative_path = "../*.annotations.yaml"
     path = os.path.join(os.path.dirname(__file__), relative_path)
     valid_specs: Dict[str, List[Annotation]] = {}
-    valid_base_specs: Dict[str, List[Annotation]] = {}
     for filename in glob.glob(path):
         with open(filename, "r") as f:
             doc = yaml.safe_load(f)
@@ -109,43 +97,27 @@ def get_specs() -> Tuple[
                 v = validate(item)
                 if v is None:
                     continue
-                if v.module is not None:
-                    valid_specs[v.module] = v.annotations
-                elif v.base_module is not None:
-                    valid_base_specs[v.base_module] = v.annotations
-    return valid_specs, valid_base_specs
+                valid_specs[v.module] = v.annotations
+    return valid_specs
 
 
 def _check_class(
-    criteria: Union[
-        ClassMethodName,
-        ClassMethodNames,
-        BuiltInMethodOrFunctionName,
-        BuiltInMethodOrFunctionNames,
-    ],
+    criteria: Union[ClassMethodName, ClassMethodNames],
     module: Optional[str],
     function: Callable,
 ):
     """
     helper
     """
-    if isinstance(
-        criteria, (BuiltInMethodOrFunctionName, BuiltInMethodOrFunctionNames)
-    ):
-        return (
-            hasattr(function, "__self__")
-            and type(function.__self__).__name__ == criteria.class_name  # type: ignore
+    return (
+        hasattr(function, "__self__")
+        and module is not None
+        and module in sys.modules
+        and isinstance(
+            function.__self__,  # type: ignore
+            getattr(sys.modules[module], criteria.class_instance),
         )
-    else:
-        return (
-            hasattr(function, "__self__")
-            and module is not None
-            and module in sys.modules
-            and isinstance(
-                function.__self__,  # type: ignore
-                getattr(sys.modules[module], criteria.class_instance),
-            )
-        )
+    )
 
 
 def check_function_against_annotation(
@@ -153,14 +125,12 @@ def check_function_against_annotation(
     # args: list[object], # we'll prob need this later...
     kwargs: dict[str, object],
     criteria: Criteria,
-    module: Optional[str] = None,
-    base_module: Optional[str] = None,
+    module: str,
 ):
     """
     Helper function for inspect_function.
     The checking for __self__ is for sometimes when it's a class instantiation method.
     """
-
     # torch nn Predictor has no __name__
     function_name = getattr(function, "__name__", None)
     if isinstance(criteria, FunctionName):
@@ -187,18 +157,6 @@ def check_function_against_annotation(
         if (
             kwargs.get(criteria.keyword_arg_name, None)
             == criteria.keyword_arg_value
-        ):
-            return True
-        return False
-    if isinstance(criteria, BuiltInMethodOrFunctionName):
-        if function_name == criteria.bound_function_name and _check_class(
-            criteria, None, function
-        ):
-            return True
-        return False
-    if isinstance(criteria, BuiltInMethodOrFunctionNames):
-        if function_name in criteria.bound_function_names and _check_class(
-            criteria, None, function
         ):
             return True
         return False
@@ -293,8 +251,7 @@ def _check_annotation(
     kwargs: dict[str, object],
     result: object,
     spec_annotations: List[Annotation],
-    module: Optional[str] = None,
-    base_spec_module: Optional[str] = None,
+    module: str,
 ):
     for annotation in spec_annotations:
         if check_function_against_annotation(
@@ -303,7 +260,6 @@ def _check_annotation(
             kwargs,
             annotation.criteria,
             module,
-            base_spec_module,
         ):
             for side_effect in annotation.side_effects:
                 processed = process_side_effect(
@@ -314,15 +270,9 @@ def _check_annotation(
     return
 
 
+@dataclass
 class FunctionInspector:
-    specs: Dict[str, List[Annotation]]
-    base_specs: Dict[str, List[Annotation]]
-
-    def __init__(self):
-        """
-        We can add more params later for fancier configs
-        """
-        self.specs, self.base_specs = get_specs()
+    specs: Dict[str, List[Annotation]] = field(default_factory=dict)
 
     def inspect(
         self,
@@ -335,62 +285,12 @@ class FunctionInspector:
         Inspects a function and returns how calling it mutates the args/result and
         creates view relationships between them.
         """
-        if (
-            isinstance(function, BuiltinMethodType)
-            and function.__module__ is None
-        ):
-            # adding type ignore because for some reason mypy thinks this code is unreachable
-            yield from _check_annotation(  # type: ignore
-                function,
-                args,
-                kwargs,
-                result,
-                self.specs[BuiltinMethodType.__name__],
-                module=BuiltinMethodType.__name__,
-            )
-        else:
 
-            def get_root_module(fun: Callable):
-                if hasattr(fun, "__module__") and fun.__module__ is not None:
-                    return fun.__module__.split(".")[0]
-                return None
-
-            # numpy ufunc objects dont have modules
-            module = getattr(function, "__module__", None)
-            if module in self.specs:
-                yield from _check_annotation(
-                    function,
-                    args,
-                    kwargs,
-                    result,
-                    self.specs[function.__module__],
-                    module=function.__module__,
-                )
-            else:
-                root_module = get_root_module(function)
-                if root_module is not None and root_module in self.specs:
-                    yield from _check_annotation(
-                        function,
-                        args,
-                        kwargs,
-                        result,
-                        self.specs[root_module],
-                        module=root_module,
-                    )
-
-            if not isinstance(function, MethodType):
-                # base classes have to be a method type, helps skip through
-                #   some options
-                return
-            for base_spec_module in self.base_specs:
-                # there doesn't seem to be a way to hash thru this...
-                # so we'll loop for now
-                yield from _check_annotation(
-                    function,
-                    args,
-                    kwargs,
-                    result,
-                    self.base_specs[base_spec_module],
-                    base_spec_module=base_spec_module,
-                )
-            return
+        yield from _check_annotation(
+            function,
+            args,
+            kwargs,
+            result,
+            self.specs[module],
+            module,
+        )

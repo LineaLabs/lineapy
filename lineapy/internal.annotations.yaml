@@ -1,28 +1,26 @@
 - module: lineapy.utils.lineabuiltins
   annotations:
-  - criteria:
-      function_name: l_list
-    side_effects:
-    - views:
-      - result: RESULT
-      - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
-  
+    - criteria:
+        function_name: l_list
+      side_effects:
+        - views:
+            - result: RESULT
+            - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
+
 - module: builtins
   annotations:
-  - criteria:
-      function_name: setattr
-    side_effects:
-    - mutated_value:
-        positional_argument_index: 0
-    - views:
-      - positional_argument_index: 2
-      - positional_argument_index: 0
+    - criteria:
+        function_name: setattr
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
+        - views:
+            - positional_argument_index: 2
+            - positional_argument_index: 0
 
-- module: builtin_function_or_method
-  annotations:
     - criteria:
         # these methods take an argument
-        bound_function_names:
+        function_names:
           - add
           - update
           - difference_update
@@ -35,12 +33,12 @@
         - mutated_value:
             self_ref: SELF_REF
         - views:
-          - self_ref: SELF_REF
-          - positional_argument_index: 0
+            - self_ref: SELF_REF
+            - positional_argument_index: 0
     - criteria:
-        # these methods take no arguments or we dont care about them 
+        # these methods take no arguments or we dont care about them
         # eg. pop works with and without args but it mutates and we dont care abt the arg
-        bound_function_names:
+        function_names:
           - clear
           - remove
           - pop
@@ -50,78 +48,78 @@
             self_ref: SELF_REF
     - criteria:
         # these methods take an argument
-        bound_function_names:
+        function_names:
           - append
           - extend
           - insert
           - remove
         class_name: list
       side_effects:
-      - mutated_value:
-          self_ref: SELF_REF
-      - views:
-        - self_ref: SELF_REF
-        - positional_argument_index: 0
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - positional_argument_index: 0
     - criteria:
         # ones without args or we dont care about them
-        bound_function_names:
+        function_names:
           - clear
           - pop
           - reverse
           - sort
         class_name: list
       side_effects:
-      - mutated_value:
-          self_ref: SELF_REF
+        - mutated_value:
+            self_ref: SELF_REF
     - criteria:
         # these methods take an argument
         # pop for dict takes an argument and it could be a var so we track it
-        bound_function_names:
+        function_names:
           - update
           - pop
         class_name: dict
       side_effects:
-      - mutated_value:
-          self_ref: SELF_REF
-      - views:
-        - self_ref: SELF_REF
-        - positional_argument_index: 0
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - positional_argument_index: 0
     - criteria:
         # ones without args or we dont care about them
-        bound_function_names:
+        function_names:
           - clear
           - popitem
         class_name: dict
       side_effects:
-      - mutated_value:
-          self_ref: SELF_REF
+        - mutated_value:
+            self_ref: SELF_REF
 
-- module: _operator
+- module: operator
   annotations:
-  - criteria: # setitem(dict, key, value)
-      function_name: setitem
-    side_effects:
-    - mutated_value:
-        positional_argument_index: 0
-    - views:
-      - positional_argument_index: 2
-      - positional_argument_index: 0
-  - criteria: # getitem(dict, key)
-      function_name: getitem
-    side_effects:
-    - views:
-      - positional_argument_index: 0
-      - result: RESULT
-  - criteria: # delitem(dict, key)
-      function_name: delitem
-    side_effects:
-    - mutated_value:
-        positional_argument_index: 0
+    - criteria: # setitem(dict, key, value)
+        function_name: setitem
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
+        - views:
+            - positional_argument_index: 2
+            - positional_argument_index: 0
+    - criteria: # getitem(dict, key)
+        function_name: getitem
+      side_effects:
+        - views:
+            - positional_argument_index: 0
+            - result: RESULT
+    - criteria: # delitem(dict, key)
+        function_name: delitem
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
 
 - module: io
   annotations:
-  - criteria:
-      function_name: open
-    side_effects:
-    - dependency:
-        external_state: file_system
+    - criteria:
+        function_name: open
+      side_effects:
+        - dependency:
+            external_state: file_system
