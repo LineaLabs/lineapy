@@ -26,6 +26,10 @@ TODO:
 
 
 class BaseModel(pydantic.BaseModel):
+    """
+    Forbid extras on baseclass so typos will raise an error
+    """
+
     class Config:
         extra = "forbid"
 

@@ -202,8 +202,12 @@ class FunctionInspectorParsed:
         """
         Inspect a function call and return a list of side effects, if it matches any of the annotations
         """
-        # We assume a function is a method if it has a __self__
-        is_method = hasattr(fn, "__self__")
+        # We assume a function is a method if it has a __self__ and the __self__  is not a Module
+        # Note that for functions defines in C, like `setitem`, they have a __self__, but it's the
+        # module they were defined in, in `setitems` case, `operator`, so that's why we need the isinstance
+        # check
+        obj = getattr(fn, "__self__", None)
+        is_method = obj is not None and not isinstance(obj, ModuleType)
 
         # If it's a function, we just do a simple lookup to see if it's exactly equal to any functions we saved
         if not is_method:
@@ -211,7 +215,6 @@ class FunctionInspectorParsed:
         # If it's a class instance however, we have to consider superclasses, so we first do a lookup
         # on the name, then check for isinstance
         method_name = fn.__name__
-        obj = fn.__self__  # type: ignore
         for tp, side_effects in self.method_name_to_type_to_side_effects[
             method_name
         ].items():
@@ -301,7 +304,9 @@ class FunctionInspector:
             if module not in sys.modules:
                 continue
             self.parsed.add_annotations(
-                sys.modules[module], self.specs.pop(module)
+                sys.modules[module],
+                # Pop the spec once we have processed it
+                self.specs.pop(module),
             )
 
     def __post_init__(self):
