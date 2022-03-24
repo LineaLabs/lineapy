@@ -38,7 +38,7 @@
 - module: gym.wrappers.monitor
   annotations:
     - criteria:
-        base_class: Monitor
+        class_instance: Monitor
         class_method_name: seed
       side_effects:
         - mutated_value:
@@ -47,7 +47,7 @@
             - self_ref: SELF_REF
             - result: RESULT
     - criteria:
-        base_class: Monitor
+        class_instance: Monitor
         class_method_name: reset
       side_effects:
         - mutated_value:
@@ -122,7 +122,7 @@
 - module: sklearn.base
   annotations:
     - criteria:
-        base_class: BaseEstimator
+        class_instance: BaseEstimator
         class_method_name: fit
       side_effects:
         - mutated_value:

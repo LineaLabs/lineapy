@@ -5,7 +5,7 @@
     lineapy work, and how to contribute :ref:`here <lib_annotations>`.
 """
 
-from typing import List, Optional, Union
+from typing import List, Union
 
 from pydantic import BaseModel
 
