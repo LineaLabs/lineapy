@@ -249,7 +249,6 @@ class FunctionInspectorParsed:
         criteria: Criteria,
         side_effects: List[InspectFunctionSideEffect],
     ) -> None:
-        print(criteria)
         if isinstance(criteria, KeywordArgumentCriteria):
             class_ = getattr(module, criteria.class_instance)
             self.keyword_name_and_value_to_type_to_side_effects[

@@ -7,7 +7,7 @@
 
 from typing import List, Union
 
-from pydantic import BaseModel
+import pydantic
 
 """
 DEV NOTE:
@@ -23,6 +23,11 @@ TODO:
   - where the relevant SQL string is
   - where the relevant file name is
 """
+
+
+class BaseModel(pydantic.BaseModel):
+    class Config:
+        extra = "forbid"
 
 
 class PositionalArg(BaseModel):
