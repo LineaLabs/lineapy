@@ -190,6 +190,7 @@ class KeywordArgumentCriteria(BaseModel):
 
     keyword_arg_name: str
     keyword_arg_value: int
+    class_instance: str
 
 
 class FunctionNames(BaseModel):

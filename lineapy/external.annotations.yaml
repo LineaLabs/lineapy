@@ -60,6 +60,7 @@
     - criteria:
         keyword_arg_name: inplace
         keyword_arg_value: 1
+        class_instance: DataFrame
       side_effects:
         - mutated_value:
             self_ref: SELF_REF

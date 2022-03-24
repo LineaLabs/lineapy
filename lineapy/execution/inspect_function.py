@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ast import Call
 
 import glob
 import logging
@@ -272,7 +273,27 @@ def _check_annotation(
 
 @dataclass
 class FunctionInspector:
-    specs: Dict[str, List[Annotation]] = field(default_factory=dict)
+    # Mapping of module to a list of annotations for that module
+    specs: Dict[str, List[Annotation]]
+
+    # These structures are created during
+    function_to_side_effects: Dict[Callable, List[InspectFunctionSideEffect]]
+    method_name_to_type_to_side_effects: Dict[
+        str, Dict[type, List[InspectFunctionSideEffect]]
+    ]
+
+    keyword_arg_criteria: List[
+        Tuple[KeywordArgumentCriteria, List[InspectFunctionSideEffect]]
+    ] = field(default_factory=list)
+
+    def __post_init__(self):
+        specs = get_specs()
+        for module, annotations_ in specs.items():
+            for annotation in annotations_:
+                criteria = annotation.criteria
+                side_effects = annotation.side_effects
+                if isinstance(criteria, KeywordArgumentCriteria):
+                    self.keyword_arg_criteria.append((criteria, side_effects))
 
     def inspect(
         self,
