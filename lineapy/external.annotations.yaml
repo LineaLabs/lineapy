@@ -58,13 +58,6 @@
 - module: pandas
   annotations:
     - criteria:
-        keyword_arg_name: inplace
-        keyword_arg_value: 1
-        class_instance: DataFrame
-      side_effects:
-        - mutated_value:
-            self_ref: SELF_REF
-    - criteria:
         class_method_name: to_sql
         class_instance: DataFrame
       side_effects:
@@ -91,6 +84,17 @@
       side_effects:
         - dependency:
             external_state: file_system
+- module: pandas.core.generic
+  annotations:
+    - criteria:
+        keyword_arg_name: inplace
+        keyword_arg_value: 1
+        # NDFrame is a common baseclass between series and dataframes. Any inplace operators on either
+        # should mutate the self
+        class_instance: NDFrame
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
 - module: boto3
   annotations:
     - criteria:
