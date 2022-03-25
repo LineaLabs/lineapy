@@ -7,16 +7,7 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from types import ModuleType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Hashable,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-)
+from typing import Callable, Dict, Hashable, Iterable, List, Optional, Tuple
 
 import yaml
 from pydantic import ValidationError
@@ -67,13 +58,6 @@ def is_mutable(obj: object) -> bool:
         return False
     else:
         return True
-
-
-def try_import(name: str) -> Any:
-    """
-    Returns the modules, if it has been imported already.
-    """
-    return sys.modules.get(name, None)
 
 
 def validate(item: Dict) -> Optional[ModuleAnnotation]:
