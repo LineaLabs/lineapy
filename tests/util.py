@@ -1,7 +1,12 @@
 import os.path as path
 import sys
 from ast import AST, dump
+from dataclasses import dataclass
 from os import remove
+from typing import Callable
+
+import numpy
+import numpy.typing
 
 from lineapy import save
 
@@ -65,3 +70,65 @@ lineapy.{save.__name__}(img, "Graph With Image")
 
 def get_project_directory():
     return path.abspath(path.join(__file__, "../.."))
+
+
+@dataclass
+class IsInstance:
+    """
+    Used in the tests so we can make sure a value has the same type as another, even if it is not equal.
+    """
+
+    tp: type
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, self.tp)
+
+    # Add method so that mypy allows it as a callable
+    def __call__(self, *args, **kwds):
+        raise NotImplementedError()
+
+
+@dataclass
+class IsMethod:
+    """
+    Used in the tests so we can make sure a value is a bound method function.
+    """
+
+    method: Callable
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, type(self.method)):
+            return False
+        return (
+            self.method.__name__ == other.__name__  # type: ignore
+            and (self.method.__self__) == other.__self__  # type: ignore
+        )
+
+    # Add method so that mypy allows it as a callable
+    def __call__(self, *args, **kwds):
+        raise NotImplementedError()
+
+
+@dataclass
+class IsObject:
+    """
+    Used in tests to make sure that values are not just equal, but actually are the same object.
+    """
+
+    value: object
+
+    def __eq__(self, other: object) -> bool:
+        return self.value is other
+
+
+@dataclass
+class EqualsArray:
+    """
+    Used in tests for comparing a value against a NumPy array. Uses numpy.array_equal
+    because the __eq__ on arrays does not return a single value, but an array itself.
+    """
+
+    array: numpy.typing.ArrayLike
+
+    def __eq__(self, __o: object) -> bool:
+        return numpy.array_equal(self.array, __o)  # type: ignore

@@ -24,3 +24,4 @@
 [submodule "tests/integration/sources/xgboost"]
 	path = tests/integration/sources/xgboost
 	url = git@github.com:dmlc/xgboost.git
+        ignore = all

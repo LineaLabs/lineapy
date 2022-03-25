@@ -16,50 +16,6 @@ lineapy.save(result, \'result\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_1 = CallNode(
-    source_location=SourceLocation(
-        lineno=2,
-        col_offset=2,
-        end_lineno=2,
-        end_col_offset=9,
-        source_code=source_1.id,
-    ),
-    function_id=LookupNode(
-        name="l_list",
-    ).id,
-    positional_args=[
-        LiteralNode(
-            source_location=SourceLocation(
-                lineno=2,
-                col_offset=3,
-                end_lineno=2,
-                end_col_offset=4,
-                source_code=source_1.id,
-            ),
-            value=1,
-        ).id,
-        LiteralNode(
-            source_location=SourceLocation(
-                lineno=2,
-                col_offset=5,
-                end_lineno=2,
-                end_col_offset=6,
-                source_code=source_1.id,
-            ),
-            value=2,
-        ).id,
-        LiteralNode(
-            source_location=SourceLocation(
-                lineno=2,
-                col_offset=7,
-                end_lineno=2,
-                end_col_offset=8,
-                source_code=source_1.id,
-            ),
-            value=3,
-        ).id,
-    ],
-)
 call_2 = CallNode(
     source_location=SourceLocation(
         lineno=5,
@@ -99,12 +55,51 @@ call_2 = CallNode(
             ),
             value=0,
         ).id,
-        "x": call_1.id,
+        "x": CallNode(
+            source_location=SourceLocation(
+                lineno=2,
+                col_offset=2,
+                end_lineno=2,
+                end_col_offset=9,
+                source_code=source_1.id,
+            ),
+            function_id=LookupNode(
+                name="l_list",
+            ).id,
+            positional_args=[
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=2,
+                        col_offset=3,
+                        end_lineno=2,
+                        end_col_offset=4,
+                        source_code=source_1.id,
+                    ),
+                    value=1,
+                ).id,
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=2,
+                        col_offset=5,
+                        end_lineno=2,
+                        end_col_offset=6,
+                        source_code=source_1.id,
+                    ),
+                    value=2,
+                ).id,
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=2,
+                        col_offset=7,
+                        end_lineno=2,
+                        end_col_offset=8,
+                        source_code=source_1.id,
+                    ),
+                    value=3,
+                ).id,
+            ],
+        ).id,
     },
-)
-mutate_1 = MutateNode(
-    source_id=call_1.id,
-    call_id=call_2.id,
 )
 global_1 = GlobalNode(
     name="idx",

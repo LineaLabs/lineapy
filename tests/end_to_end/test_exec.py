@@ -91,3 +91,59 @@ y.append(2)
     assert res.artifacts["y"] == c
     assert res.values["x"] == [[], 1]
     assert res.values["y"] == [[], 2]
+
+
+def test_view_from_loop(execute):
+    """
+    Verifies that a view is added when looping over a variable that is mutable
+    """
+    c = """xs = [[]]
+for x in xs:
+    pass
+x.append(10)
+"""
+    res = execute(c, artifacts=["x", "xs"])
+    assert res.artifacts["xs"] == c
+    assert res.artifacts["x"] == c
+
+
+def test_loop_no_mutate(execute):
+    """
+    Verifies that a loop which does not mutate, will not include a mutation
+    """
+    c = """xs = [[]]
+for x in xs:
+    pass
+"""
+    res = execute(c, artifacts=["x", "xs"])
+    assert (
+        res.artifacts["xs"]
+        == """xs = [[]]
+"""
+    )
+    assert res.artifacts["x"] == c
+
+
+def test_loop_mutate(execute):
+    """
+    Verifies that a loop which does mutate, will include a mutation
+    """
+    c = """xs = [[]]
+for x in xs:
+    x.append(10)
+"""
+    res = execute(c, artifacts=["x", "xs"])
+    assert res.artifacts["xs"] == c
+    assert res.artifacts["x"] == c
+
+
+def test_with_filesystem(execute):
+    """
+    Verifies that writing to the filesytem in a context manager is picked up
+    """
+    c = """from tempfile import TemporaryFile
+with TemporaryFile() as f:
+    f.write(b'some lines')
+"""
+    res = execute(c, artifacts=["lineapy.file_system"])
+    assert res.artifacts["lineapy.file_system"] == c

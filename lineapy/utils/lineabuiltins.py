@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 from typing import (
     Dict,
@@ -11,8 +13,10 @@ from typing import (
 )
 
 from lineapy.editors.ipython_cell_storage import get_location_path
-from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
+from lineapy.system_tracing.exec_and_record_function_calls import (
+    exec_and_record_function_calls,
+)
 
 # Keep a list of builtin functions we want to expose to the user as globals
 # Then at the end, make a dict out of all of them, from their names
@@ -94,7 +98,7 @@ def l_dict(
     For example, if the user creates a dict like ``{1: 2, **d, 3: 4}``,
     then it will create a call like::
 
-    __build_dict__((1, 2), (__build_dict_kwargs_sentinel__(), d), (3, 4))
+    l_dict((1, 2), (l_dict_kwargs_sentinel(), d), (3, 4))
 
     We use a sentinel value instead of None, because None can be a valid
     dictionary key.
@@ -111,6 +115,11 @@ def l_dict(
 @register
 def l_tuple(*items) -> tuple:
     return items
+
+
+@register
+def l_set(*items) -> set:
+    return set(items)
 
 
 @register
@@ -138,6 +147,9 @@ def l_exec_statement(code: str) -> None:
 
     :return: None. Since the code is a statement, it will not return anything
     """
+    # Move inside to avoid circular import with context using the lookups to trace
+    from lineapy.execution.context import get_context
+
     context = get_context()
     source_location = context.node.source_location
     if source_location:
@@ -148,11 +160,13 @@ def l_exec_statement(code: str) -> None:
     else:
         path = "<unkown>"
     bytecode = compile(code, path, "exec")
-
-    # We use the same globals dict for all exec calls, so that when we update it
-    # in the executor, it will updates for all scopes that functions defined in exec
-    # have
-    exec(bytecode, context.global_variables)
+    trace_fn = exec_and_record_function_calls(
+        bytecode, context.global_variables
+    )
+    # If we were able to understand all the opcode, then save the function calls, otherwise throw them away
+    # and depend on the worst case assumptions
+    if not trace_fn.not_implemented_ops:
+        context.function_calls = trace_fn.function_calls
 
 
 @register
@@ -167,6 +181,8 @@ def l_exec_expr(code: str) -> object:
     :return: it will return the result as well as the last argument.
 
     """
+    from lineapy.execution.context import get_context
+
     context = get_context()
 
     statement_code = f"{_EXEC_EXPRESSION_SAVED_NAME} = {code}"

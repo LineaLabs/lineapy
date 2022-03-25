@@ -1,22 +1,62 @@
 - module: lineapy.utils.lineabuiltins
   annotations:
-  - criteria:
-      function_name: l_list
-    side_effects:
-    - views:
-      - result: RESULT
-      - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
-  
+    - criteria:
+        function_name: l_list
+      side_effects:
+        - views:
+            - result: RESULT
+            - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
+    - criteria:
+        function_name: l_unpack_sequence
+      side_effects:
+        - views:
+            - result: RESULT
+            - positional_argument_index: 0
+    - criteria:
+        function_name: l_unpack_ex
+      side_effects:
+        - views:
+            - result: RESULT
+            - positional_argument_index: 0
+
 - module: builtins
   annotations:
-  - criteria:
-      function_name: setattr
-    side_effects:
-    - mutated_value:
-        positional_argument_index: 0
-    - views:
-      - positional_argument_index: 2
-      - positional_argument_index: 0
+    - criteria:
+        function_name: setattr
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
+        - views:
+            - positional_argument_index: 2
+            - positional_argument_index: 0
+    - criteria:
+        function_name: iter
+      side_effects:
+        - views:
+            - positional_argument_index: 0
+            - result: RESULT
+    - criteria:
+        function_name: next
+      side_effects:
+        # Don't consider next as mutating the iterator, even though it does
+        # So that we don't consider `for x in xs: ...` as mutating `xs`,
+        # which it would do if we do think of `next` as mutating, since the iterator
+        # is a view of the list.
+        # This shouldn't be a problem unless users are manually using `next` which
+        # probably isn't that common
+        # Consider the following example
+        # ```
+        # x = (x for x in range(10))
+        # for _ in x:
+        #   pass
+        # y = list(x) # it will be empty because x is exhausted and the slice
+        #             # should be included
+        # ```
+        # - mutated_value:
+        #     positional_argument_index: 0
+        - views:
+            - positional_argument_index: 0
+            - result: RESULT
 
 - module: builtin_function_or_method
   annotations:
@@ -35,10 +75,10 @@
         - mutated_value:
             self_ref: SELF_REF
         - views:
-          - self_ref: SELF_REF
-          - positional_argument_index: 0
+            - self_ref: SELF_REF
+            - positional_argument_index: 0
     - criteria:
-        # these methods take no arguments or we dont care about them 
+        # these methods take no arguments or we dont care about them
         # eg. pop works with and without args but it mutates and we dont care abt the arg
         bound_function_names:
           - clear
@@ -57,11 +97,11 @@
           - remove
         class_name: list
       side_effects:
-      - mutated_value:
-          self_ref: SELF_REF
-      - views:
-        - self_ref: SELF_REF
-        - positional_argument_index: 0
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - positional_argument_index: 0
     - criteria:
         # ones without args or we dont care about them
         bound_function_names:
@@ -71,8 +111,8 @@
           - sort
         class_name: list
       side_effects:
-      - mutated_value:
-          self_ref: SELF_REF
+        - mutated_value:
+            self_ref: SELF_REF
     - criteria:
         # these methods take an argument
         # pop for dict takes an argument and it could be a var so we track it
@@ -81,11 +121,11 @@
           - pop
         class_name: dict
       side_effects:
-      - mutated_value:
-          self_ref: SELF_REF
-      - views:
-        - self_ref: SELF_REF
-        - positional_argument_index: 0
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - positional_argument_index: 0
     - criteria:
         # ones without args or we dont care about them
         bound_function_names:
@@ -93,35 +133,70 @@
           - popitem
         class_name: dict
       side_effects:
-      - mutated_value:
-          self_ref: SELF_REF
+        - mutated_value:
+            self_ref: SELF_REF
 
 - module: _operator
   annotations:
-  - criteria: # setitem(dict, key, value)
-      function_name: setitem
-    side_effects:
-    - mutated_value:
-        positional_argument_index: 0
-    - views:
-      - positional_argument_index: 2
-      - positional_argument_index: 0
-  - criteria: # getitem(dict, key)
-      function_name: getitem
-    side_effects:
-    - views:
-      - positional_argument_index: 0
-      - result: RESULT
-  - criteria: # delitem(dict, key)
-      function_name: delitem
-    side_effects:
-    - mutated_value:
-        positional_argument_index: 0
+    - criteria: # setitem(dict, key, value)
+        function_name: setitem
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
+        - views:
+            - positional_argument_index: 2
+            - positional_argument_index: 0
+    - criteria: # getitem(dict, key)
+        function_name: getitem
+      side_effects:
+        - views:
+            - positional_argument_index: 0
+            - result: RESULT
+    - criteria: # delitem(dict, key)
+        function_name: delitem
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
 
 - module: io
   annotations:
-  - criteria:
-      function_name: open
-    side_effects:
-    - dependency:
-        external_state: file_system
+    - criteria:
+        function_name: open
+      side_effects:
+        - dependency:
+            external_state: file_system
+        - views:
+            - result: RESULT
+            - external_state: file_system
+    - criteria:
+        class_method_names:
+          - close
+          - flush
+          - readline
+          - readlines
+          - seek
+          - truncate
+          - writelines
+        class_instance: IOBase
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+    - criteria:
+        class_method_names:
+          - __enter__
+        class_instance: IOBase
+      side_effects:
+        - views:
+            - result: RESULT
+            - self_ref: SELF_REF
+
+- module: tempfile
+  annotations:
+    - criteria:
+        function_name: TemporaryFile
+      side_effects:
+        - mutated_value:
+            external_state: file_system
+        - views:
+            - result: RESULT
+            - external_state: file_system
