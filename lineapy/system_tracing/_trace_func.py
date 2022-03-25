@@ -97,7 +97,6 @@ class TraceFunc:
 
         # Check if the current operation is a function call
         try:
-            print(instruction.opname, instruction.argval, frame.f_lasti, "\n")
             possible_function_call = resolve_bytecode_execution(
                 instruction.opname,
                 instruction.argval,
