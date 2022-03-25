@@ -43,7 +43,7 @@ class TraceFunc:
     ] = field(init=False)
 
     # If set for the code object, then the previous bytecode instruction in the
-    # frame for that code object had a function call, and during the next call, 
+    # frame for that code object had a function call, and during the next call,
     # we should call
     # this function with the current stack to get the FunctionCall result.
     code_to_return_value_callback: Dict[CodeType, ReturnValueCallback] = field(
@@ -58,7 +58,7 @@ class TraceFunc:
 
     def __call__(self, frame, event, arg):
         code = frame.f_code
-        # Exit early if the code object for this frame is not one of the code 
+        # Exit early if the code object for this frame is not one of the code
         # objects that is contained in the source code passed in (i.e., specifically
         # in the current usecase, anything outside of the blackbox).
         if frame.f_code not in self.code_to_offset_to_instruction:
@@ -71,10 +71,10 @@ class TraceFunc:
             return self
 
         offset = frame.f_lasti
-        # Lookup the instruction we currently have based on the code object as 
+        # Lookup the instruction we currently have based on the code object as
         # well as the offset in that object
         instruction = self.code_to_offset_to_instruction[code][offset]
-        # We want to see the name and the arg for the actual instruction, not 
+        # We want to see the name and the arg for the actual instruction, not
         # the arg, so increment until we get to that
         while instruction.opname == "EXTENDED_ARG":
             offset += 2
@@ -83,7 +83,7 @@ class TraceFunc:
         # Create an op stack around the frame so we can access the stack
         op_stack = OpStack(frame)
 
-        # If during last instruction we had some function call that needs a 
+        # If during last instruction we had some function call that needs a
         # return value, trigger the callback with the current
         # stack, so it can get the return value.
         if code in self.code_to_return_value_callback:
@@ -108,7 +108,7 @@ class TraceFunc:
         except NotImplementedError:
             self.not_implemented_ops.add(instruction.opname)
             possible_function_call = None
-        # If resolving the function call needs to be deferred until after we 
+        # If resolving the function call needs to be deferred until after we
         # have the return value, save the callback
         if callable(possible_function_call):
             self.code_to_return_value_callback[code] = possible_function_call
@@ -318,12 +318,12 @@ def resolve_bytecode_execution(
         # this yields a new value, push it on the stack (leaving the iterator below
         # it).  If the iterator indicates it is exhausted, TOS is popped, and the byte
         # code counter is incremented by *delta*.
-        
+
         So we translated to:
         If the current instruction is the next one (i.e. the offset has increased by 2), then we didn't jump,
         meaning the iterator was not exhausted. Otherwise, we did jump, and it was, so don't add a function call for this.
-        
-        Note tha if we start handling exception, we should edit how we are 
+
+        Note tha if we start handling exception, we should edit how we are
         handling the loops, since Python uses the try/catch mechanism to catch
         loop end.
         """

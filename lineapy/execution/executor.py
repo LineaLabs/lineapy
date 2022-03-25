@@ -347,7 +347,7 @@ class Executor:
         self, side_effect: SideEffect
     ) -> SideEffect:
         """
-        Process the global side effect, resolving any external state nodes to 
+        Process the global side effect, resolving any external state nodes to
         node IDs if we have already created them
         """
         if isinstance(side_effect, MutatedNode):
