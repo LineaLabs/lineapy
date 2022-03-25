@@ -35,10 +35,10 @@
       side_effects:
         - mutated_value:
             external_state: file_system
-- base_module: gym.wrappers.monitor
+- module: gym.wrappers.monitor
   annotations:
     - criteria:
-        base_class: Monitor
+        class_instance: Monitor
         class_method_name: seed
       side_effects:
         - mutated_value:
@@ -47,7 +47,7 @@
             - self_ref: SELF_REF
             - result: RESULT
     - criteria:
-        base_class: Monitor
+        class_instance: Monitor
         class_method_name: reset
       side_effects:
         - mutated_value:
@@ -57,12 +57,6 @@
             - result: RESULT
 - module: pandas
   annotations:
-    - criteria:
-        keyword_arg_name: inplace
-        keyword_arg_value: 1
-      side_effects:
-        - mutated_value:
-            self_ref: SELF_REF
     - criteria:
         class_method_name: to_sql
         class_instance: DataFrame
@@ -90,6 +84,17 @@
       side_effects:
         - dependency:
             external_state: file_system
+- module: pandas.core.generic
+  annotations:
+    - criteria:
+        keyword_arg_name: inplace
+        keyword_arg_value: 1
+        # NDFrame is a common baseclass between series and dataframes. Any inplace operators on either
+        # should mutate the self
+        class_instance: NDFrame
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
 - module: boto3
   annotations:
     - criteria:
@@ -102,7 +107,8 @@
 - module: PIL.Image
   annotations:
     - criteria:
-        function_name: save
+        class_instance: Image
+        class_method_name: save
       side_effects:
         - mutated_value:
             external_state: file_system
@@ -118,10 +124,10 @@
       side_effects:
         - mutated_value:
             external_state: file_system
-- base_module: sklearn.base
+- module: sklearn.base
   annotations:
     - criteria:
-        base_class: BaseEstimator
+        class_instance: BaseEstimator
         class_method_name: fit
       side_effects:
         - mutated_value:

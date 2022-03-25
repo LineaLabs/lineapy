@@ -58,11 +58,9 @@
             - positional_argument_index: 0
             - result: RESULT
 
-- module: builtin_function_or_method
-  annotations:
     - criteria:
         # these methods take an argument
-        bound_function_names:
+        class_method_names:
           - add
           - update
           - difference_update
@@ -70,7 +68,7 @@
           - intersection_update
           - remove
           - symmetric_difference_update
-        class_name: set
+        class_instance: set
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
@@ -80,22 +78,22 @@
     - criteria:
         # these methods take no arguments or we dont care about them
         # eg. pop works with and without args but it mutates and we dont care abt the arg
-        bound_function_names:
+        class_method_names:
           - clear
           - remove
           - pop
-        class_name: set
+        class_instance: set
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
     - criteria:
         # these methods take an argument
-        bound_function_names:
+        class_method_names:
           - append
           - extend
           - insert
           - remove
-        class_name: list
+        class_instance: list
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
@@ -104,22 +102,22 @@
             - positional_argument_index: 0
     - criteria:
         # ones without args or we dont care about them
-        bound_function_names:
+        class_method_names:
           - clear
           - pop
           - reverse
           - sort
-        class_name: list
+        class_instance: list
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
     - criteria:
         # these methods take an argument
         # pop for dict takes an argument and it could be a var so we track it
-        bound_function_names:
+        class_method_names:
           - update
           - pop
-        class_name: dict
+        class_instance: dict
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
@@ -128,15 +126,15 @@
             - positional_argument_index: 0
     - criteria:
         # ones without args or we dont care about them
-        bound_function_names:
+        class_method_names:
           - clear
           - popitem
-        class_name: dict
+        class_instance: dict
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
 
-- module: _operator
+- module: operator
   annotations:
     - criteria: # setitem(dict, key, value)
         function_name: setitem

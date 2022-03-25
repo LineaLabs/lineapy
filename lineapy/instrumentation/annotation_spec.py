@@ -5,9 +5,9 @@
     lineapy work, and how to contribute :ref:`here <lib_annotations>`.
 """
 
-from typing import List, Optional, Union
+from typing import List, Union
 
-from pydantic import BaseModel
+import pydantic
 
 """
 DEV NOTE:
@@ -23,6 +23,15 @@ TODO:
   - where the relevant SQL string is
   - where the relevant file name is
 """
+
+
+class BaseModel(pydantic.BaseModel):
+    """
+    Forbid extras on baseclass so typos will raise an error
+    """
+
+    class Config:
+        extra = "forbid"
 
 
 class PositionalArg(BaseModel):
@@ -190,6 +199,7 @@ class KeywordArgumentCriteria(BaseModel):
 
     keyword_arg_name: str
     keyword_arg_value: int
+    class_instance: str
 
 
 class FunctionNames(BaseModel):
@@ -253,46 +263,6 @@ class ClassMethodNames(BaseModel):
     class_method_names: List[str]
 
 
-class BuiltInMethodOrFunctionName(BaseModel):
-    """
-    A special case of to capture items of the type ``builtin_method_or_function_name``.
-    Examples include functions like list.append, set.add, etc. These show up as BuiltinMethodType
-    but arent in the module builtins, intead they are methods inside internal classes like list/set/dict etc.
-    """
-
-    bound_function_name: str
-    class_name: str
-
-
-class BuiltInMethodOrFunctionNames(BaseModel):
-    """
-    Shorthand for a list of builtin method or function names of the same class.
-    """
-
-    bound_function_names: List[str]
-    class_name: str
-
-
-class BaseClassMethodName(BaseModel):
-    """
-    Baseclass methods allow us to cover more cases.
-
-    For instance, in sklearn, many `fit` methods are on different types of
-    estimators that are subclasses of `BaseEstimator`.
-    So the `class_instance` is the string "BaseEstimator",
-    and the `class_method_name` is the string "fit".
-
-    .. code-block:: yaml
-
-        - criteria:
-            base_class: BaseEstimator
-            class_method_name: fit
-    """
-
-    base_class: str
-    class_method_name: str
-
-
 # Criteria for a single annotation
 Criteria = Union[
     KeywordArgumentCriteria,
@@ -300,9 +270,6 @@ Criteria = Union[
     ClassMethodNames,
     FunctionName,
     ClassMethodName,
-    BuiltInMethodOrFunctionName,
-    BuiltInMethodOrFunctionNames,
-    BaseClassMethodName,
 ]
 
 
@@ -318,7 +285,6 @@ class Annotation(BaseModel):
     * :class:`~lineapy.instrumentation.annotation_spec.ClassMethodNames`
     * :class:`~lineapy.instrumentation.annotation_spec.FunctionName`
     * :class:`~lineapy.instrumentation.annotation_spec.ClassMethodName`
-    * :class:`~lineapy.instrumentation.annotation_spec.BaseClassMethodName`
 
     There are currently three types of side_effects:
 
@@ -335,14 +301,9 @@ class ModuleAnnotation(BaseModel):
     """
     An annotation yaml file is composed of a list of :class:`~lineapy.instrumentation.annotation_spec.ModuleAnnotations` (this class), which is to say that the annotations are hierarchically organized
     by what module the annotation is associated with, such as ``pandas`` and ``boto3``.
-
-    The modules could also be what we call "base modules"s, such as ``sklearn.base``, which is useful for
-    adding annotations for a range of classes that are subclasses of the "base class" provided, such as ``BaseEstimator``. You would specify *either* a ``module`` or a ``base_module``.
-
     """
 
-    module: Optional[str]
-    base_module: Optional[str]
+    module: str
     annotations: List[Annotation]
 
     class Config:

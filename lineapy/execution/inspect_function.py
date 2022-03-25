@@ -5,8 +5,9 @@ import logging
 import os
 import sys
 from collections import defaultdict
-from types import BuiltinMethodType, MethodType
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from dataclasses import dataclass, field
+from types import ModuleType
+from typing import Callable, Dict, Hashable, Iterable, List, Optional, Tuple
 
 import yaml
 from pydantic import ValidationError
@@ -14,10 +15,7 @@ from pydantic import ValidationError
 from lineapy.instrumentation.annotation_spec import (
     AllPositionalArgs,
     Annotation,
-    BaseClassMethodName,
     BoundSelfOfFunction,
-    BuiltInMethodOrFunctionName,
-    BuiltInMethodOrFunctionNames,
     ClassMethodName,
     ClassMethodNames,
     Criteria,
@@ -62,13 +60,6 @@ def is_mutable(obj: object) -> bool:
         return True
 
 
-def try_import(name: str) -> Any:
-    """
-    Returns the modules, if it has been imported already.
-    """
-    return sys.modules.get(name, None)
-
-
 def validate(item: Dict) -> Optional[ModuleAnnotation]:
     """
     We cannot filer the specs by module, because it might be loaded later.
@@ -77,24 +68,16 @@ def validate(item: Dict) -> Optional[ModuleAnnotation]:
     """
     try:
         spec = ModuleAnnotation(**item)
-        # check if the module is relevant for this run
-        # if spec.module is not None and try_import(spec.module) is None:
-        #     return None
-        # if (
-        #     spec.base_module is not None
-        #     and try_import(spec.base_module) is None
-        # ):
-        #     return None
         return spec
     except ValidationError as e:
         # want to warn the user but not break the whole thing
-        logger.warning(f"Validation failed for annotation spec: {e}")
+        logger.warning(
+            f"Validation failed parsing {item} as annotation spec: {e}"
+        )
         return None
 
 
-def get_specs() -> Tuple[
-    Dict[str, List[Annotation]], Dict[str, List[Annotation]]
-]:
+def get_specs() -> Dict[str, List[Annotation]]:
     """
     yaml specs are for non-built in functions.
     Captures all the .annotations.yaml files in the lineapy directory.
@@ -102,7 +85,6 @@ def get_specs() -> Tuple[
     relative_path = "../*.annotations.yaml"
     path = os.path.join(os.path.dirname(__file__), relative_path)
     valid_specs: Dict[str, List[Annotation]] = defaultdict(list)
-    valid_base_specs: Dict[str, List[Annotation]] = defaultdict(list)
     for filename in glob.glob(path):
         with open(filename, "r") as f:
             doc = yaml.safe_load(f)
@@ -110,117 +92,8 @@ def get_specs() -> Tuple[
                 v = validate(item)
                 if v is None:
                     continue
-                if v.module is not None:
-                    valid_specs[v.module].extend(v.annotations)
-                elif v.base_module is not None:
-                    valid_base_specs[v.base_module].extend(v.annotations)
-    return valid_specs, valid_base_specs
-
-
-def _check_class(
-    criteria: Union[
-        ClassMethodName,
-        ClassMethodNames,
-        BuiltInMethodOrFunctionName,
-        BuiltInMethodOrFunctionNames,
-    ],
-    module: Optional[str],
-    function: Callable,
-):
-    """
-    helper
-    """
-    if isinstance(
-        criteria, (BuiltInMethodOrFunctionName, BuiltInMethodOrFunctionNames)
-    ):
-        return (
-            hasattr(function, "__self__")
-            and type(function.__self__).__name__ == criteria.class_name  # type: ignore
-        )
-    else:
-        return (
-            hasattr(function, "__self__")
-            and module is not None
-            and module in sys.modules
-            and isinstance(
-                function.__self__,  # type: ignore
-                getattr(sys.modules[module], criteria.class_instance),
-            )
-        )
-
-
-def check_function_against_annotation(
-    function: Callable,
-    # args: list[object], # we'll prob need this later...
-    kwargs: dict[str, object],
-    criteria: Criteria,
-    module: Optional[str] = None,
-    base_module: Optional[str] = None,
-):
-    """
-    Helper function for inspect_function.
-    The checking for __self__ is for sometimes when it's a class instantiation method.
-    """
-
-    # torch nn Predictor has no __name__
-    function_name = getattr(function, "__name__", None)
-    if isinstance(criteria, FunctionName):
-        if criteria.function_name == function_name:
-            return True
-        return False
-    if isinstance(criteria, FunctionNames):
-        if function_name in criteria.function_names:
-            return True
-        return False
-    if isinstance(criteria, ClassMethodName):
-        if function_name == criteria.class_method_name and _check_class(
-            criteria, module, function
-        ):
-            return True
-        return False
-    if isinstance(criteria, ClassMethodNames):
-        if function_name in criteria.class_method_names and _check_class(
-            criteria, module, function
-        ):
-            return True
-        return False
-    if isinstance(criteria, KeywordArgumentCriteria):
-        if (
-            kwargs.get(criteria.keyword_arg_name, None)
-            == criteria.keyword_arg_value
-        ):
-            return True
-        return False
-    if isinstance(criteria, BuiltInMethodOrFunctionName):
-        if function_name == criteria.bound_function_name and _check_class(
-            criteria, None, function
-        ):
-            return True
-        return False
-    if isinstance(criteria, BuiltInMethodOrFunctionNames):
-        if function_name in criteria.bound_function_names and _check_class(
-            criteria, None, function
-        ):
-            return True
-        return False
-    if isinstance(criteria, BaseClassMethodName) and hasattr(
-        function, "__self__"
-    ):
-        if (
-            base_module is not None
-            and function_name == criteria.class_method_name
-            and hasattr(try_import(base_module), criteria.base_class)
-            and (
-                isinstance(
-                    function.__self__,  # type: ignore
-                    getattr(try_import(base_module), criteria.base_class),
-                )
-            )
-        ):
-            return True
-        return False
-
-    raise ValueError(f"Unknown criteria: {criteria} of type {type(criteria)}")
+                valid_specs[v.module].extend(v.annotations)
+    return valid_specs
 
 
 def new_side_effect_without_all_positional_arg(
@@ -288,42 +161,140 @@ def process_side_effect(
     return side_effect
 
 
-def _check_annotation(
-    function: Callable,
-    args: list[object],
-    kwargs: dict[str, object],
-    result: object,
-    spec_annotations: List[Annotation],
-    module: Optional[str] = None,
-    base_spec_module: Optional[str] = None,
-):
-    for annotation in spec_annotations:
-        if check_function_against_annotation(
-            function,
-            # args, # prob will need soon
-            kwargs,
-            annotation.criteria,
-            module,
-            base_spec_module,
-        ):
-            for side_effect in annotation.side_effects:
-                processed = process_side_effect(
-                    side_effect, args, kwargs, result
-                )
-                if processed is not None:
-                    yield processed
-    return
+@dataclass
+class FunctionInspectorParsed:
+    """
+    Contains the parsed function inspector criteria.
+    """
+
+    # Function criteria
+    function_to_side_effects: Dict[
+        Callable, List[InspectFunctionSideEffect]
+    ] = field(default_factory=lambda: defaultdict(list))
+    # Method criteria
+    method_name_to_type_to_side_effects: Dict[
+        str, Dict[type, List[InspectFunctionSideEffect]]
+    ] = field(default_factory=lambda: defaultdict(lambda: defaultdict(list)))
+    # Method keyword argument criteria
+    keyword_name_and_value_to_type_to_side_effects: Dict[
+        Tuple[str, Hashable], Dict[type, List[InspectFunctionSideEffect]]
+    ] = field(default_factory=lambda: defaultdict(lambda: defaultdict(list)))
+
+    def inspect(
+        self, fn: Callable, kwargs: Dict[str, object]
+    ) -> Optional[List[InspectFunctionSideEffect]]:
+        """
+        Inspect a function call and return a list of side effects, if it matches any of the annotations
+        """
+        # We assume a function is a method if it has a __self__ and the __self__  is not a Module
+        # Note that for functions defines in C, like `setitem`, they have a __self__, but it's the
+        # module they were defined in, in `setitems` case, `operator`, so that's why we need the isinstance
+        # check
+        obj = getattr(fn, "__self__", None)
+        is_method = obj is not None and not isinstance(obj, ModuleType)
+
+        # If it's a function, we just do a simple lookup to see if it's exactly equal to any functions we saved
+        if not is_method:
+            return self.function_to_side_effects.get(fn, None)
+        # If it's a class instance however, we have to consider superclasses, so we first do a lookup
+        # on the name, then check for isinstance
+        method_name = fn.__name__
+        for tp, side_effects in self.method_name_to_type_to_side_effects[
+            method_name
+        ].items():
+            if isinstance(obj, tp):
+                return side_effects
+        # Finally, if we haven't found something yet, try the keyword names mapping on the method
+        for k, v in kwargs.items():
+            # Ignore any non hasable keyword args we pass in
+            if not isinstance(v, Hashable):
+                continue  # type: ignore
+            for (
+                tp,
+                side_effects,
+            ) in self.keyword_name_and_value_to_type_to_side_effects[
+                (k, v)
+            ].items():
+                if isinstance(obj, tp):
+                    return side_effects
+        return None
+
+    def add_annotations(
+        self, module: ModuleType, annotations: List[Annotation]
+    ) -> None:
+        """
+        Parse a list of annotations and look them up to add them to our parsed criteria.
+        """
+        for annotation in annotations:
+            self._add_annotation(
+                module, annotation.criteria, annotation.side_effects
+            )
+
+    def _add_annotation(
+        self,
+        module: ModuleType,
+        criteria: Criteria,
+        side_effects: List[InspectFunctionSideEffect],
+    ) -> None:
+        if isinstance(criteria, KeywordArgumentCriteria):
+            class_ = getattr(module, criteria.class_instance)
+            self.keyword_name_and_value_to_type_to_side_effects[
+                (criteria.keyword_arg_name, criteria.keyword_arg_value)
+            ][class_] = side_effects
+        elif isinstance(criteria, FunctionNames):
+            for name in criteria.function_names:
+                fn = getattr(module, name)
+                self.function_to_side_effects[fn] = side_effects
+        elif isinstance(criteria, FunctionName):
+            fn = getattr(module, criteria.function_name)
+            self.function_to_side_effects[fn] = side_effects
+        elif isinstance(criteria, ClassMethodName):
+            tp = getattr(module, criteria.class_instance)
+            self.method_name_to_type_to_side_effects[
+                criteria.class_method_name
+            ][tp] = side_effects
+        elif isinstance(criteria, ClassMethodNames):
+            tp = getattr(module, criteria.class_instance)
+            for name in criteria.class_method_names:
+                self.method_name_to_type_to_side_effects[name][
+                    tp
+                ] = side_effects
+        else:
+            raise NotImplementedError(criteria)
 
 
+@dataclass
 class FunctionInspector:
-    specs: Dict[str, List[Annotation]]
-    base_specs: Dict[str, List[Annotation]]
+    """
+    The FunctionInspector does two different loading steps.
 
-    def __init__(self):
+    1. Load all the specs from disk with `get_specs`. This happens once on creation of the object.
+    2. On initialization, and before every spec call, go through all the specs and "parse" any for modules we have already imported,
+       which means turning the criteria into in memory objects, we can compare against when inspecting.
+    """
+
+    # Dictionary contains all the specs we haven't parsed yet, because they correspond to un-imported modules
+    specs: Dict[str, List[Annotation]] = field(default_factory=get_specs)
+    # Annotations we have already parsed, since we have already imported these modules.
+    parsed: FunctionInspectorParsed = field(
+        default_factory=FunctionInspectorParsed
+    )
+
+    def _parse(self) -> None:
         """
-        We can add more params later for fancier configs
+        Parses all specs which are for modules we have imported
         """
-        self.specs, self.base_specs = get_specs()
+        for module in list(self.specs.keys()):
+            if module not in sys.modules:
+                continue
+            self.parsed.add_annotations(
+                sys.modules[module],
+                # Pop the spec once we have processed it
+                self.specs.pop(module),
+            )
+
+    def __post_init__(self):
+        self._parse()
 
     def inspect(
         self,
@@ -336,62 +307,12 @@ class FunctionInspector:
         Inspects a function and returns how calling it mutates the args/result and
         creates view relationships between them.
         """
-        if (
-            isinstance(function, BuiltinMethodType)
-            and function.__module__ is None
-        ):
-            # adding type ignore because for some reason mypy thinks this code is unreachable
-            yield from _check_annotation(  # type: ignore
-                function,
-                args,
-                kwargs,
-                result,
-                self.specs[BuiltinMethodType.__name__],
-                module=BuiltinMethodType.__name__,
+        # Try re-parsing during each function call, incase other modules were imported we can analyse
+        self._parse()
+        side_effects = self.parsed.inspect(function, kwargs) or []
+        for side_effect in side_effects:
+            processed_side_effect = process_side_effect(
+                side_effect, args, kwargs, result
             )
-        else:
-
-            def get_root_module(fun: Callable):
-                if hasattr(fun, "__module__") and fun.__module__ is not None:
-                    return fun.__module__.split(".")[0]
-                return None
-
-            # numpy ufunc objects dont have modules
-            module = getattr(function, "__module__", None)
-            if module in self.specs:
-                yield from _check_annotation(
-                    function,
-                    args,
-                    kwargs,
-                    result,
-                    self.specs[function.__module__],
-                    module=function.__module__,
-                )
-            else:
-                root_module = get_root_module(function)
-                if root_module is not None and root_module in self.specs:
-                    yield from _check_annotation(
-                        function,
-                        args,
-                        kwargs,
-                        result,
-                        self.specs[root_module],
-                        module=root_module,
-                    )
-
-            if not isinstance(function, MethodType):
-                # base classes have to be a method type, helps skip through
-                #   some options
-                return
-            for base_spec_module in self.base_specs:
-                # there doesn't seem to be a way to hash thru this...
-                # so we'll loop for now
-                yield from _check_annotation(
-                    function,
-                    args,
-                    kwargs,
-                    result,
-                    self.base_specs[base_spec_module],
-                    base_spec_module=base_spec_module,
-                )
-            return
+            if processed_side_effect:
+                yield processed_side_effect
