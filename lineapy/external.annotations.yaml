@@ -103,7 +103,8 @@
 - module: PIL.Image
   annotations:
     - criteria:
-        function_name: save
+        class_instance: Image
+        class_method_name: save
       side_effects:
         - mutated_value:
             external_state: file_system
