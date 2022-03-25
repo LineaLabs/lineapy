@@ -40,7 +40,7 @@ class ImplicitDependencyNode:
 @dataclass
 class AccessedGlobals:
     """
-    Represents some global variables that were retireved or changed during this call.
+    Represents some global variables that were retrieved or changed during this call.
     """
 
     retrieved: List[str]
@@ -63,7 +63,8 @@ class Variable:
     name: str
 
 
-# Instead of just passing back the linea ID for the side effect, we create
-# a couple of different cases, to cover different things we might want to point
-# to.
+"""
+Inside the execution, sometimes we need to point to values that have yet to
+be created in the graph, hence the ID (LineaID) is insufficient.
+"""
 ExecutorPointer = Union[ID, Variable, ExternalState]

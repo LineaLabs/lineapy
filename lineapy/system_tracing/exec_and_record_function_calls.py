@@ -3,7 +3,7 @@ from sys import settrace
 from types import CodeType
 from typing import Dict
 
-from lineapy.system_tracing.trace_func import TraceFunc
+from lineapy.system_tracing._trace_func import TraceFunc
 
 logger = logging.getLogger(__name__)
 

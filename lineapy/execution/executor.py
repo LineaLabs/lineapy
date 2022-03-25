@@ -314,14 +314,23 @@ class Executor:
 
         self._node_to_globals[node.id] = globals_result.added_or_modified
 
-        # Add all side effects from context as well as side effects from inspecting function.
-        # Note: this is an iterable, so that each translated side effect is resolved after the previous
-        # one has been executed. This is so that when two implicit dependencies show up in the side effects,
-        # the first is executed, and set in the value_to_node, so that when the second is translated
-        # it is a pointer to that node that was created, instead of a lookup node.
-        # This shows up in the implicit dependencies, so alternatively we could move those to all nodes
-        # so that a lookup node could have an implicit dep on anotehr lookup node, and we would create two nodes
-        # for external state side effects
+        """
+        Add all side effects from context as well as side effects from 
+           inspecting function.
+        `side_effects` is an iterable, so that each translated 
+          side effect is resolved after the previous one has been executed 
+          (the control is yielded). Consider 
+          ```
+          with open("...", "w") as f
+          ```
+          We create both the node that represents the side-effect, and a view node
+          so the side-effect from the inspect_function in the executor, if the 
+          executor sees that there is no node (first time), then sends to tracer,
+          tracer creates a lookup node, then give back to executor to process it.
+
+        NOTE: we have a near term eng goal to refactor how side-effect is
+              handled.
+        """
         side_effects = chain(
             map(self._process_global_side_effect, globals_result.side_effects),
             (
@@ -338,7 +347,8 @@ class Executor:
         self, side_effect: SideEffect
     ) -> SideEffect:
         """
-        Process the global side effect, resolving any external state nodes to node IDs if we have already created them
+        Process the global side effect, resolving any external state nodes to 
+        node IDs if we have already created them
         """
         if isinstance(side_effect, MutatedNode):
             return MutatedNode(

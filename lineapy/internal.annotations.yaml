@@ -44,6 +44,14 @@
         # is a view of the list.
         # This shouldn't be a problem unless users are manually using `next` which
         # probably isn't that common
+        # Consider the following example
+        # ```
+        # x = (x for x in range(10))
+        # for _ in x:
+        #   pass
+        # y = list(x) # it will be empty because x is exhausted and the slice
+        #             # should be included
+        # ```
         # - mutated_value:
         #     positional_argument_index: 0
         - views:

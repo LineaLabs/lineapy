@@ -34,20 +34,40 @@ def object_side_effects_to_side_effects(
     output_globals: Mapping[str, object],
 ) -> Iterable[SideEffect]:
     """
-    Translates a list of object side effects to a list of side effects, by mapping objects to nodes, and only emitting side effects
-    which relate to either the input nodes or the output globals.
+    Translates a list of object side effects to a list of side effects, by
+    mapping objects to nodes, and only emitting side effects
+    that references only input nodes or the output globals.
+
+    The process is not just trimming off internal variables, but also sometimes
+    transitively searching for nodes. Consider the following example:
+    ```python
+    y = 10
+    if ...:
+        z = [y]
+        a = [z]
+        del z
+    ```
+    We want to establish that `a` is a view of `y`, and skip z because it's not in
+    the outer scope that we care about.
 
     :param object_side_effects: The object side effects that were recorded.
     :param input_nodes: Mapping of node ID to value for all the nodes that were passed in to this execution.
     :param output_globals: Mapping of global identifier to the value of all globals that were set during this execution.
     """
+    # First track all the views and mutations in terms of objects 
+    #   (no Nodes reference)
     tracker = ObjectMutationTracker()
 
     for object_side_effect in object_side_effects:
         tracker.process_side_effect(object_side_effect)
 
-    # mapping of object ids for the objects we care about, input nodes as well as external state, to the pointers to them
-    # One object ID can have multiple pointers, for example, when we have an alias.
+    # Mapping of object ids for the objects we care about, input nodes &
+    #   external state, to the `ExecutorPointer` to them.
+    # One object ID can have multiple pointers, for example, when we have an 
+    # alias: 
+    # ```y = [1]
+    # b = y
+    # ```
     object_id_to_pointers: Dict[int, List[ExecutorPointer]] = defaultdict(list)
     for object_id, pointer in EXTERNAL_STATE_IDS.items():
         object_id_to_pointers[object_id].append(pointer)
@@ -66,11 +86,13 @@ def object_side_effects_to_side_effects(
 
     # Return all views
 
-    # For the views, we care about whether they include the ouputs as well, so lets add those to the objects we care about
+    # For the views, we care about whether they include the outputs as well,
+    # so lets add those to the objects we care about
     for name, value in output_globals.items():
         object_id_to_pointers[id(value)].append(Variable(name))
 
-        # Also add these as empty views, so they are processed if there are are multiple pointers for this id
+        # Also add these as empty views, so they are processed if there are
+        # are multiple pointers for this id
         tracker.viewers[id(value)]
     # ID of objects we have already emitted views for
     processed_view_ids: Set[int] = set()
@@ -114,9 +136,7 @@ class ObjectMutationTracker:
     # List of objects which have implicit dependencies
     implicit_dependencies: List[int] = field(default_factory=list)
 
-    def process_side_effect(
-        self, object_side_effect: ObjectSideEffect
-    ) -> None:
+    def process_side_effect(self, object_side_effect: ObjectSideEffect) -> None:
         if isinstance(object_side_effect, ViewOfObjects):
             set_as_viewers_generic(
                 [id(o) for o in object_side_effect.objects], self.viewers

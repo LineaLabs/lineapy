@@ -28,6 +28,10 @@ def function_calls_to_object_side_effects(
     function_inspector: FunctionInspector,
     function_calls: Iterable[FunctionCall],
 ) -> Iterable[ObjectSideEffect]:
+    """
+    Turn the function calls into the side effects in terms of the Python objects.
+    For example, "the object [1, 2, 3] was mutated."
+    """
     for fc in function_calls:
         for side_effect in function_inspector.inspect(
             fc.fn, fc.args, fc.kwargs, fc.res

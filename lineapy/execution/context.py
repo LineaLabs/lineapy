@@ -1,6 +1,6 @@
 """
-This module contains a number of globals, which are set by the execution when its
-processing nodes. 
+This module contains a number of globals, which are set by the execution when 
+it is processing call nodes.
 
 They are used as a side channel to pass values from the executor to special functions
 which need to know more about the execution context, like in the `exec` to know
@@ -11,6 +11,8 @@ This module exposes three global functions, which are meant to be used like:
 1. The `executor` calls `set_context` before executing every call node.
 2. The function being called can call `get_context` to get the current context.
 3. The `executor` calls `teardown_context` after its finished executing
+
+I.e. the context is created for every call.
 """
 from __future__ import annotations
 
@@ -37,9 +39,20 @@ from lineapy.system_tracing.function_calls_to_side_effects import (
 if TYPE_CHECKING:
     from lineapy.data.types import CallNode, LineaID
     from lineapy.execution.executor import Executor
+"""
+Use the same globals for all executions, so that a function created during 
+  one execution will have the same globals as when it is later called, 
+  so we can see what globals have been written during that.
+  Consider the following motivating example:
+```python
+a = 10
+def f():
+    print(a)
+a = 15
+f() # should print 15, instead of 10
+```
+"""
 
-# Use the same globals for all executions, so that a function compiled during one execution will have the same globals
-# as when it is later called, so we can see what globals have been written during that.
 _global_variables: GlobalsDict = GlobalsDict()
 _current_context: Optional[ExecutionContext] = None
 
@@ -171,6 +184,15 @@ def teardown_context() -> ContextResult:
 def _compute_side_effects(
     context: ExecutionContext, globals_result: GlobalsDictResult
 ) -> Iterable[SideEffect]:
+    """
+    This is the legacy worst case side effect computation and is applied when
+    settrace's bytecode is not supported.
+    Currently, anything related to generators is not supported, e.g.,
+    ```python
+    f(*x) # if we read the `next` function it will exhaust the generator and change
+          # the semantics of the code.
+    ```
+    """
     # Any nodes that we retrieved that were mutable, assume were mutated
     # Filter the vars by if the value is mutable
     mutable_input_vars: List[ExecutorPointer] = [

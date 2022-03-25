@@ -36,12 +36,15 @@ class TraceFunc:
     # Set of operations we encounter that we don't know how to handle
     not_implemented_ops: Set[str] = field(default_factory=set)
 
-    # Mapping of each code object that was passed in to its instructions, by offset, so we can quicjly look up what instruction we are looking at
+    # Mapping of each code object that was passed in to its instructions,
+    # by offset, so we can quickly look up what instruction we are looking at
     code_to_offset_to_instruction: Dict[
         CodeType, Dict[int, Instruction]
     ] = field(init=False)
 
-    # If set for the code object, then the previous bytecode instruction in the frame for that code object had a function call, and during the next call, we should call
+    # If set for the code object, then the previous bytecode instruction in the
+    # frame for that code object had a function call, and during the next call, 
+    # we should call
     # this function with the current stack to get the FunctionCall result.
     code_to_return_value_callback: Dict[CodeType, ReturnValueCallback] = field(
         default_factory=dict
@@ -55,7 +58,9 @@ class TraceFunc:
 
     def __call__(self, frame, event, arg):
         code = frame.f_code
-        # Exit early if the code object for this frame is not one of the code objects we want to trace
+        # Exit early if the code object for this frame is not one of the code 
+        # objects that is contained in the source code passed in (i.e., specifically
+        # in the current usecase, anything outside of the blackbox).
         if frame.f_code not in self.code_to_offset_to_instruction:
             return self
 
@@ -66,9 +71,11 @@ class TraceFunc:
             return self
 
         offset = frame.f_lasti
-        # Lookup the instruction we currently have based on the code object as well as the offset in that object
+        # Lookup the instruction we currently have based on the code object as 
+        # well as the offset in that object
         instruction = self.code_to_offset_to_instruction[code][offset]
-        # We want to see the name and the arg for the actual instruction, not the arg, so increment until we get to that
+        # We want to see the name and the arg for the actual instruction, not 
+        # the arg, so increment until we get to that
         while instruction.opname == "EXTENDED_ARG":
             offset += 2
             instruction = self.code_to_offset_to_instruction[code][offset]
@@ -76,7 +83,8 @@ class TraceFunc:
         # Create an op stack around the frame so we can access the stack
         op_stack = OpStack(frame)
 
-        # If during last instruction we had some function call that needs a return value, trigger the callback with the current
+        # If during last instruction we had some function call that needs a 
+        # return value, trigger the callback with the current
         # stack, so it can get the return value.
         if code in self.code_to_return_value_callback:
             return_value_callback = self.code_to_return_value_callback[code]
@@ -89,6 +97,7 @@ class TraceFunc:
 
         # Check if the current operation is a function call
         try:
+            print(instruction.opname, instruction.argval, frame.f_lasti, "\n")
             possible_function_call = resolve_bytecode_execution(
                 instruction.opname,
                 instruction.argval,
@@ -99,7 +108,8 @@ class TraceFunc:
         except NotImplementedError:
             self.not_implemented_ops.add(instruction.opname)
             possible_function_call = None
-        # If resolving the function call needs to be deferred until after we have the return value, save teh callback
+        # If resolving the function call needs to be deferred until after we 
+        # have the return value, save the callback
         if callable(possible_function_call):
             self.code_to_return_value_callback[code] = possible_function_call
         # Otherwise, if we could resolve it fully now, add that to our function call
@@ -224,15 +234,30 @@ COMPARE_OPS: Dict[str, Callable] = {
 # safely iterate through the args
 ##
 
-##
-# Defer supprting imports until after imports are turned into call nodes
-##
-# IMPORT_STARIMPORT_STAR
-# IMPORT_NAME
-# IMPORT_FROM
+"""
+Defer supporting imports until after imports are turned into call nodes
+Usually we don't need to worry about it, at least in the context of slicing,
+but consider the following example:
+# ```
+# import x
+# if ...:
+#   import x.y
+# a = x.y.z + 1
+# ```
+lineapy.save(a, "weird value") actually would have a dependency on the blackbox, as discussed in
+https://github.com/LineaLabs/lineapy/blob/main/docs/source/rfcs/0001-imports.md.
+Can read more: https://docs.python.org/3/reference/import.html#submodules
+
+Here are the ones we don't support:
+- IMPORT_STARIMPORT_STAR
+- IMPORT_NAME
+- IMPORT_FROM
+"""
+
 
 ##
-# Generator functions not supported
+# We haven't thought much about generator functions, so we don't trace
+# them for now.
 ##
 
 # GET_YIELD_FROM_ITER
@@ -287,15 +312,23 @@ def resolve_bytecode_execution(
             BINARY_OPERATIONS[name], args, {}, post_stack[-1]
         )
     if name == "FOR_ITER":
+        """
+        From the original Python source code documentation:
         # TOS is an `iterator`.  Call its `__next__` method.  If
         # this yields a new value, push it on the stack (leaving the iterator below
         # it).  If the iterator indicates it is exhausted, TOS is popped, and the byte
         # code counter is incremented by *delta*.
+        
+        So we translated to:
+        If the current instruction is the next one (i.e. the offset has increased by 2), then we didn't jump,
+        meaning the iterator was not exhausted. Otherwise, we did jump, and it was, so don't add a function call for this.
+        
+        Note tha if we start handling exception, we should edit how we are 
+        handling the loops, since Python uses the try/catch mechanism to catch
+        loop end.
+        """
         args = [stack[-1]]
 
-        # If the current instruction is the next one (i.e. the offset has increased by 2), then we didn't jump,
-        # meaning the iterator was not exhausted. Otherwise, we did jump, and it was, so don't add a function call for this.
-        # TODO: We don't support function calls which end in exceptions currently, if/when we do, we need to update this
         return (
             lambda post_stack, post_offset: FunctionCall(
                 next, args, {}, post_stack[-1]
@@ -360,7 +393,7 @@ def resolve_bytecode_execution(
         # - (TOP, SECOND) = (WHY_{RETURN,CONTINUE}), retval
         # - TOP = WHY_*; no retval below it
         # - (TOP, SECOND, THIRD) = exc_info()
-        #     (FOURTH, FITH, SIXTH) = previous exception for EXCEPT_HANDLER
+        #     (FOURTH, FIFTH, SIXTH) = previous exception for EXCEPT_HANDLER
         # Below them is EXIT, the context.__exit__ bound method.
         # In the last case, we must call
         #     EXIT(TOP, SECOND, THIRD)
