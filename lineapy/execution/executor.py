@@ -6,6 +6,7 @@ import logging
 import operator
 from dataclasses import dataclass, field
 from datetime import datetime
+from itertools import chain
 from os import chdir, getcwd
 from typing import (
     Callable,
@@ -15,6 +16,7 @@ from typing import (
     List,
     Optional,
     Tuple,
+    Union,
     cast,
 )
 
@@ -44,11 +46,11 @@ from lineapy.execution.context import set_context, teardown_context
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.execution.side_effects import (
     ID,
+    AccessedGlobals,
     ExecutorPointer,
     ImplicitDependencyNode,
     MutatedNode,
     SideEffect,
-    SideEffects,
     ViewOfNodes,
 )
 from lineapy.instrumentation.annotation_spec import (
@@ -86,7 +88,7 @@ class PrivateExecuteResult:
     value: object
     start_time: datetime
     end_time: datetime
-    side_effects: SideEffects
+    side_effects: Iterable[SideEffect]
 
 
 @dataclass
@@ -117,8 +119,9 @@ class Executor:
     # so that artifacts created during the execution know which execution they should refer to.
     execution: Execution = field(init=False)
 
-    # TODO:
-    _function_inspector = FunctionInspector()
+    _function_inspector: FunctionInspector = field(
+        default_factory=FunctionInspector
+    )
     _id_to_value: dict[LineaID, object] = field(default_factory=dict)
     _execution_time: dict[LineaID, Tuple[datetime, datetime]] = field(
         default_factory=dict
@@ -162,7 +165,7 @@ class Executor:
 
     def execute_node(
         self, node: Node, variables: Optional[Dict[str, LineaID]] = None
-    ) -> SideEffects:
+    ) -> Iterable[SideEffect]:
         """
         Variables is the mapping from local variable names to their nodes. It
         is passed in on the first execution, but on re-executions it is empty.
@@ -208,8 +211,13 @@ class Executor:
                 # However, don't add any edges for mutate nodes, since
                 # they already should have it from the source
                 if not isinstance(node, MutateNode):
-                    res.side_effects.append(
-                        ImplicitDependencyNode(ID(self._value_to_node[value]))
+                    res.side_effects = chain(
+                        res.side_effects,
+                        [
+                            ImplicitDependencyNode(
+                                ID(self._value_to_node[value])
+                            )
+                        ],
                     )
                 # If this is a mutate node, then update the value to node to the new
                 # value, so we always get the last one
@@ -306,13 +314,69 @@ class Executor:
 
         self._node_to_globals[node.id] = globals_result.added_or_modified
 
-        # Add all side effects from context as well as side effects from inspecting function.
-        side_effects = globals_result.side_effects + [
-            self._translate_side_effect(node, e)
-            for e in self._function_inspector.inspect(fn, args, kwargs, res)
-        ]
+        """
+        Add all side effects from context as well as side effects from 
+           inspecting function.
+        `side_effects` is an iterable, so that each translated 
+          side effect is resolved after the previous one has been executed 
+          (the control is yielded). Consider 
+          ```
+          with open("...", "w") as f
+          ```
+          We create both the node that represents the side-effect, and a view node
+          so the side-effect from the inspect_function in the executor, if the 
+          executor sees that there is no node (first time), then sends to tracer,
+          tracer creates a lookup node, then give back to executor to process it.
+
+        NOTE: we have a near term eng goal to refactor how side-effect is
+              handled.
+        """
+        side_effects = chain(
+            map(self._process_global_side_effect, globals_result.side_effects),
+            (
+                self._translate_side_effect(node, e)
+                for e in self._function_inspector.inspect(
+                    fn, args, kwargs, res
+                )
+            ),
+        )
 
         return PrivateExecuteResult(res, start_time, end_time, side_effects)
+
+    def _process_global_side_effect(
+        self, side_effect: SideEffect
+    ) -> SideEffect:
+        """
+        Process the global side effect, resolving any external state nodes to
+        node IDs if we have already created them
+        """
+        if isinstance(side_effect, MutatedNode):
+            return MutatedNode(
+                pointer=self._process_execution_pointer(side_effect.pointer)
+            )
+        if isinstance(side_effect, ViewOfNodes):
+            return ViewOfNodes(
+                pointers=list(
+                    map(self._process_execution_pointer, side_effect.pointers)
+                )
+            )
+        if isinstance(side_effect, AccessedGlobals):
+            return side_effect
+        if isinstance(side_effect, ImplicitDependencyNode):
+            return ImplicitDependencyNode(
+                pointer=self._process_execution_pointer(side_effect.pointer)
+            )
+        raise NotImplementedError()
+
+    def _process_execution_pointer(
+        self, execution_pointer: ExecutorPointer
+    ) -> ExecutorPointer:
+        """
+        Process an execute pointer to map external state nodes to node IDs, if we already know about them.
+        """
+        if isinstance(execution_pointer, ExternalState):
+            return self._translate_external_state(execution_pointer)
+        return execution_pointer
 
     @_execute.register
     def _execute_import(
@@ -420,13 +484,18 @@ class Executor:
         elif isinstance(pointer, BoundSelfOfFunction):
             return ID(self._node_to_bound_self[node.function_id])
         elif isinstance(pointer, ExternalState):
-            # If we have already created this external state, just return that ID
-            if pointer in self._value_to_node:
-                return ID(self._value_to_node[pointer])
-            # Otherwise return a pointer that external state for the tracer
-            # to create
-            return pointer
+            return self._translate_external_state(pointer)
         raise ValueError(f"Unknown pointer {pointer}, of type {type(pointer)}")
+
+    def _translate_external_state(
+        self, pointer: ExternalState
+    ) -> Union[ExternalState, ID]:
+        # If we have already created this external state, just return that ID
+        if pointer in self._value_to_node:
+            return ID(self._value_to_node[pointer])
+        # Otherwise return a pointer that external state for the tracer
+        # to create
+        return pointer
 
     def _translate_side_effect(
         self, node: CallNode, e: InspectFunctionSideEffect

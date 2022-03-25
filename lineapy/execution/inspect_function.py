@@ -100,7 +100,7 @@ def get_specs() -> Dict[str, List[Annotation]]:
     """
     relative_path = "../*.annotations.yaml"
     path = os.path.join(os.path.dirname(__file__), relative_path)
-    valid_specs: Dict[str, List[Annotation]] = {}
+    valid_specs: Dict[str, List[Annotation]] = defaultdict(list)
     for filename in glob.glob(path):
         with open(filename, "r") as f:
             doc = yaml.safe_load(f)
@@ -108,7 +108,7 @@ def get_specs() -> Dict[str, List[Annotation]]:
                 v = validate(item)
                 if v is None:
                     continue
-                valid_specs[v.module] = v.annotations
+                valid_specs[v.module].extend(v.annotations)
     return valid_specs
 
 

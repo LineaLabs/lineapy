@@ -49,12 +49,14 @@ def test_execute_import(executor: Executor):
     Verify that executing an import gives a value, timing information, and no side effects.
     """
     id_ = LineaID("operator_id")
-    assert not executor.execute_node(
-        ImportNode(
-            id=id_,
-            session_id="unused",
-            library=Library(id="unused", name="operator"),
-        ),
+    assert not list(
+        executor.execute_node(
+            ImportNode(
+                id=id_,
+                session_id="unused",
+                library=Library(id="unused", name="operator"),
+            ),
+        )
     )
     assert executor.get_value(id_) == operator
     assert isinstance(executor.get_execution_time(id_), tuple)
@@ -122,7 +124,7 @@ def test_execute_call(executor: Executor):
         )
     )
     # There should be no side effects
-    assert not side_effects
+    assert not list(side_effects)
 
     # we should be able to get the value
     assert executor.get_value(id_) == -1
@@ -162,22 +164,30 @@ def test_execute_call_mutable_input_vars(executor: Executor):
     side effect.
     """
     # Create a list
-    assert not executor.execute_node(
-        LookupNode(id="l_list", name="l_list", session_id="")
+    assert not list(
+        executor.execute_node(
+            LookupNode(id="l_list", name="l_list", session_id="")
+        )
     )
-    assert not executor.execute_node(
-        CallNode(id="list", function_id="l_list", session_id="")
+    assert not list(
+        executor.execute_node(
+            CallNode(id="list", function_id="l_list", session_id="")
+        )
     )
 
     # Use exec statement to re-assign the list to another variable
-    assert not executor.execute_node(
-        LookupNode(
-            id="l_exec_statement", name="l_exec_statement", session_id=""
+    assert not list(
+        executor.execute_node(
+            LookupNode(
+                id="l_exec_statement", name="l_exec_statement", session_id=""
+            )
         )
     )
-    assert not executor.execute_node(
-        LiteralNode(
-            id="assign_str", value="x.append(10); y = x", session_id=""
+    assert not list(
+        executor.execute_node(
+            LiteralNode(
+                id="assign_str", value="x.append(10); y = x", session_id=""
+            )
         )
     )
 
@@ -191,7 +201,7 @@ def test_execute_call_mutable_input_vars(executor: Executor):
         ),
         {"x": LineaID("list")},
     )
-    assert call_side_effects == [
+    assert list(call_side_effects) == [
         AccessedGlobals(retrieved=["x"], added_or_updated=["y"]),
         MutatedNode(ID(LineaID("list"))),
         # The list and the variable should be views
@@ -257,34 +267,44 @@ def test_execute_mutate(executor: Executor):
     # Create a list and append to it.
 
     # Create the list
-    assert not executor.execute_node(
-        LookupNode(id="l_list", name="l_list", session_id="")
+    assert not list(
+        executor.execute_node(
+            LookupNode(id="l_list", name="l_list", session_id="")
+        )
     )
-    assert not executor.execute_node(
-        CallNode(id="list", function_id="l_list", session_id="")
+    assert not list(
+        executor.execute_node(
+            CallNode(id="list", function_id="l_list", session_id="")
+        )
     )
 
     # Get the append method
-    assert not executor.execute_node(
-        LookupNode(id="getattr", name="getattr", session_id="")
+    assert not list(
+        executor.execute_node(
+            LookupNode(id="getattr", name="getattr", session_id="")
+        )
     )
-    assert not executor.execute_node(
-        LiteralNode(id="append_str", value="append", session_id="")
+    assert not list(
+        executor.execute_node(
+            LiteralNode(id="append_str", value="append", session_id="")
+        )
     )
-    assert not executor.execute_node(
-        CallNode(
-            id="append_method",
-            function_id="getattr",
-            positional_args=[
-                PositionalArgument(id=LineaID("list")),
-                PositionalArgument(id=LineaID("append_str")),
-            ],
-            session_id="",
+    assert not list(
+        executor.execute_node(
+            CallNode(
+                id="append_method",
+                function_id="getattr",
+                positional_args=[
+                    PositionalArgument(id=LineaID("list")),
+                    PositionalArgument(id=LineaID("append_str")),
+                ],
+                session_id="",
+            )
         )
     )
     # append one to it
-    assert not executor.execute_node(
-        LiteralNode(id="one", value=1, session_id="")
+    assert not list(
+        executor.execute_node(LiteralNode(id="one", value=1, session_id=""))
     )
     side_effects = executor.execute_node(
         CallNode(
@@ -295,7 +315,7 @@ def test_execute_mutate(executor: Executor):
         )
     )
     # Assert that list is mutated
-    assert side_effects == [MutatedNode(ID(LineaID("list")))]
+    assert list(side_effects) == [MutatedNode(ID(LineaID("list")))]
 
     # Now create a mutate node for the new list
     mutate_side_effects = executor.execute_node(
@@ -307,7 +327,7 @@ def test_execute_mutate(executor: Executor):
         )
     )
     # Verify there is a view now between them
-    assert mutate_side_effects == [
+    assert list(mutate_side_effects) == [
         ViewOfNodes(
             [
                 ID(LineaID("mutated_list")),
@@ -332,13 +352,17 @@ def test_execute_global(executor: Executor):
     the call node, and a view between the call node and this node.
     """
     # Use exec statement to execute assigning a variable, then grabbing it
-    assert not executor.execute_node(
-        LookupNode(
-            id="l_exec_statement", name="l_exec_statement", session_id=""
+    assert not list(
+        executor.execute_node(
+            LookupNode(
+                id="l_exec_statement", name="l_exec_statement", session_id=""
+            )
         )
     )
-    assert not executor.execute_node(
-        LiteralNode(id="assign_str", value="x = 1", session_id="")
+    assert not list(
+        executor.execute_node(
+            LiteralNode(id="assign_str", value="x = 1", session_id="")
+        )
     )
     # Assert that it assigned to a global
     call_side_effects = executor.execute_node(
@@ -349,12 +373,14 @@ def test_execute_global(executor: Executor):
             session_id="",
         )
     )
-    assert call_side_effects == [
+    assert list(call_side_effects) == [
         AccessedGlobals(retrieved=[], added_or_updated=["x"])
     ]
     # Now create a global node to get the value
-    assert not executor.execute_node(
-        GlobalNode(id="x", session_id="", name="x", call_id="assign_call")
+    assert not list(
+        executor.execute_node(
+            GlobalNode(id="x", session_id="", name="x", call_id="assign_call")
+        )
     )
     # Verify it has same timing as parent and has value
     assert executor.get_execution_time(

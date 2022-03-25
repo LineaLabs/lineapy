@@ -13,7 +13,7 @@ class GlobalsDict(Dict[str, object]):
 
     It is meant to be used like:
 
-    1. Instantiate it empty like `RecordGetitemDict()`
+    1. Instantiate it empty like `GlobalsDict()`
     2. Call `setup_globals(d)` to update it with the input globals
     3. Execute some code that uses it as globals, which will call `__setitem__`
        as well as our custom `__getitem__`.

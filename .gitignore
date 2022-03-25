@@ -143,6 +143,8 @@ scratch/
 temp.py
 
 ## Linea specific
+.ipython
+tests/integration/venvs/
 *.sqlite
 *.db
 *.png

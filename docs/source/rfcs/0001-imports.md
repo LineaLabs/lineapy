@@ -39,7 +39,7 @@ import module
 An import from of an attribute in the module:
 
 ```python
-import attribute from module
+from module import attribute
 ```
 
 Both of these use `importlib` to first get a `module` object. In the case of the first, we then bind that module object to it's name as a local variable. For the second, we bind each attribute as a name, getting that attribute from the module
@@ -349,6 +349,7 @@ Here I sketch some details of how we could implement most of this:
 ##
 # Linea builtins
 ##
+# Note: this should have annotations added to make the result depend on the base_module arg if provided.
 def l_import(name: str, base_module: types.ModuleType = None) -> types.ModuleType:
     """
     Imports and returns a module. If the base_module is provided, the module
