@@ -1,16 +1,17 @@
 import ast
 import logging
+import os
+import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 import isort
 
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.plugins.utils import get_lib_version_text, load_plugin_template
-from lineapy.utils.config import linea_folder
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
@@ -53,11 +54,37 @@ class BasePlugin:
         main_block = f"""if __name__ == "__main__":\n\tprint({func_name}())"""
         return import_block, code_block, main_block
 
+    def prepare_output_dir(self, copy_src: str, copy_dst: str):
+        """
+        This helper creates directories if missing and copies over non-python files from the source directory.
+        This is done to copy any config/data files to the output directory.
+        """
+        ignores = shutil.ignore_patterns(
+            "*.py",
+            "*.ipynb",
+            "*.ipynb_checkpoints",
+            "*.pyc",
+            "*.pyo",
+            "*.egg-info",
+            "*.toml",
+        )
+
+        with os.scandir(copy_src) as itr:
+            entries = list(itr)
+        ignored_names = ignores(os.fspath(copy_src), [x.name for x in entries])
+        os.makedirs(copy_dst, exist_ok=True)
+        for srcentry in entries:
+            if srcentry.name in ignored_names:
+                continue
+            if srcentry.is_dir():
+                continue
+            shutil.copy2(srcentry, copy_dst)
+
     def generate_python_module(
         self,
         module_name: str,
         artifacts_code: Dict[str, str],
-        output_dir: Optional[str] = None,
+        output_dir_path: Path,
     ):
         """
         Generate python module code and save to a file.
@@ -78,21 +105,14 @@ class BasePlugin:
             profile="black",
         )
         full_code = prettify(full_code)
-        output_dir_path = Path(output_dir) if output_dir else Path.cwd()
         (output_dir_path / f"{module_name}.py").write_text(full_code)
         logger.info(f"Generated python module {module_name}.py")
 
-    def get_relative_working_dir_as_str(self):
+    def get_working_dir_as_str(self):
         working_directory = Path(
             self.db.get_session_context(self.session_id).working_directory
         )
-        return repr(
-            str(
-                working_directory.relative_to(
-                    (linea_folder() / "..").resolve()
-                )
-            )
-        )
+        return str(working_directory.resolve())
 
     def generate_infra(
         self,
