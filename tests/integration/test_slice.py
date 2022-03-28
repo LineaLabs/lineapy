@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import contextlib
+import logging
 import os
 import pathlib
 import subprocess
@@ -32,6 +33,8 @@ class Environment:
     # List of additional conda packages to install
     conda_deps: list[str] = field(default_factory=list)
 
+
+logger = logging.getLogger(__name__)
 
 # Mapping of the environment name to the environment with the requirements in it.
 # Also allow a thunk to the Environment, so that the value is not evaluated
@@ -232,8 +235,9 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
         sliced_path = INTEGRATION_DIR / f"slices/{test_id}.py"
         # If the sliced file does not exist, copy the source file to it
         if not sliced_path.exists():
-            print(
-                f"Copying file to slice {sliced_path}. Manually edit this slice."
+            logger.info(
+                "Copying file to slice %s. Manually edit this slice.",
+                sliced_path,
             )
             write_python_file(resolved_source_path, sliced_path)
 
@@ -258,13 +262,13 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
         with tempfile.NamedTemporaryFile(
             dir=source_dir, suffix=".py"
         ) as tmp_file:
-            print(f"\n\nRunning tmp slice at {tmp_file.name}")
+            logger.info("Running tmp slice at %s", tmp_file.name)
             tmp_file.write(sliced_file_contents.encode())
             tmp_file.flush()
             subprocess.run(["ipython", tmp_file.name], check=True)
 
         # Slice the file with lineapy
-        print(f"\n\nRunning lineapy to slice {resolved_source_path}")
+        logger.info("Running lineapy to slice %s", resolved_source_path)
         sliced_code = slice_file(
             resolved_source_path,
             slice_value,
@@ -403,10 +407,10 @@ def use_env(name: str):
 
     try:
         if env_dir.exists():
-            print(f"Using previously created env {env_dir}")
+            logger.info("Using previously created env %s", env_dir)
         else:
             env_file = create_env_file(env)
-            print(f"Creating env from generated file: {env_file}")
+            logger.info("Creating env from generated file: %s", env_file)
             subprocess.run(
                 ["conda", "env", "create", "-f", env_file, "-p", env_dir],
                 check=True,
