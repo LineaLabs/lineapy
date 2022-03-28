@@ -116,7 +116,7 @@ airflow_venv:
 
 
 airflow_home: 
-	mkdir -p ${AIRFLOW_HOME}
+	mkdir -p ${AIRFLOW_HOME}/dags
 	cp -f airflow_webserver_config.py ${AIRFLOW_HOME}/webserver_config.py
 
 
