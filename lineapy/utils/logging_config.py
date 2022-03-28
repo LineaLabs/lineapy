@@ -8,6 +8,7 @@ want to mess up others logging configuration.
 import logging
 import os
 
+from rich.console import Console
 from rich.logging import RichHandler
 
 # https://rich.readthedocs.io/en/stable/logging.html#logging-handler
@@ -33,5 +34,5 @@ def configure_logging(level=None, LOG_SQL=False):
         level=level,
         format=FORMAT,
         datefmt="[%X]",
-        handlers=[RichHandler()],
+        handlers=[RichHandler(console=Console(stderr=True))],
     )

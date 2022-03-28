@@ -14,6 +14,7 @@ import astor
 import yaml
 from pytest import mark, param
 
+from lineapy.utils.logging_config import LOGGING_ENV_VARIABLE
 from lineapy.utils.utils import prettify
 
 INTEGRATION_DIR = pathlib.Path(__file__).parent
@@ -284,6 +285,9 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
 
     artifact_name = f"{file_name}:{slice_value}"
 
+    # Set logging to be more detailed, in case problems arise
+    env = {**os.environ, LOGGING_ENV_VARIABLE: "INFO"}
+
     additional_args: List[Union[str, pathlib.Path]] = (
         [
             "--visualize-slice",
@@ -304,7 +308,7 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
         ]
 
         return subprocess.run(
-            args, check=True, stdout=subprocess.PIPE
+            args, check=True, stdout=subprocess.PIPE, env=env
         ).stdout.decode()
     elif file_ending == ".md":
         # To run a jupytext markdown file,
@@ -332,7 +336,7 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
         ]
 
         return subprocess.run(
-            args, check=True, stdout=subprocess.PIPE, input=notebook
+            args, check=True, stdout=subprocess.PIPE, input=notebook, env=env
         ).stdout.decode()
     elif file_ending == ".ipynb":
         args = [
@@ -345,7 +349,7 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
         ]
 
         return subprocess.run(
-            args, check=True, stdout=subprocess.PIPE
+            args, check=True, stdout=subprocess.PIPE, env=env
         ).stdout.decode()
     else:
         raise NotImplementedError()
