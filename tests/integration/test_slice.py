@@ -376,7 +376,7 @@ def write_python_file(
 def run_and_log(*args, **kwargs) -> subprocess.CompletedProcess[str]:
     # Set lineapy subprocesses to have more verbose logging
     env = {**os.environ, LOGGING_ENV_VARIABLE: "INFO"}
-    logger.info("Calling %s", " ".join(args))
+    logger.info("Calling %s", " ".join(map(str, args)))
     return subprocess.run(args, check=True, env=env, text=True, **kwargs)
 
 
