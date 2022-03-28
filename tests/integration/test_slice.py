@@ -13,7 +13,6 @@ from typing import Callable, Dict, List, Optional, Union
 
 import astor
 import yaml
-from numpy import delete
 from pytest import mark, param
 
 from lineapy.utils.logging_config import LOGGING_ENV_VARIABLE
