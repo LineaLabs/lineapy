@@ -308,6 +308,7 @@ class Executor:
         except Exception as exc:
             raise UserException(exc, RemoveFrames(1), *changes)
         finally:
+            logger.debug("Tearing down context")
             # Check what has been changed and accessed in the globals
             # Do this in a finally, so its always torn down even after exceptions
             globals_result = teardown_context()
@@ -331,6 +332,7 @@ class Executor:
         NOTE: we have a near term eng goal to refactor how side-effect is
               handled.
         """
+        logger.debug("Resolving side effects")
         side_effects = chain(
             map(self._process_global_side_effect, globals_result.side_effects),
             (

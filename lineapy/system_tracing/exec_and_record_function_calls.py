@@ -14,6 +14,7 @@ def exec_and_record_function_calls(
     """
     Execute the code while recording all the function calls which originate from the code object.
     """
+    logger.info("Execing code")
     trace_func = TraceFunc(code)
     try:
         settrace(trace_func)
