@@ -151,19 +151,33 @@ class ObjectMutationTracker:
         self, object_side_effect: ObjectSideEffect
     ) -> None:
         if isinstance(object_side_effect, ViewOfObjects):
-            # Special case fast case for two objects
+            # Special case for two objects, which is most calls, to speed up processing
             if len(object_side_effect.objects) == 2:
                 l_obj, r_obj = object_side_effect.objects
                 l_id = id(l_obj)
                 r_id = id(r_obj)
-                already_viewers = l_id in self.viewers[r_id]
-                if not already_viewers:
-                    self.viewers[l_id].append(r_id)
-                    self.viewers[r_id].append(l_id)
+                if l_id == r_id:
+                    return
+                l_viewers = self.viewers[l_id]
+                r_viewers = self.viewers[r_id]
+
+                already_viewers = l_id in r_viewers
+                if already_viewers:
+                    return
+
+                # Since they are not views of each other, we know that their viewers are mutually exclusive, so to find
+                # the intersection we can just combine them both and not worry about duplicates
+                l_viewers_copy = list(l_viewers)
+                l_viewers.extend(r_viewers)
+                l_viewers.append(r_id)
+
+                r_viewers.extend(l_viewers_copy)
+                r_viewers.append(l_id)
+
             else:
-                set_as_viewers_generic(
-                    [id(o) for o in object_side_effect.objects], self.viewers
-                )
+                ids = [id(o) for o in object_side_effect.objects]
+                set_as_viewers_generic(ids, self.viewers)
+
         elif isinstance(object_side_effect, MutatedObject):
             id_ = id(object_side_effect.object)
             self.add_mutated(id_)
