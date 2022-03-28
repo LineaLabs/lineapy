@@ -140,9 +140,19 @@ class ObjectMutationTracker:
         self, object_side_effect: ObjectSideEffect
     ) -> None:
         if isinstance(object_side_effect, ViewOfObjects):
-            set_as_viewers_generic(
-                [id(o) for o in object_side_effect.objects], self.viewers
-            )
+            # Special case fast case for two objects
+            if len(object_side_effect.objects) == 2:
+                l_obj, r_obj = object_side_effect.objects
+                l_id = id(l_obj)
+                r_id = id(r_obj)
+                already_viewers = l_id in self.viewers[r_id]
+                if not already_viewers:
+                    self.viewers[l_id].append(r_id)
+                    self.viewers[r_id].append(l_id)
+            else:
+                set_as_viewers_generic(
+                    [id(o) for o in object_side_effect.objects], self.viewers
+                )
         elif isinstance(object_side_effect, MutatedObject):
             id_ = id(object_side_effect.object)
             self.add_mutated(id_)
