@@ -13,6 +13,7 @@ from typing import Callable, Dict, List, Optional, Union
 
 import astor
 import yaml
+from numpy import delete
 from pytest import mark, param
 
 from lineapy.utils.logging_config import LOGGING_ENV_VARIABLE
@@ -311,27 +312,27 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
             stdout=subprocess.PIPE,
         ).stdout
     elif file_ending == ".md":
-        # To run a jupytext markdown file,
-        # first convert to notebook then pipe to runing the notebook
-        notebook = run_and_log(
+        # To run a jupytext markdown file, first convert to notebook then run the notebook with lineapy
+        notebook_file = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".ipynb"
+        ).name
+        run_and_log(
             "jupytext",
             file_name,
             "--to",
             "ipynb",
             "--out",
-            "-",
-            stdout=subprocess.PIPE,
-        ).stdout
+            notebook_file,
+        )
 
         return run_and_log(
             "lineapy",
             "notebook",
-            "-",
+            notebook_file,
             artifact_name,
             slice_value,
             *additional_args,
             stdout=subprocess.PIPE,
-            input=notebook,
         ).stdout
     elif file_ending == ".ipynb":
 
