@@ -265,7 +265,7 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
             logger.info("Running tmp slice at %s", tmp_file.name)
             tmp_file.write(sliced_file_contents.encode())
             tmp_file.flush()
-            subprocess.run(["ipython", tmp_file.name], check=True)
+            run_and_log("ipython", tmp_file.name)
 
         # Slice the file with lineapy
         logger.info("Running lineapy to slice %s", resolved_source_path)
@@ -290,7 +290,6 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
     artifact_name = f"{file_name}:{slice_value}"
 
     # Set logging to be more detailed, in case problems arise
-    env = {**os.environ, LOGGING_ENV_VARIABLE: "INFO"}
 
     additional_args: List[Union[str, pathlib.Path]] = (
         [
@@ -302,59 +301,49 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
     )
 
     if file_ending == ".py":
-        args = [
+        return run_and_log(
             "lineapy",
             "file",
             file_name,
             artifact_name,
             slice_value,
             *additional_args,
-        ]
-
-        return subprocess.run(
-            args, check=True, stdout=subprocess.PIPE, env=env
-        ).stdout.decode()
+            stdout=subprocess.PIPE,
+        ).stdout
     elif file_ending == ".md":
         # To run a jupytext markdown file,
         # first convert to notebook then pipe to runing the notebook
-        notebook = subprocess.run(
-            [
-                "jupytext",
-                file_name,
-                "--to",
-                "ipynb",
-                "--out",
-                "-",
-            ],
-            check=True,
+        notebook = run_and_log(
+            "jupytext",
+            file_name,
+            "--to",
+            "ipynb",
+            "--out",
+            "-",
             stdout=subprocess.PIPE,
         ).stdout
 
-        args = [
+        return run_and_log(
             "lineapy",
             "notebook",
             "-",
             artifact_name,
             slice_value,
             *additional_args,
-        ]
-
-        return subprocess.run(
-            args, check=True, stdout=subprocess.PIPE, input=notebook, env=env
-        ).stdout.decode()
+            stdout=subprocess.PIPE,
+            input=notebook,
+        ).stdout
     elif file_ending == ".ipynb":
-        args = [
+
+        return run_and_log(
             "lineapy",
             "notebook",
             file_name,
             artifact_name,
             slice_value,
             *additional_args,
-        ]
-
-        return subprocess.run(
-            args, check=True, stdout=subprocess.PIPE, env=env
-        ).stdout.decode()
+            stdout=subprocess.PIPE,
+        ).stdout
     else:
         raise NotImplementedError()
 
@@ -369,22 +358,26 @@ def write_python_file(
     if file_ending == ".py":
         target_path.write_text(source_path.read_text())
     elif file_ending == ".ipynb":
-        subprocess.run(
-            [
-                "jupyter",
-                "nbconvert",
-                "--to",
-                "python",
-                source_path,
-                "--output-dir",
-                target_path.parent,
-                "--output",
-                target_path.name,
-            ],
-            check=True,
+        run_and_log(
+            "jupyter",
+            "nbconvert",
+            "--to",
+            "python",
+            source_path,
+            "--output-dir",
+            target_path.parent,
+            "--output",
+            target_path.name,
         )
     else:
         raise NotImplementedError()
+
+
+def run_and_log(*args, **kwargs) -> subprocess.CompletedProcess[str]:
+    # Set lineapy subprocesses to have more verbose logging
+    env = {**os.environ, LOGGING_ENV_VARIABLE: "INFO"}
+    logger.info("Calling %s", " ".join(args))
+    return subprocess.run(args, check=True, env=env, text=True, **kwargs)
 
 
 @contextlib.contextmanager
@@ -411,9 +404,8 @@ def use_env(name: str):
         else:
             env_file = create_env_file(env)
             logger.info("Creating env from generated file: %s", env_file)
-            subprocess.run(
-                ["conda", "env", "create", "-f", env_file, "-p", env_dir],
-                check=True,
+            run_and_log(
+                "conda", "env", "create", "-f", env_file, "-p", env_dir
             )
             env_file.unlink()
         yield
