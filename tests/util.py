@@ -91,7 +91,31 @@ class IsInstance:
 @dataclass
 class IsMethod:
     """
-    Used in the tests so we can make sure a value is a bound method function.
+    Used in the tests so we can compare methods of two objects that have
+    the same values, as shown below:
+
+    ```bash
+    x = {1: 2}
+    y = {1: 2}
+
+    x == y
+    > True
+
+    x is y
+    > False
+
+    x.update
+    > <function dict.update>
+
+    y.update
+    > <function dict.update>
+
+    y.update == x.update
+    > False
+
+    y.update == y.update
+    > True
+    ```
     """
 
     method: Callable
