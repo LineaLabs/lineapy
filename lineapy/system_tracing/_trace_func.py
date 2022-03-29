@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import operator
-from dataclasses import InitVar, dataclass, field
 from collections.abc import Sequence
+from dataclasses import InitVar, dataclass, field
 from dis import Instruction, get_instructions
 from sys import version_info
 from types import CodeType
