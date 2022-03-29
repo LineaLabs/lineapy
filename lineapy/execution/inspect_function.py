@@ -281,13 +281,14 @@ class FunctionInspector:
         """
         Parses all specs which are for modules we have imported
         """
-        for module in list(self.specs.keys()):
-            if module not in sys.modules:
+        for module_name in list(self.specs.keys()):
+            module = get_imported_module(module_name)
+            if not module:
                 continue
             self.parsed.add_annotations(
-                sys.modules[module],
+                module,
                 # Pop the spec once we have processed it
-                self.specs.pop(module),
+                self.specs.pop(module_name),
             )
 
     def __post_init__(self):
@@ -313,3 +314,22 @@ class FunctionInspector:
             )
             if processed_side_effect:
                 yield processed_side_effect
+
+
+def get_imported_module(name: str) -> Optional[ModuleType]:
+    """
+    Return a module, if it has been imported.
+
+    Also handles the corner case where a submodule has not been imported, but is accessible
+    as an attribute on the parent module. This is needed for the example `tensorflow.keras.utils`, which
+    is not imported when importing `tensorflow`, but is accessible as a property of `tensorflow`.
+    """
+    if name in sys.modules:
+        return sys.modules[name]
+    *parent_names, submodule_name = name.split(".")
+    if not parent_names:
+        return None
+    parent_module = get_imported_module(".".join(parent_names))
+    if not parent_module:
+        return None
+    return getattr(parent_module, submodule_name, None)

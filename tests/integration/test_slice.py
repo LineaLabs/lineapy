@@ -111,7 +111,9 @@ PARAMS = [
         "numpy-tutorials/content/tutorial-deep-reinforcement-learning-with-pong-from-pixels.md",
         "model",
         id="numpy_pong",
-        marks=mark.xfail(reason="for loop", raises=AssertionError),
+        marks=mark.xfail(
+            reason="slice within for loop", raises=AssertionError
+        ),
     ),
     param(
         "numpy-tutorials",
@@ -174,7 +176,6 @@ PARAMS = [
         "tensorflow-docs/site/en/tutorials/structured_data/preprocessing_layers.ipynb",
         "lineapy.file_system",
         id="tensorflow_preprocessing_layers",
-        marks=mark.xfail(reason="complex assignments"),
     ),
     param(
         "tensorflow-docs",
@@ -204,7 +205,6 @@ PARAMS = [
         "tensorflow-docs/site/en/tutorials/images/transfer_learning_with_hub.ipynb",
         "lineapy.file_system",
         id="tensorflow_transfer_hub",
-        marks=mark.xfail(reason="for loop", raises=AssertionError),
     ),
     ##
     # XGBoost
@@ -228,7 +228,9 @@ PARAMS = [
 
 @mark.integration
 @mark.parametrize("env,source_file,slice_value", PARAMS)
-def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
+def test_slice(
+    request, env: str, source_file: str, slice_value: str, python_snapshot
+) -> None:
     with use_env(env):
 
         # change to source directory
@@ -281,9 +283,13 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
             slice_value,
             request.config.getoption("--visualize"),
         )
+        normalized_slice = normalize_source(sliced_code)
+
+        # Save snapshot of normalized slice, so that the current state is commited to source
+        assert normalized_slice == python_snapshot
 
         # Verify slice is the same as desired slice
-        assert normalize_source(sliced_code) == desired_slice
+        assert normalized_slice == desired_slice
 
 
 def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:

@@ -7,18 +7,14 @@
 #  pytest -m integration --runxfail -vv 'tests/integration/test_slice.py::test_slice[tensorflow_image_classification]'
 
 import pathlib
-
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
 dataset_url = "https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz"
-data_dir = tf.keras.utils.get_file(
-    "flower_photos", origin=dataset_url, untar=True
-)
+data_dir = tf.keras.utils.get_file("flower_photos", origin=dataset_url, untar=True)
 data_dir = pathlib.Path(data_dir)
-
 batch_size = 32
 img_height = 180
 img_width = 180
@@ -39,7 +35,6 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
     batch_size=batch_size,
 )
 class_names = train_ds.class_names
-
 AUTOTUNE = tf.data.AUTOTUNE
 train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
 val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
@@ -70,14 +65,11 @@ epochs = 10
 history = model.fit(train_ds, validation_data=val_ds, epochs=epochs)
 data_augmentation = keras.Sequential(
     [
-        layers.RandomFlip(
-            "horizontal", input_shape=(img_height, img_width, 3)
-        ),
+        layers.RandomFlip("horizontal", input_shape=(img_height, img_width, 3)),
         layers.RandomRotation(0.1),
         layers.RandomZoom(0.1),
     ]
 )
-
 model = Sequential(
     [
         data_augmentation,

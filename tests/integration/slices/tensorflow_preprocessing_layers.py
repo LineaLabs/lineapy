@@ -11,17 +11,16 @@ import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import layers
 
-dataset_url = "http://storage.googleapis.com/download.tensorflow.org/data/petfinder-mini.zip"
-csv_file = "datasets/petfinder-mini/petfinder-mini.csv"
-tf.keras.utils.get_file(
-    "petfinder_mini.zip", dataset_url, extract=True, cache_dir="."
+dataset_url = (
+    "http://storage.googleapis.com/download.tensorflow.org/data/petfinder-mini.zip"
 )
+csv_file = "datasets/petfinder-mini/petfinder-mini.csv"
+tf.keras.utils.get_file("petfinder_mini.zip", dataset_url, extract=True, cache_dir=".")
 dataframe = pd.read_csv(csv_file)
 dataframe["target"] = np.where(dataframe["AdoptionSpeed"] == 4, 0, 1)
 dataframe = dataframe.drop(columns=["AdoptionSpeed", "Description"])
 train, val, test = np.split(
-    dataframe.sample(frac=1),
-    [int(0.8 * len(dataframe)), int(0.9 * len(dataframe))],
+    dataframe.sample(frac=1), [int(0.8 * len(dataframe)), int(0.9 * len(dataframe))]
 )
 
 
