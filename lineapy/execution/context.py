@@ -17,6 +17,7 @@ I.e. the context is created for every call.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from types import ModuleType
 from typing import TYPE_CHECKING, Dict, Iterable, List, Mapping, Optional
 
 from lineapy.execution.globals_dict import GlobalsDict, GlobalsDictResult
@@ -129,7 +130,10 @@ def set_context(
     _current_context = ExecutionContext(
         _input_node_ids=input_node_ids,
         _input_globals_mutable={
-            k: is_mutable(v) for k, v in global_name_to_value.items()
+            # Don't consider modules or classes as mutable inputs, so that any code which uses a module
+            # we assume it doesn't mutate it.
+            k: is_mutable(v) and not isinstance(v, (ModuleType, type))
+            for k, v in global_name_to_value.items()
         },
         node=node,
         executor=executor,
