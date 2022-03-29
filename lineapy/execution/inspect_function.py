@@ -45,19 +45,16 @@ def is_mutable(obj: object) -> bool:
     Returns true if the object is mutable.
     """
 
-    # Assume all hashable objects are immutable
-    # I (yifan) think this is incorrect, but keeping the dead code
-    #   here in case we run into some issues again
-
-    # try:
-    #     hash(obj)
-    # except Exception:
-    #     return True
-    # return False
-    if isinstance(obj, (str, int, bool, float, tuple, frozenset)):
-        return False
-    else:
+    # Special case some mutable hashable types
+    if isinstance(obj, (ModuleType, type)):
         return True
+
+    # Assume all hashable objects are immutable
+    try:
+        hash(obj)
+    except Exception:
+        return True
+    return False
 
 
 def validate(item: Dict) -> Optional[ModuleAnnotation]:
