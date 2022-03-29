@@ -3,7 +3,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 def p_value():
-    assets = pd.read_csv("./ames_train_cleaned.csv")
+    assets = pd.read_csv("ames_train_cleaned.csv")
 
     def is_new(col):
         return col > 1970
@@ -17,7 +17,7 @@ def p_value():
 
 
 def y():
-    assets = pd.read_csv("./ames_train_cleaned.csv")
+    assets = pd.read_csv("ames_train_cleaned.csv")
 
     def is_new(col):
         return col > 1970

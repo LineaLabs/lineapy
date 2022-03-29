@@ -1,6 +1,6 @@
 import ast
 import logging
-import os
+import fnmatch
 import shutil
 import sys
 from dataclasses import dataclass
@@ -59,26 +59,48 @@ class BasePlugin:
         This helper creates directories if missing and copies over non-python files from the source directory.
         This is done to copy any config/data files to the output directory.
         """
-        ignores = shutil.ignore_patterns(
-            "*.py",
-            "*.ipynb",
-            "*.ipynb_checkpoints",
-            "*.pyc",
-            "*.pyo",
-            "*.egg-info",
-            "*.toml",
-        )
 
-        with os.scandir(copy_src) as itr:
-            entries = list(itr)
-        ignored_names = ignores(os.fspath(copy_src), [x.name for x in entries])
-        os.makedirs(copy_dst, exist_ok=True)
-        for srcentry in entries:
-            if srcentry.name in ignored_names:
-                continue
-            if srcentry.is_dir():
-                continue
-            shutil.copy2(srcentry, copy_dst)
+        # ignores = shutil.ignore_patterns(
+        #     "*.py",
+        #     "*.ipynb",
+        #     "*.ipynb_checkpoints",
+        #     "*.pyc",
+        #     "*.pyo",
+        #     "*.egg-info",
+        #     "*.toml",
+        #     "__*__",
+        #     ".*",
+        # )
+
+        def include_patterns(*patterns):
+            """
+            Based on shutil.ignore_patterns, this is a similar function
+            to include certain patterns instead. It gives the complementary set of
+            shutil.ignore_patterns.
+            original docstring:
+            Function that can be used as copytree() exclude parameter.
+
+            Patterns is a sequence of glob-style patterns
+            that are used to exclude files
+
+            """
+
+            def _ignore_patterns(path, names):
+                ignored_names = []
+                for pattern in patterns:
+                    ignored_names.extend(fnmatch.filter(names, pattern))
+                return set(names) - set(ignored_names)
+
+            return _ignore_patterns
+
+        includes = include_patterns("*.csv", "*.cfg", "*.yaml")
+
+        shutil.copytree(
+            copy_src,
+            copy_dst,
+            ignore=includes,
+            dirs_exist_ok=True,
+        )
 
     def generate_python_module(
         self,

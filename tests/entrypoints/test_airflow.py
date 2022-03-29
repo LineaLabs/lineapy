@@ -13,14 +13,14 @@ def test_slice_airflow(airflow_plugin):
         ["p value"],
         "sliced_housing_simple",
         "",
-        output_dir="outputs/generated",
+        output_dir="outputs/generated/simple",
     )
     for file_endings in [".py", "_dag.py", "_Dockerfile", "_requirements.txt"]:
         path = pathlib.Path(
-            "outputs/generated/sliced_housing_simple" + file_endings
+            "outputs/generated/simple/sliced_housing_simple" + file_endings
         )
         path_expected = pathlib.Path(
-            "outputs/expected/sliced_housing_simple" + file_endings
+            "outputs/expected/simple/sliced_housing_simple" + file_endings
         )
         assert path.read_text() == path_expected.read_text()
 
@@ -34,14 +34,14 @@ def test_multiple_slices_airflow(python_snapshot, airflow_plugin):
         ["p value", "y"],
         "sliced_housing_multiple",
         "",
-        output_dir="outputs/generated",
+        output_dir="outputs/generated/multiple",
     )
     for file_endings in [".py", "_dag.py", "_Dockerfile", "_requirements.txt"]:
         path = pathlib.Path(
-            "outputs/generated/sliced_housing_multiple" + file_endings
+            "outputs/generated/multiple/sliced_housing_multiple" + file_endings
         )
         path_expected = pathlib.Path(
-            "outputs/expected/sliced_housing_multiple" + file_endings
+            "outputs/expected/multiple/sliced_housing_multiple" + file_endings
         )
         assert path.read_text() == path_expected.read_text()
 
@@ -57,16 +57,16 @@ def test_multiple_slices_airflow_with_task_dependencies(
         ["p value", "y"],
         "sliced_housing_multiple_w_dependencies",
         "'p value' >> 'y'",
-        output_dir="outputs/generated",
+        output_dir="outputs/generated/multiple_w_dependencies",
     )
 
     for file_endings in [".py", "_dag.py", "_Dockerfile", "_requirements.txt"]:
         path = pathlib.Path(
-            "outputs/generated/sliced_housing_multiple_w_dependencies"
+            "outputs/generated/multiple_w_dependencies/sliced_housing_multiple_w_dependencies"
             + file_endings
         )
         path_expected = pathlib.Path(
-            "outputs/expected/sliced_housing_multiple_w_dependencies"
+            "outputs/expected/multiple_w_dependencies/sliced_housing_multiple_w_dependencies"
             + file_endings
         )
         assert path.read_text() == path_expected.read_text()
@@ -95,9 +95,9 @@ def test_run_airflow(virtualenv, tmp_path):
         [
             "cp",
             "-f",
-            "tests/entrypoints/outputs/generated/sliced_housing_simple_dag.py",
-            "tests/entrypoints/outputs/generated/sliced_housing_simple.py",
-            "tests/entrypoints/outputs/generated/ames_train_cleaned.csv",
+            "tests/entrypoints/outputs/generated/simple/sliced_housing_simple_dag.py",
+            "tests/entrypoints/outputs/generated/simple/sliced_housing_simple.py",
+            "tests/entrypoints/outputs/generated/simple/ames_train_cleaned.csv",
             str(dags_home),
         ]
     )

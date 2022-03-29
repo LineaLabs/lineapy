@@ -7,7 +7,7 @@ source_1 = SourceCode(
     code="""import pandas as pd
 import lineapy
 
-df = pd.read_csv(\'tests/simple_data.csv\')
+df = pd.read_csv(\'tests/entrypoints/simple_data.csv\')
 s = df[\'a\'].sum()
 
 lineapy.save(s, "Graph With CSV Import")
@@ -89,7 +89,7 @@ call_7 = CallNode(
                                     lineno=4,
                                     col_offset=5,
                                     end_lineno=4,
-                                    end_col_offset=41,
+                                    end_col_offset=53,
                                     source_code=source_1.id,
                                 ),
                                 function_id=CallNode(
@@ -127,10 +127,10 @@ call_7 = CallNode(
                                             lineno=4,
                                             col_offset=17,
                                             end_lineno=4,
-                                            end_col_offset=40,
+                                            end_col_offset=52,
                                             source_code=source_1.id,
                                         ),
-                                        value="tests/simple_data.csv",
+                                        value="tests/entrypoints/simple_data.csv",
                                     ).id
                                 ],
                                 implicit_dependencies=[

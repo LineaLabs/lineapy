@@ -47,7 +47,7 @@ def compare_code_via_ast(code: str, expected: str) -> bool:
 CSV_CODE = f"""import pandas as pd
 import lineapy
 
-df = pd.read_csv('tests/simple_data.csv')
+df = pd.read_csv('tests/entrypoints/simple_data.csv')
 s = df['a'].sum()
 
 lineapy.{save.__name__}(s, "Graph With CSV Import")
@@ -58,7 +58,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from PIL.Image import open
 
-df = pd.read_csv('tests/simple_data.csv')
+df = pd.read_csv('tests/entrypoints/simple_data.csv')
 plt.imsave('simple_data.png', df)
 
 img = open('simple_data.png')
