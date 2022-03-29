@@ -152,14 +152,6 @@ tests/integration/venvs/
 tmp_*
 *.temp
 
-# Result of --export-slice
-sliced_housing.py
-p_value_housing.py
-y_housing.py
-
-# Result of --export-slice-to-airflow-dag
-sliced_housing_dag.py
-
 tracer
 *.pdf
 tests/tmp
