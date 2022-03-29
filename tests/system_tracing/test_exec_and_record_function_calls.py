@@ -50,6 +50,7 @@ def func_ex_test(a, b, c, d):
 
 
 x_global = [1, 2]
+x_global_generator = (i for i in x_global)
 y_global = {
     "c": 3,
     "d": 4,
@@ -590,6 +591,28 @@ PYTHON_39 = version_info >= (3, 9)
                 FunctionCall(func_ex_test, x_global, y_global, res=10),
             ],
             id="CALL_FUNCTION_EX",
+        ),
+        pytest.param(
+            "f(*x, **y)",
+            {"f": func_ex_test, "x": x_global_generator, "y": y_global},
+            [],
+            marks=pytest.mark.xfail(reason="should not analyze generators"),
+            id="CALL_FUNCTION_EX_failure",
+        ),
+        pytest.param(
+            "f(1,2, **y)",
+            {"f": func_ex_test, "y": y_global},
+            [
+                FunctionCall(l_dict, args=[], kwargs={}, res={"c": 3, "d": 4}),
+                FunctionCall(
+                    fn=IsMethod(y_global.update),
+                    args=[{"c": 3, "d": 4}],
+                    kwargs={},
+                    res=None,
+                ),
+                FunctionCall(func_ex_test, [1, 2], y_global, res=10),
+            ],
+            id="CALL_FUNCTION_EX_**",
         ),
         pytest.param(
             "f.a()",

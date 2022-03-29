@@ -229,11 +229,6 @@ COMPARE_OPS: Dict[str, Callable] = {
 }
 
 
-##
-# CALL_FUNCTION_EX is not supported, since we don't know all the args the function is called with, because we can't
-# safely iterate through the args
-##
-
 """
 Defer supporting imports until after imports are turned into call nodes
 Usually we don't need to worry about it, at least in the context of slicing,
@@ -668,7 +663,7 @@ def resolve_bytecode_execution(
         if not isinstance(args, Sequence):
             raise NotImplementedError()
         return lambda post_stack, _: FunctionCall(
-            fn, args, kwargs, post_stack[-1]
+            fn, list(args), kwargs, post_stack[-1]
         )
 
     if name == "CALL_METHOD":
