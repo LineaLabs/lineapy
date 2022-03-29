@@ -18,6 +18,13 @@
       side_effects:
         - mutated_value:
             external_state: file_system
+- module: torch
+  annotations:
+    - criteria:
+        function_name: manual_seed
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
 - module: torch.jit._script
   annotations:
     - criteria:
