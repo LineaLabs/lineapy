@@ -279,7 +279,7 @@ def remove_db():
 
 @pytest.fixture
 def housing_tracer(execute):
-    tests_dir = Path(__file__).parent
+    tests_dir = Path(__file__).parent / "entrypoints"
 
     # Change directory to tests dir before executing
     os.chdir(tests_dir)

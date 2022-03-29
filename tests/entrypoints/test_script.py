@@ -42,7 +42,13 @@ def test_slice_housing():
     Verifies that the "--slice" CLI command is aliased to the `lineapy` executable
     """
     subprocess.check_call(
-        ["lineapy", "python", "tests/housing.py", "--slice", "p value"]
+        [
+            "lineapy",
+            "python",
+            "tests/entrypoints/housing.py",
+            "--slice",
+            "p value",
+        ]
     )
 
 
@@ -55,7 +61,7 @@ def test_slice_housing_multiple():
         [
             "lineapy",
             "python",
-            "tests/housing.py",
+            "tests/entrypoints/housing.py",
             "--slice",
             "p value",
             "--slice",
@@ -73,7 +79,7 @@ def test_export_slice_housing():
         [
             "lineapy",
             "python",
-            "tests/housing.py",
+            "tests/entrypoints/housing.py",
             "--slice",
             "p value",
             "--export-slice",
@@ -91,7 +97,7 @@ def test_export_slice_housing_multiple():
         [
             "lineapy",
             "python",
-            "tests/housing.py",
+            "tests/entrypoints/housing.py",
             "--slice",
             "p value",
             "--export-slice",

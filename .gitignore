@@ -169,4 +169,4 @@ tests/dags
 TODO
 *.scrap
 Untitled*.ipynb
-tests/outputs
+tests/entrypoints/outputs/generated
