@@ -259,6 +259,7 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
         )
         sliced_file_contents = header + desired_slice
         sliced_path.write_text(sliced_file_contents)
+        logger.info("Writing slice to %s", sliced_path)
 
         # Verify that manually sliced version works
         # Run with ipython so `get_ipython()` is available for sliced magics
@@ -266,7 +267,7 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
         with tempfile.NamedTemporaryFile(
             dir=source_dir, suffix=".py"
         ) as tmp_file:
-            logger.info("Running tmp slice at %s", tmp_file.name)
+            logger.info("Running tmp copy of slice at %s", tmp_file.name)
             tmp_file.write(sliced_file_contents.encode())
             tmp_file.flush()
             run_and_log("ipython", tmp_file.name)
@@ -409,7 +410,7 @@ def use_env(name: str):
             env_file = create_env_file(env)
             logger.info("Creating env from generated file: %s", env_file)
             run_and_log(
-                "conda", "env", "create", "-f", env_file, "-p", env_dir
+                "conda", "env", "create", "-f", env_file, "-p", env_dir, "-v"
             )
             env_file.unlink()
         yield
