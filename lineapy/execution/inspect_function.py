@@ -44,9 +44,12 @@ def is_mutable(obj: object) -> bool:
     """
     Returns true if the object is mutable.
     """
+    hashable_types = (ModuleType, type)
+    if "sklearn.base" in sys.modules:
+        hashable_types += (sys.modules["sklearn.base"].BaseEstimator,)  # type: ignore
 
     # Special case some mutable hashable types
-    if isinstance(obj, (ModuleType, type)):
+    if isinstance(obj, hashable_types):
         return True
 
     # Assume all hashable objects are immutable

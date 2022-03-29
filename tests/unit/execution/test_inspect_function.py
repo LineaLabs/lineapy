@@ -2,6 +2,7 @@
 Tests FunctionInspector().inspect to verify the right side effects are the same.
 """
 from operator import setitem
+from types import SimpleNamespace
 
 import numpy
 import pandas
@@ -28,7 +29,7 @@ from lineapy.utils.lineabuiltins import l_list
     [
         param(
             setattr,
-            (lambda: None, "x", "y"),
+            (SimpleNamespace(), "x", "y"),
             {},
             [
                 MutatedValue(
@@ -39,7 +40,7 @@ from lineapy.utils.lineabuiltins import l_list
         ),
         param(
             setattr,
-            (lambda: None, "x", []),
+            (SimpleNamespace(), "x", []),
             {},
             [
                 MutatedValue(
