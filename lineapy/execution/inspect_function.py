@@ -4,7 +4,6 @@ import glob
 import logging
 import os
 import sys
-import types
 from collections import defaultdict
 from dataclasses import dataclass, field
 from io import IOBase
