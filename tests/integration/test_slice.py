@@ -299,7 +299,7 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
     additional_args: List[Union[str, pathlib.Path]] = (
         [
             "--visualize-slice",
-            LINEAPY_DIR / "out.pdf",
+            LINEAPY_DIR / "out",
         ]
         if visualize
         else []
