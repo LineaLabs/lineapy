@@ -136,7 +136,7 @@ PARAMS = [
         "lineapy.file_system",
         id="pytorch_vision_tensor_transform",
         marks=mark.xfail(
-            reason="slice in with statement and UDF call modify global",
+            reason="slice part of with statement",
             raises=AssertionError,
         ),
     ),
