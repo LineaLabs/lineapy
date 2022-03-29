@@ -94,13 +94,18 @@ class BasePlugin:
             return _ignore_patterns
 
         includes = include_patterns("*.csv", "*.cfg", "*.yaml")
-
-        shutil.copytree(
-            copy_src,
-            copy_dst,
-            ignore=includes,
-            dirs_exist_ok=True,
-        )
+        if sys.version_info < (3, 8):
+            # dirs_exist_ok was introduced in py 3.8. for anything lower, skip the param.
+            # this will potentially cause issues if re-copying same dag and data but should be fine for demos.
+            shutil.copytree(copy_src, copy_dst, ignore=includes)
+            pass
+        else:
+            shutil.copytree(
+                copy_src,
+                copy_dst,
+                ignore=includes,
+                dirs_exist_ok=True,
+            )
 
     def generate_python_module(
         self,
