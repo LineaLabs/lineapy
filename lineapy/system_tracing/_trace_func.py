@@ -77,8 +77,10 @@ class TraceFunc:
         instruction = self.code_to_offset_to_instruction[code][offset]
         # We want to see the name and the arg for the actual instruction, not
         # the arg, so increment until we get to that
+        extended_arg_counter = 1
         while instruction.opname == "EXTENDED_ARG":
             offset += 2
+            extended_arg_counter += 1
             instruction = self.code_to_offset_to_instruction[code][offset]
 
         # Create an op stack around the frame so we can access the stack
@@ -104,6 +106,7 @@ class TraceFunc:
                 instruction.arg,
                 op_stack,
                 frame.f_lasti,
+                extended_arg_counter,
             )
         except NotImplementedError:
             self.not_implemented_ops.add(instruction.opname)
@@ -284,7 +287,12 @@ Here are the ones we don't support:
 
 
 def resolve_bytecode_execution(
-    name: str, value: Any, arg: Optional[int], stack: OpStack, offset: int
+    name: str,
+    value: Any,
+    arg: Optional[int],
+    stack: OpStack,
+    offset: int,
+    extended_arg_count: int,
 ) -> Union[Iterable[FunctionCall], ReturnValueCallback, FunctionCall, None]:
     """
     Returns a function call corresponding to the bytecode executing on the current stack.
@@ -314,6 +322,22 @@ def resolve_bytecode_execution(
         # it).  If the iterator indicates it is exhausted, TOS is popped, and the byte
         # code counter is incremented by *delta*.
 
+        We need to handle the case when the code body is large and needs
+        `EXTENDED_ARG`, this breaks the assumption that the offset will increase
+        by 2, so we have the count of extended_arg passed in as traced by the caller
+        and count with that instead.
+        ```
+        >>> large_for_loop_code = "for _ in x:\n  i = 1\n" + "  j = i\n" * 100
+        >>> dis.dis(large_for_loop_code)
+        1           0 LOAD_NAME                0 (x)
+                    2 GET_ITER
+                    4 EXTENDED_ARG             1
+                    6 FOR_ITER               408 (to 416)
+                    8 STORE_NAME               1 (_)
+
+        2          10 LOAD_CONST               0 (1)
+        ```
+
         So we translated to:
         If the current instruction is the next one (i.e. the offset has increased by 2), then we didn't jump,
         meaning the iterator was not exhausted. Otherwise, we did jump, and it was, so don't add a function call for this.
@@ -328,7 +352,7 @@ def resolve_bytecode_execution(
             lambda post_stack, post_offset: FunctionCall(
                 next, args, {}, post_stack[-1]
             )
-            if post_offset == offset + 2
+            if post_offset == offset + 2 * extended_arg_count
             else None
         )
     if name == "STORE_SUBSCR":

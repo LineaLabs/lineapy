@@ -86,6 +86,9 @@ class ContextManager:
     pass
 
 
+# this code is large enough to trigger extended arg
+large_for_loop_code = "for _ in x:\n  i = 1\n" + "  j = i\n" * 200
+
 PYTHON_39 = version_info >= (3, 9)
 
 # # Add this mark to bytecode ops which were removed in 3.9
@@ -134,6 +137,16 @@ PYTHON_39 = version_info >= (3, 9)
                 FunctionCall(next, [is_list_iter], {}, 2),
             ],
             id="GET_ITER and FOR_ITER",
+        ),
+        pytest.param(
+            large_for_loop_code,
+            {"x": [1, 2]},
+            [
+                FunctionCall(iter, [[1, 2]], {}, is_list_iter),
+                FunctionCall(next, [is_list_iter], {}, 1),
+                FunctionCall(next, [is_list_iter], {}, 2),
+            ],
+            id="GET_ITER and FOR_ITER LARGE block of code",
         ),
         ##
         # Binary Ops
