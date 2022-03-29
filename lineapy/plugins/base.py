@@ -1,6 +1,8 @@
 import ast
 import logging
 import fnmatch
+import json
+import os
 import shutil
 import sys
 from dataclasses import dataclass
@@ -60,6 +62,9 @@ class BasePlugin:
         This is done to copy any config/data files to the output directory.
         """
 
+        if copy_src == copy_dst:
+            return
+
         # ignores = shutil.ignore_patterns(
         #     "*.py",
         #     "*.ipynb",
@@ -72,7 +77,7 @@ class BasePlugin:
         #     ".*",
         # )
 
-        def include_patterns(*patterns):
+        def include_patterns(patterns, blacklist_dir=None):
             """
             Based on shutil.ignore_patterns, this is a similar function
             to include certain patterns instead. It gives the complementary set of
@@ -89,16 +94,31 @@ class BasePlugin:
                 ignored_names = []
                 for pattern in patterns:
                     ignored_names.extend(fnmatch.filter(names, pattern))
+                dirnames = {
+                    dname
+                    for dname in os.listdir(path)
+                    if os.path.isdir(os.path.join(path, dname))
+                }
+                if not blacklist_dir or len(blacklist_dir) == 0:
+                    ignored_names.extend(dirnames)
+                else:
+                    for blacklistpattern in blacklist_dir:
+                        ignored_names.extend(
+                            dirnames
+                            - set(fnmatch.filter(dirnames, blacklistpattern))
+                        )
+
                 return set(names) - set(ignored_names)
 
             return _ignore_patterns
 
-        includes = include_patterns("*.csv", "*.cfg", "*.yaml")
+        includes = include_patterns(
+            patterns=["*.csv", "*.cfg", "*.yaml"], blacklist_dir=["__*__"]
+        )
         if sys.version_info < (3, 8):
             # dirs_exist_ok was introduced in py 3.8. for anything lower, skip the param.
             # this will potentially cause issues if re-copying same dag and data but should be fine for demos.
             shutil.copytree(copy_src, copy_dst, ignore=includes)
-            pass
         else:
             shutil.copytree(
                 copy_src,
@@ -106,6 +126,27 @@ class BasePlugin:
                 ignore=includes,
                 dirs_exist_ok=True,
             )
+
+        self.removeEmptyFolders(copy_dst)
+
+    def removeEmptyFolders(self, path, removeRoot=True):
+        # Function to remove empty folders
+        if not os.path.isdir(path):
+            return
+
+        # remove empty subfolders
+        files = os.listdir(path)
+        if len(files):
+            for f in files:
+                fullpath = os.path.join(path, f)
+                if os.path.isdir(fullpath):
+                    self.removeEmptyFolders(fullpath)
+
+        # if folder empty, delete it
+        files = os.listdir(path)
+        if len(files) == 0 and removeRoot:
+            print("Removing empty folder:", path)
+            os.rmdir(path)
 
     def generate_python_module(
         self,

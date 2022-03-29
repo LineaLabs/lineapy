@@ -13,7 +13,7 @@
                 "python",
                 "--slice",
                 "p value",
-                "tests/housing.py",
+                "tests/entrypoints/housing.py",
             ],
         },
         {
@@ -27,7 +27,7 @@
                 "p value",
                 "--slice",
                 "y",
-                "tests/housing.py",
+                "tests/entrypoints/housing.py",
             ],
         },
         {
@@ -45,7 +45,7 @@
                 "y",
                 "--export-slice",
                 "y_housing",
-                "tests/housing.py",
+                "tests/entrypoints/housing.py",
             ],
         },
         {
@@ -63,8 +63,9 @@
                 "sliced_housing_dag",
                 "--airflow-task-dependencies",
                 "'p value' >> 'y'",
-                "tests/housing.py",
+                "tests/entrypoints/housing.py",
             ],
+            "justMyCode": false
         },
         {
             "name": "Python: Current File",

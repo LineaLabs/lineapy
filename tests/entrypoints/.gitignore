@@ -1,2 +1,8 @@
 !ames_train_cleaned.csv
 !simple_data.csv
+# Result of --export-slice
+p_value_housing.py
+y_housing.py
+
+# Result of --export-slice-to-airflow-dag
+sliced_housing*.py
