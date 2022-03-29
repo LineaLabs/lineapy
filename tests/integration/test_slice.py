@@ -48,7 +48,7 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
         conda_deps=["cmake"],
     ),
     "pytorch": lambda: Environment(
-        conda_deps=["torchvision"],
+        conda_deps=["torchvision=0.11.3"],
         conda_channels=["pytorch"],
         pip=[
             line
