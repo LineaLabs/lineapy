@@ -4,8 +4,10 @@ import glob
 import logging
 import os
 import sys
+import types
 from collections import defaultdict
 from dataclasses import dataclass, field
+from io import IOBase
 from types import ModuleType
 from typing import Callable, Dict, Hashable, Iterable, List, Optional, Tuple
 
@@ -44,7 +46,12 @@ def is_mutable(obj: object) -> bool:
     """
     Returns true if the object is mutable.
     """
-    hashable_types = (ModuleType, type)
+    hashable_types: Tuple[type, ...] = (
+        ModuleType,
+        type,
+        type(iter([])),
+        IOBase,
+    )
     if "sklearn.base" in sys.modules:
         hashable_types += (sys.modules["sklearn.base"].BaseEstimator,)  # type: ignore
 
