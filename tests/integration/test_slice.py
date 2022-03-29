@@ -135,7 +135,10 @@ PARAMS = [
         "pytorch-vision/gallery/plot_scripted_tensor_transforms.py",
         "lineapy.file_system",
         id="pytorch_vision_tensor_transform",
-        marks=mark.xfail(reason="with statement", raises=AssertionError),
+        marks=mark.xfail(
+            reason="slice in with statement and UDF call modify global",
+            raises=AssertionError,
+        ),
     ),
     ##
     # PyTorch Tutorials
