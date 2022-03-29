@@ -27,7 +27,7 @@ repos:
         name: black
         entry: black .
         language: python
-        additional_dependencies: ["black==21.10b0"]
+        additional_dependencies: ["black==21.10b0", "click<=8.0.4"]
         types: [python]
         pass_filenames: false
   - repo: local
