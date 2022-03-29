@@ -40,6 +40,3 @@ import tempfile
 
 with tempfile.NamedTemporaryFile() as f:
     scripted_predictor.save(f.name)
-import lineapy
-
-linea_artifact_value = lineapy.file_system
