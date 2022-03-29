@@ -48,6 +48,8 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
         conda_deps=["cmake"],
     ),
     "pytorch": lambda: Environment(
+        conda_deps=["torchvision"],
+        conda_channels=["pytorch"],
         pip=[
             line
             for line in (
@@ -61,6 +63,8 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
                 and not line.startswith("#")
                 # remove awscli dependency because its incompatible with recent rich version
                 and "awscli" not in line
+                # Make sure we use the conda version of torchvision, otherwise get bus error
+                and "torchvision" not in line
             )
         ],
     ),
@@ -427,7 +431,7 @@ def create_env_file(env: Environment) -> Path:
     """
     Creates a temporary env file with these dependencies as well as the default ones required for lineapy.
     """
-    channels: set[str] = {"conda-forge", *env.conda_channels}
+    channels: list[str] = [*env.conda_channels, "conda-forge"]
     # Start with all lineapy deps
     dependencies: list[str] = [
         # Downgrade jupyter client https://github.com/jupyter/jupyter_console/issues/241
@@ -458,7 +462,9 @@ def create_env_file(env: Environment) -> Path:
     pip_dependencies = [f"-e {LINEAPY_DIR}", *env.pip]
     if env.conda_env:
         loaded_conda_env = yaml.safe_load(env.conda_env.read_text())
-        channels.update(loaded_conda_env.get("channels", []))
+        for c in loaded_conda_env.get("channels", []):
+            if c not in channels:
+                channels.insert(0, c)
         for dep in loaded_conda_env.get("dependencies", []):
             if isinstance(dep, str):
                 dependencies.append(dep)
@@ -468,7 +474,7 @@ def create_env_file(env: Environment) -> Path:
             else:
                 raise NotImplementedError()
     yaml_file = {
-        "channels": list(channels),
+        "channels": channels,
         "dependencies": [*dependencies, {"pip": pip_dependencies}],
     }
     fd, path = tempfile.mkstemp(
