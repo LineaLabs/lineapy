@@ -113,7 +113,7 @@ from lineapy.utils.lineabuiltins import l_list
         ),
         param(
             pandas.read_csv,
-            ["tests/simple_data.csv"],
+            ["tests/entrypoints/simple_data.csv"],
             {},
             [
                 ImplicitDependencyValue(
@@ -123,7 +123,7 @@ from lineapy.utils.lineabuiltins import l_list
             id="read_csv",
         ),
         param(
-            pandas.read_csv("tests/simple_data.csv").drop,
+            pandas.read_csv("tests/entrypoints/simple_data.csv").drop,
             [0],
             {"inplace": True},
             [
@@ -134,7 +134,7 @@ from lineapy.utils.lineabuiltins import l_list
             id="inplace true",
         ),
         param(
-            pandas.read_csv("tests/simple_data.csv").drop,
+            pandas.read_csv("tests/entrypoints/simple_data.csv").drop,
             [0],
             {"inplace": False},
             [],
