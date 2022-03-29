@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import operator
 from dataclasses import InitVar, dataclass, field
+from collections.abc import Sequence
 from dis import Instruction, get_instructions
 from sys import version_info
 from types import CodeType
@@ -570,9 +571,9 @@ def resolve_bytecode_execution(
             FunctionCall(getattr(post_stack[-1], "update"), [a]) for a in args
         ]
     if name == "BUILD_MAP":
-        #    Pushes a new dictionary object onto the stack.  Pops ``2 * count`` items
-        #    so that the dictionary holds *count* entries:
-        #    ``{..., TOS3: TOS2, TOS1: TOS}``.
+        # Pushes a new dictionary object onto the stack.  Pops ``2 * count`` items
+        # so that the dictionary holds *count* entries:
+        # ``{..., TOS3: TOS2, TOS1: TOS}``.
         from lineapy.utils.lineabuiltins import l_dict, l_tuple  # noqa: F811
 
         args = [(stack[-i * 2 - 2], stack[-i * 2 - 1]) for i in range(value)]
@@ -588,7 +589,7 @@ def resolve_bytecode_execution(
     if name == "SET_UPDATE":
         return FunctionCall(getattr(stack[-value - 1], "update"), [stack[-1]])
 
-    if name == "DICT_UPDATE":
+    if name == "DICT_UPDATE" or name == "DICT_MERGE":
         return FunctionCall(getattr(stack[-value - 1], "update"), [stack[-1]])
 
     if name == "LOAD_ATTR":
@@ -646,6 +647,26 @@ def resolve_bytecode_execution(
         }
         args = [stack[-i - 2] for i in reversed(range(n_kwargs, value))]
         fn = stack[-value - 2]
+        return lambda post_stack, _: FunctionCall(
+            fn, args, kwargs, post_stack[-1]
+        )
+
+    if name == "CALL_FUNCTION_EX":
+        # the only case that we cannot handle is an generator that exhausts
+        #   then `raise NotImplementedError()`
+        # The way we figure out if something is an iterator without accidentally calling .next, is to check whether it's a Sequence, since a generator doesn't have __getitem__ (the streaming/lazy semantic) https://docs.python.org/3/library/collections.abc.html#collections-abstract-base-classes
+        if cast(int, arg) & 0x01:
+            # then it's kwargs
+            kwargs = stack[-1]
+            args = stack[-2]
+            fn = stack[-3]
+        else:
+            # then it's positional
+            args = stack[-1]
+            fn = stack[-2]
+        # check if the function is a generator
+        if not isinstance(args, Sequence):
+            raise NotImplementedError()
         return lambda post_stack, _: FunctionCall(
             fn, args, kwargs, post_stack[-1]
         )
