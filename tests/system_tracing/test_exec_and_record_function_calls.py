@@ -589,7 +589,9 @@ PYTHON_39 = version_info >= (3, 9)
                     res=None,
                 ),
                 FunctionCall(func_ex_test, x_global, y_global, res=10),
-            ],
+            ]
+            if PYTHON_39
+            else [FunctionCall(func_ex_test, x_global, y_global, res=10)],
             id="CALL_FUNCTION_EX",
         ),
         pytest.param(
@@ -610,6 +612,10 @@ PYTHON_39 = version_info >= (3, 9)
                     kwargs={},
                     res=None,
                 ),
+                FunctionCall(func_ex_test, [1, 2], y_global, res=10),
+            ]
+            if PYTHON_39
+            else [
                 FunctionCall(func_ex_test, [1, 2], y_global, res=10),
             ],
             id="CALL_FUNCTION_EX_**",
