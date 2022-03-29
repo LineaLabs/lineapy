@@ -148,7 +148,6 @@ PARAMS = [
         "pytorch-tutorials/beginner_source/Intro_to_TorchScript_tutorial.py",
         "lineapy.file_system",
         id="pytorch_intro_torchscript",
-        marks=mark.xfail(reason="class statement", raises=AssertionError),
     ),
     ##
     # Dask Examples
