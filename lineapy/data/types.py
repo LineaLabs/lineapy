@@ -5,7 +5,7 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, NewType, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class SessionType(Enum):
@@ -226,10 +226,10 @@ class SourceLocation(BaseModel):
     """
 
     lineno: int
-    col_offset: int
-    end_lineno: int
-    end_col_offset: int
-    source_code: SourceCode
+    col_offset: int = Field(repr=False)
+    end_lineno: int = Field(repr=False)
+    end_col_offset: int = Field(repr=False)
+    source_code: SourceCode = Field(repr=False)
 
     def __lt__(self, other: object) -> bool:
         """
@@ -270,9 +270,9 @@ class BaseNode(BaseModel):
     """
 
     id: LineaID
-    session_id: LineaID  # refers to SessionContext.id
-    node_type: NodeType = NodeType.Node
-    source_location: Optional[SourceLocation]
+    session_id: LineaID = Field(repr=False)  # refers to SessionContext.id
+    node_type: NodeType = Field(NodeType.Node, repr=False)
+    source_location: Optional[SourceLocation] = Field(repr=False)
 
     class Config:
         orm_mode = True
@@ -337,7 +337,7 @@ class CallNode(BaseNode):
       by the data asset manager
     """
 
-    node_type: NodeType = NodeType.CallNode
+    node_type: NodeType = Field(NodeType.CallNode, repr=False)
 
     function_id: LineaID
     positional_args: List[PositionalArgument] = []
@@ -357,7 +357,7 @@ class CallNode(BaseNode):
 
 
 class LiteralNode(BaseNode):
-    node_type: NodeType = NodeType.LiteralNode
+    node_type: NodeType = Field(NodeType.LiteralNode, repr=False)
     value: Any
 
 
@@ -366,7 +366,7 @@ class LookupNode(BaseNode):
     For unknown/undefined variables e.g. SQLcontext, get_ipython, int.
     """
 
-    node_type = NodeType.LookupNode
+    node_type = Field(NodeType.LookupNode, repr=False)
     name: str
 
 
@@ -378,7 +378,7 @@ class MutateNode(BaseNode):
     instead refer to this mutate node.
     """
 
-    node_type = NodeType.MutateNode
+    node_type = Field(NodeType.MutateNode, repr=False)
 
     # Points to the original node that was mutated
     source_id: LineaID
@@ -397,7 +397,7 @@ class GlobalNode(BaseNode):
     in another node.
     """
 
-    node_type = NodeType.GlobalNode
+    node_type = Field(NodeType.GlobalNode, repr=False)
 
     # The name of the variable to look up from the result of the call
     name: str
