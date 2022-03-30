@@ -303,11 +303,13 @@ def function_inspector():
 
 @pytest.fixture(autouse=True)
 def print_tree_log_fixture(request, capsys):
-    if request.config.getoption("--tree-log"):
-        start_tree_log(label=request.node.name)
-        try:
-            yield
-        finally:
-            # Don't capture stdout when printing, to preserve colors and column width
-            with capsys.disabled():
-                print_tree_log()
+    if not request.config.getoption("--tree-log"):
+        yield
+        return
+    start_tree_log(label=request.node.name)
+    try:
+        yield
+    finally:
+        # Don't capture stdout when printing, to preserve colors and column width
+        with capsys.disabled():
+            print_tree_log()
