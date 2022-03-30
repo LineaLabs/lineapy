@@ -160,7 +160,10 @@ class Tracer:
             return self.variable_name_to_node[ptr.name].id
         # Handle external state case, by making a lookup node for it
         if isinstance(ptr, ExternalState):
-            return self.lookup_node(ptr.external_state).id
+            return (
+                self.executor.lookup_external_state(ptr)
+                or self.lookup_node(ptr.external_state).id
+            )
         raise ValueError(f"Unsupported pointer type: {type(ptr)}")
 
     def _process_implicit_dependency(

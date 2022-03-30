@@ -14,6 +14,7 @@ from lineapy.db.relational import SessionContextORM
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
+from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.utils.utils import get_value_type
 
@@ -52,13 +53,12 @@ def save(reference: object, name: str) -> LineaArtifact:
 
     # If this value is stored as a global in the executor (meaning its an external side effect)
     # then look it up from there, instead of using this node.
-    try:
-        in_value_to_node = reference in executor._value_to_node
-    # happens on non hashable objects
-    except Exception:
-        in_value_to_node = False
-    if in_value_to_node:
-        value_node_id = executor._value_to_node[reference]
+    if isinstance(reference, ExternalState):
+        value_node_id = executor.lookup_external_state(reference)
+        if not value_node_id:
+            raise ValueError(
+                f"No change to the {reference.external_state} was recorded. If it was in fact changed, please open a Github issue."
+            )
     else:
         # Lookup the first arguments id, which is the id for the value, and
         # save that as the artifact
