@@ -160,11 +160,8 @@ class LineaCatalog:
     - The export is pretty limited right now and we should expand later.
     """
 
-    db: RelationalLineaDB
-
     def __init__(self, db):
-        self.db = db
-        db_artifacts: List[ArtifactORM] = self.db.get_all_artifacts()
+        db_artifacts: List[ArtifactORM] = db.get_all_artifacts()
         self.artifacts: List[LineaArtifact] = []
         for db_artifact in db_artifacts:
             l_artifact = LineaArtifact(
