@@ -97,6 +97,7 @@ class LineaArtifact:
         If a filename is not passed in, will write the dag to the airflow home.
         """
         if filename:
+            # TODO - add warning that this path is going to be cleared
             path = Path(filename)
         else:
             # Save dag to dags folder in airflow home
@@ -108,6 +109,7 @@ class LineaArtifact:
                     else Path.home() / "airflow"
                 )
                 / "dags"
+                / self.name
                 / f"{self.name}.py"
             )
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -120,6 +122,10 @@ class LineaArtifact:
             airflow_dag_config=airflow_dag_config,
         )
 
+        print(f"Cleaned folder {path.parent}.")
+        print(
+            f"Added Airflow DAG named '{self.name}'. Start a run from the Airflow UI or CLI."
+        )
         return path
 
     def visualize(self, path: Optional[str] = None) -> None:

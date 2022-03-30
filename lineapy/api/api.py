@@ -221,10 +221,14 @@ def to_airflow(
     last_session = session_orm[0]
 
     output_dir_path = (
-        Path(environ["AIRFLOW_HOME"])
-        if "AIRFLOW_HOME" in environ
-        else Path.home() / "airflow"
-    ) / "dags"
+        (
+            Path(environ["AIRFLOW_HOME"])
+            if "AIRFLOW_HOME" in environ
+            else Path.home() / "airflow"
+        )
+        / "dags"
+        / dag_name
+    )
 
     AirflowPlugin(db, last_session.id).sliced_airflow_dag(
         artifacts,
@@ -233,4 +237,10 @@ def to_airflow(
         output_dir=str(output_dir_path),
     )
 
+    print(
+        f"Cleaning the folder '{output_dir_path}' before serializing new dag."
+    )
+    print(
+        f"Added Airflow DAG named '{dag_name}'. Start a run from the Airflow UI or CLI."
+    )
     return output_dir_path / f"{dag_name}_dag.py"
