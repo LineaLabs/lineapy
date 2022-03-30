@@ -111,7 +111,7 @@ class LineaArtifact:
                 / "dags"
                 / self.name
             )
-        
+
         # TODO - this bit needs more testing
         AirflowPlugin(self.db, self.session_id).sliced_airflow_dag(
             slice_names=[self.name],
