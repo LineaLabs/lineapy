@@ -1,10 +1,8 @@
 import ast
 import logging
 import fnmatch
-import json
 import os
 import shutil
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
@@ -63,7 +61,12 @@ class BasePlugin:
         """
 
         if copy_src == copy_dst:
+            # special case that we can allow. skip everything if source and destination
+            # are the same (typically when output is dumped in the current working dir
+            # eg. during tests)
             return
+        if Path(copy_src) in Path(copy_dst).parents:
+            raise Exception("Potential recursive copy")
 
         # ignores = shutil.ignore_patterns(
         #     "*.py",
@@ -115,18 +118,13 @@ class BasePlugin:
         includes = include_patterns(
             patterns=["*.csv", "*.cfg", "*.yaml"], blacklist_dir=["__*__"]
         )
-        if sys.version_info < (3, 8):
-            # dirs_exist_ok was introduced in py 3.8. for anything lower, skip the param.
-            # this will potentially cause issues if re-copying same dag and data but should be fine for demos.
-            shutil.copytree(copy_src, copy_dst, ignore=includes)
-        else:
-            shutil.copytree(
-                copy_src,
-                copy_dst,
-                ignore=includes,
-                dirs_exist_ok=True,
-            )
-
+        # getting dir exists error for py 3.7 here. no way to reliably do it so doing it in a dev-friendly way.
+        # purging out the destination folder for now. If this becomes an issue, someone can file it and
+        # we can handle the delete more intelligently. For now just making sure that clearing out destination
+        # does not clear out our source folder
+        if not Path(copy_dst) in Path(copy_src).parents:
+            shutil.rmtree(copy_dst)
+        shutil.copytree(copy_src, copy_dst, ignore=includes)
         self.removeEmptyFolders(copy_dst)
 
     def removeEmptyFolders(self, path, removeRoot=True):
