@@ -9,7 +9,7 @@ Also, we color the statements, based on the class, using the CLASS_TO_COLOR mapp
 """
 
 from functools import wraps
-from typing import Callable, Dict, Iterable, List, Optional, TypeVar, cast
+from typing import Callable, Dict, Iterable, Optional, TypeVar, cast
 
 import rich
 from rich.tree import Tree
