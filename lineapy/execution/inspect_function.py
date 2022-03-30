@@ -45,20 +45,24 @@ def is_mutable(obj: object) -> bool:
     """
     Returns true if the object is mutable.
     """
-    mutable_types: Tuple[type, ...] = (
+
+    # We have to special case any types which are hashable, but are mutable.
+    # Since there is no way to see if a clase is mutable a priori, we could add a list of types
+    # like this to our annotations
+    mutable_hashable_types: Tuple[type, ...] = (
         ModuleType,
         type,
         type(iter([])),
         IOBase,
     )
     if "sklearn.base" in sys.modules:
-        mutable_types += (sys.modules["sklearn.base"].BaseEstimator,)  # type: ignore
+        mutable_hashable_types += (sys.modules["sklearn.base"].BaseEstimator,)  # type: ignore
 
     # Special case some mutable hashable types
-    if isinstance(obj, mutable_types):
+    if isinstance(obj, mutable_hashable_types):
         return True
 
-    # Assume all hashable objects are immutable
+    # Otherwise assume all hashable objects are immutable
     try:
         hash(obj)
     except Exception:
