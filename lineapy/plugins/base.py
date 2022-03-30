@@ -129,7 +129,7 @@ class BasePlugin:
         shutil.copytree(copy_src, copy_dst, ignore=includes)
         self.removeEmptyFolders(copy_dst)
 
-    def removeEmptyFolders(self, path, removeRoot=True):
+    def removeEmptyFolders(self, path, removeRoot=False):
         # Function to remove empty folders
         if not os.path.isdir(path):
             return
