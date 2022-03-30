@@ -122,7 +122,9 @@ class BasePlugin:
         # purging out the destination folder for now. If this becomes an issue, someone can file it and
         # we can handle the delete more intelligently. For now just making sure that clearing out destination
         # does not clear out our source folder
-        if not Path(copy_dst) in Path(copy_src).parents:
+        if not Path(copy_dst) in Path(copy_src).parents and os.path.exists(
+            copy_dst
+        ):
             shutil.rmtree(copy_dst)
         shutil.copytree(copy_src, copy_dst, ignore=includes)
         self.removeEmptyFolders(copy_dst)
@@ -143,7 +145,6 @@ class BasePlugin:
         # if folder empty, delete it
         files = os.listdir(path)
         if len(files) == 0 and removeRoot:
-            print("Removing empty folder:", path)
             os.rmdir(path)
 
     def generate_python_module(
