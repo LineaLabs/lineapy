@@ -61,12 +61,6 @@ def object_side_effects_to_side_effects(
     #   (no Nodes reference)
     tracker = ObjectMutationTracker()
     for i, object_side_effect in enumerate(object_side_effects):
-        if i % 10 == 0:
-            logger.debug(
-                "Processing side effect %s of type %s",
-                i,
-                type(object_side_effect).__name__,
-            )
         tracker.process_side_effect(object_side_effect)
 
     # Mapping of object ids for the objects we care about, input nodes &
