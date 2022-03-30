@@ -77,6 +77,7 @@ def notebook(
 
         lineapy notebook my_notebook.ipynb notebook_file_system lineapy.file_system
     """
+    logger.info("Creating in memory notebook")
     # Create the notebook:
     notebook = nbformat.read(file, nbformat.NO_CONVERT)
     notebook["cells"].append(
@@ -88,9 +89,11 @@ def notebook(
     # Run the notebook:
     setup_ipython_dir()
     exec_proc = ExecutePreprocessor(timeout=None)
+    logger.info("Executing notebook")
     exec_proc.preprocess(notebook)
 
     # Print the slice:
+    logger.info("Printing slice")
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
     db = RelationalLineaDB.from_environment()

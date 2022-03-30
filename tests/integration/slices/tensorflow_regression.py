@@ -9,7 +9,6 @@
 get_ipython().system("pip install -q seaborn")
 import numpy as np
 import pandas as pd
-
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -26,23 +25,15 @@ column_names = [
     "Origin",
 ]
 raw_dataset = pd.read_csv(
-    url,
-    names=column_names,
-    na_values="?",
-    comment="\t",
-    sep=" ",
-    skipinitialspace=True,
+    url, names=column_names, na_values="?", comment="\t", sep=" ", skipinitialspace=True
 )
 dataset = raw_dataset.copy()
 dataset = dataset.dropna()
-dataset["Origin"] = dataset["Origin"].map(
-    {(1): "USA", (2): "Europe", (3): "Japan"}
-)
+dataset["Origin"] = dataset["Origin"].map({(1): "USA", (2): "Europe", (3): "Japan"})
 dataset = pd.get_dummies(dataset, columns=["Origin"], prefix="", prefix_sep="")
 train_dataset = dataset.sample(frac=0.8, random_state=0)
 train_features = train_dataset.copy()
 train_labels = train_features.pop("MPG")
-
 normalizer = tf.keras.layers.Normalization(axis=-1)
 normalizer.adapt(np.array(train_features))
 
@@ -56,9 +47,7 @@ def build_and_compile_model(norm):
             layers.Dense(1),
         ]
     )
-    model.compile(
-        loss="mean_absolute_error", optimizer=tf.keras.optimizers.Adam(0.001)
-    )
+    model.compile(loss="mean_absolute_error", optimizer=tf.keras.optimizers.Adam(0.001))
     return model
 
 

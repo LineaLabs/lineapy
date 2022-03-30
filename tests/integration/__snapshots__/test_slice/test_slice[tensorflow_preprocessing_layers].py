@@ -1,11 +1,3 @@
-# This is the manual slice of:
-#  lineapy.file_system
-# from file:
-#  sources/tensorflow-docs/site/en/tutorials/structured_data/preprocessing_layers.ipynb
-
-# To verify that linea produces the same slice, run:
-#  pytest -m integration --runxfail -vv 'tests/integration/test_slice.py::test_slice[tensorflow_preprocessing_layers]'
-
 import numpy as np
 import pandas as pd
 import tensorflow as tf

@@ -109,6 +109,7 @@ class Tracer:
         # Update the graph from the side effects of the node,
         # If an artifact could not be created, quitely return without saving the node to the DB.
         ##
+        logger.debug("Executing node %s", node)
         try:
             side_effects = self.executor.execute_node(
                 node,
@@ -116,8 +117,9 @@ class Tracer:
             )
         except ArtifactSaveException as exc_info:
             logger.error("Artifact could not be saved.")
-            logger.debug(exc_info)
+            logger.info(exc_info)
             return
+        logger.debug("Processing side effects")
 
         # Iterate through each side effect and process it, depending on its type
         for e in side_effects:

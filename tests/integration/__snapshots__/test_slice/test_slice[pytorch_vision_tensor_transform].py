@@ -1,18 +1,16 @@
-# This is the manual slice of:
-#  lineapy.file_system
-# from file:
-#  sources/pytorch-vision/gallery/plot_scripted_tensor_transforms.py
-
-# To verify that linea produces the same slice, run:
-#  pytest -m integration --runxfail -vv 'tests/integration/test_slice.py::test_slice[pytorch_vision_tensor_transform]'
-
+from pathlib import Path
 import torch
 import torchvision.transforms as T
+from torchvision.io import read_image
 
 torch.manual_seed(1)
+dog1 = read_image(str(Path("assets") / "dog1.jpg"))
+dog2 = read_image(str(Path("assets") / "dog2.jpg"))
 import torch.nn as nn
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+dog1 = dog1.to(device)
+dog2 = dog2.to(device)
 from torchvision.models import resnet18
 
 
@@ -36,7 +34,10 @@ class Predictor(nn.Module):
 
 predictor = Predictor().to(device)
 scripted_predictor = torch.jit.script(predictor).to(device)
+batch = torch.stack([dog1, dog2]).to(device)
 import tempfile
 
 with tempfile.NamedTemporaryFile() as f:
     scripted_predictor.save(f.name)
+    dumped_scripted_predictor = torch.jit.load(f.name)
+    res_scripted_dumped = dumped_scripted_predictor(batch)

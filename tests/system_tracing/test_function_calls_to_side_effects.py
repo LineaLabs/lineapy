@@ -29,7 +29,7 @@ iter_l = iter(outer_l)
             ],
             {"l_id": outer_l},
             {"i": inner_l},
-            [ViewOfNodes([ID(LineaID("l_id")), Variable("i")])],
+            [ViewOfNodes([Variable("i"), ID(LineaID("l_id"))])],
             id="iter view",
         ),
     ],

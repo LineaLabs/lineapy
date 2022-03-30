@@ -71,7 +71,7 @@ BREWER_PASTEL: Dict[str, str] = {
     "pink": "#fddaec",
     "grey": "#f2f2f2",
 }
-ALPHA = 50
+ALPHA = 60
 # Alpha fraction from 0 to 255 to apply to lighten the second colors
 # Make all the secondary colors lighter, by applying an alpha
 # Graphviz takes this as an alpha value in hex form
@@ -97,7 +97,7 @@ ColorableType = Union[NodeType, ExtraLabelType, VisualEdgeType]
 
 # Mapping of each node type to its color
 COLORS: Dict[ColorableType, str] = defaultdict(
-    lambda: BREWER_PASTEL["grey"],
+    lambda: "#d4d4d4",  # use a slightly darker grey by default
     {
         NodeType.CallNode: BREWER_PASTEL["pink"],
         NodeType.LiteralNode: BREWER_PASTEL["green"],

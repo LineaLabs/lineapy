@@ -36,7 +36,7 @@ from lineapy.utils.lineabuiltins import file_system
             "for x in xs: pass",
             {"xs": ("xs_id", [[10]])},
             # x and xs should be views of each other, since modifying one can modify the other
-            [ViewOfNodes([ID(LineaID("xs_id")), Variable("x")])],
+            [ViewOfNodes([Variable("x"), ID(LineaID("xs_id"))])],
             id="loop view",
         ),
         pytest.param(
@@ -70,7 +70,7 @@ from lineapy.utils.lineabuiltins import file_system
             "x, y = z",
             {"z": ("z_id", [[], ()])},
             [
-                ViewOfNodes([Variable("x"), ID(LineaID("z_id"))]),
+                ViewOfNodes([ID(LineaID("z_id")), Variable("x")]),
             ],
             id="unpacking view",
         ),

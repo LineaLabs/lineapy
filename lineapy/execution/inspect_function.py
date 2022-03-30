@@ -6,6 +6,7 @@ import os
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
+from io import IOBase
 from types import ModuleType
 from typing import Callable, Dict, Hashable, Iterable, List, Optional, Tuple
 
@@ -45,19 +46,28 @@ def is_mutable(obj: object) -> bool:
     Returns true if the object is mutable.
     """
 
-    # Assume all hashable objects are immutable
-    # I (yifan) think this is incorrect, but keeping the dead code
-    #   here in case we run into some issues again
+    # We have to special case any types which are hashable, but are mutable.
+    # Since there is no way to see if a clase is mutable a priori, we could add a list of types
+    # like this to our annotations
+    mutable_hashable_types: Tuple[type, ...] = (
+        ModuleType,
+        type,
+        type(iter([])),
+        IOBase,
+    )
+    if "sklearn.base" in sys.modules:
+        mutable_hashable_types += (sys.modules["sklearn.base"].BaseEstimator,)  # type: ignore
 
-    # try:
-    #     hash(obj)
-    # except Exception:
-    #     return True
-    # return False
-    if isinstance(obj, (str, int, bool, float, tuple, frozenset)):
-        return False
-    else:
+    # Special case some mutable hashable types
+    if isinstance(obj, mutable_hashable_types):
         return True
+
+    # Otherwise assume all hashable objects are immutable
+    try:
+        hash(obj)
+    except Exception:
+        return True
+    return False
 
 
 def validate(item: Dict) -> Optional[ModuleAnnotation]:
@@ -284,13 +294,14 @@ class FunctionInspector:
         """
         Parses all specs which are for modules we have imported
         """
-        for module in list(self.specs.keys()):
-            if module not in sys.modules:
+        for module_name in list(self.specs.keys()):
+            module = get_imported_module(module_name)
+            if not module:
                 continue
             self.parsed.add_annotations(
-                sys.modules[module],
+                module,
                 # Pop the spec once we have processed it
-                self.specs.pop(module),
+                self.specs.pop(module_name),
             )
 
     def __post_init__(self):
@@ -316,3 +327,22 @@ class FunctionInspector:
             )
             if processed_side_effect:
                 yield processed_side_effect
+
+
+def get_imported_module(name: str) -> Optional[ModuleType]:
+    """
+    Return a module, if it has been imported.
+
+    Also handles the corner case where a submodule has not been imported, but is accessible
+    as an attribute on the parent module. This is needed for the example `tensorflow.keras.utils`, which
+    is not imported when importing `tensorflow`, but is accessible as a property of `tensorflow`.
+    """
+    if name in sys.modules:
+        return sys.modules[name]
+    *parent_names, submodule_name = name.split(".")
+    if not parent_names:
+        return None
+    parent_module = get_imported_module(".".join(parent_names))
+    if not parent_module:
+        return None
+    return getattr(parent_module, submodule_name, None)

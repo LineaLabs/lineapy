@@ -1,11 +1,3 @@
-# This is the manual slice of:
-#  lineapy.file_system
-# from file:
-#  sources/numpy-tutorials/content/mooreslaw-tutorial.md
-
-# To verify that linea produces the same slice, run:
-#  pytest -m integration --runxfail -vv 'tests/integration/test_slice.py::test_slice[numpy_mooreslaw]'
-
 import numpy as np
 import statsmodels.api as sm
 

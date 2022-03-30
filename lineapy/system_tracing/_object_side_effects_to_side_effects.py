@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Mapping, Set
@@ -21,6 +22,8 @@ from lineapy.system_tracing._object_side_effect import (
     ViewOfObjects,
 )
 from lineapy.utils.lineabuiltins import LINEA_BUILTINS
+
+logger = logging.getLogger(__name__)
 
 # Mapping of the ID of each external state object to its pointer
 EXTERNAL_STATE_IDS: Dict[int, ExecutorPointer] = {
@@ -57,8 +60,7 @@ def object_side_effects_to_side_effects(
     # First track all the views and mutations in terms of objects
     #   (no Nodes reference)
     tracker = ObjectMutationTracker()
-
-    for object_side_effect in object_side_effects:
+    for i, object_side_effect in enumerate(object_side_effects):
         tracker.process_side_effect(object_side_effect)
 
     # Mapping of object ids for the objects we care about, input nodes &
@@ -68,23 +70,26 @@ def object_side_effects_to_side_effects(
     # ```y = [1]
     # b = y
     # ```
+    logger.debug("Creating list of objects we care about")
+
     object_id_to_pointers: Dict[int, List[ExecutorPointer]] = defaultdict(list)
     for object_id, pointer in EXTERNAL_STATE_IDS.items():
         object_id_to_pointers[object_id].append(pointer)
     for linea_id, obj in input_nodes.items():
         object_id_to_pointers[id(obj)].append(ID(LineaID(linea_id)))
 
-    # Return all implicit dependencies
+    logger.debug("Returning implicit dependencies")
+
     for id_ in tracker.implicit_dependencies:
         for pointer in object_id_to_pointers[id_]:
             yield ImplicitDependencyNode(pointer)
 
-    # Return all mutated nodes
+    logger.debug("Returning mutated nodes")
     for id_ in tracker.mutated:
         for pointer in object_id_to_pointers[id_]:
             yield MutatedNode(pointer)
 
-    # Return all views
+    logger.debug("Returning views")
 
     # For the views, we care about whether they include the outputs as well,
     # so lets add those to the objects we care about
@@ -140,9 +145,33 @@ class ObjectMutationTracker:
         self, object_side_effect: ObjectSideEffect
     ) -> None:
         if isinstance(object_side_effect, ViewOfObjects):
-            set_as_viewers_generic(
-                [id(o) for o in object_side_effect.objects], self.viewers
-            )
+            # Special case for two objects, which is most calls, to speed up processing
+            if len(object_side_effect.objects) == 2:
+                l_obj, r_obj = object_side_effect.objects
+                l_id = id(l_obj)
+                r_id = id(r_obj)
+                if l_id == r_id:
+                    return
+                l_viewers = self.viewers[l_id]
+                r_viewers = self.viewers[r_id]
+
+                already_viewers = l_id in r_viewers
+                if already_viewers:
+                    return
+
+                # Since they are not views of each other, we know that their viewers are mutually exclusive, so to find
+                # the intersection we can just combine them both and not worry about duplicates
+                l_viewers_copy = list(l_viewers)
+                l_viewers.extend(r_viewers)
+                l_viewers.append(r_id)
+
+                r_viewers.extend(l_viewers_copy)
+                r_viewers.append(l_id)
+
+            else:
+                ids = [id(o) for o in object_side_effect.objects]
+                set_as_viewers_generic(ids, self.viewers)
+
         elif isinstance(object_side_effect, MutatedObject):
             id_ = id(object_side_effect.object)
             self.add_mutated(id_)

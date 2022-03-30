@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import contextlib
+import logging
 import os
 import pathlib
 import subprocess
@@ -14,6 +15,7 @@ import astor
 import yaml
 from pytest import mark, param
 
+from lineapy.utils.logging_config import LOGGING_ENV_VARIABLE
 from lineapy.utils.utils import prettify
 
 INTEGRATION_DIR = pathlib.Path(__file__).parent
@@ -32,6 +34,8 @@ class Environment:
     conda_deps: list[str] = field(default_factory=list)
 
 
+logger = logging.getLogger(__name__)
+
 # Mapping of the environment name to the environment with the requirements in it.
 # Also allow a thunk to the Environment, so that the value is not evaluated
 # until the test is run, so that if the sources are not available this won't
@@ -44,6 +48,8 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
         conda_deps=["cmake"],
     ),
     "pytorch": lambda: Environment(
+        conda_deps=["torchvision=0.11.3"],
+        conda_channels=["pytorch"],
         pip=[
             line
             for line in (
@@ -57,6 +63,8 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
                 and not line.startswith("#")
                 # remove awscli dependency because its incompatible with recent rich version
                 and "awscli" not in line
+                # Make sure we use the conda version of torchvision, otherwise get bus error
+                and "torchvision" not in line
             )
         ],
     ),
@@ -103,7 +111,9 @@ PARAMS = [
         "numpy-tutorials/content/tutorial-deep-reinforcement-learning-with-pong-from-pixels.md",
         "model",
         id="numpy_pong",
-        marks=mark.xfail(reason="for loop", raises=AssertionError),
+        marks=mark.xfail(
+            reason="slice within for loop", raises=AssertionError
+        ),
     ),
     param(
         "numpy-tutorials",
@@ -127,7 +137,10 @@ PARAMS = [
         "pytorch-vision/gallery/plot_scripted_tensor_transforms.py",
         "lineapy.file_system",
         id="pytorch_vision_tensor_transform",
-        marks=mark.xfail(reason="with statement", raises=AssertionError),
+        marks=mark.xfail(
+            reason="slice part of with statement",
+            raises=AssertionError,
+        ),
     ),
     ##
     # PyTorch Tutorials
@@ -137,7 +150,6 @@ PARAMS = [
         "pytorch-tutorials/beginner_source/Intro_to_TorchScript_tutorial.py",
         "lineapy.file_system",
         id="pytorch_intro_torchscript",
-        marks=mark.xfail(reason="class statement", raises=AssertionError),
     ),
     ##
     # Dask Examples
@@ -164,7 +176,6 @@ PARAMS = [
         "tensorflow-docs/site/en/tutorials/structured_data/preprocessing_layers.ipynb",
         "lineapy.file_system",
         id="tensorflow_preprocessing_layers",
-        marks=mark.xfail(reason="complex assignments"),
     ),
     param(
         "tensorflow-docs",
@@ -194,7 +205,6 @@ PARAMS = [
         "tensorflow-docs/site/en/tutorials/images/transfer_learning_with_hub.ipynb",
         "lineapy.file_system",
         id="tensorflow_transfer_hub",
-        marks=mark.xfail(reason="for loop", raises=AssertionError),
     ),
     ##
     # XGBoost
@@ -218,7 +228,9 @@ PARAMS = [
 
 @mark.integration
 @mark.parametrize("env,source_file,slice_value", PARAMS)
-def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
+def test_slice(
+    request, env: str, source_file: str, slice_value: str, python_snapshot
+) -> None:
     with use_env(env):
 
         # change to source directory
@@ -231,8 +243,9 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
         sliced_path = INTEGRATION_DIR / f"slices/{test_id}.py"
         # If the sliced file does not exist, copy the source file to it
         if not sliced_path.exists():
-            print(
-                f"Copying file to slice {sliced_path}. Manually edit this slice."
+            logger.info(
+                "Copying file to slice %s. Manually edit this slice.",
+                sliced_path,
             )
             write_python_file(resolved_source_path, sliced_path)
 
@@ -250,6 +263,7 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
         )
         sliced_file_contents = header + desired_slice
         sliced_path.write_text(sliced_file_contents)
+        logger.info("Writing slice to %s", sliced_path)
 
         # Verify that manually sliced version works
         # Run with ipython so `get_ipython()` is available for sliced magics
@@ -257,21 +271,25 @@ def test_slice(request, env: str, source_file: str, slice_value: str) -> None:
         with tempfile.NamedTemporaryFile(
             dir=source_dir, suffix=".py"
         ) as tmp_file:
-            print(f"\n\nRunning tmp slice at {tmp_file.name}")
+            logger.info("Running tmp copy of slice at %s", tmp_file.name)
             tmp_file.write(sliced_file_contents.encode())
             tmp_file.flush()
-            subprocess.run(["ipython", tmp_file.name], check=True)
+            run_and_log("ipython", tmp_file.name)
 
         # Slice the file with lineapy
-        print(f"\n\nRunning lineapy to slice {resolved_source_path}")
+        logger.info("Running lineapy to slice %s", resolved_source_path)
         sliced_code = slice_file(
             resolved_source_path,
             slice_value,
             request.config.getoption("--visualize"),
         )
+        normalized_slice = normalize_source(sliced_code)
+
+        # Save snapshot of normalized slice, so that the current state is commited to source
+        assert normalized_slice == python_snapshot
 
         # Verify slice is the same as desired slice
-        assert normalize_source(sliced_code) == desired_slice
+        assert normalized_slice == desired_slice
 
 
 def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
@@ -284,69 +302,61 @@ def slice_file(source_path: Path, slice_value: str, visualize: bool) -> str:
 
     artifact_name = f"{file_name}:{slice_value}"
 
+    # Set logging to be more detailed, in case problems arise
+
     additional_args: List[Union[str, pathlib.Path]] = (
         [
             "--visualize-slice",
-            LINEAPY_DIR / "out.pdf",
+            LINEAPY_DIR / "out",
         ]
         if visualize
         else []
     )
 
     if file_ending == ".py":
-        args = [
+        return run_and_log(
             "lineapy",
             "file",
             file_name,
             artifact_name,
             slice_value,
             *additional_args,
-        ]
-
-        return subprocess.run(
-            args, check=True, stdout=subprocess.PIPE
-        ).stdout.decode()
-    elif file_ending == ".md":
-        # To run a jupytext markdown file,
-        # first convert to notebook then pipe to runing the notebook
-        notebook = subprocess.run(
-            [
-                "jupytext",
-                file_name,
-                "--to",
-                "ipynb",
-                "--out",
-                "-",
-            ],
-            check=True,
             stdout=subprocess.PIPE,
         ).stdout
+    elif file_ending == ".md":
+        # To run a jupytext markdown file, first convert to notebook then run the notebook with lineapy
+        notebook_file = tempfile.NamedTemporaryFile(
+            delete=False, suffix=".ipynb"
+        ).name
+        run_and_log(
+            "jupytext",
+            file_name,
+            "--to",
+            "ipynb",
+            "--out",
+            notebook_file,
+        )
 
-        args = [
+        return run_and_log(
             "lineapy",
             "notebook",
-            "-",
+            notebook_file,
             artifact_name,
             slice_value,
             *additional_args,
-        ]
-
-        return subprocess.run(
-            args, check=True, stdout=subprocess.PIPE, input=notebook
-        ).stdout.decode()
+            stdout=subprocess.PIPE,
+        ).stdout
     elif file_ending == ".ipynb":
-        args = [
+
+        return run_and_log(
             "lineapy",
             "notebook",
             file_name,
             artifact_name,
             slice_value,
             *additional_args,
-        ]
-
-        return subprocess.run(
-            args, check=True, stdout=subprocess.PIPE
-        ).stdout.decode()
+            stdout=subprocess.PIPE,
+        ).stdout
     else:
         raise NotImplementedError()
 
@@ -361,22 +371,26 @@ def write_python_file(
     if file_ending == ".py":
         target_path.write_text(source_path.read_text())
     elif file_ending == ".ipynb":
-        subprocess.run(
-            [
-                "jupyter",
-                "nbconvert",
-                "--to",
-                "python",
-                source_path,
-                "--output-dir",
-                target_path.parent,
-                "--output",
-                target_path.name,
-            ],
-            check=True,
+        run_and_log(
+            "jupyter",
+            "nbconvert",
+            "--to",
+            "python",
+            source_path,
+            "--output-dir",
+            target_path.parent,
+            "--output",
+            target_path.name,
         )
     else:
         raise NotImplementedError()
+
+
+def run_and_log(*args, **kwargs) -> subprocess.CompletedProcess[str]:
+    # Set lineapy subprocesses to have more verbose logging
+    env = {**os.environ, LOGGING_ENV_VARIABLE: "INFO"}
+    logger.info("Calling %s", " ".join(map(str, args)))
+    return subprocess.run(args, check=True, env=env, text=True, **kwargs)
 
 
 @contextlib.contextmanager
@@ -399,13 +413,12 @@ def use_env(name: str):
 
     try:
         if env_dir.exists():
-            print(f"Using previously created env {env_dir}")
+            logger.info("Using previously created env %s", env_dir)
         else:
             env_file = create_env_file(env)
-            print(f"Creating env from generated file: {env_file}")
-            subprocess.run(
-                ["conda", "env", "create", "-f", env_file, "-p", env_dir],
-                check=True,
+            logger.info("Creating env from generated file: %s", env_file)
+            run_and_log(
+                "conda", "env", "create", "-f", env_file, "-p", env_dir, "-v"
             )
             env_file.unlink()
         yield
@@ -427,7 +440,7 @@ def create_env_file(env: Environment) -> Path:
     """
     Creates a temporary env file with these dependencies as well as the default ones required for lineapy.
     """
-    channels: set[str] = {"conda-forge", *env.conda_channels}
+    channels: list[str] = [*env.conda_channels, "conda-forge"]
     # Start with all lineapy deps
     dependencies: list[str] = [
         # Downgrade jupyter client https://github.com/jupyter/jupyter_console/issues/241
@@ -458,7 +471,9 @@ def create_env_file(env: Environment) -> Path:
     pip_dependencies = [f"-e {LINEAPY_DIR}", *env.pip]
     if env.conda_env:
         loaded_conda_env = yaml.safe_load(env.conda_env.read_text())
-        channels.update(loaded_conda_env.get("channels", []))
+        for c in loaded_conda_env.get("channels", []):
+            if c not in channels:
+                channels.insert(0, c)
         for dep in loaded_conda_env.get("dependencies", []):
             if isinstance(dep, str):
                 dependencies.append(dep)
@@ -468,7 +483,7 @@ def create_env_file(env: Environment) -> Path:
             else:
                 raise NotImplementedError()
     yaml_file = {
-        "channels": list(channels),
+        "channels": channels,
         "dependencies": [*dependencies, {"pip": pip_dependencies}],
     }
     fd, path = tempfile.mkstemp(
