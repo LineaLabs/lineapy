@@ -2,6 +2,8 @@
 Tests FunctionInspector().inspect to verify the right side effects are the same.
 """
 from operator import setitem
+from pickle import dump
+from tempfile import NamedTemporaryFile
 from types import SimpleNamespace
 
 import numpy
@@ -65,6 +67,17 @@ from lineapy.utils.lineabuiltins import l_list
                 )
             ],
             id="to_csv",
+        ),
+        param(
+            dump,
+            ({"lineapy": "hi"}, NamedTemporaryFile()),
+            {},
+            [
+                MutatedValue(
+                    mutated_value=ExternalState(external_state="file_system")
+                )
+            ],
+            id="pickle.dump",
         ),
         param(
             set().add,
