@@ -1,5 +1,3 @@
-import rich
-
 import lineapy.graph_reader.program_slice as ps
 from lineapy.execution.executor import Executor
 
