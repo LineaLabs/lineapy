@@ -89,16 +89,16 @@ class LineaArtifact:
     def to_airflow(
         self,
         airflow_dag_config: AirflowDagConfig = {},
-        filename: Optional[str] = None,
+        output_dir: Optional[str] = None,
     ) -> Path:
         """
         Writes the airflow job to a path on disk.
 
         If a filename is not passed in, will write the dag to the airflow home.
         """
-        if filename:
+        if output_dir:
             # TODO - add warning that this path is going to be cleared
-            path = Path(filename)
+            path = Path(output_dir)
         else:
             # Save dag to dags folder in airflow home
             # Otherwise default to default airflow home in home directory
@@ -110,19 +110,17 @@ class LineaArtifact:
                 )
                 / "dags"
                 / self.name
-                / f"{self.name}.py"
             )
-        path.parent.mkdir(parents=True, exist_ok=True)
-
+        
         # TODO - this bit needs more testing
         AirflowPlugin(self.db, self.session_id).sliced_airflow_dag(
             slice_names=[self.name],
             module_name=self.name,
-            output_dir=str(path.parent),
+            output_dir=str(path),
             airflow_dag_config=airflow_dag_config,
         )
 
-        print(f"Cleaned folder {path.parent}.")
+        print(f"Cleaned folder {path}.")
         print(
             f"Added Airflow DAG named '{self.name}'. Start a run from the Airflow UI or CLI."
         )
