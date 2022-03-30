@@ -57,6 +57,24 @@ Guide for developers
 You can find details about how to setup your dev environment and the testing
 process in our doc: `CONTRIBUTING <https://github.com/LineaLabs/lineapy/blob/main/CONTRIBUTING.md>`__.
 
+.. _testingairflow:
+
+Testing Airflow DAGs
+---------------------
+
+Every time `to_airflow` is called, a Dockerfile and a requirements.txt with the dag name as prefix will be generated in the same folder.
+Build a docker image using the dockerfile to set up an image with a test airflow instance. This standalone instance can be used to test your dag.
+To build an image, run the following command:
+.. code-block::
+    
+    docker build -t <image_name> . -f <dagname>_Dockerfile
+
+To then stand up an airflow instance with the dag in it, run the following command:
+.. code-block::
+    
+    docker run -it -p 8080:8080 <image_name>
+
+
 Guide for contributors
 ======================
 
