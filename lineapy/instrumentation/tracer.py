@@ -117,7 +117,7 @@ class Tracer:
             )
         except ArtifactSaveException as exc_info:
             logger.error("Artifact could not be saved.")
-            logger.info(exc_info)
+            logger.debug(exc_info)
             return
         logger.debug("Processing side effects")
 

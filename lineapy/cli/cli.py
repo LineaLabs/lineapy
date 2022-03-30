@@ -107,7 +107,7 @@ def notebook(
         date_created=artifact.date_created,
     )
     api_artifact.version = artifact.version or VERSION_PLACEHOLDER
-    print(api_artifact.code)
+    logger.info(api_artifact.code)
 
 
 @linea_cli.command()
@@ -156,7 +156,7 @@ def file(
         date_created=artifact.date_created,
     )
     api_artifact.version = artifact.version or VERSION_PLACEHOLDER
-    print(api_artifact.code)
+    logger.info(api_artifact.code)
 
 
 def generate_save_code(
@@ -276,7 +276,9 @@ def python(
 
     if export_slice:
         if not slice:
-            print("Please specify --slice. It is required for --export-slice")
+            logger.error(
+                "Please specify --slice. It is required for --export-slice"
+            )
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
             full_code = tracer.slice(_slice)
@@ -284,7 +286,7 @@ def python(
 
     if export_slice_to_airflow_dag:
         if not slice:
-            print(
+            logger.error(
                 "Please specify --slice. It is required for --export-slice-to-airflow-dag"
             )
             exit(1)

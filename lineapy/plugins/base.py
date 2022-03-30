@@ -1,4 +1,5 @@
 import ast
+import logging
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,7 +11,11 @@ from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.plugins.utils import get_lib_version_text, load_plugin_template
 from lineapy.utils.config import linea_folder
+from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
+
+logger = logging.getLogger(__name__)
+configure_logging()
 
 
 @dataclass
@@ -75,6 +80,7 @@ class BasePlugin:
         full_code = prettify(full_code)
         output_dir_path = Path(output_dir) if output_dir else Path.cwd()
         (output_dir_path / f"{module_name}.py").write_text(full_code)
+        logger.info(f"Generated python module {module_name}.py")
 
     def get_relative_working_dir_as_str(self):
         working_directory = Path(
@@ -99,6 +105,7 @@ class BasePlugin:
         (output_dir_path / (module_name + "_Dockerfile")).write_text(
             dockerfile
         )
+        logger.info(f"Generated Dockerfile {module_name}_Dockerfile")
         all_libs = self.db.get_libraries_for_session(self.session_id)
         lib_names_text = ""
         for lib in all_libs:
@@ -108,4 +115,7 @@ class BasePlugin:
         # lib_names_text = "\n".join([str(lib.name) for lib in all_libs])
         (output_dir_path / (module_name + "_requirements.txt")).write_text(
             lib_names_text
+        )
+        logger.info(
+            f"Generated requirements file {module_name}_requirements.txt"
         )

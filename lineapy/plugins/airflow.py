@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import List, Optional
 
@@ -8,9 +9,14 @@ from lineapy.graph_reader.program_slice import (
     get_program_slice_by_artifact_name,
 )
 from lineapy.plugins.base import BasePlugin
+from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
 from .utils import load_plugin_template, safe_var_name
+
+logger = logging.getLogger(__name__)
+configure_logging()
+
 
 AirflowDagConfig = TypedDict(
     "AirflowDagConfig",
@@ -70,6 +76,9 @@ class AirflowPlugin(BasePlugin):
         full_code = prettify(full_code)
         output_dir_path = Path(output_dir) if output_dir else Path.cwd()
         (output_dir_path / f"{dag_name}_dag.py").write_text(full_code)
+        logger.info(
+            f"Added Airflow DAG named {dag_name}_dag. Start a run from the Airflow UI or CLI."
+        )
 
     def sliced_airflow_dag(
         self,
