@@ -15,6 +15,7 @@
     5. [Slow Tests](#25-slow-tests)
     6. [Airflow Tests](#26-airflow-tests)
     7. [Additional Notes on Docker Testing](#27-additional-notes-on-docker-testing)
+    8. [Logging Function Calls](#28-logging-function-calls)
 3.  [Debugging](#3-debugging)
     1. [VSC](#31-vsc)
     2. [Visual Graphs](#32-visual-graphs)
@@ -233,6 +234,13 @@ tests can be run using `make test args="<path_to_test_file>"`.
 Please ensure linting and `typecheck`s are done before committing your code. When using docker, this can be done using `make lint` and `make typecheck` respectively. A
 pre-commit hook that runs `make blackfix lint typecheck build test` will fix
 any fixable issues and ensure build and test works.
+
+### 2.8. Logging function calls
+
+To help debug when writing a test, or to get a better understanding of the codebase, we have implemented a `--tree-log` CLI command, which will print
+a visual tree, using [Rich's tree renderer](https://rich.readthedocs.io/en/stable/tree.html), of all method calls in our main classes.
+
+To change the appearence of the logs or what classes are logged, look at the `lineapy/utils/tree_logger.py` file.
 
 ## 3. Debugging
 

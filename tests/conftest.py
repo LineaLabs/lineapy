@@ -26,6 +26,7 @@ from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
+from lineapy.utils.tree_logger import print_tree_log, start_tree_log
 from lineapy.utils.utils import prettify
 from lineapy.visualizer import Visualizer
 from tests.util import get_project_directory
@@ -43,6 +44,12 @@ def pytest_addoption(parser):
         action="store_true",
         default=False,
         help="Visualize the tracer sessions",
+    )
+    parser.addoption(
+        "--tree-log",
+        action="store_true",
+        default=False,
+        help="Log the calls as a tree",
     )
 
 
@@ -292,3 +299,15 @@ def airflow_plugin(housing_tracer):
 @pytest.fixture(scope="session")
 def function_inspector():
     return FunctionInspector()
+
+
+@pytest.fixture(autouse=True)
+def print_tree_log_fixture(request, capsys):
+    if request.config.getoption("--tree-log"):
+        start_tree_log(label=request.node.name)
+        try:
+            yield
+        finally:
+            # Don't capture stdout when printing, to preserve colors and column width
+            with capsys.disabled():
+                print_tree_log()
