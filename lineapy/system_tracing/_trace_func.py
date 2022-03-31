@@ -58,11 +58,14 @@ class TraceFunc:
         }
 
     def __call__(self, frame, event, arg):
-        code = frame.f_code
         # Exit early if the code object for this frame is not one of the code
         # objects that is contained in the source code passed in (i.e., specifically
         # in the current usecase, anything outside of the blackbox).
-        if frame.f_code not in self.code_to_offset_to_instruction:
+        try:
+            offset_to_instruction = self.code_to_offset_to_instruction[
+                frame.f_code
+            ]
+        except KeyError:
             return self
 
         # If it is one we want to trace, enable opcode tracing on it
@@ -71,10 +74,17 @@ class TraceFunc:
         if event != "opcode":
             return self
 
-        offset = frame.f_lasti
         # Lookup the instruction we currently have based on the code object as
         # well as the offset in that object
-        instruction = self.code_to_offset_to_instruction[code][offset]
+        # Pop the instruction off the mapping, so that we only trace each bytecode once (for performance reasons)
+        try:
+            instruction = offset_to_instruction.pop(frame.f_lasti)
+        except KeyError:
+            return self
+
+        code = frame.f_code
+        offset = frame.f_lasti
+
         # We want to see the name and the arg for the actual instruction, not
         # the arg, so increment until we get to that
         extended_arg_counter = 1
