@@ -74,7 +74,11 @@ class TraceFunc:
         offset = frame.f_lasti
         # Lookup the instruction we currently have based on the code object as
         # well as the offset in that object
-        instruction = self.code_to_offset_to_instruction[code][offset]
+        # Pop the instruction off the mapping, so that we only trace each bytecode once (for performance reasons)
+        try:
+            instruction = self.code_to_offset_to_instruction[code].pop(offset)
+        except KeyError:
+            return self
         # We want to see the name and the arg for the actual instruction, not
         # the arg, so increment until we get to that
         extended_arg_counter = 1
