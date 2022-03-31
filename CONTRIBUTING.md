@@ -376,8 +376,8 @@ Interval"](https://www.cs.kent.ac.uk/pubs/2012/3233/content.pdf)) by Tomas Kalib
 
 ```bash
 $ cd tests/integration
-# First run the test, to create the conda env for the tensorflow notebook
-$ pytest 'test_slice.py::test_slice[tensorflow_preprocessing_layers]' -m integration
+# First run the test, to create the conda env for the tensorflow notebook (this make take a while)
+$ pytest 'test_slice.py::test_slice[tensorflow_preprocessing_layers]' -m integration -s --log-cli-level info
 # Then activate the environment
 $ conda activate envs/tensorflow-docs
 # And run the benchmark
