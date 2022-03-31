@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import sqrt
-from statistics import mean, pvariance
+from statistics import mean, variance
 from typing import List
 
 import scipy.stats
@@ -51,7 +51,7 @@ class Distribution:
 
     @classmethod
     def from_data(cls, data: List[float]) -> Distribution:
-        return cls(mean(data), pvariance(data))
+        return cls(mean(data), variance(data))
 
 
 def performance_change(
@@ -79,9 +79,12 @@ def performance_change(
     """
     yO, sO = old_distribution.mean, old_distribution.variance
     yN, sN = new_distribution.mean, new_distribution.variance
+    # print(f"sO2={sO**2}")
+    # print(f"sN2={sN**2}")
     dof = n - 1
     alpha = 1 - confidence_interval
-    t = scipy.stats.t.ppf(1 - alpha / 2, dof)
+    t = scipy.stats.t.ppf(alpha / 2, dof)
+    # print(f"t2={t**2}")
     old_factor = square(yO) - (square(t) * sO) / n
     new_factor = square(yN) - (square(t) * sN) / n
     mean_num = yO * yN
@@ -113,6 +116,25 @@ def distribution_change(
     :param confidence_interval:  The confidence interval for the results.
         The default is a 95% confidence interval (95% of the time the true mean will be
         between the resulting mean +- the resulting CI)
+
+    # Test against the example in the paper, from Table V, on pages 18-19
+
+    >>> res = distribution_change(
+    ...     old_measures=[
+    ...         round(mean([9, 11, 5, 6]), 1),
+    ...         round(mean([16, 13, 12, 8]), 1),
+    ...         round(mean([15, 7, 10, 14]), 1),
+    ...     ],
+    ...     new_measures=[
+    ...         round(mean([10, 12, 6, 7]), 1),
+    ...         round(mean([9, 1, 11, 4]), 1),
+    ...         round(mean([8, 5, 3, 2]), 1),
+    ...     ],
+    ...     confidence_interval=0.95
+    ... )
+    >>> from math import isclose
+    >>> assert isclose(res.mean, 68.3 / 74.5, rel_tol=0.05)
+    >>> assert isclose(res.confidence_interval, 60.2 / 74.5, rel_tol=0.05)
     """
     n = len(old_measures)
     if n != len(new_measures):
