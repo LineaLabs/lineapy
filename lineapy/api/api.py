@@ -233,7 +233,4 @@ def to_airflow(
         output_dir=str(output_dir_path),
     )
 
-    print(
-        f"Added Airflow DAG named '{dag_name}'. Start a run from the Airflow UI or CLI."
-    )
     return output_dir_path / f"{dag_name}_dag.py"

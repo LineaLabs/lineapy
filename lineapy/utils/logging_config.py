@@ -22,7 +22,7 @@ LOGGING_ENV_VARIABLE = "LINEA_LOG_LEVEL"
 def configure_logging(level=None, LOG_SQL=False):
     # Get the loglevel from `LOGGING_ENV_VARIABLE` or set to WARNING
     # if not defined
-    level = level or os.environ.get(LOGGING_ENV_VARIABLE, "WARNING")
+    level = level or os.environ.get(LOGGING_ENV_VARIABLE, logging.INFO)
     # Disable black logging
     # https://github.com/psf/black/issues/2058
     logging.getLogger("blib2to3").setLevel(logging.ERROR)
@@ -34,5 +34,12 @@ def configure_logging(level=None, LOG_SQL=False):
         level=level,
         format=FORMAT,
         datefmt="[%X]",
-        handlers=[RichHandler(console=Console(stderr=True))],
+        handlers=[
+            RichHandler(
+                console=Console(stderr=True),
+                show_time=False,
+                show_path=False,
+                show_level=False,
+            )
+        ],
     )

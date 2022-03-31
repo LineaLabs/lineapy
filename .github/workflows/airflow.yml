@@ -7,11 +7,17 @@ on:
   push:
     branches: [main]
     paths:
-      - "tests/__snapshots__/test_airflow/test_slice_airflow.py"
+      - "lineapy/plugins/jinja_teampltes/*"
+      - "lineapy/plugins/airflow.py"
+      - "lineapy/plugins/base.py"
+      - "tests/outputs/expected/*.py"
       - "tests/test_airflow.py"
   pull_request:
     paths:
-      - "tests/__snapshots__/test_airflow/test_slice_airflow.py"
+      - "lineapy/plugins/jinja_teampltes/*"
+      - "lineapy/plugins/airflow.py"
+      - "lineapy/plugins/base.py"
+      - "tests/outputs/expected/*.py"
       - "tests/test_airflow.py"
 jobs:
   airflow:

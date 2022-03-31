@@ -29,13 +29,13 @@ def function_calls_to_side_effects(
     :param input_nodes: Mapping of node ID to value for all the nodes that were passed in to this execution.
     :param output_globals: Mapping of global identifier to the value of all globals that were set during this execution.
     """
-    logger.info("Converting function calls to object side effects")
+    logger.debug("Converting function calls to object side effects")
 
     object_side_effects = function_calls_to_object_side_effects(
         function_inspector, function_calls
     )
 
-    logger.info("Converting object side effects to node side effects")
+    logger.debug("Converting object side effects to node side effects")
     return object_side_effects_to_side_effects(
         object_side_effects, input_nodes, output_globals
     )
