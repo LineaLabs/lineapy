@@ -7,11 +7,15 @@ on:
   push:
     branches: [main]
     paths:
-      - "tests/__snapshots__/test_airflow/test_slice_airflow.py"
+      - "tests/outputs/expected/sliced_housing_simple.py"
+      - "tests/outputs/expected/sliced_housing_multiple.py"
+      - "tests/outputs/expected/sliced_housing_multiple_w_dependencies.py"
       - "tests/test_airflow.py"
   pull_request:
     paths:
-      - "tests/__snapshots__/test_airflow/test_slice_airflow.py"
+      - "tests/outputs/expected/sliced_housing_simple.py"
+      - "tests/outputs/expected/sliced_housing_multiple.py"
+      - "tests/outputs/expected/sliced_housing_multiple_w_dependencies.py"
       - "tests/test_airflow.py"
 jobs:
   airflow:
