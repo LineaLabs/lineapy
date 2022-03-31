@@ -4,8 +4,10 @@ import pathlib
 import subprocess
 import sys
 import tempfile
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from io import TextIOWrapper
+from time import process_time
+from tracemalloc import start
 from typing import Iterable, List, Optional
 
 import click
@@ -14,6 +16,7 @@ import rich
 import rich.syntax
 import rich.tree
 from nbconvert.preprocessors import ExecutePreprocessor
+from rich.progress import Progress, track
 
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
@@ -354,6 +357,59 @@ def setup_ipython_dir() -> None:
     (profile_dir / "ipython_kernel_config.py").write_text(settings)
 
     os.environ["IPYTHONDIR"] = ipython_dir_name
+
+
+def validate_benchmark_path(ctx, param, value: pathlib.Path):
+    if not value.suffix == ".ipynb":
+        raise click.BadParameter("path must be a notebook")
+    return value
+
+
+@linea_cli.command()
+@click.argument(
+    "path",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    callback=validate_benchmark_path,
+)
+@click.option(
+    "--repetitions", default=3, help="Number of times to run each case."
+)
+def benchmark(path: pathlib.Path, repetitions: int):
+    """
+    Benchmarks running the file or notebook at PATH with lineapy versus with pure Python.
+    Runs with and without lineapy REPETITIONS times.
+
+    Prints the length of each run, and some statistics if they are meanifully different.
+    """
+    # Read
+    with open(path) as f:
+        notebook = nbformat.read(f, nbformat.NO_CONVERT)
+
+    # TODO: Run in subprocess to remove caches from import times...
+    exec_proc = ExecutePreprocessor(timeout=None)
+    with Progress() as progress:
+        task = progress.add_task("Without lineapy...", total=repetitions)
+        for _ in range(repetitions):
+            with redirect_stdout(None):
+                with redirect_stderr(None):
+                    start_time = process_time()
+                    exec_proc.preprocess(notebook)
+                    duration = process_time() - start_time
+            progress.advance(task)
+            progress.console.print(f"{duration} seconds")
+
+    setup_ipython_dir()
+
+    with Progress() as progress:
+        task = progress.add_task("With lineapy...", total=repetitions)
+        for _ in range(repetitions):
+            with redirect_stdout(None):
+                with redirect_stderr(None):
+                    start_time = process_time()
+                    exec_proc.preprocess(notebook)
+                    duration = process_time() - start_time
+            progress.advance(task)
+            progress.console.print(f"{duration} seconds")
 
 
 if __name__ == "__main__":
