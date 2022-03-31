@@ -7,7 +7,7 @@ import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 from io import TextIOWrapper
 from statistics import mean
-from time import perf_counter, perf_counter_ns, process_time
+from time import perf_counter
 from typing import Iterable, List, Optional
 
 import click
