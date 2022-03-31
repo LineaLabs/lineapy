@@ -79,12 +79,9 @@ def performance_change(
     """
     yO, sO = old_distribution.mean, old_distribution.variance
     yN, sN = new_distribution.mean, new_distribution.variance
-    # print(f"sO2={sO**2}")
-    # print(f"sN2={sN**2}")
     dof = n - 1
     alpha = 1 - confidence_interval
     t = scipy.stats.t.ppf(alpha / 2, dof)
-    # print(f"t2={t**2}")
     old_factor = square(yO) - (square(t) * sO) / n
     new_factor = square(yN) - (square(t) * sN) / n
     mean_num = yO * yN

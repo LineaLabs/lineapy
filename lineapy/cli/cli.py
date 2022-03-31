@@ -389,6 +389,7 @@ def benchmark(path: pathlib.Path, n: int):
 
     # Turn off tensorflow logging
     os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+    os.chdir(path.parent)
 
     exec_proc = ExecutePreprocessor(timeout=None)
 
