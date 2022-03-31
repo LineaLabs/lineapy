@@ -381,7 +381,7 @@ def validate_benchmark_path(ctx, param, value: pathlib.Path):
 )
 def benchmark(path: pathlib.Path, n: int, skip_baseline: bool):
     """
-    Benchmarks running the file or notebook at PATH with lineapy versus with pure Python.
+    Benchmarks running the notebook at PATH with lineapy versus with pure Python.
     Runs with and without lineapy REPETITIONS times.
 
     Prints the length of each run, and some statistics if they are meanifully different.

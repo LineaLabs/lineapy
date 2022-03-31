@@ -370,12 +370,12 @@ The [Docker](https://github.com/LineaLabs/lineapy/blob/main/Dockerfile) and [mak
 ### 4.5. Benchmarking
 
 We provide a benchmarking command to test how much lineapy impacts the performance. To use it,
-pass in the path to a notebook or Python file (which does not import lineapy) to `lineapy benchmark` and lineapy will try it multiple time and report some stastics (using the method
+pass in the path to a notebook (which does not import lineapy) to `lineapy benchmark` and lineapy will try it multiple time and report some stastics (using the method
 described in the paper ["Quantifying Performance Changes with Effect Size Confidence
 Interval"](https://www.cs.kent.ac.uk/pubs/2012/3233/content.pdf)) by Tomas Kalibera and Richard Jones).
 
 ```bash
-$ cd tests/integrations
+$ cd tests/integration
 # First run the test, to create the conda env for the tensorflow notebook
 $ pytest 'test_slice.py::test_slice[tensorflow_preprocessing_layers]' -m integration
 # Then activate the environment
