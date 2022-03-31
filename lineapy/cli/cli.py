@@ -6,8 +6,8 @@ import sys
 import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 from io import TextIOWrapper
-from time import process_time
-from tracemalloc import start
+from statistics import mean
+from time import perf_counter, perf_counter_ns, process_time
 from typing import Iterable, List, Optional
 
 import click
@@ -16,7 +16,8 @@ import rich
 import rich.syntax
 import rich.tree
 from nbconvert.preprocessors import ExecutePreprocessor
-from rich.progress import Progress, track
+from rich.console import Console
+from rich.progress import Progress
 
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
@@ -26,6 +27,7 @@ from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.constants import VERSION_PLACEHOLDER
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
@@ -371,45 +373,67 @@ def validate_benchmark_path(ctx, param, value: pathlib.Path):
     type=click.Path(dir_okay=False, path_type=pathlib.Path),
     callback=validate_benchmark_path,
 )
-@click.option(
-    "--repetitions", default=3, help="Number of times to run each case."
-)
-def benchmark(path: pathlib.Path, repetitions: int):
+@click.option("--n", default=3, help="Number of times to run each case.")
+def benchmark(path: pathlib.Path, n: int):
     """
     Benchmarks running the file or notebook at PATH with lineapy versus with pure Python.
     Runs with and without lineapy REPETITIONS times.
 
     Prints the length of each run, and some statistics if they are meanifully different.
     """
-    # Read
+    console = Console()
+    console.rule(f"[bold red]Benchmarking[/] {path}")
+
     with open(path) as f:
         notebook = nbformat.read(f, nbformat.NO_CONVERT)
 
-    # TODO: Run in subprocess to remove caches from import times...
+    # Turn off tensorflow logging
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
     exec_proc = ExecutePreprocessor(timeout=None)
+
+    console.rule("[bold green]Running without lineapy")
+
+    without_lineapy: List[float] = []
     with Progress() as progress:
-        task = progress.add_task("Without lineapy...", total=repetitions)
-        for _ in range(repetitions):
+        task = progress.add_task("Executing...", total=n + 1)
+        for i in range(n + 1):
+            progress.advance(task)
             with redirect_stdout(None):
                 with redirect_stderr(None):
-                    start_time = process_time()
+                    start_time = perf_counter()
                     exec_proc.preprocess(notebook)
-                    duration = process_time() - start_time
-            progress.advance(task)
-            progress.console.print(f"{duration} seconds")
+                    duration = perf_counter() - start_time
+            first_run = i == 0
+            progress.console.print(
+                f"{duration:.1f} seconds{' (discarding first run)' if first_run else '' }"
+            )
+            if not first_run:
+                without_lineapy.append(duration)
+    rich.print(f"Mean: {mean(without_lineapy):.1f} seconds")
 
     setup_ipython_dir()
+    with_lineapy: List[float] = []
+    console.rule("[bold green]Running with lineapy")
 
     with Progress() as progress:
-        task = progress.add_task("With lineapy...", total=repetitions)
-        for _ in range(repetitions):
+        task = progress.add_task("Executing...", total=n)
+        for _ in range(n):
+            progress.advance(task)
             with redirect_stdout(None):
                 with redirect_stderr(None):
-                    start_time = process_time()
+                    start_time = perf_counter()
                     exec_proc.preprocess(notebook)
-                    duration = process_time() - start_time
-            progress.advance(task)
-            progress.console.print(f"{duration} seconds")
+                    duration = perf_counter() - start_time
+            progress.console.print(f"{duration:.1f} seconds")
+            with_lineapy.append(duration)
+    rich.print(f"Mean: {mean(with_lineapy):.1f} seconds")
+    console.rule("[bold blue]Analyzing")
+
+    change = distribution_change(
+        without_lineapy, with_lineapy, confidence_interval=0.90
+    )
+    rich.print(f"Lineapy is {str(change)}")
 
 
 if __name__ == "__main__":
