@@ -374,7 +374,12 @@ def validate_benchmark_path(ctx, param, value: pathlib.Path):
     callback=validate_benchmark_path,
 )
 @click.option("--n", default=3, help="Number of times to run each case.")
-def benchmark(path: pathlib.Path, n: int):
+@click.option(
+    "--skip-baseline",
+    help="Only run with lineapy, skip benchmarking the baseline.",
+    is_flag=True,
+)
+def benchmark(path: pathlib.Path, n: int, skip_baseline: bool):
     """
     Benchmarks running the file or notebook at PATH with lineapy versus with pure Python.
     Runs with and without lineapy REPETITIONS times.
@@ -393,25 +398,26 @@ def benchmark(path: pathlib.Path, n: int):
 
     exec_proc = ExecutePreprocessor(timeout=None)
 
-    console.rule("[bold green]Running without lineapy")
+    if not skip_baseline:
+        console.rule("[bold green]Running without lineapy")
 
-    without_lineapy: List[float] = []
-    with Progress() as progress:
-        task = progress.add_task("Executing...", total=n + 1)
-        for i in range(n + 1):
-            progress.advance(task)
-            with redirect_stdout(None):
-                with redirect_stderr(None):
-                    start_time = perf_counter()
-                    exec_proc.preprocess(notebook)
-                    duration = perf_counter() - start_time
-            first_run = i == 0
-            progress.console.print(
-                f"{duration:.1f} seconds{' (discarding first run)' if first_run else '' }"
-            )
-            if not first_run:
-                without_lineapy.append(duration)
-    rich.print(f"Mean: {mean(without_lineapy):.1f} seconds")
+        without_lineapy: List[float] = []
+        with Progress() as progress:
+            task = progress.add_task("Executing...", total=n + 1)
+            for i in range(n + 1):
+                progress.advance(task)
+                with redirect_stdout(None):
+                    with redirect_stderr(None):
+                        start_time = perf_counter()
+                        exec_proc.preprocess(notebook)
+                        duration = perf_counter() - start_time
+                first_run = i == 0
+                progress.console.print(
+                    f"{duration:.1f} seconds{' (discarding first run)' if first_run else '' }"
+                )
+                if not first_run:
+                    without_lineapy.append(duration)
+        rich.print(f"Mean: {mean(without_lineapy):.1f} seconds")
 
     setup_ipython_dir()
     with_lineapy: List[float] = []
@@ -429,12 +435,15 @@ def benchmark(path: pathlib.Path, n: int):
             progress.console.print(f"{duration:.1f} seconds")
             with_lineapy.append(duration)
     rich.print(f"Mean: {mean(with_lineapy):.1f} seconds")
-    console.rule("[bold blue]Analyzing")
 
-    change = distribution_change(
-        without_lineapy, with_lineapy, confidence_interval=0.90
-    )
-    rich.print(f"Lineapy is {str(change)}")
+    if not skip_baseline:
+
+        console.rule("[bold blue]Analyzing")
+
+        change = distribution_change(
+            without_lineapy, with_lineapy, confidence_interval=0.90
+        )
+        rich.print(f"Lineapy is {str(change)}")
 
 
 if __name__ == "__main__":
