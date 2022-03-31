@@ -21,18 +21,6 @@ def test_result(run_cell):
     assert run_cell("a") == 10
 
 
-def test_stop(run_cell):
-    assert run_cell("import lineapy") is None
-    assert run_cell("lineapy.editors.ipython.stop()") is None
-    assert run_cell("10") == 10
-
-
-def test_stop2(run_cell):
-    assert run_cell("import lineapy") is None
-    assert run_cell("lineapy.stop()") is None
-    assert run_cell("10") == 10
-
-
 def test_slice(run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]") is None
