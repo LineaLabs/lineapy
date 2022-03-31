@@ -3,8 +3,8 @@ base_imagename=ghcr.io/linealabs/lineapy
 service_name=lineapy
 export IMAGE_NAME=${base_imagename}:main
 export IMAGE_NAME_AIRFLOW=${base_imagename}-airflow:main
-export AIRFLOW_HOME?=/usr/src/airflow_home
-export AIRFLOW_VENV?=/usr/src/airflow_venv
+export AIRFLOW_HOME?=${HOME}/airflow_home
+export AIRFLOW_VENV?=${HOME}/airflow_venv
 BACKEND?=sqlite
 export POSTGRES_PASSWORD=supersecretpassword
 ifeq ("$(BACKEND)","PG")
@@ -111,7 +111,6 @@ FORCE: ;
 export JUPYTERLAB_WORKSPACES_DIR=${PWD}/jupyterlab-workspaces
 
 # For ubuntu 20.04 or up you need to run `apt install python-is-python3` first to create venv
-# You might need sudo for all airflow related commands
 airflow_venv: 
 	python -m venv ${AIRFLOW_VENV}
 	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r airflow-requirements.txt
@@ -119,7 +118,11 @@ airflow_venv:
 
 airflow_home: 
 	mkdir -p ${AIRFLOW_HOME}
+	mkdir -p ${AIRFLOW_HOME}/dags
+	mkdir -p ${AIRFLOW_HOME}/dags/examples
 	cp -f airflow_webserver_config.py ${AIRFLOW_HOME}/webserver_config.py
+	ln -s examples/outputs ${AIRFLOW_HOME}/dags/examples/outputs
+	ln -s examples/data ${AIRFLOW_HOME}/dags/examples/data
 
 
 airflow_start:  
