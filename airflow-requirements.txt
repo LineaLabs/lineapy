@@ -2,3 +2,4 @@ apache-airflow==2.2.0
 pandas
 sklearn
 SQLAlchemy==1.3.24
+Jinja2==2.11.3

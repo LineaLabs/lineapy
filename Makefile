@@ -110,6 +110,8 @@ FORCE: ;
 
 export JUPYTERLAB_WORKSPACES_DIR=${PWD}/jupyterlab-workspaces
 
+# For ubuntu 20.04 or up you need to run `apt install python-is-python3` first to create venv
+# You might need sudo for all airflow related commands
 airflow_venv: 
 	python -m venv ${AIRFLOW_VENV}
 	${AIRFLOW_VENV}/bin/pip install --disable-pip-version-check -r airflow-requirements.txt
