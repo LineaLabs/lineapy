@@ -1,6 +1,7 @@
 """
-Transforms all executions in IPython to execute with lineapy, by
-adding to input_transformers_post.
+Transforms all executions in IPython to execute with lineapy, by adding to
+`input_transformers_post`. You can find more documentations below:
+https://ipython.readthedocs.io/en/stable/config/inputtransforms.html
 """
 from __future__ import annotations
 
@@ -70,11 +71,11 @@ def start(
     ipython: Optional[InteractiveShell] = None,
 ) -> None:
     """
-    Trace any subsequent cells with linea.
+    Initializing the runtime so that the cells are traced with lineapy.
     """
     global STATE
     ipython = ipython or get_ipython()  # type: ignore
-    # Ipython does not use exceptionhook, so instead we monkeypatch
+    # IPython does not use exceptionhook, so instead we monkeypatch
     # how it processes the exceptions, in order to add our handler
     # that removes the outer frames.
     if REWRITE_EXCEPTIONS:
@@ -124,8 +125,11 @@ RETURNED_LINES = [
 
 def _end_cell() -> object:
     """
-    Returns the last value that was executed, used when rendering the cell,
-    and also stops the tracer if we asked it to stop in the cell.
+    Returns the last value that was executed, used when rendering the cell.
+    We also write each ipython cell to its own temporary file, so that if an
+    exception is raised it will have proper tracebacks (this is how ipython
+    handles error reporting as well). There are more details in the README
+    file.
     """
     global STATE
     if not isinstance(STATE, CellsExecutedState):
@@ -204,10 +208,12 @@ def custom_get_exc_info(*args, **kwargs):
     """
     A custom get_exc_info which will transform exceptions raised from the users
     code to remove our frames that we have added.
+
+    Add an extra frame on top (in the `AddFrame` call), since ipython will
+    strip out the first one (might change in future versions), which is
+    probably also for similar reasons as us.
     """
     return transform_except_hook_args(
         original_get_exc_info(*args, **kwargs),
-        # Add an extra frame on top, since ipython will strip out the first
-        # one
         AddFrame("", 0),
     )

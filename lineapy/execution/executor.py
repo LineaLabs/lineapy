@@ -178,6 +178,8 @@ class Executor:
           - value (currently: only for call nodes and all call nodes)
           - execution time
 
+        - Add a new frame to the stack to support error reporting. Without it,
+          the traceback will be empty.
         - Returns the `SideEffects` of this node that's analyzed at runtime (hence in the executor).
         """
         logger.debug("Executing node %s", node)
@@ -250,7 +252,9 @@ class Executor:
             value = self._lookup_value(node.name)
             end_time = datetime.now()
         except KeyError:
-            # Matches Python's message
+            # Matches Python's message---our execution causes a KeyError,
+            # but for the same user code, vanilla Python would throw NameError
+            # which is why we needed to change the error type.
             message = f"name '{node.name}' is not defined"
             raise UserException(NameError(message), *changes)
         return PrivateExecuteResult(value, start_time, end_time, [])
@@ -263,12 +267,13 @@ class Executor:
         variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
 
-        # execute the function
-        # ----------
         fn = cast(Callable, self._id_to_value[node.function_id])
 
         # If we are getting an attribute, save the value in case
         # we later call it as a bound method and need to track its mutations
+        # For example, for `a = [1]; a.append(2)`
+        # We need to trace `a`, as opposed to `a.append` when tracking the
+        # mutation.
         if fn is getattr:
             self._node_to_bound_self[node.id] = node.positional_args[0].id
 
@@ -294,10 +299,12 @@ class Executor:
             start_time = datetime.now()
             res = fn(*args, **kwargs)
             end_time = datetime.now()
-        # have to do this to avoid entering the general exception block below
         except ArtifactSaveException:
+            # keep the error stack if its artifact save
             raise
         except Exception as exc:
+            # this is user error, so use the custom exception so we can clean
+            # up our call stack
             raise UserException(exc, RemoveFrames(1), *changes)
         finally:
             logger.debug("Tearing down context")

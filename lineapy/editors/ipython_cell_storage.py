@@ -1,11 +1,3 @@
-"""
-We write each ipython cell to its own temporary file, so that if an exception is
-raised it will have proper tracebacks.
-
-This is how ipython handles it internally as well, so we do the same.
-"""
-
-
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Optional
@@ -27,7 +19,8 @@ def cleanup_cells():
 
 def get_cell_path(cell: JupyterCell) -> Path:
     """
-    Return the path to the temporary file for the given cell
+    Return the path to the temporary file for the given cell.
+    This is used for both generating the file and accesssing the file.
     """
     global _temp_dir
     if not _temp_dir:
@@ -39,6 +32,15 @@ def get_cell_path(cell: JupyterCell) -> Path:
 
 
 def get_location_path(location: SourceCodeLocation) -> Path:
+    """
+    Currently, this function is used exclusively for accurate error reporting
+    (e.g., when there is an exception, such as `1/0`).
+    Without providing a file path, the errors will show up as "?" in both
+    IPython and CLI executions.
+
+    We had add the `get_cell_path` as a special case because the file location
+    is managed separately by us (not the user provided file path).
+    """
     if isinstance(location, JupyterCell):
         return get_cell_path(location)
     return location

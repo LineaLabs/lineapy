@@ -53,7 +53,7 @@ class RemoveFrames:
 @dataclass
 class AddFrame:
     """
-    Add a frame with a filename and linenumber
+    Add a dummy frame with a filename and linenumber.
     """
 
     filename: str

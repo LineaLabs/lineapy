@@ -73,9 +73,15 @@ class Tracer:
           - `variable_name_to_id`: for tracking variable/function/module
             to the ID responsible for its creation
         - Executes the program, using the `Executor`.
+
+        Note that we don't currently maintain the variable names in the persisted
+        graph (we used to at some point in the past), but we can add a serialized
+        version of `variable_name_to_id` to the session if we want to persist
+        the information. Which could be useful for e.g., post-hoc lifting of
+        linea artifacts.
         """
         self.executor = Executor(self.db, globals_ or globals())
-        # TODO - maybe cleaner to do this in tracer context init itself
+
         session_context = SessionContext(
             id=get_new_id(),
             environment_type=session_type,
@@ -107,7 +113,8 @@ class Tracer:
 
         ##
         # Update the graph from the side effects of the node,
-        # If an artifact could not be created, quitely return without saving the node to the DB.
+        # If an artifact could not be created, quitely return without saving
+        # the node to the DB.
         ##
         logger.debug("Executing node %s", node)
         try:
@@ -363,7 +370,7 @@ class Tracer:
         :param function_node: the function node to call/execute
         :param source_location: the source info from user code
         :param arguments: positional arguments. These are passed as either Nodes (named nodes, constants, etc)
-                            or tuples (starred, the node) where the starred is a boolean to indicate whether
+                        or tuples (starred, the node) where the starred is a boolean to indicate whether
                             the argument is supposed to be splatted before passing to the function (This is
                             the case where you might call a function like so ``foo(1, *[2, 3])`` ). The boolean is made
                             optional simply to support the legacy way of calling this function and not having to pass

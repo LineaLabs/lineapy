@@ -184,18 +184,20 @@ def teardown_context() -> ContextResult:
     return ContextResult(res.added_or_modified, side_effects)
 
 
-# TODO: Remove once we support tracking globals updated during calling user defined functions
 def _compute_side_effects(
     context: ExecutionContext, globals_result: GlobalsDictResult
 ) -> Iterable[SideEffect]:
     """
     This is the legacy worst case side effect computation and is applied when
     settrace's bytecode is not supported.
+
     Currently, anything related to generators is not supported, e.g.,
     ```python
     f(*x) # if we read the `next` function it will exhaust the generator and change
           # the semantics of the code.
     ```
+    We can remove once we support tracking globals updated during calling
+    user defined functions.
     """
     # Any nodes that we retrieved that were mutable, assume were mutated
     # Filter the vars by if the value is mutable
