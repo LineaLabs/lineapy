@@ -34,7 +34,7 @@ If you run into initiation errors, such as the following
     RuntimeError: No context set
 
 
-This is likely because you are running vanilla jupyter, e.g., `> jupyter notebook`, instead, you should do `> lineapy jupyter notebook` (or `> lineapy jupyter lab` if you are using lab). Similarly, for python CLI, you should do `>lineapy python your_file.py`, rather than `>python your_file.py`.
+This is likely because you are running vanilla jupyter, e.g., ``>jupyter notebook``, instead, you should do ``>lineapy jupyter notebook`` (or ``>lineapy jupyter lab`` if you are using lab). Similarly, for python CLI, you should do ``>lineapy python your_file.py``, rather than ``>python your_file.py``.
 
 If your notebook is stuck in a frozen state, it's likely due to SQLite locking up---please restart (we are actively working on eliminating these edge cases).
 
