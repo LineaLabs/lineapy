@@ -12,7 +12,7 @@ from IPython.display import DisplayHandle, DisplayObject, display
 
 from lineapy.data.types import JupyterCell, SessionType
 from lineapy.db.db import RelationalLineaDB
-from lineapy.editors.ipython_cell_storage import get_cell_path
+from lineapy.editors.ipython_cell_storage import cleanup_cells, get_cell_path
 from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
@@ -184,6 +184,15 @@ def visualize(*, live=False) -> None:
     else:
         # Otherwise, just display the visualization
         display(display_object)
+
+
+def stop() -> None:
+    """
+    Stop tracing if the `stop()` was called in the cell and should_stop was set.
+    """
+    if isinstance(STATE, CellsExecutedState):
+        STATE.tracer.db.close()
+    cleanup_cells()
 
 
 # Save the original get_exc_info so that we can call it in our custom one
