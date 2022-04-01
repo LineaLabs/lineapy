@@ -82,7 +82,7 @@ class Visualizer:
             tracer.graph,
             tracer,
             highlight_node=None,
-            # This is genenerally repetative, and we can avoid it.
+            # This is genenerally repetitive, and we can avoid it.
             show_implied_mutations=False,
             # Views are too verbose to show in the test output
             show_views=False,
