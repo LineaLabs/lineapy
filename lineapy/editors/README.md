@@ -5,7 +5,8 @@
 We currently support CLI, jupyter notebook, and IPython.
 
 If you have a custom kernels, it would be compatible with lineapy if it supports
-`load_ipython_extension`, and if they follow the standard process to add the configs to IPython (e.g., `c.InteractiveShellApp.extensions = ["lineapy"]` to `ipython_config.py` and `ipython_kernel_config.py`). [More docs here](https://ipython.readthedocs.io/en/stable/config/intro.html).
+`load_ipython_extension`, and if they follow the standard process to add the
+configs to IPython (e.g., `c.InteractiveShellApp.extensions = ["lineapy"]` to `ipython_config.py` and `ipython_kernel_config.py`). [More docs here](https://ipython.readthedocs.io/en/stable/config/intro.html).
 
 
 ## User error reporting
