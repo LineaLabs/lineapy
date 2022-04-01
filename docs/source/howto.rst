@@ -34,12 +34,9 @@ If you run into initiation errors, such as the following
     RuntimeError: No context set
 
 
-It's likely that lineapy is not setup properly.
-For Jupyter Notebooks, we currently require that you start it with :code:`env IPYTHONDIR=$PWD/.ipython jupyter notebook`
-(changing it soon to :code:`lineapy jupyter notebook` or :code:`lineapy jupyter lab` if you are using that).
-If that does not work, please try running ``%load_ext lineapy`` in your notebook.
+This is likely because you are running vanilla jupyter, e.g., `> jupyter notebook`, instead, you should do `> lineapy jupyter notebook` (or `> lineapy jupyter lab` if you are using lab). Similarly, for python CLI, you should do `>lineapy python your_file.py`, rather than `>python your_file.py`.
 
-If your notebook is stuck in a frozen state, please restart (we are actively working on eliminating these edge cases).
+If your notebook is stuck in a frozen state, it's likely due to SQLite locking up---please restart (we are actively working on eliminating these edge cases).
 
 If you are using PostgreSQL as your database, you might encounter the following error:
 
