@@ -134,7 +134,6 @@ PYTHON_39 = version_info >= (3, 9)
             [
                 FunctionCall(iter, [[1, 2]], {}, is_list_iter),
                 FunctionCall(next, [is_list_iter], {}, 1),
-                FunctionCall(next, [is_list_iter], {}, 2),
             ],
             id="GET_ITER and FOR_ITER",
         ),
@@ -144,7 +143,6 @@ PYTHON_39 = version_info >= (3, 9)
             [
                 FunctionCall(iter, [[1, 2]], {}, is_list_iter),
                 FunctionCall(next, [is_list_iter], {}, 1),
-                FunctionCall(next, [is_list_iter], {}, 2),
             ],
             id="GET_ITER and FOR_ITER LARGE block of code",
         ),
@@ -372,9 +370,6 @@ PYTHON_39 = version_info >= (3, 9)
                 # First iteration
                 FunctionCall(next, [is_list_iter], {}, 1),
                 FunctionCall(IsMethod([1, 2].append), [1]),
-                # Second iteration
-                FunctionCall(next, [is_list_iter], {}, 2),
-                FunctionCall(IsMethod([1, 2].append), [2]),
                 # This last call is to the function made internally by Python for the list iterator
                 FunctionCall(
                     IsInstance(FunctionType), [is_list_iter], res=[1, 2]

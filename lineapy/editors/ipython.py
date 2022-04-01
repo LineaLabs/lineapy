@@ -55,11 +55,6 @@ class CellsExecutedState:
     # If set, we should update this display on every cell execution.
     visualize_display_handle: Optional[DisplayHandle] = field(default=None)
 
-    # This is set to true, if `stop()` is called in the cell
-    # to signal that at the end of this cell we should stop tracing.
-    # We don't stop immediately, so we can return the proper value from the cell
-    should_stop: bool = field(default=False)
-
     def create_visualize_display_object(self) -> DisplayObject:
         """
         Returns a jupyter display object for the visualization.
@@ -158,7 +153,6 @@ def _end_cell() -> object:
         res = STATE.tracer.executor.get_value(last_node.id)
     else:
         res = None
-    _optionally_stop(STATE)
     return res
 
 
@@ -194,35 +188,11 @@ def visualize(*, live=False) -> None:
 
 def stop() -> None:
     """
-    Tell the tracer to stop after this cell
-    """
-    global STATE
-
-    if not STATE:
-        return
-
-    if not isinstance(STATE, CellsExecutedState):
-        raise RuntimeError("Cannot stop executing if we haven't started yet.")
-    STATE.should_stop = True
-
-
-def _optionally_stop(cells_executed_state: CellsExecutedState) -> None:
-    """
     Stop tracing if the `stop()` was called in the cell and should_stop was set.
     """
-    global STATE
-
-    # If stop was triggered during in this cell, clean up
-    if not cells_executed_state.should_stop:
-        return
-    STATE = None
-    ipython: InteractiveShell = get_ipython()  # type: ignore
-    ipython.input_transformers_post.remove(input_transformer_post)
-    cells_executed_state.tracer.db.close()
-    # Remove the cells we stored
+    if isinstance(STATE, CellsExecutedState):
+        STATE.tracer.db.close()
     cleanup_cells()
-    # Reset the exception handling
-    InteractiveShell._get_exc_info = original_get_exc_info
 
 
 # Save the original get_exc_info so that we can call it in our custom one

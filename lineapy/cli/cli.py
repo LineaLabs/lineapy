@@ -4,8 +4,10 @@ import pathlib
 import subprocess
 import sys
 import tempfile
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from io import TextIOWrapper
+from statistics import mean
+from time import perf_counter
 from typing import Iterable, List, Optional
 
 import click
@@ -14,6 +16,8 @@ import rich
 import rich.syntax
 import rich.tree
 from nbconvert.preprocessors import ExecutePreprocessor
+from rich.console import Console
+from rich.progress import Progress
 
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
@@ -23,6 +27,7 @@ from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.constants import VERSION_PLACEHOLDER
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
@@ -107,7 +112,7 @@ def notebook(
         date_created=artifact.date_created,
     )
     api_artifact.version = artifact.version or VERSION_PLACEHOLDER
-    print(api_artifact.code)
+    logger.info(api_artifact.code)
 
 
 @linea_cli.command()
@@ -156,7 +161,7 @@ def file(
         date_created=artifact.date_created,
     )
     api_artifact.version = artifact.version or VERSION_PLACEHOLDER
-    print(api_artifact.code)
+    logger.info(api_artifact.code)
 
 
 def generate_save_code(
@@ -276,7 +281,9 @@ def python(
 
     if export_slice:
         if not slice:
-            print("Please specify --slice. It is required for --export-slice")
+            logger.error(
+                "Please specify --slice. It is required for --export-slice"
+            )
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
             full_code = tracer.slice(_slice)
@@ -284,7 +291,7 @@ def python(
 
     if export_slice_to_airflow_dag:
         if not slice:
-            print(
+            logger.error(
                 "Please specify --slice. It is required for --export-slice-to-airflow-dag"
             )
             exit(1)
@@ -354,6 +361,91 @@ def setup_ipython_dir() -> None:
     (profile_dir / "ipython_kernel_config.py").write_text(settings)
 
     os.environ["IPYTHONDIR"] = ipython_dir_name
+
+
+def validate_benchmark_path(ctx, param, value: pathlib.Path):
+    if not value.suffix == ".ipynb":
+        raise click.BadParameter("path must be a notebook")
+    return value
+
+
+@linea_cli.command()
+@click.argument(
+    "path",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    callback=validate_benchmark_path,
+)
+@click.option("--n", default=3, help="Number of times to run each case.")
+@click.option(
+    "--skip-baseline",
+    help="Only run with lineapy, skip benchmarking the baseline.",
+    is_flag=True,
+)
+def benchmark(path: pathlib.Path, n: int, skip_baseline: bool):
+    """
+    Benchmarks running the notebook at PATH with lineapy versus with pure Python.
+    Runs with and without lineapy REPETITIONS times.
+
+    Prints the length of each run, and some statistics if they are meanifully different.
+    """
+    console = Console()
+    console.rule(f"[bold red]Benchmarking[/] {path}")
+
+    with open(path) as f:
+        notebook = nbformat.read(f, nbformat.NO_CONVERT)
+
+    # Turn off tensorflow logging
+    os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+    os.chdir(path.parent)
+
+    exec_proc = ExecutePreprocessor(timeout=None)
+
+    if not skip_baseline:
+        console.rule("[bold green]Running without lineapy")
+
+        without_lineapy: List[float] = []
+        with Progress() as progress:
+            task = progress.add_task("Executing...", total=n + 1)
+            for i in range(n + 1):
+                progress.advance(task)
+                with redirect_stdout(None):
+                    with redirect_stderr(None):
+                        start_time = perf_counter()
+                        exec_proc.preprocess(notebook)
+                        duration = perf_counter() - start_time
+                first_run = i == 0
+                progress.console.print(
+                    f"{duration:.1f} seconds{' (discarding first run)' if first_run else '' }"
+                )
+                if not first_run:
+                    without_lineapy.append(duration)
+        rich.print(f"Mean: {mean(without_lineapy):.1f} seconds")
+
+    setup_ipython_dir()
+    with_lineapy: List[float] = []
+    console.rule("[bold green]Running with lineapy")
+
+    with Progress() as progress:
+        task = progress.add_task("Executing...", total=n)
+        for _ in range(n):
+            progress.advance(task)
+            with redirect_stdout(None):
+                with redirect_stderr(None):
+                    start_time = perf_counter()
+                    exec_proc.preprocess(notebook)
+                    duration = perf_counter() - start_time
+            progress.console.print(f"{duration:.1f} seconds")
+            with_lineapy.append(duration)
+    rich.print(f"Mean: {mean(with_lineapy):.1f} seconds")
+
+    if not skip_baseline:
+
+        console.rule("[bold blue]Analyzing")
+
+        change = distribution_change(
+            without_lineapy, with_lineapy, confidence_interval=0.90
+        )
+        rich.print(f"Lineapy is {str(change)}")
 
 
 if __name__ == "__main__":

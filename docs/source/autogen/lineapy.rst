@@ -17,6 +17,7 @@ Subpackages
    lineapy.graph_reader
    lineapy.instrumentation
    lineapy.plugins
+   lineapy.system_tracing
    lineapy.transformer
    lineapy.utils
    lineapy.visualizer

@@ -29,6 +29,7 @@
     2. [Known Issues](#42-known-issues)
     3. [Using venv instead of Conda](#43-using-venv-instead-of-conda)
     4. [Further Readings](#44-further-readings)
+    5. [Benchmarking](#45-benchmarking)
 
 https://github.com/LineaLabs/lineapy/blob/update_docs/CONTRIBUTING.md#1-where-to-start
 
@@ -365,3 +366,36 @@ pytest tests
 ### 4.4. Further Readings
 
 The [Docker](https://github.com/LineaLabs/lineapy/blob/main/Dockerfile) and [make](https://github.com/LineaLabs/lineapy/blob/main/Makefile) files are good starting point to see the main components of `lineapy`
+
+### 4.5. Benchmarking
+
+We provide a benchmarking command to test how much lineapy impacts the performance. To use it,
+pass in the path to a notebook (which does not import lineapy) to `lineapy benchmark` and lineapy will try it multiple time and report some stastics (using the method
+described in the paper ["Quantifying Performance Changes with Effect Size Confidence
+Interval"](https://www.cs.kent.ac.uk/pubs/2012/3233/content.pdf)) by Tomas Kalibera and Richard Jones).
+
+```bash
+$ cd tests/integration
+# First run the test, to create the conda env for the tensorflow notebook (this make take a while)
+$ pytest 'test_slice.py::test_slice[tensorflow_preprocessing_layers]' -m integration -s --log-cli-level info
+# Then activate the environment
+$ conda activate envs/tensorflow-docs
+# And run the benchmark
+$ lineapy benchmark sources/tensorflow-docs/site/en/tutorials/structured_data/preprocessing_layers.ipynb
+──────────────────────────────────── Benchmarking sources/tensorflow-docs/site/en/tutorials/structured_data/preprocessing_layers.ipynb ────────────────────────────────────
+───────────────────────────────────────────────────────────────────────── Running without lineapy ─────────────────────────────────────────────────────────────────────────
+12.3 seconds (discarding first run)
+13.1 seconds
+12.1 seconds
+12.1 seconds
+Executing... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+Mean: 12.4 seconds
+────────────────────────────────────────────────────────────────────────── Running with lineapy ───────────────────────────────────────────────────────────────────────────
+15.1 seconds
+14.1 seconds
+14.1 seconds
+Executing... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+Mean: 14.4 seconds
+──────────────────────────────────────────────────────────────────────────────── Analyzing ────────────────────────────────────────────────────────────────────────────────
+Lineapy is between 26.4% slower and 6.6% slower (90.0% CI)
+```

@@ -454,6 +454,19 @@ class RelationalLineaDB:
             .exists()
         ).scalar()
 
+    def get_libraries_for_session(
+        self, session_id: LineaID
+    ) -> List[LibraryORM]:
+        """
+        Gets all dependencies for a session, assuming all the libs in a
+        particular session will be required to set up a new env.
+        """
+        return (
+            self.session.query(LibraryORM)
+            .filter(LibraryORM.session_id == session_id)
+            .all()
+        )
+
     def get_artifacts_for_session(
         self, session_id: LineaID
     ) -> List[ArtifactORM]:

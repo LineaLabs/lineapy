@@ -98,7 +98,7 @@ def l_dict(
     For example, if the user creates a dict like ``{1: 2, **d, 3: 4}``,
     then it will create a call like::
 
-    l_dict((1, 2), (l_dict_kwargs_sentinel(), d), (3, 4))
+        l_dict((1, 2), (l_dict_kwargs_sentinel(), d), (3, 4))
 
     We use a sentinel value instead of None, because None can be a valid
     dictionary key.
@@ -233,7 +233,7 @@ def l_unpack_ex(
     xs: Iterable[T], before: int, after: int
 ) -> List[Union[T, List[T]]]:
     """
-    Slits the iterable `xs` into three pieces and then joins them [*first, middle, *list]
+    Slits the iterable `xs` into three pieces and then joins them `[*first, middle, *list]`
     The first of length `before`, the last of length `after`, and the middle whatever is remaining.
 
     Modeled after the UNPACK_EX bytecode to be used in unpacking.

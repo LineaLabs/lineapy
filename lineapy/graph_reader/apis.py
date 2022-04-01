@@ -120,9 +120,6 @@ class LineaArtifact:
             airflow_dag_config=airflow_dag_config,
         )
 
-        print(
-            f"Added Airflow DAG named '{self.name}'. Start a run from the Airflow UI or CLI."
-        )
         return path
 
     def visualize(self, path: Optional[str] = None) -> None:

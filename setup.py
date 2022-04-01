@@ -107,6 +107,8 @@ setup(
             "psycopg2",
             "pytest-xdist",
             "sphinx-autobuild",
+            # For benchmark CI
+            "scipy",
         ]
     },
     include_package_data=True,

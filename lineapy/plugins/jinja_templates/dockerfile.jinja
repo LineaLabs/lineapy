@@ -1,0 +1,16 @@
+FROM apache/airflow:latest
+
+RUN mkdir /tmp/installers
+WORKDIR /tmp/installers
+
+# copy all the requirements to run the current dag
+COPY ./{{ module_name }}_requirements.txt ./
+# install the required libs
+RUN pip install -r ./{{ module_name }}_requirements.txt
+
+WORKDIR /opt/airflow/dags
+COPY . .
+
+WORKDIR /opt/airflow
+
+CMD [ "standalone" ]
