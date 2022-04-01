@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from lineapy.utils.constants import VERSION_DATE_STRING
 
@@ -71,10 +71,11 @@ art = lineapy.get("x")
 art_version = art.version
 """
     res = execute(code, snapshot=False)
-    # doing this because if the test runs at the edge of the second it fails sometimes
-    assert res.values["art_version"].startswith(
-        datetime.now().strftime("%Y-%m-%dT%H:%M:")
+    # Verify the version date is at most a minute from now but not in the future
+    artifact_version_delta = datetime.now() - datetime.fromisoformat(
+        res.values["art_version"]
     )
+    assert timedelta(minutes=0) < artifact_version_delta < timedelta(minutes=1)
     assert res.slice("x") == "x = 1\n"
 
 
@@ -107,9 +108,13 @@ all_print = catalog.print
     # artifact_version and date_created might not match esp in future with named versions
     # but for default version it should be a string version of a date
     assert db_values[0]["date_created"] < db_values[1]["date_created"]
-    assert db_values[1]["artifact_version"].startswith(
-        datetime.now().strftime("%Y-%m-%dT%H:%M:")
+
+    # Verify the version date is at most a minute old but not in the future
+    artifact_version_delta = datetime.now() - datetime.fromisoformat(
+        db_values[1]["artifact_version"]
     )
+    assert timedelta(minutes=0) < artifact_version_delta < timedelta(minutes=1)
+
     # finally make sure the print property is updated to reflect versions
     assert res.values["all_print"] == "\n".join(
         [
