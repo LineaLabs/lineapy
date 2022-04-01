@@ -1,10 +1,13 @@
 import ast
-import logging
 import fnmatch
+import logging
 import os
 import shutil
+import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from tempfile import tempdir
 from typing import Dict, Optional
 
 import isort
@@ -65,8 +68,6 @@ class BasePlugin:
             # are the same (typically when output is dumped in the current working dir
             # eg. during tests)
             return
-        if Path(copy_src) in Path(copy_dst).parents:
-            raise Exception("Potential recursive copy")
 
         # ignores = shutil.ignore_patterns(
         #     "*.py",
@@ -116,7 +117,8 @@ class BasePlugin:
             return _ignore_patterns
 
         includes = include_patterns(
-            patterns=["*.csv", "*.cfg", "*.yaml"], blacklist_dir=["__*__"]
+            patterns=["*.csv", "*.cfg", "*.yaml"],
+            blacklist_dir=["__*__"],
         )
         # getting dir exists error for py 3.7 here. no way to reliably do it so doing it in a dev-friendly way.
         # purging out the destination folder for now. If this becomes an issue, someone can file it and
@@ -126,8 +128,11 @@ class BasePlugin:
             copy_dst
         ):
             shutil.rmtree(copy_dst)
-        shutil.copytree(copy_src, copy_dst, ignore=includes)
-        self.removeEmptyFolders(copy_dst)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            shutil.copytree(copy_src, temp_dir, ignore=includes, dirs_exist_ok=True)
+            self.removeEmptyFolders(temp_dir)
+            shutil.copytree(temp_dir, copy_dst)
 
     def removeEmptyFolders(self, path, removeRoot=False):
         # Function to remove empty folders
