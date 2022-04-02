@@ -1,6 +1,6 @@
 import ast
-import logging
 import fnmatch
+import logging
 import os
 import shutil
 from dataclasses import dataclass
@@ -54,98 +54,14 @@ class BasePlugin:
         main_block = f"""if __name__ == "__main__":\n\tprint({func_name}())"""
         return import_block, code_block, main_block
 
-    def prepare_output_dir(self, copy_src: str, copy_dst: str):
+    def prepare_output_dir(self, _copy_src: str, copy_dst: str):
         """
         This helper creates directories if missing and copies over non-python files from the source directory.
         This is done to copy any config/data files to the output directory.
         """
 
-        if copy_src == copy_dst:
-            # special case that we can allow. skip everything if source and destination
-            # are the same (typically when output is dumped in the current working dir
-            # eg. during tests)
-            return
-        if Path(copy_src) in Path(copy_dst).parents:
-            raise Exception("Potential recursive copy")
-
-        # ignores = shutil.ignore_patterns(
-        #     "*.py",
-        #     "*.ipynb",
-        #     "*.ipynb_checkpoints",
-        #     "*.pyc",
-        #     "*.pyo",
-        #     "*.egg-info",
-        #     "*.toml",
-        #     "__*__",
-        #     ".*",
-        # )
-
-        def include_patterns(patterns, blacklist_dir=None):
-            """
-            Based on shutil.ignore_patterns, this is a similar function
-            to include certain patterns instead. It gives the complementary set of
-            shutil.ignore_patterns.
-            original docstring:
-            Function that can be used as copytree() exclude parameter.
-
-            Patterns is a sequence of glob-style patterns
-            that are used to exclude files
-
-            """
-
-            def _ignore_patterns(path, names):
-                ignored_names = []
-                for pattern in patterns:
-                    ignored_names.extend(fnmatch.filter(names, pattern))
-                dirnames = {
-                    dname
-                    for dname in os.listdir(path)
-                    if os.path.isdir(os.path.join(path, dname))
-                }
-                if not blacklist_dir or len(blacklist_dir) == 0:
-                    ignored_names.extend(dirnames)
-                else:
-                    for blacklistpattern in blacklist_dir:
-                        ignored_names.extend(
-                            dirnames
-                            - set(fnmatch.filter(dirnames, blacklistpattern))
-                        )
-
-                return set(names) - set(ignored_names)
-
-            return _ignore_patterns
-
-        includes = include_patterns(
-            patterns=["*.csv", "*.cfg", "*.yaml"], blacklist_dir=["__*__"]
-        )
-        # getting dir exists error for py 3.7 here. no way to reliably do it so doing it in a dev-friendly way.
-        # purging out the destination folder for now. If this becomes an issue, someone can file it and
-        # we can handle the delete more intelligently. For now just making sure that clearing out destination
-        # does not clear out our source folder
-        if not Path(copy_dst) in Path(copy_src).parents and os.path.exists(
-            copy_dst
-        ):
-            shutil.rmtree(copy_dst)
-        shutil.copytree(copy_src, copy_dst, ignore=includes)
-        self.removeEmptyFolders(copy_dst)
-
-    def removeEmptyFolders(self, path, removeRoot=False):
-        # Function to remove empty folders
-        if not os.path.isdir(path):
-            return
-
-        # remove empty subfolders
-        files = os.listdir(path)
-        if len(files):
-            for f in files:
-                fullpath = os.path.join(path, f)
-                if os.path.isdir(fullpath):
-                    self.removeEmptyFolders(fullpath)
-
-        # if folder empty, delete it
-        files = os.listdir(path)
-        if len(files) == 0 and removeRoot:
-            os.rmdir(path)
+        if not os.path.exists(copy_dst):
+            os.mkdir(copy_dst)
 
     def generate_python_module(
         self,
