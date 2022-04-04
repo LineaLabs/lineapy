@@ -60,7 +60,7 @@ class BasePlugin:
         """
 
         if not os.path.exists(copy_dst):
-            os.mkdir(copy_dst)
+            os.makedirs(copy_dst)
 
     def generate_python_module(
         self,
