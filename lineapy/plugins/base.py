@@ -1,8 +1,7 @@
 import ast
-import fnmatch
 import logging
 import os
-import shutil
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
@@ -54,7 +53,7 @@ class BasePlugin:
         main_block = f"""if __name__ == "__main__":\n\tprint({func_name}())"""
         return import_block, code_block, main_block
 
-    def prepare_output_dir(self, _copy_src: str, copy_dst: str):
+    def prepare_output_dir(self, copy_dst: str, _copy_src: str = None):
         """
         This helper creates directories if missing and copies over non-python files from the source directory.
         This is done to copy any config/data files to the output directory.

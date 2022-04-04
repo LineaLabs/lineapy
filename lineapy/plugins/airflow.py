@@ -125,7 +125,6 @@ class AirflowPlugin(BasePlugin):
                 )
         output_dir_path = Path(output_dir) if output_dir else Path.cwd()
         self.prepare_output_dir(
-            copy_src=self.get_working_dir_as_str(),
             copy_dst=str(output_dir_path),
         )
         self.generate_python_module(
