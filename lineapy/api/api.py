@@ -192,8 +192,6 @@ def catalog() -> LineaCatalog:
     return LineaCatalog(execution_context.executor.db)
 
 
-# TODO - this piece needs to test more than just the output of jupyter cell.
-# we need to ensure all the required files (python module and the dag file) get written to the right place.
 def to_airflow(
     artifacts: List[str],
     dag_name: str,
@@ -237,10 +235,4 @@ def to_airflow(
         output_dir=str(output_dir_path),
     )
 
-    print(
-        f"Cleaning the folder '{output_dir_path}' before serializing new dag."
-    )
-    print(
-        f"Added Airflow DAG named '{dag_name}'. Start a run from the Airflow UI or CLI."
-    )
     return output_dir_path / f"{dag_name}_dag.py"

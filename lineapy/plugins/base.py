@@ -60,6 +60,7 @@ class BasePlugin:
         """
 
         if not os.path.exists(copy_dst):
+            logger.info(f"Creating empty directory {copy_dst}")
             os.makedirs(copy_dst)
 
     def generate_python_module(
