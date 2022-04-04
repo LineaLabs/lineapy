@@ -19,7 +19,7 @@ relative_files = true
 
 [tool.mypy]
 
-exclude = '(/__snapshots__/|sliced_housing_dag*.py|tutorials/.*|integration/slices/.*|integration/sources/.*|integration/envs/.*|entrypoints/outputs/)$'
+exclude = '(/__snapshots__/|sliced_housing_dag*.py|tutorials/.*|integration/slices/.*|integration/sources/.*|integration/envs/.*|/outputs/)$'
 
 # https://docs.sqlalchemy.org/en/14/orm/extensions/mypy.html
 # https://pydantic-docs.helpmanual.io/mypy_plugin/#enabling-the-plugin
