@@ -56,7 +56,7 @@ If you have any feedback for us, please get in touch! We welcome feedback on
 Github, either by commenting on existing issues or creating new ones. You can
 also find us on [Twitter](https://twitter.com/linealabs) and [Slack](https://lineacommunity.slack.com/)!
 
-## Getting Started
+## Installation
 
 ![Linea high level overview](./overview.png)
 
@@ -114,6 +114,31 @@ Note that if you are not using Codespaces and are manually running Airflow and J
 we also created convenient Makefile configs to start Airflow (`make airflow_start`) on
 [`localhost:8080`](http://localhost:8080) and JupyterLab (`make jupyterlab_start`)
 on [`localhost:8888`](http://localhost:8888).
+
+## Getting Started
+
+Once you have lineapy installed, you're ready to start using the library. We'll start with a simple example that demonstrates how to use lineapy to save a variable's history. The `lineapy.save()` function removes extraneous code to give you the simplest version of a variable's history.
+
+In the below example, we'll build a "Hello World!" string. We'll also include some extraneous code that doesn't contribute to the string's final value. Then, we'll save the variable's history using  `lineapy.save()`:
+
+``` python
+import lineapy
+
+text = "Goodbye"
+text = "Hello"
+text = text + " World!"
+alt_text = text.split()
+
+artifact = lineapy.save(text, "text")
+print(artifact.code)
+```
+
+When we print out the value of `artifact.code`, we get the following result:
+```
+text = "Hello"
+text = text + " World!"
+```
+These are the only two lines of code that contribute to the final value of `text`, so they're the only two lines stored in `artifact.code`. For more complex examples, you can check out [`examples`](./examples).
 
 ## Specific Instructions for Cli and Jupyter
 
