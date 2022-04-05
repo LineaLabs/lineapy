@@ -271,7 +271,7 @@ def add_legend(dot: graphviz.Digraph, options: VisualGraphOptions):
     It was difficult to get it to appear in a way that didn't disrupt the  main
     graph. It was easiest to get it to be a vertically aligned column of nodes,
     on the left of the graph. To do this, I link all the nodes with invisible
-    edges so they stay vertically alligned.
+    edges so they stay vertically aligned.
 
     https://stackoverflow.com/a/52300532/907060.
     """

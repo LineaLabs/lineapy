@@ -233,9 +233,9 @@ class RelationalLineaDB:
             )
 
         elif isinstance(node, LiteralNode):
-            # Not sure why we are passing in value ot the literal node,
-            # since it isnt a field in the ORM?
-            # We were previously so I kept it, confused by this!
+            # The value_type is not currently used anywhere
+            # Was used before for rendering to a web UI.
+            # Keeping it for now for anticipation of platform work.
             node_orm = LiteralNodeORM(
                 **args,
                 value_type=RelationalLineaDB.get_type_of_literal_value(

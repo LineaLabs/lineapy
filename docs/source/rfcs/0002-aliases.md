@@ -2,6 +2,7 @@ Author: Saul
 Reviewer: Yifan
 Date: February 8, 2022
 
+
 # Alias RFC
 
 Currently this code will break in linea:
@@ -19,7 +20,7 @@ We can see this in the graph that is created as well. There is no node created f
 
 This pattern might seem silly, but it did show up in [a Tensorflow tutorial](https://www.tensorflow.org/tutorials/images/transfer_learning_with_hub#download_the_classifier).
 
-The slice will not include the `y = x` line, beause we don't create a node for aliases. And since we don't create a node for it, it won't know to keep that
+The slice will not include the `y = x` line, because we don't create a node for aliases. And since we don't create a node for it, it won't know to keep that
 line when looking at all the nodes that are required.
 
 ## Solution

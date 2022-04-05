@@ -1,16 +1,19 @@
 Author: Saul
 Reviewer: Yifan
-Date: February 15, 2022
+Date: April 5, 2022
 
+Status: Merged in ([PR](https://github.com/LineaLabs/lineapy/pull/543))
 # Black Box Analysis RFC
 
 ## Background
 
-We currently support Python control flow, function definitions, and class definition as "black boxes". This means we save the source code as a
+We currently support Python control flow, function definitions, and class 
+definition as "black boxes". This means we save the source code as a
 node in the graph and call `exec` on it to execute it.
 
-This "works" in that we can treat of these construct as one node and chose to include it in our slice or not include it in our slice. We cannot slice inside of it,
-but that issues is not the focus of this RFC.
+This "works" in that we can treat of these construct as one node and chose to 
+include it in our slice or not include it in our slice. We cannot slice inside of it,
+but that issues is not the focus of this RFC (See `./005-control-flow.md`).
 
 Instead, this RFC is about how we can more accurately analyze the contents of the black boxes.
 
@@ -82,7 +85,10 @@ for i in range(10):
 test_data.append(10)
 ```
 
-In this loop, we load both the `train_data` and `test_data`, so we assume that they are now views of one another. Then we append to the `test_data`, so now if we slice on the `train_data` we will include this append, when we shouldn't be including it.
+In this loop, we load both the `train_data` and `test_data`, so we assume that 
+they are now views of one another. Then we append to the `test_data`, so now 
+if we slice on the `train_data` we will include this append, when we shouldn't 
+be including it.
 
 ### 5. Side effects
 
@@ -91,7 +97,7 @@ with TempFile() as t:
     t.write(x)
 ```
 
-If we slice this on the filesystem, we won't know this block writes to it, so we won't include it, because of our best case assumptiont that blocks don't write to the file system.
+If we slice this on the filesystem, we won't know this block writes to it, so we won't include it, because of our best case assumptions that blocks don't write to the file system.
 
 ## Possible Solutions
 
@@ -246,13 +252,13 @@ At a high level, this is how we could use that functionality to better analyze t
    functions called into the `context`, in a new field.
 3. Then, in the Executor, we see once we are done if we have any function calls in the context. If we do, we need to translate those to side effects.
 
-For 1, we have to understand every bytecode operation that triggers a function call, and correctly understand what parts of the stack are neccesary to look at to determine the arguments. One corner case
+For 1, we have to understand every bytecode operation that triggers a function call, and correctly understand what parts of the stack are necessary to look at to determine the arguments. One corner case
 here is also around iterators which we pass with `*` into the
-function. We don't want to iterate through these in the analaysis, since this is a destructive operation. So one a current workaround could be to just assume they are empty and not track their values.
+function. We don't want to iterate through these in the analysis, since this is a destructive operation. So one a current workaround could be to just assume they are empty and not track their values.
 
 For 3, we have to use the results of the side effects for each function call to come up with a composite side effect for the whole black box.
 
-Generally, we know the Python IDs of all the objects passed in as globals. We can use object IDs to identigy which objects are passed where. So similar to our curreent state processing, but
+Generally, we know the Python IDs of all the objects passed in as globals. We can use object IDs to identify which objects are passed where. So similar to our current state processing, but
 at the end we only emit the changes to the globals passed in
 or any globals that were set or any side effects.
 
@@ -273,6 +279,6 @@ If we used the `set_trace` approach, we could see that a `setitem` is being call
 In this way, we could limit our own hand annotations to Python functions which are written in C or are performance critical (settrace enabled during
 a function's execution will slow it down). This would allow us to cover a greater percentage of third party libraries that we see.
 
-However, I propose holding off on using this approach more generaly, for a future PR, to minimize the size of this change.
+However, I propose holding off on using this approach more generally, for a future PR, to minimize the size of this change.
 
 So for this PR, it would only cover understanding side effects for control flow, but not for user defined classes or functions.

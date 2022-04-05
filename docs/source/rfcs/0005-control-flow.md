@@ -1,8 +1,9 @@
-Author: Saul
+Author: Saul & Yifan
+Reviewer: Yifan & Saul
+Date: April 5, 2022
+First Edit: February 18, 2022
 
-Date: February 18, 2022
-
-Status: Rejected for now/draft
+Status: Not on immediate roadmap
 
 # Decomposing Control Flow RFC
 
@@ -316,7 +317,7 @@ def my_program(state):
     return state
 ```
 
-This format is atleast a bit more readable, but is equivalent to the previous.
+This format is at least a bit more readable, but is equivalent to the previous.
 
 After evaluating the program, we want to know what all the artifacts are. What their values are and
 what nodes are needed to create them. One way we can do that is to define certain patterns which
@@ -324,7 +325,7 @@ correspond to replacements to make on the graph. By continually evaluating these
 replacements whenever they match, we end up with a normalized version of the graph.
 
 For now, we emit writing the explicit replacements, that we would need, but
-can add thse if more detail is needed. After the replacements, we should end
+can add these if more detail is needed. After the replacements, we should end
 up with a graph like this:
 
 ```python
@@ -355,7 +356,7 @@ we have in the tracer and executor into a graph replacement framework.
 
 ## If Control Flow Example
 
-Next, we will see how this help us deal with control flow in a consistant manner.
+Next, we will see how this help us deal with control flow in a consistent manner.
 
 Let's say we start with this program:
 

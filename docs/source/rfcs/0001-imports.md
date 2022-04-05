@@ -17,7 +17,7 @@ The outline of this RFC is:
 
 ## Python Imports
 
-_An overview of Python's imports, summerized from ["5. The import system"](https://docs.python.org/3/reference/import.html)_.
+_An overview of Python's imports, summarized from ["5. The import system"](https://docs.python.org/3/reference/import.html)_.
 
 In Python, imports are the method for loading code from another module. The `import` statement does two main tasks:
 
