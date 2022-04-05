@@ -5,10 +5,6 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 
-if "tests" not in os.getcwd():
-    os.chdir("tests")
-
-
 default_dag_args = {"owner": "airflow", "retries": 2, "start_date": days_ago(1)}
 
 dag = DAG(
