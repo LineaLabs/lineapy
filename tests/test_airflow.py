@@ -94,8 +94,8 @@ def test_run_airflow(virtualenv, tmp_path):
         [
             "cp",
             "-f",
-            "tests/outputs/generated/sliced_housing_simple_dag.py",
-            "tests/outputs/generated/sliced_housing_simple.py",
+            "tests/outputs/expected/sliced_housing_simple_dag.py",
+            "tests/outputs/expected/sliced_housing_simple.py",
             "tests/ames_train_cleaned.csv",
             str(dags_home),
         ]
