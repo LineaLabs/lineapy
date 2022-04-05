@@ -1,5 +1,6 @@
-Author: Saul
-Reviewer: Yifan
+Author: @saulshanabrook
+Reviewer: @yifanwu
+Implemented by: @moustafa-a 
 Date: February 8, 2022
 
 Status: merged in ([PR](https://github.com/LineaLabs/lineapy/pull/537))

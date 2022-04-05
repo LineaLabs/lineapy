@@ -1,7 +1,9 @@
-Author: Saul
-Reviewer: Yifan
+Author: @saulshanabrook
+Reviewer: @yifanwu
+Implemented by: @moustafa-a 
 Date: February 8, 2022
 
+Status: Merged in ([PR](https://github.com/LineaLabs/lineapy/pull/531))
 
 # Alias RFC
 

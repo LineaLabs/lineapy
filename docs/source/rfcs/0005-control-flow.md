@@ -1,9 +1,19 @@
-Author: Saul & Yifan
-Reviewer: Yifan & Saul
+Author: @saulshanabrook & @yifanwu
 Date: April 5, 2022
 First Edit: February 18, 2022
 
-Status: Not on immediate roadmap
+Status: Not on immediate road map
+
+We estimated that the effort may take a long time, because it involves refactoring
+the whole Graph data structure we currently have, and as a result executions etc.
+It's also not clear if this is the highest priority item. Given that it's not on
+the road map, the exploration was limited, and this document (as opposed to the
+previous ones) does not provide enough clarity to begin eng work, but rather 
+offers some brainstorm results for future iterations.
+
+That being said, if we do decide to work on this issue, The merged fix for
+0004-black-box-analysis gives us a backup plan for implementing black-boxes one
+at a time.
 
 # Decomposing Control Flow RFC
 
@@ -25,16 +35,71 @@ represents the black boxes as single operations, a string of text to `exec`.
 
 If we want to be able to slice inside of them, we have to break this open.
 
-## Control Flow to Functional Form
 
 Our current slicing algorithm is rather simple. Every node in the graph has
 edges to connect all the other nodes which it depends on. So we simply walk the
 graph to do our slice, and find all ancestors of the node we are looking for.
 
-This RFC explores turning the control flow into
-functional forms, by moving all of the state (io, globals, etc) into an explicit
-state variable that is passed through the graph, to enable us to break up black boxes
-and generates slices for parts of them.
+In order to incorporate control flow into our graph, we have two rough directions.
+(**Option 1**)One is to enable a functional view of our graph---extracting out a sub set of the graph
+and attaching "input" and "output" to it (the entire graph is also one large input/output model).
+(**Option 2**)Another is to move all of the state (io, globals, etc into an explicit
+state variable that is passed through the graph.
+
+After a discussion between Yifan and Saul, we decided that option 1 seems
+conceptually simpler than option 2. Option 2 was discussed in detail by Saul and
+is preserved at the end of the document. We didn't fully flesh out Option 1
+during discussion, partially because the details are not clear and
+will require some iteration.
+
+## Option 1: Control Flow as Functions w/ Input/Outputs
+
+Consider the example above (E1)
+
+```python
+s = 0
+for x in range(4):
+    print(x)
+    s += x
+```
+
+We can represent the content of control flow (lines 3 and 4) as a "function", 
+and the for loop as a "call" on the function. With `s` as input, and `s` and `x` as
+outputs (since they are accessible in the outer scope).
+
+This representation allows us to make the distinction between the nodes
+in the functional form, and the actual nodes. For example below (E2), the `b` in the `foo` is an
+abstract reference (line 3) that is instantiated when `foo` is called in line 5---the node representing
+b in line 4 (as opposed to the note in line 1) is passed to the call node of `foo`
+(in line 5). And the return value of `x` is passed to `z`. We need to take care
+to create a representation that's compatible with both state changes (e.g., `x` in E1
+is not returned explicitly) and state changes that are explicit, (e.g., `x + b` from E2).
+
+```python
+b = 10
+def foo(x):
+    return x + b
+b = 100
+z = foo(10)
+```
+
+These global state access is not only relevant for inputs, but also outputs,
+consider the following example (E3). `b` is mutated in the call of baz in line
+5. So `b` must be an output of the call in line 5. Note that this new structure
+will overlap with our existing mutation tracking system---instead of mutations,
+we'll now have outputs.
+
+```python
+b = 100
+def baz(x):
+    global b
+    b = x +100
+baz(10)
+z = b + 10
+```
+
+<details>
+  <summary>## Option 2: Extract State Explicitly</summary>
 
 ## Simple Example
 
@@ -627,7 +692,7 @@ required to produce the stdout side effects as opposed to those needed to update
 # We split the while loop into two while loops, one which updates the state
 # and one which updates the stdout, so that we can slice on each
 
-# The inital state for the namespace loop just has the namesapce
+# The initial state for the namespace loop just has the namespace
 namespace_init = setitems(
     getattr(state, "namespace"),
     "s",
@@ -642,7 +707,7 @@ namespace_init = setitems(
     ),
 )
 
-# The namespace conditional gets the "i" variable from the namesapce
+# The namespace conditional gets the "i" variable from the namespace
 def namespace_cond(state):
     return line(3, less(getitem(state, "i"), 10))
 
@@ -732,14 +797,14 @@ state = replace(
 
 It is unclear to me at this time though how we can do this type of transformation in a rigorous manner,
 so I am unclear in general if there are ways we can use graph replacement to normalize the graph in some manner, to create
-a form that is ameanable to program slicing.
+a form that is amenable to program slicing.
 
 ---
 
 Now this is really turning into more of an exploration than an RFC, but I wanted to share a few others thoughts I had on the problem from reading a couple of recent papers this weekend.
 
 To re-orient, where we left is that we were having trouble figuring out to how to take a while loop with updates both the local namespace and to the IO (stdout),
-and sepearete those changes, so that we can see which parts of the while loop touch IO and which touch the namespace.
+and separate those changes, so that we can see which parts of the while loop touch IO and which touch the namespace.
 
 The strategy is to re-formulate the imperative while loop in a functional form.
 
@@ -747,9 +812,9 @@ The paper ["Modular, Compositional, and Executable Formal Semantics for LLVM IR"
 
 They use the technique of ["Interaction Trees"](https://arxiv.org/abs/1906.00046), which they use to represent in a (monadic) functional form the state transitions of LLVM. Like in our case, they have events which impact the environment in different way, such as writing/reading from global state, or causing IO. The ITrees interface lets them decompose these effects:
 
-> Importantly, since ITrees themselves form a monad, we do not have to interpret the whole interface at once: for instance, the state monad transformer StateT 𝑆 allows us to interpret the state events StE𝑆 of an ITree of type itree(E ⊕ StES ⊕ F) A into StateT 𝑆 (itree (𝐸 ⊕ 𝐹 ) ) AÐthe state events are interpreted in isolation.
+> Importantly, since ITrees themselves form a monad, we do not have to interpret the whole interface at once: for instance, the state monad transformer StateT 𝑆 allows us to interpret the state events StE𝑆 of an ITree of type Itree(E ⊕ StES ⊕ F) A into StateT 𝑆 (itree (𝐸 ⊕ 𝐹 ) ) The state events are interpreted in isolation.
 
-So although we are not interested in a formally proving the correctness of our understanding of Python, it seems possible that we could gain by trying to use similar tools to those being developed in the formal theorum proving world, to model and reason about imperative stateful language behavior.
+So although we are not interested in a formally proving the correctness of our understanding of Python, it seems possible that we could gain by trying to use similar tools to those being developed in the formal theorem proving world, to model and reason about imperative stateful language behavior.
 
 ## Background
 
@@ -770,6 +835,8 @@ https://gvanrossum.github.io/formal/scopesblog.html
 > Anyway, below I will sketch a few classes that can model Python scopes. But first I need to get something fundamental out of the way: there’s a difference between scopes and namespaces.
 >
 > - A scope is a compile time concept, referring to a region of the source code. (The term is sometimes also used to refer to the lifetime of a variable, but in Python that’s a totally separate concept, and I will not dwell on it here.) When the compiler looks something up in a scope, it is essentially looking through a section of the source code (for example, a function body). In practice the compiler doesn’t literally search the text of the source code, but an AST (Abstract Syntax Tree).
-> - A namespace is a runtime concept, you can think of it as a dictionary mapping variable names to values (objects). When the intepreter looks something up in a namespace, it is essentially looking for a key in a dictionary. Function namespaces are implemented without using an actual dictionary, but this is an implementation detail. In fact, that other namespaces are implemented using dictionaries is also an implementation detail. For the description of formal semantics, we don’t care about these implementation details – we just use the term namespace.
+> - A namespace is a runtime concept, you can think of it as a dictionary mapping variable names to values (objects). When the interpreter looks something up in a namespace, it is essentially looking for a key in a dictionary. Function namespaces are implemented without using an actual dictionary, but this is an implementation detail. In fact, that other namespaces are implemented using dictionaries is also an implementation detail. For the description of formal semantics, we don’t care about these implementation details – we just use the term namespace.
 >
 > When compiling source code, the compiler uses the scope of a variable to decide what kind of code to generate for the interpreter to look up that variable’s value or to store a value into it. This generated code refers to one or more namespaces, never to scopes (which don’t exist at runtime).
+
+</details>
