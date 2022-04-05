@@ -63,7 +63,7 @@ def print_tree_log() -> None:
 
 def tree_log(fn: C) -> C:
     """
-    Decorator to enable logging for a function. Should preserve its behavior, 
+    Decorator to enable logging for a function. Should preserve its behavior,
     but logs whenever it is called.
     """
 
