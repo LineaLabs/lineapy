@@ -111,10 +111,14 @@ x = [y]
 y.append(10)
 x[0].append(11)
 """
-    assert run_cell(importl + code_body + artifact_f_save) is None
+    assert run_cell(importl + code_body + code_body + artifact_f_save) is None
     assert (
         run_cell("res.session_code")
-        == importl + code_body + artifact_f_save + "res.session_code\n"
+        == importl
+        + code_body
+        + code_body
+        + artifact_f_save
+        + "res.session_code\n"
     )
     assert run_cell("res.code") == code_body
     assert (

@@ -531,6 +531,7 @@ class RelationalLineaDB:
             jupyter_source_code_orms = (
                 self.session.query(SourceCodeORM)
                 .filter(SourceCodeORM.jupyter_session_id == session_id)
+                .order_by(SourceCodeORM.jupyter_execution_count)
                 .all()
             )
             return "".join(
