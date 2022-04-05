@@ -33,6 +33,8 @@ x[0].append(11)
     )
     # this is an additional redundant step to make sure our orig artifact is correct
     assert artifact_f.code == code_body
+    # this is an additional redundant step to make sure our orig artifact is correct
+    assert artifact_f.session_code == importl + code_body + artifact_f_save
     # and here we only use the tracer context to ensure we can retrieve the
     # slice from db directly
     assert second_context.slice("deferencedy") == code_body
