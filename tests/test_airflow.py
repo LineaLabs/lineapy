@@ -74,7 +74,6 @@ def test_multiple_slices_airflow_with_task_dependencies(
 
 @pytest.mark.airflow
 @pytest.mark.slow
-@pytest.mark.skip
 def test_run_airflow(virtualenv, tmp_path):
     """
     Verifies that the "--airflow" CLI command produces a working Airflow DAG
