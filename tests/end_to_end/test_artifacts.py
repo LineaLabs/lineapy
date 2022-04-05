@@ -122,3 +122,27 @@ all_print = catalog.print
             for v in db_values
         ]
     )
+
+
+def test_artifact_code(execute):
+    importl = """import lineapy
+"""
+    artifact_f_save = """
+lineapy.save(y, "deferencedy")
+use_y = lineapy.get("deferencedy")
+"""
+    code_body = """y = []
+x = [y]
+y.append(10)
+x[0].append(11)
+"""
+    tracer = execute(importl + code_body + artifact_f_save, snapshot=False)
+    artifact = tracer.values["use_y"]
+    assert artifact.code == code_body
+    assert artifact.session_code == importl + code_body + artifact_f_save
+    assert (
+        artifact.db.get_session_context(
+            artifact.session_id
+        ).environment_type.name
+        == "SCRIPT"
+    )

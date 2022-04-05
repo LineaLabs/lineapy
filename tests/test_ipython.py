@@ -99,6 +99,32 @@ def test_magics(run_cell):
     assert run_cell("!ls") is None
 
 
+def test_artifact_codes(run_cell):
+    importl = """import lineapy
+"""
+    artifact_f_save = """
+lineapy.save(y, "deferencedy")
+res = lineapy.get("deferencedy")
+"""
+    code_body = """y = []
+x = [y]
+y.append(10)
+x[0].append(11)
+"""
+    assert run_cell(importl + code_body + artifact_f_save) is None
+    assert (
+        run_cell("res.session_code")
+        == importl + code_body + artifact_f_save + "res.session_code\n"
+    )
+    assert run_cell("res.code") == code_body
+    assert (
+        run_cell(
+            "res.db.get_session_context(res.session_id).environment_type.name"
+        )
+        == "JUPYTER"
+    )
+
+
 @pytest.fixture
 def ip():
     """
