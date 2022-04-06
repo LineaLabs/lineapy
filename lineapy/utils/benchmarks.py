@@ -152,4 +152,4 @@ def format_percent(percent: float) -> str:
 
 
 def square(x: float) -> float:
-    return x ** 2
+    return x**2

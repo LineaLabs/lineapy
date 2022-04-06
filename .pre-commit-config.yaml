@@ -28,7 +28,7 @@ repos:
         entry: black .
         language: python
         # https://github.com/psf/black/issues/2964
-        additional_dependencies: ["black==21.10b0", "click<=8.0.4"]
+        additional_dependencies: ["black==22.3.0"]
         types: [python]
         pass_filenames: false
   - repo: local
