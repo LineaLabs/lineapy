@@ -2,6 +2,8 @@
 Tests FunctionInspector().inspect to verify the right side effects are the same.
 """
 from operator import setitem
+from pickle import dump
+from tempfile import NamedTemporaryFile
 from types import SimpleNamespace
 
 import numpy
@@ -22,6 +24,9 @@ from lineapy.instrumentation.annotation_spec import (
     ViewOfValues,
 )
 from lineapy.utils.lineabuiltins import l_list
+
+filename = NamedTemporaryFile().name
+handle = open(filename, "wb")
 
 
 @mark.parametrize(
@@ -65,6 +70,17 @@ from lineapy.utils.lineabuiltins import l_list
                 )
             ],
             id="to_csv",
+        ),
+        param(
+            dump,
+            [{"lineapy": "hi"}, handle],
+            {},
+            [
+                MutatedValue(
+                    mutated_value=PositionalArg(positional_argument_index=1),
+                )
+            ],
+            id="pickle.dump",
         ),
         param(
             set().add,
