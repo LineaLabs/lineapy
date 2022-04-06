@@ -22,7 +22,7 @@ from lineapy.transformer.node_transformer import NodeTransformer
 __all__ = ["start_tree_log", "print_tree_log"]
 
 
-# Mapping from class name to the color we shoudl use for its methods
+# Mapping from class name to the color we should use for its methods
 # https://rich.readthedocs.io/en/stable/appendix/colors.html#appendix-colors
 CLASS_TO_COLOR = {
     "NodeTransformer": "blue",
@@ -63,7 +63,8 @@ def print_tree_log() -> None:
 
 def tree_log(fn: C) -> C:
     """
-    Decorator to enable logging for a function. Should preserve its behavior, but logs whenever it is called.
+    Decorator to enable logging for a function. Should preserve its behavior,
+    but logs whenever it is called.
     """
 
     @wraps(fn)

@@ -60,11 +60,10 @@ from lineapy.utils.lineabuiltins import file_system
             {},
             [
                 ImplicitDependencyNode(file_system),
-                ViewOfNodes([Variable("f"), file_system]),
                 MutatedNode(file_system),
+                ViewOfNodes([Variable("f"), file_system]),
             ],
             id="with statement write",
-            marks=pytest.mark.xfail(),
         ),
         pytest.param(
             "x, y = z",

@@ -44,10 +44,20 @@ helper functions
 def is_mutable(obj: object) -> bool:
     """
     Returns true if the object is mutable.
+
+    Note that currently, `tempfile.NamedTemporaryFile()` is not mutable, and
+    the semantics is actually correct, because it doesn't end up changing the
+    file system. However, the following registers as normal files (which
+    are mutable).
+
+    ```python
+    filename = NamedTemporaryFile().name
+    handle = open(filename, "wb")
+    ```
     """
 
     # We have to special case any types which are hashable, but are mutable.
-    # Since there is no way to see if a clase is mutable a priori, we could add a list of types
+    # Since there is no way to see if a class is mutable a priori, we could add a list of types
     # like this to our annotations
     mutable_hashable_types: Tuple[type, ...] = (
         ModuleType,

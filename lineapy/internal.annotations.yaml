@@ -219,6 +219,7 @@
           - seek
           - truncate
           - writelines
+          - write
         class_instance: IOBase
       side_effects:
         - mutated_value:
@@ -242,3 +243,11 @@
         - views:
             - result: RESULT
             - external_state: file_system
+
+- module: pickle
+  annotations:
+    - criteria:
+        function_name: dump # Note: `load` doesn't need annotation
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 1

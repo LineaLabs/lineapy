@@ -19,6 +19,7 @@ on:
       - "lineapy/plugins/base.py"
       - "tests/outputs/expected/*.py"
       - "tests/test_airflow.py"
+      - "airflow-requirements.txt"
 jobs:
   airflow:
     runs-on: ubuntu-latest
