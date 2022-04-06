@@ -5,7 +5,6 @@ User facing APIs.
 import pickle
 import types
 from datetime import datetime
-from os import environ
 from pathlib import Path
 from typing import List, Optional
 

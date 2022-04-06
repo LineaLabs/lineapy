@@ -6,8 +6,6 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from os import environ
-from pathlib import Path
 from typing import List, Optional, cast
 
 from IPython.display import display
@@ -21,7 +19,6 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.utils.constants import VERSION_DATE_STRING, VERSION_PLACEHOLDER
 
 logger = logging.getLogger(__name__)
