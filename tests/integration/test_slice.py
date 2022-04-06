@@ -285,7 +285,7 @@ def test_slice(
         )
         normalized_slice = normalize_source(sliced_code)
 
-        # Save snapshot of normalized slice, so that the current state is commited to source
+        # Save snapshot of normalized slice, so that the current state is committed to source
         assert normalized_slice == python_snapshot
 
         # Verify slice is the same as desired slice
