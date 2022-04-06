@@ -25,6 +25,9 @@ from lineapy.instrumentation.annotation_spec import (
 )
 from lineapy.utils.lineabuiltins import l_list
 
+filename = NamedTemporaryFile().name
+handle = open(filename, "wb")
+
 
 @mark.parametrize(
     ("function", "args", "kwargs", "side_effects"),
@@ -70,11 +73,11 @@ from lineapy.utils.lineabuiltins import l_list
         ),
         param(
             dump,
-            ({"lineapy": "hi"}, NamedTemporaryFile()),
+            [{"lineapy": "hi"}, handle],
             {},
             [
                 MutatedValue(
-                    mutated_value=ExternalState(external_state="file_system")
+                    mutated_value=PositionalArg(positional_argument_index=1),
                 )
             ],
             id="pickle.dump",
