@@ -124,7 +124,7 @@ all_print = catalog.print
     )
 
 
-def test_artifact_code(execute):
+def test_artifact_session_code(execute):
     importl = """import lineapy
 """
     artifact_f_save = """
@@ -135,10 +135,10 @@ use_y = lineapy.get("deferencedy")
 x = [y]
 y.append(10)
 x[0].append(11)
-"""
+# this should not show up
+print(x)"""
     tracer = execute(importl + code_body + artifact_f_save, snapshot=False)
     artifact = tracer.values["use_y"]
-    assert artifact.code == code_body
     assert artifact.session_code == importl + code_body + artifact_f_save
     assert (
         artifact.db.get_session_context(

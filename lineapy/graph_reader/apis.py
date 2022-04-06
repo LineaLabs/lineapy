@@ -82,8 +82,11 @@ class LineaArtifact:
     @property
     def session_code(self) -> str:
         """
-        Return the raw session code for the artifact
+        Return the raw session code for the artifact. This will include any
+        comments and non-code lines.
         """
+        # using this over get_source_code_from_graph because it will process the
+        # graph code and not return the original code with comments etc.
         return self.db.get_source_code_for_session(self.session_id)
 
     @property
