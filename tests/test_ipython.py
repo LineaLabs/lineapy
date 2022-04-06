@@ -44,7 +44,7 @@ def test_slice_artifact_inline(run_cell):
 def test_to_airflow_pymodule(python_snapshot, run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
-    py_module_path = run_cell("res.to_airflow()")
+    py_module_path = run_cell("lineapy.to_airflow([res.name],res.name)")
     assert python_snapshot == py_module_path.read_text()
 
 
@@ -52,7 +52,7 @@ def test_to_airflow_pymodule(python_snapshot, run_cell):
 def test_to_airflow_dagmodule(python_snapshot, run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
-    py_module_path = run_cell("res.to_airflow()")
+    py_module_path = run_cell("lineapy.to_airflow([res.name],res.name)")
     dag_module_path = py_module_path.parent / "a_dag.py"
     assert python_snapshot == dag_module_path.read_text()
 
@@ -62,7 +62,7 @@ def test_to_airflow_with_config_pymodule(python_snapshot, run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     py_module_path = run_cell(
-        "res.to_airflow(airflow_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
+        "lineapy.to_airflow([res.name],res.name, airflow_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
     )
     assert python_snapshot == py_module_path.read_text()
 
@@ -72,7 +72,7 @@ def test_to_airflow_with_config_dagmodule(python_snapshot, run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     py_module_path = run_cell(
-        "res.to_airflow(airflow_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
+        "lineapy.to_airflow([res.name],res.name, airflow_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
     )
     dag_module_path = py_module_path.parent / "a_dag.py"
     assert python_snapshot == dag_module_path.read_text()

@@ -137,3 +137,4 @@ class AirflowPlugin(BasePlugin):
         self.generate_infra(
             module_name=module_name, output_dir_path=output_dir_path
         )
+        return output_dir_path

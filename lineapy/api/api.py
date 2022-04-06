@@ -15,7 +15,7 @@ from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.airflow import AirflowPlugin
+from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.utils.utils import get_value_type
 
 """
@@ -198,6 +198,8 @@ def to_airflow(
     artifacts: List[str],
     dag_name: str,
     task_dependencies: str = "",
+    airflow_dag_config: AirflowDagConfig = {},
+    output_dir: Optional[str] = None,
 ) -> Path:
     """
     Writes the airflow job to a path on disk.
@@ -220,17 +222,10 @@ def to_airflow(
         raise Exception("No sessions found in the database.")
     last_session = session_orm[0]
 
-    output_dir_path = (
-        Path(environ["AIRFLOW_HOME"])
-        if "AIRFLOW_HOME" in environ
-        else Path.home() / "airflow"
-    ) / "dags"
-
-    AirflowPlugin(db, last_session.id).sliced_airflow_dag(
+    return AirflowPlugin(db, last_session.id).sliced_airflow_dag(
         artifacts,
         dag_name,
         task_dependencies,
-        output_dir=str(output_dir_path),
+        output_dir=output_dir,
+        airflow_dag_config=airflow_dag_config,
     )
-
-    return output_dir_path / f"{dag_name}_dag.py"
