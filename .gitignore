@@ -170,3 +170,4 @@ TODO
 *.scrap
 Untitled*.ipynb
 tests/outputs
+*.pickle

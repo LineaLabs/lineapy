@@ -43,7 +43,9 @@ Run the following command in the root directory
 sphinx-autobuild docs/source/ docs/build/html/
 ```
 
-Note - _if you're modifying the docs:_ Any changes in the rst files in the `/docs` directory will be detected and the html refreshed. However, changes in the doc strings in code will not be picked up, and you'll have to rebuild the docs to refresh.
+Note - _if you're modifying the docs:_ Any changes in the rst files in the `/docs` 
+directory will be detected and the html refreshed. However, changes in the doc 
+strings in code will not be picked up, and you'll have to rebuild the docs to refresh.
 
 We recommend you at least read the following sections in the docs before getting started.
 
@@ -53,7 +55,8 @@ We recommend you at least read the following sections in the docs before getting
 
 ### 1.2. Set up the environment
 
-There are two main ways to set up `lineapy` locally either using Conda or using Docker. If you prefer to use venv instead of Conda, then please follow the instructions [here](#43-using-venv-instead-of-conda)
+There are two main ways to set up `lineapy` locally either using Conda or using 
+Docker. If you prefer to use venv instead of Conda, then please follow the instructions [here](#43-using-venv-instead-of-conda)
 
 #### First-time Setup
 
@@ -107,8 +110,10 @@ rm -rf build dist
 docker network create lineapy
 ```
 
-To build the Lineapy container, run `make build` (you can pass in arguments with `args=`, i.e. `make build args=--no-cache`)
-To open bash within the container, run `make bash`. One can either use bash for dev or can connect to remote runtimes inside a container using extensions available for the editor of choice.
+To build the Lineapy container, run `make build` (you can pass in arguments with
+ `args=`, i.e. `make build args=--no-cache`)
+To open bash within the container, run `make bash`. One can either use bash for 
+dev or can connect to remote runtimes inside a container using extensions available for the editor of choice.
 `make tests` executes the test suite.
 
 To build Lineapy contained with Airflow, run `make build-airflow`. `make tests-airflow` runs airflow tests.
@@ -164,13 +169,21 @@ git push
 
 H. Create a PR to merge your branch
 
-Note - if you're using Docker as your local environment, please check [here](#27-additional-notes-on-docker-testing) for additional details about testing
+Note - if you're using Docker as your local environment, please check 
+[here](#27-additional-notes-on-docker-testing) for additional details about testing.
 
 ## 2. Testing
 
+When contributing, please add unit tests (listed under `unit` folder), and when
+appropriate, add end to end tests in the `end_to_end` directory. We are trying
+to maintain a high level of test coverage, especially for parts of the codebase
+that's more complex, such as the mutation tracking and analysis for
+executor and tracer.
+
+To run all default tests, use the following commands:
+
 ```bash
-mypy . # TODO is this line optional
-black --line-length 79 --check . # TODO is this line optional
+pre-commit run --all # currently tests for flake8, black, isort, and mypy
 pytest tests
 ```
 
@@ -190,7 +203,8 @@ default, since their source is not deterministic.
 
 ### 2.2. XFail tests
 
-We also use [pytest's xfail](https://docs.pytest.org/en/latest/how-to/skipping.html#xfail-mark-test-functions-as-expected-to-fail) to mark tests that are expected to fail, because of a known bug. To have them run anyway, run `--run-xfail`.
+We also use [pytest's xfail](https://docs.pytest.org/en/latest/how-to/skipping.html#xfail-mark-test-functions-as-expected-to-fail) 
+to mark tests that are expected to fail, because of a known bug. To have them run anyway, run `--run-xfail`.
 
 ### 2.3. Integration tests
 
@@ -214,6 +228,8 @@ make tests/notebook/test_visualize.ipynb
 Or you can open it in a notebook UI (JupyterLab, JupyterNotebook, VS Code, etc.)
 and re-run it manually
 
+To skip testing on a test result, you can add `# NBVAL_SKIP` to the top of the cell.
+
 ### 2.5. Slow tests
 
 Some tests have been marked "slow". These typically take > 0.5s and can be skipped
@@ -232,7 +248,8 @@ If using Docker, please add appropriate tests and ensure all tests are working u
 `make test`. Any args to pytest can be passed using args="xxx". e.g., individual
 tests can be run using `make test args="<path_to_test_file>"`.
 
-Please ensure linting and `typecheck`s are done before committing your code. When using docker, this can be done using `make lint` and `make typecheck` respectively. A
+Please ensure linting and `typecheck`s are done before committing your code. 
+When using docker, this can be done using `make lint` and `make typecheck` respectively. A
 pre-commit hook that runs `make blackfix lint typecheck build test` will fix
 any fixable issues and ensure build and test works.
 
@@ -241,13 +258,14 @@ any fixable issues and ensure build and test works.
 To help debug when writing a test, or to get a better understanding of the codebase, we have implemented a `--tree-log` CLI command, which will print
 a visual tree, using [Rich's tree renderer](https://rich.readthedocs.io/en/stable/tree.html), of all method calls in our main classes.
 
-To change the appearence of the logs or what classes are logged, look at the `lineapy/utils/tree_logger.py` file.
+To change the appearance of the logs or what classes are logged, look at the `lineapy/utils/tree_logger.py` file.
 
 ## 3. Debugging
 
 ### 3.1. VSC
 
-`.vscode/launch.json` has a VSC debug configuration for `lineapy` which executes `lineapy python --slice "p value" tests/housing.py` through VSC "Run and Debug" dialog.
+`.vscode/launch.json` has a VSC debug configuration for `lineapy` which executes
+ `lineapy python --slice "p value" tests/housing.py` through VSC "Run and Debug" dialog.
 
 ### 3.2. Visual Graphs
 
@@ -255,7 +273,8 @@ Sometimes it's helpful to see a visual representation of the graph
 and the tracers state, while debugging a test. Run the tests with `--visualize`
 to have it save a `tracer.pdf` file whenever it run an execution.
 
-You can also run tests with `pytest --snapshot-update test_name`, which will create snapshots in `__snapshots__/test_name/` folder for the particular test you're running
+You can also run tests with `pytest --snapshot-update test_name`, which will 
+create snapshots in `__snapshots__/test_name/` folder for the particular test you're running
 Note: This requires graphviz to be installed.
 
 ### 3.3. Logging
@@ -314,12 +333,18 @@ act
 
 ### 4.1. Performance Profiling
 
-Please see [this](https://github.com/LineaLabs/lineapy/blob/main/PERFORMANCE.md) for notes on profiling.
+Please see [this](https://github.com/LineaLabs/lineapy/blob/main/PERFORMANCE.md)
+for notes on profiling.
 
 ### 4.2. Known Issues
 
-Note - on M1 chip with macOS Monterey & using conda's Python 3.8.11, installing the requirements fails due to a failure in building fastparquet==0.7.2
-Downgrading to 0.7.0 solves the issue - simply change the fastparquet version in requirements.txt
+Note - on M1 chip with macOS Monterey & using conda's Python 3.8.11, installing 
+the requirements fails due to a failure in building fastparquet==0.7.2
+Downgrading to 0.7.0 solves the issue - simply change the fastparquet version in requirements.txt.
+
+Another heuristic is that when installing with pip fails, you can try installing
+using conda, sometimes they have better M1 support---M1 installation is still a
+bit of trials and error.
 
 ### 4.3. Using venv instead of Conda
 
@@ -365,12 +390,14 @@ pytest tests
 
 ### 4.4. Further Readings
 
-The [Docker](https://github.com/LineaLabs/lineapy/blob/main/Dockerfile) and [make](https://github.com/LineaLabs/lineapy/blob/main/Makefile) files are good starting point to see the main components of `lineapy`
+The [Docker](https://github.com/LineaLabs/lineapy/blob/main/Dockerfile) and 
+[make](https://github.com/LineaLabs/lineapy/blob/main/Makefile) files are good starting point to see the main components of `lineapy`
 
 ### 4.5. Benchmarking
 
 We provide a benchmarking command to test how much lineapy impacts the performance. To use it,
-pass in the path to a notebook (which does not import lineapy) to `lineapy benchmark` and lineapy will try it multiple time and report some stastics (using the method
+pass in the path to a notebook (which does not import lineapy) to `lineapy benchmark` 
+and lineapy will try it multiple time and report some statistics (using the method
 described in the paper ["Quantifying Performance Changes with Effect Size Confidence
 Interval"](https://www.cs.kent.ac.uk/pubs/2012/3233/content.pdf)) by Tomas Kalibera and Richard Jones).
 
