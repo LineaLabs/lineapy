@@ -1,25 +1,21 @@
-Welcome to lineapy's documentation!
-===================================
+Welcome to LineaPy!
+===================
 
 .. toctree::
    :maxdepth: 2
-   :caption: How-to Guides
 
-   howto
+   intro
+   setup
+   quickstart
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: Linea Internals
+   :caption: References
 
+   development
    internals
-
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Modules
-
-   autogen/modules
+   apidoc
 
 
 ..

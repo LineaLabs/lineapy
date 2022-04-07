@@ -1,5 +1,8 @@
 .. _internals:
 
+Internals
+=========
+
 This document describes some of the high level code layout and implementation decisions.
 
 What is a Linea Graph?
