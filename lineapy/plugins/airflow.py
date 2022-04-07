@@ -128,8 +128,6 @@ class AirflowPlugin(BasePlugin):
         output_dir_path = Path.cwd()
         if output_dir:
             output_dir_path = Path(os.path.expanduser(output_dir))
-        elif "AIRFLOW_HOME" in os.environ:
-            output_dir_path = Path(os.environ["AIRFLOW_HOME"]) / "dags"
 
         logger.info(
             "Pipeline source generated in the directory: %s", output_dir_path
