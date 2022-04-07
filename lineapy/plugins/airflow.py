@@ -128,6 +128,9 @@ class AirflowPlugin(BasePlugin):
         output_dir_path = Path.cwd()
         if output_dir:
             output_dir_path = Path(os.path.expanduser(output_dir))
+            self.prepare_output_dir(
+                copy_dst=str(output_dir_path.resolve()),
+            )
 
         logger.info(
             "Pipeline source generated in the directory: %s", output_dir_path

@@ -66,7 +66,7 @@ def test_to_airflow_with_config_pymodule(python_snapshot, run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     py_module_path = run_cell(
-        "lineapy.to_airflow([res.name],res.name, output_dir=~/airflow/dags',airflow_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
+        "lineapy.to_airflow([res.name],res.name, output_dir='~/airflow/dags',airflow_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
     )
     assert python_snapshot == (py_module_path / "a.py").read_text()
 

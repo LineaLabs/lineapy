@@ -1,5 +1,6 @@
 import ast
 import logging
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -51,6 +52,13 @@ class BasePlugin:
         import_block = "\n".join(lines[:end_of_imports_line_num])
         main_block = f"""if __name__ == "__main__":\n\tprint({func_name}())"""
         return import_block, code_block, main_block
+
+    def prepare_output_dir(self, copy_dst: str):
+        """
+        This helper creates directories if missing
+        """
+        if not os.path.exists(copy_dst):
+            os.makedirs(copy_dst)
 
     def generate_python_module(
         self,
