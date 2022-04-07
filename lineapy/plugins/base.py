@@ -1,16 +1,16 @@
 import ast
 import logging
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 import isort
 
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.plugins.utils import get_lib_version_text, load_plugin_template
-from lineapy.utils.config import linea_folder
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
@@ -53,11 +53,18 @@ class BasePlugin:
         main_block = f"""if __name__ == "__main__":\n\tprint({func_name}())"""
         return import_block, code_block, main_block
 
+    def prepare_output_dir(self, copy_dst: str):
+        """
+        This helper creates directories if missing
+        """
+        if not os.path.exists(copy_dst):
+            os.makedirs(copy_dst)
+
     def generate_python_module(
         self,
         module_name: str,
         artifacts_code: Dict[str, str],
-        output_dir: Optional[str] = None,
+        output_dir_path: Path,
     ):
         """
         Generate python module code and save to a file.
@@ -78,26 +85,19 @@ class BasePlugin:
             profile="black",
         )
         full_code = prettify(full_code)
-        output_dir_path = Path(output_dir) if output_dir else Path.cwd()
         (output_dir_path / f"{module_name}.py").write_text(full_code)
         logger.info(f"Generated python module {module_name}.py")
 
-    def get_relative_working_dir_as_str(self):
+    def get_working_dir_as_str(self):
         working_directory = Path(
             self.db.get_session_context(self.session_id).working_directory
         )
-        return repr(
-            str(
-                working_directory.relative_to(
-                    (linea_folder() / "..").resolve()
-                )
-            )
-        )
+        return str(working_directory.resolve())
 
     def generate_infra(
         self,
         module_name: str,
-        output_dir: Optional[str] = None,
+        output_dir_path: Path,
     ):
         """
         Generates templates to test the airflow module. Currently, we
@@ -107,7 +107,6 @@ class BasePlugin:
         """
         DOCKERFILE_TEMPLATE = load_plugin_template("dockerfile.jinja")
         dockerfile = DOCKERFILE_TEMPLATE.render(module_name=module_name)
-        output_dir_path = Path(output_dir) if output_dir else Path.cwd()
         (output_dir_path / (module_name + "_Dockerfile")).write_text(
             dockerfile
         )

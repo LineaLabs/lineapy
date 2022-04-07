@@ -6,8 +6,6 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from os import environ
-from pathlib import Path
 from typing import List, Optional, cast
 
 from IPython.display import display
@@ -21,7 +19,6 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.utils.constants import VERSION_DATE_STRING, VERSION_PLACEHOLDER
 
 logger = logging.getLogger(__name__)
@@ -96,48 +93,14 @@ class LineaArtifact:
         nodes = self.db.get_nodes_for_session(self.session_id)
         return Graph(nodes, session_context)
 
-    def to_airflow(
-        self,
-        airflow_dag_config: AirflowDagConfig = {},
-        filename: Optional[str] = None,
-    ) -> Path:
-        """
-        Writes the airflow job to a path on disk.
-
-        If a filename is not passed in, will write the dag to the airflow home.
-        """
-        if filename:
-            path = Path(filename)
-        else:
-            # Save dag to dags folder in airflow home
-            # Otherwise default to default airflow home in home directory
-            path = (
-                (
-                    Path(environ["AIRFLOW_HOME"])
-                    if "AIRFLOW_HOME" in environ
-                    else Path.home() / "airflow"
-                )
-                / "dags"
-                / f"{self.name}.py"
-            )
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        # TODO - this bit needs more testing
-        AirflowPlugin(self.db, self.session_id).sliced_airflow_dag(
-            slice_names=[self.name],
-            module_name=self.name,
-            output_dir=str(path.parent),
-            airflow_dag_config=airflow_dag_config,
-        )
-
-        return path
-
     def visualize(self, path: Optional[str] = None) -> None:
         """
         Displays the graph for this artifact.
 
         If a path is provided, will save it to that file instead.
         """
+        # adding this inside function to lazy import graphviz.
+        # This way we can import lineapy without having graphviz installed.
         from lineapy.visualizer import Visualizer
 
         visualizer = Visualizer.for_public_node(self._graph, self.node_id)

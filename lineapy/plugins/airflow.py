@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -37,8 +38,8 @@ class AirflowPlugin(BasePlugin):
         self,
         dag_name: str,
         task_names: List[str],
+        output_dir_path: Path,
         task_dependencies: Optional[str] = None,
-        output_dir: Optional[str] = None,
         airflow_dag_config: AirflowDagConfig = {},
     ) -> None:
         """
@@ -58,7 +59,6 @@ class AirflowPlugin(BasePlugin):
         airflow_dag_config = airflow_dag_config or {}
 
         full_code = AIRFLOW_DAG_TEMPLATE.render(
-            working_dir_str=self.get_relative_working_dir_as_str(),
             DAG_NAME=dag_name,
             OWNER=airflow_dag_config.get("owner", "airflow"),
             RETRIES=airflow_dag_config.get("retries", 2),
@@ -74,7 +74,6 @@ class AirflowPlugin(BasePlugin):
         # Sort imports and move them to the top
         full_code = isort.code(full_code, float_to_top=True, profile="black")
         full_code = prettify(full_code)
-        output_dir_path = Path(output_dir) if output_dir else Path.cwd()
         (output_dir_path / f"{dag_name}_dag.py").write_text(full_code)
         logger.info(
             f"Added Airflow DAG named {dag_name}_dag. Start a run from the Airflow UI or CLI."
@@ -83,7 +82,7 @@ class AirflowPlugin(BasePlugin):
     def sliced_airflow_dag(
         self,
         slice_names: List[str],
-        module_name: str,
+        module_name: Optional[str] = None,
         airflow_task_dependencies: Optional[str] = None,
         output_dir: Optional[str] = None,
         airflow_dag_config: AirflowDagConfig = {},
@@ -125,12 +124,28 @@ class AirflowPlugin(BasePlugin):
                 airflow_task_dependencies = airflow_task_dependencies.replace(
                     slice_name, task_name
                 )
-        self.generate_python_module(module_name, artifacts_code, output_dir)
+        module_name = module_name or "_".join(slice_names)
+        output_dir_path = Path.cwd()
+        if output_dir:
+            output_dir_path = Path(os.path.expanduser(output_dir))
+            self.prepare_output_dir(
+                copy_dst=str(output_dir_path.resolve()),
+            )
+
+        logger.info(
+            "Pipeline source generated in the directory: %s", output_dir_path
+        )
+        self.generate_python_module(
+            module_name, artifacts_code, output_dir_path
+        )
         self.to_airflow(
             module_name,
             task_names,
+            output_dir_path,
             airflow_task_dependencies,
-            output_dir,
             airflow_dag_config,
         )
-        self.generate_infra(module_name=module_name, output_dir=output_dir)
+        self.generate_infra(
+            module_name=module_name, output_dir_path=output_dir_path
+        )
+        return output_dir_path
