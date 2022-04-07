@@ -12,14 +12,17 @@ The easiest way to use postgres with `lineapy` is through Docker.
 You can spin up a postgres instance with Docker using following command
 
 ```
-docker run \
-  --name lineaPostgres \                # Container name in docker
-  -p 5432:5432 \                        # Expose postgres at port 5432
-  -e POSTGRES_USER=postgresuser \       # Preset username as postgresuser
-  -e POSTGRES_PASSWORD=postgrespwd \    # Preset password as postgrespws
-  -e POSTGRES_DB=postgresdb \           # Preset database name as postgresdb
-  -d postgres                           # Official Postgres docker image name
+docker run --name lineaPostgres -p 5432:5432 -e POSTGRES_USER=postgresuser -e POSTGRES_PASSWORD=postgrespwd -e POSTGRES_DB=postgresdb -d postgres 
 ```
+
+where
+
+* `--name lineaPostgres`: make the container name as *lineaPostgres* in docker
+* `-p 5432:5432`: expose postgres at port 5432
+* `-e POSTGRES_USER=postgresuser`: set username as postgresuser
+* `-e POSTGRES_PASSWORD=postgrespwd`: set password as postgrespws
+* `-e POSTGRES_DB=postgresdb`: set database name as postgresdb
+* `-d postgres`: official postgres docker image name
 
 You can valid with following command to see whether you have successfully start your postgres or not.
 
@@ -27,13 +30,14 @@ You can valid with following command to see whether you have successfully start 
 docker ps -a | grep lineaPostgres
 ```
 
-Then expose your postgres connection string into environmental variable `LINEA_DATABASE_URL`
+Then export your postgres connection string into environmental variable `LINEA_DATABASE_URL` before using `lineapy`
 
 ```
 export LINEA_DATABASE_URL=postgresql://postgresuser:postgrespwd@localhost:5432/postgresdb
 ```
 
 Finally, you can use common lineapy cli tool as usual.
+If you install `lineapy` in a venv or a conda environment, make you've changed to that environment.
 
 ```
 lineapy [OPTIONS] COMMAND [ARGS]...
