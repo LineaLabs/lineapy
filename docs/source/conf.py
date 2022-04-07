@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 # -- Project information -----------------------------------------------------
 
 project = "lineapy"
-copyright = "2021, Linea Labs"
+copyright = "2022, Linea Labs"
 author = "Linea Labs"
 
 # The full version, including alpha/beta/rc tags
