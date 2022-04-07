@@ -11,6 +11,13 @@ Welcome to LineaPy!
 
 .. toctree::
    :maxdepth: 2
+   :caption: Features
+
+   slicing
+
+
+.. toctree::
+   :maxdepth: 2
    :caption: References
 
    development
