@@ -89,7 +89,7 @@ typecheck:
 	docker-compose run --rm ${service_name} dmypy run -- --follow-imports=skip .
 
 typecheck-dev:
-	dmypy run -- .
+	dmypy run -- --follow-imports=skip .
 
 
 # Add pattern for all notebook files to re-execute them when they change
