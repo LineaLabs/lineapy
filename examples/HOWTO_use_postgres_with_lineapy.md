@@ -12,15 +12,15 @@ The easiest way to use postgres with `lineapy` is through Docker.
 You can spin up a postgres instance with Docker using following command
 
 ```
-docker run --name lineaPostgres -p 5432:5432 -e POSTGRES_USER=postgresuser -e POSTGRES_PASSWORD=postgrespwd -e POSTGRES_DB=postgresdb -d postgres 
+docker run --name lineaPostgres -p 15432:5432 -e POSTGRES_USER=postgresuser -e POSTGRES_PASSWORD=postgrespwd -e POSTGRES_DB=postgresdb -d postgres 
 ```
 
 where
 
 * `--name lineaPostgres`: make the container name as *lineaPostgres* in docker
-* `-p 5432:5432`: expose postgres at port 5432
+* `-p 15432:5432`: expose postgres at port 15432(5432 is the default postgres port within the docker image)
 * `-e POSTGRES_USER=postgresuser`: set username as postgresuser
-* `-e POSTGRES_PASSWORD=postgrespwd`: set password as postgrespws
+* `-e POSTGRES_PASSWORD=postgrespwd`: set password as postgrespwd
 * `-e POSTGRES_DB=postgresdb`: set database name as postgresdb
 * `-d postgres`: official postgres docker image name
 
@@ -30,10 +30,17 @@ You can valid with following command to see whether you have successfully start 
 docker ps -a | grep lineaPostgres
 ```
 
+If you are having trouble to launch postgres because container name or port is occupied. You can change the container name or port and relunch postgres again.
+Or you can remove the conflict container via following command and relaunch postgres.
+
+```
+docker rm -f CONTAINER_ID
+```
+
 Then export your postgres connection string into environmental variable `LINEA_DATABASE_URL` before using `lineapy`
 
 ```
-export LINEA_DATABASE_URL=postgresql://postgresuser:postgrespwd@localhost:5432/postgresdb
+export LINEA_DATABASE_URL=postgresql://postgresuser:postgrespwd@localhost:15432/postgresdb
 ```
 
 Finally, you can use common lineapy cli tool as usual.
