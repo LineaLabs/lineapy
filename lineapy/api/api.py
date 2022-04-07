@@ -195,7 +195,7 @@ def catalog() -> LineaCatalog:
 # we need to ensure all the required files (python module and the dag file) get written to the right place.
 def to_airflow(
     artifacts: List[str],
-    dag_name: str,
+    dag_name: Optional[str] = None,
     task_dependencies: str = "",
     airflow_dag_config: AirflowDagConfig = {},
     output_dir: Optional[str] = None,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import operator
 from collections.abc import Sequence
 from dataclasses import InitVar, dataclass, field
@@ -228,6 +229,15 @@ BINARY_OPERATIONS = {
     "INPLACE_OR": operator.ior,
 }
 
+
+def compose(f, g):
+    return lambda *a, **kw: f(g(*a, **kw))
+
+
+def composer(*fs):
+    return functools.reduce(compose, fs)
+
+
 # Maybe of string compare ops, from dis.cmp_op, to operator
 COMPARE_OPS: Dict[str, Callable] = {
     "<": operator.lt,
@@ -239,6 +249,7 @@ COMPARE_OPS: Dict[str, Callable] = {
     # Python 3.7
     "in": operator.contains,
     "is": operator.is_,
+    "not in": composer(operator.not_, operator.contains),
 }
 
 
@@ -314,7 +325,12 @@ def resolve_bytecode_execution(
         # result back on the stack.
         args = [stack[-1]]
         return lambda post_stack, _: FunctionCall(
-            UNARY_OPERATORS[name], args, {}, post_stack[-1]
+            # updating mypy to 0.942 causes issues here. mypy 0.931 works fine.
+            # something is up with the iter because the same thing works for binary ops below
+            UNARY_OPERATORS[name],  # type: ignore
+            args,
+            {},
+            post_stack[-1],
         )
     if name in BINARY_OPERATIONS:
         # Binary operations remove the top of the stack (TOS) and the second top-most

@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -81,7 +82,7 @@ class AirflowPlugin(BasePlugin):
     def sliced_airflow_dag(
         self,
         slice_names: List[str],
-        module_name: str,
+        module_name: Optional[str] = None,
         airflow_task_dependencies: Optional[str] = None,
         output_dir: Optional[str] = None,
         airflow_dag_config: AirflowDagConfig = {},
@@ -123,7 +124,16 @@ class AirflowPlugin(BasePlugin):
                 airflow_task_dependencies = airflow_task_dependencies.replace(
                     slice_name, task_name
                 )
-        output_dir_path = Path(output_dir) if output_dir else Path.cwd()
+        module_name = module_name or "_".join(slice_names)
+        output_dir_path = Path.cwd()
+        if output_dir:
+            output_dir_path = Path(os.path.expanduser(output_dir))
+        elif "AIRFLOW_HOME" in os.environ:
+            output_dir_path = Path(os.environ["AIRFLOW_HOME"]) / "dags"
+
+        logger.info(
+            "Pipeline source generated in the directory: %s", output_dir_path
+        )
         self.generate_python_module(
             module_name, artifacts_code, output_dir_path
         )
