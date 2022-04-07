@@ -522,3 +522,32 @@ class RelationalLineaDB:
             .all()
         )
         return [self.map_orm_to_pydantic(node) for node in node_orms]
+
+    def get_source_code_for_session(self, session_id: LineaID) -> str:
+        if (
+            self.get_session_context(session_id).environment_type.name
+            == "JUPYTER"
+        ):
+            jupyter_source_code_orms = (
+                self.session.query(SourceCodeORM)
+                .filter(SourceCodeORM.jupyter_session_id == session_id)
+                .order_by(SourceCodeORM.jupyter_execution_count)
+                .all()
+            )
+            return "".join(
+                source_code.code for source_code in jupyter_source_code_orms
+            )
+        else:
+            script_source_code_orms = (
+                self.session.query(SourceCodeORM)
+                .join(
+                    BaseNodeORM, SourceCodeORM.id == BaseNodeORM.source_code_id
+                )
+                .filter(BaseNodeORM.session_id == session_id)
+                .first()
+            )
+            return (
+                script_source_code_orms.code
+                if script_source_code_orms is not None
+                else ""
+            )

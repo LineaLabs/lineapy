@@ -80,6 +80,16 @@ class LineaArtifact:
         return get_source_code_from_graph(self._subgraph)
 
     @property
+    def session_code(self) -> str:
+        """
+        Return the raw session code for the artifact. This will include any
+        comments and non-code lines.
+        """
+        # using this over get_source_code_from_graph because it will process the
+        # graph code and not return the original code with comments etc.
+        return self.db.get_source_code_for_session(self.session_id)
+
+    @property
     def _graph(self) -> Graph:
         session_context = self.db.get_session_context(self.session_id)
         # FIXME: copied cover from tracer, we might want to refactor
