@@ -1,4 +1,4 @@
 .. _development:
 
-Development
-===========
+Contributor Guide
+=================

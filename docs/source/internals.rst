@@ -1,7 +1,7 @@
 .. _internals:
 
-Internals
-=========
+LineaPy Internals
+=================
 
 This document describes some of the high level code layout and implementation decisions.
 

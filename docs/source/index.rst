@@ -7,11 +7,13 @@ Welcome to LineaPy!
    intro
    setup
    quickstart
+   concepts
+   api_brief
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: Features
+   :caption: User Guide
 
    slicing
 
@@ -22,7 +24,7 @@ Welcome to LineaPy!
 
    development
    internals
-   apidoc
+   api_reference
 
 
 ..
