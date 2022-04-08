@@ -4,10 +4,10 @@ Welcome to LineaPy!
 .. toctree::
    :maxdepth: 2
 
-   intro
-   setup
-   quickstart
-   concepts
+   fundamentals/intro
+   fundamentals/setup
+   fundamentals/quickstart
+   fundamentals/concepts
 
 
 .. toctree::
@@ -21,9 +21,9 @@ Welcome to LineaPy!
    :maxdepth: 2
    :caption: References
 
-   development
-   internals
-   api_reference
+   references/development
+   references/internals
+   references/api_reference
 
 
 ..
