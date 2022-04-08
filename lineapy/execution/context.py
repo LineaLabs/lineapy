@@ -36,6 +36,8 @@ from lineapy.system_tracing.function_call import FunctionCall
 from lineapy.system_tracing.function_calls_to_side_effects import (
     function_calls_to_side_effects,
 )
+from lineapy.utils.analytics import track, ExceptionEvent
+
 
 if TYPE_CHECKING:
     from lineapy.data.types import CallNode, LineaID
@@ -143,6 +145,7 @@ def set_context(
 
 def get_context() -> ExecutionContext:
     if not _current_context:
+        track(ExceptionEvent("No context set"))
         raise RuntimeError("No context set")
 
     return _current_context

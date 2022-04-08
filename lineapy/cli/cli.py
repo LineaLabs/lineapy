@@ -34,6 +34,7 @@ from lineapy.utils.logging_config import (
     configure_logging,
 )
 from lineapy.utils.utils import prettify
+from lineapy.utils.analytics import send_lib_info_from_db
 
 """
 We are using click because our package will likely already have a dependency on
@@ -264,6 +265,8 @@ def python(
 
     tracer = Tracer(db, SessionType.SCRIPT)
     transform(code, file_name, tracer)
+
+    send_lib_info_from_db(tracer.db, tracer.get_session_id())
 
     if visualize:
         from lineapy.visualizer import Visualizer

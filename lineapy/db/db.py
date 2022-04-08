@@ -464,6 +464,7 @@ class RelationalLineaDB:
         return (
             self.session.query(LibraryORM)
             .filter(LibraryORM.session_id == session_id)
+            .distinct()
             .all()
         )
 

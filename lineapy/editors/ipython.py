@@ -20,6 +20,7 @@ from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.logging_config import configure_logging
+from lineapy.utils.analytics import send_lib_info_from_db
 
 __all__ = ["_end_cell", "start", "stop", "visualize"]
 
@@ -193,8 +194,10 @@ def visualize(*, live=False) -> None:
 def stop() -> None:
     """
     Stop tracing if the `stop()` was called in the cell and should_stop was set.
+    Also track the lib information (would be the most complete).
     """
     if isinstance(STATE, CellsExecutedState):
+        # send_lib_info_from_db(STATE.tracer.db, STATE.tracer.get_session_id())
         STATE.tracer.db.close()
     cleanup_cells()
 
