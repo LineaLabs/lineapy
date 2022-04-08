@@ -56,7 +56,7 @@ def _send_amplitude_event(event_type, event_properties):
     event_dump = json.dumps(event)
     event_data = {"api_key": _api_key(), "event": event_dump}
 
-    # also write to a local file
+    # also write to a local file for sanity checking
     with open(linea_folder() / LOG_FILE_NAME, "w+") as f:
         f.write(event_dump)
     try:
