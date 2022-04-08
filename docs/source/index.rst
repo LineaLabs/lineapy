@@ -8,14 +8,13 @@ Welcome to LineaPy!
    setup
    quickstart
    concepts
-   api_brief
 
 
 .. toctree::
    :maxdepth: 2
    :caption: User Guide
 
-   slicing
+   tutorials/00_api_basics
 
 
 .. toctree::
