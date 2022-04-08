@@ -46,9 +46,9 @@ extraneous operations between these modifications. We can cut through this by ru
     # Obtain the simplest version of a variable's history
     print(artifact.code)
 
-which will show:
+which will print:
 
-.. code:: python
+.. code:: none
 
     text = "Hello"
     text = text + " World!"
