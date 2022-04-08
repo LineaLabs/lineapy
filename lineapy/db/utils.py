@@ -1,4 +1,5 @@
 import os
+import pickle
 from pathlib import Path
 from typing import Optional
 
@@ -10,6 +11,7 @@ DB_URL_ENV_VARIABLE = "LINEA_DATABASE_URL"
 # The name for the linea home variable to be formated in the db url
 LINEA_HOME_NAME = "LINEA_HOME"
 
+FILE_PICKLER_BASEDIR = "linea_pickles"
 
 DB_FILE_NAME = "db.sqlite"
 # Relative path to `db.sqlite` file
@@ -42,3 +44,22 @@ def resolve_db_url(override_url_template: Optional[str]) -> str:
 
 def resolve_default_db_path() -> Path:
     return linea_folder() / DB_FILE_NAME
+
+
+class FilePickler:
+    """
+    Tries to pickle an object, and if it fails returns None.
+    """
+
+    @staticmethod
+    def dump(value, fileobj, protocol=pickle.HIGHEST_PROTOCOL):
+        if fileobj is None:
+            return None
+        try:
+            return pickle.dump(value, fileobj, protocol)
+        except pickle.PicklingError:
+            return None
+
+    @staticmethod
+    def load(fileobj):
+        return pickle.load(fileobj)
