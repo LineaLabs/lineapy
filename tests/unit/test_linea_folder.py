@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from lineapy.utils.config import linea_folder
 
@@ -9,7 +10,8 @@ def test_linea_folder_creation():
     # everything in /tmp should be ephemeral. so clearing this out should be A-ok.
     recreate = False
     if os.path.exists("./.linea"):
-        os.rmdir("./.linea")
+        # using shutil instead of os because os.rmdir doesn't work on non-empty dirs
+        shutil.rmtree("./.linea")
         recreate = True
 
     assert os.path.exists("./.linea") is False
