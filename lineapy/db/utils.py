@@ -11,6 +11,7 @@ DB_URL_ENV_VARIABLE = "LINEA_DATABASE_URL"
 # The name for the linea home variable to be formated in the db url
 LINEA_HOME_NAME = "LINEA_HOME"
 
+FILE_PICKLER_BASEDIR = "linea_pickles"
 
 DB_FILE_NAME = "db.sqlite"
 # Relative path to `db.sqlite` file

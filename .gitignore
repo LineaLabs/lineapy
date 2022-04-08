@@ -171,3 +171,4 @@ TODO
 Untitled*.ipynb
 tests/outputs
 *.pickle
+.linea/linea_pickles

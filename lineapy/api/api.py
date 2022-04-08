@@ -2,6 +2,7 @@
 User facing APIs.
 """
 
+import os
 import pickle
 import random
 import string
@@ -12,7 +13,7 @@ from typing import List, Optional
 
 from lineapy.data.types import Artifact, NodeValue
 from lineapy.db.relational import SessionContextORM
-from lineapy.db.utils import FilePickler
+from lineapy.db.utils import FILE_PICKLER_BASEDIR, FilePickler
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
@@ -128,14 +129,20 @@ def _try_write_to_db(value: object) -> Path:
     if isinstance(value, types.ModuleType):
         raise ArtifactSaveException()
     # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = linea_folder() / "".join(
-        random.choices(
-            string.ascii_uppercase + string.ascii_lowercase + string.digits,
-            k=7,
+    filepath = (
+        linea_folder()
+        / FILE_PICKLER_BASEDIR
+        / "".join(
+            random.choices(
+                string.ascii_uppercase
+                + string.ascii_lowercase
+                + string.digits,
+                k=7,
+            )
         )
     )
     try:
-        # os.makedirs(filepath.parent, exist_ok=True)
+        os.makedirs(filepath.parent, exist_ok=True)
         with open(filepath, "wb") as f:
             FilePickler.dump(value, f)
     except pickle.PicklingError as pe:
