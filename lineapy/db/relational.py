@@ -28,7 +28,6 @@ CallNode
 """
 from __future__ import annotations
 
-import pickle
 from datetime import datetime
 from typing import Union
 
@@ -40,7 +39,6 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Integer,
-    PickleType,
     String,
     UniqueConstraint,
 )
@@ -57,23 +55,6 @@ from lineapy.data.types import (
 from lineapy.utils.constants import ARTIFACT_NAME_PLACEHOLDER
 
 Base = declarative_base()
-
-
-class OptionalPickler:
-    """
-    Tries to pickle an object, and if it fails returns None.
-    """
-
-    @staticmethod
-    def dumps(value, protocol):
-        try:
-            return pickle.dumps(value, protocol)
-        except pickle.PicklingError:
-            return None
-
-    @staticmethod
-    def loads(value):
-        return pickle.loads(value)
 
 
 class SessionContextORM(Base):
@@ -155,7 +136,7 @@ class NodeValueORM(Base):
     __tablename__ = "node_value"
     node_id = Column(String, ForeignKey("node.id"), primary_key=True)
     execution_id = Column(String, ForeignKey("execution.id"), primary_key=True)
-    value = Column(PickleType(pickler=OptionalPickler), nullable=True)
+    value = Column(String, nullable=True)
     value_type = Column(Enum(ValueType))
 
     start_time = Column(DateTime, nullable=True)

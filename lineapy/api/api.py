@@ -3,6 +3,8 @@ User facing APIs.
 """
 
 import pickle
+import random
+import string
 import types
 from datetime import datetime
 from pathlib import Path
@@ -10,11 +12,13 @@ from typing import List, Optional
 
 from lineapy.data.types import Artifact, NodeValue
 from lineapy.db.relational import SessionContextORM
+from lineapy.db.utils import FilePickler
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
+from lineapy.utils.config import linea_folder
 from lineapy.utils.utils import get_value_type
 
 """
@@ -79,12 +83,12 @@ def save(reference: object, name: str) -> LineaArtifact:
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
-        if not _can_save_to_db(reference):
-            raise ArtifactSaveException()
+        # can raise ArtifactSaveException
+        pickled_path = _try_write_to_db(reference)
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=reference,
+                value=str(pickled_path.resolve()),
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -116,32 +120,28 @@ def save(reference: object, name: str) -> LineaArtifact:
     return linea_artifact
 
 
-def _can_save_to_db(value: object) -> bool:
+def _try_write_to_db(value: object) -> Path:
     """
-    Tests if the value is of a type that can be serialized to the DB.
-
-    Note
-    ----
-
-    An alternate proposed was to pickle here and create a binary and pass that to the db.
-    - Pro
-
-      - it will allow us to use any serializer to create binaries - could be a better pickler, another completely diff method.
-
-    - Con
-
-      - We'll have to handle the reads manually as well and all that change is beyond the scope of this PR.
-
-    if pickle performance becomes an issue, a new issue should be opened.
+    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
 
     """
     if isinstance(value, types.ModuleType):
-        return False
+        raise ArtifactSaveException()
+    # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
+    filepath = linea_folder() / "".join(
+        random.choices(
+            string.ascii_uppercase + string.ascii_lowercase + string.digits,
+            k=7,
+        )
+    )
     try:
-        pickle.dumps(value, pickle.HIGHEST_PROTOCOL)
-    except pickle.PicklingError:
-        return False
-    return True
+        # os.makedirs(filepath.parent, exist_ok=True)
+        with open(filepath, "wb") as f:
+            FilePickler.dump(value, f)
+    except pickle.PicklingError as pe:
+        print(pe)
+        raise ArtifactSaveException()
+    return filepath
 
 
 def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:

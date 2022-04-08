@@ -14,6 +14,7 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
+from lineapy.db.utils import FilePickler
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
@@ -59,7 +60,12 @@ class LineaArtifact:
         value = self.db.get_node_value_from_db(self.node_id, self.execution_id)
         if not value:
             raise ValueError("No value saved for this node")
-        return value.value
+        if value.value is None:
+            return None
+        else:
+            # TODO - set unicode etc here
+            with open(value.value, "rb") as f:
+                return FilePickler.load(f)
 
     @property
     def _subgraph(self) -> Graph:
