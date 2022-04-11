@@ -139,7 +139,7 @@ x[0].append(11)
 print(x)"""
     tracer = execute(importl + code_body + artifact_f_save, snapshot=False)
     artifact = tracer.values["use_y"]
-    assert artifact.session_code == importl + code_body + artifact_f_save
+    assert artifact.get_session_code() == importl + code_body + artifact_f_save
     assert (
         artifact.db.get_session_context(
             artifact._session_id

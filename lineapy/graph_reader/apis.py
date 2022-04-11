@@ -59,23 +59,33 @@ class LineaArtifact:
         self.version = datetime.now().strftime(VERSION_DATE_STRING)
 
     @property
+    def code(self):
+        pass
+
+    @property
     def value(self) -> object:
         """
         Get and return the value of the artifact
+        """
+        value = self._get_value_path()
+        if value is None:
+            return None
+        else:
+            # TODO - set unicode etc here
+            track(GetValueEvent(has_value=True))
+            with open(value, "rb") as f:
+                return FilePickler.load(f)
+
+    def _get_value_path(self) -> Optional[str]:
+        """
+        Get the path to the value of the artifact.
         """
         value = self.db.get_node_value_from_db(
             self._node_id, self._execution_id
         )
         if not value:
             raise ValueError("No value saved for this node")
-        if value.value is None:
-            return None
-        else:
-            # TODO - set unicode etc here
-
-            track(GetValueEvent(has_value=True))
-            with open(value.value, "rb") as f:
-                return FilePickler.load(f)
+        return value.value
 
     @property
     def _subgraph(self) -> Graph:
@@ -84,8 +94,7 @@ class LineaArtifact:
         """
         return get_slice_graph(self._graph, [self._node_id])
 
-    @property
-    def code(self) -> str:
+    def get_code(self, use_lineapy_serialization=True) -> str:
         """
         Return the slices code for the artifact
         """
@@ -93,10 +102,12 @@ class LineaArtifact:
         track(
             GetCodeEvent(use_lineapy_serialization=True, is_session_code=False)
         )
-        return get_source_code_from_graph(self._subgraph)
+        return self._de_linealize_code(
+            get_source_code_from_graph(self._subgraph),
+            use_lineapy_serialization,
+        )
 
-    @property
-    def session_code(self) -> str:
+    def get_session_code(self, use_lineapy_serialization=True) -> str:
         """
         Return the raw session code for the artifact. This will include any
         comments and non-code lines.
@@ -106,7 +117,23 @@ class LineaArtifact:
         track(
             GetCodeEvent(use_lineapy_serialization=False, is_session_code=True)
         )
-        return self.db.get_source_code_for_session(self._session_id)
+        return self._de_linealize_code(
+            self.db.get_source_code_for_session(self._session_id),
+            use_lineapy_serialization,
+        )
+
+    def _de_linealize_code(
+        self, code: str, use_lineapy_serialization: bool
+    ) -> str:
+        """
+        De-linealize the code by removing any lineapy api references
+        """
+        # TODO - use regex
+        if use_lineapy_serialization:
+            return code
+        else:
+            logger.debug(self._get_value_path())
+            raise NotImplementedError("not there yet")
 
     @property
     def _graph(self) -> Graph:

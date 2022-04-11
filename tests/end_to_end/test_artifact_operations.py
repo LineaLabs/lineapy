@@ -32,7 +32,7 @@ x[0].append(11)
         artifact_f.db, artifact_f._session_id
     )
     # this is an additional redundant step to make sure our orig artifact is correct
-    assert artifact_f.code == code_body
+    assert artifact_f.get_code() == code_body
     # and here we only use the tracer context to ensure we can retrieve the
     # slice from db directly
     assert second_context.slice("deferencedy") == code_body
