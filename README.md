@@ -20,7 +20,7 @@ get more value out of their work.
 
 ## Why Use LineaPy?
 
-(TO ADD)
+(TO ADD: HIGHLIGHT KEY FUNCTIONALITIES AND THEIR BENEFIT TO THE USER)
 
 ## Getting Started
 
@@ -90,7 +90,8 @@ Note that these are the minimal essential steps to get to the final state of the
 
 ## What Next?
 
-If you want to learn more about `lineapy`, please check out our project [documentation](https://lineapy.org/docs) which contains many examples you can follow with. Some key resources include:
+To learn more about LineaPy, please check out our project [documentation](https://lineapy.org/docs)
+which contains many examples you can follow with. Some key resources include:
 
 | Resource | Description |
 | ------------- | - |
