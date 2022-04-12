@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+import pytest
+
 from lineapy.utils.constants import VERSION_DATE_STRING
 
 
@@ -145,4 +147,36 @@ print(x)"""
             artifact._session_id
         ).environment_type.name
         == "SCRIPT"
+    )
+
+
+@pytest.mark.xfail("still cant get the path of another artifact")
+def test_artifact_code_without_lineapy(execute):
+    code_save = """import lineapy
+x = 1
+savepath = lineapy.save(x, "cleanedx")
+"""
+    code_get = """import lineapy
+cleanedx = lineapy.get("cleanedx").value
+y = cleanedx + 1
+y_art = lineapy.save(y, "y")
+"""
+    t1 = execute(code_save, snapshot=False)
+    saved_path = t1.values["savepath"]._get_value_path()
+    t2 = execute(code_get, snapshot=False)
+    artifact = t2.values["y_art"]
+    assert (
+        artifact.get_code()
+        == """import lineapy
+cleanedx = lineapy.get("cleanedx").value
+y = cleanedx + 1
+"""
+    )
+    assert (
+        artifact.get_code(False)
+        == f"""import pickle
+import lineapy
+cleanedx = pickle.load(open("{saved_path}", "rb"))
+y = cleanedx + 1
+"""
     )

@@ -4,6 +4,7 @@ User exposed objects through the :mod:`lineapy.apis`.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional, cast
@@ -132,8 +133,35 @@ class LineaArtifact:
         if use_lineapy_serialization:
             return code
         else:
+            print(code)
             logger.debug(self._get_value_path())
-            raise NotImplementedError("not there yet")
+            print(self._get_value_path())
+            lineapy_pattern = re.compile(
+                r"(lineapy.(save\(([\w]+),\s*[\"\']([\w\-\s]+)[\"\']\)|get\([\"\']([\w\-\s]+)[\"\']\).value))"
+            )
+            # init swapped version
+
+            def replace_fun(match):
+                logger.debug(match)
+                print(match.group(1))
+                print(match.group(2))
+                print(match.group(3))
+                if match.group(2).startswith("save"):
+                    # TODO - this can be another artifact. find it using the match.group(4)
+                    path_to_use = self._get_value_path()
+                    return f'pickle.dump({match.group(3)},open("{path_to_use}","wb"))'
+
+                elif match.group(2).startswith("get"):
+                    # TODO - this can be another artifact. find it using the match.group(5)
+                    path_to_use = self._get_value_path()
+                    return f'pickle.load(open("{path_to_use}","rb"))'
+
+            swapped, replaces = lineapy_pattern.subn(replace_fun, code)
+            if replaces > 0:
+                swapped = "import pickle\n" + swapped
+            print("replaces made: %s", replaces)
+
+            return swapped
 
     @property
     def _graph(self) -> Graph:
