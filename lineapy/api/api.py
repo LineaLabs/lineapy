@@ -205,7 +205,7 @@ def to_pipeline(
     artifacts: List[str],
     framework: str = PipelineType.SCRIPT,
     pipeline_name: Optional[str] = None,
-    task_dependencies: str = "",
+    dependencies: str = "",
     pipeline_dag_config: AirflowDagConfig = {},
     output_dir: Optional[str] = None,
 ) -> Path:
@@ -213,9 +213,9 @@ def to_pipeline(
     Writes the pipeline job to a path on disk.
 
     :param artifacts: list of artifact names to be included in the DAG.
-    :param pipeline_type: 'AIRFLOW' or 'SCRIPT'
+    :param framework: 'AIRFLOW' or 'SCRIPT'
     :param pipeline_name: name of the pipeline
-    :param task_dependencies: task dependencies in Airflow format,
+    :param dependencies: task dependencies in Airflow format,
                                       i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
                                       This translates to "p_value >> y" and "p_value, x >> y" respectively.
                                       Here "p_value" and "x" are independent tasks
@@ -236,7 +236,7 @@ def to_pipeline(
             return AirflowPlugin(db, last_session.id).sliced_airflow_dag(
                 artifacts,
                 pipeline_name,
-                task_dependencies,
+                dependencies,
                 output_dir=output_dir,
                 airflow_dag_config=pipeline_dag_config,
             )
@@ -246,9 +246,8 @@ def to_pipeline(
             return ScriptPlugin(db, last_session.id).sliced_pipeline_dag(
                 artifacts,
                 pipeline_name,
-                task_dependencies,
+                dependencies,
                 output_dir=output_dir,
-                # script_dag_config=pipeline_dag_config,
             )
 
     else:
