@@ -160,6 +160,10 @@ class LineaCatalog:
             self.artifacts.append(l_artifact)
 
     @property
+    def len(self) -> int:
+        return len(self.artifacts)
+
+    @property
     def print(self) -> str:
         return "\n".join(
             [

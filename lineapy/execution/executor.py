@@ -356,7 +356,7 @@ class Executor:
     ) -> PrivateExecuteResult:
         try:
             start_time = datetime.now()
-            value = importlib.import_module(node.library.name)
+            value = importlib.import_module(node.name)
             end_time = datetime.now()
         except Exception as exc:
             # Remove all importlib frames

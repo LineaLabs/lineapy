@@ -1,44 +1,37 @@
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Union
+
+# I think amplitude doesn't really support nested objects,
+# so flattening the object here.
 
 
 @dataclass
-class LibInfo:
-    name: str
-    version: str
-
-
-@dataclass
-class SaveParam:
+class SaveEvent:
     side_effect: str  # "file_system", "db", or "" (for variables)
 
 
 @dataclass
-class GetParam:
+class GetEvent:
     version_specified: bool
 
 
 @dataclass
-class ToPipelineParam:
+class CatalogEvent:
+    catalog_size: int
+
+
+@dataclass
+class ToPipelineEvent:
     engine: str  # AIRFLOW, SCRIPT
     artifact_count: int
     has_task_dependency: bool
     has_config: bool
 
 
-AllParams = Union[GetParam, SaveParam, ToPipelineParam]
-
-
 @dataclass
-class LineapyAPIEvent:
-    # TODO: we can have more rigorous typing later...
-    event: str  # save, get, catalog, to_pipeline, to_code
-    params: Optional[AllParams] = None
-
-
-@dataclass
-class LibInfoEvent:
-    libs: List[LibInfo]
+class LibImportEvent:
+    name: str
+    version: str
 
 
 @dataclass
@@ -46,4 +39,11 @@ class ExceptionEvent:
     error: str
 
 
-AllEvents = Union[LineapyAPIEvent, LibInfoEvent, ExceptionEvent]
+AllEvents = Union[
+    CatalogEvent,
+    LibImportEvent,
+    ExceptionEvent,
+    GetEvent,
+    SaveEvent,
+    ToPipelineEvent,
+]

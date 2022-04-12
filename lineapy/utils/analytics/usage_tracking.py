@@ -76,6 +76,7 @@ def _send_amplitude_event(event_type, event_properties):
 
 
 def track(event: AllEvents):
+    """ """
     if do_not_track():
         return
 

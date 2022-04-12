@@ -197,7 +197,7 @@ def stop() -> None:
     Also track the lib information (would be the most complete).
     """
     if isinstance(STATE, CellsExecutedState):
-        # send_lib_info_from_db(STATE.tracer.db, STATE.tracer.get_session_id())
+        send_lib_info_from_db(STATE.tracer.db, STATE.tracer.get_session_id())
         STATE.tracer.db.close()
     cleanup_cells()
 

@@ -20,11 +20,11 @@ from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.utils.analytics import (
+    CatalogEvent,
     ExceptionEvent,
-    GetParam,
-    LineapyAPIEvent,
-    SaveParam,
-    ToPipelineParam,
+    GetEvent,
+    SaveEvent,
+    ToPipelineEvent,
     side_effect_to_str,
     track,
 )
@@ -128,11 +128,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         db.write_artifact(artifact_to_write)
         linea_artifact.date_created = artifact_to_write.date_created
 
-    track(
-        LineapyAPIEvent(
-            "save", SaveParam(side_effect=side_effect_to_str(reference))
-        )
-    )
+    track(SaveEvent(side_effect=side_effect_to_str(reference)))
     return linea_artifact
 
 
@@ -200,9 +196,7 @@ def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:
     if artifact.version:
         linea_artifact.version = artifact.version
 
-    track(
-        LineapyAPIEvent("get", GetParam(version_specified=version is not None))
-    )
+    track(GetEvent(version_specified=version is not None))
     return linea_artifact
 
 
@@ -215,8 +209,7 @@ def catalog() -> LineaCatalog:
     """
     execution_context = get_context()
     cat = LineaCatalog(execution_context.executor.db)
-
-    track(LineapyAPIEvent("catalog"))
+    track(CatalogEvent(catalog_size=cat.len))
     return cat
 
 
@@ -259,14 +252,11 @@ def to_airflow(
     )
     # send the info
     track(
-        LineapyAPIEvent(
-            "to_pipeline",
-            ToPipelineParam(
-                "AIRFLOW",
-                len(artifacts),
-                task_dependencies != "",
-                airflow_dag_config is not None,
-            ),
+        ToPipelineEvent(
+            "AIRFLOW",
+            len(artifacts),
+            task_dependencies != "",
+            airflow_dag_config is not None,
         )
     )
     return res

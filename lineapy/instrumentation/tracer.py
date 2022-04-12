@@ -10,7 +10,6 @@ from lineapy.data.types import (
     GlobalNode,
     ImportNode,
     KeywordArgument,
-    Library,
     LineaID,
     LiteralNode,
     LookupNode,
@@ -38,7 +37,7 @@ from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
 from lineapy.utils.lineabuiltins import l_tuple
-from lineapy.utils.utils import get_new_id
+from lineapy.utils.utils import get_lib_package_version, get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +157,13 @@ class Tracer:
                     )
                     self.process_node(mutate_node)
 
+        # also special case for import node
+        if isinstance(node, ImportNode):
+            # must process after the call has been executed
+            package_name, version = get_lib_package_version(node.name)
+            node.version = version
+            node.package_name = package_name
+
         self.db.write_node(node)
 
     def _resolve_pointer(self, ptr: ExecutorPointer) -> LineaID:
@@ -272,11 +278,10 @@ class Tracer:
 
         note that version and path will be introspected at runtime
         """
-        library = Library(id=get_new_id(), name=name)
         node = ImportNode(
             id=get_new_id(),
+            name=name,
             session_id=self.get_session_id(),
-            library=library,
             source_location=source_location,
         )
         self.process_node(node)
@@ -314,11 +319,6 @@ class Tracer:
                     ),
                 )
 
-        # also need to modify the session_context because of weird executor
-        #   requirement; should prob refactor later
-        # and we cannot just modify the runtime value because
-        #   it's already written to disk
-        self.db.add_lib_to_session_context(self.get_session_id(), library)
         return
 
     def literal(
