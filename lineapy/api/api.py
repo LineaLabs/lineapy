@@ -203,7 +203,7 @@ def catalog() -> LineaCatalog:
 # we need to ensure all the required files (python module and the dag file) get written to the right place.
 def to_pipeline(
     artifacts: List[str],
-    pipeline_type: str = "AIRFLOW",
+    framework: str = PipelineType.SCRIPT,
     pipeline_name: Optional[str] = None,
     task_dependencies: str = "",
     pipeline_dag_config: AirflowDagConfig = {},
@@ -230,8 +230,8 @@ def to_pipeline(
         raise Exception("No sessions found in the database.")
     last_session = session_orm[0]
 
-    if pipeline_type in PipelineType.__members__:
-        if PipelineType[pipeline_type] == PipelineType.AIRFLOW:
+    if framework in PipelineType.__members__:
+        if PipelineType[framework] == PipelineType.AIRFLOW:
 
             return AirflowPlugin(db, last_session.id).sliced_airflow_dag(
                 artifacts,
@@ -252,4 +252,4 @@ def to_pipeline(
             )
 
     else:
-        raise Exception(f"No PipelineType for {pipeline_type}")
+        raise Exception(f"No PipelineType for {framework}")
