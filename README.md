@@ -45,7 +45,7 @@ or new tools needed. Go from your Jupyter notebook to an Airflow pipeline in min
 ### Installation
 
 To minimize potential interference with your existing system setup, we recommend
-you install LineaPy in a virtual environment using ``venv``, ``conda``, or ``poetry``.
+you install LineaPy in a virtual environment using [venv](https://docs.python.org/3/tutorial/venv.html#virtual-environments-and-packages), [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#managing-environments), or [poetry](https://python-poetry.org/docs/basic-usage/).
 
 Once the virtual environment is activated, run:
 
@@ -123,7 +123,7 @@ which contains many examples you can follow with. Some key resources include:
 | **[Docs]** | This is our knowledge hub &mdash; when in doubt, start here! |
 | **[Concepts]** | Learn about key concepts underlying LineaPy! |
 | **[Tutorials]** | These notebook tutorials will help you better understand core functionalities of LineaPy |
-| **[Use Cases]** | These domain examples will illustrate how LineaPy can help in real-world applications |
+| **[Use Cases]** | These domain examples illustrate how LineaPy can help in real-world applications |
 | **[API Reference]** | Need more technical details? This reference may help! |
 | **[Contribute]** | Want to contribute? These instructions will help you get set up! |
 | **[Slack]** | Have questions or issues unresolved? Join our community and ask away! |
