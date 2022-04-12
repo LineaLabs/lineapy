@@ -8,7 +8,7 @@
 ![Python Versions](https://img.shields.io/badge/Python--versions-3.7%20%7C%203.8%20%7C%203.9-brightgreen)
 [![Build](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml/badge.svg)](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml)
 
-Supercharge your data science workflow with LineaPy. Just two lines of code captures, analyzes,
+Supercharge your data science workflow with LineaPy! Just two lines of code captures, analyzes,
 and transforms Python code to extract production data pipelines in minutes.
 
 - [Why Use LineaPy?](#why-use-lineapy)
@@ -77,7 +77,7 @@ num = 1 + 2
 # Change heading text
 text = "Hello"
 
-# Yet another irrelevant operation
+# Another irrelevant operation
 num_squared = num**2
 
 # Augment heading text
