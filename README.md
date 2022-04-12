@@ -71,8 +71,14 @@ import lineapy
 # Define text to display in page heading
 text = "Greetings"
 
+# Some irrelevant operation
+num = 1 + 2
+
 # Change heading text
 text = "Hello"
+
+# Yet another irrelevant operation
+num_squared = num**2
 
 # Augment heading text
 text = text + " World!"
@@ -105,6 +111,7 @@ text = text + " World!"
 ```
 
 Note that these are the minimal essential steps to get to the final state of the variable ``text``.
+That is, LineaPy has performed code cleanup on our behalf.
 
 ## What Next?
 
