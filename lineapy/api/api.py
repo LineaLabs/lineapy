@@ -203,7 +203,7 @@ def catalog() -> LineaCatalog:
 # we need to ensure all the required files (python module and the dag file) get written to the right place.
 def to_pipeline(
     artifacts: List[str],
-    framework: str = PipelineType.SCRIPT,
+    framework: str = "SCRIPT",
     pipeline_name: Optional[str] = None,
     dependencies: str = "",
     pipeline_dag_config: AirflowDagConfig = {},
