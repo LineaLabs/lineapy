@@ -199,45 +199,6 @@ def catalog() -> LineaCatalog:
     return LineaCatalog(execution_context.executor.db)
 
 
-# # TODO - this piece needs to test more than just the output of jupyter cell.
-# # we need to ensure all the required files (python module and the dag file) get written to the right place.
-# def to_airflow(
-#     artifacts: List[str],
-#     dag_name: Optional[str] = None,
-#     task_dependencies: str = "",
-#     airflow_dag_config: AirflowDagConfig = {},
-#     output_dir: Optional[str] = None,
-# ) -> Path:
-#     """
-#     Writes the airflow job to a path on disk.
-
-#     :param artifacts: list of artifact names to be included in the DAG.
-#     :param dag_name: name of the DAG and corresponding functions and task prefixes,
-#                      i.e. "sliced_housing_dag"
-
-#     :param airflow_task_dependencies: task dependencies in Airflow format,
-#                                       i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-#                                       This translates to "p_value >> y" and "p_value, x >> y" respectively.
-#                                       Here "p_value" and "x" are independent tasks
-#                                       and "y" depends on them.
-#     :return: string containing the path of the Airflow DAG file that was exported.
-#     """
-#     execution_context = get_context()
-#     db = execution_context.executor.db
-#     session_orm = db.session.query(SessionContextORM).all()
-#     if len(session_orm) == 0:
-#         raise Exception("No sessions found in the database.")
-#     last_session = session_orm[0]
-
-#     return AirflowPlugin(db, last_session.id).sliced_airflow_dag(
-#         artifacts,
-#         dag_name,
-#         task_dependencies,
-#         output_dir=output_dir,
-#         airflow_dag_config=airflow_dag_config,
-#     )
-
-
 # TODO - this piece needs to test more than just the output of jupyter cell.
 # we need to ensure all the required files (python module and the dag file) get written to the right place.
 def to_pipeline(
@@ -259,7 +220,7 @@ def to_pipeline(
                                       This translates to "p_value >> y" and "p_value, x >> y" respectively.
                                       Here "p_value" and "x" are independent tasks
                                       and "y" depends on them.
-    :param output_dir_path: Directory of the DAG and the python file it is saved in
+    :param output_dir_path: Directory of the DAG and the python file it is saved in; only use for PipelineType.AIRFLOW
     :return: string containing the path of the Airflow DAG file that was exported.
     """
     execution_context = get_context()
