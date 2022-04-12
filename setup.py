@@ -103,6 +103,7 @@ setup(
             "sphinx",
             "sphinx_rtd_theme",
             "types-PyYAML",
+            "types-requests",  # to satisfy mypy
             "pg",
             "psycopg2",
             "pytest-xdist",

@@ -27,6 +27,7 @@ from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.constants import VERSION_PLACEHOLDER
 from lineapy.utils.logging_config import (
@@ -34,7 +35,6 @@ from lineapy.utils.logging_config import (
     configure_logging,
 )
 from lineapy.utils.utils import prettify
-from lineapy.utils.analytics import send_lib_info_from_db
 
 """
 We are using click because our package will likely already have a dependency on
@@ -106,9 +106,9 @@ def notebook(
     artifact = db.get_artifact_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
-        execution_id=artifact.execution_id,
-        node_id=artifact.node_id,
-        session_id=artifact.node.session_id,
+        _execution_id=artifact.execution_id,
+        _node_id=artifact.node_id,
+        _session_id=artifact.node.session_id,
         name=artifact_name,
         date_created=artifact.date_created,
     )
@@ -155,9 +155,9 @@ def file(
     artifact = db.get_artifact_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
-        execution_id=artifact.execution_id,
-        node_id=artifact.node_id,
-        session_id=artifact.node.session_id,
+        _execution_id=artifact.execution_id,
+        _node_id=artifact.node_id,
+        _session_id=artifact.node.session_id,
         name=artifact_name,
         date_created=artifact.date_created,
     )

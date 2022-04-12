@@ -19,8 +19,8 @@ from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.node_transformer import transform
-from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.analytics import send_lib_info_from_db
+from lineapy.utils.logging_config import configure_logging
 
 __all__ = ["_end_cell", "start", "stop", "visualize"]
 

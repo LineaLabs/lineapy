@@ -1,6 +1,11 @@
 # this page contains references file usage_stats.py from  https://github.com/bentoml/BentoML
 
-import importlib.metadata as importlib_metadata
+try:
+    import importlib.metadata as importlib_metadata
+except ModuleNotFoundError:
+    # this is for python 3.7
+    import importlib_metadata  # type: ignore
+
 import json
 import logging
 import os
@@ -56,9 +61,11 @@ def _send_amplitude_event(event_type, event_properties):
     event_dump = json.dumps(event)
     event_data = {"api_key": _api_key(), "event": event_dump}
 
-    # also write to a local file for sanity checking
-    with open(linea_folder() / LOG_FILE_NAME, "w+") as f:
-        f.write(event_dump)
+    # also append to a local file for sanity checking
+    with open(linea_folder() / LOG_FILE_NAME, "a+") as f:
+        f.write(event_dump + "\n")
+
+    # send to amplitude
     try:
         import requests
 
