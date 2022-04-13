@@ -150,20 +150,19 @@ print(x)"""
     )
 
 
-@pytest.mark.xfail("still cant get the path of another artifact")
+@pytest.mark.xfail(
+    reason="fails because the reexecution of graph created a new random file that saves the value of cleanedx"
+)
 def test_artifact_code_without_lineapy(execute):
-    code_save = """import lineapy
+    code = """import lineapy
 x = 1
 savepath = lineapy.save(x, "cleanedx")
-"""
-    code_get = """import lineapy
 cleanedx = lineapy.get("cleanedx").value
 y = cleanedx + 1
 y_art = lineapy.save(y, "y")
 """
-    t1 = execute(code_save, snapshot=False)
-    saved_path = t1.values["savepath"]._get_value_path()
-    t2 = execute(code_get, snapshot=False)
+    t2 = execute(code, snapshot=False)
+    saved_path = t2.values["savepath"]._get_value_path()
     artifact = t2.values["y_art"]
     assert (
         artifact.get_code()

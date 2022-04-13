@@ -60,10 +60,6 @@ class LineaArtifact:
         self.version = datetime.now().strftime(VERSION_DATE_STRING)
 
     @property
-    def code(self):
-        pass
-
-    @property
     def value(self) -> object:
         """
         Get and return the value of the artifact
@@ -77,13 +73,22 @@ class LineaArtifact:
             with open(value, "rb") as f:
                 return FilePickler.load(f)
 
-    def _get_value_path(self) -> Optional[str]:
+    def _get_value_path(
+        self, other: Optional[ArtifactORM] = None
+    ) -> Optional[str]:
         """
         Get the path to the value of the artifact.
+        :param other: Additional argument to let you query another artifact's value path.
+                      This is set to be optional and if its not set, we will use the current artifact
         """
-        value = self.db.get_node_value_from_db(
-            self._node_id, self._execution_id
-        )
+        if other is not None:
+            value = self.db.get_node_value_from_db(
+                other.node_id, other.execution_id
+            )
+        else:
+            value = self.db.get_node_value_from_db(
+                self._node_id, self._execution_id
+            )
         if not value:
             raise ValueError("No value saved for this node")
         return value.value
@@ -129,37 +134,31 @@ class LineaArtifact:
         """
         De-linealize the code by removing any lineapy api references
         """
-        # TODO - use regex
         if use_lineapy_serialization:
             return code
         else:
-            print(code)
-            logger.debug(self._get_value_path())
-            print(self._get_value_path())
             lineapy_pattern = re.compile(
                 r"(lineapy.(save\(([\w]+),\s*[\"\']([\w\-\s]+)[\"\']\)|get\([\"\']([\w\-\s]+)[\"\']\).value))"
             )
             # init swapped version
 
             def replace_fun(match):
-                logger.debug(match)
-                print(match.group(1))
-                print(match.group(2))
-                print(match.group(3))
                 if match.group(2).startswith("save"):
                     # TODO - this can be another artifact. find it using the match.group(4)
+                    # dep_artifact = self.db.get_artifact_by_name(match.group(4))
                     path_to_use = self._get_value_path()
                     return f'pickle.dump({match.group(3)},open("{path_to_use}","wb"))'
 
                 elif match.group(2).startswith("get"):
-                    # TODO - this can be another artifact. find it using the match.group(5)
-                    path_to_use = self._get_value_path()
+                    # this typically will be a different artifact.
+                    dep_artifact = self.db.get_artifact_by_name(match.group(5))
+                    path_to_use = self._get_value_path(dep_artifact)
                     return f'pickle.load(open("{path_to_use}","rb"))'
 
             swapped, replaces = lineapy_pattern.subn(replace_fun, code)
             if replaces > 0:
                 swapped = "import pickle\n" + swapped
-            print("replaces made: %s", replaces)
+            logger.debug("replaces made: %s", replaces)
 
             return swapped
 
