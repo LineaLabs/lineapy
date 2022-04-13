@@ -64,7 +64,7 @@ def save(reference: object, name: str) -> LineaArtifact:
     -------
     LineaArtifact
         returned value offers methods to access
-        information we have stored about the artifact (value, version), and other automation capabilities, such as :func:`to_airflow`.
+        information we have stored about the artifact (value, version), and other automation capabilities, such as :func:`to_pipeline`.
     """
     execution_context = get_context()
     executor = execution_context.executor
@@ -243,7 +243,7 @@ def to_pipeline(
         graphlib format {'B':{'A','C'}}"; both cases means task A and C are prerequisites
         for task C.
     :param output_dir_path: Directory of the DAG and the python file it is saved in; only use for PipelineType.AIRFLOW
-    :return: string containing the path of the Airflow DAG file that was exported.
+    :return: string containing the path of the DAG file that was exported.
     """
     execution_context = get_context()
     db = execution_context.executor.db
