@@ -10,7 +10,7 @@ import string
 import types
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import List, Optional
 
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
@@ -21,6 +21,7 @@ from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
+from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics import (
     CatalogEvent,
     ExceptionEvent,
@@ -226,10 +227,7 @@ def to_pipeline(
     artifacts: List[str],
     framework: str = "SCRIPT",
     pipeline_name: Optional[str] = None,
-    dependencies: Union[
-        List[Tuple[Union[Tuple, str], Union[Tuple, str]]],
-        Dict[str, Set[str]],
-    ] = [],
+    dependencies: TaskGraphEdge = {},
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
     output_dir: Optional[str] = None,
 ) -> Path:
@@ -239,10 +237,10 @@ def to_pipeline(
     :param artifacts: list of artifact names to be included in the DAG.
     :param framework: 'AIRFLOW' or 'SCRIPT'
     :param pipeline_name: name of the pipeline
-    :param dependencies: tasks dependencies in edgelist format [(('A','C'),'B')] or
-        graphlib format {'B':{'A','C'}}"; both cases means task A and C are prerequisites
-        for task C.
-    :param output_dir_path: Directory of the DAG and the python file it is saved in; only use for PipelineType.AIRFLOW
+    :param dependencies: tasks dependencies in graphlib format {'B':{'A','C'}},
+        this means task A and C are prerequisites for task C.
+    :param output_dir_path: Directory of the DAG and the python file it is
+        saved in; only use for PipelineType.AIRFLOW
     :return: string containing the path of the DAG file that was exported.
     """
     execution_context = get_context()

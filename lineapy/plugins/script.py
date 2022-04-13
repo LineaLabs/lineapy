@@ -36,7 +36,6 @@ class ScriptPlugin(BasePlugin):
     ) -> None:
         """
         Create an Python Script DAG.
-
         :param dag_name: Name of the DAG and the python file it is saved in
         :param output_dir_path: Directory of the DAG and the python file it is saved in
         :param task_graph:
@@ -59,18 +58,20 @@ class ScriptPlugin(BasePlugin):
         self,
         slice_names: List[str],
         module_name: Optional[str] = None,
-        task_dependencies: TaskGraphEdge = [],
+        task_dependencies: TaskGraphEdge = {},
         output_dir: Optional[str] = None,
     ):
         """
-        Creates an Python Script DAG from the sliced code. This includes a python file with one function per slice,
-        an example Dockerfile and requirements.txt that can be used to run this.
+        Creates an Python Script DAG from the sliced code. This includes a
+        python file with one function per slice, an example Dockerfile and
+        requirements.txt that can be used to run this.
 
         :param slice_names: list of slice names to be used as tasks.
-        :param module_name: name of the Python module the generated code will be saved to.
-        :param task_dependencies: Tasks dependencies in edgelist format [(('A','C'),'B')] or
-            graphlib format {'B':{'A','C'}}"; both cases means task A and C are prerequisites
-            for task C.
+        :param module_name: name of the Python module the generated code will
+            be saved to.
+        :param task_dependencies: Tasks dependencies in graphlib format
+            {'B':{'A','C'}}"; this means task A and C are prerequisites for
+            task C.
         :param output_dir: directory to save the generated code to.
         """
 

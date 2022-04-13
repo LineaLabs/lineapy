@@ -14,13 +14,13 @@ def check_requirements_txt(t1: str, t2: str):
         pytest.param(
             ["p value"],
             "sliced_housing_simple",
-            [],
+            {},
             id="sliced_housing_simple",
         ),
         pytest.param(
             ["p value", "y"],
             "sliced_housing_multiple",
-            [],
+            {},
             id="sliced_housing_multiple",
         ),
         pytest.param(

@@ -47,9 +47,9 @@ class AirflowPlugin(BasePlugin):
         Create an Airflow DAG.
 
         :param dag_name: Name of the DAG and the python file it is saved in
-        :param task_dependencies:  Tasks dependencies in edgelist format [(('A','C'),'B')] or
-            graphlib format {'B':{'A','C'}}"; both cases means task A and C are prerequisites
-            for task C.
+        :param task_dependencies: Tasks dependencies in graphlib format
+            {'B':{'A','C'}}"; this means task A and C are prerequisites for
+            task C.
         :param airflow_dag_config: Configs of Airflow DAG model. See
             https://airflow.apache.org/_api/airflow/models/dag/index.html#airflow.models.dag.DAG
             for the full spec.
@@ -83,19 +83,22 @@ class AirflowPlugin(BasePlugin):
         self,
         slice_names: List[str],
         module_name: Optional[str] = None,
-        airflow_task_dependencies: TaskGraphEdge = [],
+        airflow_task_dependencies: TaskGraphEdge = {},
         output_dir: Optional[str] = None,
         airflow_dag_config: Optional[AirflowDagConfig] = {},
     ):
         """
-        Creates an Airflow DAG from the sliced code. This includes a python file with one function per slice, task dependencies
-        file in Airflow format and an example Dockerfile and requirements.txt that can be used to run this.
+        Creates an Airflow DAG from the sliced code. This includes a python
+        file with one function per slice, task dependencies file in Airflow
+        format and an example Dockerfile and requirements.txt that can be used
+        to run this.
 
         :param slice_names: list of slice names to be used as tasks.
-        :param module_name: name of the Pyhon module the generated code will be saved to.
-        :param airflow_task_dependencies:  Tasks dependencies in edgelist format [(('A','C'),'B')] or
-            graphlib format {'B':{'A','C'}}"; both cases means task A and C are prerequisites
-            for task C.
+        :param module_name: name of the Pyhon module the generated code will
+            be saved to.
+        :param airflow_task_dependencies: tasks dependencies in graphlib format
+            {'B':{'A','C'}}"; this means task A and C are prerequisites for
+            task C.
         :param output_dir: directory to save the generated code to.
         :param airflow_dag_config: Configs of Airflow DAG model.
         """
