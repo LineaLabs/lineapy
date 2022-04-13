@@ -22,17 +22,20 @@ the team’s ability to deliver actionable insights in real-time.
 LineaPy creates a frictionless path for taking your data science work from development to production,
 backed by a decade of research and industry expertise tackling hyperscale data challenges.
 
-..
-    **Data engineering, simplified.** Your data science artifact works, now comes the cleanup.
-    LineaPy extracts essential operations from the messy development code in minutes not days,
-    simplifying data engineering with just two lines of code.
+.. topic:: *Data Engineering, Simplified*
 
-..
-    **You analyze, we productionize.** Productionization is manual, messy, and it requires
-    software engineering expertise to create clean, reproducible code. LineaPy automatically handles
-    lineage and refactoring so you can focus on experimenting, analyzing, and modeling.
+    Your data science artifact works, now comes the cleanup. LineaPy extracts essential operations
+    from the messy development code in minutes not days, simplifying data engineering with just
+    two lines of code.
 
-..
-    **Move fast from prototype to pipeline.** LineaPy automates code translations to save you time
-    and help you stay focused. Rapidly create analytics pipelines with a simple API &mdash; no refactoring
-    or new tools needed. Go from your Jupyter notebook to an Airflow pipeline in minutes.
+.. topic:: *You Analyze, We Productionize*
+
+    Productionization is manual, messy, and it requires software engineering expertise
+    to create clean, reproducible code. LineaPy automatically handles lineage and refactoring
+    so you can focus on experimenting, analyzing, and modeling.
+
+.. topic:: *Move Fast from Prototype to Pipeline*
+
+    LineaPy automates code translations to save you time and help you stay focused. Rapidly
+    create analytics pipelines with a simple API &mdash; no refactoring or new tools needed.
+    Go from your Jupyter notebook to an Airflow pipeline in minutes.
