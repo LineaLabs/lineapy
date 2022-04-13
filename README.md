@@ -53,6 +53,36 @@ Or, if using `poetry`, run:
 $ poetry add lineapy
 ```
 
+### Interfaces
+
+#### Jupyter and IPython
+
+To use LineaPy in an interactive computing environment such as Jupyter Notebook/Lab or IPython, launch the environment with the `lineapy` command, like so:
+
+```bash
+$ lineapy jupyter notebook
+```
+
+```bash
+$ lineapy jupyter lab
+```
+
+```bash
+$ lineapy ipython
+```
+
+This will automatically load the LineaPy extension in the corresponding interactive shell application.
+
+#### CLI
+
+We can also use LineaPy as a CLI command. Run
+
+```bash
+$ lineapy python --help
+```
+
+to see available options.
+
 ### Quick Start
 
 Once you have LineaPy installed, you are ready to start using the package. We can start with a simple
