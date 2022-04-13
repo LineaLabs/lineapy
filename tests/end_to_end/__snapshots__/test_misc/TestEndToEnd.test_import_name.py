@@ -52,9 +52,9 @@ call_3 = CallNode(
                                 end_col_offset=19,
                                 source_code=source_1.id,
                             ),
-                            library=Library(
-                                name="pandas",
-                            ),
+                            name="pandas",
+                            version="1.3.5",
+                            package_name="pandas",
                         ).id,
                         LiteralNode(
                             value="__name__",

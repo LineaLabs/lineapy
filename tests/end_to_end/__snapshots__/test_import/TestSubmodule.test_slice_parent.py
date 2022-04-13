@@ -21,9 +21,9 @@ import_1 = ImportNode(
         end_col_offset=14,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="lineapy",
-    ),
+    name="lineapy",
+    version="0.0.1",
+    package_name="lineapy",
 )
 import_2 = ImportNode(
     source_location=SourceLocation(
@@ -33,9 +33,9 @@ import_2 = ImportNode(
         end_col_offset=44,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="lineapy.utils.__no_imported_submodule",
-    ),
+    name="lineapy.utils.__no_imported_submodule",
+    version="0.0.1",
+    package_name="lineapy",
 )
 import_3 = ImportNode(
     source_location=SourceLocation(
@@ -45,9 +45,9 @@ import_3 = ImportNode(
         end_col_offset=20,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="lineapy.utils",
-    ),
+    name="lineapy.utils",
+    version="0.0.1",
+    package_name="lineapy",
 )
 call_5 = CallNode(
     source_location=SourceLocation(

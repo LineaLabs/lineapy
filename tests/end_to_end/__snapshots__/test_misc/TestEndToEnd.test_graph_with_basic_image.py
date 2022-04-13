@@ -50,9 +50,9 @@ call_5 = CallNode(
                     end_col_offset=31,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="matplotlib.pyplot",
-                ),
+                name="matplotlib.pyplot",
+                version="3.5.1",
+                package_name="matplotlib",
             ).id,
             LiteralNode(
                 value="imsave",
@@ -98,9 +98,9 @@ call_5 = CallNode(
                             end_col_offset=19,
                             source_code=source_1.id,
                         ),
-                        library=Library(
-                            name="pandas",
-                        ),
+                        name="pandas",
+                        version="1.3.5",
+                        package_name="pandas",
                     ).id,
                     LiteralNode(
                         value="read_csv",
@@ -151,9 +151,9 @@ call_11 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="lineapy",
-                ),
+                name="lineapy",
+                version="0.0.1",
+                package_name="lineapy",
             ).id,
             LiteralNode(
                 value="save",
@@ -202,9 +202,9 @@ call_11 = CallNode(
                                         end_col_offset=26,
                                         source_code=source_1.id,
                                     ),
-                                    library=Library(
-                                        name="PIL.Image",
-                                    ),
+                                    name="PIL.Image",
+                                    version="9.0.0",
+                                    package_name="PIL.Image",
                                 ).id,
                                 LiteralNode(
                                     value="open",

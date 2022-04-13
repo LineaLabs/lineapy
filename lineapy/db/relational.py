@@ -14,14 +14,11 @@ non exhaustive list
 
 
 SessionContext
-- Library (One to Many)
+- ImportNode (One to Many)
 - HardwareSpec (Many to One)
 
 Node
 - SessionContext (Many to One)
-
-ImportNode
-- Library (Many to One)
 
 CallNode
 - Node (Many to Many)
@@ -40,7 +37,6 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    UniqueConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -67,23 +63,6 @@ class SessionContextORM(Base):
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)
     execution_id = Column(String, ForeignKey("execution.id"))
-
-
-class LibraryORM(Base):
-    __tablename__ = "library"
-    __table_args__ = (
-        UniqueConstraint(
-            "session_id",
-            "name",
-            "version",
-            "path",
-        ),
-    )
-    id = Column(String, primary_key=True)
-    session_id = Column(String, ForeignKey("session_context.id"))
-    name = Column(String)
-    version = Column(String)
-    path = Column(String)
 
 
 class ArtifactORM(Base):
@@ -229,8 +208,10 @@ class ImportNodeORM(BaseNodeORM):
     __mapper_args__ = {"polymorphic_identity": NodeType.ImportNode}
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
-
-    library_id = Column(String, ForeignKey("library.id"))
+    name = Column(String)
+    package_name = Column(String, nullable=True)
+    version = Column(String, nullable=True)
+    path = Column(String, nullable=True)
 
 
 # Use associations for many to many relationship between calls and args

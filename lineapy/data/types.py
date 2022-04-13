@@ -36,16 +36,6 @@ The orm_mode allows us to use from_orm to convert ORM
 LineaID = NewType("LineaID", str)
 
 
-class Library(BaseModel):
-    id: LineaID
-    name: str
-    version: Optional[str] = None  # optional because retrieved at runtime
-    path: Optional[str] = None  # optional because retrieved at runtime
-
-    class Config:
-        orm_mode = True
-
-
 class SessionContext(BaseModel):
     """
     Each trace of a script/notebook is a "Session".
@@ -59,7 +49,7 @@ class SessionContext(BaseModel):
     environment_type: SessionType
     creation_time: datetime.datetime
     working_directory: str  # must be passed in for now
-    session_name: Optional[str]
+    session_name: Optional[str] = None
     user_name: Optional[str] = None
     # The ID of the corresponding execution
     execution_id: LineaID
@@ -305,15 +295,18 @@ class BaseNode(BaseModel):
 
 class ImportNode(BaseNode):
     """
-    Example 1: import pandas as pd---library: pandas
-    Example 2: from math import ceil
+    Imported libraries.
 
+    `version` and `package_name` are retrieved at runtime.
+    `package_name` may be different from import name, see get_lib_package_version.
+    Optional because of runtime info
     """
 
     node_type: NodeType = NodeType.ImportNode
-    # TODO: Remove library and replace with just name since this is all we are using
-    # now
-    library: Library
+    name: str
+    version: Optional[str] = None
+    package_name: Optional[str] = None
+    path: Optional[str] = None
 
 
 class PositionalArgument(BaseModel):

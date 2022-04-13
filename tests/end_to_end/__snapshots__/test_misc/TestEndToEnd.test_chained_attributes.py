@@ -47,9 +47,9 @@ call_3 = CallNode(
                             end_col_offset=13,
                             source_code=source_1.id,
                         ),
-                        library=Library(
-                            name="altair",
-                        ),
+                        name="altair",
+                        version="4.2.0",
+                        package_name="altair",
                     ).id,
                     LiteralNode(
                         value="data_transformers",

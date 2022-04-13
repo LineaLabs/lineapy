@@ -21,9 +21,9 @@ import_1 = ImportNode(
         end_col_offset=14,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="lineapy",
-    ),
+    name="lineapy",
+    version="0.0.1",
+    package_name="lineapy",
 )
 call_2 = CallNode(
     source_location=SourceLocation(
@@ -56,9 +56,9 @@ call_2 = CallNode(
                         end_col_offset=34,
                         source_code=source_1.id,
                     ),
-                    library=Library(
-                        name="tempfile",
-                    ),
+                    name="tempfile",
+                    version="None",
+                    package_name="tempfile",
                 ).id,
                 LiteralNode(
                     value="TemporaryFile",

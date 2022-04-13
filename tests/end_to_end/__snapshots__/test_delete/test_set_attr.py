@@ -35,9 +35,9 @@ call_2 = CallNode(
                     end_col_offset=12,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="types",
-                ),
+                name="types",
+                version="None",
+                package_name="types",
             ).id,
             LiteralNode(
                 value="SimpleNamespace",

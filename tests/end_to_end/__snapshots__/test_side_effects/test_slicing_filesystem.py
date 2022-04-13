@@ -22,9 +22,9 @@ import_1 = ImportNode(
         end_col_offset=14,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="lineapy",
-    ),
+    name="lineapy",
+    version="0.0.1",
+    package_name="lineapy",
 )
 call_9 = CallNode(
     source_location=SourceLocation(
@@ -54,9 +54,9 @@ call_9 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="sqlite3",
-                ),
+                name="sqlite3",
+                version="None",
+                package_name="sqlite3",
             ).id,
             LiteralNode(
                 value="connect",
@@ -173,9 +173,9 @@ call_14 = CallNode(
                                                     end_col_offset=19,
                                                     source_code=source_1.id,
                                                 ),
-                                                library=Library(
-                                                    name="pandas",
-                                                ),
+                                                name="pandas",
+                                                version="1.3.5",
+                                                package_name="pandas",
                                             ).id,
                                             LiteralNode(
                                                 value="DataFrame",

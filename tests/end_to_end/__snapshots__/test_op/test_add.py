@@ -30,9 +30,9 @@ call_2 = CallNode(
                     end_col_offset=27,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="decimal",
-                ),
+                name="decimal",
+                version="1.70",
+                package_name="decimal",
             ).id,
             LiteralNode(
                 value="Decimal",

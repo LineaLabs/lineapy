@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Callable, Iterable, Optional, Set, TypeVar, cast
+from typing import Any, Callable, Iterable, Optional, Set, Tuple, TypeVar, cast
 from uuid import uuid4
 
 import black
@@ -121,3 +121,19 @@ def remove_value(xs: Iterable[T], x: T) -> Iterable[T]:
     for y in xs:
         if x != y:
             yield y
+
+
+def get_lib_package_version(name: str) -> Tuple[str, str]:
+    mod = sys.modules[name]
+    package_name = mod.__name__
+    mod_version: Any = None
+    if hasattr(mod, "__version__"):
+        mod_version = mod.__version__
+    else:
+        # package is probably a submodule
+        parent_package_name = name.split(".")[0]
+        parent_package = sys.modules[parent_package_name]
+        package_name = parent_package.__name__
+        if hasattr(parent_package, "__version__"):
+            mod_version = parent_package.__version__
+    return package_name if package_name else name, str(mod_version)

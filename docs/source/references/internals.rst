@@ -1,5 +1,8 @@
 .. _internals:
 
+LineaPy Internals
+=================
+
 This document describes some of the high level code layout and implementation decisions.
 
 What is a Linea Graph?
@@ -213,7 +216,6 @@ provides three main entry points:
 
 #. `start()`: Starts tracing by adding a function to `input_transformers_post <https://ipython.readthedocs.io/en/stable/config/inputtransforms.html#string-based-transformations>`_ which takes in a list of strings of the cell contents, and returns a list of strings which are executed by IPython.
 #. `stop()`: Stops the tracing, removing this function from the `input_transformers_post`.
-This is not strictly necessary now that we support querying linea inside of our tracing, so it could be removed and we could remove some of the logic in here.
 #. `visualize()`: output a visual of the current state of the graph.
 
 In our input transformer, we save the code from the cell in a global
@@ -355,7 +357,7 @@ Whenever a new node type is added, or any is modified, the graphviz and visual_g
 files should be updated to handle it.
 
 Outputting to airflow
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 On top of just slicing the code, we also support creating an Airflow DAG out
 of the resulting code. This is currently implemented through string templating

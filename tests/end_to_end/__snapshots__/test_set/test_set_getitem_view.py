@@ -103,9 +103,9 @@ call_6 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="lineapy",
-                ),
+                name="lineapy",
+                version="0.0.1",
+                package_name="lineapy",
             ).id,
             LiteralNode(
                 value="save",

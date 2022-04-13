@@ -3,6 +3,9 @@ from pathlib import Path
 
 FOLDER_NAME = ".linea"
 
+LOG_FILE_NAME = "linea.log"
+
+
 logger = logging.getLogger(__name__)
 
 

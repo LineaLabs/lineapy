@@ -22,9 +22,9 @@ import_2 = ImportNode(
         end_col_offset=31,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="PIL.Image",
-    ),
+    name="PIL.Image",
+    version="9.0.0",
+    package_name="PIL.Image",
 )
 call_9 = CallNode(
     source_location=SourceLocation(
@@ -54,9 +54,9 @@ call_9 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="lineapy",
-                ),
+                name="lineapy",
+                version="0.0.1",
+                package_name="lineapy",
             ).id,
             LiteralNode(
                 value="save",
