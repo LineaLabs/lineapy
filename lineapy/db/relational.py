@@ -209,7 +209,6 @@ class ImportNodeORM(BaseNodeORM):
     __mapper_args__ = {"polymorphic_identity": NodeType.ImportNode}
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
-    session_id = Column(String)
     name = Column(String)
     package_name = Column(String, nullable=True)
     version = Column(String, nullable=True)

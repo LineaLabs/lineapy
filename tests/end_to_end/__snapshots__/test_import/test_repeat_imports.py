@@ -23,9 +23,9 @@ import_1 = ImportNode(
         end_col_offset=14,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="lineapy",
-    ),
+    name="lineapy",
+    version="0.0.1",
+    package_name="lineapy",
 )
 call_3 = CallNode(
     source_location=SourceLocation(
@@ -48,9 +48,9 @@ call_3 = CallNode(
                     end_col_offset=20,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="math",
-                ),
+                name="math",
+                version="None",
+                package_name="math",
             ).id,
             LiteralNode(
                 value="pow",
@@ -168,9 +168,9 @@ call_8 = CallNode(
                             end_col_offset=21,
                             source_code=source_1.id,
                         ),
-                        library=Library(
-                            name="math",
-                        ),
+                        name="math",
+                        version="None",
+                        package_name="math",
                     ).id,
                     LiteralNode(
                         value="sqrt",

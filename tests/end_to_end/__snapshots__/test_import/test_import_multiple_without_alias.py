@@ -38,9 +38,9 @@ call_2 = CallNode(
                     end_col_offset=20,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="pandas",
-                ),
+                name="pandas",
+                version="1.3.5",
+                package_name="pandas",
             ).id,
             LiteralNode(
                 value="DataFrame",
@@ -76,9 +76,9 @@ call_5 = CallNode(
                     end_col_offset=20,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="numpy",
-                ),
+                name="numpy",
+                version="1.21.5",
+                package_name="numpy",
             ).id,
             LiteralNode(
                 value="array",

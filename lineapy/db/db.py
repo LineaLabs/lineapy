@@ -467,11 +467,14 @@ class RelationalLineaDB:
         """
         Gets all dependencies for a session, assuming all the libs in a
         particular session will be required to set up a new env.
+
+        TODO: I think this distinct is still broken, because we want to
+        make it distinct on a subset of columns: session_id, name, and version.
         """
         return (
             self.session.query(ImportNodeORM)
             .filter(ImportNodeORM.session_id == session_id)
-            .distinct(ImportNodeORM.package_name)
+            .distinct()
             .all()
         )
 

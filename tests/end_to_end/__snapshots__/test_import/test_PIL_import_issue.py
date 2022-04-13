@@ -18,9 +18,9 @@ import_1 = ImportNode(
         end_col_offset=31,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="PIL.Image",
-    ),
+    name="PIL.Image",
+    version="9.0.0",
+    package_name="PIL.Image",
 )
 call_7 = CallNode(
     source_location=SourceLocation(

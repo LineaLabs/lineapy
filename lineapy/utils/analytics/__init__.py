@@ -7,7 +7,9 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ExceptionEvent,
+    GetCodeEvent,
     GetEvent,
+    GetValueEvent,
     LibImportEvent,
     SaveEvent,
     ToPipelineEvent,
@@ -55,4 +57,6 @@ __all__ = [
     "SaveEvent",
     "GetEvent",
     "ToPipelineEvent",
+    "GetValueEvent",
+    "GetCodeEvent",
 ]

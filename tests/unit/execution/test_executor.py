@@ -16,7 +16,6 @@ from lineapy.data.types import (
     CallNode,
     GlobalNode,
     ImportNode,
-    Library,
     LineaID,
     LiteralNode,
     LookupNode,
@@ -54,7 +53,7 @@ def test_execute_import(executor: Executor):
             ImportNode(
                 id=id_,
                 session_id="unused",
-                library=Library(id="unused", name="operator"),
+                name="operator",
             ),
         )
     )
@@ -69,7 +68,7 @@ def test_execute_import_nonexistant(executor: Executor):
     node = ImportNode(
         id="a",
         session_id="unused",
-        library=Library(id="unused", name="nonexistant_module"),
+        name="nonexistant_module",
     )
     with raises(UserException) as excinfo:
         executor.execute_node(node)
@@ -89,7 +88,7 @@ def test_execute_import_exception(executor: Executor):
     node = ImportNode(
         id="a",
         session_id="unused",
-        library=Library(id="unused", name="lineapy.utils.__error_on_load"),
+        name="lineapy.utils.__error_on_load",
     )
     with raises(UserException) as excinfo:
         executor.execute_node(node)

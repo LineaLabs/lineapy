@@ -20,6 +20,7 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
+from lineapy.utils.analytics import GetCodeEvent, GetValueEvent, track
 from lineapy.utils.constants import VERSION_DATE_STRING, VERSION_PLACEHOLDER
 
 logger = logging.getLogger(__name__)
@@ -71,6 +72,8 @@ class LineaArtifact:
             return None
         else:
             # TODO - set unicode etc here
+
+            track(GetValueEvent(has_value=True))
             with open(value.value, "rb") as f:
                 return FilePickler.load(f)
 
@@ -87,6 +90,9 @@ class LineaArtifact:
         Return the slices code for the artifact
         """
         # FIXME: this seems a little heavy to just get the slice?
+        track(
+            GetCodeEvent(use_lineapy_serialization=True, is_session_code=False)
+        )
         return get_source_code_from_graph(self._subgraph)
 
     @property
@@ -97,6 +103,9 @@ class LineaArtifact:
         """
         # using this over get_source_code_from_graph because it will process the
         # graph code and not return the original code with comments etc.
+        track(
+            GetCodeEvent(use_lineapy_serialization=False, is_session_code=True)
+        )
         return self.db.get_source_code_for_session(self._session_id)
 
     @property

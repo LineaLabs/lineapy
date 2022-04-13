@@ -39,6 +39,17 @@ class ExceptionEvent:
     error: str
 
 
+@dataclass
+class GetValueEvent:
+    has_value: bool
+
+
+@dataclass
+class GetCodeEvent:
+    use_lineapy_serialization: bool
+    is_session_code: bool
+
+
 AllEvents = Union[
     CatalogEvent,
     LibImportEvent,
@@ -46,4 +57,6 @@ AllEvents = Union[
     GetEvent,
     SaveEvent,
     ToPipelineEvent,
+    GetCodeEvent,
+    GetValueEvent,
 ]
