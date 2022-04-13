@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import isort
 from typing_extensions import TypedDict
@@ -10,6 +10,7 @@ from lineapy.graph_reader.program_slice import (
     get_program_slice_by_artifact_name,
 )
 from lineapy.plugins.base import BasePlugin
+from lineapy.plugins.task import TaskGraph
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
@@ -39,7 +40,7 @@ class AirflowPlugin(BasePlugin):
         dag_name: str,
         task_names: List[str],
         output_dir_path: Path,
-        task_dependencies: Optional[str] = None,
+        task_graph: TaskGraph,
         airflow_dag_config: AirflowDagConfig = {},
     ) -> None:
         """
@@ -58,6 +59,7 @@ class AirflowPlugin(BasePlugin):
         AIRFLOW_DAG_TEMPLATE = load_plugin_template("airflow_dag.jinja")
         airflow_dag_config = airflow_dag_config or {}
 
+        print(task_graph.get_airflow_dependency())
         full_code = AIRFLOW_DAG_TEMPLATE.render(
             DAG_NAME=dag_name,
             OWNER=airflow_dag_config.get("owner", "airflow"),
@@ -69,7 +71,7 @@ class AirflowPlugin(BasePlugin):
             MAX_ACTIVE_RUNS=airflow_dag_config.get("max_active_runs", 1),
             CATCHUP=airflow_dag_config.get("catchup", "False"),
             tasks=task_names,
-            task_dependencies=task_dependencies,
+            task_dependencies=task_graph.get_airflow_dependency(),
         )
         # Sort imports and move them to the top
         full_code = isort.code(full_code, float_to_top=True, profile="black")
@@ -83,7 +85,10 @@ class AirflowPlugin(BasePlugin):
         self,
         slice_names: List[str],
         module_name: Optional[str] = None,
-        airflow_task_dependencies: Optional[str] = None,
+        airflow_task_dependencies: Union[
+            List[Tuple[Union[Tuple, str], Union[Tuple, str]]],
+            Dict[str, Set[str]],
+        ] = [],
         output_dir: Optional[str] = None,
         airflow_dag_config: AirflowDagConfig = {},
     ):
@@ -100,15 +105,6 @@ class AirflowPlugin(BasePlugin):
         :param airflow_dag_config: Configs of Airflow DAG model.
         """
 
-        # Remove quotes
-        if airflow_task_dependencies:
-            airflow_task_dependencies = airflow_task_dependencies.replace(
-                "\\'", ""
-            )
-            airflow_task_dependencies = airflow_task_dependencies.replace(
-                "'", ""
-            )
-
         artifacts_code = {}
         task_names = []
         for slice_name in slice_names:
@@ -119,11 +115,13 @@ class AirflowPlugin(BasePlugin):
             artifacts_code[artifact_var] = slice_code
             task_name = f"{artifact_var}"
             task_names.append(task_name)
-            # "'p value' >> 'y'" gets replaced by "p_value >> y"
-            if airflow_task_dependencies:
-                airflow_task_dependencies = airflow_task_dependencies.replace(
-                    slice_name, task_name
-                )
+
+        task_graph = TaskGraph(
+            slice_names,
+            {slice: task for slice, task in zip(slice_names, task_names)},
+            airflow_task_dependencies,
+        )
+
         module_name = module_name or "_".join(slice_names)
         output_dir_path = Path.cwd()
         if output_dir:
@@ -142,7 +140,7 @@ class AirflowPlugin(BasePlugin):
             module_name,
             task_names,
             output_dir_path,
-            airflow_task_dependencies,
+            task_graph,
             airflow_dag_config,
         )
         self.generate_infra(

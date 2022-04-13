@@ -9,7 +9,7 @@ import string
 import types
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
@@ -205,7 +205,10 @@ def to_pipeline(
     artifacts: List[str],
     framework: str = "SCRIPT",
     pipeline_name: Optional[str] = None,
-    dependencies: str = "",
+    dependencies: Union[
+        List[Tuple[Union[Tuple, str], Union[Tuple, str]]],
+        Dict[str, Set[str]],
+    ] = [],
     pipeline_dag_config: AirflowDagConfig = {},
     output_dir: Optional[str] = None,
 ) -> Path:
