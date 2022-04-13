@@ -17,10 +17,7 @@ and transforms Python code to extract production data pipelines in minutes.
 
 ## Why Use LineaPy?
 
-Data is a strategic asset that enables organizations to deliver new innovations, improve customer experience,
-and increase revenue.
-
-But going from development to production is full of friction. Data engineering is a manual and
+Going from development to production is full of friction. Data engineering is a manual and
 time-consuming process. A proliferation of libraries, tools, and technologies means data teams
 spend countless hours managing infrastructure and repeating tasks. This drastically reduces
 the team’s ability to deliver actionable insights in real-time.
@@ -44,10 +41,7 @@ or new tools needed. Go from your Jupyter notebook to an Airflow pipeline in min
 
 ### Installation
 
-To minimize potential interference with your existing system setup, we recommend
-you install LineaPy in a virtual environment using [venv](https://docs.python.org/3/tutorial/venv.html#virtual-environments-and-packages), [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#managing-environments), or [poetry](https://python-poetry.org/docs/basic-usage/).
-
-Once the virtual environment is activated, run:
+To install LineaPy, run:
 
 ```bash
 $ pip install lineapy
@@ -61,9 +55,9 @@ $ poetry add lineapy
 
 ### Quick Start
 
-In an interactive computing environment such as Jupyter Notebook, we often find our work
-evolving incrementally. That is, our code takes different turns to reflect our thought stream.
-The following exemplifies this type of "dynamism" in interactive computing:
+Once you have LineaPy installed, you are ready to start using the package. We can start with a simple
+example that demonstrates how to use LineaPy to store a variable's history. The `lineapy.save()` function
+removes extraneous code to give you the simplest version of a variable's history.
 
 ```python
 import lineapy
