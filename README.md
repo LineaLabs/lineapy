@@ -47,7 +47,7 @@ To install LineaPy, run:
 $ pip install lineapy
 ```
 
-Or, if using ``poetry``, run:
+Or, if using `poetry`, run:
 
 ```bash
 $ poetry add lineapy
@@ -82,7 +82,7 @@ alt_text = text.split()
 ```
 
 Now, let's say we have reached the end of our programming session and decided that we like
-what we see when we ``print(text)``. As shown above, ``text`` has gone through different
+what we see when we `print(text)`. As shown above, `text` has gone through different
 modifications, and it might not be clear how it reached its final state especially given other
 extraneous operations between these modifications. We can cut through this by running:
 
@@ -104,7 +104,7 @@ text = "Hello"
 text = text + " World!"
 ```
 
-Note that these are the minimal essential steps to get to the final state of the variable ``text``.
+Note that these are the minimal essential steps to get to the final state of the variable `text`.
 That is, LineaPy has performed code cleanup on our behalf.
 
 ## What Next?
