@@ -230,7 +230,7 @@ def to_pipeline(
         List[Tuple[Union[Tuple, str], Union[Tuple, str]]],
         Dict[str, Set[str]],
     ] = [],
-    pipeline_dag_config: AirflowDagConfig = {},
+    pipeline_dag_config: Optional[AirflowDagConfig] = {},
     output_dir: Optional[str] = None,
 ) -> Path:
     """
@@ -239,11 +239,9 @@ def to_pipeline(
     :param artifacts: list of artifact names to be included in the DAG.
     :param framework: 'AIRFLOW' or 'SCRIPT'
     :param pipeline_name: name of the pipeline
-    :param dependencies: task dependencies in Airflow format,
-                                      i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-                                      This translates to "p_value >> y" and "p_value, x >> y" respectively.
-                                      Here "p_value" and "x" are independent tasks
-                                      and "y" depends on them.
+    :param dependencies: tasks dependencies in edgelist format [(('A','C'),'B')] or
+        graphlib format {'B':{'A','C'}}"; both cases means task A and C are prerequisites
+        for task C.
     :param output_dir_path: Directory of the DAG and the python file it is saved in; only use for PipelineType.AIRFLOW
     :return: string containing the path of the Airflow DAG file that was exported.
     """

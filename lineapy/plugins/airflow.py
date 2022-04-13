@@ -41,16 +41,15 @@ class AirflowPlugin(BasePlugin):
         task_names: List[str],
         output_dir_path: Path,
         task_graph: TaskGraph,
-        airflow_dag_config: AirflowDagConfig = {},
+        airflow_dag_config: Optional[AirflowDagConfig] = {},
     ) -> None:
         """
         Create an Airflow DAG.
 
         :param dag_name: Name of the DAG and the python file it is saved in
-        :param task_dependencies: task dependencies in an Airflow format,
-                                            i.e. "p_value >> y" and "p_value, x >> y".
-                                            Here "p_value" and "x" are independent tasks
-                                            and "y" depends on them.
+        :param task_dependencies:  Tasks dependencies in edgelist format [(('A','C'),'B')] or
+            graphlib format {'B':{'A','C'}}"; both cases means task A and C are prerequisites
+            for task C.
         :param airflow_dag_config: Configs of Airflow DAG model. See
             https://airflow.apache.org/_api/airflow/models/dag/index.html#airflow.models.dag.DAG
             for the full spec.
@@ -87,7 +86,7 @@ class AirflowPlugin(BasePlugin):
         module_name: Optional[str] = None,
         airflow_task_dependencies: TaskGraphEdge = [],
         output_dir: Optional[str] = None,
-        airflow_dag_config: AirflowDagConfig = {},
+        airflow_dag_config: Optional[AirflowDagConfig] = {},
     ):
         """
         Creates an Airflow DAG from the sliced code. This includes a python file with one function per slice, task dependencies
@@ -95,9 +94,9 @@ class AirflowPlugin(BasePlugin):
 
         :param slice_names: list of slice names to be used as tasks.
         :param module_name: name of the Pyhon module the generated code will be saved to.
-        :param airflow_task_dependencies: task dependencies in an artifact format,
-                                            i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-                                            This translates to "p_value >> y" and "p_value, x >> y" when converting to Airflow.
+        :param airflow_task_dependencies:  Tasks dependencies in edgelist format [(('A','C'),'B')] or
+            graphlib format {'B':{'A','C'}}"; both cases means task A and C are prerequisites
+            for task C.
         :param output_dir: directory to save the generated code to.
         :param airflow_dag_config: Configs of Airflow DAG model.
         """
