@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import List, Optional
 
 import isort
 from typing_extensions import TypedDict
@@ -10,7 +10,7 @@ from lineapy.graph_reader.program_slice import (
     get_program_slice_by_artifact_name,
 )
 from lineapy.plugins.base import BasePlugin
-from lineapy.plugins.task import TaskGraph
+from lineapy.plugins.task import TaskGraph, TaskGraphEdge
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
@@ -31,7 +31,6 @@ class ScriptPlugin(BasePlugin):
     def to_script(
         self,
         dag_name: str,
-        task_names: List[str],
         output_dir_path: Path,
         task_graph: TaskGraph,
     ) -> None:
@@ -39,12 +38,8 @@ class ScriptPlugin(BasePlugin):
         Create an Python Script DAG.
 
         :param dag_name: Name of the DAG and the python file it is saved in
-        :param task_names:
         :param output_dir_path: Directory of the DAG and the python file it is saved in
-        :param task_dependencies: task dependencies in an Airflow format,
-                                            i.e. "p_value >> y" and "p_value, x >> y".
-                                            Here "p_value" and "x" are independent tasks
-                                            and "y" depends on them.
+        :param task_graph:
         """
 
         SCRIPT_DAG_TEMPLATE = load_plugin_template("script_dag.jinja")
@@ -57,17 +52,14 @@ class ScriptPlugin(BasePlugin):
         full_code = prettify(full_code)
         (output_dir_path / f"{dag_name}_script_dag.py").write_text(full_code)
         logger.info(
-            f"Added Python Script DAG named {dag_name}_script_dag. Start a run from the CLI."
+            f"Added Python Script DAG named {dag_name}_script_dag.py. Start a run from the CLI."
         )
 
     def sliced_pipeline_dag(
         self,
         slice_names: List[str],
         module_name: Optional[str] = None,
-        task_dependencies: Union[
-            List[Tuple[Union[Tuple, str], Union[Tuple, str]]],
-            Dict[str, Set[str]],
-        ] = [],
+        task_dependencies: TaskGraphEdge = [],
         output_dir: Optional[str] = None,
     ):
         """
@@ -75,10 +67,10 @@ class ScriptPlugin(BasePlugin):
         an example Dockerfile and requirements.txt that can be used to run this.
 
         :param slice_names: list of slice names to be used as tasks.
-        :param module_name: name of the Pyhon module the generated code will be saved to.
-        :param task_dependencies: task dependencies in an artifact format,
-                                            i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-                                            This translates to "p_value >> y" and "p_value, x >> y" when converting to Airflow.
+        :param module_name: name of the Python module the generated code will be saved to.
+        :param task_dependencies: Tasks dependencies in edgelist format [(('A','C'),'B')] or
+            graphlib format {'B':{'A','C'}}"; both cases means task A and C are prerequisites
+            for task C.
         :param output_dir: directory to save the generated code to.
         """
 
@@ -115,7 +107,6 @@ class ScriptPlugin(BasePlugin):
         )
         self.to_script(
             module_name,
-            task_names,
             output_dir_path,
             task_graph,
         )

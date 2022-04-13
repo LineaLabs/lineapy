@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import List, Optional
 
 import isort
 from typing_extensions import TypedDict
@@ -10,7 +10,7 @@ from lineapy.graph_reader.program_slice import (
     get_program_slice_by_artifact_name,
 )
 from lineapy.plugins.base import BasePlugin
-from lineapy.plugins.task import TaskGraph
+from lineapy.plugins.task import TaskGraph, TaskGraphEdge
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
@@ -85,10 +85,7 @@ class AirflowPlugin(BasePlugin):
         self,
         slice_names: List[str],
         module_name: Optional[str] = None,
-        airflow_task_dependencies: Union[
-            List[Tuple[Union[Tuple, str], Union[Tuple, str]]],
-            Dict[str, Set[str]],
-        ] = [],
+        airflow_task_dependencies: TaskGraphEdge = [],
         output_dir: Optional[str] = None,
         airflow_dag_config: AirflowDagConfig = {},
     ):

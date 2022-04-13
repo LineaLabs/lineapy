@@ -3,10 +3,15 @@ from typing import Dict, List, Set, Tuple, Union
 
 import networkx as nx
 
+TaskGraphEdge = Union[
+    List[Tuple[Union[Tuple, str], Union[Tuple, str]]],
+    Dict[str, Set[str]],
+]
+
 
 class TaskGraph(object):
     """
-    Graph represents for taks dependency
+    Graph represents for task dependency
     It is constructed based on the following variables:
     :param edges: two options to define the edgelist to define the task graph
         1. List of tuples, each tuple has two elements. The first element is 
@@ -28,16 +33,15 @@ class TaskGraph(object):
     - The edgelist you used in https://networkx.org/documentation/stable/reference/classes/generated/networkx.Graph.add_edges_from.html should be compatible here.
     - If we only support Python 3.9+, we prefer to use grathlib in standard 
         library instead of networkx for graph operation.
+    - We might want to get rid of the mapping for renaming slice_names to 
+        task_names.
     """
 
     def __init__(
         self,
         nodes: List[str],
         mapping: Dict[str, str],
-        edges: Union[
-            List[Tuple[Union[Tuple, str], Union[Tuple, str]]],
-            Dict[str, Set[str]],
-        ] = [],
+        edges: TaskGraphEdge = [],
     ):
         self.graph = nx.DiGraph()
         self.graph.add_nodes_from(nodes)
