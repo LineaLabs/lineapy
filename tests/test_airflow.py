@@ -12,7 +12,7 @@ def test_slice_airflow(airflow_plugin):
     airflow_plugin.sliced_airflow_dag(
         ["p value"],
         "sliced_housing_simple",
-        "",
+        [],
         output_dir="outputs/generated",
     )
     for file_endings in [".py", "_dag.py", "_Dockerfile", "_requirements.txt"]:
@@ -33,7 +33,7 @@ def test_multiple_slices_airflow(python_snapshot, airflow_plugin):
     airflow_plugin.sliced_airflow_dag(
         ["p value", "y"],
         "sliced_housing_multiple",
-        "",
+        [],
         output_dir="outputs/generated",
     )
     for file_endings in [".py", "_dag.py", "_Dockerfile", "_requirements.txt"]:
@@ -56,7 +56,7 @@ def test_multiple_slices_airflow_with_task_dependencies(
     airflow_plugin.sliced_airflow_dag(
         ["p value", "y"],
         "sliced_housing_multiple_w_dependencies",
-        "'p value' >> 'y'",
+        [("p value", "y")],
         output_dir="outputs/generated",
     )
 

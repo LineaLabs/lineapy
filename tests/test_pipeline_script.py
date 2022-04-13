@@ -11,7 +11,7 @@ def test_slice_pythonscript(script_plugin):
     script_plugin.sliced_pipeline_dag(
         ["p value"],
         "sliced_housing_simple",
-        "",
+        [],
         output_dir="outputs/generated",
     )
     for file_endings in [
@@ -37,7 +37,7 @@ def test_multiple_slices_pythonscript(python_snapshot, script_plugin):
     script_plugin.sliced_pipeline_dag(
         ["p value", "y"],
         "sliced_housing_multiple",
-        "",
+        {},
         output_dir="outputs/generated",
     )
     for file_endings in [
@@ -65,7 +65,7 @@ def test_multiple_slices_airflow_with_task_dependencies(
     script_plugin.sliced_pipeline_dag(
         ["p value", "y"],
         "sliced_housing_multiple_w_dependencies",
-        "'p value' >> 'y'",
+        {"y": {"p value"}},
         output_dir="outputs/generated",
     )
 
