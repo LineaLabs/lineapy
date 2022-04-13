@@ -7,12 +7,9 @@ Quick Start
     Make sure that you have LineaPy installed. You can find relevant instructions 
     in the :ref:`Installation <setup>` section.
 
-Let’s start with a simple example that demonstrates how to use LineaPy to store and
-analyze a variable's history.
-
-In an interactive computing environment such as Jupyter Notebook, we often find our work
-evolving incrementally. That is, our code takes different turns to reflect our thought stream.
-The following exemplifies this type of “dynamism” in interactive computing:
+Once you have LineaPy installed, you are ready to start using the package. We can start with a simple
+example that demonstrates how to use LineaPy to store a variable's history. The ``lineapy.save()`` function
+removes extraneous code to give you the simplest version of a variable's history.
 
 .. code:: python
 
@@ -21,8 +18,14 @@ The following exemplifies this type of “dynamism” in interactive computing:
     # Define text to display in page heading
     text = "Greetings"
 
+    # Some irrelevant operation
+    num = 1 + 2
+
     # Change heading text
     text = "Hello"
+
+    # Another irrelevant operation
+    num_squared = num**2
 
     # Augment heading text
     text = text + " World!"
@@ -54,9 +57,10 @@ which will print:
     text = text + " World!"
 
 Note that these are the minimal essential steps to get to the final state of the variable ``text``.
+That is, LineaPy has performed code cleanup on our behalf.
 
 .. note::
     In fact, ``lineapy.save()`` itself returns the artifact object, so we could have simply
     executed ``artifact = lineapy.save(text, "text_for_heading")`` above.
 
-For more detailed examples, check out our `tutorial notebooks <https://github.com/LineaLabs/lineapy/tree/main/examples>`_.
+For more detailed examples, check out our `tutorial notebooks <https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials>`_.
