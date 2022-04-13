@@ -118,15 +118,6 @@ class RelationalLineaDB:
             return LiteralType.Ellipsis
         raise NotImplementedError(f"Literal {val} is of type {type(val)}.")
 
-    # def write_library(
-    #     self, library: Library, context_id: LineaID
-    # ) -> LibraryORM:
-    #     lib_args = library.dict()
-    #     lib_args["session_id"] = context_id
-    #     library_orm = LibraryORM(**lib_args)
-    #     self.session.add(library_orm)
-    #     return library_orm
-
     def write_context(self, context: SessionContext) -> None:
         args = context.dict()
 
@@ -178,11 +169,6 @@ class RelationalLineaDB:
             source_code_orm.jupyter_session_id = location.session_id
 
         self.session.add(source_code_orm)
-
-    # def add_lib_to_session_context(
-    #     self, context_id: LineaID, library: Library
-    # ):
-    #     self.write_library(library, context_id)
 
     def write_node(self, node: Node) -> None:
         args = node.dict(include={"id", "session_id", "node_type"})
@@ -343,11 +329,6 @@ class RelationalLineaDB:
                 **args,
             )
         if isinstance(node, ImportNodeORM):
-            # library_orm = (
-            #     self.session.query(LibraryORM)
-            #     .filter(LibraryORM.id == node.library_id)
-            #     .one()
-            # )
             return ImportNode(
                 name=node.name,
                 version=node.version,
