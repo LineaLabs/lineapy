@@ -97,7 +97,7 @@ pdbpp==0.10.3
 pexpect==4.8.0
 pg==0.1
 pickleshare==0.7.5
-Pillow==9.0.0
+Pillow==9.0.1
 platformdirs==2.5.1
 pluggy==1.0.0
 pre-commit==2.18.1
