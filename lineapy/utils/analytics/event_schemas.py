@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Optional, Union
 
 # I think amplitude doesn't really support nested objects,
 # so flattening the object here.
@@ -36,7 +36,9 @@ class LibImportEvent:
 
 @dataclass
 class ExceptionEvent:
-    error: str
+    # TODO: set error_type to be string enums
+    error_type: str
+    error_msg: Optional[str] = None
 
 
 @dataclass

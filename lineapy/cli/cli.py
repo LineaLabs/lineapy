@@ -329,6 +329,7 @@ def python(
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("jupyter_args", nargs=-1, type=click.UNPROCESSED)
 def jupyter(jupyter_args):
+    # Note that Jupyter wraps around iPython, which takes care of the lib sending
     setup_ipython_dir()
     res = subprocess.run(["jupyter", *jupyter_args])
     sys.exit(res.returncode)

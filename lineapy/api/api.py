@@ -2,6 +2,7 @@
 User facing APIs.
 """
 
+import logging
 import os
 import pickle
 import random
@@ -29,7 +30,12 @@ from lineapy.utils.analytics import (
     track,
 )
 from lineapy.utils.config import linea_folder
+from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_value_type
+
+logger = logging.getLogger(__name__)
+# TODO: figure out if we need to configure it all the time
+configure_logging()
 
 """
 Dev notes: We should keep these external APIs as small as possible, and unless
@@ -70,8 +76,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         value_node_id = executor.lookup_external_state(reference)
         msg = f"No change to the {reference.external_state} was recorded. If it was in fact changed, please open a Github issue."
         if not value_node_id:
-            # TODO track exception
-            track(ExceptionEvent(msg))
+            track(ExceptionEvent("SaveAPI", msg))
             raise ValueError(msg)
     else:
         # Lookup the first arguments id, which is the id for the value, and
@@ -157,7 +162,8 @@ def _try_write_to_db(value: object) -> Path:
         with open(filepath, "wb") as f:
             FilePickler.dump(value, f)
     except pickle.PicklingError as pe:
-        print(pe)
+        logger.error(pe)
+        track(ExceptionEvent("ArtifactSaveException", str(pe)))
         raise ArtifactSaveException()
     return filepath
 
@@ -240,6 +246,7 @@ def to_airflow(
     db = execution_context.executor.db
     session_orm = db.session.query(SessionContextORM).all()
     if len(session_orm) == 0:
+        track(ExceptionEvent("DBError", "NoSessionFound"))
         raise Exception("No sessions found in the database.")
     last_session = session_orm[0]
 

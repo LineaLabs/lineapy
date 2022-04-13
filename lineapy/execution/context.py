@@ -144,7 +144,7 @@ def set_context(
 
 def get_context() -> ExecutionContext:
     if not _current_context:
-        track(ExceptionEvent("No context set"))
+        track(ExceptionEvent("DBError", "No context set"))
         raise RuntimeError("No context set")
 
     return _current_context
