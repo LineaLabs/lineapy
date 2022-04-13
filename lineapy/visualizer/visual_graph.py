@@ -199,7 +199,7 @@ def process_node(
     """
     n_id = node.id
     if isinstance(node, ImportNode):
-        return node.library.name
+        return node.name
     if isinstance(node, CallNode):
         # The call node body is in struct format to allow pointing to each
         # variable independently

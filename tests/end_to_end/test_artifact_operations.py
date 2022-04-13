@@ -9,7 +9,7 @@ lineapy.save(y, "deferencedy")
 use_y = lineapy.get("deferencedy")
 """
     # choosing a mutating list here so that we can also verify that the
-    # mutated node ids that get updated are correctly refrerenced
+    # mutated node ids that get updated are correctly referenced
     # without the tracer dicts to point us to the right/mutated node id.
     code_body = """y = []
 x = [y]
@@ -29,7 +29,7 @@ x[0].append(11)
     # simulating the user using the db url/instance to recreate the db. and choosing the
     # last session or a particular session in case of a versioned artifact to recreate the graph for it.
     second_context = TracerContext.reload_session(
-        artifact_f.db, artifact_f.session_id
+        artifact_f.db, artifact_f._session_id
     )
     # this is an additional redundant step to make sure our orig artifact is correct
     assert artifact_f.code == code_body

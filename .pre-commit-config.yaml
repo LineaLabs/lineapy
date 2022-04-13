@@ -38,6 +38,6 @@ repos:
         entry: mypy .
         language: python
         additional_dependencies: ["mypy==0.931", "SQLAlchemy==1.4.29", "sqlalchemy[mypy]",
-                                  "mypy-extensions==0.4.3", "pydantic==1.9.0", "types-PyYAML"]
+                                  "mypy-extensions==0.4.3", "pydantic==1.9.0", "types-PyYAML", "types-requests"]
         types: [python]
         pass_filenames: false

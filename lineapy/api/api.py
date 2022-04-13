@@ -2,6 +2,7 @@
 User facing APIs.
 """
 
+import logging
 import os
 import pickle
 import random
@@ -19,8 +20,22 @@ from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
+from lineapy.utils.analytics import (
+    CatalogEvent,
+    ExceptionEvent,
+    GetEvent,
+    SaveEvent,
+    ToPipelineEvent,
+    side_effect_to_str,
+    track,
+)
 from lineapy.utils.config import linea_folder
+from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_value_type
+
+logger = logging.getLogger(__name__)
+# TODO: figure out if we need to configure it all the time
+configure_logging()
 
 """
 Dev notes: We should keep these external APIs as small as possible, and unless
@@ -59,10 +74,10 @@ def save(reference: object, name: str) -> LineaArtifact:
     # then look it up from there, instead of using this node.
     if isinstance(reference, ExternalState):
         value_node_id = executor.lookup_external_state(reference)
+        msg = f"No change to the {reference.external_state} was recorded. If it was in fact changed, please open a Github issue."
         if not value_node_id:
-            raise ValueError(
-                f"No change to the {reference.external_state} was recorded. If it was in fact changed, please open a Github issue."
-            )
+            track(ExceptionEvent("SaveAPI", msg))
+            raise ValueError(msg)
     else:
         # Lookup the first arguments id, which is the id for the value, and
         # save that as the artifact
@@ -73,9 +88,9 @@ def save(reference: object, name: str) -> LineaArtifact:
 
     linea_artifact = LineaArtifact(
         db=db,
-        execution_id=execution_id,
-        node_id=value_node_id,
-        session_id=call_node.session_id,
+        _execution_id=execution_id,
+        _node_id=value_node_id,
+        _session_id=call_node.session_id,
         name=name,
     )
 
@@ -118,6 +133,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         db.write_artifact(artifact_to_write)
         linea_artifact.date_created = artifact_to_write.date_created
 
+    track(SaveEvent(side_effect=side_effect_to_str(reference)))
     return linea_artifact
 
 
@@ -146,7 +162,8 @@ def _try_write_to_db(value: object) -> Path:
         with open(filepath, "wb") as f:
             FilePickler.dump(value, f)
     except pickle.PicklingError as pe:
-        print(pe)
+        logger.error(pe)
+        track(ExceptionEvent("ArtifactSaveException", str(pe)))
         raise ArtifactSaveException()
     return filepath
 
@@ -174,16 +191,18 @@ def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:
     artifact = db.get_artifact_by_name(artifact_name, version)
     linea_artifact = LineaArtifact(
         db=db,
-        execution_id=artifact.execution_id,
-        node_id=artifact.node_id,
-        session_id=artifact.node.session_id,
+        _execution_id=artifact.execution_id,
+        _node_id=artifact.node_id,
+        _session_id=artifact.node.session_id,
         name=artifact_name,
         date_created=artifact.date_created,
     )
     # doing this thing because we dont initialize the version when defining LineaArtifact
+    # TODO: fix this logic
     if artifact.version:
         linea_artifact.version = artifact.version
 
+    track(GetEvent(version_specified=version is not None))
     return linea_artifact
 
 
@@ -195,7 +214,9 @@ def catalog() -> LineaCatalog:
         An object of the class `LineaCatalog` that allows for printing and exporting artifacts metadata.
     """
     execution_context = get_context()
-    return LineaCatalog(execution_context.executor.db)
+    cat = LineaCatalog(execution_context.executor.db)
+    track(CatalogEvent(catalog_size=cat.len))
+    return cat
 
 
 # TODO - this piece needs to test more than just the output of jupyter cell.
@@ -225,13 +246,24 @@ def to_airflow(
     db = execution_context.executor.db
     session_orm = db.session.query(SessionContextORM).all()
     if len(session_orm) == 0:
+        track(ExceptionEvent("DBError", "NoSessionFound"))
         raise Exception("No sessions found in the database.")
     last_session = session_orm[0]
 
-    return AirflowPlugin(db, last_session.id).sliced_airflow_dag(
+    res = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
         artifacts,
         dag_name,
         task_dependencies,
         output_dir=output_dir,
         airflow_dag_config=airflow_dag_config,
     )
+    # send the info
+    track(
+        ToPipelineEvent(
+            "AIRFLOW",
+            len(artifacts),
+            task_dependencies != "",
+            airflow_dag_config is not None,
+        )
+    )
+    return res

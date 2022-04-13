@@ -142,7 +142,7 @@ print(x)"""
     assert artifact.session_code == importl + code_body + artifact_f_save
     assert (
         artifact.db.get_session_context(
-            artifact.session_id
+            artifact._session_id
         ).environment_type.name
         == "SCRIPT"
     )

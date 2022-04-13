@@ -27,9 +27,9 @@ import_1 = ImportNode(
         end_col_offset=14,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="lineapy",
-    ),
+    name="lineapy",
+    version="0.0.1",
+    package_name="lineapy",
 )
 import_2 = ImportNode(
     source_location=SourceLocation(
@@ -39,9 +39,9 @@ import_2 = ImportNode(
         end_col_offset=18,
         source_code=source_1.id,
     ),
-    library=Library(
-        name="numpy",
-    ),
+    name="numpy",
+    version="1.21.5",
+    package_name="numpy",
 )
 call_5 = CallNode(
     source_location=SourceLocation(
@@ -244,9 +244,9 @@ call_9 = CallNode(
                     end_col_offset=41,
                     source_code=source_1.id,
                 ),
-                library=Library(
-                    name="sklearn.dummy",
-                ),
+                name="sklearn.dummy",
+                version="1.0.2",
+                package_name="sklearn",
             ).id,
             LiteralNode(
                 value="DummyClassifier",

@@ -20,6 +20,7 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
+from lineapy.utils.analytics import GetCodeEvent, GetValueEvent, track
 from lineapy.utils.constants import VERSION_DATE_STRING, VERSION_PLACEHOLDER
 
 logger = logging.getLogger(__name__)
@@ -32,24 +33,29 @@ class LineaArtifact:
     """
 
     db: RelationalLineaDB = field(repr=False)
-    execution_id: LineaID
-    node_id: LineaID
+    _execution_id: LineaID = field(repr=False)
+    _node_id: LineaID = field(repr=False)
     """node id of the artifact in the graph"""
-    session_id: LineaID
+    _session_id: LineaID = field(repr=False)
     """session id of the session that created the artifact"""
     name: str
     """name of the artifact"""
-    date_created: Optional[datetime] = field(default=None)
+    date_created: Optional[datetime] = field(default=None, repr=False)
+    # setting repr to false for date_created for now since it duplicates version
     """Optional because date_created cannot be set by the user. 
     it is supposed to be automatically set when the 
     artifact gets saved to the db. so when creating lineaArtifact 
     the first time, it will be unset. When you get the artifact or 
     catalog of artifacts, we retrieve the date from db and 
     it will be set."""
-    version: str = field(init=False, repr=False)
+    version: str = field(init=False)
     """version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`"""
 
     def __post_init__(self):
+        # this happens at write time
+        # when the artifact is loaded in from the db, the version is re-set
+        # in the .get API call.
+        # TODO: refactor the logic to avoid resetting somewhere else.
         self.version = datetime.now().strftime(VERSION_DATE_STRING)
 
     @property
@@ -57,13 +63,17 @@ class LineaArtifact:
         """
         Get and return the value of the artifact
         """
-        value = self.db.get_node_value_from_db(self.node_id, self.execution_id)
+        value = self.db.get_node_value_from_db(
+            self._node_id, self._execution_id
+        )
         if not value:
             raise ValueError("No value saved for this node")
         if value.value is None:
             return None
         else:
             # TODO - set unicode etc here
+
+            track(GetValueEvent(has_value=True))
             with open(value.value, "rb") as f:
                 return FilePickler.load(f)
 
@@ -72,7 +82,7 @@ class LineaArtifact:
         """
         Return the slice subgraph for the artifact
         """
-        return get_slice_graph(self._graph, [self.node_id])
+        return get_slice_graph(self._graph, [self._node_id])
 
     @property
     def code(self) -> str:
@@ -80,6 +90,9 @@ class LineaArtifact:
         Return the slices code for the artifact
         """
         # FIXME: this seems a little heavy to just get the slice?
+        track(
+            GetCodeEvent(use_lineapy_serialization=True, is_session_code=False)
+        )
         return get_source_code_from_graph(self._subgraph)
 
     @property
@@ -90,13 +103,16 @@ class LineaArtifact:
         """
         # using this over get_source_code_from_graph because it will process the
         # graph code and not return the original code with comments etc.
-        return self.db.get_source_code_for_session(self.session_id)
+        track(
+            GetCodeEvent(use_lineapy_serialization=False, is_session_code=True)
+        )
+        return self.db.get_source_code_for_session(self._session_id)
 
     @property
     def _graph(self) -> Graph:
-        session_context = self.db.get_session_context(self.session_id)
+        session_context = self.db.get_session_context(self._session_id)
         # FIXME: copied cover from tracer, we might want to refactor
-        nodes = self.db.get_nodes_for_session(self.session_id)
+        nodes = self.db.get_nodes_for_session(self._session_id)
         return Graph(nodes, session_context)
 
     def visualize(self, path: Optional[str] = None) -> None:
@@ -109,7 +125,7 @@ class LineaArtifact:
         # This way we can import lineapy without having graphviz installed.
         from lineapy.visualizer import Visualizer
 
-        visualizer = Visualizer.for_public_node(self._graph, self.node_id)
+        visualizer = Visualizer.for_public_node(self._graph, self._node_id)
         if path:
             visualizer.render_pdf_file(path)
         else:
@@ -122,7 +138,7 @@ class LineaArtifact:
         """
         slice_exec = Executor(self.db, globals())
         slice_exec.execute_graph(self._subgraph)
-        return slice_exec.get_value(self.node_id)
+        return slice_exec.get_value(self._node_id)
 
 
 class LineaCatalog:
@@ -142,14 +158,19 @@ class LineaCatalog:
         for db_artifact in db_artifacts:
             l_artifact = LineaArtifact(
                 db=db,
-                execution_id=db_artifact.execution_id,
-                node_id=db_artifact.node_id,
-                session_id=db_artifact.node.session_id,
+                _execution_id=db_artifact.execution_id,
+                _node_id=db_artifact.node_id,
+                _session_id=db_artifact.node.session_id,
                 name=cast(str, db_artifact.name),
                 date_created=db_artifact.date_created,
             )
+            # TODO: refactor this to avoid resetting the version
             l_artifact.version = db_artifact.version or VERSION_PLACEHOLDER
             self.artifacts.append(l_artifact)
+
+    @property
+    def len(self) -> int:
+        return len(self.artifacts)
 
     @property
     def print(self) -> str:

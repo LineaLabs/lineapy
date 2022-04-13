@@ -27,6 +27,7 @@ from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.constants import VERSION_PLACEHOLDER
 from lineapy.utils.logging_config import (
@@ -105,9 +106,9 @@ def notebook(
     artifact = db.get_artifact_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
-        execution_id=artifact.execution_id,
-        node_id=artifact.node_id,
-        session_id=artifact.node.session_id,
+        _execution_id=artifact.execution_id,
+        _node_id=artifact.node_id,
+        _session_id=artifact.node.session_id,
         name=artifact_name,
         date_created=artifact.date_created,
     )
@@ -154,9 +155,9 @@ def file(
     artifact = db.get_artifact_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
-        execution_id=artifact.execution_id,
-        node_id=artifact.node_id,
-        session_id=artifact.node.session_id,
+        _execution_id=artifact.execution_id,
+        _node_id=artifact.node_id,
+        _session_id=artifact.node.session_id,
         name=artifact_name,
         date_created=artifact.date_created,
     )
@@ -265,6 +266,8 @@ def python(
     tracer = Tracer(db, SessionType.SCRIPT)
     transform(code, file_name, tracer)
 
+    send_lib_info_from_db(tracer.db, tracer.get_session_id())
+
     if visualize:
         from lineapy.visualizer import Visualizer
 
@@ -326,6 +329,7 @@ def python(
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("jupyter_args", nargs=-1, type=click.UNPROCESSED)
 def jupyter(jupyter_args):
+    # Note that Jupyter wraps around iPython, which takes care of the lib sending
     setup_ipython_dir()
     res = subprocess.run(["jupyter", *jupyter_args])
     sys.exit(res.returncode)

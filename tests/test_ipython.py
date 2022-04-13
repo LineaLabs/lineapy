@@ -126,7 +126,7 @@ res = lineapy.get("deferencedy")
     )
     assert (
         run_cell(
-            "res.db.get_session_context(res.session_id).environment_type.name"
+            "res.db.get_session_context(res._session_id).environment_type.name"
         )
         == "JUPYTER"
     )

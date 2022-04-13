@@ -14,9 +14,9 @@ if True:
     artifact = res.db.get_artifact_by_name("x")
     full_graph_artifact = LineaArtifact(
         db=res.db,
-        execution_id=artifact.execution_id,
-        node_id=artifact.node_id,
-        session_id=artifact.node.session_id,
+        _execution_id=artifact.execution_id,
+        _node_id=artifact.node_id,
+        _session_id=artifact.node.session_id,
         date_created=artifact.date_created,
         name=artifact.name,
     )
