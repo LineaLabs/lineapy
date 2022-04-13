@@ -75,7 +75,7 @@ This will automatically load the LineaPy extension in the corresponding interact
 
 #### CLI
 
-We can also use LineaPy as a CLI command. Run
+We can also use LineaPy as a CLI command. Run:
 
 ```bash
 $ lineapy python --help
