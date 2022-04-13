@@ -284,7 +284,7 @@ def to_pipeline(
                 pipeline_dag_config is not None,
             )
         )
-        return res          
+        return ret
 
     else:
         raise Exception(f"No PipelineType for {framework}")

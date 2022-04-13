@@ -63,9 +63,6 @@ class TaskGraph(object):
 
         nx.relabel_nodes(self.graph, mapping, copy=False)
 
-    def get_edgelist(self) -> List[Tuple]:
-        return list(self.graph.edges)
-
     def get_taskorder(self) -> List[str]:
         return list(nx.topological_sort(self.graph))
 
