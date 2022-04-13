@@ -14,6 +14,8 @@ import uuid
 from dataclasses import asdict
 from functools import lru_cache
 
+import requests
+
 from lineapy.utils.analytics.event_schemas import AllEvents
 from lineapy.utils.config import LOG_FILE_NAME, linea_folder
 
@@ -67,12 +69,10 @@ def _send_amplitude_event(event_type, event_properties):
 
     # send to amplitude
     try:
-        import requests
-
         return requests.post(_amplitude_url(), data=event_data, timeout=1)
     except Exception as err:
         # silently fail since this error does not concern end users
-        logger.debug(str(err))
+        logger.debug(f"Tracking Error: {str(err)}")
 
 
 def track(event: AllEvents):
