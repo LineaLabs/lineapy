@@ -11,6 +11,8 @@ Once you have LineaPy installed, you are ready to start using the package. We ca
 example that demonstrates how to use LineaPy to store a variable's history. The ``lineapy.save()`` function
 removes extraneous code to give you the simplest version of a variable's history.
 
+Say we have development code looking as follows:
+
 .. code:: python
 
     import lineapy
@@ -33,7 +35,7 @@ removes extraneous code to give you the simplest version of a variable's history
     # Try an alternative display
     alt_text = text.split()
 
-Now, let’s say we have reached the end of our programming session and decided that we like
+Now, we have reached the end of our development session and decided that we like
 what we see when we ``print(text)``. As shown above, ``text`` has gone through different
 modifications, and it might not be clear how it reached its final state especially given other
 extraneous operations between these modifications. We can cut through this by running:
