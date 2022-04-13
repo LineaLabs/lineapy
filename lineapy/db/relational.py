@@ -37,7 +37,6 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
-    UniqueConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
