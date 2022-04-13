@@ -36,6 +36,11 @@
         - views:
             - result: RESULT
             - positional_argument_index: 0
+    - criteria:
+        function_name: l_import
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 1
 
 - module: builtins
   annotations:

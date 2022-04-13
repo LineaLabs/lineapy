@@ -36,7 +36,7 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
-from lineapy.utils.lineabuiltins import l_tuple
+from lineapy.utils.lineabuiltins import l_import, l_tuple
 from lineapy.utils.utils import get_lib_package_version, get_new_id
 
 logger = logging.getLogger(__name__)
@@ -55,6 +55,9 @@ class Tracer:
     tracer_context: TracerContext = field(init=False)
     executor: Executor = field(init=False)
     mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
+
+    # Mapping of module name to node of module.
+    # modules: Dict[str, LineaID] = {}
 
     def __post_init__(
         self,
@@ -257,6 +260,125 @@ class Tracer:
             )
             self.process_node(new_node)
             return new_node
+
+    def import_module(
+        self,
+        name: str,
+        as_: str,
+        source_location: Optional[SourceLocation] = None,
+    ) -> LineaID:
+        """
+        Import a module. If we have already imported it, just return its ID.
+        Otherwise, create new module nodes for each submodule in its parents and return it.
+        """
+        if name in self.modules:
+            return self.modules[name]
+        # Recursively go up the tree, to try to get parents, and if we don't have them, import them
+        *parents, module_name = name.split(".")
+        if parents:
+            self.import_module(".".join(parents), as_, source_location)
+            node = self.call(
+                self.lookup_node(l_import.__name__),
+                source_location,
+                self.literal(module_name),
+                self.lookup_node(parents),
+            )
+        else:
+            node = self.call(
+                self.lookup_node(l_import.__name__),
+                source_location,
+                self.literal(module_name),
+            )
+
+        self.assign(
+            as_
+            if as_
+            else name,  # TODO replace dots with undescore? for lib names
+            node,
+        )
+        self.modules[name and as_] = node.id
+        self.variable_name_to_node[as_ or name] = node
+        library = Library(node.id, name=name or as_)
+        # also need to modify the session_context because of weird executor
+        #   requirement; should prob refactor later
+        # and we cannot just modify the runtime value because
+        #   it's already written to disk
+        self.db.add_lib_to_session_context(self.get_session_id(), library)
+        return node.id
+
+    # def handle_import(self, module_name: str) -> None:
+    #     """
+    #     Load the module `x.y` and set the base module.
+    #     """
+    #     self.import_module(module_name)
+    #     base_module = module_name.split(".")[0]
+    #     self.assign(base_module, self.import_module(base_module))
+
+    # def handle_import(self, module_name: str, as_: str) -> None:
+    #     """
+    #     Import the full module and set it to the name
+    #     """
+    #     self.assign(as_, self.import_module(module_name))
+
+    # def handle_from_import(self, module_name: str, from_: str, as_: str = None) -> None:
+    #     """
+    #
+    #     from x import y
+    #     from x import y as a
+    #     from x.y import z
+    #     from x.y import z as a
+    #
+    #     If `x.y` is a module, load that, otherwise get the `y` attribute of `x`.
+    #     """
+    #
+    #     """
+    #     if from is * then import the module, get all public attributes, and set them as globals
+    #     from x import *
+    #     from x.y import *
+    #     """
+    #     if from_ == IMPORT_STAR:
+    #         module_node = self.import_module(module_name)
+    #         module_value = self.executor.get_value(module_node.id)
+    #         # Import star behavior copied from python docs
+    #         # https://docs.python.org/3/reference/simple_stmts.html#the-import-statement
+    #         if hasattr(module_value, "__all__"):
+    #             public_names = module_value.__all__  # type: ignore
+    #         else:
+    #             public_names = [
+    #                 attr
+    #                 for attr in dir(module_value)
+    #                 if not attr.startswith("_")
+    #             ]
+    #         attributes = {attr: attr for attr in public_names}
+    #
+    #         for attr in attributes:
+    #             self.assign(attr, self.call("getattr", module_node, attr))
+    #         return
+    #
+    #     complete_name = f"{module_name}.{from_}"
+    #     if is_module(complete_name):
+    #         value = self.import_module(complete_name)
+    #     else:
+    #         value = self.call(
+    #             "getattr", self.import_module(module_name), from_)
+    #     self.assign(from_, value)
+    #
+    # def handle_import(self, module_name: str) -> None:
+    #     """
+    #     Import the module, get all public attributes, and set them as globals
+    #     """
+    #     module_node = self.import_module(module_name)
+    #     module = self.executor.get_value(module_node.id)
+    #     for attr in get_public_attributes(module):
+    #         self.assign(attr, self.call("getattr", module_node, attr))
+    #
+    # def handle_import(self, module_name: str) -> None:
+    #     """
+    #     Load the module `x.y` and set the base module.
+    #     """
+    #     self.import_module(module_name)
+    #     base_module = module_name.split(".")[0]
+    #     self.assign(base_module, self.import_module(base_module))
 
     def trace_import(
         self,
