@@ -96,7 +96,7 @@ pdbpp==0.10.3
 pexpect==4.8.0
 pg==0.1
 pickleshare==0.7.5
-Pillow==9.1.0
+Pillow==9.0.0
 platformdirs==2.5.1
 pluggy==1.0.0
 pre-commit==2.18.1
@@ -161,6 +161,7 @@ tornado==6.1
 traitlets==5.1.1
 typed-ast==1.5.2
 types-PyYAML==6.0.5
+types-requests==2.27.16
 typing_extensions==4.1.1
 urllib3==1.26.9
 virtualenv==20.14.0
