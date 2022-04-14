@@ -170,6 +170,7 @@ pip install -e ".[dev]"
 pip freeze --exclude-editable >> requirements.txt # so that lineapy is not in the list
 ```
 
+Be sure to remove any weird versions due to Conda installations.
 Note that longer term, we want to make this more automated.
 
 G. Commit your code

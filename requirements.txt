@@ -6,7 +6,6 @@ argon2-cffi-bindings==21.2.0
 astor==0.8.1
 astpretty==2.1.0
 asttokens==2.0.5
-attrs @ file:///opt/conda/conda-bld/attrs_1642510447205/work
 Babel==2.9.1
 backcall==0.2.0
 beautifulsoup4==4.11.1
@@ -45,9 +44,7 @@ greenlet==1.1.2
 identify==2.4.12
 idna==3.3
 imagesize==1.3.0
-importlib-metadata @ file:///tmp/build/80754af9/importlib-metadata_1648562407465/work
 importlib-resources==5.7.0
-iniconfig @ file:///home/linux1/recipes/ci/iniconfig_1610983019677/work
 ipykernel==6.13.0
 ipython==7.32.0
 ipython-genutils==0.2.0
@@ -84,7 +81,6 @@ nodeenv==1.6.0
 notebook==6.4.10
 notebook-shim==0.1.0
 numpy==1.21.6
-packaging @ file:///tmp/build/80754af9/packaging_1637314298585/work
 pandas==1.3.5
 pandocfilters==1.5.0
 parso==0.8.3
@@ -97,14 +93,12 @@ pg==0.1
 pickleshare==0.7.5
 Pillow==9.1.0
 platformdirs==2.5.1
-pluggy @ file:///tmp/build/80754af9/pluggy_1648042572264/work
 pre-commit==2.18.1
 prometheus-client==0.14.1
 prompt-toolkit==3.0.29
 psutil==5.9.0
 psycopg2==2.9.3
 ptyprocess==0.7.0
-py @ file:///opt/conda/conda-bld/py_1644396412707/work
 pycodestyle==2.8.0
 pycparser==2.21
 pydantic==1.9.0
@@ -162,7 +156,6 @@ typed-ast==1.5.2
 types-PyYAML==6.0.5
 types-requests==2.27.16
 types-urllib3==1.26.11
-typing_extensions @ file:///opt/conda/conda-bld/typing_extensions_1647553014482/work
 urllib3==1.26.9
 virtualenv==20.14.1
 wcwidth==0.2.5
