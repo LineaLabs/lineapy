@@ -69,12 +69,12 @@ git submodule update --init --recursive .
 #### Conda
 
 ```bash
-conda create --name lineapy python=3.9 \
+conda create --name lineapy python=3.7 \ # a lower version of Python to make sure that it's compatible
     postgresql \
     graphviz \
-    cmake # needed for building deps of numpy tutorial on mac
+    cmake # needed for building deps of numpy tutorial on mac (can remove if you are not running)
 conda activate lineapy
-pip install -r requirements.txt
+pip install -r requirements.txt # for dev
 pip install -e .
 
 # verify everything works as expected
@@ -158,7 +158,20 @@ the latest, run `pre-commit autoupdate`.
 
 E. finally run tests `pytest tests`
 
-F. Repeat steps B-E until there are no more errors
+F. Repeat steps B-E until there are no more errors. If you have added any new
+libraries as part of your change, then you need to run the following commands to
+reset `requirements.txt`. For this, you need to
+be running on Python 3.7 (note that the earlier installation commands were
+for Python 3.9).
+
+```bash
+pip uninstall -y `pip freeze` # don't run on base
+pip install -e ".[dev]" 
+pip freeze --exclude-editable >> requirements.txt # so that lineapy is not in the list
+```
+
+Be sure to remove any weird versions due to Conda installations.
+Note that longer term, we want to make this more automated.
 
 G. Commit your code
 
@@ -345,6 +358,8 @@ Downgrading to 0.7.0 solves the issue - simply change the fastparquet version in
 Another heuristic is that when installing with pip fails, you can try installing
 using conda, sometimes they have better M1 support---M1 installation is still a
 bit of trials and error.
+
+If you have weird issues with pytest, try `conda install pytest`.
 
 ### 4.3. Using venv instead of Conda
 

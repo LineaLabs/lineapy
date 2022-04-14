@@ -40,7 +40,7 @@ import_2 = ImportNode(
         source_code=source_1.id,
     ),
     name="numpy",
-    version="1.21.5",
+    version="1.21.6",
     package_name="numpy",
 )
 call_5 = CallNode(
