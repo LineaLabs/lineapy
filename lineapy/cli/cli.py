@@ -114,7 +114,7 @@ def notebook(
         date_created=artifact.date_created,
     )
     api_artifact.version = artifact.version or VERSION_PLACEHOLDER
-    logger.info(api_artifact.code)
+    logger.info(api_artifact.get_code())
 
 
 @linea_cli.command()
@@ -163,7 +163,7 @@ def file(
         date_created=artifact.date_created,
     )
     api_artifact.version = artifact.version or VERSION_PLACEHOLDER
-    logger.info(api_artifact.code)
+    logger.info(api_artifact.get_code())
 
 
 def generate_save_code(

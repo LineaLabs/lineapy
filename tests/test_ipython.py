@@ -27,14 +27,14 @@ def test_slice(run_cell):
     assert run_cell("y = 10") is None
     assert run_cell(f"x=a[0]\na = lineapy.{save.__name__}(x, 'x')") is None
 
-    assert run_cell("a.code") == "a = [1, 2, 3]\nx=a[0]\n"
+    assert run_cell("a.get_code()") == "a = [1, 2, 3]\nx=a[0]\n"
 
 
 def test_slice_artifact_inline(run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     assert (
-        run_cell("res.code")
+        run_cell("res.get_code()")
         == """a = [1, 2, 3]
 """
     )
@@ -121,8 +121,8 @@ res = lineapy.get("deferencedy")
     assert run_cell(code_body) is None
     assert run_cell(artifact_f_save) is None
     assert (
-        run_cell("res.session_code")
-        == importl + code_body + artifact_f_save + "res.session_code\n"
+        run_cell("res.get_session_code()")
+        == importl + code_body + artifact_f_save + "res.get_session_code()\n"
     )
     assert (
         run_cell(

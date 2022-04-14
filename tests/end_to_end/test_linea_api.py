@@ -2,7 +2,7 @@ def test_save_returns_artifact(execute):
     c = """import lineapy
 x = 1
 res = lineapy.save(x, "x")
-slice = res.code
+slice = res.get_code()
 value = res.value
 """
 
