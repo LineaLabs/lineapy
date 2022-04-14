@@ -58,7 +58,7 @@ setup(
     # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
     entry_points={"console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"]},
     install_requires=[
-        "Pillow",
+        "Pillow>=9.0.1", # for security reasons
         "astor",
         "click>=8.0.0",
         "pydantic",

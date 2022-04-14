@@ -77,7 +77,7 @@ call_5 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="numpy",
-                version="1.21.5",
+                version="1.21.6",
                 package_name="numpy",
             ).id,
             LiteralNode(
