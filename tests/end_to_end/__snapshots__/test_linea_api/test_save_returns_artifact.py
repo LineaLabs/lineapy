@@ -7,7 +7,7 @@ source_1 = SourceCode(
     code="""import lineapy
 x = 1
 res = lineapy.save(x, "x")
-slice = res.code
+slice = res.get_code()
 value = res.value
 """,
     location=PosixPath("[source file path]"),
@@ -72,25 +72,34 @@ call_2 = CallNode(
         ).id,
     ],
 )
-call_3 = CallNode(
+call_4 = CallNode(
     source_location=SourceLocation(
         lineno=4,
         col_offset=8,
         end_lineno=4,
-        end_col_offset=16,
+        end_col_offset=22,
         source_code=source_1.id,
     ),
-    function_id=LookupNode(
-        name="getattr",
-    ).id,
-    positional_args=[
-        call_2.id,
-        LiteralNode(
-            value="code",
+    function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=4,
+            col_offset=8,
+            end_lineno=4,
+            end_col_offset=20,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="getattr",
         ).id,
-    ],
+        positional_args=[
+            call_2.id,
+            LiteralNode(
+                value="get_code",
+            ).id,
+        ],
+    ).id,
 )
-call_4 = CallNode(
+call_5 = CallNode(
     source_location=SourceLocation(
         lineno=5,
         col_offset=8,
