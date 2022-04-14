@@ -58,7 +58,6 @@ class AirflowPlugin(BasePlugin):
         AIRFLOW_DAG_TEMPLATE = load_plugin_template("airflow_dag.jinja")
         airflow_dag_config = airflow_dag_config or {}
 
-        print(task_graph.get_airflow_dependency())
         full_code = AIRFLOW_DAG_TEMPLATE.render(
             DAG_NAME=dag_name,
             OWNER=airflow_dag_config.get("owner", "airflow"),

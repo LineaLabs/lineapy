@@ -53,6 +53,9 @@ class TaskGraph(object):
                     n1s = (n1s,)
                 self.graph.add_edges_from(product(n0s, n1s))
         else:
+            # parsing the other format to our tuple-based format
+            # note that nesting is not allowed (enforced by the type signature)
+            # per the spec in https://docs.python.org/3/library/graphlib.html
             edges = list(
                 chain.from_iterable(
                     ((node, to_node) for node in from_node)
