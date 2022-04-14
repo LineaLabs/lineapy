@@ -154,7 +154,7 @@ which contains many examples you can follow with. Some key resources include:
 | **[Contribute]** | Want to contribute? These instructions will help you get set up! |
 | **[Slack]** | Have questions or issues unresolved? Join our community and ask away! |
 
-[Docs]: https://lineapy.org/docs
+[Docs]: https://docs.lineapy.org/en/latest/index.html
 [Concepts]: https://lineapy.org/docs/fundamentals/concepts.html
 [Tutorials]: https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials
 [Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use-cases
