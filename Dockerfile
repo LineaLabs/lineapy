@@ -13,7 +13,7 @@ WORKDIR /usr/src/base
 COPY ./setup.py ./
 COPY ./README.md ./
 COPY ./lineapy/__init__.py ./lineapy/
-COPY ./dev-requirements.txt ./
+COPY ./requirements.txt ./
 COPY ./airflow-requirements.txt ./
 COPY ./Makefile ./
 
