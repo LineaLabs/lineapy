@@ -1,0 +1,13 @@
+{% extends "base_dag.jinja" %}
+
+{% block plugin_import_block %}
+import {{ DAG_NAME }}
+{% endblock %}
+
+{% block plugin_tasks_block %}
+if __name__ == "__main__":
+    {% for TASK_NAME in tasks %}
+    {{ DAG_NAME }}.{{ TASK_NAME }}()
+    {% endfor %}
+{% endblock %}
+

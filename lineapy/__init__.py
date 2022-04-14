@@ -1,6 +1,6 @@
 import atexit
 
-from lineapy.api.api import catalog, get, save, to_airflow
+from lineapy.api.api import catalog, get, save, to_pipeline
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
 from lineapy.editors.ipython import start, stop, visualize
@@ -14,7 +14,7 @@ __all__ = [
     "save",
     "get",
     "catalog",
-    "to_airflow",
+    "to_pipeline",
     "SessionType",
     "ValueType",
     "_is_executing",
