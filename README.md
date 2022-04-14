@@ -144,6 +144,20 @@ text = text + " World!"
 Note that these are the minimal essential steps to get to the final state of the variable `text`.
 That is, LineaPy has performed code cleanup on our behalf.
 
+
+## Usage Reporting
+
+LineaPy collects anonymous usage data that helps our team to improve the product.
+Only LineaPy's API calls and CLI commands are being reported.
+We strip out as much potentially sensitive information as possible, and we will
+never collect user code, data, variable names, or stack traces.
+
+You can opt-out of usage tracking by setting environment variable:
+
+```bash
+export LINEAPY_DO_NOT_TRACK=True
+```
+
 ## What Next?
 
 To learn more about LineaPy, please check out the project [documentation](https://lineapy.org/docs)
@@ -166,3 +180,4 @@ which contains many examples you can follow with. Some key resources include:
 [API Reference]: https://lineapy.org/docs/references/api_reference.html
 [Contribute]: https://lineapy.org/docs/references/development.html
 [Slack]: https://lineacommunity.slack.com
+
