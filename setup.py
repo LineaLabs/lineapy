@@ -101,6 +101,7 @@ setup(
             "pre-commit",
             "SQLAlchemy[mypy]>=1.4.0",
             "sphinx",
+            "nbsphinx",
             "sphinx_rtd_theme",
             "types-PyYAML",
             "types-requests",  # to satisfy mypy
