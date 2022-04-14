@@ -17,8 +17,9 @@ def exec_and_record_function_calls(
     logger.debug("Execing code")
     trace_func = TraceFunc(code)
     try:
-        settrace(trace_func)
-        exec(code, globals_)
+        # settrace(trace_func)
+        # exec(code, globals_)
+        pass
     # Always stop tracing even if exception raised
     finally:
         settrace(None)

@@ -255,20 +255,15 @@ class NodeTransformer(ast.NodeTransformer):
         Similar to `visit_ImportFrom`, slightly different class syntax
         """
         for lib in node.names:
-            self.tracer.import_module(
+            self.tracer.trace_import_module(
                 lib.name,
-                lib.asname,
-                self.get_source(node)
+                self.get_source(node),
+                alias=lib.asname,
             )
-            # self.tracer.trace_import(
-            #     lib.name,
-            #     self.get_source(node),
-            #     alias=lib.asname,
-            # )
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         assert node.module
-        self.tracer.trace_import(
+        self.tracer.trace_import_module(
             node.module,
             self.get_source(node),
             attributes=create_lib_attributes(node.names),

@@ -57,7 +57,7 @@ class Tracer:
     mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
 
     # Mapping of module name to node of module.
-    # modules: Dict[str, LineaID] = {}
+    # modules: Dict[str, LineaID] = field(default_factory=dict)
 
     def __post_init__(
         self,
@@ -264,24 +264,26 @@ class Tracer:
     def import_module(
         self,
         name: str,
-        as_: str,
         source_location: Optional[SourceLocation] = None,
-    ) -> LineaID:
+    ) -> Node:
         """
         Import a module. If we have already imported it, just return its ID.
         Otherwise, create new module nodes for each submodule in its parents and return it.
         """
-        if name in self.modules:
-            return self.modules[name]
+        if name in self.variable_name_to_node:
+            return self.variable_name_to_node[name]
         # Recursively go up the tree, to try to get parents, and if we don't have them, import them
         *parents, module_name = name.split(".")
         if parents:
-            self.import_module(".".join(parents), as_, source_location)
+            parent_module = self.import_module(
+                ".".join(parents),
+                source_location,
+            )
             node = self.call(
                 self.lookup_node(l_import.__name__),
                 source_location,
                 self.literal(module_name),
-                self.lookup_node(parents),
+                parent_module,
             )
         else:
             node = self.call(
@@ -289,36 +291,66 @@ class Tracer:
                 source_location,
                 self.literal(module_name),
             )
+        self.variable_name_to_node[name] = node
+        return node
 
-        self.assign(
-            as_
-            if as_
-            else name,  # TODO replace dots with undescore? for lib names
-            node,
-        )
-        self.modules[name and as_] = node.id
-        self.variable_name_to_node[as_ or name] = node
-        library = Library(node.id, name=name or as_)
-        # also need to modify the session_context because of weird executor
-        #   requirement; should prob refactor later
-        # and we cannot just modify the runtime value because
-        #   it's already written to disk
-        self.db.add_lib_to_session_context(self.get_session_id(), library)
-        return node.id
+    def trace_import_module(
+        self,
+        name: str,
+        source_location: Optional[SourceLocation] = None,
+        alias: Optional[str] = None,
+        attributes: Optional[Dict[str, str]] = None,
+    ) -> None:
+        """
+        - `name`: the name of the module
+        - `alias`: the module could be aliased, e.g., import pandas as pd
+        - `attributes`: a list of functions imported from the library.
+           It keys the aliased name to the original name.
 
-    # def handle_import(self, module_name: str) -> None:
-    #     """
-    #     Load the module `x.y` and set the base module.
-    #     """
-    #     self.import_module(module_name)
-    #     base_module = module_name.split(".")[0]
-    #     self.assign(base_module, self.import_module(base_module))
+        NOTE
+        ----
+        - The input args would _either_ have alias or attributes, but not both
+        - Didn't call the function import because I think that's a protected name
 
-    # def handle_import(self, module_name: str, as_: str) -> None:
-    #     """
-    #     Import the full module and set it to the name
-    #     """
-    #     self.assign(as_, self.import_module(module_name))
+        note that version and path will be introspected at runtime
+        """
+        if alias:
+            node = self.import_module(name, source_location)
+            self.assign(
+                alias,
+                node,
+            )
+        elif attributes:
+            if IMPORT_STAR in attributes:
+                """
+                Import the module, get all public attributes, and set them as globals
+                """
+                module_node = self.import_module(name)
+                module = self.executor.get_value(module_node.id)
+                # for attr in get_public_attributes(module):
+                #     self.assign(attr, self.call("getattr", module_node, attr))
+            else:
+                """
+                load module `x`, check if `y` is an attribute of `x`, otherwise load `x.y`
+                If `x.y` is a module, load that, otherwise get the `y` attribute of `x`.
+                """
+                node = self.import_module(name)
+                for alias, from_ in attributes.items():
+                    full_name = f"{name}.{from_}"
+
+                    # if is_module(complete_name):
+                    #     value = self.import_module(complete_name)
+                    # else:
+                    #     value = self.call(
+                    #         "getattr", self.import_module(base), from_
+                    #     )
+                    # self.assign(from_, value)
+
+        else:
+            self.import_module(name, source_location)
+            base_module = name.split(".")[0]
+            node = self.import_module(base_module)
+            self.assign(base_module, node)
 
     # def handle_from_import(self, module_name: str, from_: str, as_: str = None) -> None:
     #     """
@@ -363,22 +395,6 @@ class Tracer:
     #             "getattr", self.import_module(module_name), from_)
     #     self.assign(from_, value)
     #
-    # def handle_import(self, module_name: str) -> None:
-    #     """
-    #     Import the module, get all public attributes, and set them as globals
-    #     """
-    #     module_node = self.import_module(module_name)
-    #     module = self.executor.get_value(module_node.id)
-    #     for attr in get_public_attributes(module):
-    #         self.assign(attr, self.call("getattr", module_node, attr))
-    #
-    # def handle_import(self, module_name: str) -> None:
-    #     """
-    #     Load the module `x.y` and set the base module.
-    #     """
-    #     self.import_module(module_name)
-    #     base_module = module_name.split(".")[0]
-    #     self.assign(base_module, self.import_module(base_module))
 
     def trace_import(
         self,
