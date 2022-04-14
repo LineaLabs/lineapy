@@ -6,6 +6,7 @@ Welcome to LineaPy!
 
    fundamentals/intro
    fundamentals/setup
+   fundamentals/interfaces
    fundamentals/quickstart
    fundamentals/concepts
 
