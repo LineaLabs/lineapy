@@ -53,23 +53,25 @@ def do_not_track() -> bool:
 
 
 def _send_amplitude_event(event_type, event_properties):
-    event = [
+    events = [
         {
             "event_type": event_type,
             "user_id": _session_id(),
             "event_properties": event_properties,
         }
     ]
-    event_dump = json.dumps(event)
-    event_data = {"api_key": _api_key(), "event": event_dump}
+    event_data = {"api_key": _api_key(), "events": events}
+    headers = {"Content-Type": "application/json", "Accept": "*/*"}
 
     # also append to a local file for sanity checking
     with open(linea_folder() / LOG_FILE_NAME, "a+") as f:
-        f.write(event_dump + "\n")
+        f.write(json.dumps(events) + "\n")
 
     # send to amplitude
     try:
-        return requests.post(_amplitude_url(), data=event_data, timeout=1)
+        return requests.post(
+            _amplitude_url(), json=event_data, headers=headers, timeout=1
+        )
     except Exception as err:
         # silently fail since this error does not concern end users
         logger.debug(f"Tracking Error: {str(err)}")
