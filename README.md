@@ -53,6 +53,11 @@ Or, if using `poetry`, run:
 $ poetry add lineapy
 ```
 
+Or, if you want the latest version of LineaPy directly from the source, run:
+```
+python -m pip install git+https://github.com/LineaLabs/lineapy.git
+```
+
 ### Interfaces
 
 #### Jupyter and IPython
