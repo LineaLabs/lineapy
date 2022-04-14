@@ -90,7 +90,7 @@ x = sqrt(4)
     assert res.values["x"] == 2.0
 
 
-@pytest.mark.xfail(reason="import submodule")
+# @pytest.mark.xfail(reason="import submodule")
 class TestSubmodule:
     def test_from(self, execute):
         """

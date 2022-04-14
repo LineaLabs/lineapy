@@ -314,40 +314,50 @@ class Tracer:
 
         note that version and path will be introspected at runtime
         """
+        module_node = self.import_module(name, source_location)
         if alias:
-            node = self.import_module(name, source_location)
             self.assign(
                 alias,
-                node,
+                module_node,
             )
         elif attributes:
+            module_value = self.executor.get_value(module_node.id)
             if IMPORT_STAR in attributes:
                 """
                 Import the module, get all public attributes, and set them as globals
                 """
-                module_node = self.import_module(name)
-                module = self.executor.get_value(module_node.id)
-                # for attr in get_public_attributes(module):
-                #     self.assign(attr, self.call("getattr", module_node, attr))
-            else:
-                """
-                load module `x`, check if `y` is an attribute of `x`, otherwise load `x.y`
-                If `x.y` is a module, load that, otherwise get the `y` attribute of `x`.
-                """
-                node = self.import_module(name)
-                for alias, from_ in attributes.items():
-                    full_name = f"{name}.{from_}"
-
-                    # if is_module(complete_name):
-                    #     value = self.import_module(complete_name)
-                    # else:
-                    #     value = self.call(
-                    #         "getattr", self.import_module(base), from_
-                    #     )
-                    # self.assign(from_, value)
+                # Import star behavior copied from python docs
+                # https://docs.python.org/3/reference/simple_stmts.html#the-import-statement
+                if hasattr(module_value, "__all__"):
+                    public_names = module_value.__all__  # type: ignore
+                else:
+                    public_names = [
+                        attr
+                        for attr in dir(module_value)
+                        if not attr.startswith("_")
+                    ]
+                attributes = {attr: attr for attr in public_names}
+            """
+            load module `x`, check if `y` is an attribute of `x`, otherwise load `x.y`
+            If `x.y` is a module, load that, otherwise get the `y` attribute of `x`.
+            """
+            for alias, attr_or_module in attributes.items():
+                if hasattr(module_value, attr_or_module):
+                    self.assign(
+                        alias,
+                        self.call(
+                            self.lookup_node(GETATTR),
+                            source_location,
+                            module_node,
+                            self.literal(attr_or_module),
+                        ),
+                    )
+                else:
+                    full_name = f"{name}.{attr_or_module}"
+                    sub_module_node = self.import_module(full_name)
+                    self.assign(alias, sub_module_node)
 
         else:
-            self.import_module(name, source_location)
             base_module = name.split(".")[0]
             node = self.import_module(base_module)
             self.assign(base_module, node)
