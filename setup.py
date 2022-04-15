@@ -10,7 +10,7 @@ from setuptools import find_packages, setup
 this_directory = Path(__file__).parent
 LONG_DESCRIPTION = (this_directory / "README.md").read_text()
 
-DESCRIPTION = ""
+DESCRIPTION = "Data engineering, simplified. LineaPy creates a frictionless path for taking your data science artifact from development to production."
 NAME = "lineapy"
 AUTHOR = "linealabs"
 AUTHOR_EMAIL = "dev@lineapy.org"
