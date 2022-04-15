@@ -12,7 +12,7 @@ workflow, an artifact can be a model, a chart, a statistic, a dataframe, or a fe
 
 What makes LineaPy special is that it treats an artifact as both code and value. That is, when storing an artifact,
 LineaPy not only records the state (i.e. value) of the variable but also traces and saves all relevant operations
-leading to this state --- as code. Such a complete development history or lineage then allows LineaPy to fully reproduce
+leading to this state --- as code. Such a complete development history or *lineage* then allows LineaPy to fully reproduce
 the given artifact. Furthermore, it provides the ground to automate certain code transformations (e.g., building
 pipelines that can be scheduled and monitored), which reduces the gap between development and production.
 
