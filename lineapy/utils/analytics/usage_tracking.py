@@ -49,7 +49,7 @@ def _session_id():
 
 @lru_cache(maxsize=1)
 def do_not_track() -> bool:
-    return os.environ.get("LINEA_DO_NOT_TRACK", str(False)).lower() == "true"
+    return os.environ.get("LINEAPY_DO_NOT_TRACK", str(False)).lower() == "true"
 
 
 def _send_amplitude_event(event_type, event_properties):

@@ -8,6 +8,7 @@ from lineapy.cli.cli import setup_ipython_dir
 # tested in `./examples` use this plugin
 def pytest_configure(config):
     setup_ipython_dir()
+    os.environ["LINEAPY_DO_NOT_TRACK"] = "true"
     os.environ["AIRFLOW_HOME"] = "/tmp/airflow_home"
 
 
