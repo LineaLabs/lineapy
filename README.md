@@ -154,7 +154,7 @@ never collect user code, data, variable names, or stack traces.
 You can opt-out of usage tracking by setting environment variable:
 
 ```bash
-$ export LINEAPY_DO_NOT_TRACK=True
+$ export LINEAPY_DO_NOT_TRACK=true
 ```
 
 ## What Next?

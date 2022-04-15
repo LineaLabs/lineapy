@@ -61,4 +61,4 @@ jobs:
           extra_args: ${{ matrix.id }} --all-files
 
 env:
-   LINEA_DO_NOT_TRACK: true
+   LINEAPY_DO_NOT_TRACK: true
