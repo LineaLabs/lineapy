@@ -27,7 +27,6 @@ from lineapy.utils.analytics import (
     GetVersionEvent,
     track,
 )
-from lineapy.utils.constants import VERSION_PLACEHOLDER
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +45,8 @@ class LineaArtifact:
     """session id of the session that created the artifact"""
     name: str
     """name of the artifact"""
+    _version: str
+    """version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`"""
     date_created: Optional[datetime] = field(default=None, repr=False)
     # setting repr to false for date_created for now since it duplicates version
     """Optional because date_created cannot be set by the user. 
@@ -54,9 +55,7 @@ class LineaArtifact:
     the first time, it will be unset. When you get the artifact or 
     catalog of artifacts, we retrieve the date from db and 
     it will be set."""
-    _version: str
-    """version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`"""
-
+    
     @property
     def version(self) -> str:
         track(GetVersionEvent(""))
