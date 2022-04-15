@@ -362,50 +362,6 @@ class Tracer:
             node = self.import_module(base_module)
             self.assign(base_module, node)
 
-    # def handle_from_import(self, module_name: str, from_: str, as_: str = None) -> None:
-    #     """
-    #
-    #     from x import y
-    #     from x import y as a
-    #     from x.y import z
-    #     from x.y import z as a
-    #
-    #     If `x.y` is a module, load that, otherwise get the `y` attribute of `x`.
-    #     """
-    #
-    #     """
-    #     if from is * then import the module, get all public attributes, and set them as globals
-    #     from x import *
-    #     from x.y import *
-    #     """
-    #     if from_ == IMPORT_STAR:
-    #         module_node = self.import_module(module_name)
-    #         module_value = self.executor.get_value(module_node.id)
-    #         # Import star behavior copied from python docs
-    #         # https://docs.python.org/3/reference/simple_stmts.html#the-import-statement
-    #         if hasattr(module_value, "__all__"):
-    #             public_names = module_value.__all__  # type: ignore
-    #         else:
-    #             public_names = [
-    #                 attr
-    #                 for attr in dir(module_value)
-    #                 if not attr.startswith("_")
-    #             ]
-    #         attributes = {attr: attr for attr in public_names}
-    #
-    #         for attr in attributes:
-    #             self.assign(attr, self.call("getattr", module_node, attr))
-    #         return
-    #
-    #     complete_name = f"{module_name}.{from_}"
-    #     if is_module(complete_name):
-    #         value = self.import_module(complete_name)
-    #     else:
-    #         value = self.call(
-    #             "getattr", self.import_module(module_name), from_)
-    #     self.assign(from_, value)
-    #
-
     def trace_import(
         self,
         name: str,

@@ -66,7 +66,8 @@ def is_mutable(obj: object) -> bool:
         IOBase,
     )
     if "sklearn.base" in sys.modules:
-        mutable_hashable_types += (sys.modules["sklearn.base"].BaseEstimator,)  # type: ignore
+        # type: ignore
+        mutable_hashable_types += (sys.modules["sklearn.base"].BaseEstimator,)
 
     # Special case some mutable hashable types
     if isinstance(obj, mutable_hashable_types):
@@ -170,7 +171,6 @@ def process_side_effect(
         new_side_effect.views = list(
             filter(lambda x: is_reference_mutable(x), new_side_effect.views)
         )
-
         # If we don't have at least two items to view each other, skip this one
         if len(new_side_effect.views) < 2:
             return None

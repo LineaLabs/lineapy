@@ -80,7 +80,6 @@
         - views:
             - positional_argument_index: 0
             - result: RESULT
-
     - criteria:
         # these methods take an argument
         class_method_names:
