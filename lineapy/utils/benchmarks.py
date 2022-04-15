@@ -11,7 +11,6 @@ from math import sqrt
 from statistics import mean, variance
 from typing import List
 
-
 __all__ = ["distribution_change"]
 
 
@@ -153,4 +152,4 @@ def format_percent(percent: float) -> str:
 
 
 def square(x: float) -> float:
-    return x ** 2
+    return x**2
