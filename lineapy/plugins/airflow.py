@@ -49,7 +49,7 @@ class AirflowPlugin(BasePlugin):
         :param dag_name: Name of the DAG and the python file it is saved in
         :param task_dependencies: Tasks dependencies in graphlib format
             {'B':{'A','C'}}"; this means task A and C are prerequisites for
-            task C.
+            task B.
         :param airflow_dag_config: Configs of Airflow DAG model. See
             https://airflow.apache.org/_api/airflow/models/dag/index.html#airflow.models.dag.DAG
             for the full spec.
