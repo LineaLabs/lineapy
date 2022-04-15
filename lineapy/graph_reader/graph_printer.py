@@ -100,6 +100,11 @@ class GraphPrinter:
                 yield ")"
             # If the node only has one successor, then save its body
             # as the attribute name, so its inlined when accessed.
+            if node.node_type == NodeType.ImportNode:
+                    if node.name == "lineapy":  # type: ignore
+                        # do not track version change, pin to 0.0.1
+                        node.version = "0.0.1"
+                
             if (
                 self.nest_nodes
                 and len(list(self.graph.nx_graph.successors(node_id))) == 1
@@ -109,10 +114,6 @@ class GraphPrinter:
                 )
 
             else:
-                if node.node_type == NodeType.ImportNode:
-                    if node.name == "lineapy":  # type: ignore
-                        # do not track version change, pin to 0.0.1
-                        node.version = "0.0.1"
                 yield f"{attr_name} = ("
                 yield from self.pretty_print_model(node)
                 yield ")"
