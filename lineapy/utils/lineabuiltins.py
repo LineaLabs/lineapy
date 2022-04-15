@@ -275,7 +275,7 @@ def l_import(
     full_name = base_module.__name__ + "." + name if base_module else name
     try:
         __import__(full_name)
-    except ImportError:
+    except ImportError:  # TODO: Is this the proper way to memic the default python behavior for importing invalid packages
         raise ModuleNotFoundError(
             f"ModuleNotFoundError: No module named '{full_name}'"
         )
