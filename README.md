@@ -172,10 +172,9 @@ which contains many examples you can follow with. Some key resources include:
 | **[Slack]** | Have questions or issues unresolved? Join our community and ask away! |
 
 [Docs]: https://docs.lineapy.org/en/latest/index.html
-[Concepts]: https://lineapy.org/docs/fundamentals/concepts.html
+[Concepts]: https://docs.lineapy.org/en/latest/fundamentals/concepts.html
 [Tutorials]: https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials
-[Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use-cases
-[API Reference]: https://lineapy.org/docs/references/api_reference.html
-[Contribute]: https://lineapy.org/docs/references/development.html
+[Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use_cases
+[API Reference]: https://docs.lineapy.org/en/latest/references/api_reference.html
+[Contribute]: https://github.com/LineaLabs/lineapy/blob/main/CONTRIBUTING.md
 [Slack]: https://lineacommunity.slack.com
-
