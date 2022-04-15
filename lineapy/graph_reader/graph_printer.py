@@ -101,9 +101,9 @@ class GraphPrinter:
             # If the node only has one successor, then save its body
             # as the attribute name, so its inlined when accessed.
             if node.node_type == NodeType.ImportNode:
-                if node.name == "lineapy":  # type: ignore
-                    # do not track version change, pin to 0.0.1
-                    node.version = "0.0.1"  # type: ignore
+                # if node.name == "lineapy":  # type: ignore
+                # do not track version change, pin to 0.0.1
+                node.version = ""  # type: ignore
 
             if (
                 self.nest_nodes

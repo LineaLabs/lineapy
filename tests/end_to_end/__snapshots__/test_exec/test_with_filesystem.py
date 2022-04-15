@@ -22,7 +22,7 @@ import_1 = ImportNode(
         source_code=source_1.id,
     ),
     name="lineapy",
-    version="0.0.1",
+    version="",
     package_name="lineapy",
 )
 call_2 = CallNode(
@@ -57,7 +57,7 @@ call_2 = CallNode(
                         source_code=source_1.id,
                     ),
                     name="tempfile",
-                    version="None",
+                    version="",
                     package_name="tempfile",
                 ).id,
                 LiteralNode(

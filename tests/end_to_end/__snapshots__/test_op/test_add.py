@@ -31,7 +31,7 @@ call_2 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="decimal",
-                version="1.70",
+                version="",
                 package_name="decimal",
             ).id,
             LiteralNode(

@@ -22,7 +22,7 @@ import_1 = ImportNode(
         source_code=source_1.id,
     ),
     name="lineapy",
-    version="0.0.1",
+    version="",
     package_name="lineapy",
 )
 literal_4 = LiteralNode(

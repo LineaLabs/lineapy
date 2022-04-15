@@ -51,7 +51,7 @@ call_5 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="matplotlib.pyplot",
-                version="3.5.1",
+                version="",
                 package_name="matplotlib",
             ).id,
             LiteralNode(
@@ -99,7 +99,7 @@ call_5 = CallNode(
                             source_code=source_1.id,
                         ),
                         name="pandas",
-                        version="1.3.5",
+                        version="",
                         package_name="pandas",
                     ).id,
                     LiteralNode(
@@ -152,7 +152,7 @@ call_11 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="lineapy",
-                version="0.0.1",
+                version="",
                 package_name="lineapy",
             ).id,
             LiteralNode(
@@ -203,7 +203,7 @@ call_11 = CallNode(
                                         source_code=source_1.id,
                                     ),
                                     name="PIL.Image",
-                                    version="9.1.0",
+                                    version="",
                                     package_name="PIL.Image",
                                 ).id,
                                 LiteralNode(

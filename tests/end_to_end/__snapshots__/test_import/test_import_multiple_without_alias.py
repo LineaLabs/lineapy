@@ -39,7 +39,7 @@ call_2 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="pandas",
-                version="1.3.5",
+                version="",
                 package_name="pandas",
             ).id,
             LiteralNode(
@@ -77,7 +77,7 @@ call_5 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="numpy",
-                version="1.21.6",
+                version="",
                 package_name="numpy",
             ).id,
             LiteralNode(

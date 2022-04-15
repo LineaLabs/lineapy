@@ -28,7 +28,7 @@ import_2 = ImportNode(
         source_code=source_1.id,
     ),
     name="pandas",
-    version="1.3.5",
+    version="",
     package_name="pandas",
 )
 mutate_1 = MutateNode(
@@ -416,7 +416,7 @@ call_21 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="lineapy",
-                version="0.0.1",
+                version="",
                 package_name="lineapy",
             ).id,
             LiteralNode(

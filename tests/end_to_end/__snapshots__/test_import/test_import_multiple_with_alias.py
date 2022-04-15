@@ -19,7 +19,7 @@ import_1 = ImportNode(
         source_code=source_1.id,
     ),
     name="math",
-    version="None",
+    version="",
     package_name="math",
 )
 call_4 = CallNode(

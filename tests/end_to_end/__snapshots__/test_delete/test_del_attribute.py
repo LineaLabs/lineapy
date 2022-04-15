@@ -36,7 +36,7 @@ call_2 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="types",
-                version="None",
+                version="",
                 package_name="types",
             ).id,
             LiteralNode(

@@ -24,7 +24,7 @@ import_1 = ImportNode(
         source_code=source_1.id,
     ),
     name="lineapy",
-    version="0.0.1",
+    version="",
     package_name="lineapy",
 )
 call_14 = CallNode(
@@ -125,7 +125,7 @@ call_14 = CallNode(
                                                     source_code=source_1.id,
                                                 ),
                                                 name="pandas",
-                                                version="1.3.5",
+                                                version="",
                                                 package_name="pandas",
                                             ).id,
                                             LiteralNode(
@@ -307,7 +307,7 @@ call_14 = CallNode(
                                                 source_code=source_1.id,
                                             ),
                                             name="sqlite3",
-                                            version="None",
+                                            version="",
                                             package_name="sqlite3",
                                         ).id,
                                         LiteralNode(
