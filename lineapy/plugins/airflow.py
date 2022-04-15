@@ -1,20 +1,15 @@
 import logging
-import os
 from pathlib import Path
 from typing import List, Optional
 
 import isort
 from typing_extensions import TypedDict
 
-from lineapy.graph_reader.program_slice import (
-    get_program_slice_by_artifact_name,
-)
 from lineapy.plugins.base import BasePlugin
 from lineapy.plugins.task import TaskGraph, TaskGraphEdge
+from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
-
-from .utils import load_plugin_template, safe_var_name
 
 logger = logging.getLogger(__name__)
 configure_logging()
@@ -83,65 +78,23 @@ class AirflowPlugin(BasePlugin):
         self,
         slice_names: List[str],
         module_name: Optional[str] = None,
-        airflow_task_dependencies: TaskGraphEdge = {},
+        task_dependencies: TaskGraphEdge = {},
         output_dir: Optional[str] = None,
         airflow_dag_config: Optional[AirflowDagConfig] = {},
     ):
-        """
-        Creates an Airflow DAG from the sliced code. This includes a python
-        file with one function per slice, task dependencies file in Airflow
-        format and an example Dockerfile and requirements.txt that can be used
-        to run this.
-
-        :param slice_names: list of slice names to be used as tasks.
-        :param module_name: name of the Pyhon module the generated code will
-            be saved to.
-        :param airflow_task_dependencies: tasks dependencies in graphlib format
-            {'B':{'A','C'}}"; this means task A and C are prerequisites for
-            task B.
-        :param output_dir: directory to save the generated code to.
-        :param airflow_dag_config: Configs of Airflow DAG model.
-        """
-
-        artifacts_code = {}
-        task_names = []
-        for slice_name in slice_names:
-            artifact_var = safe_var_name(slice_name)
-            slice_code = get_program_slice_by_artifact_name(
-                self.db, slice_name
-            )
-            artifacts_code[artifact_var] = slice_code
-            task_name = f"{artifact_var}"
-            task_names.append(task_name)
-
-        task_graph = TaskGraph(
-            slice_names,
-            {slice: task for slice, task in zip(slice_names, task_names)},
-            airflow_task_dependencies,
-        )
-
-        module_name = module_name or "_".join(slice_names)
-        output_dir_path = Path.cwd()
-        if output_dir:
-            output_dir_path = Path(os.path.expanduser(output_dir))
-            self.prepare_output_dir(
-                copy_dst=str(output_dir_path.resolve()),
-            )
-
-        logger.info(
-            "Pipeline source generated in the directory: %s", output_dir_path
-        )
-        self.generate_python_module(
-            module_name, artifacts_code, output_dir_path
+        (
+            module_name,
+            artifact_safe_names,
+            output_dir_path,
+            task_graph,
+        ) = self.slice_dag_helper(
+            slice_names, module_name, task_dependencies, output_dir
         )
         self.to_airflow(
             module_name,
-            task_names,
+            artifact_safe_names,
             output_dir_path,
             task_graph,
             airflow_dag_config,
-        )
-        self.generate_infra(
-            module_name=module_name, output_dir_path=output_dir_path
         )
         return output_dir_path
