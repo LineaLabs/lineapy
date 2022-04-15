@@ -34,8 +34,6 @@ information/product. For instance, a critical part of data science is training m
 predictions. Model building can be viewed as a pipeline as it involves a set of transformations onto the raw data,
 including 1) pre-processing and 2) model training.
 
-[[ Add a diagram showing transition from raw data to transformed data to model ]]
-
 Note that this pipeline is subject to multiple revisions in practice: we may want to use a new feature that can boost
 model performance, in which case we will need to update pre-processing and model training steps accordingly. Or, we may
 discover a better modeling strategy/framework to use, in which case we will need to refactor the pipeline as well.
