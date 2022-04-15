@@ -105,15 +105,16 @@ def notebook(
     # to not duplicate
     db = RelationalLineaDB.from_environment()
     artifact = db.get_artifact_by_name(artifact_name)
+    # FIXME: mypy issue with SQLAlchemy, see https://github.com/python/typeshed/issues/974
     api_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
         _node_id=artifact.node_id,
         _session_id=artifact.node.session_id,
+        _version=artifact.node.version,
         name=artifact_name,
-        date_created=artifact.date_created,
+        date_created=artifact.date_created,  # type: ignore
     )
-    api_artifact.version = artifact.version or VERSION_PLACEHOLDER
     logger.info(api_artifact.get_code())
 
 
@@ -153,16 +154,17 @@ def file(
         transform(code, path, tracer)
 
     # Print the slice:
+    # FIXME: weird indirection
     artifact = db.get_artifact_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
         _node_id=artifact.node_id,
         _session_id=artifact.node.session_id,
+        _version=artifact.version,  # type:ignore
         name=artifact_name,
-        date_created=artifact.date_created,
+        date_created=artifact.date_created,  # type:ignore
     )
-    api_artifact.version = artifact.version or VERSION_PLACEHOLDER
     logger.info(api_artifact.get_code())
 
 

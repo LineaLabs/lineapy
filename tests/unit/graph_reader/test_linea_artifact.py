@@ -13,6 +13,7 @@ def test_artifact_without_version_has_version():
         _execution_id=MagicMock(),
         _node_id=MagicMock(),
         _session_id=MagicMock(),
+        _version=MagicMock(),
         name="test_artifact_without_version_has_version",
     )
     assert artifact.version is not None
@@ -28,7 +29,7 @@ def test_with_named_version_has_version():
         _node_id=MagicMock(),
         _session_id=MagicMock(),
         name="test_with_named_version_same_as_default",
-        # version="2020-01-01T00:00:00",
+        _version="2020-01-01T00:00:00",
     )
     assert artifact.version == "2020-01-01T00:00:00"
 
@@ -38,6 +39,6 @@ def test_with_named_version_has_version():
         _node_id=MagicMock(),
         _session_id=MagicMock(),
         name="test_with_named_version",
-        # version="test_version",
+        _version="test_version",
     )
     assert artifact2.version == "test_version"

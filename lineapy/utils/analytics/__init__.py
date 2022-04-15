@@ -10,6 +10,7 @@ from lineapy.utils.analytics.event_schemas import (
     GetCodeEvent,
     GetEvent,
     GetValueEvent,
+    GetVersionEvent,
     LibImportEvent,
     SaveEvent,
     ToPipelineEvent,
@@ -59,4 +60,5 @@ __all__ = [
     "ToPipelineEvent",
     "GetValueEvent",
     "GetCodeEvent",
+    "GetVersionEvent",
 ]

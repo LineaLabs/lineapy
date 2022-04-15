@@ -27,7 +27,7 @@ from lineapy.utils.analytics import (
     GetVersionEvent,
     track,
 )
-from lineapy.utils.constants import VERSION_DATE_STRING, VERSION_PLACEHOLDER
+from lineapy.utils.constants import VERSION_PLACEHOLDER
 
 logger = logging.getLogger(__name__)
 
@@ -54,15 +54,8 @@ class LineaArtifact:
     the first time, it will be unset. When you get the artifact or 
     catalog of artifacts, we retrieve the date from db and 
     it will be set."""
-    _version: str = field(init=False)
+    _version: str
     """version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`"""
-
-    def __post_init__(self):
-        # this happens at write time
-        # when the artifact is loaded in from the db, the version is re-set
-        # in the .get API call.
-        # TODO: refactor the logic to avoid resetting somewhere else.
-        self._version = datetime.now().strftime(VERSION_DATE_STRING)
 
     @property
     def version(self) -> str:
@@ -218,19 +211,18 @@ class LineaCatalog:
 
     def __init__(self, db):
         db_artifacts: List[ArtifactORM] = db.get_all_artifacts()
-        self.artifacts: List[LineaArtifact] = []
-        for db_artifact in db_artifacts:
-            l_artifact = LineaArtifact(
+        self.artifacts: List[LineaArtifact] = [
+            LineaArtifact(
                 db=db,
                 _execution_id=db_artifact.execution_id,
                 _node_id=db_artifact.node_id,
                 _session_id=db_artifact.node.session_id,
+                _version=db_artifact.version,
                 name=cast(str, db_artifact.name),
                 date_created=db_artifact.date_created,
             )
-            # TODO: refactor this to avoid resetting the version
-            l_artifact.version = db_artifact.version or VERSION_PLACEHOLDER
-            self.artifacts.append(l_artifact)
+            for db_artifact in db_artifacts
+        ]
 
     @property
     def len(self) -> int:
