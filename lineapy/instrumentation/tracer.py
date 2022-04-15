@@ -36,7 +36,7 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
-from lineapy.utils.lineabuiltins import l_tuple
+from lineapy.utils.lineabuiltins import l_import, l_tuple
 from lineapy.utils.utils import get_lib_package_version, get_new_id
 
 logger = logging.getLogger(__name__)
@@ -257,6 +257,107 @@ class Tracer:
             )
             self.process_node(new_node)
             return new_node
+
+    def import_module(
+        self,
+        name: str,
+        source_location: Optional[SourceLocation] = None,
+    ) -> Node:
+        """
+        Import a module. If we have already imported it, just return its ID.
+        Otherwise, create new module nodes for each submodule in its parents and return it.
+        """
+        if name in self.variable_name_to_node:
+            return self.variable_name_to_node[name]
+        # Recursively go up the tree, to try to get parents, and if we don't have them, import them
+        *parents, module_name = name.split(".")
+        if parents:
+            parent_module = self.import_module(
+                ".".join(parents),
+                source_location,
+            )
+            node = self.call(
+                self.lookup_node(l_import.__name__),
+                source_location,
+                self.literal(module_name),
+                parent_module,
+            )
+        else:
+            node = self.call(
+                self.lookup_node(l_import.__name__),
+                source_location,
+                self.literal(module_name),
+            )
+        self.variable_name_to_node[name] = node
+        return node
+
+    def trace_import_module(
+        self,
+        name: str,
+        source_location: Optional[SourceLocation] = None,
+        alias: Optional[str] = None,
+        attributes: Optional[Dict[str, str]] = None,
+    ) -> None:
+        """
+        - `name`: the name of the module
+        - `alias`: the module could be aliased, e.g., import pandas as pd
+        - `attributes`: a list of functions imported from the library.
+           It keys the aliased name to the original name.
+
+        NOTE
+        ----
+        - The input args would _either_ have alias or attributes, but not both
+        - Didn't call the function import because I think that's a protected name
+
+        note that version and path will be introspected at runtime
+        """
+        module_node = self.import_module(name, source_location)
+        if alias:
+            self.assign(
+                alias,
+                module_node,
+            )
+        elif attributes:
+            module_value = self.executor.get_value(module_node.id)
+            if IMPORT_STAR in attributes:
+                """
+                Import the module, get all public attributes, and set them as globals
+                """
+                # Import star behavior copied from python docs
+                # https://docs.python.org/3/reference/simple_stmts.html#the-import-statement
+                if hasattr(module_value, "__all__"):
+                    public_names = module_value.__all__  # type: ignore
+                else:
+                    public_names = [
+                        attr
+                        for attr in dir(module_value)
+                        if not attr.startswith("_")
+                    ]
+                attributes = {attr: attr for attr in public_names}
+            """
+            load module `x`, check if `y` is an attribute of `x`, otherwise load `x.y`
+            If `x.y` is a module, load that, otherwise get the `y` attribute of `x`.
+            """
+            for alias, attr_or_module in attributes.items():
+                if hasattr(module_value, attr_or_module):
+                    self.assign(
+                        alias,
+                        self.call(
+                            self.lookup_node(GETATTR),
+                            source_location,
+                            module_node,
+                            self.literal(attr_or_module),
+                        ),
+                    )
+                else:
+                    full_name = f"{name}.{attr_or_module}"
+                    sub_module_node = self.import_module(full_name)
+                    self.assign(alias, sub_module_node)
+
+        else:
+            base_module = name.split(".")[0]
+            node = self.import_module(base_module)
+            self.assign(base_module, node)
 
     def trace_import(
         self,

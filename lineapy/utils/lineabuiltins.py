@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import sys
+
+# from types import ModuleType
+import types
 from typing import (
     Dict,
     Iterable,
@@ -256,6 +259,22 @@ def l_unpack_ex(
         after_list = []
         middle_list = xs_list[before:]
     return [*before_list, middle_list, *after_list]
+
+
+@register
+def l_import(
+    name: str, base_module: types.ModuleType = None
+) -> types.ModuleType:
+    """
+    Imports and returns a module. If the base_module is provided, the module
+    will be a submodule of the base.
+
+    Marks the `base_module` as modified if provided.
+    """
+    assert "." not in name
+    full_name = base_module.__name__ + "." + name if base_module else name
+    __import__(full_name)
+    return sys.modules[full_name]
 
 
 file_system = register(ExternalState(external_state="file_system"))
