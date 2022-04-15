@@ -11,8 +11,6 @@ from math import sqrt
 from statistics import mean, variance
 from typing import List
 
-import scipy.stats
-
 __all__ = ["distribution_change"]
 
 
@@ -60,6 +58,8 @@ def performance_change(
     n: float,
     confidence_interval: float,
 ) -> DistributionChange:
+    import scipy.stats
+
     """
     Quantifies the performance changes between two measures systems. Assumes we gathered
     n independent measurement from each, and calculated their means and variance.
