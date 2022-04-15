@@ -110,7 +110,7 @@ def notebook(
         _execution_id=artifact.execution_id,
         _node_id=artifact.node_id,
         _session_id=artifact.node.session_id,
-        _version=artifact.node.version,
+        _version=artifact.version,  # type: ignore
         name=artifact_name,
         date_created=artifact.date_created,  # type: ignore
     )

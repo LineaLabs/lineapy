@@ -66,4 +66,5 @@ AllEvents = Union[
     ToPipelineEvent,
     GetCodeEvent,
     GetValueEvent,
+    GetVersionEvent,
 ]

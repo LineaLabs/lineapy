@@ -55,7 +55,7 @@ class LineaArtifact:
     the first time, it will be unset. When you get the artifact or 
     catalog of artifacts, we retrieve the date from db and 
     it will be set."""
-    
+
     @property
     def version(self) -> str:
         track(GetVersionEvent(""))
@@ -216,9 +216,9 @@ class LineaCatalog:
                 _execution_id=db_artifact.execution_id,
                 _node_id=db_artifact.node_id,
                 _session_id=db_artifact.node.session_id,
-                _version=db_artifact.version,
+                _version=db_artifact.version,  # type: ignore
                 name=cast(str, db_artifact.name),
-                date_created=db_artifact.date_created,
+                date_created=db_artifact.date_created,  # type: ignore
             )
             for db_artifact in db_artifacts
         ]
