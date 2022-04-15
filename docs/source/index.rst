@@ -6,7 +6,6 @@ Welcome to LineaPy!
 
    fundamentals/intro
    fundamentals/setup
-   fundamentals/interfaces
    fundamentals/quickstart
    fundamentals/concepts
 
@@ -16,8 +15,6 @@ Welcome to LineaPy!
    :caption: User Guide
 
    tutorials/00_api_basics
-   tutorials/01_refactor_code
-   tutorials/03_build_pipelines
 
 
 .. toctree::

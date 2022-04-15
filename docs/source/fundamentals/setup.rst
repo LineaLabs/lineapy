@@ -9,8 +9,8 @@ To install LineaPy, run:
 
     $ pip install lineapy
 
-Or, to install directly from GitHub, run:
+Or, if using ``poetry``, run:
 
 .. code:: bash
 
-    $ pip install git+https://github.com/LineaLabs/lineapy.git
+    $ poetry add lineapy

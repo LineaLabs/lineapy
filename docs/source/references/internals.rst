@@ -5,10 +5,10 @@ LineaPy Internals
 
 This document describes some of the high level code layout and implementation decisions.
 
-What is a LineaPy Graph?
-------------------------
+What is a Linea Graph?
+----------------------
 
-In LineaPy, we create a graph as we execute Python code, of every function that
+In Linea, we create a graph as we execute Python code, of every function that
 was called and its dependencies. We use this graph to do "program slicing,"
 meaning that we can understand all the code that is required to reproduce some
 value in your program.
@@ -186,7 +186,7 @@ That goes through a number of steps, which we outline below, from outside in:
 1. Entrypoint
 ~~~~~~~~~~~~~
 
-We currently support two ways to start tracing from LineaPy. The CLI,
+We currently support two ways to start tracing from Lineapy. The CLI,
 which is used to trace Python scripts, and our Juptyer integration which is
 used in Juptyer Notebooks and IPython. Both of them go from source, to AST,
 to a graph.
@@ -221,7 +221,7 @@ provides three main entry points:
 In our input transformer, we save the code from the cell in a global
 and return the same lines from every cell, which call out to a function
 in the `ipython` module, `_end_cell`, which looks at the lines of code,
-transforms them through LineaPy, and optionally returns a value if one should
+transforms them through linea, and optionally returns a value if one should
 be "returned" from the cell (i.e. if the last line is an expression that does not
 end with a ';').
 
@@ -625,7 +625,7 @@ l = []
 l.append(1)
 ```
 
-Is executed like this in LineaPy:
+Is executed like this in Linea:
 
 ```python
 l = l_build_list()
@@ -665,16 +665,16 @@ from `list`, then we mutated the self value, and if the input is a mutable value
 we treat that as a view of the list. This is so that if we append something mutable,
 and we later mutate that, the list is mutated, and vice versa.
 
-LineaPy API (step 4)
+Lineapy API (step 4)
 ~~~~~~~~~~~~~~~~~~~~
 
-Although LineaPy does not require any annotations to trace your code, we do provide
+Although Linea does not require any annotations to trace your code, we do provide
 some functions that you can use to annotate it to tell us what is important
-and also to interact with LineaPy. These are defined in [`api.py`](lineapy/api.py) and returns
+and also to interact with Linea. These are defined in [`api.py`](lineapy/api.py) and returns
 objects defined in [`apis.py`](lineapy/graph_reader/apis.py).
 
 Implementing these functions require us to break a key abstraction we have which is that
-executing code while tracing LineaPy should perform the same as while not tracing with LineaPy.
+executing code while tracing linea should perform the same as while not tracing with Linea.
 
 We need to break this, since these functions implicitly require us to know what database
 we are tracing with and also what nodes certain values point to, in the case of `save`.
@@ -696,7 +696,7 @@ Exception handling (steps 1 and 4)
 
 We do two special things to change how exceptions are handled:
 
-#. In step 1: Remove the frames we add in LineaPy off of the stack to show a user their
+#. In step 1: Remove the frames we add in Linea off of the stack to show a user their
    original exception. We do this by raising a [`lineapy.exceptions.user_exception.UserException`](lineapy/exceptions/user_exception.py)
    which contains the original exception that was raised. Then in Step 1 above
    (either in the CLI or Jupyter), we see if the exception raised was a `UserException`

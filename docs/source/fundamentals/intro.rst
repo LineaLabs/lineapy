@@ -37,5 +37,5 @@ backed by a decade of research and industry expertise tackling hyperscale data c
 .. topic:: *Move Fast from Prototype to Pipeline*
 
     LineaPy automates code translations to save you time and help you stay focused. Rapidly
-    create analytics pipelines with a simple API --- no refactoring or new tools needed.
+    create analytics pipelines with a simple API &mdash; no refactoring or new tools needed.
     Go from your Jupyter notebook to an Airflow pipeline in minutes.
