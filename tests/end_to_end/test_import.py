@@ -173,55 +173,101 @@ second_is_prime = lineapy.utils.__no_imported_submodule_prime.is_prime
         )
 
 
-# # import x
-# def test_basic_import(execute):
-#     code = """import math
-# x = math.sqrt(64)
-# """
-#     res = execute(code, artifacts=["x"])
-#     assert res.values["x"] == 8
-#     assert res.artifacts["x"] == code
+# import x
+def test_basic_import(execute):
+    code = """import math
+x = math.sqrt(64)
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"] == 8
+    assert res.artifacts["x"] == code
 
 
-# # import x as a
-# def test_basic_import_as(execute):
-#     code = """import math as m
-# x = m.sqrt(64)
-# """
-#     res = execute(code, artifacts=["x"])
-#     assert res.values["x"] == 8
-#     assert res.artifacts["x"] == code
+# import x as a
+def test_basic_import_as(execute):
+    code = """import math as m
+x = m.sqrt(64)
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"] == 8
+    assert res.artifacts["x"] == code
 
 
-# # import x.y.z
-# def test_nested_import(execute):
-#     code = """import matplotlib.pyplot
-# x = matplotlib.pyplot
-# """
-#     res = execute(code, artifacts=["x"])
-#     assert res.artifacts["x"] == code
+# from x import y
+def test_basic_from_import(execute):
+    code = """from math import sqrt
+x = sqrt(64)
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"] == 8
+    assert res.artifacts["x"] == code
 
 
-# # import x.y.z as a
-# def test_nested_import_as(execute):
-#     code = """import matplotlib.pyplot as plt
-# """
-#     res = execute(code, artifacts=["x"])
-#     assert res.artifacts["x"] == code
-
-
-# # from x import y
-# def test_basic_from_import(execute):
-#     code = """from math import sqrt
-# x = sqrt(64)
-# """
-#     res = execute(code, artifacts=["x"])
-#     assert res.values["x"] == 8
-#     assert res.artifacts["x"] == code
+# from x import y as a
+def test_basic_from_import_as(execute):
+    code = """from math import sqrt as sq
+x = sq(64)
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"] == 8
+    assert res.artifacts["x"] == code
 
 
 # from x import *
-# from x import y as a
+def test_basic_from_import_starred(execute):
+    code = """from math import *
+x = sqrt(64)
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"] == 8
+    assert res.artifacts["x"] == code
+
+
+# import x.y.z
+def test_nested_import(execute):
+    code = """import matplotlib.pyplot
+x = matplotlib.pyplot.ylabel('label')
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"].__class__.__name__ == "Text"
+    assert res.artifacts["x"] == code
+
+
+# import x.y.z as a
+def test_nested_import_as(execute):
+    code = """import matplotlib.pyplot as plt
+x = plt.ylabel('label')
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"].__class__.__name__ == "Text"
+    assert res.artifacts["x"] == code
+
+
 # from x.y import z
-# from x.y import *
+def test_nested_from_import(execute):
+    code = """from matplotlib.pyplot import ylabel
+x = ylabel('label')
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"].__class__.__name__ == "Text"
+    assert res.artifacts["x"] == code
+
+
 # from x.y import z as a
+def test_nested_from_import_as(execute):
+    code = """from matplotlib.pyplot import ylabel as yl
+x = yl('label')
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"].__class__.__name__ == "Text"
+    assert res.artifacts["x"] == code
+
+
+# from x.y import *
+def test_nested_from_import_starred(execute):
+    code = """from matplotlib.pyplot import *
+x = ylabel('label')
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"].__class__.__name__ == "Text"
+    assert res.artifacts["x"] == code
