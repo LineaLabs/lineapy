@@ -12,6 +12,7 @@ and transforms Python code to extract production data pipelines in minutes.
 
 - [Why Use LineaPy?](#why-use-lineapy)
 - [Getting Started](#getting-started)
+- [Usage Reporting](#usage-reporting)
 - [What Next?](#what-next)
 
 ## Why Use LineaPy?
@@ -143,7 +144,6 @@ text = text + " World!"
 Note that these are the minimal essential steps to get to the final state of the variable `text`.
 That is, LineaPy has performed code cleanup on our behalf.
 
-
 ## Usage Reporting
 
 LineaPy collects anonymous usage data that helps our team to improve the product.
@@ -154,7 +154,7 @@ never collect user code, data, variable names, or stack traces.
 You can opt-out of usage tracking by setting environment variable:
 
 ```bash
-export LINEAPY_DO_NOT_TRACK=True
+$ export LINEAPY_DO_NOT_TRACK=True
 ```
 
 ## What Next?
@@ -173,10 +173,9 @@ which contains many examples you can follow with. Some key resources include:
 | **[Slack]** | Have questions or issues unresolved? Join our community and ask away! |
 
 [Docs]: https://docs.lineapy.org/en/latest/index.html
-[Concepts]: https://lineapy.org/docs/fundamentals/concepts.html
+[Concepts]: https://docs.lineapy.org/en/latest/fundamentals/concepts.html
 [Tutorials]: https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials
-[Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use-cases
-[API Reference]: https://lineapy.org/docs/references/api_reference.html
-[Contribute]: https://lineapy.org/docs/references/development.html
+[Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use_cases
+[API Reference]: https://docs.lineapy.org/en/latest/references/api_reference.html
+[Contribute]: https://github.com/LineaLabs/lineapy/blob/main/CONTRIBUTING.md
 [Slack]: https://lineacommunity.slack.com
-
