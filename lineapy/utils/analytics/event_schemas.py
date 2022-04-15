@@ -52,6 +52,11 @@ class GetCodeEvent:
     is_session_code: bool
 
 
+@dataclass
+class GetVersionEvent:
+    dummy_entry: str  # just a dummy entry for now
+
+
 AllEvents = Union[
     CatalogEvent,
     LibImportEvent,

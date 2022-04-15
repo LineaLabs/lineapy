@@ -21,7 +21,12 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.utils.analytics import GetCodeEvent, GetValueEvent, track
+from lineapy.utils.analytics import (
+    GetCodeEvent,
+    GetValueEvent,
+    GetVersionEvent,
+    track,
+)
 from lineapy.utils.constants import VERSION_DATE_STRING, VERSION_PLACEHOLDER
 
 logger = logging.getLogger(__name__)
@@ -49,7 +54,7 @@ class LineaArtifact:
     the first time, it will be unset. When you get the artifact or 
     catalog of artifacts, we retrieve the date from db and 
     it will be set."""
-    version: str = field(init=False)
+    _version: str = field(init=False)
     """version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`"""
 
     def __post_init__(self):
@@ -57,7 +62,12 @@ class LineaArtifact:
         # when the artifact is loaded in from the db, the version is re-set
         # in the .get API call.
         # TODO: refactor the logic to avoid resetting somewhere else.
-        self.version = datetime.now().strftime(VERSION_DATE_STRING)
+        self._version = datetime.now().strftime(VERSION_DATE_STRING)
+
+    @property
+    def version(self) -> str:
+        track(GetVersionEvent(""))
+        return self._version
 
     @property
     def value(self) -> object:
