@@ -76,6 +76,7 @@ setup(
         "jinja2",
         "nbformat",
         "nbconvert",
+        "requests"
     ],
     extras_require={
         "dev": [
