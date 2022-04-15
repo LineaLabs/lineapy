@@ -273,7 +273,12 @@ def l_import(
     """
     assert "." not in name
     full_name = base_module.__name__ + "." + name if base_module else name
-    __import__(full_name)
+    try:
+        __import__(full_name)
+    except ImportError:
+        raise ModuleNotFoundError(
+            f"ModuleNotFoundError: No module named '{full_name}'"
+        )
     return sys.modules[full_name]
 
 
