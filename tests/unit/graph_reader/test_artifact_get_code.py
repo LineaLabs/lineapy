@@ -27,7 +27,12 @@ x = pickle.load(open("{FAKE_PATH}","rb"))""",
 )
 def test__de_linealize_code(code, expected):
     artifact = LineaArtifact(
-        MagicMock(), MagicMock(), MagicMock(), MagicMock(), MagicMock()
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
     )
     artifact._get_value_path = MagicMock(  # type: ignore
         return_value=FAKE_PATH

@@ -32,6 +32,7 @@ from lineapy.utils.analytics import (
     track,
 )
 from lineapy.utils.config import linea_folder
+from lineapy.utils.constants import VERSION_DATE_STRING
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_value_type
 
@@ -88,14 +89,6 @@ def save(reference: object, name: str) -> LineaArtifact:
     execution_id = executor.execution.id
     timing = executor.get_execution_time(value_node_id)
 
-    linea_artifact = LineaArtifact(
-        db=db,
-        _execution_id=execution_id,
-        _node_id=value_node_id,
-        _session_id=call_node.session_id,
-        name=name,
-    )
-
     # serialize value to db if we haven't before
     # (happens with multiple artifacts pointing to the same value)
     if not db.node_value_in_db(
@@ -117,25 +110,37 @@ def save(reference: object, name: str) -> LineaArtifact:
         #   to the queue, the `res` value may have mutated
         #   and that's incorrect.
         db.commit()
+
+    date_created = datetime.now()
+    version = date_created.strftime(VERSION_DATE_STRING)
     # If we have already saved this same artifact, with the same name,
     # then don't write it again.
     if not db.artifact_in_db(
         node_id=value_node_id,
         execution_id=execution_id,
         name=name,
-        version=linea_artifact.version,
+        version=version,
     ):
         artifact_to_write = Artifact(
             node_id=value_node_id,
             execution_id=execution_id,
-            date_created=datetime.now(),
+            date_created=date_created,
             name=name,
-            version=linea_artifact.version,
+            version=version,
         )
         db.write_artifact(artifact_to_write)
-        linea_artifact.date_created = artifact_to_write.date_created
 
     track(SaveEvent(side_effect=side_effect_to_str(reference)))
+
+    linea_artifact = LineaArtifact(
+        db=db,
+        name=name,
+        date_created=date_created,
+        _execution_id=execution_id,
+        _node_id=value_node_id,
+        _session_id=call_node.session_id,
+        _version=version,
+    )
     return linea_artifact
 
 
@@ -196,13 +201,10 @@ def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:
         _execution_id=artifact.execution_id,
         _node_id=artifact.node_id,
         _session_id=artifact.node.session_id,
+        _version=artifact.version,  # type: ignore
         name=artifact_name,
-        date_created=artifact.date_created,
+        date_created=artifact.date_created,  # type: ignore
     )
-    # doing this thing because we dont initialize the version when defining LineaArtifact
-    # TODO: fix this logic
-    if artifact.version:
-        linea_artifact.version = artifact.version
 
     track(GetEvent(version_specified=version is not None))
     return linea_artifact

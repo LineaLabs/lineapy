@@ -48,7 +48,6 @@ NOT = operator.not_.__name__
 
 # linea internal defaults
 VERSION_DATE_STRING = "%Y-%m-%dT%H:%M:%S"
-VERSION_PLACEHOLDER: str = "UNSET"
 """sqlalchemy defaults to a type of Optional[str] even when a column is set to be not nullable. 
 This is per their documentation. One option is to add type:ignore for python objects that 
 should not be nulls and are mapped to sqlalchemy ORM objects. Alternately, as is here, 
