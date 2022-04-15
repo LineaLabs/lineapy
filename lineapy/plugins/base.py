@@ -4,13 +4,21 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, Optional, Tuple
 
 import isort
 
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
-from lineapy.plugins.utils import get_lib_version_text, load_plugin_template
+from lineapy.graph_reader.program_slice import (
+    get_program_slice_by_artifact_name,
+)
+from lineapy.plugins.task import TaskGraph, TaskGraphEdge
+from lineapy.plugins.utils import (
+    get_lib_version_text,
+    load_plugin_template,
+    safe_var_name,
+)
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
@@ -124,3 +132,67 @@ class BasePlugin:
         logger.info(
             f"Generated requirements file {module_name}_requirements.txt"
         )
+
+    def slice_dag_helper(
+        self,
+        slice_names: List[str],
+        module_name: Optional[str] = None,
+        task_dependencies: TaskGraphEdge = {},
+        output_dir: Optional[str] = None,
+    ) -> Tuple[str, List[str], Path, TaskGraph]:
+        """
+        A generic function shared by Script and Airflow
+
+        To create DAG from the sliced code. This includes a python
+        file with one function per slice, task dependencies file in Airflow
+        format and an example Dockerfile and requirements.txt that can be used
+        to run this.
+
+        :param slice_names: list of slice names to be used as tasks.
+        :param module_name: name of the Python module the generated code will
+            be saved to.
+        :param task_dependencies: tasks dependencies in graphlib format
+            {'B':{'A','C'}}"; this means task A and C are prerequisites for
+            task B.
+        :param output_dir: directory to save the generated code to.
+        :param airflow_dag_config: Configs of Airflow DAG model.
+        """
+
+        artifacts_code = {}
+        artifact_safe_names = []
+        for slice_name in slice_names:
+            artifact_var = safe_var_name(slice_name)
+            slice_code = get_program_slice_by_artifact_name(
+                self.db, slice_name
+            )
+            artifacts_code[artifact_var] = slice_code
+            artifact_safe_names.append(artifact_var)
+
+        task_graph = TaskGraph(
+            slice_names,
+            {
+                slice: task
+                for slice, task in zip(slice_names, artifact_safe_names)
+            },
+            task_dependencies,
+        )
+
+        module_name = module_name or "_".join(artifact_safe_names)
+        output_dir_path = Path.cwd()
+        if output_dir:
+            output_dir_path = Path(os.path.expanduser(output_dir))
+            self.prepare_output_dir(
+                copy_dst=str(output_dir_path.resolve()),
+            )
+
+        logger.info(
+            "Pipeline source generated in the directory: %s", output_dir_path
+        )
+        self.generate_python_module(
+            module_name, artifacts_code, output_dir_path
+        )
+
+        self.generate_infra(
+            module_name=module_name, output_dir_path=output_dir_path
+        )
+        return module_name, artifact_safe_names, output_dir_path, task_graph

@@ -52,6 +52,9 @@ from lineapy.db.relational import (
 )
 from lineapy.db.utils import OVERRIDE_HELP_TEXT, resolve_db_url
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
+from lineapy.exceptions.user_exception import UserException
+from lineapy.utils.analytics.event_schemas import ExceptionEvent
+from lineapy.utils.analytics.usage_tracking import track  # circular dep issues
 from lineapy.utils.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
 from lineapy.utils.utils import get_literal_value_from_string
 
@@ -493,7 +496,18 @@ class RelationalLineaDB:
         if version:
             res_query = res_query.filter(ArtifactORM.version == version)
         res = res_query.order_by(ArtifactORM.date_created.desc()).first()
-        assert res
+        if res is None:
+            msg = (
+                f"Artifact {artifact_name} (version {version})"
+                if version
+                else f"Artifact {artifact_name}"
+            )
+            track(ExceptionEvent("UserException", "Artifact not found"))
+            raise UserException(
+                NameError(
+                    f"{msg} not found. Perhaps there was a typo. Please try lineapy.catalog() to inspect all your artifacts."
+                )
+            )
         return res
 
     def get_all_artifacts(self) -> List[ArtifactORM]:
