@@ -24,7 +24,7 @@ __all__ = [
     "__version__",
 ]
 
-__version__ = "0.0.1"
+__version__ = "0.0.4"
 
 # Create an ipython extension that starts and stops tracing
 # https://ipython.readthedocs.io/en/stable/config/extensions/index.html#writing-extensions

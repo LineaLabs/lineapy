@@ -22,7 +22,7 @@ import_1 = ImportNode(
         source_code=source_1.id,
     ),
     name="lineapy",
-    version="0.0.1",
+    version="",
     package_name="lineapy",
 )
 import_2 = ImportNode(
@@ -34,7 +34,7 @@ import_2 = ImportNode(
         source_code=source_1.id,
     ),
     name="lineapy.utils.__no_imported_submodule",
-    version="0.0.1",
+    version="",
     package_name="lineapy",
 )
 import_3 = ImportNode(
@@ -46,7 +46,7 @@ import_3 = ImportNode(
         source_code=source_1.id,
     ),
     name="lineapy.utils",
-    version="0.0.1",
+    version="",
     package_name="lineapy",
 )
 call_5 = CallNode(

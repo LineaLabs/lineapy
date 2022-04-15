@@ -23,7 +23,7 @@ import_2 = ImportNode(
         source_code=source_1.id,
     ),
     name="PIL.Image",
-    version="9.1.0",
+    version="",
     package_name="PIL.Image",
 )
 call_9 = CallNode(
@@ -55,7 +55,7 @@ call_9 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="lineapy",
-                version="0.0.1",
+                version="",
                 package_name="lineapy",
             ).id,
             LiteralNode(

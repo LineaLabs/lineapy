@@ -4,6 +4,7 @@
 [![Slack](https://img.shields.io/badge/slack-@lineapy--community-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40)](https://join.slack.com/t/lineacommunity/shared_invite/zt-172ddmbon-vAl4Ca8LwcnTP99UTWLVRg)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?logo=apache)](https://github.com/LineaLabs/lineapy/blob/main/LICENSE.txt)
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
+[![Twitter](https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter)](https://twitter.com/lineapy_oss)
 
 
 Supercharge your data science workflow with LineaPy! Just two lines of code captures, analyzes,

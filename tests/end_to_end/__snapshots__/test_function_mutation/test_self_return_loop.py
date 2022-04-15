@@ -28,7 +28,7 @@ import_1 = ImportNode(
         source_code=source_1.id,
     ),
     name="lineapy",
-    version="0.0.1",
+    version="",
     package_name="lineapy",
 )
 import_2 = ImportNode(
@@ -40,7 +40,7 @@ import_2 = ImportNode(
         source_code=source_1.id,
     ),
     name="numpy",
-    version="1.21.6",
+    version="",
     package_name="numpy",
 )
 call_5 = CallNode(
@@ -245,7 +245,7 @@ call_9 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="sklearn.dummy",
-                version="1.0.2",
+                version="",
                 package_name="sklearn",
             ).id,
             LiteralNode(

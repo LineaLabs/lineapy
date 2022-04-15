@@ -68,14 +68,17 @@ git submodule update --init --recursive .
 
 #### Conda
 
+Notes: we have a lower version of Python to make sure that it's 
+compatible with all versions. `cmake ` is optional---needed for building deps of numpy tutorial on mac (can remove if you are not running)
+
 ```bash
-conda create --name lineapy python=3.7 \ # a lower version of Python to make sure that it's compatible
+conda create --name lineapy python=3.7 \ 
     postgresql \
     graphviz \
-    cmake # needed for building deps of numpy tutorial on mac (can remove if you are not running)
+    cmake
 conda activate lineapy
-pip install -r requirements.txt # for dev
-pip install -e .
+pip install -r requirements.txt
+pip install -e '.[dev]'
 
 # verify everything works as expected
 lineapy --help

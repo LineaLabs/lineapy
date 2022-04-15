@@ -60,7 +60,7 @@ call_6 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="lineapy",
-                version="0.0.1",
+                version="",
                 package_name="lineapy",
             ).id,
             LiteralNode(

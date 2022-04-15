@@ -71,7 +71,7 @@ call_8 = CallNode(
                                         source_code=source_1.id,
                                     ),
                                     name="pandas",
-                                    version="1.3.5",
+                                    version="",
                                     package_name="pandas",
                                 ).id,
                                 LiteralNode(

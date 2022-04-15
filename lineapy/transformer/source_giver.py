@@ -8,9 +8,6 @@ class SourceGiver:
         and embellished the ast with tokens and line numbers.
         At that point, all this function will do is use those tokens to
         figure out end_lineno and end_col_offset for every node in the tree
-
-        If we do not want to depend on asttokens lib, use transform_inhouse which sucks
-        btw because we didnt put enough effort into figuring out the end col offsets
         """
         node: ast.AST
         # TODO check if the ast type is a Module instead of simply relying on mypy

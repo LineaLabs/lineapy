@@ -48,7 +48,7 @@ call_3 = CallNode(
                             source_code=source_1.id,
                         ),
                         name="altair",
-                        version="4.2.0",
+                        version="",
                         package_name="altair",
                     ).id,
                     LiteralNode(

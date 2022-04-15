@@ -55,7 +55,7 @@ call_4 = CallNode(
                     source_code=source_1.id,
                 ),
                 name="lineapy",
-                version="0.0.1",
+                version="",
                 package_name="lineapy",
             ).id,
             LiteralNode(
@@ -106,7 +106,7 @@ call_4 = CallNode(
                             source_code=source_1.id,
                         ),
                         name="math",
-                        version="None",
+                        version="",
                         package_name="math",
                     ).id
                 },
