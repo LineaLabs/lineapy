@@ -52,8 +52,14 @@ setup(
     url=URL,
     download_url=DOWNLOAD_URL,
     license=LICENSE,
-    classifiers=["Development Status :: 2 - Pre-Alpha"],
-    packages=find_packages(),
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+    ],
+    packages=find_packages(exclude=["tests", "tests.*"]),
     # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
     entry_points={"console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"]},
     python_requires=">=3.7",
