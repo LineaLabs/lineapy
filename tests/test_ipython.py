@@ -27,14 +27,14 @@ def test_slice(run_cell):
     assert run_cell("y = 10") is None
     assert run_cell(f"x=a[0]\na = lineapy.{save.__name__}(x, 'x')") is None
 
-    assert run_cell("a.code") == "a = [1, 2, 3]\nx=a[0]\n"
+    assert run_cell("a.get_code()") == "a = [1, 2, 3]\nx=a[0]\n"
 
 
 def test_slice_artifact_inline(run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     assert (
-        run_cell("res.code")
+        run_cell("res.get_code()")
         == """a = [1, 2, 3]
 """
     )
@@ -45,7 +45,7 @@ def test_to_airflow_pymodule(python_snapshot, run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     py_module_path = run_cell(
-        "lineapy.to_airflow([res.name],res.name, output_dir='~/airflow/dags/')"
+        "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/')"
     )
     assert python_snapshot == (py_module_path / "a.py").read_text()
 
@@ -55,7 +55,7 @@ def test_to_airflow_dagmodule(python_snapshot, run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     py_module_path = run_cell(
-        "lineapy.to_airflow([res.name],res.name, output_dir='~/airflow/dags/')"
+        "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/')"
     )
     dag_module_path = py_module_path / "a_dag.py"
     assert python_snapshot == dag_module_path.read_text()
@@ -66,7 +66,7 @@ def test_to_airflow_with_config_pymodule(python_snapshot, run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     py_module_path = run_cell(
-        "lineapy.to_airflow([res.name],res.name, output_dir='~/airflow/dags',airflow_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
+        "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags',pipeline_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
     )
     assert python_snapshot == (py_module_path / "a.py").read_text()
 
@@ -77,7 +77,7 @@ def test_to_airflow_with_config_dagmodule(python_snapshot, run_cell):
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     # also tests to see if default dag name gets set
     py_module_path = run_cell(
-        "lineapy.to_airflow([res.name], output_dir='~/airflow/dags',airflow_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
+        "lineapy.to_pipeline([res.name], framework='AIRFLOW', output_dir='~/airflow/dags',pipeline_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
     )
     dag_module_path = py_module_path / "a_dag.py"
     assert python_snapshot == dag_module_path.read_text()
@@ -121,8 +121,8 @@ res = lineapy.get("deferencedy")
     assert run_cell(code_body) is None
     assert run_cell(artifact_f_save) is None
     assert (
-        run_cell("res.session_code")
-        == importl + code_body + artifact_f_save + "res.session_code\n"
+        run_cell("res.get_session_code()")
+        == importl + code_body + artifact_f_save + "res.get_session_code()\n"
     )
     assert (
         run_cell(

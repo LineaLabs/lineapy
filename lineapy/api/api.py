@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from lineapy.data.types import Artifact, NodeValue
+from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import FILE_PICKLER_BASEDIR, FilePickler
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -20,6 +20,8 @@ from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
+from lineapy.plugins.script import ScriptPlugin
+from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics import (
     CatalogEvent,
     ExceptionEvent,
@@ -63,7 +65,7 @@ def save(reference: object, name: str) -> LineaArtifact:
     -------
     LineaArtifact
         returned value offers methods to access
-        information we have stored about the artifact (value, version), and other automation capabilities, such as :func:`to_airflow`.
+        information we have stored about the artifact (value, version), and other automation capabilities, such as :func:`to_pipeline`.
     """
     execution_context = get_context()
     executor = execution_context.executor
@@ -221,26 +223,25 @@ def catalog() -> LineaCatalog:
 
 # TODO - this piece needs to test more than just the output of jupyter cell.
 # we need to ensure all the required files (python module and the dag file) get written to the right place.
-def to_airflow(
+def to_pipeline(
     artifacts: List[str],
-    dag_name: Optional[str] = None,
-    task_dependencies: str = "",
-    airflow_dag_config: AirflowDagConfig = {},
+    framework: str = "SCRIPT",
+    pipeline_name: Optional[str] = None,
+    dependencies: TaskGraphEdge = {},
+    pipeline_dag_config: Optional[AirflowDagConfig] = {},
     output_dir: Optional[str] = None,
 ) -> Path:
     """
-    Writes the airflow job to a path on disk.
+    Writes the pipeline job to a path on disk.
 
     :param artifacts: list of artifact names to be included in the DAG.
-    :param dag_name: name of the DAG and corresponding functions and task prefixes,
-                     i.e. "sliced_housing_dag"
-
-    :param airflow_task_dependencies: task dependencies in Airflow format,
-                                      i.e. "'p value' >> 'y'" or "'p value', 'x' >> 'y'". Put slice names under single quotes.
-                                      This translates to "p_value >> y" and "p_value, x >> y" respectively.
-                                      Here "p_value" and "x" are independent tasks
-                                      and "y" depends on them.
-    :return: string containing the path of the Airflow DAG file that was exported.
+    :param framework: 'AIRFLOW' or 'SCRIPT'
+    :param pipeline_name: name of the pipeline
+    :param dependencies: tasks dependencies in graphlib format {'B':{'A','C'}},
+        this means task A and C are prerequisites for task B.
+    :param output_dir_path: Directory of the DAG and the python file it is
+        saved in; only use for PipelineType.AIRFLOW
+    :return: string containing the path of the DAG file that was exported.
     """
     execution_context = get_context()
     db = execution_context.executor.db
@@ -250,20 +251,36 @@ def to_airflow(
         raise Exception("No sessions found in the database.")
     last_session = session_orm[0]
 
-    res = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
-        artifacts,
-        dag_name,
-        task_dependencies,
-        output_dir=output_dir,
-        airflow_dag_config=airflow_dag_config,
-    )
-    # send the info
-    track(
-        ToPipelineEvent(
-            "AIRFLOW",
-            len(artifacts),
-            task_dependencies != "",
-            airflow_dag_config is not None,
+    if framework in PipelineType.__members__:
+        if PipelineType[framework] == PipelineType.AIRFLOW:
+
+            ret = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
+                artifacts,
+                pipeline_name,
+                dependencies,
+                output_dir=output_dir,
+                airflow_dag_config=pipeline_dag_config,
+            )
+
+        else:
+
+            ret = ScriptPlugin(db, last_session.id).sliced_pipeline_dag(
+                artifacts,
+                pipeline_name,
+                dependencies,
+                output_dir=output_dir,
+            )
+
+        # send the info
+        track(
+            ToPipelineEvent(
+                framework,
+                len(artifacts),
+                dependencies != "",
+                pipeline_dag_config is not None,
+            )
         )
-    )
-    return res
+        return ret
+
+    else:
+        raise Exception(f"No PipelineType for {framework}")

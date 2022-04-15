@@ -1,3 +1,4 @@
+import ast
 import logging
 import os
 import pathlib
@@ -113,7 +114,7 @@ def notebook(
         date_created=artifact.date_created,
     )
     api_artifact.version = artifact.version or VERSION_PLACEHOLDER
-    logger.info(api_artifact.code)
+    logger.info(api_artifact.get_code())
 
 
 @linea_cli.command()
@@ -162,7 +163,7 @@ def file(
         date_created=artifact.date_created,
     )
     api_artifact.version = artifact.version or VERSION_PLACEHOLDER
-    logger.info(api_artifact.code)
+    logger.info(api_artifact.get_code())
 
 
 def generate_save_code(
@@ -207,7 +208,7 @@ def generate_save_code(
 @click.option(
     "--airflow-task-dependencies",
     default=None,
-    help="Optional flag for --airflow. Specifies tasks dependencies in Airflow format, i.e. 'p value' >> 'y' or 'p value', 'x' >> 'y'. Put slice names under single quotes.",
+    help="Optional flag for --airflow. Specifies tasks dependencies in edgelist format [('a','b')] or graphlib format {'a':{'b'}}",
 )
 @click.option(
     "--print-source", help="Whether to print the source code", is_flag=True
@@ -303,7 +304,7 @@ def python(
         ap.sliced_airflow_dag(
             slice,
             export_slice_to_airflow_dag,
-            airflow_task_dependencies,
+            ast.literal_eval(airflow_task_dependencies),
         )
 
     db.close()

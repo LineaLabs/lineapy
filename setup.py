@@ -10,12 +10,11 @@ from setuptools import find_packages, setup
 this_directory = Path(__file__).parent
 LONG_DESCRIPTION = (this_directory / "README.md").read_text()
 
-# LONG_DESCRIPTION = """"""
 DESCRIPTION = ""
 NAME = "lineapy"
 AUTHOR = "linealabs"
-AUTHOR_EMAIL = "dev@linea.ai"
-URL = "linea.ai"
+AUTHOR_EMAIL = "dev@lineapy.org"
+URL = "https://github.com/LineaLabs/lineapy/"
 
 
 def read(path, encoding="utf-8"):
@@ -37,8 +36,8 @@ def version(path):
     raise RuntimeError("Unable to find version string.")
 
 
-DOWNLOAD_URL = "linea.ai"
-LICENSE = "TODO"
+DOWNLOAD_URL = "https://github.com/LineaLabs/lineapy/"
+LICENSE = "Apache License 2.0"
 VERSION = version("lineapy/__init__.py")
 
 
@@ -57,8 +56,9 @@ setup(
     packages=find_packages(),
     # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
     entry_points={"console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"]},
+    python_requires=">=3.7",
     install_requires=[
-        "Pillow",
+        "Pillow>=9.0.1",  # for security reasons
         "astor",
         "click>=8.0.0",
         "pydantic",
@@ -76,6 +76,7 @@ setup(
         "jinja2",
         "nbformat",
         "nbconvert",
+        "requests",
     ],
     extras_require={
         "dev": [
@@ -101,6 +102,7 @@ setup(
             "pre-commit",
             "SQLAlchemy[mypy]>=1.4.0",
             "sphinx",
+            "nbsphinx",
             "sphinx_rtd_theme",
             "types-PyYAML",
             "types-requests",  # to satisfy mypy

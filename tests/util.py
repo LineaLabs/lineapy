@@ -29,6 +29,8 @@ def compare_ast(node1: AST, node2: AST):
     s2 = dump(node2)
     if s1 != s2:
         # assuming here that the python version is atleast > 3
+        # TODO - use logger.info here instead of print.
+        # rich tree handler initialized in logging config should take care of stdout.
         if sys.version_info <= (3, 8):
             print(dump(node1))
             print(dump(node2))

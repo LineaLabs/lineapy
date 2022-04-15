@@ -7,6 +7,11 @@
 
 ![Python Versions](https://img.shields.io/badge/Python--versions-3.7%20%7C%203.8%20%7C%203.9-brightgreen)
 [![Build](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml/badge.svg)](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml)
+[![Documentation Status](https://readthedocs.com/projects/lineapy-org-lineapy/badge/?version=latest&token=925cd1d5eaedb7cc60508c9cce377574da748a7d6c050bb2c3de2a360a9f4f20)](https://docs.lineapy.org/en/latest/?badge=latest)
+[![Slack](https://img.shields.io/badge/slack-@lineapy--community-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40)](https://join.slack.com/t/lineacommunity/shared_invite/zt-172ddmbon-vAl4Ca8LwcnTP99UTWLVRg)
+[![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?logo=apache)](https://github.com/LineaLabs/lineapy/blob/main/LICENSE.txt)
+[![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
+
 
 Supercharge your data science workflow with LineaPy! Just two lines of code captures, analyzes,
 and transforms Python code to extract production data pipelines in minutes.
@@ -51,6 +56,11 @@ Or, if using `poetry`, run:
 
 ```bash
 $ poetry add lineapy
+```
+
+Or, if you want the latest version of LineaPy directly from the source, run:
+```
+python -m pip install git+https://github.com/LineaLabs/lineapy.git
 ```
 
 ### Interfaces
@@ -139,6 +149,20 @@ text = text + " World!"
 Note that these are the minimal essential steps to get to the final state of the variable `text`.
 That is, LineaPy has performed code cleanup on our behalf.
 
+
+## Usage Reporting
+
+LineaPy collects anonymous usage data that helps our team to improve the product.
+Only LineaPy's API calls and CLI commands are being reported.
+We strip out as much potentially sensitive information as possible, and we will
+never collect user code, data, variable names, or stack traces.
+
+You can opt-out of usage tracking by setting environment variable:
+
+```bash
+export LINEAPY_DO_NOT_TRACK=True
+```
+
 ## What Next?
 
 To learn more about LineaPy, please check out the project [documentation](https://lineapy.org/docs)
@@ -154,10 +178,11 @@ which contains many examples you can follow with. Some key resources include:
 | **[Contribute]** | Want to contribute? These instructions will help you get set up! |
 | **[Slack]** | Have questions or issues unresolved? Join our community and ask away! |
 
-[Docs]: https://lineapy.org/docs
+[Docs]: https://docs.lineapy.org/en/latest/index.html
 [Concepts]: https://lineapy.org/docs/fundamentals/concepts.html
 [Tutorials]: https://github.com/LineaLabs/lineapy/tree/main/examples/tutorials
 [Use Cases]: https://github.com/LineaLabs/lineapy/tree/main/examples/use-cases
 [API Reference]: https://lineapy.org/docs/references/api_reference.html
 [Contribute]: https://lineapy.org/docs/references/development.html
 [Slack]: https://lineacommunity.slack.com
+

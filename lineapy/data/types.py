@@ -407,3 +407,14 @@ class GlobalNode(BaseNode):
 Node = Union[
     ImportNode, CallNode, LiteralNode, LookupNode, MutateNode, GlobalNode
 ]
+
+
+class PipelineType(Enum):
+    """
+    Pipeline types allow the to_pipeline to know what to expect
+    - SCRIPT : the pipeline is wrapped as a python script
+    - AIRFLOW : the pipeline is wrapped as an airflow dag
+    """
+
+    SCRIPT = 1
+    AIRFLOW = 2

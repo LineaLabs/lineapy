@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from lineapy.plugins.base import BasePlugin  # split_code_blocks
+from lineapy.plugins.base import BasePlugin
 
 
 @pytest.mark.parametrize(

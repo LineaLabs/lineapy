@@ -19,7 +19,7 @@ import_1 = ImportNode(
         source_code=source_1.id,
     ),
     name="PIL.Image",
-    version="9.0.0",
+    version="9.1.0",
     package_name="PIL.Image",
 )
 call_7 = CallNode(

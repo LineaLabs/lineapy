@@ -23,6 +23,7 @@ from lineapy.execution.executor import Executor
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
+from lineapy.plugins.script import ScriptPlugin
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
@@ -291,6 +292,14 @@ def housing_tracer(execute):
 @pytest.fixture
 def airflow_plugin(housing_tracer):
     return AirflowPlugin(
+        housing_tracer.tracer_context.db,
+        housing_tracer.tracer_context.get_session_id(),
+    )
+
+
+@pytest.fixture
+def script_plugin(housing_tracer):
+    return ScriptPlugin(
         housing_tracer.tracer_context.db,
         housing_tracer.tracer_context.get_session_id(),
     )

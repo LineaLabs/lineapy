@@ -20,87 +20,59 @@ logger = logging.getLogger(__name__)
 configure_logging()
 
 
-AirflowDagConfig = TypedDict(
-    "AirflowDagConfig",
-    {
-        "owner": str,
-        "retries": int,
-        "start_date": str,
-        "schedule_interval": str,
-        "max_active_runs": int,
-        "catchup": str,
-    },
+ScriptDagConfig = TypedDict(
+    "ScriptDagConfig",
+    {},
     total=False,
 )
 
 
-class AirflowPlugin(BasePlugin):
-    def to_airflow(
+class ScriptPlugin(BasePlugin):
+    def to_script(
         self,
         dag_name: str,
-        task_names: List[str],
         output_dir_path: Path,
         task_graph: TaskGraph,
-        airflow_dag_config: Optional[AirflowDagConfig] = {},
     ) -> None:
         """
-        Create an Airflow DAG.
-
+        Create an Python Script DAG.
         :param dag_name: Name of the DAG and the python file it is saved in
-        :param task_dependencies: Tasks dependencies in graphlib format
-            {'B':{'A','C'}}"; this means task A and C are prerequisites for
-            task B.
-        :param airflow_dag_config: Configs of Airflow DAG model. See
-            https://airflow.apache.org/_api/airflow/models/dag/index.html#airflow.models.dag.DAG
-            for the full spec.
+        :param output_dir_path: Directory of the DAG and the python file it is saved in
+        :param task_graph:
         """
 
-        AIRFLOW_DAG_TEMPLATE = load_plugin_template("airflow_dag.jinja")
-        airflow_dag_config = airflow_dag_config or {}
-
-        full_code = AIRFLOW_DAG_TEMPLATE.render(
+        SCRIPT_DAG_TEMPLATE = load_plugin_template("script_dag.jinja")
+        full_code = SCRIPT_DAG_TEMPLATE.render(
             DAG_NAME=dag_name,
-            OWNER=airflow_dag_config.get("owner", "airflow"),
-            RETRIES=airflow_dag_config.get("retries", 2),
-            START_DATE=airflow_dag_config.get("start_date", "days_ago(1)"),
-            SCHEDULE_IMTERVAL=airflow_dag_config.get(
-                "schedule_interval", "*/15 * * * *"
-            ),
-            MAX_ACTIVE_RUNS=airflow_dag_config.get("max_active_runs", 1),
-            CATCHUP=airflow_dag_config.get("catchup", "False"),
-            tasks=task_names,
-            task_dependencies=task_graph.get_airflow_dependency(),
+            tasks=task_graph.get_taskorder(),
         )
         # Sort imports and move them to the top
         full_code = isort.code(full_code, float_to_top=True, profile="black")
         full_code = prettify(full_code)
-        (output_dir_path / f"{dag_name}_dag.py").write_text(full_code)
+        (output_dir_path / f"{dag_name}_script_dag.py").write_text(full_code)
         logger.info(
-            f"Added Airflow DAG named {dag_name}_dag. Start a run from the Airflow UI or CLI."
+            f"Added Python Script DAG named {dag_name}_script_dag.py. Start a run from the CLI."
         )
 
-    def sliced_airflow_dag(
+    def sliced_pipeline_dag(
         self,
         slice_names: List[str],
         module_name: Optional[str] = None,
-        airflow_task_dependencies: TaskGraphEdge = {},
+        task_dependencies: TaskGraphEdge = {},
         output_dir: Optional[str] = None,
-        airflow_dag_config: Optional[AirflowDagConfig] = {},
     ):
         """
-        Creates an Airflow DAG from the sliced code. This includes a python
-        file with one function per slice, task dependencies file in Airflow
-        format and an example Dockerfile and requirements.txt that can be used
-        to run this.
+        Creates an Python Script DAG from the sliced code. This includes a
+        python file with one function per slice, an example Dockerfile and
+        requirements.txt that can be used to run this.
 
         :param slice_names: list of slice names to be used as tasks.
-        :param module_name: name of the Pyhon module the generated code will
+        :param module_name: name of the Python module the generated code will
             be saved to.
-        :param airflow_task_dependencies: tasks dependencies in graphlib format
+        :param task_dependencies: Tasks dependencies in graphlib format
             {'B':{'A','C'}}"; this means task A and C are prerequisites for
-            task B.
+            task C.
         :param output_dir: directory to save the generated code to.
-        :param airflow_dag_config: Configs of Airflow DAG model.
         """
 
         artifacts_code = {}
@@ -117,7 +89,7 @@ class AirflowPlugin(BasePlugin):
         task_graph = TaskGraph(
             slice_names,
             {slice: task for slice, task in zip(slice_names, task_names)},
-            airflow_task_dependencies,
+            task_dependencies,
         )
 
         module_name = module_name or "_".join(slice_names)
@@ -134,12 +106,10 @@ class AirflowPlugin(BasePlugin):
         self.generate_python_module(
             module_name, artifacts_code, output_dir_path
         )
-        self.to_airflow(
+        self.to_script(
             module_name,
-            task_names,
             output_dir_path,
             task_graph,
-            airflow_dag_config,
         )
         self.generate_infra(
             module_name=module_name, output_dir_path=output_dir_path

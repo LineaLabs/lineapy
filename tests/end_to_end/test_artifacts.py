@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+import pytest
+
 from lineapy.utils.constants import VERSION_DATE_STRING
 
 
@@ -139,10 +141,41 @@ x[0].append(11)
 print(x)"""
     tracer = execute(importl + code_body + artifact_f_save, snapshot=False)
     artifact = tracer.values["use_y"]
-    assert artifact.session_code == importl + code_body + artifact_f_save
+    assert artifact.get_session_code() == importl + code_body + artifact_f_save
     assert (
         artifact.db.get_session_context(
             artifact._session_id
         ).environment_type.name
         == "SCRIPT"
+    )
+
+
+@pytest.mark.xfail(
+    reason="fails because the reexecution of graph created a new random file that saves the value of cleanedx"
+)
+def test_artifact_code_without_lineapy(execute):
+    code = """import lineapy
+x = 1
+savepath = lineapy.save(x, "cleanedx")
+cleanedx = lineapy.get("cleanedx").value
+y = cleanedx + 1
+y_art = lineapy.save(y, "y")
+"""
+    t2 = execute(code, snapshot=False)
+    saved_path = t2.values["savepath"]._get_value_path()
+    artifact = t2.values["y_art"]
+    assert (
+        artifact.get_code()
+        == """import lineapy
+cleanedx = lineapy.get("cleanedx").value
+y = cleanedx + 1
+"""
+    )
+    assert (
+        artifact.get_code(False)
+        == f"""import pickle
+import lineapy
+cleanedx = pickle.load(open("{saved_path}", "rb"))
+y = cleanedx + 1
+"""
     )
