@@ -238,7 +238,7 @@ def to_pipeline(
     :param framework: 'AIRFLOW' or 'SCRIPT'
     :param pipeline_name: name of the pipeline
     :param dependencies: tasks dependencies in graphlib format {'B':{'A','C'}},
-        this means task A and C are prerequisites for task C.
+        this means task A and C are prerequisites for task B.
     :param output_dir_path: Directory of the DAG and the python file it is
         saved in; only use for PipelineType.AIRFLOW
     :return: string containing the path of the DAG file that was exported.
