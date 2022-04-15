@@ -13,7 +13,7 @@ LONG_DESCRIPTION = (this_directory / "README.md").read_text()
 DESCRIPTION = ""
 NAME = "lineapy"
 AUTHOR = "linealabs"
-AUTHOR_EMAIL = "dev@linea.ai"
+AUTHOR_EMAIL = "dev@lineapy.org"
 URL = "https://github.com/LineaLabs/lineapy/"
 
 
