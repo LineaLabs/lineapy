@@ -98,7 +98,7 @@ class AirflowPlugin(BasePlugin):
             be saved to.
         :param airflow_task_dependencies: tasks dependencies in graphlib format
             {'B':{'A','C'}}"; this means task A and C are prerequisites for
-            task C.
+            task B.
         :param output_dir: directory to save the generated code to.
         :param airflow_dag_config: Configs of Airflow DAG model.
         """
