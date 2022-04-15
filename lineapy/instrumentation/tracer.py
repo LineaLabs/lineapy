@@ -291,7 +291,7 @@ class Tracer:
         self.variable_name_to_node[name] = node
         return node
 
-    def trace_import_module(
+    def trace_import(
         self,
         name: str,
         source_location: Optional[SourceLocation] = None,
@@ -359,7 +359,7 @@ class Tracer:
             node = self.import_module(base_module)
             self.assign(base_module, node)
 
-    def trace_import(
+    def trace_import_module(
         self,
         name: str,
         source_location: Optional[SourceLocation] = None,
