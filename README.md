@@ -11,6 +11,7 @@ and transforms Python code to extract production data pipelines in minutes.
 
 - [Why Use LineaPy?](#why-use-lineapy)
 - [Getting Started](#getting-started)
+- [Usage Reporting](#usage-reporting)
 - [What Next?](#what-next)
 
 ## Why Use LineaPy?
@@ -142,7 +143,6 @@ text = text + " World!"
 Note that these are the minimal essential steps to get to the final state of the variable `text`.
 That is, LineaPy has performed code cleanup on our behalf.
 
-
 ## Usage Reporting
 
 LineaPy collects anonymous usage data that helps our team to improve the product.
@@ -153,7 +153,7 @@ never collect user code, data, variable names, or stack traces.
 You can opt-out of usage tracking by setting environment variable:
 
 ```bash
-export LINEAPY_DO_NOT_TRACK=True
+$ export LINEAPY_DO_NOT_TRACK=True
 ```
 
 ## What Next?
