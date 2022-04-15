@@ -109,6 +109,10 @@ class GraphPrinter:
                 )
 
             else:
+                if node.node_type == NodeType.ImportNode:
+                    if node.name == "lineapy":  # type: ignore
+                        # do not track version change, pin to 0.0.1
+                        node.version = "0.0.1"
                 yield f"{attr_name} = ("
                 yield from self.pretty_print_model(node)
                 yield ")"
