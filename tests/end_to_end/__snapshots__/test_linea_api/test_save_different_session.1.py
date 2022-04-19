@@ -5,7 +5,7 @@ from lineapy.utils.utils import get_new_id
 
 source_1 = SourceCode(
     code="""import lineapy
-y = lineapy.get(\'x\').value + 10
+y = lineapy.get(\'x\').get_value() + 10
 lineapy.save(y, \'y\')
 """,
     location=PosixPath("[source file path]"),
@@ -22,7 +22,7 @@ import_1 = ImportNode(
     version="",
     package_name="lineapy",
 )
-call_6 = CallNode(
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=0,
@@ -54,7 +54,7 @@ call_6 = CallNode(
                 lineno=2,
                 col_offset=4,
                 end_lineno=2,
-                end_col_offset=31,
+                end_col_offset=37,
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
@@ -66,63 +66,72 @@ call_6 = CallNode(
                         lineno=2,
                         col_offset=4,
                         end_lineno=2,
-                        end_col_offset=26,
+                        end_col_offset=32,
                         source_code=source_1.id,
                     ),
-                    function_id=LookupNode(
-                        name="getattr",
-                    ).id,
-                    positional_args=[
-                        CallNode(
-                            source_location=SourceLocation(
-                                lineno=2,
-                                col_offset=4,
-                                end_lineno=2,
-                                end_col_offset=20,
-                                source_code=source_1.id,
-                            ),
-                            function_id=CallNode(
+                    function_id=CallNode(
+                        source_location=SourceLocation(
+                            lineno=2,
+                            col_offset=4,
+                            end_lineno=2,
+                            end_col_offset=30,
+                            source_code=source_1.id,
+                        ),
+                        function_id=LookupNode(
+                            name="getattr",
+                        ).id,
+                        positional_args=[
+                            CallNode(
                                 source_location=SourceLocation(
                                     lineno=2,
                                     col_offset=4,
                                     end_lineno=2,
-                                    end_col_offset=15,
+                                    end_col_offset=20,
                                     source_code=source_1.id,
                                 ),
-                                function_id=LookupNode(
-                                    name="getattr",
-                                ).id,
-                                positional_args=[
-                                    import_1.id,
-                                    LiteralNode(
-                                        value="get",
-                                    ).id,
-                                ],
-                            ).id,
-                            positional_args=[
-                                LiteralNode(
+                                function_id=CallNode(
                                     source_location=SourceLocation(
                                         lineno=2,
-                                        col_offset=16,
+                                        col_offset=4,
                                         end_lineno=2,
-                                        end_col_offset=19,
+                                        end_col_offset=15,
                                         source_code=source_1.id,
                                     ),
-                                    value="x",
-                                ).id
-                            ],
-                        ).id,
-                        LiteralNode(
-                            value="value",
-                        ).id,
-                    ],
+                                    function_id=LookupNode(
+                                        name="getattr",
+                                    ).id,
+                                    positional_args=[
+                                        import_1.id,
+                                        LiteralNode(
+                                            value="get",
+                                        ).id,
+                                    ],
+                                ).id,
+                                positional_args=[
+                                    LiteralNode(
+                                        source_location=SourceLocation(
+                                            lineno=2,
+                                            col_offset=16,
+                                            end_lineno=2,
+                                            end_col_offset=19,
+                                            source_code=source_1.id,
+                                        ),
+                                        value="x",
+                                    ).id
+                                ],
+                            ).id,
+                            LiteralNode(
+                                value="get_value",
+                            ).id,
+                        ],
+                    ).id,
                 ).id,
                 LiteralNode(
                     source_location=SourceLocation(
                         lineno=2,
-                        col_offset=29,
+                        col_offset=35,
                         end_lineno=2,
-                        end_col_offset=31,
+                        end_col_offset=37,
                         source_code=source_1.id,
                     ),
                     value=10,
