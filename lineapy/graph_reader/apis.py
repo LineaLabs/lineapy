@@ -96,6 +96,8 @@ class LineaArtifact:
             raise ValueError("No value saved for this node")
         return value.value
 
+    # Note that I removed the @properties becuase they were not working
+    # well with the lru_cache
     @lru_cache(maxsize=None)
     def _get_subgraph(self) -> Graph:
         """
@@ -143,7 +145,7 @@ class LineaArtifact:
             return code
         else:
             lineapy_pattern = re.compile(
-                r"(lineapy.(save\(([\w]+),\s*[\"\']([\w\-\s]+)[\"\']\)|get\([\"\']([\w\-\s]+)[\"\']\).value))"
+                r"(lineapy.(save\(([\w]+),\s*[\"\']([\w\-\s]+)[\"\']\)|get\([\"\']([\w\-\s]+)[\"\']\).get_value\(\)))"
             )
             # init swapped version
 

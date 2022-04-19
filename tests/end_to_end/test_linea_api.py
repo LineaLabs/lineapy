@@ -3,7 +3,7 @@ def test_save_returns_artifact(execute):
 x = 1
 res = lineapy.save(x, "x")
 slice = res.get_code()
-value = res.value
+value = res.get_value()
 """
 
     res = execute(c)
@@ -22,7 +22,7 @@ x = 1
 lineapy.save(x, "x")
 
 res = lineapy.get("x")
-y = res.value + 1
+y = res.get_value() + 1
 lineapy.save(y, "y")
 """
 
@@ -36,7 +36,7 @@ lineapy.save(y, "y")
         res.artifacts["y"]
         == """import lineapy
 res = lineapy.get("x")
-y = res.value + 1
+y = res.get_value() + 1
 """
     )
     assert res.values["y"] == 2
@@ -45,7 +45,7 @@ y = res.value + 1
 def test_save_different_session(execute):
     execute("import lineapy\nlineapy.save(10, 'x')")
     c = """import lineapy
-y = lineapy.get('x').value + 10
+y = lineapy.get('x').get_value() + 10
 lineapy.save(y, 'y')
 """
     res = execute(c)
@@ -53,7 +53,7 @@ lineapy.save(y, 'y')
     assert (
         res.artifacts["y"]
         == """import lineapy
-y = lineapy.get('x').value + 10
+y = lineapy.get('x').get_value() + 10
 """
     )
 
