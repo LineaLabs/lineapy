@@ -27,6 +27,7 @@ from lineapy.utils.analytics import (
     GetVersionEvent,
     track,
 )
+from lineapy.utils.deprecation_utils import lru_cache
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +62,8 @@ class LineaArtifact:
         track(GetVersionEvent(""))
         return self._version
 
-    @property
-    def value(self) -> object:
+    @lru_cache(maxsize=None)
+    def get_value(self) -> object:
         """
         Get and return the value of the artifact
         """
@@ -95,13 +96,14 @@ class LineaArtifact:
             raise ValueError("No value saved for this node")
         return value.value
 
-    @property
-    def _subgraph(self) -> Graph:
+    @lru_cache(maxsize=None)
+    def _get_subgraph(self) -> Graph:
         """
         Return the slice subgraph for the artifact
         """
-        return get_slice_graph(self._graph, [self._node_id])
+        return get_slice_graph(self._get_graph(), [self._node_id])
 
+    @lru_cache(maxsize=None)
     def get_code(self, use_lineapy_serialization=True) -> str:
         """
         Return the slices code for the artifact
@@ -111,10 +113,11 @@ class LineaArtifact:
             GetCodeEvent(use_lineapy_serialization=True, is_session_code=False)
         )
         return self._de_linealize_code(
-            get_source_code_from_graph(self._subgraph),
+            get_source_code_from_graph(self._get_subgraph()),
             use_lineapy_serialization,
         )
 
+    @lru_cache(maxsize=None)
     def get_session_code(self, use_lineapy_serialization=True) -> str:
         """
         Return the raw session code for the artifact. This will include any
@@ -176,8 +179,8 @@ class LineaArtifact:
 
             return swapped
 
-    @property
-    def _graph(self) -> Graph:
+    @lru_cache(maxsize=None)
+    def _get_graph(self) -> Graph:
         session_context = self.db.get_session_context(self._session_id)
         # FIXME: copied cover from tracer, we might want to refactor
         nodes = self.db.get_nodes_for_session(self._session_id)
@@ -193,7 +196,9 @@ class LineaArtifact:
         # This way we can import lineapy without having graphviz installed.
         from lineapy.visualizer import Visualizer
 
-        visualizer = Visualizer.for_public_node(self._graph, self._node_id)
+        visualizer = Visualizer.for_public_node(
+            self._get_graph(), self._node_id
+        )
         if path:
             visualizer.render_pdf_file(path)
         else:
@@ -205,7 +210,7 @@ class LineaArtifact:
 
         """
         slice_exec = Executor(self.db, globals())
-        slice_exec.execute_graph(self._subgraph)
+        slice_exec.execute_graph(self._get_subgraph())
         return slice_exec.get_value(self._node_id)
 
 
