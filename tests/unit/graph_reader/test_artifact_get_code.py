@@ -13,17 +13,34 @@ FAKE_PATH = "/tmp/path/to/value/file/xey"
         ("", ""),
         ("x = 1", "x = 1"),
         (
-            'lineapy.save(x,"xey")',
+            """import lineapy
+lineapy.save(x,"xey")""",
             f"""import pickle
 pickle.dump(x,open("{FAKE_PATH}","wb"))""",
         ),
         (
-            "x = lineapy.get('x').value",
+            """import lineapy
+x = lineapy.get('x').value""",
             f"""import pickle
 x = pickle.load(open("{FAKE_PATH}","rb"))""",
         ),
+        (
+            """import lineapy
+x = lineapy.get('x').value
+y = lineapy.get('y')""",
+            f"""import pickle
+import lineapy
+x = pickle.load(open("{FAKE_PATH}","rb"))
+y = lineapy.get('y')""",
+        ),
     ],
-    ids=["blank", "nolinea", "lineapy_save", "lineapy_get"],
+    ids=[
+        "blank",
+        "nolinea",
+        "lineapy_save",
+        "lineapy_get",
+        "lineapy_get_partial_replace",
+    ],
 )
 def test__de_linealize_code(code, expected):
     artifact = LineaArtifact(

@@ -159,7 +159,19 @@ class LineaArtifact:
 
             swapped, replaces = lineapy_pattern.subn(replace_fun, code)
             if replaces > 0:
+                # If we replaced something, pickle was used so add import pickle on top
+                # Conversely, if lineapy reference was removed, potentially the import lineapy line is not needed anymore.
+                remove_pattern = re.compile(r"import lineapy\n")
+                match_pattern = re.compile(r"lineapy\.(.*)")
                 swapped = "import pickle\n" + swapped
+                if match_pattern.search(swapped):
+                    # we still are using lineapy.xxx functions
+                    # so do nothing
+                    pass
+                else:
+                    swapped, lineareplaces = remove_pattern.subn("", swapped)
+                    logger.debug(f"Removed lineapy {lineareplaces} times")
+
             logger.debug("replaces made: %s", replaces)
 
             return swapped
