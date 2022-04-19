@@ -159,7 +159,7 @@ $ export LINEAPY_DO_NOT_TRACK=true
 
 ## What Next?
 
-To learn more about LineaPy, please check out the project [documentation](https://lineapy.org/docs)
+To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/en/latest/index.html)
 which contains many examples you can follow with. Some key resources include:
 
 | Resource | Description |
