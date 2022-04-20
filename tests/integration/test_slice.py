@@ -80,6 +80,9 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
     "xgboost": Environment(
         conda_deps=["xgboost", "scikit-learn", "numpy", "scipy"]
     ),
+    "matplotlib": Environment(
+          conda_deps=["matplotlib", "numpy"],
+    ),
 }
 
 # A list of the params to test
@@ -223,6 +226,15 @@ PARAMS = [
         id="xgboost_basic_walkthrough",
         marks=mark.xfail(reason="import error"),
     ),
+    ##
+    # Matplotlib
+    ##
+    param(
+        "matplotlib",
+        "matplotlib/scripts/alpha.py",
+        "lineapy.file_system",
+        id="matplotlib_alpha",
+    )
 ]
 
 
