@@ -81,7 +81,7 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
         conda_deps=["xgboost", "scikit-learn", "numpy", "scipy"]
     ),
     "matplotlib": Environment(
-          conda_deps=["matplotlib", "numpy"],
+        conda_deps=["matplotlib", "numpy"],
     ),
 }
 
@@ -234,7 +234,7 @@ PARAMS = [
         "matplotlib/scripts/alpha.py",
         "lineapy.file_system",
         id="matplotlib_alpha",
-    )
+    ),
 ]
 
 
