@@ -1,3 +1,5 @@
+import functools
+import weakref
 from functools import singledispatch, update_wrapper
 
 
@@ -117,3 +119,29 @@ def get_source_segment(source, node, padded=False):
     lines.insert(0, first)
     lines.append(last)
     return "".join(lines)
+
+
+# references
+# really we should just use cached_property but not supported by Python 3.7
+# https://stackoverflow.com/questions/33672412/python-functools-lru-cache-with-instance-methods-release-object/33672499#33672499
+
+
+def lru_cache(*lru_args, **lru_kwargs):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapped_func(self, *args, **kwargs):
+            # We're storing the wrapped method inside the instance. If we had
+            # a strong reference to self the instance would never die.
+            self_weak = weakref.ref(self)
+
+            @functools.wraps(func)
+            @functools.lru_cache(*lru_args, **lru_kwargs)
+            def cached_method(*args, **kwargs):
+                return func(self_weak(), *args, **kwargs)
+
+            setattr(self, func.__name__, cached_method)
+            return cached_method(*args, **kwargs)
+
+        return wrapped_func
+
+    return decorator

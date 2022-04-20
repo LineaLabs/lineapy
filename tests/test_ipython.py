@@ -86,7 +86,7 @@ def test_to_airflow_with_config_dagmodule(python_snapshot, run_cell):
 def test_get_value_artifact_inline(run_cell):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
-    assert run_cell("res.value") == [1, 2, 3]
+    assert run_cell("res.get_value()") == [1, 2, 3]
 
 
 def test_save_twice(run_cell):

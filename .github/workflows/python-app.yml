@@ -3,6 +3,9 @@
 
 name: Python
 
+env:
+  LINEAPY_DO_NOT_TRACK: true
+
 on:
   push:
     branches: [main]
@@ -30,6 +33,8 @@ jobs:
           lfs: true
           # Don't check out submodules, they are not needed to run the tests by default
           # submodules: "recursive"
+      - name: "copy example notebooks to docs"
+        run: cp examples/tutorials/*.ipynb docs/source/tutorials/
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -59,6 +64,3 @@ jobs:
       - uses: pre-commit/action@v2.0.3
         with:
           extra_args: ${{ matrix.id }} --all-files
-
-env:
-   LINEAPY_DO_NOT_TRACK: true

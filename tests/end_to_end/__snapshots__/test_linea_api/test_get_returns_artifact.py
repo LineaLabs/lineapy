@@ -9,7 +9,7 @@ x = 1
 lineapy.save(x, "x")
 
 res = lineapy.get("x")
-y = res.value + 1
+y = res.get_value() + 1
 lineapy.save(y, "y")
 """,
     location=PosixPath("[source file path]"),
@@ -75,7 +75,7 @@ call_2 = CallNode(
         ).id,
     ],
 )
-call_8 = CallNode(
+call_9 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -107,7 +107,7 @@ call_8 = CallNode(
                 lineno=6,
                 col_offset=4,
                 end_lineno=6,
-                end_col_offset=17,
+                end_col_offset=23,
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
@@ -119,63 +119,72 @@ call_8 = CallNode(
                         lineno=6,
                         col_offset=4,
                         end_lineno=6,
-                        end_col_offset=13,
+                        end_col_offset=19,
                         source_code=source_1.id,
                     ),
-                    function_id=LookupNode(
-                        name="getattr",
-                    ).id,
-                    positional_args=[
-                        CallNode(
-                            source_location=SourceLocation(
-                                lineno=5,
-                                col_offset=6,
-                                end_lineno=5,
-                                end_col_offset=22,
-                                source_code=source_1.id,
-                            ),
-                            function_id=CallNode(
+                    function_id=CallNode(
+                        source_location=SourceLocation(
+                            lineno=6,
+                            col_offset=4,
+                            end_lineno=6,
+                            end_col_offset=17,
+                            source_code=source_1.id,
+                        ),
+                        function_id=LookupNode(
+                            name="getattr",
+                        ).id,
+                        positional_args=[
+                            CallNode(
                                 source_location=SourceLocation(
                                     lineno=5,
                                     col_offset=6,
                                     end_lineno=5,
-                                    end_col_offset=17,
+                                    end_col_offset=22,
                                     source_code=source_1.id,
                                 ),
-                                function_id=LookupNode(
-                                    name="getattr",
-                                ).id,
-                                positional_args=[
-                                    import_1.id,
-                                    LiteralNode(
-                                        value="get",
-                                    ).id,
-                                ],
-                            ).id,
-                            positional_args=[
-                                LiteralNode(
+                                function_id=CallNode(
                                     source_location=SourceLocation(
                                         lineno=5,
-                                        col_offset=18,
+                                        col_offset=6,
                                         end_lineno=5,
-                                        end_col_offset=21,
+                                        end_col_offset=17,
                                         source_code=source_1.id,
                                     ),
-                                    value="x",
-                                ).id
-                            ],
-                        ).id,
-                        LiteralNode(
-                            value="value",
-                        ).id,
-                    ],
+                                    function_id=LookupNode(
+                                        name="getattr",
+                                    ).id,
+                                    positional_args=[
+                                        import_1.id,
+                                        LiteralNode(
+                                            value="get",
+                                        ).id,
+                                    ],
+                                ).id,
+                                positional_args=[
+                                    LiteralNode(
+                                        source_location=SourceLocation(
+                                            lineno=5,
+                                            col_offset=18,
+                                            end_lineno=5,
+                                            end_col_offset=21,
+                                            source_code=source_1.id,
+                                        ),
+                                        value="x",
+                                    ).id
+                                ],
+                            ).id,
+                            LiteralNode(
+                                value="get_value",
+                            ).id,
+                        ],
+                    ).id,
                 ).id,
                 LiteralNode(
                     source_location=SourceLocation(
                         lineno=6,
-                        col_offset=16,
+                        col_offset=22,
                         end_lineno=6,
-                        end_col_offset=17,
+                        end_col_offset=23,
                         source_code=source_1.id,
                     ),
                     value=1,

@@ -20,15 +20,14 @@ pickle.dump(x,open("{FAKE_PATH}","wb"))""",
             id="lineapy_save",
         ),
         pytest.param(
-            """import lineapy
-x = lineapy.get('x').value""",
+            "x = lineapy.get('x').get_value()",
             f"""import pickle
 x = pickle.load(open("{FAKE_PATH}","rb"))""",
             id="lineapy_get",
         ),
         pytest.param(
             """import lineapy
-x = lineapy.get('x').value
+x = lineapy.get('x').get_value()
 y = lineapy.get('y')""",
             f"""import pickle
 import lineapy
