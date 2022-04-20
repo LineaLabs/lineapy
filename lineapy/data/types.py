@@ -102,7 +102,7 @@ class NodeValue(BaseModel):
     node_id: LineaID
     # A pointer to the current execution
     execution_id: LineaID
-    value: str
+    value_ptr: str
     value_type: Optional[ValueType]
 
     start_time: datetime.datetime

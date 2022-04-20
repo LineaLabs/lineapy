@@ -58,7 +58,7 @@ class AirflowPlugin(BasePlugin):
             OWNER=airflow_dag_config.get("owner", "airflow"),
             RETRIES=airflow_dag_config.get("retries", 2),
             START_DATE=airflow_dag_config.get("start_date", "days_ago(1)"),
-            SCHEDULE_IMTERVAL=airflow_dag_config.get(
+            SCHEDULE_INTERVAL=airflow_dag_config.get(
                 "schedule_interval", "*/15 * * * *"
             ),
             MAX_ACTIVE_RUNS=airflow_dag_config.get("max_active_runs", 1),

@@ -104,18 +104,22 @@ class ExecutionORM(Base):
 
 class NodeValueORM(Base):
     """
-    A node value represents the value of a node during some execution.
+     A node value represents the value of a node during some execution.
 
-    It is uniquely identified by the `node_id` and `execution_id`.
+    :param string value_ptr: pointer of where value is stored. Currently, only
+                             local file path is supported.
+    :param enum value_type: e.g., chart or dataframe, not currently used, but will
+                            be for UI rendering in the future.
 
-    The following invariant holds:
-    `value.node.session == value.execution.session`
+     Invariants:
+     - primary key: `node_id` and `execution_id`
+     - `value.node.session == value.execution.session`
     """
 
     __tablename__ = "node_value"
     node_id = Column(String, ForeignKey("node.id"), primary_key=True)
     execution_id = Column(String, ForeignKey("execution.id"), primary_key=True)
-    value = Column(String, nullable=True)
+    value_ptr = Column(String, nullable=True)
     value_type = Column(Enum(ValueType))
 
     start_time = Column(DateTime, nullable=True)

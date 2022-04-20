@@ -99,7 +99,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=str(pickled_path.resolve()),
+                value_ptr=str(pickled_path.resolve()),
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],

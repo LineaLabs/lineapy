@@ -94,9 +94,9 @@ class LineaArtifact:
             )
         if not value:
             raise ValueError("No value saved for this node")
-        return value.value
+        return value.value_ptr
 
-    # Note that I removed the @properties becuase they were not working
+    # Note that I removed the @properties because they were not working
     # well with the lru_cache
     @lru_cache(maxsize=None)
     def _get_subgraph(self) -> Graph:
@@ -176,6 +176,14 @@ class LineaArtifact:
                 else:
                     swapped, lineareplaces = remove_pattern.subn("", swapped)
                     logger.debug(f"Removed lineapy {lineareplaces} times")
+
+            # add save logic at the end if it's not a side effect
+            # FIXME: simple template fix for now
+            # assume that if the value is none, it's a side-effect
+            # FIXME: we should know if the artifact is a side-effect, but maybe we don't store it anywhere yet??
+            if self.get_value() is not None:
+                file_path = self._get_value_path()
+                swapped += "\npickle.dump({}, open('{file_path}', 'wb'))"
 
             logger.debug("replaces made: %s", replaces)
 
