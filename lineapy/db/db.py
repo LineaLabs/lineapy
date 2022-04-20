@@ -86,15 +86,21 @@ class RelationalLineaDB:
         additional_args = {}
         if url.startswith(DB_SQLITE_PREFIX):
             additional_args = {"check_same_thread": False}
-        engine = create_engine(
+        self.engine = create_engine(
             url,
             connect_args=additional_args,
             poolclass=StaticPool,
             echo=echo,
         )
         self.session = scoped_session(sessionmaker())
-        self.session.configure(bind=engine)
-        Base.metadata.create_all(engine)
+        self.session.configure(bind=self.engine)
+        Base.metadata.create_all(self.engine)
+
+    def renew_session(self):
+        if self.url.startswith(DB_SQLITE_PREFIX):
+            self.commit()
+            self.session = scoped_session(sessionmaker())
+            self.session.configure(bind=self.engine)
 
     @classmethod
     def from_environment(cls, url: Optional[str] = None) -> RelationalLineaDB:
@@ -129,6 +135,7 @@ class RelationalLineaDB:
         self.session.add(context_orm)
         if not self.url.startswith(DB_SQLITE_PREFIX):
             self.session.flush()
+        self.renew_session()
 
     def commit(self) -> None:
         """
@@ -172,6 +179,7 @@ class RelationalLineaDB:
             source_code_orm.jupyter_session_id = location.session_id
 
         self.session.add(source_code_orm)
+        self.renew_session()
 
     def write_node(self, node: Node) -> None:
         args = node.dict(include={"id", "session_id", "node_type"})
@@ -247,12 +255,14 @@ class RelationalLineaDB:
             node_orm = LookupNodeORM(**args, name=node.name)
 
         self.session.add(node_orm)
+        self.renew_session()
 
     def write_node_value(
         self,
         node_value: NodeValue,
     ) -> None:
         self.session.add(NodeValueORM(**node_value.dict()))
+        self.renew_session()
 
     def write_artifact(self, artifact: Artifact) -> None:
         artifact_orm = ArtifactORM(
@@ -263,6 +273,7 @@ class RelationalLineaDB:
             version=artifact.version,
         )
         self.session.add(artifact_orm)
+        self.renew_session()
 
     def artifact_in_db(
         self, node_id: LineaID, execution_id: LineaID, name: str, version: str
@@ -290,8 +301,7 @@ class RelationalLineaDB:
             timestamp=execution.timestamp,
         )
         self.session.add(execution_orm)
-        if not self.url.startswith(DB_SQLITE_PREFIX):
-            self.session.flush()
+        self.renew_session()
 
     """
     Readers
