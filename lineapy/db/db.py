@@ -301,6 +301,8 @@ class RelationalLineaDB:
             timestamp=execution.timestamp,
         )
         self.session.add(execution_orm)
+        if not self.url.startswith(DB_SQLITE_PREFIX):
+            self.session.flush()
         self.renew_session()
 
     """
