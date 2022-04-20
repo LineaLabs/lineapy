@@ -23,6 +23,21 @@ launch the environment with the ``lineapy`` command, like so:
 
 Each will automatically load the LineaPy extension in the corresponding interactive shell application.
 
+Or, if the application is already running without the extension loaded, you can load it
+on the fly with:
+
+.. code:: python
+
+    %load_ext lineapy
+
+executed at the top of your session. Please note:
+
+- You will need to run this as the first command in a given session; executing it 
+in the middle of a session will lead to erroneous behaviors by LineaPy.
+
+- This loads the extension to the current session only, i.e. it does not carry over
+to different sessions; you will need to repeat it for each new session.
+
 CLI
 ---
 
