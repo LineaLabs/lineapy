@@ -81,6 +81,9 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
         conda_deps=["xgboost", "scikit-learn", "numpy", "scipy"]
     ),
     "pandas": Environment(),
+    "matplotlib": Environment(
+        conda_deps=["matplotlib", "numpy"],
+    ),
 }
 
 # A list of the params to test
@@ -224,6 +227,9 @@ PARAMS = [
         id="xgboost_basic_walkthrough",
         marks=mark.xfail(reason="import error"),
     ),
+    ##
+    # Pandas
+    ##
     param(
         "pandas",
         "pandas_exercises/02_Filtering_&_Sorting/Fictional Army/Exercise_with_solutions.ipynb",
@@ -260,6 +266,19 @@ PARAMS = [
         "iris",
         id="pandas_deleting",
         marks=mark.xfail(reason="need annotation"),
+    ),
+    ##
+    # Matplotlib
+    ##
+    param(
+        "matplotlib",
+        "matplotlib-tutorial/scripts/dash_joinstyle.py",
+        "lineapy.file_system",
+        id="matplotlib_dash_joinstyle",
+        marks=mark.xfail(
+            reason="Need to find a way to annotate fig.patch.set_alpha()",
+            raises=AssertionError,
+        ),
     ),
 ]
 
