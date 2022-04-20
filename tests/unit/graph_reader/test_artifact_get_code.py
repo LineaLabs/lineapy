@@ -27,7 +27,7 @@ x = pickle.load(open("{FAKE_PATH}","rb"))""",
         ),
         pytest.param(
             """import lineapy
-x = lineapy.get('x').value
+x = lineapy.get('x').get_value()
 y = lineapy.get('y')""",
             f"""import pickle
 import lineapy
