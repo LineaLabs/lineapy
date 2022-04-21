@@ -1,0 +1,29 @@
+name: Docs
+
+on:
+  push:
+    branches: [main, ci-fix-for-doc]
+    paths:
+      - "examples/tutorials/**/*.ipynb"
+  
+concurrency:
+  group: "${{ github.head_ref || github.ref }}"
+  cancel-in-progress: true
+jobs:
+  copy-docs:
+    steps:
+      - uses: actions/checkout@v2
+      - name: "copy example notebooks to docs"
+        run: cp examples/tutorials/*.ipynb docs/source/tutorials/
+      - name: Commit files
+        run: |
+          git config --local user.email "infra@linea.ai"
+          git config --local user.name "Humble bot servant"
+          git commit -m "Add tutorials to docs" -a
+      - name: push doc changes
+        uses: ad-m/github-push-action@v0.5.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+            
+  

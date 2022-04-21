@@ -54,8 +54,6 @@ jobs:
         python-version: ["3.9"]
         id: [black, flake8, isort, mypy]
     steps:
-      - name: "copy example notebooks to docs"
-        run: cp examples/tutorials/*.ipynb docs/source/tutorials/
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
