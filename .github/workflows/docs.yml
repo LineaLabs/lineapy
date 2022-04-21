@@ -16,6 +16,8 @@ jobs:
   copy-docs:
     runs-on: ubuntu-latest
     steps:
+      - name: workaround
+        run: git config --global --add safe.directory /github/workspace
       - uses: actions/checkout@v2
       - name: "copy example notebooks to docs"
         run: cp examples/tutorials/*.ipynb docs/source/tutorials/
@@ -23,7 +25,6 @@ jobs:
         run: |
           git config --local user.email "infra@linea.ai"
           git config --local user.name "Humble bot servant"
-          git config --global --add safe.directory /github/workspace
           git add .
           git commit -m "Add tutorials to docs"
       - name: push doc changes
