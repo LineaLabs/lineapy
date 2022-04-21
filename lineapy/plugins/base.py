@@ -6,8 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
-import isort
-
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.program_slice import (
@@ -90,13 +88,7 @@ class BasePlugin:
             full_import_block += "\n" + _import_block
             full_code_block += "\n" + _code_block
 
-        # Sort imports and move them to the top
-        full_code = isort.code(
-            full_import_block + full_code_block,
-            float_to_top=True,
-            profile="black",
-        )
-        full_code = prettify(full_code)
+        full_code = prettify(full_import_block + full_code_block)
         (output_dir_path / f"{module_name}.py").write_text(full_code)
         logger.info(f"Generated python module {module_name}.py")
 

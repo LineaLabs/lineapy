@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
-import isort
 from typing_extensions import TypedDict
 
 from lineapy.plugins.base import BasePlugin
@@ -66,8 +65,6 @@ class AirflowPlugin(BasePlugin):
             tasks=task_names,
             task_dependencies=task_graph.get_airflow_dependency(),
         )
-        # Sort imports and move them to the top
-        full_code = isort.code(full_code, float_to_top=True, profile="black")
         full_code = prettify(full_code)
         (output_dir_path / f"{dag_name}_dag.py").write_text(full_code)
         logger.info(
