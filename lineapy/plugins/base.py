@@ -4,7 +4,7 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 import isort
 
@@ -44,20 +44,24 @@ class BasePlugin:
         lines = code.split("\n")
         ast_tree = ast.parse(code)
         # Imports are at the top, find where they end
-        end_of_imports_line_num = 0
+        import_lines: Set[int] = set()
         for node in ast_tree.body:
             if isinstance(node, (ast.Import, ast.ImportFrom)):
-                continue
-            else:
-                end_of_imports_line_num = node.lineno - 1
-                break
+                import_lines |= set(
+                    range(
+                        node.lineno - 1,
+                        node.end_lineno if node.end_lineno else node.lineno,
+                    )
+                )
 
         # everything from here down needs to be under def()
         # TODO Support arguments to the func
         code_block = f"def {func_name}():\n\t" + "\n\t".join(
-            lines[end_of_imports_line_num:]
+            (line for i, line in enumerate(lines) if i not in import_lines)
         )
-        import_block = "\n".join(lines[:end_of_imports_line_num])
+        import_block = "\n".join(
+            (line for i, line in enumerate(lines) if i in import_lines)
+        )
         main_block = f"""if __name__ == "__main__":\n\tprint({func_name}())"""
         return import_block, code_block, main_block
 

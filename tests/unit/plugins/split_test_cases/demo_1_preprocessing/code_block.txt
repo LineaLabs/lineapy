@@ -3,7 +3,6 @@ def demo_1_preprocessing():
 	cleaned_data = training_data.drop(['Pool_QC', 'Misc_Feature'], axis=1)
 	cleaned_data = cleaned_data[cleaned_data['Gr_Liv_Area']  < 3000]
 	cleaned_data = cleaned_data[cleaned_data['Garage_Area']  < 1250]
-	from sklearn.feature_extraction import DictVectorizer
 	vec_enc = DictVectorizer()
 	vec_enc.fit(cleaned_data[['Neighborhood']].to_dict(orient='records'))
 	Neighborhood_data = vec_enc.transform(cleaned_data[['Neighborhood']].to_dict(orient='records')).toarray()

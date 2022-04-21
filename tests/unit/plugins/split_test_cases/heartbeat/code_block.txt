@@ -31,7 +31,6 @@ def heartbeat():
 	encoded_slope = pd.get_dummies(df['slope'], prefix = "slope")
 	X = pd.concat([X,encoded_cp, encoded_ca, encoded_thal, encoded_slope], axis = 1)
 	X = X.drop(columns = ['cp', 'ca', 'thal', 'slope'], axis = 1)
-	from sklearn.preprocessing import StandardScaler
 	scaler = StandardScaler()
 	standard_X = scaler.fit_transform(X)
 	X_train, X_test, y_train, y_test = train_test_split(standard_X,Y,test_size = 0.2,random_state=43, shuffle = True)
