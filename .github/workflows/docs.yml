@@ -16,15 +16,16 @@ jobs:
   copy-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: workaround
-        run: git config --global --add safe.directory /github/workspace
       - uses: actions/checkout@v2
+        with:
+          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
+          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
       - name: "copy example notebooks to docs"
         run: cp examples/tutorials/*.ipynb docs/source/tutorials/
       - name: Commit files
         run: |
           git config --local user.email "infra@linea.ai"
-          git config --local user.name "Humble bot servant"
+          git config --local user.name {{github.actor}}
           git add .
           git commit -m "Add tutorials to docs"
       - name: push doc changes
