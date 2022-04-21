@@ -16,14 +16,7 @@ jobs:
   copy-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: workaround
-        run: |
-          export GIT_CEILING_DIRECTORIES="/github/workspace"
-          git config --global --add safe.directory /github/workspace
       - uses: actions/checkout@v2
-        with:
-          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
-          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
       - name: "copy example notebooks to docs"
         run: cp examples/tutorials/*.ipynb docs/source/tutorials/
       - name: Commit files
@@ -33,7 +26,7 @@ jobs:
           git add .
           git commit -m "Add tutorials to docs"
       - name: push doc changes
-        uses: ad-m/github-push-action@v0.5.0
+        uses: ad-m/github-push-action@vmaster
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
