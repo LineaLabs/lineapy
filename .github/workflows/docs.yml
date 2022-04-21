@@ -23,6 +23,7 @@ jobs:
         run: |
           git config --local user.email "infra@linea.ai"
           git config --local user.name "Humble bot servant"
+          git config --global --add safe.directory /github/workspace
           git add .
           git commit -m "Add tutorials to docs"
       - name: push doc changes
