@@ -23,7 +23,8 @@ jobs:
         run: |
           git config --local user.email "infra@linea.ai"
           git config --local user.name "Humble bot servant"
-          git commit -m "Add tutorials to docs" -a
+          git add .
+          git commit -m "Add tutorials to docs"
       - name: push doc changes
         uses: ad-m/github-push-action@v0.5.0
         with:
