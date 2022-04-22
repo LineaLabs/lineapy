@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
       - name: "copy example notebooks to docs"
         run: cp examples/tutorials/*.ipynb docs/source/tutorials/
       - name: Commit files
