@@ -111,7 +111,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         #   and that's incorrect.
         db.commit()
 
-    date_created = datetime.now()
+    date_created = datetime.utcnow()
     version = date_created.strftime(VERSION_DATE_STRING)
     # If we have already saved this same artifact, with the same name,
     # then don't write it again.

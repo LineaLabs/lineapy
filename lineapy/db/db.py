@@ -5,8 +5,9 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
+from sqlalchemy.orm.query import Query
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
@@ -474,6 +475,13 @@ class RelationalLineaDB:
             .all()
         )
 
+    def _filter_artifact_by_name(self, name: str) -> Query:
+        """
+        Return all artifact with a certain name as ArtifactORM.
+        """
+
+        return self.session.query(ArtifactORM).filter(ArtifactORM.name == name)
+
     def get_artifacts_for_session(
         self, session_id: LineaID
     ) -> List[ArtifactORM]:
@@ -502,11 +510,11 @@ class RelationalLineaDB:
         If a version is not specified, it will return the most recent
         version sorted by date_created
         """
-        res_query = self.session.query(ArtifactORM).filter(
-            ArtifactORM.name == artifact_name
-        )
+        res_query = self._filter_artifact_by_name(artifact_name)
         if version:
-            res_query = res_query.filter(ArtifactORM.version == version)
+            res_query = self.session.query(res_query).filter(
+                ArtifactORM.version == version
+            )
         res = res_query.order_by(ArtifactORM.date_created.desc()).first()
         if res is None:
             msg = (
@@ -521,6 +529,14 @@ class RelationalLineaDB:
                 )
             )
         return res
+
+    def get_latest_artifact_version(self, artifact_name: str) -> int:
+        res = self.session.query(
+            func.max(
+                self._filter_artifact_by_name(artifact_name).all().version
+            )
+        ).all()
+        return -1 if res is None else res
 
     def get_all_artifacts(self) -> List[ArtifactORM]:
         """

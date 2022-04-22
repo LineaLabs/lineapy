@@ -306,7 +306,7 @@ class LiteralNodeORM(BaseNodeORM):
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     value_type: LiteralType = Column(Enum(LiteralType))
-    # The value of the literal serilaized as a string
+    # The value of the literal serialized as a string
     value: str = Column(String, nullable=False)
 
 
