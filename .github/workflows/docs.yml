@@ -2,10 +2,7 @@ name: Docs
 
 on:
   push:
-    branches: [main, ci-fix-for-doc]
-    paths:
-      - "examples/tutorials/**/*.ipynb"
-  pull_request:
+    branches: [main]
     paths:
       - "examples/tutorials/**/*.ipynb"
   
