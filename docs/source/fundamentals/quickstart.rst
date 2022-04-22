@@ -49,7 +49,7 @@ extraneous operations between these modifications. We can cut through this by ru
     artifact = lineapy.get("text_for_heading")
 
     # Obtain the simplest version of a variable's history
-    print(artifact.code)
+    print(artifact.get_code())
 
 which will print:
 
