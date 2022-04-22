@@ -28,6 +28,7 @@ from lineapy.utils.analytics import (
     track,
 )
 from lineapy.utils.deprecation_utils import lru_cache
+from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +116,7 @@ class LineaArtifact:
             GetCodeEvent(use_lineapy_serialization=True, is_session_code=False)
         )
         return self._de_linealize_code(
-            str(get_source_code_from_graph(self._get_subgraph())),
+            prettify(str(get_source_code_from_graph(self._get_subgraph()))),
             use_lineapy_serialization,
         )
 

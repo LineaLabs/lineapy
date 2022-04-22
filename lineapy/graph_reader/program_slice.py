@@ -5,6 +5,7 @@ from typing import DefaultDict, List, Set
 from lineapy.data.graph import Graph
 from lineapy.data.types import ImportNode, LineaID, SourceCode
 from lineapy.db.db import RelationalLineaDB
+from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class CodeSlice:
     # source_code: SourceCode
 
     def __str__(self):
-        return "\n".join(self.import_lines + self.body_lines) + "\n"
+        return prettify("\n".join(self.import_lines + self.body_lines) + "\n")
 
     def __repr__(self):
         return str(self)
