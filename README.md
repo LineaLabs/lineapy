@@ -47,15 +47,10 @@ To install LineaPy, run:
 $ pip install lineapy
 ```
 
-Or, if using `poetry`, run:
-
-```bash
-$ poetry add lineapy
-```
-
 Or, if you want the latest version of LineaPy directly from the source, run:
+
 ```
-python -m pip install git+https://github.com/LineaLabs/lineapy.git
+$ pip install git+https://github.com/LineaLabs/lineapy.git --upgrade
 ```
 
 ### Interfaces
