@@ -43,14 +43,33 @@ class BasePlugin:
         ast_tree = ast.parse(code)
         # Imports are at the top, find where they end
         import_lines: Set[int] = set()
-        for node in ast_tree.body:
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                import_lines |= set(
-                    range(
-                        node.lineno - 1,
-                        node.end_lineno if node.end_lineno else node.lineno,
+        # Only python>=3.8 has end_lineno attribute
+        if sys.version_info >= (3, 8):
+            for node in ast_tree.body:
+                if isinstance(node, (ast.Import, ast.ImportFrom)):
+                    import_lines |= set(
+                        range(
+                            node.lineno - 1,
+                            node.end_lineno
+                            if node.end_lineno
+                            else node.lineno,
+                        )
                     )
+        else:
+            import_start_line = None
+            for node in ast_tree.body:
+                node_start_line = node.lineno - 1
+                if import_start_line is not None:
+                    import_lines |= set(
+                        range(import_start_line, node_start_line)
+                    )
+                import_start_line = (
+                    node_start_line
+                    if isinstance(node, (ast.Import, ast.ImportFrom))
+                    else None
                 )
+            if import_start_line is not None:
+                import_lines |= set(range(import_start_line, len(lines)))
 
         # everything from here down needs to be under def()
         # TODO Support arguments to the func
