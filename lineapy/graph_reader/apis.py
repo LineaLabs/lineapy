@@ -248,6 +248,7 @@ class LineaCatalog:
 
     @property
     def print(self) -> str:
+        # Can't really cache this since the values might change
         return "\n".join(
             [
                 f"{a.name}:{a.version} created on {a.date_created}"
