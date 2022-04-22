@@ -176,6 +176,15 @@ pip freeze --exclude-editable >> requirements.txt # so that lineapy is not in th
 Be sure to remove any weird versions due to Conda installations.
 Note that longer term, we want to make this more automated.
 
+Also, if you changed the tutorial code, be sure to run the following command,
+which copies over the example tutorials over to the source (note that this 
+assumes that you've changed the examples tutorial as opposed to the other way
+around):
+
+```bash
+cp examples/tutorials/*.ipynb docs/source/tutorials/
+```
+
 G. Commit your code
 
 ```bash
