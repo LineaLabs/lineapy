@@ -117,7 +117,16 @@ def test_to_sql_does_not_slice(execute):
 def test_slicing_db(execute):
     code = mincode + extras + to_sql + "\n"
     res = execute(code, artifacts=["lineapy.db"])
-    assert res.artifacts["lineapy.db"] == code
+    assert (
+        res.artifacts["lineapy.db"]
+        == """import pandas as pd
+import sqlite3
+df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+conn = sqlite3.connect(':memory:')
+"""
+        + to_sql
+        + "\n"
+    )
 
 
 def test_slicing_filesystem(execute):

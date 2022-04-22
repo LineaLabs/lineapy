@@ -1,14 +1,14 @@
-import ast
 import logging
 import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.program_slice import (
+    CodeSlice,
     get_program_slice_by_artifact_name,
 )
 from lineapy.plugins.task import TaskGraph, TaskGraphEdge
@@ -29,59 +29,6 @@ class BasePlugin:
     db: RelationalLineaDB
     session_id: LineaID
 
-    def split_code_blocks(self, code: str, func_name: str):
-        """
-        Split the list of code lines to import, main code and main func blocks.
-        The code block is added under a function with given name.
-
-        :param code: the source code to split.
-        :param func_name: name of the function to create.
-        :return: strings representing import_block, code_block, main_block.
-        """
-        # We split the lines in import and code blocks and join them to full code test
-        lines = code.split("\n")
-        ast_tree = ast.parse(code)
-        # Imports are at the top, find where they end
-        import_lines: Set[int] = set()
-        # Only python>=3.8 has end_lineno attribute
-        if sys.version_info >= (3, 8):
-            for node in ast_tree.body:
-                if isinstance(node, (ast.Import, ast.ImportFrom)):
-                    import_lines |= set(
-                        range(
-                            node.lineno - 1,
-                            node.end_lineno
-                            if node.end_lineno
-                            else node.lineno,
-                        )
-                    )
-        else:
-            import_start_line = None
-            for node in ast_tree.body:
-                node_start_line = node.lineno - 1
-                if import_start_line is not None:
-                    import_lines |= set(
-                        range(import_start_line, node_start_line)
-                    )
-                import_start_line = (
-                    node_start_line
-                    if isinstance(node, (ast.Import, ast.ImportFrom))
-                    else None
-                )
-            if import_start_line is not None:
-                import_lines |= set(range(import_start_line, len(lines)))
-
-        # everything from here down needs to be under def()
-        # TODO Support arguments to the func
-        code_block = f"def {func_name}():\n\t" + "\n\t".join(
-            (line for i, line in enumerate(lines) if i not in import_lines)
-        )
-        import_block = "\n".join(
-            (line for i, line in enumerate(lines) if i in import_lines)
-        )
-        main_block = f"""if __name__ == "__main__":\n\tprint({func_name}())"""
-        return import_block, code_block, main_block
-
     def prepare_output_dir(self, copy_dst: str):
         """
         This helper creates directories if missing
@@ -92,7 +39,7 @@ class BasePlugin:
     def generate_python_module(
         self,
         module_name: str,
-        artifacts_code: Dict[str, str],
+        artifacts_code: Dict[str, CodeSlice],
         output_dir_path: Path,
     ):
         """
@@ -101,9 +48,11 @@ class BasePlugin:
         full_import_block = ""
         full_code_block = ""
         for artifact_name, sliced_code in artifacts_code.items():
-            _import_block, _code_block, _ = self.split_code_blocks(
-                sliced_code, artifact_name
+            _import_block = "\n".join(sliced_code.import_lines)
+            _code_block = f"def {artifact_name}():\n\t" + "\n\t".join(
+                sliced_code.body_lines
             )
+
             full_import_block += "\n" + _import_block
             full_code_block += "\n" + _code_block
 
@@ -177,7 +126,7 @@ class BasePlugin:
         artifact_safe_names = []
         for slice_name in slice_names:
             artifact_var = safe_var_name(slice_name)
-            slice_code = get_program_slice_by_artifact_name(
+            slice_code: CodeSlice = get_program_slice_by_artifact_name(
                 self.db, slice_name
             )
             artifacts_code[artifact_var] = slice_code

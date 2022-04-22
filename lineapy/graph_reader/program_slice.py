@@ -1,8 +1,9 @@
 import logging
+from dataclasses import dataclass
 from typing import DefaultDict, List, Set
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID, SourceCode
+from lineapy.data.types import ImportNode, LineaID, SourceCode
 from lineapy.db.db import RelationalLineaDB
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,20 @@ def get_slice_graph(graph: Graph, sinks: List[LineaID]) -> Graph:
     return subgraph
 
 
-def get_source_code_from_graph(program: Graph) -> str:
+@dataclass
+class CodeSlice:
+    import_lines: List[str]
+    body_lines: List[str]
+    # source_code: SourceCode
+
+    def __str__(self):
+        return "\n".join(self.import_lines + self.body_lines) + "\n"
+
+    def __repr__(self):
+        return str(self)
+
+
+def get_source_code_from_graph(program: Graph) -> CodeSlice:
     """
     Returns the code from some subgraph, by including all lines that
     are included in the graphs source.
@@ -38,31 +52,51 @@ def get_source_code_from_graph(program: Graph) -> str:
     """
     # map of source code to set of included line numbers
     source_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
+    import_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
 
     for node in program.nodes:
         if not node.source_location:
             continue
-        source_code_to_lines[node.source_location.source_code] |= set(
-            range(
-                node.source_location.lineno,
-                node.source_location.end_lineno + 1,
+        # check if import node
+        if isinstance(node, (ImportNode)):
+            import_code_to_lines[node.source_location.source_code] |= set(
+                range(
+                    node.source_location.lineno,
+                    node.source_location.end_lineno + 1,
+                )
             )
-        )
+        else:
+            source_code_to_lines[node.source_location.source_code] |= set(
+                range(
+                    node.source_location.lineno,
+                    node.source_location.end_lineno + 1,
+                )
+            )
 
     logger.debug("Source code to lines: %s", source_code_to_lines)
     # Sort source codes (for jupyter cells), and select lines
-    code = ""
+    body_code = []
     for source_code, lines in sorted(
         source_code_to_lines.items(), key=lambda x: x[0]
     ):
         source_code_lines = source_code.code.split("\n")
         for line in sorted(lines):
-            code += source_code_lines[line - 1] + "\n"
+            # code += source_code_lines[line - 1] + "\n"
+            body_code.append(source_code_lines[line - 1])
 
-    return code
+    import_code = []
+    for import_source_code, lines in sorted(
+        import_code_to_lines.items(), key=lambda x: x[0]
+    ):
+        import_code_lines = import_source_code.code.split("\n")
+        for line in sorted(lines):
+            # code += source_code_lines[line - 1] + "\n"
+            import_code.append(source_code_lines[line - 1])
+
+    return CodeSlice(import_code, body_code)
 
 
-def get_program_slice(graph: Graph, sinks: List[LineaID]) -> str:
+def get_program_slice(graph: Graph, sinks: List[LineaID]) -> CodeSlice:
     """
     Find the necessary and sufficient code for computing the sink nodes.
 
@@ -80,7 +114,7 @@ def get_program_slice(graph: Graph, sinks: List[LineaID]) -> str:
 
 def get_program_slice_by_artifact_name(
     db: RelationalLineaDB, name: str
-) -> str:
+) -> CodeSlice:
     artifact = db.get_artifact_by_name(name)
     nodes = db.get_nodes_for_session(artifact.node.session_id)
     graph = Graph(nodes, db.get_session_context(artifact.node.session_id))
