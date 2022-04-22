@@ -81,7 +81,6 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
     ):
         source_code_lines = source_code.code.split("\n")
         for line in sorted(lines):
-            # code += source_code_lines[line - 1] + "\n"
             body_code.append(source_code_lines[line - 1])
 
     import_code = []
@@ -90,8 +89,7 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
     ):
         import_code_lines = import_source_code.code.split("\n")
         for line in sorted(lines):
-            # code += source_code_lines[line - 1] + "\n"
-            import_code.append(source_code_lines[line - 1])
+            import_code.append(import_code_lines[line - 1])
 
     return CodeSlice(import_code, body_code)
 
