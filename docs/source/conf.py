@@ -66,3 +66,11 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
 todo_include_todos = True
+
+html_js_files = [
+    # For usage reporting on Crazy Egg
+    (
+        "//script.crazyegg.com/pages/scripts/0111/9525.js",
+        {"type": "text/javascript", "async": "async"},
+    )
+]
