@@ -4,7 +4,6 @@ import builtins
 import importlib.util
 import logging
 import operator
-from ast import Mod
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
@@ -313,7 +312,7 @@ class Executor:
                 )
             )
             raise UserException(
-                exc,
+                exc.__cause__,  # type: ignore
                 # Remove the first two frames, which are always there
                 RemoveFrames(2),
                 # Then filter all frozen importlib frames

@@ -274,7 +274,14 @@ def l_import(
     """
     assert "." not in name
     full_name = base_module.__name__ + "." + name if base_module else name
-    value = importlib.import_module(full_name)
+    try:
+        value = importlib.import_module(full_name)
+    # wrap all exceptions happening during import into a single importerror
+    # this can potentially be changed to a custom error if it messes with
+    # imports inside blackboxes
+    except Exception as e:
+        raise ImportError from e
+
     return value
 
 
