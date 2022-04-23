@@ -3,6 +3,7 @@ from typing import Any, Callable, Iterable, Optional, Set, Tuple, TypeVar, cast
 from uuid import uuid4
 
 import black
+import isort
 
 from lineapy.data.types import LineaID, LiteralType, ValueType
 
@@ -74,10 +75,12 @@ def get_value_type(val: Any) -> Optional[ValueType]:
 
 
 def prettify(code: str) -> str:
-    return black.format_str(
-        code,
-        mode=black.Mode(),
-    )
+
+    # Sort imports and move them to the top
+    code = isort.code(code, float_to_top=True, profile="black")
+    code = black.format_str(code, mode=black.Mode())
+
+    return code
 
 
 CALLABLE = TypeVar("CALLABLE", bound=Callable)

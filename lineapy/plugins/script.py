@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
-import isort
 from typing_extensions import TypedDict
 
 from lineapy.plugins.base import BasePlugin
@@ -42,8 +41,6 @@ class ScriptPlugin(BasePlugin):
             DAG_NAME=dag_name,
             tasks=task_graph.get_taskorder(),
         )
-        # Sort imports and move them to the top
-        full_code = isort.code(full_code, float_to_top=True, profile="black")
         full_code = prettify(full_code)
         (output_dir_path / f"{dag_name}_script_dag.py").write_text(full_code)
         logger.info(
