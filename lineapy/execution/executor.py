@@ -4,6 +4,7 @@ import builtins
 import importlib.util
 import logging
 import operator
+from ast import Mod
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import chdir, getcwd
@@ -302,6 +303,23 @@ class Executor:
         except ArtifactSaveException:
             # keep the error stack if its artifact save
             raise
+        except ImportError as exc:
+            # Remove all importlib frames
+            # There are a different number depending on whether the import
+            # can be resolved
+            filter = RemoveFramesWhile(
+                lambda frame: frame.f_code.co_filename.startswith(
+                    "<frozen importlib"
+                )
+            )
+            raise UserException(
+                exc,
+                # Remove the first two frames, which are always there
+                RemoveFrames(2),
+                # Then filter all frozen importlib frames
+                filter,
+                *changes,
+            )
         except Exception as exc:
             # this is user error, so use the custom exception so we can clean
             # up our call stack

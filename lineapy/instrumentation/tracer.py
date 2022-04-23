@@ -15,6 +15,7 @@ from lineapy.data.types import (
     LookupNode,
     MutateNode,
     Node,
+    NodeType,
     PositionalArgument,
     SessionContext,
     SessionType,
@@ -282,12 +283,14 @@ class Tracer:
                 self.literal(module_name),
                 parent_module,
             )
+            node.node_type = NodeType.ImportNode
         else:
             node = self.call(
                 self.lookup_node(l_import.__name__),
                 source_location,
                 self.literal(module_name),
             )
+            node.node_type = NodeType.ImportNode
         self.variable_name_to_node[name] = node
         return node
 
@@ -355,9 +358,12 @@ class Tracer:
                     self.assign(alias, sub_module_node)
 
         else:
-            base_module = name.split(".")[0]
-            node = self.import_module(base_module)
-            self.assign(base_module, node)
+            # TODO check why we need to assign to base module for the case of import x.y.z
+            # base_module = name.split(".")[0]
+            # node = self.import_module(base_module)
+            # self.assign(base_module, module_node)
+            # self.assign(name.split(".")[0], module_node)
+            self.assign(name, module_node)
 
     def trace_import_module(
         self,

@@ -271,3 +271,13 @@ x = ylabel('label')
     res = execute(code, artifacts=["x"])
     assert res.values["x"].__class__.__name__ == "Text"
     assert res.artifacts["x"] == code
+
+
+# from x.y import *
+def test_nested_from_import_submodule(execute):
+    code = """from matplotlib import pyplot
+x = pyplot.ylabel('label')
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"].__class__.__name__ == "Text"
+    assert res.artifacts["x"] == code

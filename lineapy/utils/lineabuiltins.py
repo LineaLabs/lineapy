@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import sys
 
 # from types import ModuleType
@@ -273,13 +274,8 @@ def l_import(
     """
     assert "." not in name
     full_name = base_module.__name__ + "." + name if base_module else name
-    try:
-        __import__(full_name)
-    except ImportError:  # TODO: Is this the proper way to memic the default python behavior for importing invalid packages
-        raise ModuleNotFoundError(
-            f"ModuleNotFoundError: No module named '{full_name}'"
-        )
-    return sys.modules[full_name]
+    value = importlib.import_module(full_name)
+    return value
 
 
 file_system = register(ExternalState(external_state="file_system"))
