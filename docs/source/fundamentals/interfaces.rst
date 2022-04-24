@@ -33,11 +33,9 @@ you can load it on the fly with:
 
 executed at the top of your session. Please note:
 
-- You will need to run this as the first command in a given session; executing it 
-in the middle of a session will lead to erroneous behaviors by LineaPy.
+- You will need to run this as the first command in a given session; executing it in the middle of a session will lead to erroneous behaviors by LineaPy.
 
-- This loads the extension to the current session only, i.e., it does not carry over
-to different sessions; you will need to repeat it for each new session.
+- This loads the extension to the current session only, i.e., it does not carry over to different sessions; you will need to repeat it for each new session.
 
 CLI
 ---
