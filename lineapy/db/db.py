@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Optional, cast
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
-from sqlalchemy.orm.query import Query
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
