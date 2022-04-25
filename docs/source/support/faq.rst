@@ -1,7 +1,7 @@
 FAQ
 ===
 
-Why Do I get an Error for Database Lock?
+Why Do I Get an Error for Database Lock?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
