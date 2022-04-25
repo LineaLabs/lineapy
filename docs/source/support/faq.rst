@@ -8,7 +8,7 @@ By default, LineaPy uses SQLite for artifact store, which keeps the package ligh
 However, SQLite has several limitations, one of which is that it does not support multiple concurrent
 writes to a database (it will result in a database lock). Such concurrent writes to a database can happen,
 for instance, when multiple scripts or notebook sessions are running at the same time.
-If your SQLite is locked, you can unlock it by killing the exact process locking the file. Specifically,
+If your SQLite is locked, you can unlock it by terminating the exact process locking the file. Specifically,
 navigate to your home directory and run:
 
 .. code:: bash
@@ -31,8 +31,9 @@ which will unlock the database.
 
 .. warning::
 
-    Be discreet in terminating a process as it may result in loss of ongoing work. Ensure to save relevant work
-    before terminating any process.
+    Be cautious about terminating a process as it may result in loss of ongoing work. For instance, if your notebook
+    involved heavy computation and the database got locked while storing the result as an artifact, you may consider
+    storing it in a different form (e.g., a Parquet file) before terminating the notebook's process.
 
 If database locking is a persisting issue in your usage, we recommend you use a more robust database such as PostgreSQL,
 for which relevant instructions can be found :ref:`here <postgres>`.
