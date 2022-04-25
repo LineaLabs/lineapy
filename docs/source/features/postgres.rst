@@ -76,6 +76,7 @@ Note that this has to be done prior to using LineaPy so that the environment var
 You can check the connection between LineaPy and PostgreSQL with:
 
 .. code:: python
+
     >>> from lineapy.db.db import RelationalLineaDB
     >>> print(RelationalLineaDB.from_environment().url)
 
