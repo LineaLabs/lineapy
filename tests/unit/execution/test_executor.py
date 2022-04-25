@@ -48,12 +48,21 @@ def test_execute_import(executor: Executor):
     Verify that executing an import gives a value, timing information, and no side effects.
     """
     id_ = LineaID("operator_id")
+    importer_node = LookupNode(
+        id=LineaID("importer_id"), name="l_import", session_id="unused"
+    )
+    operator_node = LiteralNode(
+        id=LineaID("literal_id"), value="operator", session_id="unused"
+    )
+    executor.execute_node(importer_node)
+    executor.execute_node(operator_node)
     assert not list(
         executor.execute_node(
-            ImportNode(
+            CallNode(
                 id=id_,
                 session_id="unused",
-                name="operator",
+                function_id=importer_node.id,
+                positional_args=[PositionalArgument(id=operator_node.id)],
             ),
         )
     )
@@ -65,13 +74,26 @@ def test_execute_import_nonexistant(executor: Executor):
     """
     Verify exception frame matches normal exception frame of importing nonexistanting import.
     """
-    node = ImportNode(
+
+    importer_node = LookupNode(
+        id=LineaID("importer_id"), name="l_import", session_id="unused"
+    )
+    operator_node = LiteralNode(
+        id=LineaID("literal_id"),
+        value="nonexistant_module",
+        session_id="unused",
+    )
+    executor.execute_node(importer_node)
+    executor.execute_node(operator_node)
+
+    import_node = CallNode(
         id="a",
         session_id="unused",
-        name="nonexistant_module",
+        function_id=importer_node.id,
+        positional_args=[PositionalArgument(id=operator_node.id)],
     )
     with raises(UserException) as excinfo:
-        executor.execute_node(node)
+        executor.execute_node(import_node)
 
     user_exception: UserException = excinfo.value
 
@@ -85,13 +107,58 @@ def test_execute_import_exception(executor: Executor):
     """
     Verify exception frame matches of that of importing a module with an error.
     """
-    node = ImportNode(
+    importer_node = LookupNode(
+        id=LineaID("importer_id"), name="l_import", session_id="unused"
+    )
+    operator_parent_node0 = LiteralNode(
+        id=LineaID("literal_id_0"),
+        value="lineapy",
+        session_id="unused",
+    )
+    operator_parent_node1 = LiteralNode(
+        id=LineaID("literal_id_1"),
+        value="utils",
+        session_id="unused",
+    )
+    operator_final_node = LiteralNode(
+        id=LineaID("literal_id_2"),
+        value="__error_on_load",
+        session_id="unused",
+    )
+    executor.execute_node(importer_node)
+    executor.execute_node(operator_parent_node0)
+    executor.execute_node(operator_parent_node1)
+    executor.execute_node(operator_final_node)
+
+    p0 = CallNode(
         id="a",
         session_id="unused",
-        name="lineapy.utils.__error_on_load",
+        function_id=importer_node.id,
+        positional_args=[PositionalArgument(id=operator_parent_node0.id)],
     )
+    executor.execute_node(p0)
+    p1 = CallNode(
+        id="a",
+        session_id="unused",
+        function_id=importer_node.id,
+        positional_args=[
+            PositionalArgument(id=operator_parent_node1.id),
+            PositionalArgument(id=p0.id),
+        ],
+    )
+    executor.execute_node(p1)
+    import_node = CallNode(
+        id="a",
+        session_id="unused",
+        function_id=importer_node.id,
+        positional_args=[
+            PositionalArgument(id=operator_final_node.id),
+            PositionalArgument(id=p1.id),
+        ],
+    )
+
     with raises(UserException) as excinfo:
-        executor.execute_node(node)
+        executor.execute_node(import_node)
 
     user_exception: UserException = excinfo.value
 
