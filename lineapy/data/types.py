@@ -343,6 +343,7 @@ class CallNode(BaseNode):
     # Mapping of global variables that need to be set to call this function
     global_reads: Dict[str, LineaID] = {}
 
+    # TODO: add documentation
     implicit_dependencies: List[LineaID] = []
 
     def parents(self) -> Iterable[LineaID]:
