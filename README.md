@@ -53,6 +53,11 @@ Or, if you want the latest version of LineaPy directly from the source, run:
 $ pip install git+https://github.com/LineaLabs/lineapy.git --upgrade
 ```
 
+By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
+However, SQLite has several limitations, one of which is that it does not support multiple concurrent
+writes to a database (it will result in a database lock). If you want to use a more robust database,
+please follow [instructions](https://docs.lineapy.org/en/latest/features/postgres.html) for using PostgreSQL.
+
 ### Interfaces
 
 #### Jupyter and IPython
@@ -153,7 +158,7 @@ text = text + " World!"
 ```
 
 Note that these are the minimal essential steps to get to the final state of the variable `text`.
-That is, LineaPy has performed code cleanup on our behalf.
+That is, LineaPy has performed code cleanup on our behalf, moving us a step closer to production.
 
 ## Usage Reporting
 

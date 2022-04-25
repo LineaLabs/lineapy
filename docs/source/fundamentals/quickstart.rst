@@ -59,7 +59,7 @@ which will print:
     text = text + " World!"
 
 Note that these are the minimal essential steps to get to the final state of the variable ``text``.
-That is, LineaPy has performed code cleanup on our behalf.
+That is, LineaPy has performed code cleanup on our behalf, moving us a step closer to production.
 
 .. note::
     In fact, ``lineapy.save()`` itself returns the artifact object, so we could have simply
