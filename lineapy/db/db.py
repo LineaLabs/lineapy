@@ -475,13 +475,6 @@ class RelationalLineaDB:
             .all()
         )
 
-    def _filter_artifact_by_name(self, name: str) -> Query:
-        """
-        Return all artifact with a certain name as ArtifactORM.
-        """
-
-        return self.session.query(ArtifactORM).filter(ArtifactORM.name == name)
-
     def get_artifacts_for_session(
         self, session_id: LineaID
     ) -> List[ArtifactORM]:
