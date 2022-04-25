@@ -138,6 +138,9 @@ def test_linea_python_equivalent(tmp_path, code):
 
 
 def test_ipython():
-    code = 'import lineapy; print(lineapy.save(1, "one").get_code())'
-    res = subprocess.check_output(["lineapy", "ipython", "-c", code])
-    assert res.decode().strip().endswith(code)
+    raw_code = 'import lineapy; print(lineapy.save(1, "one").get_code())'
+    clean_code = (
+        """import lineapy\n\nprint(lineapy.save(1, "one").get_code())"""
+    )
+    res = subprocess.check_output(["lineapy", "ipython", "-c", raw_code])
+    assert res.decode().strip().endswith(clean_code)

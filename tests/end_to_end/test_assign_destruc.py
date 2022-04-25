@@ -215,9 +215,9 @@ lineapy.save(c, "c")
     assert res.values["a"] == 1
     assert res.values["b"] == 2
     assert res.values["c"] == [1, 2]
-    assert res.slice("a") == "c = [1,2]\na, b = c\n"
-    assert res.slice("b") == "c = [1,2]\na, b = c\n"
-    assert res.slice("c") == "c = [1,2]\n"
+    assert res.slice("a") == "c = [1, 2]\na, b = c\n"
+    assert res.slice("b") == "c = [1, 2]\na, b = c\n"
+    assert res.slice("c") == "c = [1, 2]\n"
 
 
 def test_assignment_destructuring_starred_slice(execute):
@@ -232,6 +232,6 @@ lineapy.save(c, "c")
     assert res.values["a"] == 1
     assert res.values["b"] == [2, 3]
     assert res.values["c"] == [1, 2, 3]
-    assert res.slice("a") == "c = [1,2,3]\na, *b = c\n"
-    assert res.slice("b") == "c = [1,2,3]\na, *b = c\n"
-    assert res.slice("c") == "c = [1,2,3]\n"
+    assert res.slice("a") == "c = [1, 2, 3]\na, *b = c\n"
+    assert res.slice("b") == "c = [1, 2, 3]\na, *b = c\n"
+    assert res.slice("c") == "c = [1, 2, 3]\n"

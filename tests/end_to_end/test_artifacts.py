@@ -14,7 +14,7 @@ lineapy.save(c, "c")
         snapshot=False,
     )
 
-    assert res.slice("c") == """b = 2\nc = min(b,5)\n"""
+    assert res.slice("c") == """b = 2\nc = min(b, 5)\n"""
 
 
 def test_set_one_artifact(execute):
