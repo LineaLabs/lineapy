@@ -17,6 +17,7 @@ Welcome to LineaPy!
 
    tutorials/00_api_basics
    examples
+   features/index
 
 
 .. toctree::
