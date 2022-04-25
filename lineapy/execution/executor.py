@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import builtins
-import importlib.util
 import logging
 import operator
 from dataclasses import dataclass, field
@@ -371,28 +370,36 @@ class Executor:
         changes: Iterable[TracebackChange],
         variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
-        try:
-            start_time = datetime.now()
-            value = importlib.import_module(node.name)
-            end_time = datetime.now()
-        except Exception as exc:
-            # Remove all importlib frames
-            # There are a different number depending on whether the import
-            # can be resolved
-            filter = RemoveFramesWhile(
-                lambda frame: frame.f_code.co_filename.startswith(
-                    "<frozen importlib"
-                )
-            )
-            raise UserException(
-                exc,
-                # Remove the first two frames, which are always there
-                RemoveFrames(2),
-                # Then filter all frozen importlib frames
-                filter,
-                *changes,
-            )
-        return PrivateExecuteResult(value, start_time, end_time, [])
+
+        return PrivateExecuteResult(
+            value=None,
+            start_time=datetime.now(),
+            end_time=datetime.now(),
+            side_effects=[],
+        )
+
+        # try:
+        #     start_time = datetime.now()
+        #     value = importlib.import_module(node.name)
+        #     end_time = datetime.now()
+        # except Exception as exc:
+        #     # Remove all importlib frames
+        #     # There are a different number depending on whether the import
+        #     # can be resolved
+        #     filter = RemoveFramesWhile(
+        #         lambda frame: frame.f_code.co_filename.startswith(
+        #             "<frozen importlib"
+        #         )
+        #     )
+        #     raise UserException(
+        #         exc,
+        #         # Remove the first two frames, which are always there
+        #         RemoveFrames(2),
+        #         # Then filter all frozen importlib frames
+        #         filter,
+        #         *changes,
+        #     )
+        # return PrivateExecuteResult(value, start_time, end_time, [])
 
     @_execute.register
     def _execute_literal(

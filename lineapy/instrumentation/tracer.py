@@ -15,7 +15,6 @@ from lineapy.data.types import (
     LookupNode,
     MutateNode,
     Node,
-    NodeType,
     PositionalArgument,
     SessionContext,
     SessionType,
@@ -283,14 +282,14 @@ class Tracer:
                 self.literal(module_name),
                 parent_module,
             )
-            node.node_type = NodeType.ImportNode
+            # node.node_type = NodeType.ImportNode
         else:
             node = self.call(
                 self.lookup_node(l_import.__name__),
                 source_location,
                 self.literal(module_name),
             )
-            node.node_type = NodeType.ImportNode
+            # node.node_type = NodeType.ImportNode
         self.variable_name_to_node[name] = node
         return node
 
@@ -365,26 +364,6 @@ class Tracer:
             # self.assign(name.split(".")[0], module_node)
             self.assign(name, module_node)
 
-    def trace_import_module(
-        self,
-        name: str,
-        source_location: Optional[SourceLocation] = None,
-        alias: Optional[str] = None,
-        attributes: Optional[Dict[str, str]] = None,
-    ) -> None:
-        """
-        - `name`: the name of the module
-        - `alias`: the module could be aliased, e.g., import pandas as pd
-        - `attributes`: a list of functions imported from the library.
-           It keys the aliased name to the original name.
-
-        NOTE
-        ----
-        - The input args would _either_ have alias or attributes, but not both
-        - Didn't call the function import because I think that's a protected name
-
-        note that version and path will be introspected at runtime
-        """
         node = ImportNode(
             id=get_new_id(),
             name=name,
@@ -393,40 +372,68 @@ class Tracer:
         )
         self.process_node(node)
 
-        if attributes is None:
-            self.variable_name_to_node[alias or name] = node
+    # def trace_import_module(
+    #     self,
+    #     name: str,
+    #     source_location: Optional[SourceLocation] = None,
+    #     alias: Optional[str] = None,
+    #     attributes: Optional[Dict[str, str]] = None,
+    # ) -> None:
+    #     """
+    #     - `name`: the name of the module
+    #     - `alias`: the module could be aliased, e.g., import pandas as pd
+    #     - `attributes`: a list of functions imported from the library.
+    #        It keys the aliased name to the original name.
 
-        # for the attributes imported, we need to add them to the local lookup
-        #  that yields the importnode's id for the `function_module` field,
-        #  see `graph_with_basic_image`.
+    #     NOTE
+    #     ----
+    #     - The input args would _either_ have alias or attributes, but not both
+    #     - Didn't call the function import because I think that's a protected name
 
-        else:
-            if IMPORT_STAR in attributes:
-                module_value = self.executor.get_value(node.id)
-                # Import star behavior copied from python docs
-                # https://docs.python.org/3/reference/simple_stmts.html#the-import-statement
-                if hasattr(module_value, "__all__"):
-                    public_names = module_value.__all__  # type: ignore
-                else:
-                    public_names = [
-                        attr
-                        for attr in dir(module_value)
-                        if not attr.startswith("_")
-                    ]
-                attributes = {attr: attr for attr in public_names}
-            for alias, original_name in attributes.items():
-                # self.function_name_to_function_module_import_id[a] = node.id
-                self.assign(
-                    alias,
-                    self.call(
-                        self.lookup_node(GETATTR),
-                        None,
-                        node,
-                        self.literal(original_name),
-                    ),
-                )
+    #     note that version and path will be introspected at runtime
+    #     """
+    #     node = ImportNode(
+    #         id=get_new_id(),
+    #         name=name,
+    #         session_id=self.get_session_id(),
+    #         source_location=source_location,
+    #     )
+    #     self.process_node(node)
 
-        return
+    #     if attributes is None:
+    #         self.variable_name_to_node[alias or name] = node
+
+    #     # for the attributes imported, we need to add them to the local lookup
+    #     #  that yields the importnode's id for the `function_module` field,
+    #     #  see `graph_with_basic_image`.
+
+    #     else:
+    #         if IMPORT_STAR in attributes:
+    #             module_value = self.executor.get_value(node.id)
+    #             # Import star behavior copied from python docs
+    #             # https://docs.python.org/3/reference/simple_stmts.html#the-import-statement
+    #             if hasattr(module_value, "__all__"):
+    #                 public_names = module_value.__all__  # type: ignore
+    #             else:
+    #                 public_names = [
+    #                     attr
+    #                     for attr in dir(module_value)
+    #                     if not attr.startswith("_")
+    #                 ]
+    #             attributes = {attr: attr for attr in public_names}
+    #         for alias, original_name in attributes.items():
+    #             # self.function_name_to_function_module_import_id[a] = node.id
+    #             self.assign(
+    #                 alias,
+    #                 self.call(
+    #                     self.lookup_node(GETATTR),
+    #                     None,
+    #                     node,
+    #                     self.literal(original_name),
+    #                 ),
+    #             )
+
+    #     return
 
     def literal(
         self,
