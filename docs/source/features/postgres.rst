@@ -1,3 +1,5 @@
+.. _postgres:
+
 Using PostgreSQL with LineaPy
 =============================
 

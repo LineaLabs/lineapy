@@ -22,6 +22,13 @@ Welcome to LineaPy!
 
 .. toctree::
    :maxdepth: 2
+   :caption: Support
+
+   support/faq
+
+
+.. toctree::
+   :maxdepth: 2
    :caption: References
 
    references/development
