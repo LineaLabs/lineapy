@@ -70,10 +70,7 @@ art_version = art.version
 """
     res = execute(code, snapshot=False)
     # Verify the version is a non-negative integer
-    assert (
-        isinstance(res.values["art_version"], int)
-        and res.values["art_version"] >= 0
-    )
+    assert res.values["art_version"] == 0
     assert res.slice("x") == "x = 1\n"
 
 
@@ -82,7 +79,7 @@ def test_catalog_shows_all_versions(execute):
 from time import sleep
 x = 1
 lineapy.save(x, "x")
-x = 1
+x = 2
 lineapy.save(x, "x")
 catalog = lineapy.catalog()
 all_artifacts = catalog.export
