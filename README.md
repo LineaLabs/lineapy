@@ -53,6 +53,9 @@ Or, if you want the latest version of LineaPy directly from the source, run:
 $ pip install git+https://github.com/LineaLabs/lineapy.git --upgrade
 ```
 
+By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
+If you want to use a more robust database, please follow [instructions](https://docs.lineapy.org/en/latest/features/postgres.html) for using PostgreSQL.
+
 ### Interfaces
 
 #### Jupyter and IPython
