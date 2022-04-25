@@ -9,8 +9,8 @@ To install LineaPy, run:
 
     $ pip install lineapy
 
-Or, to install directly from GitHub, run:
+Or, if you want the latest version of LineaPy directly from the source, run:
 
 .. code:: bash
 
-    $ pip install git+https://github.com/LineaLabs/lineapy.git
+    $ pip install git+https://github.com/LineaLabs/lineapy.git --upgrade

@@ -46,11 +46,13 @@ class TracerContext:
         """
 
         return {
-            artifact.name: get_program_slice(self.graph, [artifact.node_id])
+            artifact.name: str(
+                get_program_slice(self.graph, [artifact.node_id])
+            )
             for artifact in self.session_artifacts()
             if artifact.name is not None
         }
 
     def slice(self, name: str) -> str:
         artifact = self.db.get_artifact_by_name(name)
-        return get_program_slice(self.graph, [artifact.node_id])
+        return str(get_program_slice(self.graph, [artifact.node_id]))

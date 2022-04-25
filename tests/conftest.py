@@ -28,9 +28,8 @@ from lineapy.transformer.node_transformer import transform
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.tree_logger import print_tree_log, start_tree_log
-from lineapy.utils.utils import prettify
 from lineapy.visualizer import Visualizer
-from tests.util import get_project_directory
+from tests.util import get_project_directory, test_prettify
 
 # Based off of unmerged JSON extension
 # Writes each snapshot to its own Python file
@@ -217,7 +216,7 @@ class ExecuteFixture:
                 )
             )
             # Prettify again in case replacements cause line wraps
-            assert prettify(graph_str) == self.snapshot
+            assert test_prettify(graph_str) == self.snapshot
 
             # If this graph string snapshot was updated, then also update the SVG
             # snapshot. We don't want to always update the SVG snapshot, because
