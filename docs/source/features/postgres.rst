@@ -5,7 +5,7 @@ Using PostgreSQL with LineaPy
 
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
 Given the limitations of SQLite (e.g., single write access to a database at a time), however,
-we may want to use a more advanced backend such as PostgreSQL.
+we may want to use a more advanced database such as PostgreSQL.
 
 Run PostgreSQL with Docker
 --------------------------
