@@ -1,8 +1,4 @@
-from datetime import datetime, timedelta
-
 import pytest
-
-from lineapy.utils.constants import VERSION_DATE_STRING
 
 
 def test_simple_slice(execute):
@@ -73,11 +69,11 @@ art = lineapy.get("x")
 art_version = art.version
 """
     res = execute(code, snapshot=False)
-    # Verify the version date is at most a minute from now but not in the future
-    artifact_version_delta = datetime.now() - datetime.fromisoformat(
-        res.values["art_version"]
+    # Verify the version is a non-negative integer
+    assert (
+        isinstance(res.values["art_version"], int)
+        and res.values["art_version"] >= 0
     )
-    assert timedelta(minutes=0) < artifact_version_delta < timedelta(minutes=1)
     assert res.slice("x") == "x = 1\n"
 
 
@@ -86,7 +82,7 @@ def test_catalog_shows_all_versions(execute):
 from time import sleep
 x = 1
 lineapy.save(x, "x")
-sleep(1)
+x = 1
 lineapy.save(x, "x")
 catalog = lineapy.catalog()
 all_artifacts = catalog.export
@@ -99,23 +95,12 @@ all_print = catalog.print
     assert db_values[0]["artifact_name"] == "x"
     assert db_values[1]["artifact_name"] == "x"
     # verify that the versions are different
-    assert db_values[1]["artifact_version"] != db_values[0]["artifact_version"]
-    # verifty that the versions are datestrings and in correct order
-    assert datetime.strptime(
-        db_values[0]["artifact_version"], VERSION_DATE_STRING
-    ) < datetime.strptime(
-        db_values[1]["artifact_version"], VERSION_DATE_STRING
-    )
+    assert db_values[0]["artifact_version"] == 0
+    assert db_values[1]["artifact_version"] == 1
     # also verify that the date_created is in the right order.
     # artifact_version and date_created might not match esp in future with named versions
     # but for default version it should be a string version of a date
     assert db_values[0]["date_created"] < db_values[1]["date_created"]
-
-    # Verify the version date is at most a minute old but not in the future
-    artifact_version_delta = datetime.now() - datetime.fromisoformat(
-        db_values[1]["artifact_version"]
-    )
-    assert timedelta(minutes=0) < artifact_version_delta < timedelta(minutes=1)
 
     # finally make sure the print property is updated to reflect versions
     assert res.values["all_print"] == "\n".join(
