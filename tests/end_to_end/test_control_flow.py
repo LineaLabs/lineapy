@@ -3,7 +3,7 @@ def test_loop_code(execute):
 b = 0
 for x in range(9):
     a.append(x)
-    b+=x
+    b += x
 x = sum(a)
 y = x + b
 """
@@ -28,10 +28,10 @@ else:
 
 
 def test_while_executes_and_scopes_correctly(execute):
-    SAMPLE_WHILE = """x=[1,2,3]
-idx=0
+    SAMPLE_WHILE = """x = [1, 2, 3]
+idx = 0
 result = 0
-while idx<len(x):
+while idx < len(x):
     result += x[idx]
     idx += 1
 """
