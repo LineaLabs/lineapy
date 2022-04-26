@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 """
 Generates the requirement infra
+the INSTALL_REQUIRES is copied over manually from setup.py (since it can't be accessed as a module)
+
+Not the highest quality code, just a helper script.
 """
 
 import subprocess
-from pathlib import Path
 
 import click
-
 
 INSTALL_REQUIRES = [
     "astor",
@@ -41,12 +42,11 @@ def gen_requirements(newreq):
         # run pip freeze
         requirements = subprocess.check_output(["pip", "freeze"])
     else:
-        # print(Path.cwd())
         f_r = open("requirements.txt", "r")
-        requirements = f_r.read()
+        requirements = f_r.read()  # type: ignore
     reqs = clean_requires()
     # make sure to only include that what's in setup
-    requirements = requirements.split("\n")
+    requirements = requirements.split("\n")  # type: ignore
     for req in requirements:
         if req and req.split("==")[0] in reqs:  # type: ignore
             f.write(req + "\n")  # type: ignore
