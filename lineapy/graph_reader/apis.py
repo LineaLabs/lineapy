@@ -46,7 +46,7 @@ class LineaArtifact:
     """session id of the session that created the artifact"""
     name: str
     """name of the artifact"""
-    _version: str
+    _version: int
     """version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`"""
     date_created: Optional[datetime] = field(default=None, repr=False)
     # setting repr to false for date_created for now since it duplicates version
@@ -58,7 +58,7 @@ class LineaArtifact:
     it will be set."""
 
     @property
-    def version(self) -> str:
+    def version(self) -> int:
         track(GetVersionEvent(""))
         return self._version
 

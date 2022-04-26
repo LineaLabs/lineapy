@@ -276,7 +276,7 @@ class RelationalLineaDB:
         self.renew_session()
 
     def artifact_in_db(
-        self, node_id: LineaID, execution_id: LineaID, name: str, version: str
+        self, node_id: LineaID, execution_id: LineaID, name: str, version: int
     ) -> bool:
         """
         Returns true if the artifact is already in the DB.
@@ -495,7 +495,7 @@ class RelationalLineaDB:
         )
 
     def get_artifact_by_name(
-        self, artifact_name: str, version: Optional[str] = None
+        self, artifact_name: str, version: Optional[int] = None
     ) -> ArtifactORM:
         """
         Gets the most recent artifact with a certain name.
@@ -507,7 +507,7 @@ class RelationalLineaDB:
         )
         if version:
             res_query = res_query.filter(ArtifactORM.version == version)
-        res = res_query.order_by(ArtifactORM.date_created.desc()).first()
+        res = res_query.order_by(ArtifactORM.version.desc()).first()
         if res is None:
             msg = (
                 f"Artifact {artifact_name} (version {version})"
@@ -521,6 +521,19 @@ class RelationalLineaDB:
                 )
             )
         return res
+
+    def get_latest_artifact_version(self, artifact_name: str) -> int:
+        """
+        Get the latest version number of an artifact.
+        If the artifact does not exist, it will return -1
+        """
+        res = (
+            self.session.query(ArtifactORM)
+            .filter(ArtifactORM.name == artifact_name)
+            .order_by(ArtifactORM.version.desc())
+            .first()
+        )
+        return -1 if res is None else res.version
 
     def get_all_artifacts(self) -> List[ArtifactORM]:
         """

@@ -32,7 +32,6 @@ from lineapy.utils.analytics import (
     track,
 )
 from lineapy.utils.config import linea_folder
-from lineapy.utils.constants import VERSION_DATE_STRING
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_value_type
 
@@ -111,25 +110,18 @@ def save(reference: object, name: str) -> LineaArtifact:
         #   and that's incorrect.
         db.commit()
 
-    date_created = datetime.now()
-    version = date_created.strftime(VERSION_DATE_STRING)
-    # If we have already saved this same artifact, with the same name,
-    # then don't write it again.
-    if not db.artifact_in_db(
+    # artifact_version = 0 if artifact exists else bump one version
+    date_created = datetime.utcnow()
+    artifact_version = db.get_latest_artifact_version(name) + 1
+
+    artifact_to_write = Artifact(
         node_id=value_node_id,
         execution_id=execution_id,
+        date_created=date_created,
         name=name,
-        version=version,
-    ):
-        artifact_to_write = Artifact(
-            node_id=value_node_id,
-            execution_id=execution_id,
-            date_created=date_created,
-            name=name,
-            version=version,
-        )
-        db.write_artifact(artifact_to_write)
-
+        version=artifact_version,
+    )
+    db.write_artifact(artifact_to_write)
     track(SaveEvent(side_effect=side_effect_to_str(reference)))
 
     linea_artifact = LineaArtifact(
@@ -139,7 +131,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         _execution_id=execution_id,
         _node_id=value_node_id,
         _session_id=call_node.session_id,
-        _version=version,
+        _version=artifact_version,
     )
     return linea_artifact
 
@@ -175,7 +167,7 @@ def _try_write_to_db(value: object) -> Path:
     return filepath
 
 
-def get(artifact_name: str, version: Optional[str] = None) -> LineaArtifact:
+def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     """
     Gets an artifact from the DB.
 

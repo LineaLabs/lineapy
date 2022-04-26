@@ -82,7 +82,7 @@ class ArtifactORM(Base):
         primary_key=True,
     )
     date_created = Column(DateTime, nullable=False)
-    version = Column(String, nullable=False, primary_key=True)
+    version = Column(Integer, nullable=False, primary_key=True)
 
     node: BaseNodeORM = relationship(
         "BaseNodeORM", uselist=False, lazy="joined", innerjoin=True
@@ -306,7 +306,7 @@ class LiteralNodeORM(BaseNodeORM):
     id = Column(String, ForeignKey("node.id"), primary_key=True)
 
     value_type: LiteralType = Column(Enum(LiteralType))
-    # The value of the literal serilaized as a string
+    # The value of the literal serialized as a string
     value: str = Column(String, nullable=False)
 
 
