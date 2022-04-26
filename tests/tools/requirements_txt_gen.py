@@ -34,13 +34,15 @@ def clean_requires():
 
 
 @click.command()
-@click.option("--newreq", default=0, show_default=True)
+@click.option("--newreq", is_flag=True, default=0, show_default=True)
 def gen_requirements(newreq):
     # write to tmp file
     f = open("tmp_requirement.txt", "w")
     if newreq:
         # run pip freeze
-        requirements = subprocess.check_output(["pip", "freeze"])
+        requirements = str(
+            subprocess.check_output(["pip", "freeze"]).decode("UTF-8")
+        )
     else:
         f_r = open("requirements.txt", "r")
         requirements = f_r.read()  # type: ignore
