@@ -29,12 +29,74 @@ INSTALL_REQUIRES = [
 ]
 
 
+DEV_REQUIRES = [
+    ##
+    # graphing libs
+    ##
+    "graphviz",
+    "scour==0.38.2",  # also for graphing use, pinned because other versions are not tested and to increase stability
+    ##
+    # external libs used for testing
+    ##
+    "altair",
+    "pandas",
+    "sklearn",
+    "flake8",
+    "fastparquet",
+    "matplotlib",
+    "jupyterlab",
+    "seaborn",
+    # pinned for security reasons
+    "Pillow>=9.0.1",
+    ##
+    # testing
+    ##
+    "syrupy==1.4.5",
+    "pytest",
+    # Coveralls doesn't work with 6.0
+    # https://github.com/TheKevJames/coveralls-python/issues/326
+    "coverage[toml]<6.0",
+    "pytest-cov",
+    "pdbpp",
+    "pytest-virtualenv",
+    "nbval",
+    "coveralls",
+    "pre-commit",
+    # For benchmark CI
+    "scipy",
+    "astpretty",
+    ##
+    # docs
+    ##
+    "sphinx",
+    "nbsphinx",
+    "sphinx_rtd_theme",
+    ##
+    # typing
+    ##
+    "mypy",
+    "types-PyYAML",
+    "types-requests",
+    "SQLAlchemy[mypy]>=1.4.0",
+    ##
+    # DBs
+    ##
+    "pg",
+    "psycopg2",
+    "pytest-xdist",
+    "sphinx-autobuild",
+]
+
+
 def clean_requires():
-    return [req.replace(">=", "==").split("==")[0] for req in INSTALL_REQUIRES]
+    return [
+        req.replace(">=", "==").split("==")[0]
+        for req in INSTALL_REQUIRES + DEV_REQUIRES
+    ]
 
 
 @click.command()
-@click.option("--newreq", is_flag=True, default=0, show_default=True)
+@click.option("--newreq", is_flag=True, default=False, show_default=True)
 def gen_requirements(newreq):
     # write to tmp file
     f = open("tmp_requirement.txt", "w")
