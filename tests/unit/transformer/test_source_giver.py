@@ -6,8 +6,6 @@ import pytest
 
 from lineapy.transformer.source_giver import SourceGiver
 
-# from astpretty import pprint
-
 
 @pytest.mark.parametrize(
     "code,lineno",
