@@ -25,3 +25,6 @@
 	path = tests/integration/sources/xgboost
 	url = git@github.com:dmlc/xgboost.git
         ignore = all
+[submodule "tests/integration/sources/pandas_exercises"]
+	path = tests/integration/sources/pandas_exercises
+	url = git@github.com:guipsamora/pandas_exercises.git
