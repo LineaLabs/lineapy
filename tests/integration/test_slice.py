@@ -274,9 +274,10 @@ PARAMS = [
     ),
     param(
         "pandas",
-        "pandas_exercises/10_Deleting/Wine/Exercises_with_solutions.ipynb",
-        "wine",
+        "pandas_exercises/10_Deleting/Iris/Exercises_with_solutions_and_code.ipynb",
+        "iris",
         id="pandas_deleting",
+        marks=mark.xfail(reason="need annotation"),
     ),
 ]
 
