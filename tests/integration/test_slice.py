@@ -244,6 +244,12 @@ PARAMS = [
     ),
     param(
         "pandas",
+        "pandas_exercises/05_Merge/Fictitous Names/Exercises_with_solutions.ipynb",
+        "all_data_col",
+        id="pandas_merge",
+    ),
+    param(
+        "pandas",
         "pandas_exercises/06_Stats/Wind_Stats/Exercises_with_solutions.ipynb",
         "weekly",
         id="pandas_stats",
