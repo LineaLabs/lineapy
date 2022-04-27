@@ -2,7 +2,7 @@ Welcome to LineaPy!
 ===================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    fundamentals/intro
    fundamentals/setup
@@ -12,7 +12,7 @@ Welcome to LineaPy!
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: User Guide
 
    tutorials/00_api_basics
@@ -21,14 +21,14 @@ Welcome to LineaPy!
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Support
 
    support/faq
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: References
 
    references/development
