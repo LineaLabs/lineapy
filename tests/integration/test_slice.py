@@ -224,23 +224,17 @@ PARAMS = [
         id="xgboost_basic_walkthrough",
         marks=mark.xfail(reason="import error"),
     ),
-    param(
-        "pandas",
-        "pandas_exercises/01_Getting_&_Knowing_Your_Data/Occupation/Exercises_with_solutions.ipynb",
-        "users",
-        id="pandas_intro",
-    ),
+    # param(
+    #     "pandas",
+    #     "pandas_exercises/01_Getting_&_Knowing_Your_Data/Occupation/Exercises_with_solutions.ipynb",
+    #     "users",
+    #     id="pandas_intro",
+    # ),
     param(
         "pandas",
         "pandas_exercises/02_Filtering_&_Sorting/Fictional Army/Exercise_with_solutions.ipynb",
         'army.loc[:, ["deaths"]].iloc[2]',
         id="pandas_filtering",
-    ),
-    param(
-        "pandas",
-        "pandas_exercises/03_Grouping/Regiment/Exercises_solutions.ipynb",
-        "regiment ",
-        id="pandas_grouping",
     ),
     param(
         "pandas",
@@ -254,22 +248,22 @@ PARAMS = [
         "weekly",
         id="pandas_stats",
     ),
+    # param(
+    #     "pandas",
+    #     "pandas_exercises/07_Visualization/Scores/Exercises_code_with_solutions.ipynb",
+    #     "df",
+    #     id="pandas_vis",
+    # ),
+    # param(
+    #     "pandas",
+    #     "pandas_exercises/08_Creating_Series_and_DataFrames/Pokemon/Exercises_with_solutions.ipynb",
+    #     "pokemon",
+    #     id="pandas_creating",
+    # ),
     param(
         "pandas",
-        "pandas_exercises/07_Visualization/Scores/Exercises_code_with_solutions.ipynb",
-        "df",
-        id="pandas_vis",
-    ),
-    param(
-        "pandas",
-        "pandas_exercises/08_Creating_Series_and_DataFrames/Pokemon/Exercises_with_solutions.ipynb",
-        "pokemon",
-        id="pandas_creating",
-    ),
-    param(
-        "pandas",
-        "pandas_exercises/09_Time_Series/Investor_Flow_of_Funds_US/Exercises_with_solutions.ipynb",
-        "(monthly, yearly)",
+        "pandas_exercises/09_Time_Series/Apple_Stock/Exercises-with-solutions-code.ipynb",
+        "apple_months",
         id="pandas_timeseries",
     ),
     param(
