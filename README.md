@@ -14,7 +14,7 @@ Supercharge your data science workflow with LineaPy! Just two lines of code capt
 and transforms Python code to extract production data pipelines in minutes.
 
 <p align="center">
-    <b>:point_down: Try It Out! :point_down:</b>
+    <b>👇 Try It Out! 👇</b>
     <br>
     <a href="https://colab.research.google.com/drive/1o7SoVlQ-2SxjqKL7A1Dk2TbMx-utJXf2?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
 </p>
