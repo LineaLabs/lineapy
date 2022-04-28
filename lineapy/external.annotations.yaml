@@ -74,7 +74,9 @@
 - module: pandas
   annotations:
     - criteria:
-        class_method_name: to_sql
+        class_method_names: 
+          - to_sql
+          - to_gbq
         class_instance: DataFrame
       side_effects:
         - mutated_value:
@@ -82,21 +84,51 @@
     - criteria:
         class_method_names:
           - to_csv
+          - to_json
+          - to_html
+          - to_xml
+          - to_excel
+          - to_hdf
+          - to_feather
           - to_parquet
+          - to_stata
+          - to_pickle
         class_instance: DataFrame
       side_effects:
         - mutated_value:
             external_state: file_system
+    - criteria:
+        class_method_names:
+          - pop
+          - insert
+        class_instance: DataFrame
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
     - criteria: # I omitted pandas.io.sql, lets see if this works
         function_names:
           - read_sql
+          - read_sql_query
+          - read_sql_table
       side_effects:
         - dependency:
             external_state: db
     - criteria:
         function_names:
           - read_csv
+          - read_fwf
+          - read_json
+          - read_html
+          - read_xml
+          - read_excel
+          - read_hdf
+          - read_feather
           - read_parquet
+          - read_orc
+          - read_stata
+          - read_sas
+          - read_spss
+          - read_pickle
       side_effects:
         - dependency:
             external_state: file_system
@@ -111,6 +143,37 @@
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
+    # - criteria:
+    #     class_method_names:
+    #       - __setitem__
+    #       - _setitem_frame
+    #       - _setitem_array
+    #       - _setitem_slice
+    #       - _set_item_frame_value
+    #       - _set_item
+    #       - _iset_not_inplace
+    #       - _iset_item
+    #       - _set_item_mgr
+    #     class_instance: NDFrame
+    #   side_effects:
+    #     - mutated_value:
+    #         self_ref: SELF_REF
+    #     - views:
+    #         - self_ref: SELF_REF
+    #         - result: RESULT
+    #         - positional_argument_index: 1
+    # - criteria:
+    #     class_method_names:
+    #       - _set_value
+    #     class_instance: NDFrame
+    #   side_effects:
+    #     - mutated_value:
+    #         self_ref: SELF_REF
+    #     - views:
+    #         - self_ref: SELF_REF
+    #         - result: RESULT
+    #         - positional_argument_index: 2
+
 - module: boto3
   annotations:
     - criteria:
