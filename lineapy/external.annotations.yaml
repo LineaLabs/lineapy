@@ -143,37 +143,6 @@
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
-    # - criteria:
-    #     class_method_names:
-    #       - __setitem__
-    #       - _setitem_frame
-    #       - _setitem_array
-    #       - _setitem_slice
-    #       - _set_item_frame_value
-    #       - _set_item
-    #       - _iset_not_inplace
-    #       - _iset_item
-    #       - _set_item_mgr
-    #     class_instance: NDFrame
-    #   side_effects:
-    #     - mutated_value:
-    #         self_ref: SELF_REF
-    #     - views:
-    #         - self_ref: SELF_REF
-    #         - result: RESULT
-    #         - positional_argument_index: 1
-    # - criteria:
-    #     class_method_names:
-    #       - _set_value
-    #     class_instance: NDFrame
-    #   side_effects:
-    #     - mutated_value:
-    #         self_ref: SELF_REF
-    #     - views:
-    #         - self_ref: SELF_REF
-    #         - result: RESULT
-    #         - positional_argument_index: 2
-
 - module: boto3
   annotations:
     - criteria:
