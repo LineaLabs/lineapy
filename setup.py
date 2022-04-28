@@ -40,6 +40,81 @@ DOWNLOAD_URL = "https://github.com/LineaLabs/lineapy/"
 LICENSE = "Apache License 2.0"
 VERSION = version("lineapy/__init__.py")
 
+INSTALL_REQUIRES = [
+    "astor",
+    "click>=8.0.0",
+    "pydantic",
+    "SQLAlchemy",
+    "networkx",
+    "black",
+    "rich",
+    "pyyaml",
+    "asttokens",
+    "isort",
+    "IPython>=7.0.0",
+    "jinja2",
+    "nbformat",
+    "nbconvert",
+    "requests",
+]
+
+DEV_REQUIRES = [
+    ##
+    # graphing libs
+    ##
+    "graphviz",
+    "scour==0.38.2",  # also for graphing use, pinned because other versions are not tested and to increase stability
+    ##
+    # external libs used for testing
+    ##
+    "altair",
+    "pandas",
+    "sklearn",
+    "flake8",
+    "fastparquet",
+    "matplotlib",
+    "jupyterlab",
+    "seaborn",
+    # pinned for security reasons
+    "Pillow>=9.0.1",
+    ##
+    # testing
+    ##
+    "syrupy==1.4.5",
+    "pytest",
+    # Coveralls doesn't work with 6.0
+    # https://github.com/TheKevJames/coveralls-python/issues/326
+    "coverage[toml]<6.0",
+    "pytest-cov",
+    "pdbpp",
+    "pytest-virtualenv",
+    "nbval",
+    "coveralls",
+    "pre-commit",
+    # For benchmark CI
+    "scipy",
+    "astpretty",
+    ##
+    # docs
+    ##
+    "sphinx",
+    "nbsphinx",
+    "sphinx_rtd_theme",
+    ##
+    # typing
+    ##
+    "mypy",
+    "types-PyYAML",
+    "types-requests",
+    "SQLAlchemy[mypy]>=1.4.0",
+    ##
+    # DBs
+    ##
+    "pg",
+    "psycopg2",
+    "pytest-xdist",
+    "sphinx-autobuild",
+]
 
 setup(
     name=NAME,
@@ -63,62 +138,7 @@ setup(
     # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point
     entry_points={"console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"]},
     python_requires=">=3.7",
-    install_requires=[
-        "Pillow>=9.0.1",  # for security reasons
-        "astor",
-        "click>=8.0.0",
-        "pydantic",
-        "SQLAlchemy",
-        "networkx",
-        "black",
-        "rich",
-        "astpretty",
-        "scour==0.38.2",
-        "pyyaml",
-        "asttokens",
-        "isort",
-        "graphviz",
-        "IPython",
-        "jinja2",
-        "nbformat",
-        "nbconvert",
-        "requests",
-    ],
-    extras_require={
-        "dev": [
-            "altair",
-            "pandas",
-            "sklearn",
-            "flake8",
-            "fastparquet",
-            "syrupy==1.4.5",
-            "mypy",
-            "pytest",
-            "matplotlib",
-            # Coveralls doesn't work with 6.0
-            # https://github.com/TheKevJames/coveralls-python/issues/326
-            "coverage[toml]<6.0",
-            "pytest-cov",
-            "jupyterlab",
-            "pdbpp",
-            "pytest-virtualenv",
-            "nbval",
-            "coveralls",
-            "seaborn",
-            "pre-commit",
-            "SQLAlchemy[mypy]>=1.4.0",
-            "sphinx",
-            "nbsphinx",
-            "sphinx_rtd_theme",
-            "types-PyYAML",
-            "types-requests",  # to satisfy mypy
-            "pg",
-            "psycopg2",
-            "pytest-xdist",
-            "sphinx-autobuild",
-            # For benchmark CI
-            "scipy",
-        ]
-    },
+    install_requires=INSTALL_REQUIRES,
+    extras_require={"dev": DEV_REQUIRES},
     include_package_data=True,
 )
