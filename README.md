@@ -13,6 +13,12 @@
 Supercharge your data science workflow with LineaPy! Just two lines of code captures, analyzes,
 and transforms Python code to extract production data pipelines in minutes.
 
+<p align="center">
+    <b>👇 Try It Out! 👇</b>
+    <br>
+    <a href="https://colab.research.google.com/drive/1o7SoVlQ-2SxjqKL7A1Dk2TbMx-utJXf2?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
+</p>
+
 - [Why Use LineaPy?](#why-use-lineapy)
 - [Getting Started](#getting-started)
 - [Usage Reporting](#usage-reporting)
@@ -28,15 +34,18 @@ the team’s ability to deliver actionable insights in real-time.
 LineaPy creates a frictionless path for taking your data science work from development to production,
 backed by a decade of research and industry expertise tackling hyperscale data challenges.
 
-> ***Data engineering, simplified.*** Your data science artifact works, now comes the cleanup.
+***Data engineering, simplified.***
+> Your data science artifact works, now comes the cleanup.
 LineaPy extracts essential operations from the messy development code in minutes not days,
 simplifying data engineering with just two lines of code.
 
-> ***You analyze, we productionize.*** Productionization is manual, messy, and it requires
+***You analyze, we productionize.***
+> Productionization is manual, messy, and it requires
 software engineering expertise to create clean, reproducible code. LineaPy automatically handles
 lineage and refactoring so you can focus on experimenting, analyzing, and modeling.
 
-> ***Move fast from prototype to pipeline.*** LineaPy automates code translations to save you time
+***Move fast from prototype to pipeline.***
+> LineaPy automates code translations to save you time
 and help you stay focused. Rapidly create analytics pipelines with a simple API &mdash; no refactoring
 or new tools needed. Go from your Jupyter notebook to an Airflow pipeline in minutes.
 
