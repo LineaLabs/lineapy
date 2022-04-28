@@ -9,6 +9,7 @@
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?logo=apache)](https://github.com/LineaLabs/lineapy/blob/main/LICENSE.txt)
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
 [![Twitter](https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter)](https://twitter.com/lineapy_oss)
+[![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1o7SoVlQ-2SxjqKL7A1Dk2TbMx-utJXf2?usp=sharing)
 
 Supercharge your data science workflow with LineaPy! Just two lines of code captures, analyzes,
 and transforms Python code to extract production data pipelines in minutes.
