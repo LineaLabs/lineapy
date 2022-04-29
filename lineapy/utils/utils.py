@@ -5,11 +5,6 @@ from uuid import uuid4
 from lineapy.data.types import LineaID, LiteralType, ValueType
 
 try:
-    import PIL
-except ImportError:
-    pass
-
-try:
     import black
 except ImportError:
     pass
@@ -18,10 +13,6 @@ try:
     import isort
 except ImportError:
     pass
-
-"""
-Data gen utils
-"""
 
 
 def get_new_id() -> LineaID:
@@ -67,7 +58,7 @@ def get_value_type(val: Any) -> Optional[ValueType]:
     if isinstance(val, (list, str, int)):
         return ValueType.array
     if "pandas" in sys.modules:
-        import pandas  # this import should be a no-op
+        import pandas
 
         if isinstance(val, pandas.core.frame.DataFrame):
             return ValueType.dataset  # FIXME
@@ -75,9 +66,14 @@ def get_value_type(val: Any) -> Optional[ValueType]:
             return ValueType.dataset  # FIXME
 
     if "PIL" in sys.modules:
+        import PIL.PngImagePlugin
+
         if hasattr(PIL, "PngImagePlugin"):
             if isinstance(val, PIL.PngImagePlugin.PngImageFile):
                 return ValueType.chart
+
+        import PIL.Image
+
         if isinstance(val, PIL.Image.Image):
             return ValueType.chart
 
