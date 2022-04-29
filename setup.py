@@ -40,7 +40,7 @@ DOWNLOAD_URL = "https://github.com/LineaLabs/lineapy/"
 LICENSE = "Apache License 2.0"
 VERSION = version("lineapy/__init__.py")
 
-INSTALL_REQUIRES = [
+minimal_requirement = [
     "astor",
     "click>=8.0.0",
     "pydantic",
@@ -58,15 +58,12 @@ INSTALL_REQUIRES = [
     "requests",
 ]
 
-DEV_REQUIRES = [
-    ##
-    # graphing libs
-    ##
+graph_libs = [
     "graphviz",
     "scour==0.38.2",  # also for graphing use, pinned because other versions are not tested and to increase stability
-    ##
-    # external libs used for testing
-    ##
+]
+
+ext_test_libs = [
     "altair",
     "pandas",
     "sklearn",
@@ -77,9 +74,9 @@ DEV_REQUIRES = [
     "seaborn",
     # pinned for security reasons
     "Pillow>=9.0.1",
-    ##
-    # testing
-    ##
+]
+
+test_libs = [
     "syrupy==1.4.5",
     "pytest",
     # Coveralls doesn't work with 6.0
@@ -91,30 +88,52 @@ DEV_REQUIRES = [
     "nbval",
     "coveralls",
     "pre-commit",
-    # For benchmark CI
+    "pytest-xdist",
+]
+
+benchmark_libs = [
     "scipy",
     "astpretty",
-    ##
-    # docs
-    ##
+]
+
+doc_libs = [
     "sphinx",
     "nbsphinx",
     "sphinx_rtd_theme",
-    ##
-    # typing
-    ##
+    "sphinx-autobuild",
+]
+
+typing_libs = [
     "mypy",
     "types-PyYAML",
     "types-requests",
     "SQLAlchemy[mypy]>=1.4.0",
-    ##
-    # DBs
-    ##
+]
+
+postgres_libs = [
     "pg",
     "psycopg2",
-    "pytest-xdist",
-    "sphinx-autobuild",
 ]
+
+
+INSTALL_REQUIRES = minimal_requirement
+POSTGRES_REQUIRES = INSTALL_REQUIRES + postgres_libs
+GRAPH_REQUIRES = INSTALL_REQUIRES + graph_libs
+DEV_REQUIRES = (
+    minimal_requirement
+    + graph_libs
+    + ext_test_libs
+    + test_libs
+    + benchmark_libs
+    + doc_libs
+    + typing_libs
+    + postgres_libs
+)
+EXTRA_REQUIRES = {
+    "dev": DEV_REQUIRES,
+    "graph": GRAPH_REQUIRES,
+    "postgres": POSTGRES_REQUIRES,
+}
 
 setup(
     name=NAME,
@@ -139,6 +158,6 @@ setup(
     entry_points={"console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"]},
     python_requires=">=3.7",
     install_requires=INSTALL_REQUIRES,
-    extras_require={"dev": DEV_REQUIRES},
+    extras_require=EXTRA_REQUIRES,
     include_package_data=True,
 )
