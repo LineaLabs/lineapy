@@ -111,7 +111,6 @@ typing_libs = [
 ]
 
 postgres_libs = [
-    "pg",
     "psycopg2",
 ]
 
