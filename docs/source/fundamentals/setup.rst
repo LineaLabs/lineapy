@@ -20,6 +20,8 @@ Followings are extras to extend core LineaPy capabilities
 +----------+---------------------------------------+----------------------------------------------+
 | extra    | pip install command                   | enables                                      |
 +==========+=======================================+==============================================+
+| minimal  | :code:`pip install lineapy[minimal]`  | Bare bone dependencies for LineaPy           |
++==========+=======================================+==============================================+
 | dev      | :code:`pip install lineapy[dev]`      | All LineaPy tests related dependencies       |
 +----------+---------------------------------------+----------------------------------------------+
 | graph    | :code:`pip install lineapy[graph]`    | Dependencies to visualize LineaPy node graph |

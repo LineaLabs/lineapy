@@ -41,16 +41,13 @@ LICENSE = "Apache License 2.0"
 VERSION = version("lineapy/__init__.py")
 
 minimal_requirement = [
-    "astor",
     "click>=8.0.0",
     "pydantic",
     "SQLAlchemy",
     "networkx",
-    "black",
     "rich",
     "pyyaml",
     "asttokens",
-    "isort",
     "IPython>=7.0.0",
     "jinja2",
     "nbformat",
@@ -63,7 +60,11 @@ graph_libs = [
     "scour==0.38.2",  # also for graphing use, pinned because other versions are not tested and to increase stability
 ]
 
-ext_test_libs = [
+integration_test_libs = ["astor"]
+
+formatter_libs = ["black", "isort"]
+
+extra_test_libs = [
     "altair",
     "pandas",
     "sklearn",
@@ -76,7 +77,7 @@ ext_test_libs = [
     "Pillow>=9.0.1",
 ]
 
-test_libs = [
+core_test_libs = [
     "syrupy==1.4.5",
     "pytest",
     # Coveralls doesn't work with 6.0
@@ -89,11 +90,11 @@ test_libs = [
     "coveralls",
     "pre-commit",
     "pytest-xdist",
+    "astpretty",
 ]
 
 benchmark_libs = [
     "scipy",
-    "astpretty",
 ]
 
 doc_libs = [
@@ -115,23 +116,27 @@ postgres_libs = [
 ]
 
 
-INSTALL_REQUIRES = minimal_requirement
+MINIMAL_REQUIRES = minimal_requirement
+INSTALL_REQUIRES = minimal_requirement + formatter_libs
 POSTGRES_REQUIRES = INSTALL_REQUIRES + postgres_libs
 GRAPH_REQUIRES = INSTALL_REQUIRES + graph_libs
 DEV_REQUIRES = (
     minimal_requirement
+    + formatter_libs
+    + postgres_libs
     + graph_libs
-    + ext_test_libs
-    + test_libs
+    + integration_test_libs
+    + extra_test_libs
+    + core_test_libs
     + benchmark_libs
     + doc_libs
     + typing_libs
-    + postgres_libs
 )
 EXTRA_REQUIRES = {
     "dev": DEV_REQUIRES,
     "graph": GRAPH_REQUIRES,
     "postgres": POSTGRES_REQUIRES,
+    "minimal": MINIMAL_REQUIRES,
 }
 
 setup(
