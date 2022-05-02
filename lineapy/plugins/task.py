@@ -17,9 +17,9 @@ class TaskGraph(object):
         prerequisites for C. Both examples give us following task dependency::
 
             A ---\\
-                    \\
-                    >---> C
-                    /
+                  \\
+                   >---> C
+                  /
             B ---/
 
 
