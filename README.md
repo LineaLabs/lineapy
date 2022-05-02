@@ -69,7 +69,7 @@ Followings are extras to extend core LineaPy capabilities
 | extra | pip install command | enables |
 |-------|---------------------|---------|
 | minimal | `pip install lineapy[minimal]` | Bare bone dependencies for LineaPy |
-| dev   | `pip install lineapy[dev]` | All LineaPy tests related dependencies |
+| dev   | `pip install lineapy[dev]` | All LineaPy tests and contributing related dependencies |
 | graph | `pip install lineapy[graph]` | Dependencies to visualize LineaPy node graph |
 | postgres | `pip install lineapy[postgres]` | Dependencies to use PostgreSQL backend |
 
