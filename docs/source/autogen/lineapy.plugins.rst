@@ -16,6 +16,18 @@ lineapy.plugins.base module
 .. automodule:: lineapy.plugins.base
    :members:
 
+lineapy.plugins.script module
+-----------------------------
+
+.. automodule:: lineapy.plugins.script
+   :members:
+
+lineapy.plugins.task module
+---------------------------
+
+.. automodule:: lineapy.plugins.task
+   :members:
+
 lineapy.plugins.utils module
 ----------------------------
 

@@ -102,6 +102,7 @@ doc_libs = [
     "nbsphinx",
     "sphinx_rtd_theme",
     "sphinx-autobuild",
+    "pandoc",
 ]
 
 typing_libs = [

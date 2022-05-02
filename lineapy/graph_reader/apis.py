@@ -110,6 +110,13 @@ class LineaArtifact:
     def get_code(self, use_lineapy_serialization=True) -> str:
         """
         Return the slices code for the artifact
+
+        :param use_lineapy_serialization: If True, will use the lineapy serialization to get the code.
+            We will hide the serialization and the value pickler irrespective of the value type.
+
+            If False, will use remove all the lineapy references and instead use the underlying serializer directly.
+            Currently, we use the native `pickle` serializer.
+
         """
         # FIXME: this seems a little heavy to just get the slice?
         track(
@@ -268,9 +275,7 @@ class LineaCatalog:
     @property
     def export(self):
         """
-        Returns
-        -------
-            a dictionary of artifact information, which the user can then
+        :return: a dictionary of artifact information, which the user can then
             manipulate with their favorite dataframe tools, such as pandas,
             e.g., `cat_df = pd.DataFrame(catalog.export())`.
         """

@@ -9,22 +9,27 @@ TaskGraphEdge = Dict[str, Set[str]]
 class TaskGraph(object):
     """
     Graph represents for task dependency
-    It is constructed based on the following variables:
+    It is constructed based on the "edges" variable
+
     :param edges: Dictionary with task name as key and set of prerequisite 
         tasks as value. This is the standard library `graphlib` style graph 
         definition. For instance, {'C':{'A','B'}} means A and B are 
-        prerequisites for C. Both examples give us following task dependency
-        A ---\
-              \
-               >---> C
-              /
-        B ---/
+        prerequisites for C. Both examples give us following task dependency::
 
-    NOTE:
-    - If we only support Python 3.9+, we prefer to use grathlib in standard 
-        library instead of networkx for graph operation.
-    - We might want to get rid of the mapping for renaming slice_names to 
-        task_names.
+            A ---\\
+                    \\
+                    >---> C
+                    /
+            B ---/
+
+
+    .. note::
+        - If we only support Python 3.9+, we prefer to use grathlib in standard 
+          library instead of networkx for graph operation.
+
+        - We might want to get rid of the mapping for renaming slice_names to 
+          task_names.
+
     """
 
     def __init__(
