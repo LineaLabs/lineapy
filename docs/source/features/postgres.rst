@@ -1,7 +1,7 @@
 .. _postgres:
 
-Using PostgreSQL with LineaPy
-=============================
+Using PostgreSQL
+================
 
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
 Given the limitations of SQLite (e.g., single write access to a database at a time), however,
@@ -91,3 +91,16 @@ if successful. Otherwise, it will default back to SQLite and print:
 .. code:: none
 
     sqlite:///.linea/db.sqlite
+
+Known issues
+------------
+
+If you are using PostgreSQL as your database, you might encounter the following error:
+
+.. code-block::
+
+    NoSuchModuleError: Can't load plugin: sqlalchemy.dialects:postgres
+
+
+This is caused by a change in SQLAlchemy where they dropped support for db urls of the form `postgres://` 
+Using `postgresql://` instead should fix this error.

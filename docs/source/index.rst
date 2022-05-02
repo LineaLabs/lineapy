@@ -16,9 +16,8 @@ Welcome to LineaPy!
    :caption: User Guide
 
    tutorials/00_api_basics
-   examples
-   features/index
-
+   usage
+   
 
 .. toctree::
    :maxdepth: 1
