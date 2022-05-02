@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, NewType, Optional, Union
 
@@ -68,7 +68,7 @@ class NodeType(Enum):
     GlobalNode = auto()
 
 
-class LiteralType(Enum):
+class LiteralType(IntEnum):
     String = auto()
     Integer = auto()
     Float = auto()
