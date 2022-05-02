@@ -73,38 +73,6 @@
             - result: RESULT
 - module: pandas
   annotations:
-    - criteria:
-        class_method_names: 
-          - to_sql
-          - to_gbq
-        class_instance: DataFrame
-      side_effects:
-        - mutated_value:
-            external_state: db
-    - criteria:
-        class_method_names:
-          - to_csv
-          - to_json
-          - to_html
-          - to_xml
-          - to_excel
-          - to_hdf
-          - to_feather
-          - to_parquet
-          - to_stata
-          - to_pickle
-        class_instance: DataFrame
-      side_effects:
-        - mutated_value:
-            external_state: file_system
-    - criteria:
-        class_method_names:
-          - pop
-          - insert
-        class_instance: DataFrame
-      side_effects:
-        - mutated_value:
-            self_ref: SELF_REF
     - criteria: # I omitted pandas.io.sql, lets see if this works
         function_names:
           - read_sql
@@ -134,6 +102,38 @@
             external_state: file_system
 - module: pandas.core.generic
   annotations:
+    - criteria:
+        class_method_names:
+          - to_sql
+          - to_gbq
+        class_instance: NDFrame
+      side_effects:
+        - mutated_value:
+            external_state: db
+    - criteria:
+        class_method_names:
+          - to_csv
+          - to_json
+          - to_html
+          - to_xml
+          - to_excel
+          - to_hdf
+          - to_feather
+          - to_parquet
+          - to_stata
+          - to_pickle
+        class_instance: NDFrame
+      side_effects:
+        - mutated_value:
+            external_state: file_system
+    - criteria:
+        class_method_names:
+          - pop
+          - insert
+        class_instance: NDFrame
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
     - criteria:
         keyword_arg_name: inplace
         keyword_arg_value: 1
