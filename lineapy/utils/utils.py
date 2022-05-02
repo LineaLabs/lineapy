@@ -2,14 +2,17 @@ import sys
 from typing import Any, Callable, Iterable, Optional, Set, Tuple, TypeVar, cast
 from uuid import uuid4
 
-import black
-import isort
-
 from lineapy.data.types import LineaID, LiteralType, ValueType
 
-"""
-Data gen utils
-"""
+try:
+    import black
+except ImportError:
+    pass
+
+try:
+    import isort
+except ImportError:
+    pass
 
 
 def get_new_id() -> LineaID:
@@ -55,7 +58,7 @@ def get_value_type(val: Any) -> Optional[ValueType]:
     if isinstance(val, (list, str, int)):
         return ValueType.array
     if "pandas" in sys.modules:
-        import pandas  # this import should be a no-op
+        import pandas
 
         if isinstance(val, pandas.core.frame.DataFrame):
             return ValueType.dataset  # FIXME
@@ -63,11 +66,14 @@ def get_value_type(val: Any) -> Optional[ValueType]:
             return ValueType.dataset  # FIXME
 
     if "PIL" in sys.modules:
-        import PIL
+        import PIL.PngImagePlugin
 
         if hasattr(PIL, "PngImagePlugin"):
             if isinstance(val, PIL.PngImagePlugin.PngImageFile):
                 return ValueType.chart
+
+        import PIL.Image
+
         if isinstance(val, PIL.Image.Image):
             return ValueType.chart
 
@@ -77,8 +83,11 @@ def get_value_type(val: Any) -> Optional[ValueType]:
 def prettify(code: str) -> str:
 
     # Sort imports and move them to the top
-    code = isort.code(code, float_to_top=True, profile="black")
-    code = black.format_str(code, mode=black.Mode())
+    if "isort" in sys.modules:
+        code = isort.code(code, float_to_top=True, profile="black")
+
+    if "black" in sys.modules:
+        code = black.format_str(code, mode=black.Mode())
 
     return code
 

@@ -5,15 +5,22 @@ from dataclasses import dataclass
 from os import remove
 from typing import Callable
 
-import black
 import numpy
 import numpy.typing
 
 from lineapy import save
 
+try:
+    import black
+except ImportError:
+    pass
+
 
 def test_prettify(code: str) -> str:
-    return black.format_str(code, mode=black.Mode())
+    if "black" in sys.modules:
+        return black.format_str(code, mode=black.Mode())
+
+    return code
 
 
 def reset_test_db(sqlite_uri: str):

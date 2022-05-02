@@ -40,17 +40,14 @@ DOWNLOAD_URL = "https://github.com/LineaLabs/lineapy/"
 LICENSE = "Apache License 2.0"
 VERSION = version("lineapy/__init__.py")
 
-INSTALL_REQUIRES = [
-    "astor",
+minimal_requirement = [
     "click>=8.0.0",
     "pydantic",
     "SQLAlchemy",
     "networkx",
-    "black",
     "rich",
     "pyyaml",
     "asttokens",
-    "isort",
     "IPython>=7.0.0",
     "jinja2",
     "nbformat",
@@ -58,15 +55,16 @@ INSTALL_REQUIRES = [
     "requests",
 ]
 
-DEV_REQUIRES = [
-    ##
-    # graphing libs
-    ##
+graph_libs = [
     "graphviz",
     "scour==0.38.2",  # also for graphing use, pinned because other versions are not tested and to increase stability
-    ##
-    # external libs used for testing
-    ##
+]
+
+integration_test_libs = ["astor"]
+
+formatter_libs = ["black", "isort"]
+
+extra_test_libs = [
     "altair",
     "pandas",
     "sklearn",
@@ -77,9 +75,9 @@ DEV_REQUIRES = [
     "seaborn",
     # pinned for security reasons
     "Pillow>=9.0.1",
-    ##
-    # testing
-    ##
+]
+
+core_test_libs = [
     "syrupy==1.4.5",
     "pytest",
     # Coveralls doesn't work with 6.0
@@ -91,30 +89,55 @@ DEV_REQUIRES = [
     "nbval",
     "coveralls",
     "pre-commit",
-    # For benchmark CI
-    "scipy",
+    "pytest-xdist",
     "astpretty",
-    ##
-    # docs
-    ##
+]
+
+benchmark_libs = [
+    "scipy",
+]
+
+doc_libs = [
     "sphinx",
     "nbsphinx",
     "sphinx_rtd_theme",
-    ##
-    # typing
-    ##
+    "sphinx-autobuild",
+]
+
+typing_libs = [
     "mypy",
     "types-PyYAML",
     "types-requests",
     "SQLAlchemy[mypy]>=1.4.0",
-    ##
-    # DBs
-    ##
-    "pg",
-    "psycopg2",
-    "pytest-xdist",
-    "sphinx-autobuild",
 ]
+
+postgres_libs = [
+    "psycopg2",
+]
+
+
+MINIMAL_REQUIRES = minimal_requirement
+INSTALL_REQUIRES = minimal_requirement + formatter_libs
+POSTGRES_REQUIRES = INSTALL_REQUIRES + postgres_libs
+GRAPH_REQUIRES = INSTALL_REQUIRES + graph_libs
+DEV_REQUIRES = (
+    minimal_requirement
+    + formatter_libs
+    + postgres_libs
+    + graph_libs
+    + integration_test_libs
+    + extra_test_libs
+    + core_test_libs
+    + benchmark_libs
+    + doc_libs
+    + typing_libs
+)
+EXTRA_REQUIRES = {
+    "dev": DEV_REQUIRES,
+    "graph": GRAPH_REQUIRES,
+    "postgres": POSTGRES_REQUIRES,
+    "minimal": MINIMAL_REQUIRES,
+}
 
 setup(
     name=NAME,
@@ -139,6 +162,6 @@ setup(
     entry_points={"console_scripts": ["lineapy=lineapy.cli.cli:linea_cli"]},
     python_requires=">=3.7",
     install_requires=INSTALL_REQUIRES,
-    extras_require={"dev": DEV_REQUIRES},
+    extras_require=EXTRA_REQUIRES,
     include_package_data=True,
 )

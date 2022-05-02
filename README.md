@@ -56,14 +56,25 @@ or new tools needed. Go from your Jupyter notebook to an Airflow pipeline in min
 To install LineaPy, run:
 
 ```bash
-$ pip install lineapy
+pip install lineapy
 ```
 
 Or, if you want the latest version of LineaPy directly from the source, run:
 
 ```
-$ pip install git+https://github.com/LineaLabs/lineapy.git --upgrade
+pip install git+https://github.com/LineaLabs/lineapy.git --upgrade
 ```
+
+Followings are extras to extend core LineaPy capabilities
+| extra | pip install command | enables |
+|-------|---------------------|---------|
+| minimal | `pip install lineapy[minimal]` | Bare bone dependencies for LineaPy |
+| dev   | `pip install lineapy[dev]` | All LineaPy tests and contributing related dependencies |
+| graph | `pip install lineapy[graph]` | Dependencies to visualize LineaPy node graph |
+| postgres | `pip install lineapy[postgres]` | Dependencies to use PostgreSQL backend |
+
+The bare bone version of LineaPy does not include black and isort as dependencies.
+This may result less organized output codes and scripts.
 
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
 However, SQLite has several limitations, one of which is that it does not support multiple concurrent
@@ -77,15 +88,15 @@ please follow [instructions](https://docs.lineapy.org/en/latest/features/postgre
 To use LineaPy in an interactive computing environment such as Jupyter Notebook/Lab or IPython, launch the environment with the `lineapy` command, like so:
 
 ```bash
-$ lineapy jupyter notebook
+lineapy jupyter notebook
 ```
 
 ```bash
-$ lineapy jupyter lab
+lineapy jupyter lab
 ```
 
 ```bash
-$ lineapy ipython
+lineapy ipython
 ```
 
 This will automatically load the LineaPy extension in the corresponding interactive shell application.
@@ -100,7 +111,7 @@ you can load it on the fly with:
 
 executed at the top of your session. Please note:
 
-- You will need to run this as the first command in a given session; executing it 
+- You will need to run this as the first command in a given session; executing it
 in the middle of a session will lead to erroneous behaviors by LineaPy.
 
 - This loads the extension to the current session only, i.e., it does not carry over
@@ -111,7 +122,7 @@ to different sessions; you will need to repeat it for each new session.
 We can also use LineaPy as a CLI command. Run:
 
 ```bash
-$ lineapy python --help
+lineapy python --help
 ```
 
 to see available options.
@@ -182,7 +193,7 @@ never collect user code, data, variable names, or stack traces.
 You can opt-out of usage tracking by setting environment variable:
 
 ```bash
-$ export LINEAPY_DO_NOT_TRACK=true
+export LINEAPY_DO_NOT_TRACK=true
 ```
 
 ## What Next?
