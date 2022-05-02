@@ -1,3 +1,6 @@
+from lineapy.utils.utils import prettify
+
+
 def test_save_returns_artifact(execute):
     c = """import lineapy
 x = 1
@@ -32,9 +35,8 @@ lineapy.save(y, "y")
         == """x = 1
 """
     )
-    assert (
-        res.artifacts["y"]
-        == """import lineapy
+    assert res.artifacts["y"] == prettify(
+        """import lineapy
 res = lineapy.get("x")
 y = res.get_value() + 1
 """
@@ -50,9 +52,8 @@ lineapy.save(y, 'y')
 """
     res = execute(c)
     assert res.values["y"] == 20
-    assert (
-        res.artifacts["y"]
-        == """import lineapy
+    assert res.artifacts["y"] == prettify(
+        """import lineapy
 y = lineapy.get('x').get_value() + 10
 """
     )

@@ -1,5 +1,7 @@
 import pytest
 
+from lineapy.utils.utils import prettify
+
 
 def test_pandas_subscript(execute):
     code = """import pandas as pd
@@ -7,7 +9,8 @@ df = pd.DataFrame({"A": [1, 2, 3], "B": [4, 5, 6]})
 df["C"] = df["A"] + df["B"]
 """
     res = execute(code, artifacts=["df"])
-    assert res.artifacts["df"] == code
+    # assert res.values["df"].to_csv(index=False) == "A,B,C\n1,4,5\n2,5,7\n3,6,9\n"
+    assert res.artifacts["df"] == prettify(code)
 
 
 def test_pandas_inplace_executes(execute):
@@ -18,7 +21,7 @@ df['A'].fillna(mdf, inplace=True)
 """
     res = execute(code, artifacts=["df"])
     assert res.values["df"].to_csv(index=False) == "A,B\n2.0,4\n4.0,5\n3.0,6\n"
-    assert res.artifacts["df"] == code
+    assert res.artifacts["df"] == prettify(code)
 
 
 @pytest.mark.slow
@@ -42,7 +45,7 @@ df = DataFrame({"a": [0, 1], "b": [2, 3]})
 df.pop("b")
 """
     res = execute(code, snapshot=False, artifacts=["df"])
-    assert res.artifacts["df"] == code
+    assert res.artifacts["df"] == prettify(code)
 
 
 @pytest.mark.slow
@@ -52,4 +55,4 @@ df = DataFrame({"col1": [1, 2], "col2": [3, 4]})
 df.insert(1, "newcol", [99, 99])
 """
     res = execute(code, snapshot=False, artifacts=["df"])
-    assert res.artifacts["df"] == code
+    assert res.artifacts["df"] == prettify(code)
