@@ -290,6 +290,12 @@ PARAMS = [
             raises=AssertionError,
         ),
     ),
+    param(
+        "matplotlib",
+        "matplotlib-tutorial/scripts/exercice_3.py",
+        "plt.gcf()",
+        id="matplotlib_exercise_3",
+    ),
 ]
 
 

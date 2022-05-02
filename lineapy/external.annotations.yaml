@@ -191,6 +191,7 @@
           - boxplot
           - xlim
           - xticks
+          - ylim
           - yticks
           - axvline
           - axes
