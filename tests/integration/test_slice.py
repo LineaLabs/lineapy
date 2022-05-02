@@ -80,6 +80,7 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
     "xgboost": Environment(
         conda_deps=["xgboost", "scikit-learn", "numpy", "scipy"]
     ),
+    "pandas": Environment(),
 }
 
 # A list of the params to test
@@ -222,6 +223,43 @@ PARAMS = [
         "lineapy.file_system",
         id="xgboost_basic_walkthrough",
         marks=mark.xfail(reason="import error"),
+    ),
+    param(
+        "pandas",
+        "pandas_exercises/02_Filtering_&_Sorting/Fictional Army/Exercise_with_solutions.ipynb",
+        'army.loc[:, ["deaths"]].iloc[2]',
+        id="pandas_filtering",
+    ),
+    param(
+        "pandas",
+        "pandas_exercises/04_Apply/US_Crime_Rates/Exercises_with_solutions.ipynb",
+        "crimes",
+        id="pandas_apply",
+    ),
+    param(
+        "pandas",
+        "pandas_exercises/05_Merge/Fictitous Names/Exercises_with_solutions.ipynb",
+        "all_data_col",
+        id="pandas_merge",
+    ),
+    param(
+        "pandas",
+        "pandas_exercises/06_Stats/Wind_Stats/Exercises_with_solutions.ipynb",
+        "weekly",
+        id="pandas_stats",
+    ),
+    param(
+        "pandas",
+        "pandas_exercises/09_Time_Series/Apple_Stock/Exercises-with-solutions-code.ipynb",
+        "apple_months",
+        id="pandas_timeseries",
+    ),
+    param(
+        "pandas",
+        "pandas_exercises/10_Deleting/Iris/Exercises_with_solutions_and_code.ipynb",
+        "iris",
+        id="pandas_deleting",
+        marks=mark.xfail(reason="need annotation"),
     ),
 ]
 

@@ -7,7 +7,6 @@ df = pd.DataFrame({"A": [1, 2, 3], "B": [4, 5, 6]})
 df["C"] = df["A"] + df["B"]
 """
     res = execute(code, artifacts=["df"])
-    # assert res.values["df"].to_csv(index=False) == "A,B,C\n1,4,5\n2,5,7\n3,6,9\n"
     assert res.artifacts["df"] == code
 
 
@@ -34,3 +33,23 @@ assert new_df.size == 2
 """
     res = execute(code, snapshot=False)
     assert res.values["new_df"].size == 2
+
+
+@pytest.mark.slow
+def test_pandas_pop(execute):
+    code = """from pandas import DataFrame
+df = DataFrame({"a": [0, 1], "b": [2, 3]})
+df.pop("b")
+"""
+    res = execute(code, snapshot=False, artifacts=["df"])
+    assert res.artifacts["df"] == code
+
+
+@pytest.mark.slow
+def test_pandas_insert(execute):
+    code = """from pandas import DataFrame
+df = DataFrame({"col1": [1, 2], "col2": [3, 4]})
+df.insert(1, "newcol", [99, 99])
+"""
+    res = execute(code, snapshot=False, artifacts=["df"])
+    assert res.artifacts["df"] == code

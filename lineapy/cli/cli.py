@@ -114,7 +114,8 @@ def notebook(
         name=artifact_name,
         date_created=artifact.date_created,  # type: ignore
     )
-    logger.info(api_artifact.get_code())
+    # logger.info(api_artifact.get_code())
+    print(api_artifact.get_code())
 
 
 @linea_cli.command()
@@ -164,7 +165,8 @@ def file(
         name=artifact_name,
         date_created=artifact.date_created,  # type:ignore
     )
-    logger.info(api_artifact.get_code())
+    # logger.info(api_artifact.get_code())
+    print(api_artifact.get_code())
 
 
 def generate_save_code(
