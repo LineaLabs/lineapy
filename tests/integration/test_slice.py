@@ -276,6 +276,16 @@ PARAMS = [
         "lineapy.file_system",
         id="matplotlib_dash_joinstyle",
         marks=mark.xfail(
+            reason="Need to find a way to annotate `fig.patch.set_alpha()` and `plt.rcParams[key] = value`",
+            raises=AssertionError,
+        ),
+    ),
+    param(
+        "matplotlib",
+        "matplotlib-tutorial/scripts/aliased.py",
+        "lineapy.file_system",
+        id="matplotlib_aliased",
+        marks=mark.xfail(
             reason="Need to find a way to annotate fig.patch.set_alpha()",
             raises=AssertionError,
         ),
