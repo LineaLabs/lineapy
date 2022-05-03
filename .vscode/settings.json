@@ -14,5 +14,29 @@
   "python.formatting.blackArgs": [
     "--line-length",
     "79"
+  ],
+  "cSpell.customDictionaries": {
+    "custom-dictionary-workspace": {
+      "name": "custom-dictionary-workspace",
+      "path": "${workspaceFolder:lineapy}/.cspell/custom-dictionary-workspace.txt",
+      "addWords": true,
+      "scope": "workspace"
+    }
+  },
+  "cSpell.ignoreWords": [
+    "BITOR",
+    "ISNOT",
+    "MULT",
+    "NONAME",
+    "NOTEQ",
+    "PICKLER",
+    "excepthook",
+    "ints",
+    "ormobject",
+    "postgresdb",
+    "postgrespwd",
+    "postgresuser",
+    "quickstart",
+    "reqs"
   ]
 }

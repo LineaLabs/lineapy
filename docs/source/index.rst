@@ -33,12 +33,3 @@ Welcome to LineaPy!
    references/development
    references/internals
    references/api_reference
-
-
-..
-   Indices and tables
-   ==================
-
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`

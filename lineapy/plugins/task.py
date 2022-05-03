@@ -24,7 +24,7 @@ class TaskGraph(object):
 
 
     .. note::
-        - If we only support Python 3.9+, we prefer to use grathlib in standard 
+        - If we only support Python 3.9+, we prefer to use graphlib in standard 
           library instead of networkx for graph operation.
 
         - We might want to get rid of the mapping for renaming slice_names to 
