@@ -5,10 +5,10 @@ from lineapy.utils.utils import get_new_id
 
 source_1 = SourceCode(
     code="""import lineapy
-x=[1,2,3]
-idx=0
+x = [1, 2, 3]
+idx = 0
 result = 0
-while idx<len(x):
+while idx < len(x):
     result += x[idx]
     idx += 1
 
@@ -29,7 +29,7 @@ call_2 = CallNode(
     ).id,
     positional_args=[
         LiteralNode(
-            value="""while idx<len(x):
+            value="""while idx < len(x):
     result += x[idx]
     idx += 1""",
         ).id
@@ -38,9 +38,9 @@ call_2 = CallNode(
         "idx": LiteralNode(
             source_location=SourceLocation(
                 lineno=3,
-                col_offset=4,
+                col_offset=6,
                 end_lineno=3,
-                end_col_offset=5,
+                end_col_offset=7,
                 source_code=source_1.id,
             ),
             value=0,
@@ -58,9 +58,9 @@ call_2 = CallNode(
         "x": CallNode(
             source_location=SourceLocation(
                 lineno=2,
-                col_offset=2,
+                col_offset=4,
                 end_lineno=2,
-                end_col_offset=9,
+                end_col_offset=13,
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
@@ -70,9 +70,9 @@ call_2 = CallNode(
                 LiteralNode(
                     source_location=SourceLocation(
                         lineno=2,
-                        col_offset=3,
+                        col_offset=5,
                         end_lineno=2,
-                        end_col_offset=4,
+                        end_col_offset=6,
                         source_code=source_1.id,
                     ),
                     value=1,
@@ -80,9 +80,9 @@ call_2 = CallNode(
                 LiteralNode(
                     source_location=SourceLocation(
                         lineno=2,
-                        col_offset=5,
+                        col_offset=8,
                         end_lineno=2,
-                        end_col_offset=6,
+                        end_col_offset=9,
                         source_code=source_1.id,
                     ),
                     value=2,
@@ -90,9 +90,9 @@ call_2 = CallNode(
                 LiteralNode(
                     source_location=SourceLocation(
                         lineno=2,
-                        col_offset=7,
+                        col_offset=11,
                         end_lineno=2,
-                        end_col_offset=8,
+                        end_col_offset=12,
                         source_code=source_1.id,
                     ),
                     value=3,

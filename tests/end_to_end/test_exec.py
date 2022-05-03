@@ -1,5 +1,6 @@
 import lineapy.graph_reader.program_slice as ps
 from lineapy.execution.executor import Executor
+from lineapy.utils.utils import prettify
 
 
 def test_mutate(execute):
@@ -146,4 +147,4 @@ with TemporaryFile() as f:
     f.write(b'some lines')
 """
     res = execute(c, artifacts=["lineapy.file_system"])
-    assert res.artifacts["lineapy.file_system"] == c
+    assert res.artifacts["lineapy.file_system"] == prettify(c)

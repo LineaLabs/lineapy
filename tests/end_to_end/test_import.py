@@ -1,5 +1,7 @@
 import pytest
 
+from lineapy.utils.utils import prettify
+
 
 def test_import_multiple_with_alias(execute):
     code = """from math import pow as power, sqrt as root
@@ -40,10 +42,9 @@ b=sqrt(a)
     res = execute(code, artifacts=["a", "b"])
     assert res.values["a"] == 25
     assert res.values["b"] == 5
-    assert res.artifacts["b"] == code
-    assert (
-        res.artifacts["a"]
-        == """from math import pow
+    assert res.artifacts["b"] == prettify(code)
+    assert res.artifacts["a"] == prettify(
+        """from math import pow
 a=pow(5,2)
 """
     )
@@ -56,7 +57,7 @@ y = pandas.x
 """
     res = execute(code, artifacts=["y"])
     assert res.values["y"] == 1
-    assert res.artifacts["y"] == code
+    assert res.artifacts["y"] == prettify(code)
 
 
 def test_import_with_alias(execute):
@@ -65,7 +66,7 @@ y = pd.DataFrame()
 """
     res = execute(code, artifacts=["y"])
     assert res.values["y"].__class__.__name__ == "DataFrame"
-    assert res.artifacts["y"] == code
+    assert res.artifacts["y"] == prettify(code)
 
 
 @pytest.mark.xfail(reason="https://github.com/LineaLabs/lineapy/issues/383")
@@ -77,7 +78,7 @@ y = pd.x
 """
     res = execute(code, artifacts=["y"])
     assert res.values["y"] == 1
-    assert res.artifacts["y"] == code
+    assert res.artifacts["y"] == prettify(code)
 
 
 def test_import_star(execute):
@@ -102,7 +103,7 @@ is_prime = __no_imported_submodule.is_prime
 """
         res = execute(code, artifacts=["is_prime"])
         assert res.values["is_prime"] is False
-        assert res.artifacts["is_prime"] == code
+        assert res.artifacts["is_prime"] == prettify(code)
 
     def test_direct(self, execute):
         """
@@ -114,7 +115,7 @@ is_prime = lineapy.utils.__no_imported_submodule.is_prime
 """
         res = execute(code, artifacts=["is_prime"])
         assert res.values["is_prime"] is False
-        assert res.artifacts["is_prime"] == code
+        assert res.artifacts["is_prime"] == prettify(code)
 
     def test_error_not_imported(self, execute):
         """

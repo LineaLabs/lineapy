@@ -1,5 +1,7 @@
 import pytest
 
+from lineapy.utils.utils import prettify
+
 
 def test_mutation(execute):
     """
@@ -7,7 +9,7 @@ def test_mutation(execute):
     """
     source = "x = {}\nx['a'] = 3\n"
     res = execute(source, artifacts=["x"])
-    assert res.artifacts["x"] == source
+    assert res.artifacts["x"] == prettify(source)
 
 
 def test_mutation_of_view(execute):
@@ -20,8 +22,8 @@ x['y'] = y
 y['a'] = 1
 """
     res = execute(source, artifacts=["x", "y"])
-    assert res.artifacts["x"] == source
-    assert res.artifacts["y"] == "y = {}\ny['a'] = 1\n"
+    assert res.artifacts["x"] == prettify(source)
+    assert res.artifacts["y"] == 'y = {}\ny["a"] = 1\n'
 
 
 def test_before_after_mutation(execute):
@@ -36,9 +38,11 @@ after = str(x)
 """
     res = execute(source, artifacts=["x", "before", "after"])
     assert res.artifacts == {
-        "x": "x = {}\nx['a'] = 1\n",
-        "before": "x = {}\nbefore = str(x)\n",
-        "after": "x = {}\nx['a'] = 1\nafter = str(x)\n",
+        "x": prettify("x = {}\nx['a'] = 1\n"),
+        "before": prettify("x = {}\nbefore = str(x)\n"),
+        "after": prettify(
+            "x = {}\nx['a'] = 1\nafter = str(x)\n",
+        ),
     }
 
 
@@ -55,9 +59,11 @@ z['a'] = 1
 """
     res = execute(source, artifacts=["x", "y", "z"])
 
-    assert res.artifacts["z"] == "z = {}\nz['a'] = 1\n"
-    assert res.artifacts["y"] == "y = {}\nz = {}\ny['z'] = z\nz['a'] = 1\n"
-    assert res.artifacts["x"] == source
+    assert res.artifacts["z"] == prettify("z = {}\nz['a'] = 1\n")
+    assert res.artifacts["y"] == prettify(
+        "y = {}\nz = {}\ny['z'] = z\nz['a'] = 1\n"
+    )
+    assert res.artifacts["x"] == prettify(source)
 
 
 def test_delitem(execute):
@@ -89,5 +95,5 @@ clf.fit(X, y)
 new_clf.fit(X, y)
 """
     res = execute(code, artifacts=["new_clf", "clf"])
-    assert res.artifacts["new_clf"] == code
-    assert res.artifacts["clf"] == code
+    assert res.artifacts["new_clf"] == prettify(code)
+    assert res.artifacts["clf"] == prettify(code)

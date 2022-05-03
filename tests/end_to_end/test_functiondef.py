@@ -1,3 +1,6 @@
+from lineapy.utils.utils import prettify
+
+
 def test_function_definition_without_side_effect_artifacts(execute):
     code = """b=30
 def foo(a):
@@ -6,7 +9,7 @@ c = foo(b)
 """
     res = execute(code, artifacts=["c"])
     assert res.values["c"] == 20
-    assert res.artifacts["c"] == code
+    assert res.artifacts["c"] == prettify(code)
 
 
 def test_function_definition_with_globals(execute):
@@ -17,7 +20,7 @@ c = foo(15)
 """
     res = execute(code, artifacts=["c"])
     assert res.values["c"] == 5
-    assert res.artifacts["c"] == code
+    assert res.artifacts["c"] == prettify(code)
 
 
 def test_function_late_binding(execute):
@@ -28,7 +31,7 @@ c = foo(15)
 """
     res = execute(code, artifacts=["c"])
     assert res.values["c"] == 5
-    assert res.artifacts["c"] == code
+    assert res.artifacts["c"] == prettify(code)
 
 
 def test_function_nested(execute):
@@ -40,7 +43,7 @@ c = foo()()
 """
     res = execute(code, artifacts=["c"])
     assert res.values["c"] == 1
-    assert res.artifacts["c"] == code
+    assert res.artifacts["c"] == prettify(code)
 
 
 def test_function_nested_depend_global(execute):
@@ -53,7 +56,7 @@ c = foo()()
 """
     res = execute(code, artifacts=["c"])
     assert res.values["c"] == 10
-    assert res.artifacts["c"] == code
+    assert res.artifacts["c"] == prettify(code)
 
 
 def test_function_nested_depend_global_right_order(execute):
@@ -68,9 +71,8 @@ c = fn()
 """
     res = execute(code, artifacts=["c"])
     assert res.values["c"] == 12
-    assert (
-        res.artifacts["c"]
-        == """def foo():
+    assert res.artifacts["c"] == prettify(
+        """def foo():
     def inner():
         return a
     return inner
@@ -89,7 +91,7 @@ f()
 """
     res = execute(code, artifacts=["a"])
     assert res.values["a"] == 1
-    assert res.artifacts["a"] == code
+    assert res.artifacts["a"] == prettify(code)
 
 
 def test_update_global(execute):
@@ -101,9 +103,8 @@ f()
 """
     res = execute(code, artifacts=["a"])
     assert res.values["a"] == 1
-    assert (
-        res.artifacts["a"]
-        == """def f():
+    assert res.artifacts["a"] == prettify(
+        """def f():
     global a
     a = 1
 f()
@@ -121,9 +122,8 @@ my_function()
 """
     res = execute(code, artifacts=["a"])
     assert res.values["a"] == 120
-    assert (
-        res.artifacts["a"]
-        == """import math
+    assert res.artifacts["a"] == prettify(
+        """import math
 def my_function():
     global a
     a = math.factorial(5)
@@ -140,4 +140,4 @@ f()
 """
     res = execute(code, artifacts=["a"])
     assert res.values["a"] == [1]
-    assert res.artifacts["a"] == code
+    assert res.artifacts["a"] == prettify(code)

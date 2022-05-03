@@ -1,5 +1,7 @@
 import pytest
 
+from lineapy.utils.utils import prettify
+
 
 def test_PIL_import_fs_artifact(execute):
     code = """from PIL.Image import open, new
@@ -8,7 +10,7 @@ new_img.save("test.png", "PNG")
 e = open("test.png")
 """
     res = execute(code, artifacts=["e"])
-    assert res.artifacts["e"] == code
+    assert res.artifacts["e"] == prettify(code)
 
 
 def test_pandas_to_sql(execute):
@@ -21,7 +23,7 @@ df2 = pd.read_sql("select * from test", conn)
 """
     res = execute(code, artifacts=["df2"])
     assert res.values["df2"].to_csv(index=False) == "a,b\n1,4\n2,5\n3,6\n"
-    assert res.artifacts["df2"] == code
+    assert res.artifacts["df2"] == prettify(code)
 
 
 def test_pandas_to_sql_global_imported(execute):
@@ -36,9 +38,8 @@ df.to_sql(name="test", con=conn,index=False)
 save(db, "db")
 """
     res = execute(code)
-    assert (
-        res.artifacts["db"]
-        == """from lineapy import save, db
+    assert res.artifacts["db"] == prettify(
+        """from lineapy import save, db
 import pandas as pd
 import sqlite3
 df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
@@ -56,7 +57,7 @@ df2 = pd.read_csv("test.csv")
 """
     res = execute(code, artifacts=["df2"])
     assert res.values["df2"].to_csv(index=False) == "a,b\n1,4\n2,5\n3,6\n"
-    assert res.artifacts["df2"] == code
+    assert res.artifacts["df2"] == prettify(code)
 
 
 def test_pandas_to_parquet(execute):
@@ -67,7 +68,7 @@ df2 = pd.read_parquet("test.parquet")
 """
     res = execute(code, artifacts=["df2"])
     assert res.values["df2"].to_csv(index=False) == "a,b\n1,4\n2,5\n3,6\n"
-    assert res.artifacts["df2"] == code
+    assert res.artifacts["df2"] == prettify(code)
 
 
 @pytest.mark.xfail(reason="Path based dependencies not working")
@@ -106,7 +107,7 @@ to_parquet = 'df.to_parquet("df.parquet")'
 
 def test_to_sql_does_not_slice(execute):
     res = execute(mincode + extras + to_sql, artifacts=["df"])
-    assert res.artifacts["df"] == mincode
+    assert res.artifacts["df"] == prettify(mincode)
 
 
 ##
@@ -117,9 +118,8 @@ def test_to_sql_does_not_slice(execute):
 def test_slicing_db(execute):
     code = mincode + extras + to_sql + "\n"
     res = execute(code, artifacts=["lineapy.db"])
-    assert (
-        res.artifacts["lineapy.db"]
-        == """import pandas as pd
+    assert res.artifacts["lineapy.db"] == prettify(
+        """import pandas as pd
 import sqlite3
 df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
 conn = sqlite3.connect(':memory:')
@@ -132,4 +132,6 @@ conn = sqlite3.connect(':memory:')
 def test_slicing_filesystem(execute):
     code = mincode + extras + to_parquet
     res = execute(code, artifacts=["lineapy.file_system"])
-    assert res.artifacts["lineapy.file_system"] == mincode + to_parquet + "\n"
+    assert res.artifacts["lineapy.file_system"] == prettify(
+        mincode + to_parquet + "\n"
+    )

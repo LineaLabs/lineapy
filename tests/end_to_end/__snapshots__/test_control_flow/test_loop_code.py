@@ -9,7 +9,7 @@ a = []
 b = 0
 for x in range(9):
     a.append(x)
-    b+=x
+    b += x
 x = sum(a)
 y = x + b
 
@@ -34,7 +34,7 @@ call_2 = CallNode(
         lineno=4,
         col_offset=0,
         end_lineno=6,
-        end_col_offset=8,
+        end_col_offset=10,
         source_code=source_1.id,
     ),
     function_id=LookupNode(
@@ -44,7 +44,7 @@ call_2 = CallNode(
         LiteralNode(
             value="""for x in range(9):
     a.append(x)
-    b+=x""",
+    b += x""",
         ).id
     ],
     global_reads={

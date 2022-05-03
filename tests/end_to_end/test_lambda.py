@@ -1,3 +1,6 @@
+from lineapy.utils.utils import prettify
+
+
 def test_lambda_with_primitives(execute):
     code = """a = 10
 b = lambda x: x + 10
@@ -46,7 +49,7 @@ b = lambda x: x + 10
 c = b(a)
 """
     res = execute(code, artifacts=["c"])
-    assert res.artifacts["c"] == code
+    assert res.artifacts["c"] == prettify(code)
 
 
 def test_lambda_slicing_creates_correct_artifact_w_external_vars(execute):
@@ -55,7 +58,7 @@ b = lambda x: x + a
 c = b(10)
 """
     res = execute(code, artifacts=["c"])
-    assert res.artifacts["c"] == code
+    assert res.artifacts["c"] == prettify(code)
 
 
 def test_knows_map_calls(execute):
@@ -65,7 +68,7 @@ r = sum(map(fn, [1]))
 """
     res = execute(code, artifacts=["r"])
     assert res.values["r"] == 11
-    assert res.artifacts["r"] == code
+    assert res.artifacts["r"] == prettify(code)
 
 
 def test_knows_call_list(execute):
@@ -80,4 +83,4 @@ r = sum_call_list([fn, fn])
 """
     res = execute(code, artifacts=["r"])
     assert res.values["r"] == 20
-    assert res.artifacts["r"] == code
+    assert res.artifacts["r"] == prettify(code)
