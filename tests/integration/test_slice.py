@@ -296,6 +296,15 @@ PARAMS = [
         "plt.gcf()",
         id="matplotlib_exercise_3",
     ),
+    param(
+        "matplotlib",
+        "matplotlib-tutorial/scripts/alpha.py",
+        "lineapy.file_system",
+        id="matplotlib_alpha",
+        marks=mark.xfail(
+            reason="Annotating a module as if a class does not work inside for loop (no attribute of __self__)",
+        ),
+    ),
 ]
 
 
