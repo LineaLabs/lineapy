@@ -106,7 +106,7 @@ class LineaArtifact:
         """
         return get_slice_graph(self._get_graph(), [self._node_id])
 
-    @lru_cache(maxsize=None)
+    # @lru_cache(maxsize=None)
     def get_code(self, use_lineapy_serialization=True) -> str:
         """
         Return the slices code for the artifact
@@ -115,9 +115,11 @@ class LineaArtifact:
         track(
             GetCodeEvent(use_lineapy_serialization=True, is_session_code=False)
         )
-        return self._de_linealize_code(
-            prettify(str(get_source_code_from_graph(self._get_subgraph()))),
-            use_lineapy_serialization,
+        return prettify(
+            self._de_linealize_code(
+                str(get_source_code_from_graph(self._get_subgraph())),
+                use_lineapy_serialization,
+            )
         )
 
     @lru_cache(maxsize=None)
