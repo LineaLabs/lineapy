@@ -1,28 +1,49 @@
 # Integration tests
 
-This folder contains a number of "integration" tests, meaning tests of running files from third party sources unchanged, as a way to check Lineapy's validity against real world use cases.
+This folder contains a number of "integration" tests, meaning tests of running 
+files from third party sources unchanged, as a way to check Lineapy's validity 
+against real world use cases.
 
 ## What the tests do
 
-All of the tests so far of the same form, so they are all parameters of the same test function `test_slice.py::test_slice`.
+All of the tests so far of the same form, so they are all parameters of the 
+same test function `test_slice.py::test_slice`.
 
 In each the test:
 
-1. Creates a conda environment for the project we are testing against in `envs/<virtualenv name>`, if that directory does not exist. Inside this environment, we install a development build of lineapy as well as any requirements needed to run the tests.
-2. Load the hand written ground truth slice of the file from the `slices/<test id>.py` directory. If one does not exist, it will create one from the source file. Also prettify the file and save it back, to remove comments unneccesary spaces.
+1. Creates a conda environment for the project we are testing against in `envs/<virtualenv name>`, 
+if that directory does not exist. Inside this environment, we install a 
+development build of lineapy as well as any requirements needed to run the tests.
+2. Load the hand written ground truth slice of the file from the `slices/<test id>.py` 
+directory. If one does not exist, it will create one from the source file. Also 
+prettify the file and save it back, to remove comments unnecessary spaces.
 3. Run the ground truth slice, to make sure that it is accurate.
 4. Run the lineapy CLI on the source file (in `sources/`) to create a slice of it.
-5. Verifies that that slice is equal to the snapshot (we make a snapshot of the slice, even if its "wrong", so that we can see in the the repo what the current slice is, and we can see how it changes over time, even if it is never fully "correct")
+5. Verifies that that slice is equal to the snapshot (we make a snapshot of the 
+slice, even if its "wrong", so that we can see in the the repo what the current 
+slice is, and we can see how it changes over time, even if it is never fully "correct"). 
+Note that a copy of the entire file will be created when it's run the first time,
+and you can manually correct the slices, which will _not_ be overwritten in 
+future runs.
 6. Assert that the created slice is equal to the ground truth slice, after prettifying each.
 
 ## Running tests
 
-The tests have the `integration` mark so that they are not run by default. So to run them use `-m integration`.
+The tests have the `integration` mark so that they are not run by default. So 
+to run them use `-m integration`.
 
-Also, all the tests which have failing slices, are currently marked as xfailed, so will not raise errors by default. If you do want to see the errors, you can use `--runxfail` and use `-vv` to print out the full diff.
+Note that when you run the tests for the first time in your environment, it might
+take a long time (e.g., > 5 min), but future runs will be faster.
 
-Most tests do succeed in producing a slice, but the slice just happens to be wrong, so they are marked with `raises=AssertionError`. This is so that pytest knows they should only fail there, not at an earlier step. However,
-some tests don't succeed in even producing a slice, and those are just marked `xfail` without a reason.
+Also, all the tests which have failing slices, are currently marked as xfailed, 
+so will not raise errors by default. If you do want to see the errors, you can 
+use `--runxfail` and use `-vv` to print out the full diff.
+
+Most tests do succeed in producing a slice, but the slice just happens to be 
+wrong, so they are marked with `raises=AssertionError`. This is so that pytest 
+knows they should only fail there, not at an earlier step. However,
+some tests don't succeed in even producing a slice, and those are just marked 
+`xfail` without a reason.
 
 So if you wanted to say run the `numpy-mnist` test to see how the written slice
 differs from the generated slice, you could do:
