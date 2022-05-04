@@ -30,7 +30,3 @@
 	path = tests/integration/sources/pandas_exercises
 	url = git@github.com:guipsamora/pandas_exercises.git
     ignore = all
-[submodule "tests/integration/sources/matplotlib-tutorial"]
-	path = tests/integration/sources/matplotlib-tutorial
-	url = git@github.com:rougier/matplotlib-tutorial.git
-    ignore = all
