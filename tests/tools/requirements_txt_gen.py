@@ -70,7 +70,8 @@ DEV_REQUIRES = [
     ##
     "sphinx",
     "nbsphinx",
-    "sphinx_rtd_theme",
+    "sphinx-rtd-theme",
+    "pandoc",
     ##
     # typing
     ##

@@ -110,10 +110,20 @@ class LineaArtifact:
     def get_code(self, use_lineapy_serialization=True) -> str:
         """
         Return the slices code for the artifact
+
+        :param use_lineapy_serialization: If True, will use the lineapy serialization to get the code.
+            We will hide the serialization and the value pickler irrespective of the value type.
+
+            If False, will use remove all the lineapy references and instead use the underlying serializer directly.
+            Currently, we use the native `pickle` serializer.
+
         """
         # FIXME: this seems a little heavy to just get the slice?
         track(
-            GetCodeEvent(use_lineapy_serialization=True, is_session_code=False)
+            GetCodeEvent(
+                use_lineapy_serialization=use_lineapy_serialization,
+                is_session_code=False,
+            )
         )
         return prettify(
             self._de_linealize_code(
@@ -127,11 +137,21 @@ class LineaArtifact:
         """
         Return the raw session code for the artifact. This will include any
         comments and non-code lines.
+
+        :param use_lineapy_serialization: If True, will use the lineapy serialization to get the code.
+            We will hide the serialization and the value pickler irrespective of the value type.
+
+            If False, will use remove all the lineapy references and instead use the underlying serializer directly.
+            Currently, we use the native `pickle` serializer.
+
         """
         # using this over get_source_code_from_graph because it will process the
         # graph code and not return the original code with comments etc.
         track(
-            GetCodeEvent(use_lineapy_serialization=False, is_session_code=True)
+            GetCodeEvent(
+                use_lineapy_serialization=use_lineapy_serialization,
+                is_session_code=True,
+            )
         )
         return self._de_linealize_code(
             self.db.get_source_code_for_session(self._session_id),
@@ -268,9 +288,7 @@ class LineaCatalog:
     @property
     def export(self):
         """
-        Returns
-        -------
-            a dictionary of artifact information, which the user can then
+        :return: a dictionary of artifact information, which the user can then
             manipulate with their favorite dataframe tools, such as pandas,
             e.g., `cat_df = pd.DataFrame(catalog.export())`.
         """

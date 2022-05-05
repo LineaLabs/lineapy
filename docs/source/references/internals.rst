@@ -187,8 +187,8 @@ That goes through a number of steps, which we outline below, from outside in:
 ~~~~~~~~~~~~~
 
 We currently support two ways to start tracing from LineaPy. The CLI,
-which is used to trace Python scripts, and our Juptyer integration which is
-used in Juptyer Notebooks and IPython. Both of them go from source, to AST,
+which is used to trace Python scripts, and our Jupyter integration which is
+used in Jupyter Notebooks and IPython. Both of them go from source, to AST,
 to a graph.
 
 CLI

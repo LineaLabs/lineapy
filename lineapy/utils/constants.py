@@ -54,6 +54,6 @@ should not be nulls and are mapped to sqlalchemy ORM objects. Alternately, as is
 we can add a placeholder. This will be used like ``obj.property = ormobject.property or placeholder``. 
 This should separate out the ORM objects and their policy of setting all columns to be 
 Optional vs app objects that should reflect the app's expectation of not allowing nulls. 
-The app object's property does not get set to None and the ORM object doesnt need to worry 
+The app object's property does not get set to None and the ORM object doesn't need to worry 
 about knowing what the app is doing."""
 ARTIFACT_NAME_PLACEHOLDER: str = "NONAME"

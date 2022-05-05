@@ -1,8 +1,22 @@
 lineapy.utils package
 =====================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   lineapy.utils.analytics
+
 Submodules
 ----------
+
+lineapy.utils.benchmarks module
+-------------------------------
+
+.. automodule:: lineapy.utils.benchmarks
+   :members:
 
 lineapy.utils.config module
 ---------------------------
@@ -32,6 +46,12 @@ lineapy.utils.logging\_config module
 ------------------------------------
 
 .. automodule:: lineapy.utils.logging_config
+   :members:
+
+lineapy.utils.tree\_logger module
+---------------------------------
+
+.. automodule:: lineapy.utils.tree_logger
    :members:
 
 lineapy.utils.utils module

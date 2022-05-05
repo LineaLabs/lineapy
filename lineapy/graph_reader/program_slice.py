@@ -44,12 +44,14 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
     Returns the code from some subgraph, by including all lines that
     are included in the graphs source.
 
-    TODO: We need better analysis than just looking at the source code.
-    For example, what if we just need one expression from a line that defines
-    multuple expressions?
+    .. todo:: We need better analysis than just looking at the source code.
+        For example, what if we just need one expression from a line that defines
+        multuple expressions?
 
-    We should probably instead regenerate the source from our graph
-    representation.
+        We should probably instead regenerate the source from our graph
+        representation.
+
+
     """
     # map of source code to set of included line numbers
     source_code_to_lines = DefaultDict[SourceCode, Set[int]](set)

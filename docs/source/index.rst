@@ -16,9 +16,10 @@ Welcome to LineaPy!
    :caption: User Guide
 
    tutorials/00_api_basics
-   examples
-   features/index
-
+   guide/refactor_code/index
+   guide/build_pipelines/index
+   guide/manage_artifacts/index
+   
 
 .. toctree::
    :maxdepth: 1
@@ -34,12 +35,3 @@ Welcome to LineaPy!
    references/development
    references/internals
    references/api_reference
-
-
-..
-   Indices and tables
-   ==================
-
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`
