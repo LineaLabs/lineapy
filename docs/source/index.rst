@@ -16,7 +16,9 @@ Welcome to LineaPy!
    :caption: User Guide
 
    tutorials/00_api_basics
-   usage
+   guide/refactor_code/index
+   guide/build_pipelines/index
+   guide/manage_artifacts/index
    
 
 .. toctree::

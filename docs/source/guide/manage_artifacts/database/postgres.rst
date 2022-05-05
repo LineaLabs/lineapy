@@ -1,7 +1,7 @@
 .. _postgres:
 
-Using PostgreSQL
-================
+PostgreSQL
+==========
 
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
 Given the limitations of SQLite (e.g., single write access to a database at a time), however,
