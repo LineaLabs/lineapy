@@ -1,7 +1,7 @@
 FAQ
 ===
 
-Why Do I Get an Error for Database Lock?
+Why do I get an error for database lock?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
@@ -38,12 +38,12 @@ which will unlock the database.
 If database locking is a persisting issue in your usage, we recommend you use a more robust database such as PostgreSQL,
 for which relevant instructions can be found :ref:`here <postgres>`.
 
-Why do I get "No context set"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Why do I get "No context set" error?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you run into initiation errors, such as the following
+When trying to use LineaPy, you may run into ``RuntimeError: No context set`` error, such as the following:
 
-.. code-block::
+.. code:: none
 
     ---------------------------------------------------------------------------
     RuntimeError                              Traceback (most recent call last)
@@ -69,7 +69,8 @@ If you run into initiation errors, such as the following
 
     RuntimeError: No context set
 
+This could be because you are running vanilla Jupyter, e.g., launching Jupyter server with ``$ jupyter notebook``.
+Instead, you should launch with ``$ lineapy jupyter notebook`` (or ``$ lineapy jupyter lab`` if you are using Jupyter Lab),
+which automatically loads the LineaPy extension in the interactive shell application.
 
-This could be because you are running vanilla jupyter, e.g., ``>jupyter notebook``, instead, you should do ``>lineapy jupyter notebook`` (or ``>lineapy jupyter lab`` if you are using lab). Similarly, for python CLI, you should do ``>lineapy python your_file.py``, rather than ``>python your_file.py``.
-
-If your notebook is stuck in a frozen state, it's likely due to SQLite locking up---please restart (we are actively working on eliminating these edge cases).
+Similarly, for Python CLI, you should run ``$ lineapy python your_file.py`` rather than ``$ python your_file.py``.

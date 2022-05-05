@@ -92,15 +92,15 @@ if successful. Otherwise, it will default back to SQLite and print:
 
     sqlite:///.linea/db.sqlite
 
-Known issues
+Known Issues
 ------------
 
 If you are using PostgreSQL as your database, you might encounter the following error:
 
-.. code-block::
+.. code:: none
 
     NoSuchModuleError: Can't load plugin: sqlalchemy.dialects:postgres
 
 
-This is caused by a change in SQLAlchemy where they dropped support for db urls of the form `postgres://` 
-Using `postgresql://` instead should fix this error.
+This is caused by a change in SQLAlchemy where they dropped support for DB URLs of the form ``postgres://``.
+Using ``postgresql://`` instead should fix this error.
