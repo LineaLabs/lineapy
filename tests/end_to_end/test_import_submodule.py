@@ -91,12 +91,14 @@ second_is_prime = import_data.utils.__no_imported_submodule_prime.is_prime
     assert (
         res.artifacts["first_is_prime"]
         == """import import_data.utils.__no_imported_submodule
+import import_data.utils.__no_imported_submodule_prime
 first_is_prime = import_data.utils.__no_imported_submodule.is_prime
 """
     )
     assert (
         res.artifacts["second_is_prime"]
-        == """import import_data.utils.__no_imported_submodule_prime
+        == """import import_data.utils.__no_imported_submodule
+import import_data.utils.__no_imported_submodule_prime
 second_is_prime = import_data.utils.__no_imported_submodule_prime.is_prime
 """
     )
