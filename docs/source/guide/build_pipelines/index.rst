@@ -78,6 +78,11 @@ Running :func:`lineapy.to_pipeline` generates several files that can be used to 
 
 where ``<pipeline_name>`` is ``demo_airflow_pipeline`` in the current example.
 
+.. note::
+
+   If you want hands-on practice,
+   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02_build_pipelines.ipynb>`_ tutorial notebook.
+
 Output Files
 ------------
 
@@ -200,8 +205,3 @@ We then stand up a container instance with the following command:
 
 In the current example where we set ``framework="AIRFLOW"``, this will result in an Airflow instance
 with an executable DAG in it.
-
-.. note::
-
-   If you want hands-on practice,
-   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02_build_pipelines.ipynb>`_ tutorial notebook.
