@@ -1,6 +1,8 @@
 FAQ
 ===
 
+-----
+
 Why do I get an error for database lock?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -37,6 +39,8 @@ which will unlock the database.
 
 If database locking is a persisting issue in your usage, we recommend you use a more robust database such as PostgreSQL,
 for which relevant instructions can be found :ref:`here <postgres>`.
+
+-----
 
 Why do I get "No context set" error?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

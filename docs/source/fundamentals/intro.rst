@@ -17,7 +17,7 @@ Why Use LineaPy?
 Going from development to production is full of friction. Data engineering is a manual and
 time-consuming process. A proliferation of libraries, tools, and technologies means data teams
 spend countless hours managing infrastructure and repeating tasks. This drastically reduces
-the team’s ability to deliver actionable insights in real-time.
+the team's ability to deliver actionable insights in real-time.
 
 LineaPy creates a frictionless path for taking your data science work from development to production,
 backed by a decade of research and industry expertise tackling hyperscale data challenges.
