@@ -38,24 +38,3 @@ This may result less organized output codes and scripts.
     However, SQLite has several limitations, one of which is that it does not support multiple concurrent
     writes to a database (it will result in a database lock). If you want to use a more robust database,
     please follow :ref:`instructions <postgres>` for using PostgreSQL.
-
-Using JupyterHub
-================
-
-LineaPy works with JupyterHub. 
-
-If LineaPy is installed by the admin, it will be accessible to every user and the admin can set LineaPy 
-extension loaded as default by adding :code:`c.InteractiveShellApp.extensions = ['lineapy']` in 
-ipython_config.py_. The :code:`.linea` folder will be created in the user's home directory.
- 
-If LineaPy is installed by an individual user during their session, LineaPy will only be accessible to the 
-user who installs LineaPy as long as the user does not have write permission on the shared environment.
-In this case, the user will need to run :code:`%load_ext lineapy` in the notebook to use LineaPy.
-
-.. _ipython_config.py: https://ipython.readthedocs.io/en/stable/config/intro.html
-
-
-
-    
-    
-
