@@ -150,5 +150,7 @@ Hence, LineaPy's automatic code refactoring can save considerable time for data 
    full session code (including comments) with ``artifact.get_session_code()``. This should come in handy when trying to remember
    or understand the original development context of a given artifact.
 
-If you want hands-on practice on code refactoring with LineaPy,
-check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/01_refactor_code.ipynb>`_ tutorial notebook.
+.. note::
+
+   If you want hands-on practice,
+   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/01_refactor_code.ipynb>`_ tutorial notebook.
