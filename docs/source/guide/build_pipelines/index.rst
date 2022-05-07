@@ -64,7 +64,7 @@ where
 
   * If ``"AIRFLOW"``, it will generate files that can run Airflow DAGs
 
-  * If ``"SCRIPT"```, it will generate files that can run the pipeline as a Python script
+  * If ``"SCRIPT"``, it will generate files that can run the pipeline as a Python script
 
 Running :func:`lineapy.to_pipeline` generates several files that can be used to execute the pipeline from the UI or CLI, including:
 
