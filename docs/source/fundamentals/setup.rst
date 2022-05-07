@@ -33,7 +33,7 @@ LineaPy offers several extras to extend its core capabilities:
 +----------+---------------------------------------+----------------------------------------------------------+
 | Version  | Installation Command                  | Enables                                                  |
 +==========+=======================================+==========================================================+
-| minimal  | :code:`pip install lineapy[minimal]`  | Bare bone dependencies for LineaPy                       |
+| minimal  | :code:`pip install lineapy[minimal]`  | Minimal dependencies for LineaPy                         |
 +----------+---------------------------------------+----------------------------------------------------------+
 | dev      | :code:`pip install lineapy[dev]`      | All LineaPy dependencies for testing and development     |
 +----------+---------------------------------------+----------------------------------------------------------+

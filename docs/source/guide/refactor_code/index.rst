@@ -1,16 +1,14 @@
 Refactoring Code
 ================
 
-LineaPy's artifacts store the complete development history in intelligent graph representation,
-and this enables automatic transformation of the development code.
+Data science development is characterized by nimble, iterative experimentation and exploratory data analysis.
+Data scientists explore many possibilities before reaching the final result. The rapid exploration process often
+leads to long, messy code, over 90% of which has no impact on the final result.
 
-An important application of such transformation is “program slicing” where the development code is
-“sliced” to only retain minimal necessary operations generating the final state/object of interest
-(e.g., trained model).
-
-Traditionally, a major bottleneck in any data science work is refactoring messy development code into
-clean, production-ready code, so LineaPy's support for automatic code clean-up can boost the productivity
-and impact of data science teams.
+Code refactoring is hence an essential step for productionizing data science work. Yet, it often becomes a major
+bottleneck as it involves manual inspection of long, messy code that sometimes does not make sense even to its own
+author. With the complete development history stored in artifacts, LineaPy enables automatic code clean-up,
+facilitating code refactoring and hence transition to production.
 
 For instance, say we are a botanical data scientist modeling the relationship between different parts of
 the iris flower, and we end up with the following development code:
@@ -114,11 +112,11 @@ First, we store the model as a LineaPy artifact:
    # Save desired model as an artifact
    artifact = lineapy.save(lm_2, "linear_model_v2")
 
-Then, we simply ask for its "sliced" code, like so:
+Then, we simply ask for its cleaned-up code, like so:
 
 .. code:: python
 
-   # Get "sliced" code
+   # Get cleaned-up code
    print(artifact.get_code())
 
 And we get:
@@ -140,9 +138,11 @@ And we get:
    )
 
 which is more concise and manageable than what we initially had --- a long, messy collection of various operations.
+Note that the cleaned-up code above is a subset of the original development code. That is, LineaPy "condensed" the
+original code by removing extraneous operations that do not affect the artifact we care about, i.e., ``lm_2``.
 
 In practice, development scripts/notebooks by data scientists are much longer and more complicated than this simple example.
-Hence, LineaPy's automatic code refactoring can save considerable time for data scientists to move their work into production.
+Hence, LineaPy's automatic code clean-up can save considerable time for data scientists to move their work into production.
 
 .. note::
 
