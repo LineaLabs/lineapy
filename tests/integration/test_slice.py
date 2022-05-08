@@ -84,7 +84,7 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
     "matplotlib": Environment(
         conda_deps=["matplotlib", "numpy"],
     ),
-    "sklearn" : Environment(conda_deps=["scikit-learn", "numpy"])
+    "sklearn": Environment(conda_deps=["scikit-learn", "numpy"]),
 }
 
 # A list of the params to test
@@ -309,20 +309,11 @@ PARAMS = [
     ##
     # sklearn
     ##
-
-    # template
-    # param(
-    #     "sklearn",
-    #     "scikit-learn/",
-    #     "",
-    #     id="sklearn_"
-    # ),
-    # sklearn.pipeline
     param(
         "sklearn",
         "scikit-learn/examples/compose/plot_feature_union.py",
         "grid_search",
-        id="sklearn_compose_plot_feature_union"
+        id="sklearn_compose_plot_feature_union",
     ),
     # mixture
     param(
@@ -337,37 +328,36 @@ PARAMS = [
         "sklearn",
         "scikit-learn/examples/model_selection/plot_randomized_search.py",
         "grid_search",
-        id="sklearn_model_selection_plot_randomized_search"
+        id="sklearn_model_selection_plot_randomized_search",
     ),
     # multioutput
     param(
         "sklearn",
         "scikit-learn/examples/multioutput/plot_classifier_chain_yeast.py",
         "chains",
-        id="sklearn_multioutput_plot_classifier_chain_yeast"
+        id="sklearn_multioutput_plot_classifier_chain_yeast",
     ),
     # preprocessing
     param(
         "sklearn",
         "scikit-learn/examples/preprocessing/plot_scaling_importance.py",
         "(unscaled_clf, std_clf)",
-        id="sklearn_preprocessing_plot_scaling_importance"
+        id="sklearn_preprocessing_plot_scaling_importance",
     ),
     # semi_supervised
     param(
         "sklearn",
         "scikit-learn/examples/semi_supervised/plot_label_propagation_structure.py",
         "label_spread",
-        id="sklearn_semi_supervised_plot_label_propagation_structure"
+        id="sklearn_semi_supervised_plot_label_propagation_structure",
     ),
     # list of clf to train
     param(
         "sklearn",
         "scikit-learn/examples/tree/plot_cost_complexity_pruning.py",
         "depth",
-        id = "sklearn_tree_plot_cost_complexity_pruning"
-    )
-
+        id="sklearn_tree_plot_cost_complexity_pruning",
+    ),
 ]
 
 
