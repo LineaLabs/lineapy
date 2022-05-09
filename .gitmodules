@@ -30,3 +30,6 @@
 	path = tests/integration/sources/pandas_exercises
 	url = git@github.com:guipsamora/pandas_exercises.git
     ignore = all
+[submodule "tests/integration/sources/scikit-learn"]
+	path = tests/integration/sources/scikit-learn
+	url = https://github.com/scikit-learn/scikit-learn.git
