@@ -11,18 +11,24 @@ logger = logging.getLogger(__name__)
 
 
 def get_slice_graph(
-    graph: Graph, sinks: List[LineaID], include_children=True
+    graph: Graph, sinks: List[LineaID], include_save: bool = False
 ) -> Graph:
     """
     Takes a full graph from the session
     and produces the subset responsible for the "sinks".
+
+    :param graph: A full graph objection from a session.
+    :param sinks: A list of node IDs desired for slicing.
+    :param include_save: Wheather to retain ``lineapy.save()`` in code slice.
+            Defaults to ``False``.
+    :return: A subgraph extracted (i.e., sliced) for the desired node IDs.
 
     """
     node_subset: Set[LineaID] = set(sinks)
 
     for sink in sinks:
         node_subset.update(graph.get_ancestors(sink))
-        if include_children:
+        if include_save:
             sink_node = graph.get_node(sink)
             if sink_node:
                 node_subset.update(graph.get_children(sink_node))
@@ -103,26 +109,30 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
     return CodeSlice(import_code, body_code)
 
 
-def get_program_slice(graph: Graph, sinks: List[LineaID]) -> CodeSlice:
+def get_program_slice(
+    graph: Graph, sinks: List[LineaID], include_save: bool = False
+) -> CodeSlice:
     """
     Find the necessary and sufficient code for computing the sink nodes.
 
-    :param program: the computation graph.
-    :param sinks: artifacts to get the code slice for.
-    :return: string containing the necessary and sufficient code for
-             computing sinks.
+    :param graph: The computation graph.
+    :param sinks: Artifacts to get the code slice for.
+    :param include_save: Wheather to retain ``lineapy.save()`` in code slice.
+            Defaults to ``False``.
+    :return: String containing the necessary and sufficient code for
+            computing sinks.
 
     """
     logger.debug("Slicing graph %s", graph)
-    subgraph = get_slice_graph(graph, sinks)
+    subgraph = get_slice_graph(graph, sinks, include_save)
     logger.debug("Subgraph for %s: %s", sinks, subgraph)
     return get_source_code_from_graph(subgraph)
 
 
 def get_program_slice_by_artifact_name(
-    db: RelationalLineaDB, name: str
+    db: RelationalLineaDB, name: str, include_save: bool = False
 ) -> CodeSlice:
     artifact = db.get_artifact_by_name(name)
     nodes = db.get_nodes_for_session(artifact.node.session_id)
     graph = Graph(nodes, db.get_session_context(artifact.node.session_id))
-    return get_program_slice(graph, [artifact.node_id])
+    return get_program_slice(graph, [artifact.node_id], include_save)
