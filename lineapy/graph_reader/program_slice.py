@@ -10,18 +10,24 @@ from lineapy.utils.utils import prettify
 logger = logging.getLogger(__name__)
 
 
-def get_slice_graph(graph: Graph, sinks: List[LineaID]) -> Graph:
+def get_slice_graph(
+    graph: Graph, sinks: List[LineaID], include_children=True
+) -> Graph:
     """
     Takes a full graph from the session
     and produces the subset responsible for the "sinks".
 
     """
-    ancestors: Set[LineaID] = set(sinks)
+    node_subset: Set[LineaID] = set(sinks)
 
     for sink in sinks:
-        ancestors.update(graph.get_ancestors(sink))
+        node_subset.update(graph.get_ancestors(sink))
+        if include_children:
+            sink_node = graph.get_node(sink)
+            if sink_node:
+                node_subset.update(graph.get_children(sink_node))
 
-    new_nodes = [graph.ids[node] for node in ancestors]
+    new_nodes = [graph.ids[node] for node in node_subset]
     subgraph = graph.get_subgraph(new_nodes)
     return subgraph
 
