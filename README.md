@@ -65,21 +65,22 @@ Or, if you want the latest version of LineaPy directly from the source, run:
 pip install git+https://github.com/LineaLabs/lineapy.git --upgrade
 ```
 
-Followings are extras to extend core LineaPy capabilities
-| extra | pip install command | enables |
-|-------|---------------------|---------|
-| minimal | `pip install lineapy[minimal]` | Bare bone dependencies for LineaPy |
-| dev   | `pip install lineapy[dev]` | All LineaPy tests and contributing related dependencies |
-| graph | `pip install lineapy[graph]` | Dependencies to visualize LineaPy node graph |
-| postgres | `pip install lineapy[postgres]` | Dependencies to use PostgreSQL backend |
+LineaPy offers several extras to extend its core capabilities:
 
-The bare bone version of LineaPy does not include black and isort as dependencies.
-This may result less organized output codes and scripts.
+| Version  | Installation Command            | Enables                                                  |
+|----------|---------------------------------|----------------------------------------------------------|
+| minimal  | `pip install lineapy[minimal]`  | Minimal dependencies for LineaPy                         |
+| dev      | `pip install lineapy[dev]`      | All LineaPy dependencies for testing and development     |
+| graph    | `pip install lineapy[graph]`    | Dependencies to visualize LineaPy node graph             |
+| postgres | `pip install lineapy[postgres]` | Dependencies to use PostgreSQL backend                   |
+
+The `minimal` version of LineaPy does not include `black` or `isort`,
+which may result in less organized output code and scripts.
 
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
 However, SQLite has several limitations, one of which is that it does not support multiple concurrent
 writes to a database (it will result in a database lock). If you want to use a more robust database,
-please follow [instructions](https://docs.lineapy.org/en/latest/features/postgres.html) for using PostgreSQL.
+please follow [instructions](https://docs.lineapy.org/en/latest/guide/manage_artifacts/database/postgres.html) for using PostgreSQL.
 
 ### Interfaces
 
