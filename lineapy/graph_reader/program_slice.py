@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import DefaultDict, List, Set
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import ImportNode, LineaID, SourceCode
+from lineapy.data.types import CallNode, ImportNode, LineaID, SourceCode
 from lineapy.db.db import RelationalLineaDB
 from lineapy.utils.utils import prettify
 
@@ -25,13 +25,20 @@ def get_slice_graph(
 
     """
     if include_save:
-        # Children of artifact sinks are .save() statements; make them new sinks
-        children_of_sinks = []
+        # Children of an artifact sink include .save() statement.
+        # Identify .save() statement and make it the new sink.
+        # If not applicable, retain the original artifact sink.
+        new_sinks = []
         for sink in sinks:
-            sink_node = graph.get_node(sink)
-            if sink_node:
-                children_of_sinks.extend(graph.get_children(sink_node))
-        sinks = children_of_sinks
+            new_sink = sink
+            child_ids = graph.get_children(sink)
+            for c_id in child_ids:
+                c_node = graph.get_node(c_id)
+                if isinstance(c_node, CallNode):
+                    if c_node.positional_args[0].id == sink:
+                        new_sink = c_id
+            new_sinks.append(new_sink)
+        sinks = new_sinks
 
     ancestors: Set[LineaID] = set(sinks)
 
