@@ -35,7 +35,11 @@ def get_slice_graph(
             for c_id in child_ids:
                 c_node = graph.get_node(c_id)
                 if isinstance(c_node, CallNode):
-                    if c_node.positional_args[0].id == sink:
+                    source_code = c_node.source_location.source_code.code
+                    line_number = c_node.source_location.lineno
+                    line_code = source_code.split("\n")[line_number - 1]
+                    first_arg = c_node.positional_args[0]
+                    if "lineapy.save" in line_code and first_arg.id == sink:
                         new_sink = c_id
             new_sinks.append(new_sink)
         sinks = new_sinks
