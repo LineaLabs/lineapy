@@ -127,7 +127,7 @@ class BasePlugin:
         for slice_name in slice_names:
             artifact_var = safe_var_name(slice_name)
             slice_code: CodeSlice = get_program_slice_by_artifact_name(
-                self.db, slice_name, include_save=True
+                self.db, slice_name, keep_lineapy_save=True
             )
             artifacts_code[artifact_var] = slice_code
             artifact_safe_names.append(artifact_var)

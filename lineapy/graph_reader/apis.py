@@ -100,23 +100,23 @@ class LineaArtifact:
     # Note that I removed the @properties becuase they were not working
     # well with the lru_cache
     @lru_cache(maxsize=None)
-    def _get_subgraph(self, include_save: bool = False) -> Graph:
+    def _get_subgraph(self, keep_lineapy_save: bool = False) -> Graph:
         """
         Return the slice subgraph for the artifact.
 
-        :param include_save: Wheather to retain ``lineapy.save()`` in code slice.
+        :param keep_lineapy_save: Wheather to retain ``lineapy.save()`` in code slice.
                 Defaults to ``False``.
 
         """
         return get_slice_graph(
-            self._get_graph(), [self._node_id], include_save
+            self._get_graph(), [self._node_id], keep_lineapy_save
         )
 
     @lru_cache(maxsize=None)
     def get_code(
         self,
         use_lineapy_serialization: bool = True,
-        include_save: bool = False,
+        keep_lineapy_save: bool = False,
     ) -> str:
         """
         Return the slices code for the artifact
@@ -125,7 +125,7 @@ class LineaArtifact:
                 We will hide the serialization and the value pickler irrespective of the value type.
                 If ``False``, will use remove all the lineapy references and instead use the underlying serializer directly.
                 Currently, we use the native ``pickle`` serializer.
-        :param include_save: Wheather to retain ``lineapy.save()`` in code slice.
+        :param keep_lineapy_save: Wheather to retain ``lineapy.save()`` in code slice.
                 Defaults to ``False``.
 
         """
@@ -140,7 +140,7 @@ class LineaArtifact:
             self._de_linealize_code(
                 str(
                     get_source_code_from_graph(
-                        self._get_subgraph(include_save)
+                        self._get_subgraph(keep_lineapy_save)
                     )
                 ),
                 use_lineapy_serialization,
