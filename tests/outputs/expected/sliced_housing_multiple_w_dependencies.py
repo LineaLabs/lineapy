@@ -1,3 +1,4 @@
+import lineapy
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
@@ -14,6 +15,7 @@ def p_value():
     x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
     clf.fit(x, y)
     p = clf.predict([[100 * 1000, 10, 4]])
+    lineapy.save(p, "p value")
 
 
 def y():
@@ -24,3 +26,4 @@ def y():
 
     assets["is_new"] = is_new(assets["Year_Built"])
     y = assets["is_new"]
+    lineapy.save(y, "y")
