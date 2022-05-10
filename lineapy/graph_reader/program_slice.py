@@ -34,7 +34,7 @@ def get_slice_graph(
             child_ids = graph.get_children(sink)
             for c_id in child_ids:
                 c_node = graph.get_node(c_id)
-                if isinstance(c_node, CallNode):
+                if isinstance(c_node, CallNode) and c_node.source_location:
                     source_code = c_node.source_location.source_code.code
                     line_number = c_node.source_location.lineno
                     line_code = source_code.split("\n")[line_number - 1]
