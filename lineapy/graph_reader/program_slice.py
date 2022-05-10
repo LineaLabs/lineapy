@@ -24,16 +24,21 @@ def get_slice_graph(
     :return: A subgraph extracted (i.e., sliced) for the desired node IDs.
 
     """
-    node_subset: Set[LineaID] = set(sinks)
-
-    for sink in sinks:
-        node_subset.update(graph.get_ancestors(sink))
-        if include_save:
+    if include_save:
+        # Children of artifact sinks are .save() statements; make them new sinks
+        children_of_sinks = []
+        for sink in sinks:
             sink_node = graph.get_node(sink)
             if sink_node:
-                node_subset.update(graph.get_children(sink_node))
+                children_of_sinks.extend(graph.get_children(sink_node))
+        sinks = children_of_sinks
 
-    new_nodes = [graph.ids[node] for node in node_subset]
+    ancestors: Set[LineaID] = set(sinks)
+
+    for sink in sinks:
+        ancestors.update(graph.get_ancestors(sink))
+
+    new_nodes = [graph.ids[node] for node in ancestors]
     subgraph = graph.get_subgraph(new_nodes)
     return subgraph
 
