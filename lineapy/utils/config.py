@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-FOLDER_NAME = ".linea"
+FOLDER_NAME = ".lineapy"
 
 LOG_FILE_NAME = "linea.log"
 
