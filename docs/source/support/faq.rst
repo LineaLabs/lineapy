@@ -1,8 +1,6 @@
 FAQ
 ===
 
------
-
 Why do I get an error for database lock?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -15,13 +13,13 @@ navigate to your home directory and run:
 
 .. code:: bash
 
-    $ fuser .linea/db.sqlite
+    $ fuser .lineapy/db.sqlite
 
 which will list process ID(s) connecting to the database, like so:
 
 .. code:: none
 
-    .linea/db.sqlite: 78638
+    .lineapy/db.sqlite: 78638
 
 You can then terminate the troublesome process(es) with:
 

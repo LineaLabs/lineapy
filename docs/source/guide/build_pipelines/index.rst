@@ -184,6 +184,8 @@ Finally, we have the automatically generated Dockerfile (``demo_airflow_pipeline
 
    CMD [ "standalone" ]
 
+.. _testingairflow:
+
 Testing Locally
 ---------------
 
