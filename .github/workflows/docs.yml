@@ -1,14 +1,10 @@
 name: Docs
 
 on:
-  push:
-    branches: [main]
+  pull_request:
     paths:
-      - "examples/tutorials/**/*.ipynb"
+      - "examples/tutorials/**/*.ipynb"      
   
-concurrency:
-  group: "${{ github.head_ref || github.ref }}"
-  cancel-in-progress: true
 jobs:
   copy-docs:
     runs-on: ubuntu-latest
