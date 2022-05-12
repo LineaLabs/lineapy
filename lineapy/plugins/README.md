@@ -1,11 +1,11 @@
 # Linea Plugin architecture
 
-The main purpose of `lineapy` is to extract ("slice") the source code necesary and sufficient to (re)create objects or variables, which we call _artifacts_.
-But what to do with this code after it's extracted from the original user's code? Saving to a `.py` file is the simplest scenario, but often a user wants to use the sliced code in a specilized execution system, for example a workflow automation toool like Airflow.
+The main purpose of `lineapy` is to extract ("slice") the source code necessary and sufficient to (re)create objects or variables, which we call _artifacts_.
+But what to do with this code after it's extracted from the original user's code? Saving to a `.py` file is the simplest scenario, but often a user wants to use the sliced code in a specialized execution system, for example a workflow automation tool like Airflow.
 
-This is where plugins come into play. The `BasePlugin` class handles the final formatting, linting and saving the code to generate one ore several artifacts as a well-formated Python module. *TODO* Generate unit tests for this module.
+This is where plugins come into play. The `BasePlugin` class handles the final formatting, linting and saving the code to generate one ore several artifacts as a well-formatted Python module. *TODO* Generate unit tests for this module.
 
-More advanced plugins, such as `AirflowPlugin` start with createing a Python module as well, hence their classes extend the `BasePlugin` producing additional files as an output.
+More advanced plugins, such as `AirflowPlugin` start with creating a Python module as well, hence their classes extend the `BasePlugin` producing additional files as an output.
 
 ## Airflow Plugin
 
@@ -25,5 +25,5 @@ In the example above `slice_names` is list of names of the artifacts that you wa
 
 After executing `sliced_airflow_dag` as in this example, three files will be produced:
 - `sliced_housing_dag.py` - The Airflow DAG file
-- `requirements.txt` - Python packages required to run this DAG and the artifct-producing tasks within it
-- `Dockerfile` - An example Dockerfile to produce a minimal container that can successfuly exacute this DAG
+- `requirements.txt` - Python packages required to run this DAG and the artifact-producing tasks within it
+- `Dockerfile` - An example Dockerfile to produce a minimal container that can successfully execute this DAG
