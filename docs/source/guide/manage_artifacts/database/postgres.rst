@@ -90,7 +90,7 @@ if successful. Otherwise, it will default back to SQLite and print:
 
 .. code:: none
 
-    sqlite:///.linea/db.sqlite
+    sqlite:///.lineapy/db.sqlite
 
 Known Issues
 ------------
