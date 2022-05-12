@@ -371,6 +371,22 @@ def setup_ipython_dir() -> None:
     os.environ["IPYTHONDIR"] = ipython_dir_name
 
 
+def validate_annotations_path(ctx, param, value: pathlib.Path):
+    if value.suffix != ".yaml":
+        raise click.BadParameter("path must be a yaml file")
+    return value
+
+
+@linea_cli.command()
+@click.argument(
+    "path",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    callback=validate_annotations_path,
+)
+def import_annotations(path: pathlib.Path):
+    pass
+
+
 def validate_benchmark_path(ctx, param, value: pathlib.Path):
     if not value.suffix == ".ipynb":
         raise click.BadParameter("path must be a notebook")
