@@ -1,7 +1,9 @@
 name: Docs
 
 on:
-  pull_request:
+  push:
+    branches:
+      - '!main'
     paths:
       - "examples/tutorials/**/*.ipynb"      
   
