@@ -1,6 +1,7 @@
 import ast
 import logging
 import os
+import shutil
 import pathlib
 import subprocess
 import sys
@@ -30,6 +31,7 @@ from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
+from lineapy.utils.config import linea_folder, CUSTOM_ANNOTATIONS_FOLDER_NAME
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
     configure_logging,
@@ -371,10 +373,54 @@ def setup_ipython_dir() -> None:
     os.environ["IPYTHONDIR"] = ipython_dir_name
 
 
+@linea_cli.command()
+@click.group()
+def annotations():
+    pass
+
+
 def validate_annotations_path(ctx, param, value: pathlib.Path):
     if value.suffix != ".yaml":
         raise click.BadParameter("path must be a yaml file")
     return value
+
+@annotations.command()
+@click.argument(
+    "path",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    callback=validate_annotations_path,
+)
+@click.option('--name', '-n', default=None, help="Nickname resource to refer to later (for list, update, delete, etc.)", type=str)
+def add(path: pathlib.Path, name: str):
+    # Calculate annotations resource name
+    name = name or path.prefix
+    name = name.strip()
+
+    # Create custom annotations folder in user's .lineapy directory to store imported annotations.
+    custom_annotations_dir = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME
+    if not os.path.exists(custom_annotations_dir):
+        logger.info(f"{custom_annotations_dir} does not exist. Creating it now.")
+        try:
+            os.makedirs(custom_annotations_dir)
+        except OSError as e:
+            logger.error(f"Failed to create {custom_annotations_dir}.\n{str(e)}")
+            sys.exit(1)
+    else:
+        logger.info(f"{custom_annotations_dir} already exists.")
+
+    # Path to copy destination in user's .lineapy directory
+    destination_file = custom_annotations_dir / (name + '.yaml')
+
+    try:
+        shutil.copyfile(path, destination_file)
+    except IOError as e:
+        logger.error(f"Failed to copy file from {path} to {destination_file}.\n{str(e)}")
+        sys.exit(1)
+
+
+@annotations.command()
+def list():
+    pass
 
 
 @linea_cli.command()
@@ -383,7 +429,10 @@ def validate_annotations_path(ctx, param, value: pathlib.Path):
     type=click.Path(dir_okay=False, path_type=pathlib.Path),
     callback=validate_annotations_path,
 )
-def import_annotations(path: pathlib.Path):
+
+
+@click.option('--copy-file', '-c', default=False, show_default=True, help="Copy annotations file to import instead of linking to is", is_flag=True)
+def import_annotations(path: pathlib.Path, ):
     pass
 
 

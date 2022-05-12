@@ -5,6 +5,8 @@ FOLDER_NAME = ".lineapy"
 
 LOG_FILE_NAME = "linea.log"
 
+CUSTOM_ANNOTATIONS_FOLDER_NAME = "custom-annotations"
+
 
 logger = logging.getLogger(__name__)
 
