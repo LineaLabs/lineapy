@@ -3,10 +3,26 @@ import shutil
 
 import pytest
 
+from lineapy.exceptions.user_exception import UserException
+
 # @pytest.fixture(scope="session", autouse=True)
 # def preconfigure(tmp_path):
 #     shutil.copytree("tests/end_to_end/import_data", tmp_path / "import_data")
 #     os.chdir(tmp_path)
+
+
+def test_error_not_imported(tmp_path, execute):
+    """
+    Verify that trying to access a not imported submodule raises an AttributeError
+    """
+    shutil.copytree("tests/end_to_end/import_data", tmp_path / "import_data")
+    os.chdir(tmp_path)
+
+    code = """import import_data.utils
+is_prime = import_data.utils.__no_imported_submodule.is_prime
+"""
+    with pytest.raises(UserException):
+        execute(code, snapshot=False)
 
 
 def test_from(tmp_path, execute):
@@ -36,20 +52,6 @@ is_prime = import_data.utils.__no_imported_submodule.is_prime
     res = execute(code, artifacts=["is_prime"])
     assert res.values["is_prime"] is False
     assert res.artifacts["is_prime"] == code
-
-
-def test_error_not_imported(tmp_path, execute):
-    """
-    Verify that trying to access a not imported submodule raises an AttributeError
-    """
-    shutil.copytree("tests/end_to_end/import_data", tmp_path / "import_data")
-    os.chdir(tmp_path)
-
-    code = """import import_data.utils
-is_prime = import_data.utils.__no_imported_submodule.is_prime
-"""
-    with pytest.raises(AttributeError):
-        execute(code, snapshot=False)
 
 
 def test_slice_parent(tmp_path, execute):

@@ -41,6 +41,9 @@
       side_effects:
         - mutated_value:
             positional_argument_index: 1
+        - views:
+            - result: RESULT
+            - positional_argument_index: 1
 
 - module: builtins
   annotations:
