@@ -21,3 +21,16 @@ append2()
     assert len(res.values["x"]) == 2
     assert res.values["x"][0] == 2 and res.values["x"][1] == 1
     assert res.artifacts["x"] == prettify(code)
+
+
+def test_functools_decorator(execute):
+    code = """from functools import lru_cache
+@lru_cache
+def f():
+    return 1
+
+x = f()
+"""
+    res = execute(code, artifacts=["x"])
+    assert res.values["x"] == 1
+    assert res.artifacts["x"] == prettify(code)
