@@ -15,7 +15,6 @@ from pytest import fixture, mark, param, raises
 from lineapy.data.types import (
     CallNode,
     GlobalNode,
-    ImportNode,
     LineaID,
     LiteralNode,
     LookupNode,

@@ -379,7 +379,6 @@ class Executor:
             side_effects=[],
         )
 
-
     @_execute.register
     def _execute_literal(
         self,
