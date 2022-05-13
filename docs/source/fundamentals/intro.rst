@@ -12,7 +12,7 @@ of the code and its context. This understanding allows LineaPy to provide a set 
 data scientists to bring their work to production more quickly and easily.
 
 .. image:: ../_static/images/overview.png
-  :width: 400
+  :width: 800
   :alt: High-level Overview of LineaPy
 
 Why Use LineaPy?
