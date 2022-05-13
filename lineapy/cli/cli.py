@@ -395,7 +395,7 @@ def validate_annotations_path(ctx, param, value: pathlib.Path):
     "--name",
     "-n",
     default=None,
-    help="Nickname resource to refer to later (for list, update, delete, etc.)",
+    help="What to name imported resource (do not include .yaml extension). Input file name is used as default",
     type=str,
 )
 def add(path: pathlib.Path, name: str):
@@ -448,24 +448,20 @@ def list():
             print(annotation_path)
 
 
-@linea_cli.command()
-@click.argument(
-    "path",
-    type=click.Path(dir_okay=False, path_type=pathlib.Path),
-    callback=validate_annotations_path,
-)
-@click.option(
-    "--copy-file",
-    "-c",
-    default=False,
-    show_default=True,
-    help="Copy annotations file to import instead of linking to is",
-    is_flag=True,
-)
-def import_annotations(
-    path: pathlib.Path,
-):
-    pass
+@annotations.command()
+@click argument("filename")
+def delete(name: str):
+    """
+    Deletes imported annotation source.
+    """
+    delete_path = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME / name
+    try:
+        os.remove(delete_path)
+    except IsADirectoryError as e:
+        logger.error(f"{delete_path} must be the path to a file")
+        sys.exit(1)
+    except FileNotFoundError as e:
+        logger.error(f"{delete_path} not a valid path")
 
 
 def validate_benchmark_path(ctx, param, value: pathlib.Path):
