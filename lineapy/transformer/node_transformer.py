@@ -152,6 +152,16 @@ class NodeTransformer(ast.NodeTransformer):
             node,
             ast.stmt,
         ):
+            if (
+                isinstance(node, ast.FunctionDef)
+                and len(node.decorator_list) > 0
+            ):
+                min_decorator_line = min(
+                    [decorator.lineno for decorator in node.decorator_list]
+                )
+                # this might not be needed but adding in case older python has weirdness
+                if min_decorator_line is not None:
+                    node.lineno = min(min_decorator_line, node.lineno)
             return self._exec_statement(node)
         elif isinstance(node, ast.expr):
             return self._exec_expression(node)
