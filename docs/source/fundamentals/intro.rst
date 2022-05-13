@@ -11,9 +11,6 @@ On a high level, LineaPy traces the sequence of code execution to form a compreh
 of the code and its context. This understanding allows LineaPy to provide a set of tools that help
 data scientists to bring their work to production more quickly and easily.
 
-.. image:: ../_static/images/overview.png
-  :width: 800
-  :alt: High-level Overview of LineaPy
 
 Why Use LineaPy?
 ----------------
@@ -25,6 +22,10 @@ the team's ability to deliver actionable insights in real-time.
 
 LineaPy creates a frictionless path for taking your data science work from development to production,
 backed by a decade of research and industry expertise tackling hyperscale data challenges.
+
+.. image:: ../_static/images/overview.png
+  :width: 800
+  :alt: High-level Overview of LineaPy
 
 .. topic:: *Data Engineering, Simplified*
 
