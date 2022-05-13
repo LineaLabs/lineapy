@@ -1,8 +1,8 @@
 import ast
 import logging
 import os
-import shutil
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -31,7 +31,7 @@ from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
-from lineapy.utils.config import linea_folder, CUSTOM_ANNOTATIONS_FOLDER_NAME
+from lineapy.utils.config import CUSTOM_ANNOTATIONS_FOLDER_NAME, linea_folder
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
     configure_logging,
