@@ -116,7 +116,7 @@ Let's take a closer look at these files. First, we have ``demo_airflow_pipeline.
       )
       lineapy.save(mod, "iris_model")
 
-We can see that LineaPy used artifacts to automatically 1) slice their code to retain only essential operations and 2) package the sliced code into importable functions.
+We can see that LineaPy used artifacts to automatically 1) clean up their code to retain only essential operations and 2) package the cleaned-up code into importable functions.
 
 And we see ``demo_airflow_pipeline_dag.py`` automatically composing an Airflow DAG with these functions:
 
