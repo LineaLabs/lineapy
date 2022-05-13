@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import importlib
 import sys
-
-# from types import ModuleType
 import types
 from typing import (
     Dict,
@@ -17,6 +15,7 @@ from typing import (
 )
 
 from lineapy.editors.ipython_cell_storage import get_location_path
+from lineapy.exceptions.l_import_error import LImportError
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.system_tracing.exec_and_record_function_calls import (
     exec_and_record_function_calls,
@@ -270,7 +269,7 @@ def l_import(
     Imports and returns a module. If the base_module is provided, the module
     will be a submodule of the base.
 
-    Marks the `base_module` as modified if provided.
+    If a `base_module` is provided, the base_module will be flagged as 'mutated' by our annotations.
     """
     assert "." not in name
     full_name = base_module.__name__ + "." + name if base_module else name
@@ -280,7 +279,7 @@ def l_import(
     # this can potentially be changed to a custom error if it messes with
     # imports inside blackboxes
     except Exception as e:
-        raise ImportError from e
+        raise LImportError from e
 
     return value
 

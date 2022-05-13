@@ -282,14 +282,12 @@ class Tracer:
                 self.literal(module_name),
                 parent_module,
             )
-            # node.node_type = NodeType.ImportNode
         else:
             node = self.call(
                 self.lookup_node(l_import.__name__),
                 source_location,
                 self.literal(module_name),
             )
-            # node.node_type = NodeType.ImportNode
         self.variable_name_to_node[name] = node
         return node
 

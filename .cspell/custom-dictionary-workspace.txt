@@ -3,6 +3,7 @@ __getitem__
 astpretty
 asttokens
 builtins
+chdir
 getattr
 graphviz
 ipython

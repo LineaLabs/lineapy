@@ -32,6 +32,7 @@ from lineapy.data.types import (
 from lineapy.db.db import RelationalLineaDB
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
+from lineapy.exceptions.l_import_error import LImportError
 from lineapy.exceptions.user_exception import (
     AddFrame,
     RemoveFrames,
@@ -301,7 +302,7 @@ class Executor:
         except ArtifactSaveException:
             # keep the error stack if its artifact save
             raise
-        except ImportError as exc:
+        except LImportError as exc:
             # Remove all importlib frames
             # There are a different number depending on whether the import
             # can be resolved
