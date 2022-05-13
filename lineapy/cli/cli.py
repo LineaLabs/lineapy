@@ -375,6 +375,12 @@ def setup_ipython_dir() -> None:
 
 @linea_cli.group("annotate")
 def annotations():
+    """
+    This serves as the command group for all annotate commands.
+    For example:
+        lineapy annotate add . . .
+        lineapy annotate list . . .
+    """
     pass
 
 
