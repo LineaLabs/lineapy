@@ -25,7 +25,7 @@ append2()
 
 def test_functools_decorator(execute):
     code = """from functools import lru_cache
-@lru_cache
+@lru_cache(maxsize=1)
 def f():
     return 1
 

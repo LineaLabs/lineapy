@@ -6,7 +6,7 @@ from lineapy.utils.utils import get_new_id
 source_1 = SourceCode(
     code="""import lineapy
 from functools import lru_cache
-@lru_cache
+@lru_cache(maxsize=1)
 def f():
     return 1
 
@@ -77,7 +77,7 @@ call_5 = CallNode(
                     ).id,
                     positional_args=[
                         LiteralNode(
-                            value="""@lru_cache
+                            value="""@lru_cache(maxsize=1)
 def f():
     return 1""",
                         ).id
