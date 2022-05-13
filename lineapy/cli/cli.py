@@ -373,8 +373,7 @@ def setup_ipython_dir() -> None:
     os.environ["IPYTHONDIR"] = ipython_dir_name
 
 
-@linea_cli.command()
-@click.group()
+@linea_cli.group("annotate")
 def annotations():
     pass
 
@@ -385,7 +384,7 @@ def validate_annotations_path(ctx, param, value: pathlib.Path):
     return value
 
 
-@annotations.command()
+@annotations.command("add")
 @click.argument(
     "path",
     type=click.Path(dir_okay=False, path_type=pathlib.Path),
@@ -405,7 +404,7 @@ def add(path: pathlib.Path, name: str):
     This command copies the yaml file whose path is provided by the user into the user's .lineapy directory to allow Lineapy to manage it.
     """
     # Calculate annotations resource name
-    name = name or path.prefix
+    name = name or path.stem
     name = name.strip()
 
     # Create custom annotations folder in user's .lineapy directory to store imported annotations.
@@ -437,24 +436,27 @@ def add(path: pathlib.Path, name: str):
         sys.exit(1)
 
 
-@annotations.command()
+@annotations.command("list")
 def list():
     """
     Lists full paths to all imported annotation sources.
     """
     custom_annotations_dir = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME
-    for annotation_path in custom_annotations_dir.iterdir():
-        if annotation_path.is_file() and annotation_path.suffix == ".yaml":
-            print(annotation_path)
+    if not os.path.exists(custom_annotations_dir):
+        logger.info(f"{custom_annotations_dir} does not exist.")
+    else:
+        for annotation_path in custom_annotations_dir.iterdir():
+            if annotation_path.is_file() and annotation_path.suffix == ".yaml":
+                print(annotation_path)
 
 
-@annotations.command()
-@click argument("filename")
-def delete(name: str):
+@annotations.command("delete")
+@click.argument("filename")
+def delete(filename: str):
     """
     Deletes imported annotation source.
     """
-    delete_path = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME / name
+    delete_path = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME / filename
     try:
         os.remove(delete_path)
     except IsADirectoryError as e:
@@ -462,6 +464,7 @@ def delete(name: str):
         sys.exit(1)
     except FileNotFoundError as e:
         logger.error(f"{delete_path} not a valid path")
+        sys.exit(1)
 
 
 def validate_benchmark_path(ctx, param, value: pathlib.Path):
