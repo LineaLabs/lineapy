@@ -67,7 +67,7 @@ formatter_libs = ["black", "isort"]
 extra_test_libs = [
     "altair",
     "pandas",
-    "sklearn",
+    "scikit-learn",
     "flake8",
     "fastparquet",
     "matplotlib",
