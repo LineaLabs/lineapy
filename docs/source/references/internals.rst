@@ -381,20 +381,21 @@ Put it all together
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
-    import pandas as pd
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.preprocessing import LabelEncoder
 
-    train = pd.read_csv("data/sample_train_data.csv")
+   import pandas as pd
+   from sklearn.linear_model import LogisticRegression
+   from sklearn.preprocessing import LabelEncoder
 
-    train['DeviceInfo'] = LabelEncoder().fit_transform(list(train['DeviceInfo'].values))
+   train = pd.read_csv("data/sample_train_data.csv")
 
-    y = train['isFraud'].copy()
+   train['DeviceInfo'] = LabelEncoder().fit_transform(list(train['DeviceInfo'].values))
 
-    train = train.drop('isFraud', axis=1)
-    train = train.fillna(-1)
+   y = train['isFraud'].copy()
 
-    regression_model = LogisticRegression().fit(train, y)
+   train = train.drop('isFraud', axis=1)
+   train = train.fillna(-1)
+
+   regression_model = LogisticRegression().fit(train, y)
 
 .. image:: ../_static/images/sample_graph.png
   :width: 800
