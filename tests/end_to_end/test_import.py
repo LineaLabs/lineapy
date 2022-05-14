@@ -98,7 +98,7 @@ x = math.sqrt(64)
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"] == 8
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # import x as a
@@ -108,7 +108,7 @@ x = m.sqrt(64)
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"] == 8
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # from x import y
@@ -118,7 +118,7 @@ x = sqrt(64)
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"] == 8
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # from x import y as a
@@ -128,7 +128,7 @@ x = sq(64)
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"] == 8
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # from x import *
@@ -138,7 +138,7 @@ x = sqrt(64)
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"] == 8
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # import x.y.z
@@ -148,7 +148,7 @@ x = matplotlib.pyplot.ylabel('label')
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"].__class__.__name__ == "Text"
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # import x.y.z as a
@@ -158,7 +158,7 @@ x = plt.ylabel('label')
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"].__class__.__name__ == "Text"
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # from x.y import z
@@ -168,7 +168,7 @@ x = ylabel('label')
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"].__class__.__name__ == "Text"
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # from x.y import z as a
@@ -178,7 +178,7 @@ x = yl('label')
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"].__class__.__name__ == "Text"
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # from x.y import *
@@ -188,7 +188,7 @@ x = ylabel('label')
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"].__class__.__name__ == "Text"
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)
 
 
 # from x.y import *
@@ -198,4 +198,4 @@ x = pyplot.ylabel('label')
 """
     res = execute(code, artifacts=["x"])
     assert res.values["x"].__class__.__name__ == "Text"
-    assert res.artifacts["x"] == code
+    assert res.artifacts["x"] == prettify(code)

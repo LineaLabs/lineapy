@@ -355,11 +355,6 @@ class Tracer:
                     self.assign(alias, sub_module_node)
 
         else:
-            # TODO check why we need to assign to base module for the case of import x.y.z
-            # base_module = name.split(".")[0]
-            # node = self.import_module(base_module)
-            # self.assign(base_module, module_node)
-            # self.assign(name.split(".")[0], module_node)
             self.assign(name, module_node)
 
         node = ImportNode(
