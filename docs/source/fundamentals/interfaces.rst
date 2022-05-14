@@ -39,30 +39,29 @@ executed at the top of your session. Please note:
 
 
 Hosted Jupyter Environment
--------------------
+--------------------------
 
 In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle or other environments
-that you do not start your notebook from CLI(such as Jupyter extension within VS Code), you need to
-install `lineapy` directly within your notebook first via:
+that you do not start your notebook from CLI (such as Jupyter extension within VS Code), you need to
+install ``lineapy`` directly within your notebook first via:
 
 .. code:: python
 
     !pip install lineapy
 
-Then you can manually load `lineapy` extension with :
+Then you can manually load ``lineapy`` extension with :
 
 .. code:: python
 
     %load_ext lineapy
 
-For environments with older versions `IPython` like Google Colab, we need to upgrade the `IPython` module before the above steps, we can upgrade `IPython` via:
+For environments with older versions ``IPython<7.0`` like Google Colab, we need to upgrade the ``IPython>=7.0`` module before the above steps, we can upgrade ``IPython`` via:
 
 .. code:: python
 
-    %%capture
     !pip install --upgrade ipython
 
-and elegantly restart the notebook runtime with:
+and restart the notebook runtime:
 
 .. code:: python
 
