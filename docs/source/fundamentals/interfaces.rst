@@ -37,6 +37,39 @@ executed at the top of your session. Please note:
 
 - This loads the extension to the current session only, i.e., it does not carry over to different sessions; you will need to repeat it for each new session.
 
+
+Hosted Jupyter Environment
+-------------------
+
+In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle or other environments
+that you do not start your notebook from CLI(such as Jupyter extension within VS Code), you need to
+install `lineapy` directly within your notebook first via:
+
+.. code:: python
+
+    !pip install lineapy
+
+Then you can manually load `lineapy` extension with :
+
+.. code:: python
+
+    %load_ext lineapy
+
+For environments with older versions `IPython` like Google Colab, we need to upgrade the `IPython` module before the above steps, we can upgrade `IPython` via:
+
+.. code:: python
+
+    %%capture
+    !pip install --upgrade ipython
+
+and elegantly restart the notebook runtime with:
+
+.. code:: python
+
+    exit()
+
+Finally, we can start setting up LineaPy as described previously.
+
 CLI
 ---
 
