@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import DefaultDict, List, Set
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import ImportNode, LineaID, SourceCode
+from lineapy.data.types import CallNode, LineaID, SourceCode
 from lineapy.db.db import RelationalLineaDB
 from lineapy.utils.utils import prettify
 
@@ -61,7 +61,7 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
         if not node.source_location:
             continue
         # check if import node
-        if isinstance(node, (ImportNode)):
+        if isinstance(node, (CallNode)) and (node.is_import is True):
             import_code_to_lines[node.source_location.source_code] |= set(
                 range(
                     node.source_location.lineno,

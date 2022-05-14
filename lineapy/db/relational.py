@@ -273,6 +273,7 @@ class CallNodeORM(BaseNodeORM):
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
     function_id = Column(String, ForeignKey("node.id"))
+    is_import = Column(Boolean, default=False)
 
     positional_args = relationship(
         PositionalArgORM, collection_class=set, lazy="joined"

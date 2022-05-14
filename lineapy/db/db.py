@@ -196,6 +196,7 @@ class RelationalLineaDB:
             node_orm = CallNodeORM(
                 **args,
                 function_id=node.function_id,
+                is_import=node.is_import,
                 positional_args={
                     PositionalArgORM(
                         index=i, starred=v.starred, arg_node_id=v.id
@@ -385,6 +386,7 @@ class RelationalLineaDB:
             return CallNode(
                 function_id=node.function_id,
                 positional_args=positional_args,
+                is_import=node.is_import,
                 keyword_args=keyword_args,
                 global_reads=global_reads,
                 implicit_dependencies=implicit_dependencies,
