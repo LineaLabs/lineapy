@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import yaml
 from contextlib import redirect_stderr, redirect_stdout
 from io import TextIOWrapper
 from statistics import mean
@@ -27,6 +28,7 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.apis import LineaArtifact
+from lineapy.instrumentation.annotation_spec import ModuleAnnotation
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.utils import slugify
@@ -443,7 +445,10 @@ def list():
     """
     annotate_folder = custom_annotations_folder()
     for annotation_path in annotate_folder.iterdir():
-        if annotation_path.is_file() and annotation_path.suffix == ".yaml":
+        if (
+            annotation_path.is_file()
+            and annotation_path.suffix == CUSTOM_ANNOTATIONS_EXTENSION_NAME
+        ):
             print(annotation_path)
 
 
@@ -475,6 +480,44 @@ def delete(filename: str):
             f"{delete_path} not a valid path. Run 'lineapy annotations list' for valid resources."
         )
         sys.exit(1)
+
+
+@annotations.command("validate")
+def validate():
+    """
+    Validate annotation sources. Check all files inside linea
+    folder ending with .annotations.yaml.
+    """
+    did_error = False
+    annotate_folder = custom_annotations_folder()
+    for annotation_path in annotate_folder.iterdir():
+
+        # Skip if not .annotations.yaml file
+        if (
+            not annotation_path.is_file()
+            or annotation_path.suffix != CUSTOM_ANNOTATIONS_EXTENSION_NAME
+        ):
+            continue
+
+        try:
+            doc = yaml.safe_load(f)
+            for item in doc:
+                try:
+                    a = ModuleAnnotation(**item)
+                    logger.info(f"Successfully loaded spec {a}.")
+                except TypeError as e:
+                    print(
+                        f"Invalid source item {item}\nFile {annotation_path}\n{e}"
+                    )
+                    did_error = True
+        except yaml.YAMLError as e:
+            print(f"Invalid source {annotation_path}\n{e}")
+            did_error = True
+
+    if not did_error:
+        print("All custom annotations sources are valid.")
+    else:
+        print("One or more resource invalid.")
 
 
 def validate_benchmark_path(ctx, param, value: pathlib.Path):
