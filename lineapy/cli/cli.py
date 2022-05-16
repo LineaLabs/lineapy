@@ -499,7 +499,7 @@ def validate():
         ):
             continue
 
-        with annotate_path.open() as f:
+        with annotation_path.open() as f:
             try:
                 doc = yaml.safe_load(f)
                 for item in doc:
