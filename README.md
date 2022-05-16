@@ -15,8 +15,6 @@ At a high level, LineaPy traces the sequence of code execution to form a compreh
 of the code and its context. This understanding allows LineaPy to provide a set of tools that help
 data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
-![Linea High-Level Overview](./docs/source/_static/images/overview.png)
-
 <p align="center">
     <b style="font-size:24px;">👇 Try It Out! 👇</b>
     <br>
