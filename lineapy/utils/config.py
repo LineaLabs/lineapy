@@ -33,8 +33,7 @@ def custom_annotations_folder() -> Path:
     annotate_folder = parent / CUSTOM_ANNOTATIONS_FOLDER_NAME
     if not annotate_folder.exists():
         logger.warning(
-            f"No {CUSTOM_ANNOTATIONS_FOLDER} folder found. Creating a new folder in {parent} directory."
+            f"No {CUSTOM_ANNOTATIONS_FOLDER_NAME} folder found. Creating a new folder in {parent} directory."
         )
         annotate_folder.mkdir(parents=False, exist_ok=True)
     return annotate_folder
-
