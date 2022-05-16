@@ -3,8 +3,6 @@ import subprocess
 
 import pytest
 
-from lineapy.utils.utils import prettify
-
 
 def check_requirements_txt(t1: str, t2: str):
     return set(t1.split("\n")) == set(t2.split("\n"))
@@ -50,10 +48,7 @@ def test_slice_airflow(artifact_names, dag_name, deps, airflow_plugin):
             "outputs/expected/" + dag_name + file_endings
         )
         if file_endings != "_requirements.txt":
-            tocompare = path_expected.read_text()
-            if file_endings.endswith(".py"):
-                tocompare = prettify(tocompare)
-            assert path.read_text() == tocompare
+            assert path.read_text() == path_expected.read_text()
         else:
             assert check_requirements_txt(
                 path.read_text(), path_expected.read_text()

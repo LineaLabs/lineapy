@@ -342,22 +342,16 @@ class Tracer:
                 if hasattr(module_value, attr_or_module):
                     self.assign(
                         alias,
-                        # WARNING: Do not add source location here. This is an import node
-                        # and a special case which we want to slice out when doing code-generation
-                        # If we have source location here as well, we would have duplicate lines one for the
-                        # import node and one for attribute setting.
                         self.call(
                             self.lookup_node(GETATTR),
-                            None,
+                            source_location,
                             module_node,
                             self.literal(attr_or_module),
                         ),
                     )
                 else:
                     full_name = f"{name}.{attr_or_module}"
-                    sub_module_node = self.import_module(
-                        full_name, source_location=source_location
-                    )
+                    sub_module_node = self.import_module(full_name)
                     self.assign(alias, sub_module_node)
 
         else:
@@ -446,10 +440,6 @@ class Tracer:
             id=get_new_id(),
             session_id=self.get_session_id(),
             function_id=function_node.id,
-            is_import=(
-                isinstance(function_node, LookupNode)
-                and (function_node.name == l_import.__name__)
-            ),
             positional_args=self.__get_positional_arguments(arguments),
             keyword_args=self.__get_keyword_arguments(keyword_arguments),
             source_location=source_location,

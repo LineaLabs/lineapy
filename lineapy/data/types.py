@@ -336,8 +336,6 @@ class CallNode(BaseNode):
 
     node_type: NodeType = Field(NodeType.CallNode, repr=False)
 
-    is_import: bool = Field(False, repr=False)
-
     function_id: LineaID
     positional_args: List[PositionalArgument] = []
     keyword_args: List[KeywordArgument] = []
