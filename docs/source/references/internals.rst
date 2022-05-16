@@ -35,11 +35,11 @@ This is an example file that when traced will make all six nodes:
 
    import lineapy
    from math import inf
-   
+
    x = [inf]
    for i in range(10):
       x.append(i)
-    
+
    res = str(i + len(x))
 
 
@@ -374,6 +374,34 @@ This is exposed to users in two ways:
    Instead of saving to the current directory, this tries to find Airflow's
    DAGs folder, by looking at the `AIRFLOW_HOME` environment variable and saving it
    in there, so it is picked up by Airflow automatically.
+
+
+
+Put it all together
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   import pandas as pd
+   from sklearn.linear_model import LogisticRegression
+   from sklearn.preprocessing import LabelEncoder
+
+   train = pd.read_csv("data/sample_train_data.csv")
+
+   train['DeviceInfo'] = LabelEncoder().fit_transform(list(train['DeviceInfo'].values))
+
+   y = train['isFraud'].copy()
+
+   train = train.drop('isFraud', axis=1)
+   train = train.fillna(-1)
+
+   regression_model = LogisticRegression().fit(train, y)
+
+.. image:: ../_static/images/sample_graph.png
+  :width: 800
+  :alt: Sample visualization of Graph
+
+
 
 Cross cutting concerns
 ----------------------
