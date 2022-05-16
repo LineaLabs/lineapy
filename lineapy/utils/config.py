@@ -7,6 +7,8 @@ LOG_FILE_NAME = "linea.log"
 
 CUSTOM_ANNOTATIONS_FOLDER_NAME = "custom-annotations"
 
+CUSTOM_ANNOTATIONS_EXTENSION_NAME = ".annotations.yaml"
+
 
 logger = logging.getLogger(__name__)
 
