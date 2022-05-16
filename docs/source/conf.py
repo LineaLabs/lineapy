@@ -65,7 +65,7 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-html_favicon = "_static/images/icon-lineapy-white.png"
+html_favicon = "_static/images/lineapy-square-light.png"
 html_logo = "_static/images/lineapy-white.png"
 
 todo_include_todos = True

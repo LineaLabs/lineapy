@@ -110,11 +110,14 @@ First, we store the model as a LineaPy artifact:
 .. code:: python
 
    # Save desired model as an artifact
-   artifact = lineapy.save(lm_2, "linear_model_v2")
+   lineapy.save(lm_2, "linear_model_v2")
 
 Then, we simply ask for its cleaned-up code, like so:
 
 .. code:: python
+
+   # Retrieve the model artifact
+   artifact = lineapy.get("linear_model_v2")
 
    # Get cleaned-up code
    print(artifact.get_code())
@@ -149,6 +152,11 @@ Hence, LineaPy's automatic code clean-up can save considerable time for data sci
    This does not mean that we lost other parts of the development code. We can still access the artifact's
    full session code (including comments) with ``artifact.get_session_code()``. This should come in handy when trying to remember
    or understand the original development context of a given artifact.
+
+.. note::
+
+    In fact, ``lineapy.save()`` itself returns the artifact object, so we could have simply
+    executed ``artifact = lineapy.save(lm_2, "linear_model_v2")`` above.
 
 .. note::
 
