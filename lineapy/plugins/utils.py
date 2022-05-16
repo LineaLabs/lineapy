@@ -1,7 +1,7 @@
 import re
+import unicodedata
 from pathlib import Path
 from typing import Dict
-import unicodedata
 
 from jinja2 import Environment, FileSystemLoader, Template
 
