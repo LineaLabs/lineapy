@@ -33,7 +33,10 @@ from lineapy.plugins.utils import slugify
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
-from lineapy.utils.config import CUSTOM_ANNOTATIONS_EXTENSION_NAME, custom_annotations_folder
+from lineapy.utils.config import (
+    CUSTOM_ANNOTATIONS_EXTENSION_NAME,
+    custom_annotations_folder,
+)
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
     configure_logging,
@@ -418,7 +421,9 @@ def add(path: pathlib.Path, name: str):
     annotate_folder = custom_annotations_folder()
 
     # Path to copy destination in user's .lineapy directory
-    destination_file = annotate_folder / (name + CUSTOM_ANNOTATIONS_EXTENSION_NAME)
+    destination_file = annotate_folder / (
+        name + CUSTOM_ANNOTATIONS_EXTENSION_NAME
+    )
     print(f"Creating resource at {destination_file}")
 
     # Copy annotation file to destinatiion
@@ -452,14 +457,18 @@ def delete(filename: str):
     match_str = r"^.*" + "\\" + CUSTOM_ANNOTATIONS_EXTENSION_NAME + r"$"
     print(match_str)
     if re.match(match_str, filename) is None:
-        logger.error(f"Resource to delete must end with '{CUSTOM_ANNOTATIONS_EXTENSION_NAME}'")
+        logger.error(
+            f"Resource to delete must end with '{CUSTOM_ANNOTATIONS_EXTENSION_NAME}'"
+        )
         sys.exit(1)
 
     delete_path = custom_annotations_folder() / filename
     try:
         os.remove(delete_path)
     except IsADirectoryError as e:
-        logger.error(f"{delete_path} must be the path to a file, not a directory")
+        logger.error(
+            f"{delete_path} must be the path to a file, not a directory"
+        )
         sys.exit(1)
     except FileNotFoundError as e:
         logger.error(
