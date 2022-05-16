@@ -31,7 +31,7 @@ from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
-from lineapy.utils.config import CUSTOM_ANNOTATIONS_FOLDER_NAME, linea_folder
+from lineapy.utils.config import custom_annotations_folder, linea_folder
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
     configure_logging,
@@ -413,24 +413,10 @@ def add(path: pathlib.Path, name: str):
     name = name or path.stem
     name = name.strip()
 
-    # Create custom annotations folder in user's .lineapy directory to store imported annotations.
-    custom_annotations_dir = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME
-    if not os.path.exists(custom_annotations_dir):
-        logger.info(
-            f"{custom_annotations_dir} does not exist. Creating it now."
-        )
-        try:
-            os.makedirs(custom_annotations_dir)
-        except OSError as e:
-            logger.error(
-                f"Failed to create {custom_annotations_dir}.\n{str(e)}"
-            )
-            sys.exit(1)
-    else:
-        logger.info(f"{custom_annotations_dir} already exists.")
+    annotate_folder = custom_annotations_folder()
 
     # Path to copy destination in user's .lineapy directory
-    destination_file = custom_annotations_dir / (name + ".yaml")
+    destination_file = annotate_folder / (name + ".yaml")
 
     # Copy annotation file to destinatiion
     try:
@@ -447,13 +433,10 @@ def list():
     """
     Lists full paths to all imported annotation sources.
     """
-    custom_annotations_dir = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME
-    if not os.path.exists(custom_annotations_dir):
-        logger.info(f"{custom_annotations_dir} does not exist.")
-    else:
-        for annotation_path in custom_annotations_dir.iterdir():
-            if annotation_path.is_file() and annotation_path.suffix == ".yaml":
-                print(annotation_path)
+    annotate_folder = custom_annotations_folder()
+    for annotation_path in annotate_folder.iterdir():
+        if annotation_path.is_file() and annotation_path.suffix == ".yaml":
+            print(annotation_path)
 
 
 @annotations.command("delete")
@@ -462,7 +445,7 @@ def delete(filename: str):
     """
     Deletes imported annotation source.
     """
-    delete_path = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME / filename
+    delete_path = custom_annotations_folder() / filename
     try:
         os.remove(delete_path)
     except IsADirectoryError as e:
