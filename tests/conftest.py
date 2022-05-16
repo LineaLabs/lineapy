@@ -5,6 +5,7 @@ import os
 import pathlib
 import typing
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 import syrupy
@@ -278,7 +279,10 @@ def remove_db():
 
 
 @pytest.fixture
-def housing_tracer(execute):
+@patch("lineapy.api.api._try_write_to_db")
+def housing_tracer(try_write_to_db, execute):
+    try_write_to_db.return_value = MagicMock()
+    try_write_to_db.return_value.resolve.return_value = "/tmp/fake"
     tests_dir = Path(__file__).parent
 
     # Change directory to tests dir before executing
