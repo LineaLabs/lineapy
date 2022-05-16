@@ -104,7 +104,7 @@ class LineaArtifact:
         """
         Return the slice subgraph for the artifact.
 
-        :param keep_lineapy_save: Wheather to retain ``lineapy.save()`` in code slice.
+        :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
                 Defaults to ``False``.
 
         """
@@ -125,7 +125,7 @@ class LineaArtifact:
                 We will hide the serialization and the value pickler irrespective of the value type.
                 If ``False``, will use remove all the lineapy references and instead use the underlying serializer directly.
                 Currently, we use the native ``pickle`` serializer.
-        :param keep_lineapy_save: Wheather to retain ``lineapy.save()`` in code slice.
+        :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
                 Defaults to ``False``.
 
         """

@@ -19,7 +19,7 @@ def get_slice_graph(
 
     :param graph: A full graph objection from a session.
     :param sinks: A list of node IDs desired for slicing.
-    :param keep_lineapy_save: Wheather to retain ``lineapy.save()`` in code slice.
+    :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
             Defaults to ``False``.
     :return: A subgraph extracted (i.e., sliced) for the desired node IDs.
 
@@ -133,7 +133,7 @@ def get_program_slice(
 
     :param graph: The computation graph.
     :param sinks: Artifacts to get the code slice for.
-    :param keep_lineapy_save: Wheather to retain ``lineapy.save()`` in code slice.
+    :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
             Defaults to ``False``.
     :return: String containing the necessary and sufficient code for
             computing sinks.
