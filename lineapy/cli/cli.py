@@ -417,7 +417,7 @@ def add(path: pathlib.Path, name: str):
     annotate_folder = custom_annotations_folder()
 
     # Path to copy destination in user's .lineapy directory
-    destination_file = annotate_folder / (name + ".yaml")
+    destination_file = annotate_folder / (name + ".annotations.yaml")
 
     # Copy annotation file to destinatiion
     try:
@@ -453,7 +453,9 @@ def delete(filename: str):
         logger.error(f"{delete_path} must be the path to a file")
         sys.exit(1)
     except FileNotFoundError as e:
-        logger.error(f"{delete_path} not a valid path")
+        logger.error(
+            f"{delete_path} not a valid path. Run 'lineapy annotations list' for valid resources."
+        )
         sys.exit(1)
 
 
