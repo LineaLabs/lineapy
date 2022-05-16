@@ -10,7 +10,19 @@ save(a, \'another_import_method\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_2 = CallNode(
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=24,
+        source_code=source_1.id,
+    ),
+    name="lineapy",
+    version="",
+    package_name="lineapy",
+)
+call_3 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=0,
@@ -19,11 +31,18 @@ call_2 = CallNode(
         source_code=source_1.id,
     ),
     function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=1,
+            col_offset=0,
+            end_lineno=1,
+            end_col_offset=24,
+            source_code=source_1.id,
+        ),
         function_id=LookupNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -31,9 +50,14 @@ call_2 = CallNode(
                     end_col_offset=24,
                     source_code=source_1.id,
                 ),
-                name="lineapy",
-                version="",
-                package_name="lineapy",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="save",

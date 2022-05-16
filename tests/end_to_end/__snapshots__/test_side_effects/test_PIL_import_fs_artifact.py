@@ -14,6 +14,18 @@ lineapy.save(e, \'e\')
 """,
     location=PosixPath("[source file path]"),
 )
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="lineapy",
+    version="",
+    package_name="lineapy",
+)
 import_2 = ImportNode(
     source_location=SourceLocation(
         lineno=2,
@@ -26,7 +38,46 @@ import_2 = ImportNode(
     version="",
     package_name="PIL.Image",
 )
-call_9 = CallNode(
+call_2 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=31,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="PIL",
+        ).id
+    ],
+)
+call_3 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=31,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="Image",
+        ).id,
+        call_2.id,
+    ],
+)
+mutate_1 = MutateNode(
+    source_id=call_2.id,
+    call_id=call_3.id,
+)
+call_12 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -46,7 +97,7 @@ call_9 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -54,9 +105,14 @@ call_9 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                name="lineapy",
-                version="",
-                package_name="lineapy",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="save",
@@ -73,11 +129,18 @@ call_9 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=2,
+                    col_offset=0,
+                    end_lineno=2,
+                    end_col_offset=31,
+                    source_code=source_1.id,
+                ),
                 function_id=LookupNode(
                     name="getattr",
                 ).id,
                 positional_args=[
-                    import_2.id,
+                    call_3.id,
                     LiteralNode(
                         value="open",
                     ).id,
@@ -129,11 +192,18 @@ call_9 = CallNode(
                                         source_code=source_1.id,
                                     ),
                                     function_id=CallNode(
+                                        source_location=SourceLocation(
+                                            lineno=2,
+                                            col_offset=0,
+                                            end_lineno=2,
+                                            end_col_offset=31,
+                                            source_code=source_1.id,
+                                        ),
                                         function_id=LookupNode(
                                             name="getattr",
                                         ).id,
                                         positional_args=[
-                                            import_2.id,
+                                            call_3.id,
                                             LiteralNode(
                                                 value="new",
                                             ).id,

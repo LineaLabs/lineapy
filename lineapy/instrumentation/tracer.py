@@ -351,7 +351,9 @@ class Tracer:
                     )
                 else:
                     full_name = f"{name}.{attr_or_module}"
-                    sub_module_node = self.import_module(full_name)
+                    sub_module_node = self.import_module(
+                        full_name, source_location
+                    )
                     self.assign(alias, sub_module_node)
 
         else:

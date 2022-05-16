@@ -1,0 +1,1175 @@
+import datetime
+from pathlib import *
+from lineapy.data.types import *
+from lineapy.utils.utils import get_new_id
+
+source_1 = SourceCode(
+    code="""import lineapy
+from math import *
+x = sqrt(64)
+
+lineapy.save(x, \'x\')
+""",
+    location=PosixPath("[source file path]"),
+)
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="lineapy",
+    version="",
+    package_name="lineapy",
+)
+import_2 = ImportNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    name="math",
+    version="",
+    package_name="math",
+)
+call_2 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="math",
+        ).id
+    ],
+)
+call_3 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="floor",
+        ).id,
+    ],
+)
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="nextafter",
+        ).id,
+    ],
+)
+call_5 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="log10",
+        ).id,
+    ],
+)
+call_6 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="prod",
+        ).id,
+    ],
+)
+call_7 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="e",
+        ).id,
+    ],
+)
+call_8 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="asin",
+        ).id,
+    ],
+)
+call_9 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="factorial",
+        ).id,
+    ],
+)
+call_10 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="copysign",
+        ).id,
+    ],
+)
+call_11 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="fmod",
+        ).id,
+    ],
+)
+call_12 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="pow",
+        ).id,
+    ],
+)
+call_13 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="sinh",
+        ).id,
+    ],
+)
+call_14 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="fsum",
+        ).id,
+    ],
+)
+call_15 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="asinh",
+        ).id,
+    ],
+)
+call_16 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="isclose",
+        ).id,
+    ],
+)
+call_17 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="tau",
+        ).id,
+    ],
+)
+call_18 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="gamma",
+        ).id,
+    ],
+)
+call_19 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="tanh",
+        ).id,
+    ],
+)
+call_20 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="ulp",
+        ).id,
+    ],
+)
+call_21 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="gcd",
+        ).id,
+    ],
+)
+call_22 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="hypot",
+        ).id,
+    ],
+)
+call_23 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="atan",
+        ).id,
+    ],
+)
+call_24 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="acos",
+        ).id,
+    ],
+)
+call_25 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="inf",
+        ).id,
+    ],
+)
+call_26 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="atan2",
+        ).id,
+    ],
+)
+call_27 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="atanh",
+        ).id,
+    ],
+)
+call_28 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="degrees",
+        ).id,
+    ],
+)
+call_29 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="log1p",
+        ).id,
+    ],
+)
+call_30 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="dist",
+        ).id,
+    ],
+)
+call_31 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="ceil",
+        ).id,
+    ],
+)
+call_32 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="log",
+        ).id,
+    ],
+)
+call_33 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="ldexp",
+        ).id,
+    ],
+)
+call_34 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="isfinite",
+        ).id,
+    ],
+)
+call_35 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="acosh",
+        ).id,
+    ],
+)
+call_36 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="erfc",
+        ).id,
+    ],
+)
+call_37 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="isinf",
+        ).id,
+    ],
+)
+call_38 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="trunc",
+        ).id,
+    ],
+)
+call_39 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="tan",
+        ).id,
+    ],
+)
+call_40 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="cosh",
+        ).id,
+    ],
+)
+call_42 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="sin",
+        ).id,
+    ],
+)
+call_43 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="cos",
+        ).id,
+    ],
+)
+call_44 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="radians",
+        ).id,
+    ],
+)
+call_45 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="exp",
+        ).id,
+    ],
+)
+call_46 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="frexp",
+        ).id,
+    ],
+)
+call_47 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="perm",
+        ).id,
+    ],
+)
+call_48 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="modf",
+        ).id,
+    ],
+)
+call_49 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="log2",
+        ).id,
+    ],
+)
+call_50 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="lcm",
+        ).id,
+    ],
+)
+call_51 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="lgamma",
+        ).id,
+    ],
+)
+call_52 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="isqrt",
+        ).id,
+    ],
+)
+call_53 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="isnan",
+        ).id,
+    ],
+)
+call_54 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="pi",
+        ).id,
+    ],
+)
+call_55 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="remainder",
+        ).id,
+    ],
+)
+call_56 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="nan",
+        ).id,
+    ],
+)
+call_57 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="fabs",
+        ).id,
+    ],
+)
+call_58 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="expm1",
+        ).id,
+    ],
+)
+call_59 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="erf",
+        ).id,
+    ],
+)
+call_60 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="getattr",
+    ).id,
+    positional_args=[
+        call_2.id,
+        LiteralNode(
+            value="comb",
+        ).id,
+    ],
+)
+call_63 = CallNode(
+    source_location=SourceLocation(
+        lineno=5,
+        col_offset=0,
+        end_lineno=5,
+        end_col_offset=20,
+        source_code=source_1.id,
+    ),
+    function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=5,
+            col_offset=0,
+            end_lineno=5,
+            end_col_offset=12,
+            source_code=source_1.id,
+        ),
+        function_id=LookupNode(
+            name="getattr",
+        ).id,
+        positional_args=[
+            CallNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=14,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
+            ).id,
+            LiteralNode(
+                value="save",
+            ).id,
+        ],
+    ).id,
+    positional_args=[
+        CallNode(
+            source_location=SourceLocation(
+                lineno=3,
+                col_offset=4,
+                end_lineno=3,
+                end_col_offset=12,
+                source_code=source_1.id,
+            ),
+            function_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=2,
+                    col_offset=0,
+                    end_lineno=2,
+                    end_col_offset=18,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="getattr",
+                ).id,
+                positional_args=[
+                    call_2.id,
+                    LiteralNode(
+                        value="sqrt",
+                    ).id,
+                ],
+            ).id,
+            positional_args=[
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=3,
+                        col_offset=9,
+                        end_lineno=3,
+                        end_col_offset=11,
+                        source_code=source_1.id,
+                    ),
+                    value=64,
+                ).id
+            ],
+        ).id,
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=5,
+                col_offset=16,
+                end_lineno=5,
+                end_col_offset=19,
+                source_code=source_1.id,
+            ),
+            value="x",
+        ).id,
+    ],
+)
