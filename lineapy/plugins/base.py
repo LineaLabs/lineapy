@@ -15,7 +15,7 @@ from lineapy.plugins.task import TaskGraph, TaskGraphEdge
 from lineapy.plugins.utils import (
     get_lib_version_text,
     load_plugin_template,
-    safe_var_name,
+    slugify,
 )
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -125,7 +125,7 @@ class BasePlugin:
         artifacts_code = {}
         artifact_safe_names = []
         for slice_name in slice_names:
-            artifact_var = safe_var_name(slice_name)
+            artifact_var = slugify(slice_name)
             slice_code: CodeSlice = get_program_slice_by_artifact_name(
                 self.db, slice_name
             )
