@@ -37,6 +37,7 @@ from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.config import (
     CUSTOM_ANNOTATIONS_EXTENSION_NAME,
+    CUSTOM_ANNOTATIONS_REGEX_MATCH,
     custom_annotations_folder,
 )
 from lineapy.utils.logging_config import (
@@ -426,7 +427,7 @@ def add(path: pathlib.Path, name: str):
     destination_file = annotate_folder / (
         name + CUSTOM_ANNOTATIONS_EXTENSION_NAME
     )
-    print(f"Creating resource at {destination_file}")
+    print(f"Creating annotation source at {destination_file}")
 
     # Copy annotation file to destinatiion
     try:
@@ -447,7 +448,8 @@ def list():
     for annotation_path in annotate_folder.iterdir():
         if (
             annotation_path.is_file()
-            and annotation_path.suffix == CUSTOM_ANNOTATIONS_EXTENSION_NAME
+            and re.match(CUSTOM_ANNOTATIONS_REGEX_MATCH, str(annotation_path))
+            is not None
         ):
             print(annotation_path)
 
@@ -459,9 +461,7 @@ def delete(filename: str):
     Deletes imported annotation source.
     """
     # filename must end with .annotations.yaml
-    match_str = r"^.*" + "\\" + CUSTOM_ANNOTATIONS_EXTENSION_NAME + r"$"
-    print(match_str)
-    if re.match(match_str, filename) is None:
+    if re.match(CUSTOM_ANNOTATIONS_REGEX_MATCH, filename) is None:
         logger.error(
             f"Resource to delete must end with '{CUSTOM_ANNOTATIONS_EXTENSION_NAME}'"
         )
@@ -491,17 +491,20 @@ def validate():
     did_error = False
     annotate_folder = custom_annotations_folder()
     for annotation_path in annotate_folder.iterdir():
+        print("in loop")
 
         # Skip if not .annotations.yaml file
         if (
             not annotation_path.is_file()
-            or annotation_path.suffix != CUSTOM_ANNOTATIONS_EXTENSION_NAME
+            or re.match(CUSTOM_ANNOTATIONS_REGEX_MATCH, str(annotation_path))
+            is None
         ):
             continue
 
         with annotation_path.open() as f:
             try:
                 doc = yaml.safe_load(f)
+                print("loaded safely")
                 for item in doc:
                     try:
                         a = ModuleAnnotation(**item)
