@@ -7,7 +7,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import yaml
 from contextlib import redirect_stderr, redirect_stdout
 from io import TextIOWrapper
 from statistics import mean
@@ -19,6 +18,7 @@ import nbformat
 import rich
 import rich.syntax
 import rich.tree
+import yaml
 from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
@@ -517,7 +517,7 @@ def validate():
     if not did_error:
         print("All custom annotations sources are valid.")
     else:
-        print("One or more resource invalid.")
+        print("One or more sources invalid.")
 
 
 def validate_benchmark_path(ctx, param, value: pathlib.Path):
