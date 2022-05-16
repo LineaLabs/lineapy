@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from lineapy.graph_reader.apis import LineaArtifact
+from lineapy.graph_reader.api_utils import de_lineate_code
 
 FAKE_PATH = "/tmp/path/to/value/file/xey"
 
@@ -38,18 +38,7 @@ y = lineapy.get('y')""",
     ],
 )
 def test__de_linealize_code(code, expected):
-    artifact = LineaArtifact(
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-    )
-    artifact._get_value_path = MagicMock(  # type: ignore
-        return_value=FAKE_PATH
-    )
-    lineazed = artifact._de_linealize_code(code, True)
-    delineazed = artifact._de_linealize_code(code, False)
-    assert lineazed == code
+    db = MagicMock()
+    db.get_node_value_path = MagicMock(return_value=FAKE_PATH)  # type: ignore
+    delineazed = de_lineate_code(code, db)
     assert delineazed == expected

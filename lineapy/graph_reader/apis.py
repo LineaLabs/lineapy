@@ -4,7 +4,6 @@ User exposed objects through the :mod:`lineapy.apis`.
 from __future__ import annotations
 
 import logging
-import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional, cast
@@ -17,6 +16,7 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
 from lineapy.db.utils import FilePickler
 from lineapy.execution.executor import Executor
+from lineapy.graph_reader.api_utils import de_lineate_code
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
@@ -68,7 +68,7 @@ class LineaArtifact:
         """
         Get and return the value of the artifact
         """
-        value = self._get_value_path()
+        value = self.db.get_node_value_path(self._node_id, self._execution_id)
         if value is None:
             return None
         else:
@@ -76,26 +76,6 @@ class LineaArtifact:
             track(GetValueEvent(has_value=True))
             with open(value, "rb") as f:
                 return FilePickler.load(f)
-
-    def _get_value_path(
-        self, other: Optional[ArtifactORM] = None
-    ) -> Optional[str]:
-        """
-        Get the path to the value of the artifact.
-        :param other: Additional argument to let you query another artifact's value path.
-                      This is set to be optional and if its not set, we will use the current artifact
-        """
-        if other is not None:
-            value = self.db.get_node_value_from_db(
-                other.node_id, other.execution_id
-            )
-        else:
-            value = self.db.get_node_value_from_db(
-                self._node_id, self._execution_id
-            )
-        if not value:
-            raise ValueError("No value saved for this node")
-        return value.value
 
     # Note that I removed the @properties becuase they were not working
     # well with the lru_cache
@@ -136,16 +116,12 @@ class LineaArtifact:
                 is_session_code=False,
             )
         )
-        return prettify(
-            self._de_linealize_code(
-                str(
-                    get_source_code_from_graph(
-                        self._get_subgraph(keep_lineapy_save)
-                    )
-                ),
-                use_lineapy_serialization,
-            )
+        code = str(
+            get_source_code_from_graph(self._get_subgraph(keep_lineapy_save))
         )
+        if not use_lineapy_serialization:
+            code = de_lineate_code(code, self.db)
+        return prettify(code)
 
     @lru_cache(maxsize=None)
     def get_session_code(self, use_lineapy_serialization=True) -> str:
@@ -167,56 +143,12 @@ class LineaArtifact:
                 is_session_code=True,
             )
         )
-        return self._de_linealize_code(
-            self.db.get_source_code_for_session(self._session_id),
-            use_lineapy_serialization,
-        )
-
-    def _de_linealize_code(
-        self, code: str, use_lineapy_serialization: bool
-    ) -> str:
-        """
-        De-linealize the code by removing any lineapy api references
-        """
-        if use_lineapy_serialization:
-            return code
-        else:
-            lineapy_pattern = re.compile(
-                r"(lineapy.(save\(([\w]+),\s*[\"\']([\w\-\s]+)[\"\']\)|get\([\"\']([\w\-\s]+)[\"\']\).get_value\(\)))"
-            )
-            # init swapped version
-
-            def replace_fun(match):
-                if match.group(2).startswith("save"):
-                    # TODO - this can be another artifact. find it using the match.group(4)
-                    # dep_artifact = self.db.get_artifact_by_name(match.group(4))
-                    path_to_use = self._get_value_path()
-                    return f'pickle.dump({match.group(3)},open("{path_to_use}","wb"))'
-
-                elif match.group(2).startswith("get"):
-                    # this typically will be a different artifact.
-                    dep_artifact = self.db.get_artifact_by_name(match.group(5))
-                    path_to_use = self._get_value_path(dep_artifact)
-                    return f'pickle.load(open("{path_to_use}","rb"))'
-
-            swapped, replaces = lineapy_pattern.subn(replace_fun, code)
-            if replaces > 0:
-                # If we replaced something, pickle was used so add import pickle on top
-                # Conversely, if lineapy reference was removed, potentially the import lineapy line is not needed anymore.
-                remove_pattern = re.compile(r"import lineapy\n")
-                match_pattern = re.compile(r"lineapy\.(.*)")
-                swapped = "import pickle\n" + swapped
-                if match_pattern.search(swapped):
-                    # we still are using lineapy.xxx functions
-                    # so do nothing
-                    pass
-                else:
-                    swapped, lineareplaces = remove_pattern.subn("", swapped)
-                    logger.debug(f"Removed lineapy {lineareplaces} times")
-
-            logger.debug("replaces made: %s", replaces)
-
-            return swapped
+        code = self.db.get_source_code_for_session(self._session_id)
+        if not use_lineapy_serialization:
+            code = de_lineate_code(code, self.db)
+        # NOTE: we are not prettifying this code because we want to preserve what
+        # the user wrote originally, without processing
+        return code
 
     @lru_cache(maxsize=None)
     def _get_graph(self) -> Graph:
