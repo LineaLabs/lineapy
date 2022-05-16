@@ -19,7 +19,7 @@ def test_error_not_imported(execute):
     Verify that trying to access a not imported submodule raises an AttributeError
     """
     code = """import import_data.utils
-is_prime = import_data.utils.__no_imported_submodule.is_prime
+some_var = import_data.utils.__will_not_import.some_var
 """
     with pytest.raises(UserException):
         execute(code, snapshot=False)
