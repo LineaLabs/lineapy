@@ -499,20 +499,21 @@ def validate():
         ):
             continue
 
-        try:
-            doc = yaml.safe_load(f)
-            for item in doc:
-                try:
-                    a = ModuleAnnotation(**item)
-                    logger.info(f"Successfully loaded spec {a}.")
-                except TypeError as e:
-                    print(
-                        f"Invalid source item {item}\nFile {annotation_path}\n{e}"
-                    )
-                    did_error = True
-        except yaml.YAMLError as e:
-            print(f"Invalid source {annotation_path}\n{e}")
-            did_error = True
+        with annotate_path.open() as f:
+            try:
+                doc = yaml.safe_load(f)
+                for item in doc:
+                    try:
+                        a = ModuleAnnotation(**item)
+                        logger.info(f"Successfully loaded spec {a}.")
+                    except TypeError as e:
+                        print(
+                            f"Invalid source item {item}\nFile {annotation_path}\n{e}"
+                        )
+                        did_error = True
+            except yaml.YAMLError as e:
+                print(f"Invalid source {annotation_path}\n{e}")
+                did_error = True
 
     if not did_error:
         print("All custom annotations sources are valid.")
