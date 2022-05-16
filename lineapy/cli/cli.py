@@ -23,6 +23,7 @@ from rich.progress import Progress
 
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
+from lineapy.plugins.utils import slugify
 from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.apis import LineaArtifact
@@ -409,9 +410,9 @@ def add(path: pathlib.Path, name: str):
 
     This command copies the yaml file whose path is provided by the user into the user's .lineapy directory to allow Lineapy to manage it.
     """
-    # Calculate annotations resource name
+    # Sanitize input before using it as filename
     name = name or path.stem
-    name = name.strip()
+    name = slugify(name)
 
     annotate_folder = custom_annotations_folder()
 
