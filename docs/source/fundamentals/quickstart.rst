@@ -69,15 +69,15 @@ which will print:
     import pandas as pd
     from sklearn.linear_model import ElasticNet
 
-    df = pd.read_csv("https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv")
-
+    df = pd.read_csv(
+        "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+    )
     color_map = {"Setosa": 0, "Versicolor": 1, "Virginica": 2}
     df["variety_color"] = df["variety"].map(color_map)
-
     model2 = ElasticNet()
     model2.fit(
-        X = df[["petal.width", "variety_color"]],
-        y = df["sepal.width"],
+        X=df[["petal.width", "variety_color"]],
+        y=df["sepal.width"],
     )
 
 Note that these are the minimal essential steps to produce the model. That is, LineaPy has automatically

@@ -7,9 +7,9 @@ What is LineaPy?
 ----------------
 
 LineaPy is a Python package for capturing, analyzing, and automating data science workflows.
-On a high level, LineaPy traces the sequence of code execution to form a comprehensive understanding
+At a high level, LineaPy traces the sequence of code execution to form a comprehensive understanding
 of the code and its context. This understanding allows LineaPy to provide a set of tools that help
-data scientists to bring their work to production more quickly and easily.
+data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
 .. image:: ../_static/images/overview.png
   :width: 800
@@ -22,7 +22,7 @@ Going from data science development to production is full of friction. The engin
 time-consuming. LineaPy creates a frictionless path for taking your data science work from development to production with just **two lines** of code.
 
 Use Case 1: Cleaning Messy Notebooks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When working in a Jupyter notebook day-to-day, it is easy to write messy code by
 jumping around between cells, deleting cells, editing cells, and executing the same cell multiple times
@@ -40,8 +40,8 @@ thoughts, decreasing our productivity. Therefore, it is much more common to clea
 
     To see how LineaPy can help here, check out `this <https://github.com/LineaLabs/demos/blob/main/story/clean_up_a_messy_notebook/clean_up_a_messy_notebook.ipynb>`_ demo.
 
-Use Case 2: Tracing Back Old Code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use Case 2: Revisiting Previous Work
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Data science is often a team effort where one person's work uses results from another's. For instance,
 a data scientist building a model may use various features engineered by other colleagues.
@@ -60,7 +60,7 @@ unreliable and even unusable.
     To see how LineaPy can help here, check out `this <https://github.com/LineaLabs/demos/blob/main/story/discover_and_trace_past_work/discover_and_trace_past_work.ipynb>`_ demo.
 
 Use Case 3: Building Pipelines
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As our notebooks become more mature, they may get used like pipelines. For instance, our notebook might process the
 latest data to update dashboards. Or, it may pre-process data and dump it to the filesystem for downstream model development.
