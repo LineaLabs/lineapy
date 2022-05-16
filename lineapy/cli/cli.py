@@ -31,7 +31,7 @@ from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
-from lineapy.utils.config import custom_annotations_folder, linea_folder
+from lineapy.utils.config import custom_annotations_folder
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
     configure_logging,
