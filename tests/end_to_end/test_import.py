@@ -136,7 +136,9 @@ def test_basic_from_import_starred(execute):
     code = """from math import *
 x = sqrt(64)
 """
-    res = execute(code, artifacts=["x"])
+    # 3.9's importing steps are different from that of 3.7/3.8
+    # so we ignore the graph!
+    res = execute(code, artifacts=["x"], snapshot=False)
     assert res.values["x"] == 8
     assert res.artifacts["x"] == prettify(code)
 
