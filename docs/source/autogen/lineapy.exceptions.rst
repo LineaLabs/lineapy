@@ -28,6 +28,12 @@ lineapy.exceptions.flag module
 .. automodule:: lineapy.exceptions.flag
    :members:
 
+lineapy.exceptions.l\_import\_error module
+------------------------------------------
+
+.. automodule:: lineapy.exceptions.l_import_error
+   :members:
+
 lineapy.exceptions.user\_exception module
 -----------------------------------------
 
