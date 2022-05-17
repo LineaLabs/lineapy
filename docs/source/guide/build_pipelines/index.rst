@@ -90,12 +90,13 @@ Let's take a closer look at these files. First, we have ``demo_airflow_pipeline.
 
 .. code:: python
 
-   import lineapy
-   import pandas as pd
-   from sklearn.linear_model import LinearRegression
+   import pickle
 
 
    def iris_preprocessed():
+      import lineapy
+      import pandas as pd
+
       df = pd.read_csv(
          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
       )
@@ -103,10 +104,13 @@ Let's take a closer look at these files. First, we have ``demo_airflow_pipeline.
       df["variety_color"] = df["variety"].map(color_map)
       df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
       df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
-      lineapy.save(df, "iris_preprocessed")
+      pickle.dump(df, open("/Users/sangyoonpark/.lineapy/linea_pickles/4owJeRd", "wb"))
 
 
    def iris_model():
+      import lineapy
+      from sklearn.linear_model import LinearRegression
+
       art_df_processed = lineapy.get("iris_preprocessed")
       df_processed = art_df_processed.get_value()
       mod = LinearRegression()
@@ -114,7 +118,7 @@ Let's take a closer look at these files. First, we have ``demo_airflow_pipeline.
          X=df_processed[["petal.width", "d_versicolor", "d_virginica"]],
          y=df_processed["sepal.width"],
       )
-      lineapy.save(mod, "iris_model")
+      pickle.dump(mod, open("/Users/sangyoonpark/.lineapy/linea_pickles/UKvDE68", "wb"))
 
 We can see that LineaPy used artifacts to automatically 1) clean up their code to retain only essential operations and 2) package the cleaned-up code into importable functions.
 
