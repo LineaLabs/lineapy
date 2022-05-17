@@ -476,7 +476,7 @@ def delete(filename: str):
     """
     Deletes imported annotation source.
     """
-    filename = remove_annotation_file_extension(filename)
+    filename = remove_annotations_file_extension(filename)
     filename += CUSTOM_ANNOTATIONS_EXTENSION_NAME
 
     delete_path = custom_annotations_folder() / filename
