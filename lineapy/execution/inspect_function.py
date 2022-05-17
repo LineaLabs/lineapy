@@ -3,7 +3,6 @@ from __future__ import annotations
 import glob
 import logging
 import os
-import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -33,10 +32,6 @@ from lineapy.instrumentation.annotation_spec import (
     Result,
     ValuePointer,
     ViewOfValues,
-)
-from lineapy.utils.config import (
-    CUSTOM_ANNOTATIONS_REGEX_MATCH,
-    custom_annotations_folder,
 )
 
 logger = logging.getLogger(__name__)
