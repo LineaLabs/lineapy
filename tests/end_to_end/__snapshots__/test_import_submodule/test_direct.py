@@ -5,8 +5,8 @@ from lineapy.utils.utils import get_new_id
 
 source_1 = SourceCode(
     code="""import lineapy
-import lineapy.utils.__no_imported_submodule
-is_prime = lineapy.utils.__no_imported_submodule.is_prime
+import import_data.utils.__no_imported_submodule
+is_prime = import_data.utils.__no_imported_submodule.is_prime
 
 lineapy.save(is_prime, \'is_prime\')
 """,
@@ -29,14 +29,71 @@ import_2 = ImportNode(
         lineno=2,
         col_offset=0,
         end_lineno=2,
-        end_col_offset=44,
+        end_col_offset=48,
         source_code=source_1.id,
     ),
-    name="lineapy.utils.__no_imported_submodule",
+    name="import_data.utils.__no_imported_submodule",
     version="",
-    package_name="lineapy",
+    package_name="import_data",
 )
-call_5 = CallNode(
+call_2 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=48,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="import_data",
+        ).id
+    ],
+)
+call_3 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=48,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="utils",
+        ).id,
+        call_2.id,
+    ],
+)
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=48,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="__no_imported_submodule",
+        ).id,
+        call_3.id,
+    ],
+)
+mutate_2 = MutateNode(
+    source_id=call_3.id,
+    call_id=call_4.id,
+)
+call_9 = CallNode(
     source_location=SourceLocation(
         lineno=5,
         col_offset=0,
@@ -56,7 +113,23 @@ call_5 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            CallNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=14,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
+            ).id,
             LiteralNode(
                 value="save",
             ).id,
@@ -68,7 +141,7 @@ call_5 = CallNode(
                 lineno=3,
                 col_offset=11,
                 end_lineno=3,
-                end_col_offset=57,
+                end_col_offset=61,
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
@@ -80,7 +153,7 @@ call_5 = CallNode(
                         lineno=3,
                         col_offset=11,
                         end_lineno=3,
-                        end_col_offset=48,
+                        end_col_offset=52,
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
@@ -92,14 +165,20 @@ call_5 = CallNode(
                                 lineno=3,
                                 col_offset=11,
                                 end_lineno=3,
-                                end_col_offset=24,
+                                end_col_offset=28,
                                 source_code=source_1.id,
                             ),
                             function_id=LookupNode(
                                 name="getattr",
                             ).id,
                             positional_args=[
-                                import_1.id,
+                                MutateNode(
+                                    source_id=MutateNode(
+                                        source_id=call_2.id,
+                                        call_id=call_3.id,
+                                    ).id,
+                                    call_id=call_4.id,
+                                ).id,
                                 LiteralNode(
                                     value="utils",
                                 ).id,

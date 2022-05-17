@@ -1,4 +1,5 @@
 import pathlib
+import subprocess
 
 import pytest
 
@@ -59,3 +60,39 @@ def test_slice_pythonscript(artifact_names, dag_name, deps, script_plugin):
             assert check_requirements_txt(
                 path.read_text(), path_expected.read_text()
             )
+
+
+@pytest.mark.slow
+def test_run_script_dag(virtualenv, tmp_path):
+    """
+    Verifies that the dags we produce via our to_pipeline. Airflow take too
+    long to run and we're mostly skipping during local runs.
+    """
+
+    # FIXME - we need a more basic test than this that does not depend on pandas and sklearn etc.
+    # installing them takes way too long right now.
+
+    # Copy the dag and the data
+    # NOTE: Don't want to leave them in the tests folder, since there are other
+    # files we need to copy without which the dag will fail.
+    subprocess.check_call(
+        [
+            "cp",
+            "-f",
+            "tests/outputs/expected/sliced_housing_multiple_script_dag.py",
+            "tests/outputs/expected/sliced_housing_multiple.py",
+            "tests/ames_train_cleaned.csv",
+            str(tmp_path),
+        ]
+    )
+
+    virtualenv.run(
+        "pip install pandas scikit-learn", capture=False, cd=str(tmp_path)
+    )
+
+    virtualenv.run(
+        "python sliced_housing_multiple_script_dag.py",
+        capture=False,
+        # Run in current root lineapy so that relative paths are accurate
+        cd=str(tmp_path),
+    )

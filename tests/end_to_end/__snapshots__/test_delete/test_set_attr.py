@@ -7,7 +7,19 @@ source_1 = SourceCode(
     code="import types; x = types.SimpleNamespace(); x.hi = 1",
     location=PosixPath("[source file path]"),
 )
-call_2 = CallNode(
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=12,
+        source_code=source_1.id,
+    ),
+    name="types",
+    version="",
+    package_name="types",
+)
+call_3 = CallNode(
     source_location=SourceLocation(
         lineno=1,
         col_offset=18,
@@ -27,7 +39,7 @@ call_2 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -35,9 +47,14 @@ call_2 = CallNode(
                     end_col_offset=12,
                     source_code=source_1.id,
                 ),
-                name="types",
-                version="",
-                package_name="types",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="types",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="SimpleNamespace",
@@ -46,7 +63,7 @@ call_2 = CallNode(
     ).id,
 )
 mutate_1 = MutateNode(
-    source_id=call_2.id,
+    source_id=call_3.id,
     call_id=CallNode(
         source_location=SourceLocation(
             lineno=1,
@@ -59,7 +76,7 @@ mutate_1 = MutateNode(
             name="setattr",
         ).id,
         positional_args=[
-            call_2.id,
+            call_3.id,
             LiteralNode(
                 value="hi",
             ).id,

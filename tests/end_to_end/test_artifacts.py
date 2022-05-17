@@ -139,17 +139,20 @@ def test_artifact_code_without_lineapy(execute):
     code = """import lineapy
 x = 1
 savepath = lineapy.save(x, "cleanedx")
-cleanedx = lineapy.get("cleanedx").value
+cleanedx = lineapy.get("cleanedx").get_value()
 y = cleanedx + 1
 y_art = lineapy.save(y, "y")
 """
     t2 = execute(code, snapshot=False)
-    saved_path = t2.values["savepath"]._get_value_path()
+    saved_path = t2.values["savepath"].db.get_node_value_path(
+        t2.values["savepath"]._node_id, t2.values["savepath"]._execution_id
+    )
     artifact = t2.values["y_art"]
     assert (
         artifact.get_code()
         == """import lineapy
-cleanedx = lineapy.get("cleanedx").value
+
+cleanedx = lineapy.get("cleanedx").get_value()
 y = cleanedx + 1
 """
     )

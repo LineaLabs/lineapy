@@ -16,7 +16,31 @@ lineapy.save(a, \'a\')
 """,
     location=PosixPath("[source file path]"),
 )
-literal_3 = LiteralNode(
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="lineapy",
+    version="",
+    package_name="lineapy",
+)
+import_2 = ImportNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=11,
+        source_code=source_1.id,
+    ),
+    name="math",
+    version="",
+    package_name="math",
+)
+literal_5 = LiteralNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=4,
@@ -26,7 +50,7 @@ literal_3 = LiteralNode(
     ),
     value=0,
 )
-call_4 = CallNode(
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=9,
         col_offset=0,
@@ -46,7 +70,7 @@ call_4 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -54,9 +78,14 @@ call_4 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                name="lineapy",
-                version="",
-                package_name="lineapy",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="save",
@@ -97,7 +126,7 @@ call_4 = CallNode(
                     ).id,
                 ).id,
                 global_reads={
-                    "math": ImportNode(
+                    "math": CallNode(
                         source_location=SourceLocation(
                             lineno=2,
                             col_offset=0,
@@ -105,9 +134,14 @@ call_4 = CallNode(
                             end_col_offset=11,
                             source_code=source_1.id,
                         ),
-                        name="math",
-                        version="",
-                        package_name="math",
+                        function_id=LookupNode(
+                            name="l_import",
+                        ).id,
+                        positional_args=[
+                            LiteralNode(
+                                value="math",
+                            ).id
+                        ],
                     ).id
                 },
             ).id,

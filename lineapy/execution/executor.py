@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import builtins
-import importlib.util
 import logging
 import operator
 from dataclasses import dataclass, field
@@ -33,6 +32,7 @@ from lineapy.data.types import (
 from lineapy.db.db import RelationalLineaDB
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
+from lineapy.exceptions.l_import_error import LImportError
 from lineapy.exceptions.user_exception import (
     AddFrame,
     RemoveFrames,
@@ -302,6 +302,23 @@ class Executor:
         except ArtifactSaveException:
             # keep the error stack if its artifact save
             raise
+        except LImportError as exc:
+            # Remove all importlib frames
+            # There are a different number depending on whether the import
+            # can be resolved
+            filter = RemoveFramesWhile(
+                lambda frame: frame.f_code.co_filename.startswith(
+                    "<frozen importlib"
+                )
+            )
+            raise UserException(
+                exc.__cause__,  # type: ignore
+                # Remove the first two frames, which are always there
+                RemoveFrames(2),
+                # Then filter all frozen importlib frames
+                filter,
+                *changes,
+            )
         except Exception as exc:
             # this is user error, so use the custom exception so we can clean
             # up our call stack
@@ -354,28 +371,14 @@ class Executor:
         changes: Iterable[TracebackChange],
         variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
-        try:
-            start_time = datetime.now()
-            value = importlib.import_module(node.name)
-            end_time = datetime.now()
-        except Exception as exc:
-            # Remove all importlib frames
-            # There are a different number depending on whether the import
-            # can be resolved
-            filter = RemoveFramesWhile(
-                lambda frame: frame.f_code.co_filename.startswith(
-                    "<frozen importlib"
-                )
-            )
-            raise UserException(
-                exc,
-                # Remove the first two frames, which are always there
-                RemoveFrames(2),
-                # Then filter all frozen importlib frames
-                filter,
-                *changes,
-            )
-        return PrivateExecuteResult(value, start_time, end_time, [])
+
+        # Dummy
+        return PrivateExecuteResult(
+            value=None,
+            start_time=datetime.now(),
+            end_time=datetime.now(),
+            side_effects=[],
+        )
 
     @_execute.register
     def _execute_literal(

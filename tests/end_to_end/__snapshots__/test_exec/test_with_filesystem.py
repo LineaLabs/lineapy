@@ -25,7 +25,36 @@ import_1 = ImportNode(
     version="",
     package_name="lineapy",
 )
-call_2 = CallNode(
+call_1 = CallNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="lineapy",
+        ).id
+    ],
+)
+import_2 = ImportNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=34,
+        source_code=source_1.id,
+    ),
+    name="tempfile",
+    version="",
+    package_name="tempfile",
+)
+call_4 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=0,
@@ -44,11 +73,18 @@ call_2 = CallNode(
     ],
     global_reads={
         "TemporaryFile": CallNode(
+            source_location=SourceLocation(
+                lineno=2,
+                col_offset=0,
+                end_lineno=2,
+                end_col_offset=34,
+                source_code=source_1.id,
+            ),
             function_id=LookupNode(
                 name="getattr",
             ).id,
             positional_args=[
-                ImportNode(
+                CallNode(
                     source_location=SourceLocation(
                         lineno=2,
                         col_offset=0,
@@ -56,9 +92,14 @@ call_2 = CallNode(
                         end_col_offset=34,
                         source_code=source_1.id,
                     ),
-                    name="tempfile",
-                    version="",
-                    package_name="tempfile",
+                    function_id=LookupNode(
+                        name="l_import",
+                    ).id,
+                    positional_args=[
+                        LiteralNode(
+                            value="tempfile",
+                        ).id
+                    ],
                 ).id,
                 LiteralNode(
                     value="TemporaryFile",
@@ -69,9 +110,9 @@ call_2 = CallNode(
 )
 global_1 = GlobalNode(
     name="f",
-    call_id=call_2.id,
+    call_id=call_4.id,
 )
-call_5 = CallNode(
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=6,
         col_offset=0,
@@ -91,7 +132,7 @@ call_5 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            call_1.id,
             LiteralNode(
                 value="save",
             ).id,
@@ -110,7 +151,7 @@ call_5 = CallNode(
                 name="getattr",
             ).id,
             positional_args=[
-                import_1.id,
+                call_1.id,
                 LiteralNode(
                     value="file_system",
                 ).id,
@@ -120,7 +161,7 @@ call_5 = CallNode(
                     source_id=LookupNode(
                         name="file_system",
                     ).id,
-                    call_id=call_2.id,
+                    call_id=call_4.id,
                 ).id
             ],
         ).id,

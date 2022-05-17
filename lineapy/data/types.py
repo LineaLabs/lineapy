@@ -299,7 +299,11 @@ class ImportNode(BaseNode):
 
     `version` and `package_name` are retrieved at runtime.
     `package_name` may be different from import name, see get_lib_package_version.
-    Optional because of runtime info
+
+    These are optional because the info is acquired at runtime.
+
+    Note that this node is not actually used for execution (using `l_import` CallNodes),
+      but more a decoration for metadata retrieval.
     """
 
     node_type: NodeType = NodeType.ImportNode
@@ -339,6 +343,7 @@ class CallNode(BaseNode):
     # Mapping of global variables that need to be set to call this function
     global_reads: Dict[str, LineaID] = {}
 
+    # TODO: add documentation
     implicit_dependencies: List[LineaID] = []
 
     def parents(self) -> Iterable[LineaID]:

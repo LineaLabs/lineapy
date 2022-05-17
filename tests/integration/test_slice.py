@@ -46,6 +46,7 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
             INTEGRATION_DIR / "sources/numpy-tutorials/environment.yml"
         ),
         conda_deps=["cmake"],
+        pip=["gym[atari]"],
     ),
     "pytorch": lambda: Environment(
         conda_deps=["torchvision=0.11.3"],

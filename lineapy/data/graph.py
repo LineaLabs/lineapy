@@ -110,7 +110,7 @@ class Graph(object):
             # Then, we add all of its children to the queue, making sure to mark
             # for each that we have seen one of its parents
             yield node
-            for child_id in self.get_children(node):
+            for child_id in self.get_children(node.id):
                 remaining_parents[child_id] -= 1
                 if child_id in seen:
                     continue
@@ -118,17 +118,17 @@ class Graph(object):
                 queue.put(child_node)
                 seen.add(child_id)
 
-    def get_parents(self, node: Node) -> List[LineaID]:
-        return list(self.nx_graph.predecessors(node.id))
+    def get_parents(self, node_id: LineaID) -> List[LineaID]:
+        return list(self.nx_graph.predecessors(node_id))
 
     def get_ancestors(self, node_id: LineaID) -> List[LineaID]:
         return list(nx.ancestors(self.nx_graph, node_id))
 
-    def get_children(self, node: Node) -> List[LineaID]:
-        return list(self.nx_graph.successors(node.id))
+    def get_children(self, node_id: LineaID) -> List[LineaID]:
+        return list(self.nx_graph.successors(node_id))
 
-    def get_descendants(self, node: Node) -> List[LineaID]:
-        return list(nx.descendants(self.nx_graph, node.id))
+    def get_descendants(self, node_id: LineaID) -> List[LineaID]:
+        return list(nx.descendants(self.nx_graph, node_id))
 
     def get_leaf_nodes(self) -> List[LineaID]:
         return [

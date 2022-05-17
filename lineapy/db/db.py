@@ -440,6 +440,19 @@ class RelationalLineaDB:
         )
         return value_orm
 
+    def get_node_value_path(
+        self, node_id: LineaID, execution_id: LineaID
+    ) -> Optional[str]:
+        """
+        Get the path to the value of the artifact.
+        :param other: Additional argument to let you query another artifact's value path.
+                      This is set to be optional and if its not set, we will use the current artifact
+        """
+        value = self.get_node_value_from_db(node_id, execution_id)
+        if not value:
+            raise ValueError("No value saved for this node")
+        return value.value
+
     def node_value_in_db(
         self, node_id: LineaID, execution_id: LineaID
     ) -> bool:

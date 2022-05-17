@@ -168,7 +168,9 @@ def process_side_effect(
         if isinstance(p, Result):
             return is_mutable(result)
         if isinstance(p, PositionalArg):
-            return is_mutable(args[p.positional_argument_index])
+            if len(args) > p.positional_argument_index:
+                return is_mutable(args[p.positional_argument_index])
+            return False
         if isinstance(p, BoundSelfOfFunction) or isinstance(p, ExternalState):
             return True  # object
         if isinstance(p, KeywordArgument):
