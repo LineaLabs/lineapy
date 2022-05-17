@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import importlib
 import sys
+import types
 from typing import (
     Dict,
     Iterable,
@@ -13,6 +15,7 @@ from typing import (
 )
 
 from lineapy.editors.ipython_cell_storage import get_location_path
+from lineapy.exceptions.l_import_error import LImportError
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.system_tracing.exec_and_record_function_calls import (
     exec_and_record_function_calls,
@@ -256,6 +259,29 @@ def l_unpack_ex(
         after_list = []
         middle_list = xs_list[before:]
     return [*before_list, middle_list, *after_list]
+
+
+@register
+def l_import(
+    name: str, base_module: types.ModuleType = None
+) -> types.ModuleType:
+    """
+    Imports and returns a module. If the base_module is provided, the module
+    will be a submodule of the base.
+
+    If a `base_module` is provided, the base_module will be flagged as 'mutated' by our annotations.
+    """
+    assert "." not in name
+    full_name = base_module.__name__ + "." + name if base_module else name
+    try:
+        value = importlib.import_module(full_name)
+    # wrap all exceptions happening during import into a single importerror
+    # this can potentially be changed to a custom error if it messes with
+    # imports inside blackboxes
+    except Exception as e:
+        raise LImportError from e
+
+    return value
 
 
 file_system = register(ExternalState(external_state="file_system"))

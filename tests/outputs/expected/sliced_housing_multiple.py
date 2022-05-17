@@ -1,10 +1,7 @@
-import pickle
-
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-
-
 def p_value():
+    import pandas as pd
+    from sklearn.ensemble import RandomForestClassifier
+
     assets = pd.read_csv("ames_train_cleaned.csv")
 
     def is_new(col):
@@ -20,6 +17,8 @@ def p_value():
 
 
 def y():
+    import pandas as pd
+
     assets = pd.read_csv("ames_train_cleaned.csv")
 
     def is_new(col):

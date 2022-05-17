@@ -28,7 +28,48 @@ import_1 = ImportNode(
     version="",
     package_name="lineapy",
 )
-call_14 = CallNode(
+call_1 = CallNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=28,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="lineapy",
+        ).id
+    ],
+)
+import_2 = ImportNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=19,
+        source_code=source_1.id,
+    ),
+    name="pandas",
+    version="",
+    package_name="pandas",
+)
+import_3 = ImportNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="sqlite3",
+    version="",
+    package_name="sqlite3",
+)
+call_17 = CallNode(
     source_location=SourceLocation(
         lineno=9,
         col_offset=0,
@@ -37,11 +78,18 @@ call_14 = CallNode(
         source_code=source_1.id,
     ),
     function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=1,
+            col_offset=0,
+            end_lineno=1,
+            end_col_offset=28,
+            source_code=source_1.id,
+        ),
         function_id=LookupNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            call_1.id,
             LiteralNode(
                 value="save",
             ).id,
@@ -50,11 +98,18 @@ call_14 = CallNode(
     positional_args=[
         MutateNode(
             source_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=28,
+                    source_code=source_1.id,
+                ),
                 function_id=LookupNode(
                     name="getattr",
                 ).id,
                 positional_args=[
-                    import_1.id,
+                    call_1.id,
                     LiteralNode(
                         value="db",
                     ).id,
@@ -100,7 +155,7 @@ call_14 = CallNode(
                                     name="getattr",
                                 ).id,
                                 positional_args=[
-                                    ImportNode(
+                                    CallNode(
                                         source_location=SourceLocation(
                                             lineno=2,
                                             col_offset=0,
@@ -108,9 +163,14 @@ call_14 = CallNode(
                                             end_col_offset=19,
                                             source_code=source_1.id,
                                         ),
-                                        name="pandas",
-                                        version="",
-                                        package_name="pandas",
+                                        function_id=LookupNode(
+                                            name="l_import",
+                                        ).id,
+                                        positional_args=[
+                                            LiteralNode(
+                                                value="pandas",
+                                            ).id
+                                        ],
                                     ).id,
                                     LiteralNode(
                                         value="DataFrame",
@@ -282,7 +342,7 @@ call_14 = CallNode(
                                 name="getattr",
                             ).id,
                             positional_args=[
-                                ImportNode(
+                                CallNode(
                                     source_location=SourceLocation(
                                         lineno=3,
                                         col_offset=0,
@@ -290,9 +350,14 @@ call_14 = CallNode(
                                         end_col_offset=14,
                                         source_code=source_1.id,
                                     ),
-                                    name="sqlite3",
-                                    version="",
-                                    package_name="sqlite3",
+                                    function_id=LookupNode(
+                                        name="l_import",
+                                    ).id,
+                                    positional_args=[
+                                        LiteralNode(
+                                            value="sqlite3",
+                                        ).id
+                                    ],
                                 ).id,
                                 LiteralNode(
                                     value="connect",

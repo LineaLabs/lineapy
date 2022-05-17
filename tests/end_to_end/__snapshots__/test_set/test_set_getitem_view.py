@@ -13,7 +13,19 @@ lineapy.save(x, \'x\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_1 = CallNode(
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="lineapy",
+    version="",
+    package_name="lineapy",
+)
+call_2 = CallNode(
     source_location=SourceLocation(
         lineno=2,
         col_offset=4,
@@ -32,7 +44,7 @@ call_1 = CallNode(
         name="set",
     ).id,
 )
-call_4 = CallNode(
+call_5 = CallNode(
     source_location=SourceLocation(
         lineno=4,
         col_offset=0,
@@ -52,7 +64,7 @@ call_4 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            call_1.id,
+            call_2.id,
             LiteralNode(
                 value="add",
             ).id,
@@ -72,10 +84,10 @@ call_4 = CallNode(
     ],
 )
 mutate_1 = MutateNode(
-    source_id=call_1.id,
-    call_id=call_4.id,
+    source_id=call_2.id,
+    call_id=call_5.id,
 )
-call_6 = CallNode(
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=6,
         col_offset=0,
@@ -95,7 +107,7 @@ call_6 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -103,9 +115,14 @@ call_6 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                name="lineapy",
-                version="",
-                package_name="lineapy",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="save",
@@ -125,9 +142,9 @@ call_6 = CallNode(
                 function_id=LookupNode(
                     name="l_list",
                 ).id,
-                positional_args=[call_1.id],
+                positional_args=[call_2.id],
             ).id,
-            call_id=call_4.id,
+            call_id=call_5.id,
         ).id,
         LiteralNode(
             source_location=SourceLocation(

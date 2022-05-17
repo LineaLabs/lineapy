@@ -7,7 +7,19 @@ source_1 = SourceCode(
     code="import altair; altair.data_transformers.enable('json')",
     location=PosixPath("[source file path]"),
 )
-call_3 = CallNode(
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=13,
+        source_code=source_1.id,
+    ),
+    name="altair",
+    version="",
+    package_name="altair",
+)
+call_4 = CallNode(
     source_location=SourceLocation(
         lineno=1,
         col_offset=15,
@@ -39,7 +51,7 @@ call_3 = CallNode(
                     name="getattr",
                 ).id,
                 positional_args=[
-                    ImportNode(
+                    CallNode(
                         source_location=SourceLocation(
                             lineno=1,
                             col_offset=0,
@@ -47,9 +59,14 @@ call_3 = CallNode(
                             end_col_offset=13,
                             source_code=source_1.id,
                         ),
-                        name="altair",
-                        version="",
-                        package_name="altair",
+                        function_id=LookupNode(
+                            name="l_import",
+                        ).id,
+                        positional_args=[
+                            LiteralNode(
+                                value="altair",
+                            ).id
+                        ],
                     ).id,
                     LiteralNode(
                         value="data_transformers",

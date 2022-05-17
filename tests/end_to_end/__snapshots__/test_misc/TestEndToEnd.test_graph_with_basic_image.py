@@ -3,7 +3,7 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils.utils import get_new_id
 
-lookup_4 = LookupNode(
+lookup_9 = LookupNode(
     name="file_system",
 )
 source_1 = SourceCode(
@@ -22,7 +22,133 @@ lineapy.save(img, "Graph With Image")
 """,
     location=PosixPath("[source file path]"),
 )
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="lineapy",
+    version="",
+    package_name="lineapy",
+)
+import_2 = ImportNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=19,
+        source_code=source_1.id,
+    ),
+    name="pandas",
+    version="",
+    package_name="pandas",
+)
+call_3 = CallNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=31,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="matplotlib",
+        ).id
+    ],
+)
+import_3 = ImportNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=31,
+        source_code=source_1.id,
+    ),
+    name="matplotlib.pyplot",
+    version="",
+    package_name="matplotlib",
+)
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=31,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="pyplot",
+        ).id,
+        call_3.id,
+    ],
+)
+mutate_1 = MutateNode(
+    source_id=call_3.id,
+    call_id=call_4.id,
+)
 call_5 = CallNode(
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=0,
+        end_lineno=4,
+        end_col_offset=26,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="PIL",
+        ).id
+    ],
+)
+import_4 = ImportNode(
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=0,
+        end_lineno=4,
+        end_col_offset=26,
+        source_code=source_1.id,
+    ),
+    name="PIL.Image",
+    version="",
+    package_name="PIL.Image",
+)
+call_6 = CallNode(
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=0,
+        end_lineno=4,
+        end_col_offset=26,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="Image",
+        ).id,
+        call_5.id,
+    ],
+)
+mutate_2 = MutateNode(
+    source_id=call_5.id,
+    call_id=call_6.id,
+)
+call_11 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -42,18 +168,7 @@ call_5 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
-                source_location=SourceLocation(
-                    lineno=3,
-                    col_offset=0,
-                    end_lineno=3,
-                    end_col_offset=31,
-                    source_code=source_1.id,
-                ),
-                name="matplotlib.pyplot",
-                version="",
-                package_name="matplotlib",
-            ).id,
+            call_4.id,
             LiteralNode(
                 value="imsave",
             ).id,
@@ -90,7 +205,7 @@ call_5 = CallNode(
                     name="getattr",
                 ).id,
                 positional_args=[
-                    ImportNode(
+                    CallNode(
                         source_location=SourceLocation(
                             lineno=2,
                             col_offset=0,
@@ -98,9 +213,14 @@ call_5 = CallNode(
                             end_col_offset=19,
                             source_code=source_1.id,
                         ),
-                        name="pandas",
-                        version="",
-                        package_name="pandas",
+                        function_id=LookupNode(
+                            name="l_import",
+                        ).id,
+                        positional_args=[
+                            LiteralNode(
+                                value="pandas",
+                            ).id
+                        ],
                     ).id,
                     LiteralNode(
                         value="read_csv",
@@ -119,11 +239,11 @@ call_5 = CallNode(
                     value="tests/simple_data.csv",
                 ).id
             ],
-            implicit_dependencies=[lookup_4.id],
+            implicit_dependencies=[lookup_9.id],
         ).id,
     ],
 )
-call_11 = CallNode(
+call_17 = CallNode(
     source_location=SourceLocation(
         lineno=12,
         col_offset=0,
@@ -143,7 +263,7 @@ call_11 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -151,9 +271,14 @@ call_11 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                name="lineapy",
-                version="",
-                package_name="lineapy",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="save",
@@ -190,22 +315,18 @@ call_11 = CallNode(
                             source_code=source_1.id,
                         ),
                         function_id=CallNode(
+                            source_location=SourceLocation(
+                                lineno=4,
+                                col_offset=0,
+                                end_lineno=4,
+                                end_col_offset=26,
+                                source_code=source_1.id,
+                            ),
                             function_id=LookupNode(
                                 name="getattr",
                             ).id,
                             positional_args=[
-                                ImportNode(
-                                    source_location=SourceLocation(
-                                        lineno=4,
-                                        col_offset=0,
-                                        end_lineno=4,
-                                        end_col_offset=26,
-                                        source_code=source_1.id,
-                                    ),
-                                    name="PIL.Image",
-                                    version="",
-                                    package_name="PIL.Image",
-                                ).id,
+                                call_6.id,
                                 LiteralNode(
                                     value="open",
                                 ).id,
@@ -223,7 +344,7 @@ call_11 = CallNode(
                                 value="simple_data.png",
                             ).id
                         ],
-                        implicit_dependencies=[lookup_4.id],
+                        implicit_dependencies=[lookup_9.id],
                     ).id,
                     LiteralNode(
                         value="resize",

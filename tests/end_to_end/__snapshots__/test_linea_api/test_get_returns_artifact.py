@@ -14,6 +14,23 @@ lineapy.save(y, "y")
 """,
     location=PosixPath("[source file path]"),
 )
+call_1 = CallNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="lineapy",
+        ).id
+    ],
+)
 import_1 = ImportNode(
     source_location=SourceLocation(
         lineno=1,
@@ -26,7 +43,7 @@ import_1 = ImportNode(
     version="",
     package_name="lineapy",
 )
-call_2 = CallNode(
+call_3 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=0,
@@ -46,7 +63,7 @@ call_2 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            call_1.id,
             LiteralNode(
                 value="save",
             ).id,
@@ -75,7 +92,7 @@ call_2 = CallNode(
         ).id,
     ],
 )
-call_9 = CallNode(
+call_10 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -95,7 +112,7 @@ call_9 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            call_1.id,
             LiteralNode(
                 value="save",
             ).id,
@@ -154,7 +171,7 @@ call_9 = CallNode(
                                         name="getattr",
                                     ).id,
                                     positional_args=[
-                                        import_1.id,
+                                        call_1.id,
                                         LiteralNode(
                                             value="get",
                                         ).id,

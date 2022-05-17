@@ -16,6 +16,18 @@ lineapy.save(df2, \'df2\')
 """,
     location=PosixPath("[source file path]"),
 )
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="lineapy",
+    version="",
+    package_name="lineapy",
+)
 import_2 = ImportNode(
     source_location=SourceLocation(
         lineno=2,
@@ -28,7 +40,36 @@ import_2 = ImportNode(
     version="",
     package_name="pandas",
 )
-call_9 = CallNode(
+call_2 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=19,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="pandas",
+        ).id
+    ],
+)
+import_3 = ImportNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="sqlite3",
+    version="",
+    package_name="sqlite3",
+)
+call_12 = CallNode(
     source_location=SourceLocation(
         lineno=5,
         col_offset=7,
@@ -48,7 +89,7 @@ call_9 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=3,
                     col_offset=0,
@@ -56,9 +97,14 @@ call_9 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                name="sqlite3",
-                version="",
-                package_name="sqlite3",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="sqlite3",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="connect",
@@ -78,7 +124,7 @@ call_9 = CallNode(
         ).id
     ],
 )
-call_15 = CallNode(
+call_18 = CallNode(
     source_location=SourceLocation(
         lineno=9,
         col_offset=0,
@@ -98,7 +144,7 @@ call_15 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -106,9 +152,14 @@ call_15 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                name="lineapy",
-                version="",
-                package_name="lineapy",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="save",
@@ -136,7 +187,7 @@ call_15 = CallNode(
                     name="getattr",
                 ).id,
                 positional_args=[
-                    import_2.id,
+                    call_2.id,
                     LiteralNode(
                         value="read_sql",
                     ).id,
@@ -153,7 +204,7 @@ call_15 = CallNode(
                     ),
                     value="select * from test",
                 ).id,
-                call_9.id,
+                call_12.id,
             ],
             implicit_dependencies=[
                 MutateNode(
@@ -200,7 +251,7 @@ call_15 = CallNode(
                                             name="getattr",
                                         ).id,
                                         positional_args=[
-                                            import_2.id,
+                                            call_2.id,
                                             LiteralNode(
                                                 value="DataFrame",
                                             ).id,
@@ -351,7 +402,7 @@ call_15 = CallNode(
                             ],
                         ).id,
                         keyword_args={
-                            "con": call_9.id,
+                            "con": call_12.id,
                             "index": LiteralNode(
                                 source_location=SourceLocation(
                                     lineno=6,

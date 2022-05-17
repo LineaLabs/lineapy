@@ -22,7 +22,24 @@ import_1 = ImportNode(
     version="",
     package_name="math",
 )
-call_4 = CallNode(
+call_1 = CallNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=43,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="math",
+        ).id
+    ],
+)
+call_5 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=4,
@@ -31,11 +48,18 @@ call_4 = CallNode(
         source_code=source_1.id,
     ),
     function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=1,
+            col_offset=0,
+            end_lineno=1,
+            end_col_offset=43,
+            source_code=source_1.id,
+        ),
         function_id=LookupNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            call_1.id,
             LiteralNode(
                 value="sqrt",
             ).id,
@@ -51,11 +75,18 @@ call_4 = CallNode(
                 source_code=source_1.id,
             ),
             function_id=CallNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=43,
+                    source_code=source_1.id,
+                ),
                 function_id=LookupNode(
                     name="getattr",
                 ).id,
                 positional_args=[
-                    import_1.id,
+                    call_1.id,
                     LiteralNode(
                         value="pow",
                     ).id,

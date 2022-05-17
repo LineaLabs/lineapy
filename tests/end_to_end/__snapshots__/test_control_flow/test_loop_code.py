@@ -17,7 +17,19 @@ lineapy.save(y, \'y\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_1 = CallNode(
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="lineapy",
+    version="",
+    package_name="lineapy",
+)
+call_2 = CallNode(
     source_location=SourceLocation(
         lineno=2,
         col_offset=4,
@@ -29,7 +41,7 @@ call_1 = CallNode(
         name="l_list",
     ).id,
 )
-call_2 = CallNode(
+call_3 = CallNode(
     source_location=SourceLocation(
         lineno=4,
         col_offset=0,
@@ -48,7 +60,7 @@ call_2 = CallNode(
         ).id
     ],
     global_reads={
-        "a": call_1.id,
+        "a": call_2.id,
         "b": LiteralNode(
             source_location=SourceLocation(
                 lineno=3,
@@ -63,9 +75,9 @@ call_2 = CallNode(
 )
 global_2 = GlobalNode(
     name="x",
-    call_id=call_2.id,
+    call_id=call_3.id,
 )
-call_6 = CallNode(
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=10,
         col_offset=0,
@@ -85,7 +97,7 @@ call_6 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -93,9 +105,14 @@ call_6 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                name="lineapy",
-                version="",
-                package_name="lineapy",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="save",
@@ -135,14 +152,14 @@ call_6 = CallNode(
                     ).id,
                     positional_args=[
                         MutateNode(
-                            source_id=call_1.id,
-                            call_id=call_2.id,
+                            source_id=call_2.id,
+                            call_id=call_3.id,
                         ).id
                     ],
                 ).id,
                 GlobalNode(
                     name="b",
-                    call_id=call_2.id,
+                    call_id=call_3.id,
                 ).id,
             ],
         ).id,

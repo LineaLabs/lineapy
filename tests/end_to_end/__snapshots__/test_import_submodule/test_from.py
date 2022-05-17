@@ -5,9 +5,8 @@ from lineapy.utils.utils import get_new_id
 
 source_1 = SourceCode(
     code="""import lineapy
-import lineapy.utils.__no_imported_submodule
-import lineapy.utils
-is_prime = lineapy.utils.__no_imported_submodule.is_prime
+from import_data.utils import __no_imported_submodule
+is_prime = __no_imported_submodule.is_prime
 
 lineapy.save(is_prime, \'is_prime\')
 """,
@@ -30,38 +29,65 @@ import_2 = ImportNode(
         lineno=2,
         col_offset=0,
         end_lineno=2,
-        end_col_offset=44,
+        end_col_offset=53,
         source_code=source_1.id,
     ),
-    name="lineapy.utils.__no_imported_submodule",
+    name="import_data.utils",
     version="",
-    package_name="lineapy",
+    package_name="import_data",
 )
-import_3 = ImportNode(
+call_2 = CallNode(
     source_location=SourceLocation(
-        lineno=3,
+        lineno=2,
         col_offset=0,
-        end_lineno=3,
-        end_col_offset=20,
+        end_lineno=2,
+        end_col_offset=53,
         source_code=source_1.id,
     ),
-    name="lineapy.utils",
-    version="",
-    package_name="lineapy",
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="import_data",
+        ).id
+    ],
 )
-call_5 = CallNode(
+call_3 = CallNode(
     source_location=SourceLocation(
-        lineno=6,
+        lineno=2,
         col_offset=0,
-        end_lineno=6,
+        end_lineno=2,
+        end_col_offset=53,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="utils",
+        ).id,
+        call_2.id,
+    ],
+)
+mutate_1 = MutateNode(
+    source_id=call_2.id,
+    call_id=call_3.id,
+)
+call_7 = CallNode(
+    source_location=SourceLocation(
+        lineno=5,
+        col_offset=0,
+        end_lineno=5,
         end_col_offset=34,
         source_code=source_1.id,
     ),
     function_id=CallNode(
         source_location=SourceLocation(
-            lineno=6,
+            lineno=5,
             col_offset=0,
-            end_lineno=6,
+            end_lineno=5,
             end_col_offset=12,
             source_code=source_1.id,
         ),
@@ -69,7 +95,23 @@ call_5 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            CallNode(
+                source_location=SourceLocation(
+                    lineno=1,
+                    col_offset=0,
+                    end_lineno=1,
+                    end_col_offset=14,
+                    source_code=source_1.id,
+                ),
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
+            ).id,
             LiteralNode(
                 value="save",
             ).id,
@@ -78,10 +120,10 @@ call_5 = CallNode(
     positional_args=[
         CallNode(
             source_location=SourceLocation(
-                lineno=4,
+                lineno=3,
                 col_offset=11,
-                end_lineno=4,
-                end_col_offset=57,
+                end_lineno=3,
+                end_col_offset=43,
                 source_code=source_1.id,
             ),
             function_id=LookupNode(
@@ -90,34 +132,17 @@ call_5 = CallNode(
             positional_args=[
                 CallNode(
                     source_location=SourceLocation(
-                        lineno=4,
-                        col_offset=11,
-                        end_lineno=4,
-                        end_col_offset=48,
+                        lineno=2,
+                        col_offset=0,
+                        end_lineno=2,
+                        end_col_offset=53,
                         source_code=source_1.id,
                     ),
                     function_id=LookupNode(
                         name="getattr",
                     ).id,
                     positional_args=[
-                        CallNode(
-                            source_location=SourceLocation(
-                                lineno=4,
-                                col_offset=11,
-                                end_lineno=4,
-                                end_col_offset=24,
-                                source_code=source_1.id,
-                            ),
-                            function_id=LookupNode(
-                                name="getattr",
-                            ).id,
-                            positional_args=[
-                                import_1.id,
-                                LiteralNode(
-                                    value="utils",
-                                ).id,
-                            ],
-                        ).id,
+                        call_3.id,
                         LiteralNode(
                             value="__no_imported_submodule",
                         ).id,
@@ -130,9 +155,9 @@ call_5 = CallNode(
         ).id,
         LiteralNode(
             source_location=SourceLocation(
-                lineno=6,
+                lineno=5,
                 col_offset=23,
-                end_lineno=6,
+                end_lineno=5,
                 end_col_offset=33,
                 source_code=source_1.id,
             ),
