@@ -1,8 +1,8 @@
 import ast
+import glob
 import logging
 import os
 import pathlib
-import re
 import shutil
 import subprocess
 import sys
@@ -28,7 +28,6 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.apis import LineaArtifact
-from lineapy.instrumentation.annotation_spec import ModuleAnnotation
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.utils import slugify
@@ -37,7 +36,6 @@ from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.config import (
     CUSTOM_ANNOTATIONS_EXTENSION_NAME,
-    CUSTOM_ANNOTATIONS_REGEX_MATCH,
     custom_annotations_folder,
 )
 from lineapy.utils.logging_config import (
@@ -45,6 +43,7 @@ from lineapy.utils.logging_config import (
     configure_logging,
 )
 from lineapy.utils.utils import prettify
+from lineapy.utils.validate_annotation_spec import validate_spec
 
 """
 We are using click because our package will likely already have a dependency on
@@ -432,6 +431,16 @@ def add(path: pathlib.Path, name: str):
     if not path.exists():
         logger.error(f"No file found at {path}\nPlease pick a valid path")
         exit(1)
+    else:
+        try:
+            invalid_specs = validate_spec(path)
+            if len(invalid_specs) > 0:
+                for invalid_spec in invalid_specs:
+                    print(f"Invalid item {invalid_spec}")
+                exit(1)
+        except yaml.YAMLError as e:
+            logger.error(f"Unable to parse yaml file\n{e}")
+            exit(1)
 
     name = name or path.stem
     name = remove_annotations_file_extension(name)
@@ -440,9 +449,9 @@ def add(path: pathlib.Path, name: str):
     annotate_folder = custom_annotations_folder()
 
     # Path to copy destination in user's .lineapy directory
-    destination_file = annotate_folder / (
-        name + CUSTOM_ANNOTATIONS_EXTENSION_NAME
-    )
+    destination_file = (
+        annotate_folder / (name + CUSTOM_ANNOTATIONS_EXTENSION_NAME)
+    ).resolve()
     print(f"Creating annotation source at {destination_file}")
 
     # Copy annotation file to destinatiion
@@ -460,14 +469,13 @@ def list():
     """
     Lists full paths to all imported annotation sources.
     """
-    annotate_folder = custom_annotations_folder()
-    for annotation_path in annotate_folder.iterdir():
-        if (
-            annotation_path.is_file()
-            and re.match(CUSTOM_ANNOTATIONS_REGEX_MATCH, str(annotation_path))
-            is not None
-        ):
-            print(annotation_path)
+    wildcard_path = os.path.join(
+        custom_annotations_folder().resolve(),
+        "*" + CUSTOM_ANNOTATIONS_EXTENSION_NAME,
+    )
+
+    for annotation_path in glob.glob(wildcard_path):
+        print(annotation_path)
 
 
 @annotations.command("delete")
@@ -492,48 +500,6 @@ def delete(filename: str):
             f"{delete_path} not a valid path. Run 'lineapy annotations list' for valid resources."
         )
         sys.exit(1)
-
-
-@annotations.command("validate")
-def validate():
-    """
-    Validate annotation sources. Check all files inside linea
-    folder ending with .annotations.yaml.
-    """
-    did_error = False
-    annotate_folder = custom_annotations_folder()
-    for annotation_path in annotate_folder.iterdir():
-        print("in loop")
-
-        # Skip if not .annotations.yaml file
-        if (
-            not annotation_path.is_file()
-            or re.match(CUSTOM_ANNOTATIONS_REGEX_MATCH, str(annotation_path))
-            is None
-        ):
-            continue
-
-        with annotation_path.open() as f:
-            try:
-                doc = yaml.safe_load(f)
-                print("loaded safely")
-                for item in doc:
-                    try:
-                        a = ModuleAnnotation(**item)
-                        logger.info(f"Successfully loaded spec {a}.")
-                    except TypeError as e:
-                        print(
-                            f"Invalid source item {item}\nFile {annotation_path}\n{e}"
-                        )
-                        did_error = True
-            except yaml.YAMLError as e:
-                print(f"Invalid source {annotation_path}\n{e}")
-                did_error = True
-
-    if not did_error:
-        print("All custom annotations sources are valid.")
-    else:
-        print("One or more sources invalid.")
 
 
 def validate_benchmark_path(ctx, param, value: pathlib.Path):
