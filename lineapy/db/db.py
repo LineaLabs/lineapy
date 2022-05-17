@@ -482,7 +482,12 @@ class RelationalLineaDB:
         """
         return (
             self.session.query(ImportNodeORM)
-            .filter(ImportNodeORM.session_id == session_id)
+            .filter(
+                and_(
+                    ImportNodeORM.session_id == session_id,
+                    ImportNodeORM.version is not None,
+                )
+            )
             .distinct()
             .all()
         )
