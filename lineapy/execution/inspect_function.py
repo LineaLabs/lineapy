@@ -104,15 +104,17 @@ def get_specs() -> Dict[str, List[Annotation]]:
     Captures all the .annotations.yaml files in the lineapy directory.
     """
     relative_path = "../*.annotations.yaml"
-    path = os.path.join(os.path.dirname(__file__), relative_path)
-    path = path.extend(
-        os.path.join(
-            custom_annotations_folder().resolve(), "./*.annotations.yaml"
+    paths = glob.glob(os.path.join(os.path.dirname(__file__), relative_path))
+    paths.extend(
+        glob.glob(
+            os.path.join(
+                custom_annotations_folder().resolve(), "./*.annotations.yaml"
+            )
         )
     )
     valid_specs: Dict[str, List[Annotation]] = defaultdict(list)
 
-    for filename in glob.glob(path):
+    for filename in paths:
         with open(filename, "r") as f:
             doc = yaml.safe_load(f)
             for item in doc:
