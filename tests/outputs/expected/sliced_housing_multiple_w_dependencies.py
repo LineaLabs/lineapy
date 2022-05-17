@@ -1,3 +1,6 @@
+import pickle
+
+
 def p_value():
     import pandas as pd
     from sklearn.ensemble import RandomForestClassifier

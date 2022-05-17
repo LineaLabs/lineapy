@@ -44,7 +44,7 @@ def de_lineate_code(code: str, db: RelationalLineaDB) -> str:
             # so do nothing
             pass
         else:
-            swapped, lineareplaces = remove_pattern.subn("", swapped)
+            swapped, lineareplaces = remove_pattern.subn("\n", swapped)
             # logger.debug(f"Removed lineapy {lineareplaces} times")
 
     # logger.debug("replaces made: %s", replaces)

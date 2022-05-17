@@ -65,16 +65,16 @@ def test_slice_pythonscript(artifact_names, dag_name, deps, script_plugin):
 @pytest.mark.slow
 def test_run_script_dag(virtualenv, tmp_path):
     """
-    Verifies that the dags we produce  CLI command produces a working Airflow DAG
-    by running the DAG locally.
-
-    Depends on snapshot being available from previous test.
+    Verifies that the dags we produce via our to_pipeline. Airflow take too
+    long to run and we're mostly skipping during local runs.
     """
 
+    # FIXME - we need a more basic test than this that does not depend on pandas and sklearn etc.
+    # installing them takes way too long right now.
+
     # Copy the dag and the data
-    # NOTE: We can't leave them in the tests folder, since there are other
-    # files in there that airflow will attempt to import, and fail, since
-    # those dependencies are not in the virtualenv.
+    # NOTE: Don't want to leave them in the tests folder, since there are other
+    # files we need to copy without which the dag will fail.
     subprocess.check_call(
         [
             "cp",
@@ -86,17 +86,10 @@ def test_run_script_dag(virtualenv, tmp_path):
         ]
     )
 
-    # Run airflow in new virtual env so we don't end up with version conflicts
-    # with lineapy deps
-    # https://github.com/man-group/pytest-plugins/tree/master/pytest-virtualenv#installing-packages
     virtualenv.run(
         "pip install pandas scikit-learn", capture=False, cd=str(tmp_path)
     )
 
-    # Set the airflow home for subsequent calls
-    # virtualenv.env["AIRFLOW_HOME"] = str(airflow_home)
-    # We create a new DB for airflow for testing, so it's reproducible
-    # virtualenv.run("airflow db init", capture=False)
     virtualenv.run(
         "python sliced_housing_multiple_script_dag.py",
         capture=False,
