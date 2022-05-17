@@ -393,6 +393,8 @@ def annotations():
 def validate_annotations_path(ctx, param, value: pathlib.Path):
     if value.suffix != ".yaml":
         raise click.BadParameter("path must be a yaml file")
+    if not value.exists():
+        raise click.BadParameter("path must be to an existing yaml file")
     return value
 
 
@@ -428,19 +430,15 @@ def add(path: pathlib.Path, name: str):
     This command copies the yaml file whose path is provided by the user into the user's .lineapy directory to allow Lineapy to manage it.
     """
 
-    if not path.exists():
-        logger.error(f"No file found at {path}\nPlease pick a valid path")
-        exit(1)
-    else:
-        try:
-            invalid_specs = validate_spec(path)
-            if len(invalid_specs) > 0:
-                for invalid_spec in invalid_specs:
-                    print(f"Invalid item {invalid_spec}")
-                exit(1)
-        except yaml.YAMLError as e:
-            logger.error(f"Unable to parse yaml file\n{e}")
+    try:
+        invalid_specs = validate_spec(path)
+        if len(invalid_specs) > 0:
+            for invalid_spec in invalid_specs:
+                print(f"Invalid item {invalid_spec}")
             exit(1)
+    except yaml.YAMLError as e:
+        logger.error(f"Unable to parse yaml file\n{e}")
+        exit(1)
 
     name = name or path.stem
     name = remove_annotations_file_extension(name)
