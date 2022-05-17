@@ -164,9 +164,8 @@ Next, we see ``demo_airflow_pipeline_requirements.txt`` listing dependencies for
 
 .. code:: none
 
-   matplotlib==3.5.1
-   numpy==1.21.5
-   lineapy==0.0.5
+   scikit-learn==1.0.2
+   pandas==1.3.5
 
 Finally, we have the automatically generated Dockerfile (``demo_airflow_pipeline_Dockerfile``), which facilitates pipeline execution:
 
