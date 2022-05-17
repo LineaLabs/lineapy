@@ -77,7 +77,7 @@ class LineaArtifact:
             with open(value, "rb") as f:
                 return FilePickler.load(f)
 
-    # Note that I removed the @properties becuase they were not working
+    # Note that I removed the @properties because they were not working
     # well with the lru_cache
     @lru_cache(maxsize=None)
     def _get_subgraph(self, keep_lineapy_save: bool = False) -> Graph:
