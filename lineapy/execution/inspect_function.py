@@ -33,6 +33,7 @@ from lineapy.instrumentation.annotation_spec import (
     ValuePointer,
     ViewOfValues,
 )
+from lineapy.utils.config import custom_annotations_folder
 
 logger = logging.getLogger(__name__)
 
