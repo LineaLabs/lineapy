@@ -126,6 +126,8 @@ class BasePlugin:
         artifact_safe_names = []
         for slice_name in slice_names:
             artifact_var = slugify(slice_name)
+            if len(artifact_var) == 0:
+                raise ValueError(f"Invalid slice name {slice_name}.")
             slice_code: CodeSlice = get_program_slice_by_artifact_name(
                 self.db, slice_name
             )

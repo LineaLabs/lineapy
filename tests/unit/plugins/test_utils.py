@@ -17,10 +17,12 @@ def test_slugify() -> None:
         ("__strip-mixed-value---", "strip_mixed_value", False),
         ("_ -strip-mixed-value _-", "strip_mixed_value", False),
         ("spam & ıçüş", "spam_ıçüş", True),
+        ("spam & ıçüş", "spam_cus", False),
         ("foo ıç bar", "foo_ıç_bar", True),
         ("    foo ıç bar", "foo_ıç_bar", True),
         ("你好", "你好", True),
         ("İstanbul", "istanbul", True),
+        ("var-name-is-_private", "var_name_is__private", False),
     )
     for value, output, is_unicode in items:
         assert utils.slugify(value, allow_unicode=is_unicode) == output

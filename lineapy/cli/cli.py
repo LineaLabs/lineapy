@@ -397,6 +397,18 @@ def validate_annotations_path(ctx, param, value: pathlib.Path):
     return value
 
 
+def remove_annotations_file_extension(filename: str) -> str:
+    """
+    Remove '.annotations.yaml' or '.yaml'.
+    """
+    filename = filename.replace(" ", "")
+    for ext_to_strip in (".yaml", ".annotations"):
+        name, ext = os.path.splitext(filename)
+        if ext == ext_to_strip:
+            filename = name
+    return filename
+
+
 @annotations.command("add")
 @click.argument(
     "path",
@@ -416,8 +428,13 @@ def add(path: pathlib.Path, name: str):
 
     This command copies the yaml file whose path is provided by the user into the user's .lineapy directory to allow Lineapy to manage it.
     """
-    # Sanitize input before using it as filename
+
+    if not path.exists():
+        logger.error(f"No file found at {path}\nPlease pick a valid path")
+        exit(1)
+
     name = name or path.stem
+    name = remove_annotations_file_extension(name)
     name = slugify(name)
 
     annotate_folder = custom_annotations_folder()
@@ -459,19 +476,15 @@ def delete(filename: str):
     """
     Deletes imported annotation source.
     """
-    # filename must end with .annotations.yaml
-    if re.match(CUSTOM_ANNOTATIONS_REGEX_MATCH, filename) is None:
-        logger.error(
-            f"Resource to delete must end with '{CUSTOM_ANNOTATIONS_EXTENSION_NAME}'"
-        )
-        sys.exit(1)
+    filename = remove_annotation_file_extension(filename)
+    filename += CUSTOM_ANNOTATIONS_EXTENSION_NAME
 
     delete_path = custom_annotations_folder() / filename
     try:
         os.remove(delete_path)
     except IsADirectoryError as e:
         logger.error(
-            f"{delete_path} must be the path to a file, not a directory"
+            f"{delete_path} must be the path to a file, not a directory\n{e}"
         )
         sys.exit(1)
     except FileNotFoundError as e:
