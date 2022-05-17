@@ -3,19 +3,47 @@ from dataclasses import dataclass
 from typing import DefaultDict, List, Set
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import ImportNode, LineaID, SourceCode
+from lineapy.data.types import CallNode, ImportNode, LineaID, SourceCode
 from lineapy.db.db import RelationalLineaDB
 from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 
 
-def get_slice_graph(graph: Graph, sinks: List[LineaID]) -> Graph:
+def get_slice_graph(
+    graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool = False
+) -> Graph:
     """
     Takes a full graph from the session
     and produces the subset responsible for the "sinks".
 
+    :param graph: A full graph objection from a session.
+    :param sinks: A list of node IDs desired for slicing.
+    :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
+            Defaults to ``False``.
+    :return: A subgraph extracted (i.e., sliced) for the desired node IDs.
+
     """
+    if keep_lineapy_save:
+        # Children of an artifact sink include .save() statement.
+        # Identify .save() statement and make it the new sink.
+        # If not applicable, retain the original artifact sink.
+        new_sinks = []
+        for sink in sinks:
+            new_sink = sink
+            child_ids = graph.get_children(sink)
+            for c_id in child_ids:
+                c_node = graph.get_node(c_id)
+                if isinstance(c_node, CallNode) and c_node.source_location:
+                    source_code = c_node.source_location.source_code.code
+                    line_number = c_node.source_location.lineno
+                    line_code = source_code.split("\n")[line_number - 1]
+                    first_arg = c_node.positional_args[0]
+                    if "lineapy.save" in line_code and first_arg.id == sink:
+                        new_sink = c_id
+            new_sinks.append(new_sink)
+        sinks = new_sinks
+
     ancestors: Set[LineaID] = set(sinks)
 
     for sink in sinks:
@@ -97,26 +125,30 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
     return CodeSlice(import_code, body_code)
 
 
-def get_program_slice(graph: Graph, sinks: List[LineaID]) -> CodeSlice:
+def get_program_slice(
+    graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool = False
+) -> CodeSlice:
     """
     Find the necessary and sufficient code for computing the sink nodes.
 
-    :param program: the computation graph.
-    :param sinks: artifacts to get the code slice for.
-    :return: string containing the necessary and sufficient code for
-             computing sinks.
+    :param graph: The computation graph.
+    :param sinks: Artifacts to get the code slice for.
+    :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
+            Defaults to ``False``.
+    :return: String containing the necessary and sufficient code for
+            computing sinks.
 
     """
     logger.debug("Slicing graph %s", graph)
-    subgraph = get_slice_graph(graph, sinks)
+    subgraph = get_slice_graph(graph, sinks, keep_lineapy_save)
     logger.debug("Subgraph for %s: %s", sinks, subgraph)
     return get_source_code_from_graph(subgraph)
 
 
 def get_program_slice_by_artifact_name(
-    db: RelationalLineaDB, name: str
+    db: RelationalLineaDB, name: str, keep_lineapy_save: bool = False
 ) -> CodeSlice:
     artifact = db.get_artifact_by_name(name)
     nodes = db.get_nodes_for_session(artifact.node.session_id)
     graph = Graph(nodes, db.get_session_context(artifact.node.session_id))
-    return get_program_slice(graph, [artifact.node_id])
+    return get_program_slice(graph, [artifact.node_id], keep_lineapy_save)

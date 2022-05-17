@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Tuple
 
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
+from lineapy.graph_reader.api_utils import de_lineate_code
 from lineapy.graph_reader.program_slice import (
     CodeSlice,
     get_program_slice_by_artifact_name,
@@ -56,7 +57,9 @@ class BasePlugin:
             full_import_block += "\n" + _import_block
             full_code_block += "\n" + _code_block
 
-        full_code = prettify(full_import_block + full_code_block)
+        full_code = prettify(
+            de_lineate_code(full_import_block + full_code_block, self.db)
+        )
         (output_dir_path / f"{module_name}.py").write_text(full_code)
         logger.info(f"Generated python module {module_name}.py")
 
@@ -127,7 +130,7 @@ class BasePlugin:
         for slice_name in slice_names:
             artifact_var = safe_var_name(slice_name)
             slice_code: CodeSlice = get_program_slice_by_artifact_name(
-                self.db, slice_name
+                self.db, slice_name, keep_lineapy_save=True
             )
             artifacts_code[artifact_var] = slice_code
             artifact_safe_names.append(artifact_var)

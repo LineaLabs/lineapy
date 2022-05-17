@@ -12,7 +12,7 @@ default_dag_args = {"owner": "{{ OWNER }}", "retries": {{ RETRIES }}, "start_dat
 
 dag = DAG(
     dag_id="{{ DAG_NAME }}_dag",
-    schedule_interval="{{ SCHEDULE_IMTERVAL }}",
+    schedule_interval="{{ SCHEDULE_INTERVAL }}",
     max_active_runs={{ MAX_ACTIVE_RUNS }},
     catchup={{ CATCHUP }},
     default_args=default_dag_args,
