@@ -14,7 +14,31 @@ lineapy.save(df, \'df\')
 """,
     location=PosixPath("[source file path]"),
 )
-call_7 = CallNode(
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="lineapy",
+    version="",
+    package_name="lineapy",
+)
+import_2 = ImportNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=19,
+        source_code=source_1.id,
+    ),
+    name="pandas",
+    version="",
+    package_name="pandas",
+)
+call_9 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=5,
@@ -34,7 +58,7 @@ call_7 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=2,
                     col_offset=0,
@@ -42,9 +66,14 @@ call_7 = CallNode(
                     end_col_offset=19,
                     source_code=source_1.id,
                 ),
-                name="pandas",
-                version="",
-                package_name="pandas",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="pandas",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="DataFrame",
@@ -190,6 +219,18 @@ call_7 = CallNode(
         ).id
     ],
 )
+import_3 = ImportNode(
+    source_location=SourceLocation(
+        lineno=4,
+        col_offset=0,
+        end_lineno=4,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    name="sqlite3",
+    version="",
+    package_name="sqlite3",
+)
 mutate_1 = MutateNode(
     source_id=LookupNode(
         name="db",
@@ -214,7 +255,7 @@ mutate_1 = MutateNode(
                 name="getattr",
             ).id,
             positional_args=[
-                call_7.id,
+                call_9.id,
                 LiteralNode(
                     value="to_sql",
                 ).id,
@@ -241,7 +282,7 @@ mutate_1 = MutateNode(
                         name="getattr",
                     ).id,
                     positional_args=[
-                        ImportNode(
+                        CallNode(
                             source_location=SourceLocation(
                                 lineno=4,
                                 col_offset=0,
@@ -249,9 +290,14 @@ mutate_1 = MutateNode(
                                 end_col_offset=14,
                                 source_code=source_1.id,
                             ),
-                            name="sqlite3",
-                            version="",
-                            package_name="sqlite3",
+                            function_id=LookupNode(
+                                name="l_import",
+                            ).id,
+                            positional_args=[
+                                LiteralNode(
+                                    value="sqlite3",
+                                ).id
+                            ],
                         ).id,
                         LiteralNode(
                             value="connect",
@@ -294,7 +340,7 @@ mutate_1 = MutateNode(
         },
     ).id,
 )
-call_13 = CallNode(
+call_16 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=0,
@@ -314,7 +360,7 @@ call_13 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -322,9 +368,14 @@ call_13 = CallNode(
                     end_col_offset=14,
                     source_code=source_1.id,
                 ),
-                name="lineapy",
-                version="",
-                package_name="lineapy",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="lineapy",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="save",
@@ -332,7 +383,7 @@ call_13 = CallNode(
         ],
     ).id,
     positional_args=[
-        call_7.id,
+        call_9.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=7,

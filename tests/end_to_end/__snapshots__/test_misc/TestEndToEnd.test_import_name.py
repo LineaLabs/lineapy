@@ -8,7 +8,19 @@ source_1 = SourceCode(
 assert pd.__name__ == \'pandas\'""",
     location=PosixPath("[source file path]"),
 )
-call_3 = CallNode(
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=19,
+        source_code=source_1.id,
+    ),
+    name="pandas",
+    version="",
+    package_name="pandas",
+)
+call_4 = CallNode(
     source_location=SourceLocation(
         lineno=2,
         col_offset=0,
@@ -44,7 +56,7 @@ call_3 = CallNode(
                         name="getattr",
                     ).id,
                     positional_args=[
-                        ImportNode(
+                        CallNode(
                             source_location=SourceLocation(
                                 lineno=1,
                                 col_offset=0,
@@ -52,9 +64,14 @@ call_3 = CallNode(
                                 end_col_offset=19,
                                 source_code=source_1.id,
                             ),
-                            name="pandas",
-                            version="",
-                            package_name="pandas",
+                            function_id=LookupNode(
+                                name="l_import",
+                            ).id,
+                            positional_args=[
+                                LiteralNode(
+                                    value="pandas",
+                                ).id
+                            ],
                         ).id,
                         LiteralNode(
                             value="__name__",

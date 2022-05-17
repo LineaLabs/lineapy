@@ -1,0 +1,2 @@
+class LImportError(Exception):
+    pass

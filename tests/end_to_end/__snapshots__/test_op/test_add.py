@@ -9,7 +9,19 @@ obj = Decimal(\'3.1415926535897932384626433832795028841971\')
 assert +obj != obj""",
     location=PosixPath("[source file path]"),
 )
-call_2 = CallNode(
+import_1 = ImportNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=27,
+        source_code=source_1.id,
+    ),
+    name="decimal",
+    version="",
+    package_name="decimal",
+)
+call_3 = CallNode(
     source_location=SourceLocation(
         lineno=2,
         col_offset=6,
@@ -18,11 +30,18 @@ call_2 = CallNode(
         source_code=source_1.id,
     ),
     function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=1,
+            col_offset=0,
+            end_lineno=1,
+            end_col_offset=27,
+            source_code=source_1.id,
+        ),
         function_id=LookupNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
+            CallNode(
                 source_location=SourceLocation(
                     lineno=1,
                     col_offset=0,
@@ -30,9 +49,14 @@ call_2 = CallNode(
                     end_col_offset=27,
                     source_code=source_1.id,
                 ),
-                name="decimal",
-                version="",
-                package_name="decimal",
+                function_id=LookupNode(
+                    name="l_import",
+                ).id,
+                positional_args=[
+                    LiteralNode(
+                        value="decimal",
+                    ).id
+                ],
             ).id,
             LiteralNode(
                 value="Decimal",
@@ -52,7 +76,7 @@ call_2 = CallNode(
         ).id
     ],
 )
-call_5 = CallNode(
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=3,
         col_offset=0,
@@ -87,9 +111,9 @@ call_5 = CallNode(
                     function_id=LookupNode(
                         name="pos",
                     ).id,
-                    positional_args=[call_2.id],
+                    positional_args=[call_3.id],
                 ).id,
-                call_2.id,
+                call_3.id,
             ],
         ).id
     ],

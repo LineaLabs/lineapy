@@ -19,6 +19,23 @@ lineapy.save(clf, \'clf\')
 """,
     location=PosixPath("[source file path]"),
 )
+call_1 = CallNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="lineapy",
+        ).id
+    ],
+)
 import_1 = ImportNode(
     source_location=SourceLocation(
         lineno=1,
@@ -43,7 +60,75 @@ import_2 = ImportNode(
     version="",
     package_name="numpy",
 )
-call_5 = CallNode(
+call_2 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=18,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="numpy",
+        ).id
+    ],
+)
+call_3 = CallNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=41,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="sklearn",
+        ).id
+    ],
+)
+import_3 = ImportNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=41,
+        source_code=source_1.id,
+    ),
+    name="sklearn.dummy",
+    version="",
+    package_name="sklearn",
+)
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=0,
+        end_lineno=3,
+        end_col_offset=41,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="dummy",
+        ).id,
+        call_3.id,
+    ],
+)
+mutate_1 = MutateNode(
+    source_id=call_3.id,
+    call_id=call_4.id,
+)
+call_9 = CallNode(
     source_location=SourceLocation(
         lineno=4,
         col_offset=4,
@@ -63,7 +148,7 @@ call_5 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_2.id,
+            call_2.id,
             LiteralNode(
                 value="array",
             ).id,
@@ -140,7 +225,7 @@ call_5 = CallNode(
         ).id
     ],
 )
-call_8 = CallNode(
+call_12 = CallNode(
     source_location=SourceLocation(
         lineno=5,
         col_offset=4,
@@ -160,7 +245,7 @@ call_8 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_2.id,
+            call_2.id,
             LiteralNode(
                 value="array",
             ).id,
@@ -223,7 +308,7 @@ call_8 = CallNode(
         ).id
     ],
 )
-call_9 = CallNode(
+call_13 = CallNode(
     source_location=SourceLocation(
         lineno=6,
         col_offset=6,
@@ -232,22 +317,18 @@ call_9 = CallNode(
         source_code=source_1.id,
     ),
     function_id=CallNode(
+        source_location=SourceLocation(
+            lineno=3,
+            col_offset=0,
+            end_lineno=3,
+            end_col_offset=41,
+            source_code=source_1.id,
+        ),
         function_id=LookupNode(
             name="getattr",
         ).id,
         positional_args=[
-            ImportNode(
-                source_location=SourceLocation(
-                    lineno=3,
-                    col_offset=0,
-                    end_lineno=3,
-                    end_col_offset=41,
-                    source_code=source_1.id,
-                ),
-                name="sklearn.dummy",
-                version="",
-                package_name="sklearn",
-            ).id,
+            call_4.id,
             LiteralNode(
                 value="DummyClassifier",
             ).id,
@@ -266,7 +347,7 @@ call_9 = CallNode(
         ).id
     },
 )
-call_11 = CallNode(
+call_15 = CallNode(
     source_location=SourceLocation(
         lineno=7,
         col_offset=10,
@@ -286,19 +367,19 @@ call_11 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            call_9.id,
+            call_13.id,
             LiteralNode(
                 value="fit",
             ).id,
         ],
     ).id,
-    positional_args=[call_5.id, call_8.id],
+    positional_args=[call_9.id, call_12.id],
 )
-mutate_1 = MutateNode(
-    source_id=call_9.id,
-    call_id=call_11.id,
+mutate_2 = MutateNode(
+    source_id=call_13.id,
+    call_id=call_15.id,
 )
-call_13 = CallNode(
+call_17 = CallNode(
     source_location=SourceLocation(
         lineno=8,
         col_offset=0,
@@ -318,19 +399,19 @@ call_13 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            mutate_1.id,
+            mutate_2.id,
             LiteralNode(
                 value="fit",
             ).id,
         ],
     ).id,
-    positional_args=[call_5.id, call_8.id],
+    positional_args=[call_9.id, call_12.id],
 )
-mutate_2 = MutateNode(
-    source_id=call_11.id,
-    call_id=call_13.id,
+mutate_3 = MutateNode(
+    source_id=call_15.id,
+    call_id=call_17.id,
 )
-call_15 = CallNode(
+call_19 = CallNode(
     source_location=SourceLocation(
         lineno=9,
         col_offset=0,
@@ -350,19 +431,19 @@ call_15 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            mutate_2.id,
+            mutate_3.id,
             LiteralNode(
                 value="fit",
             ).id,
         ],
     ).id,
-    positional_args=[call_5.id, call_8.id],
+    positional_args=[call_9.id, call_12.id],
 )
-mutate_4 = MutateNode(
-    source_id=call_13.id,
-    call_id=call_15.id,
+mutate_5 = MutateNode(
+    source_id=call_17.id,
+    call_id=call_19.id,
 )
-call_17 = CallNode(
+call_21 = CallNode(
     source_location=SourceLocation(
         lineno=11,
         col_offset=0,
@@ -382,7 +463,7 @@ call_17 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            call_1.id,
             LiteralNode(
                 value="save",
             ).id,
@@ -390,8 +471,8 @@ call_17 = CallNode(
     ).id,
     positional_args=[
         MutateNode(
-            source_id=mutate_2.id,
-            call_id=call_15.id,
+            source_id=mutate_3.id,
+            call_id=call_19.id,
         ).id,
         LiteralNode(
             source_location=SourceLocation(
@@ -405,7 +486,7 @@ call_17 = CallNode(
         ).id,
     ],
 )
-call_19 = CallNode(
+call_23 = CallNode(
     source_location=SourceLocation(
         lineno=12,
         col_offset=0,
@@ -425,7 +506,7 @@ call_19 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            call_1.id,
             LiteralNode(
                 value="save",
             ).id,
@@ -434,10 +515,10 @@ call_19 = CallNode(
     positional_args=[
         MutateNode(
             source_id=MutateNode(
-                source_id=mutate_1.id,
-                call_id=call_13.id,
+                source_id=mutate_2.id,
+                call_id=call_17.id,
             ).id,
-            call_id=call_15.id,
+            call_id=call_19.id,
         ).id,
         LiteralNode(
             source_location=SourceLocation(

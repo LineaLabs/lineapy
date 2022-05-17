@@ -36,6 +36,14 @@
         - views:
             - result: RESULT
             - positional_argument_index: 0
+    - criteria:
+        function_name: l_import
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 1
+        - views:
+            - result: RESULT
+            - positional_argument_index: 1
 
 - module: builtins
   annotations:
@@ -75,7 +83,6 @@
         - views:
             - positional_argument_index: 0
             - result: RESULT
-
     - criteria:
         # these methods take an argument
         class_method_names:

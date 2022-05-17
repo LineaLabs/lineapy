@@ -25,6 +25,23 @@ lineapy.save(b, \'b\')
 """,
     location=PosixPath("[source file path]"),
 )
+call_1 = CallNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=0,
+        end_lineno=1,
+        end_col_offset=14,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="lineapy",
+        ).id
+    ],
+)
 import_1 = ImportNode(
     source_location=SourceLocation(
         lineno=1,
@@ -37,7 +54,7 @@ import_1 = ImportNode(
     version="",
     package_name="lineapy",
 )
-call_3 = CallNode(
+call_4 = CallNode(
     source_location=SourceLocation(
         lineno=13,
         col_offset=4,
@@ -82,7 +99,7 @@ call_3 = CallNode(
         ).id
     ],
 )
-call_4 = CallNode(
+call_5 = CallNode(
     source_location=SourceLocation(
         lineno=14,
         col_offset=4,
@@ -113,7 +130,7 @@ call_4 = CallNode(
         ).id,
     ).id,
 )
-call_6 = CallNode(
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=15,
         col_offset=0,
@@ -133,13 +150,13 @@ call_6 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            call_4.id,
+            call_5.id,
             LiteralNode(
                 value="modify_A",
             ).id,
         ],
     ).id,
-    positional_args=[call_3.id],
+    positional_args=[call_4.id],
     global_reads={
         "new_value": LiteralNode(
             source_location=SourceLocation(
@@ -153,7 +170,7 @@ call_6 = CallNode(
         ).id
     },
 )
-call_8 = CallNode(
+call_9 = CallNode(
     source_location=SourceLocation(
         lineno=17,
         col_offset=0,
@@ -173,14 +190,14 @@ call_8 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            call_1.id,
             LiteralNode(
                 value="save",
             ).id,
         ],
     ).id,
     positional_args=[
-        call_3.id,
+        call_4.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=17,
@@ -193,7 +210,7 @@ call_8 = CallNode(
         ).id,
     ],
 )
-call_10 = CallNode(
+call_11 = CallNode(
     source_location=SourceLocation(
         lineno=18,
         col_offset=0,
@@ -213,14 +230,14 @@ call_10 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            import_1.id,
+            call_1.id,
             LiteralNode(
                 value="save",
             ).id,
         ],
     ).id,
     positional_args=[
-        call_4.id,
+        call_5.id,
         LiteralNode(
             source_location=SourceLocation(
                 lineno=18,
