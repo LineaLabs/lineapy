@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import logging
 import os
+import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -32,6 +33,10 @@ from lineapy.instrumentation.annotation_spec import (
     Result,
     ValuePointer,
     ViewOfValues,
+)
+from lineapy.utils.config import (
+    CUSTOM_ANNOTATIONS_REGEX_MATCH,
+    custom_annotations_folder,
 )
 
 logger = logging.getLogger(__name__)
@@ -105,14 +110,33 @@ def get_specs() -> Dict[str, List[Annotation]]:
     relative_path = "../*.annotations.yaml"
     path = os.path.join(os.path.dirname(__file__), relative_path)
     valid_specs: Dict[str, List[Annotation]] = defaultdict(list)
+
+    def add_spec_if_valid(f):
+        doc = yaml.safe_load(f)
+        for item in doc:
+            v = validate(item)
+            if v is None:
+                continue
+            valid_specs[v.module].extend(v.annotations)
+
     for filename in glob.glob(path):
         with open(filename, "r") as f:
-            doc = yaml.safe_load(f)
-            for item in doc:
-                v = validate(item)
-                if v is None:
-                    continue
-                valid_specs[v.module].extend(v.annotations)
+            add_spec_if_valid(f)
+
+    # Ingest custom annotation specs in ~/.lineapy/custom-annotations/
+    annotate_folder = custom_annotations_folder()
+    for annotation_path in annotate_folder.iterdir():
+        # Skip if not .annotations.yaml file
+        if (
+            not annotation_path.is_file()
+            or re.match(CUSTOM_ANNOTATIONS_REGEX_MATCH, str(annotation_path))
+            is None
+        ):
+            continue
+
+        with annotation_path.open() as f:
+            add_spec_if_valid(f)
+
     return valid_specs
 
 

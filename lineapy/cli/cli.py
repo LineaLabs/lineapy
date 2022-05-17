@@ -384,10 +384,9 @@ def setup_ipython_dir() -> None:
 @linea_cli.group("annotate")
 def annotations():
     """
-    This serves as the command group for all annotate commands.
-    For example:
-        lineapy annotate add . . .
-        lineapy annotate list . . .
+    The annotate command can be used to import custom annotation sources
+    into LineaPy. It can be used to add a source, list all sources,
+    delete a source, and validate all sources.
     """
     pass
 
