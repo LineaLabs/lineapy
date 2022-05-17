@@ -16,6 +16,7 @@ FAKE_PATH = "/tmp/path/to/value/file/xey"
             """import lineapy
 lineapy.save(x,"xey")""",
             f"""import pickle
+
 pickle.dump(x,open("{FAKE_PATH}","wb"))""",
             id="lineapy_save",
         ),
