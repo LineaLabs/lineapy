@@ -51,7 +51,7 @@ minimal_requirement = [
     "IPython>=7.0.0",
     "jinja2",
     "nbformat",
-    "nbconvert",
+    "nbconvert<7.0.0",
     "requests",
 ]
 
