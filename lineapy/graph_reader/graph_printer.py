@@ -27,7 +27,7 @@ class GraphPrinter:
     """
     Pretty prints a graph, in a similar way as how you would create it by hand.
 
-    This representation should be consistant despite UUIDs being different.
+    This representation should be consistent despite UUIDs being different.
     """
 
     graph: Graph
@@ -177,14 +177,14 @@ class GraphPrinter:
                 #   make sure that the diffing do not create false negatives
                 v_str = "[" + ", ".join(args) + "]"
             elif tp == KeywordArgument and shape == SHAPE_LIST:
-                # Sort kwargs on printing for consistant ordering
+                # Sort kwargs on printing for consistent ordering
                 args = [
                     f"{repr(kwa.key)}: {self.lookup_id(kwa.value)}"
                     for kwa in sorted(v, key=lambda x: x.key)
                 ]
                 v_str = "{" + ", ".join(args) + "}"
             elif tp == LineaID and shape == SHAPE_DICT:
-                # Sort kwargs on printing for consistant ordering
+                # Sort kwargs on printing for consistent ordering
                 args = [
                     f"{repr(k)}: {self.lookup_id(id_)}"
                     for k, id_ in sorted(

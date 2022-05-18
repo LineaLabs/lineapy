@@ -74,7 +74,7 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
 
     .. todo:: We need better analysis than just looking at the source code.
         For example, what if we just need one expression from a line that defines
-        multuple expressions?
+        multiple expressions?
 
         We should probably instead regenerate the source from our graph
         representation.

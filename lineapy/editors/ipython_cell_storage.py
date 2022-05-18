@@ -20,7 +20,7 @@ def cleanup_cells():
 def get_cell_path(cell: JupyterCell) -> Path:
     """
     Return the path to the temporary file for the given cell.
-    This is used for both generating the file and accesssing the file.
+    This is used for both generating the file and accessing the file.
     """
     global _temp_dir
     if not _temp_dir:

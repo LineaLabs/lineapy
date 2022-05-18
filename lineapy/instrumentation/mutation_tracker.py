@@ -46,7 +46,7 @@ class MutationTracker:
         default_factory=lambda: defaultdict(list)
     )
 
-    def set_as_viewers_of_eachother(self, *ids: LineaID) -> None:
+    def set_as_viewers_of_each_other(self, *ids: LineaID) -> None:
         """
         To process adding views between nodes, update the `viewers` data structure
         with all new viewers.
@@ -101,7 +101,7 @@ def set_as_viewers_generic(ids: List[T], viewers: Dict[T, List[T]]) -> None:
     """
     # First, iterate through all items in the view
     # and create a complete view set adding all their views as well
-    # since it is a transitivity relationionship.
+    # since it is a transitivity relationship.
     complete_ids = list(
         remove_duplicates(chain(ids, *(viewers[id_] for id_ in ids)))
     )

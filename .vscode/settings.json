@@ -38,5 +38,21 @@
     "postgresuser",
     "quickstart",
     "reqs"
+  ],
+  "cSpell.dictionaries": [
+    "python"
+  ],
+  "cSpell.diagnosticLevel": "Error",
+  "cSpell.showAutocompleteSuggestions": true,
+  "cSpell.files": [
+    "**"
+  ],
+  "cSpell.spellCheckOnlyWorkspaceFiles": false,
+  "cSpell.allowCompoundWords": true,
+  "cSpell.globRoot": "${workspaceFolder}",
+  "cSpell.enableFiletypes": [
+    "python",
+    "jupyter",
+    "restructuredtext"
   ]
 }

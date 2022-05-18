@@ -112,7 +112,7 @@ class Tracer:
 
         ##
         # Update the graph from the side effects of the node,
-        # If an artifact could not be created, quitely return without saving
+        # If an artifact could not be created, quietly return without saving
         # the node to the DB.
         ##
         logger.debug("Executing node %s", node)
@@ -135,7 +135,7 @@ class Tracer:
                 )
             elif isinstance(e, ViewOfNodes):
                 if len(e.pointers) > 0:  # skip if empty
-                    self.mutation_tracker.set_as_viewers_of_eachother(
+                    self.mutation_tracker.set_as_viewers_of_each_other(
                         *map(self._resolve_pointer, e.pointers)
                     )
             elif isinstance(e, AccessedGlobals):

@@ -270,7 +270,7 @@ class BaseNode(BaseModel):
     def __lt__(self, other: object) -> bool:
         """
         Sort nodes by line number and column, putting those without line numbers
-        at the begining.
+        at the beginning.
 
         Used to break ties in topological node ordering.
         """

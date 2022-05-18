@@ -4,6 +4,8 @@ astpretty
 asttokens
 builtins
 chdir
+dataclass
+dataframe
 getattr
 graphviz
 ipython

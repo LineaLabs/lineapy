@@ -242,7 +242,7 @@ class FunctionInspectorParsed:
                 return side_effects
         # Finally, if we haven't found something yet, try the keyword names mapping on the method
         for k, v in kwargs.items():
-            # Ignore any non hasable keyword args we pass in
+            # Ignore any non hashable keyword args we pass in
             if not isinstance(v, Hashable):
                 continue  # type: ignore
             for (
@@ -344,7 +344,7 @@ class FunctionInspector:
         Inspects a function and returns how calling it mutates the args/result and
         creates view relationships between them.
         """
-        # Try re-parsing during each function call, incase other modules were imported we can analyse
+        # Try re-parsing during each function call, in case other modules were imported we can analyse
         self._parse()
         side_effects = self.parsed.inspect(function, kwargs) or []
         for side_effect in side_effects:

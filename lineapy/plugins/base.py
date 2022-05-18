@@ -90,7 +90,7 @@ class BasePlugin:
         lib_names_text = ""
         for lib in all_libs:
             if lib.name in sys.modules:
-                text = get_lib_version_text(lib.name)
+                text = get_lib_version_text(str(lib.package_name))
                 lib_names_text += f"{text}\n"
         # lib_names_text = "\n".join([str(lib.name) for lib in all_libs])
         (output_dir_path / (module_name + "_requirements.txt")).write_text(

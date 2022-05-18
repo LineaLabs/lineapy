@@ -8,8 +8,8 @@ from typing import Dict, List, Optional
 class GlobalsDict(Dict[str, object]):
     """
     A custom dict that is meant to be accessed in a particular way, in order
-    to record getitems. It is used for setting as the globals when execing some
-    code, so we can try to understand which globals were accessed.
+    to record getitems. It is used for setting as the globals when executing
+    some code, so we can try to understand which globals were accessed.
 
     It is meant to be used like:
 

@@ -8,7 +8,7 @@ from lineapy.utils.config import FOLDER_NAME, linea_folder
 # The name of the database URL environmental variable
 DB_URL_ENV_VARIABLE = "LINEA_DATABASE_URL"
 
-# The name for the linea home variable to be formated in the db url
+# The name for the linea home variable to be formatted in the db url
 LINEA_HOME_NAME = "LINEA_HOME"
 
 FILE_PICKLER_BASEDIR = "linea_pickles"

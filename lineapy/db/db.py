@@ -63,7 +63,7 @@ logger = logging.getLogger(__name__)
 
 class RelationalLineaDB:
     """
-    - Note that LineaDB coordinates with assset manager and relational db.
+    - Note that LineaDB coordinates with asset manager and relational db.
 
       - The asset manager deals with binaries (e.g., cached values)
         The relational db deals with more structured data,
@@ -482,8 +482,13 @@ class RelationalLineaDB:
         """
         return (
             self.session.query(ImportNodeORM)
-            .filter(ImportNodeORM.session_id == session_id)
-            .distinct()
+            .filter(
+                and_(
+                    ImportNodeORM.session_id == session_id,
+                    ImportNodeORM.version is not None,
+                )
+            )
+            .distinct(ImportNodeORM.package_name)
             .all()
         )
 
