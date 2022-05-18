@@ -6,6 +6,8 @@ import tempfile
 import pytest
 
 from lineapy.utils.config import CUSTOM_ANNOTATIONS_FOLDER_NAME, linea_folder
+from lineapy.plugins.utils import slugify
+from lineapy.cli.cli import remove_annotations_file_extension
 
 
 @pytest.mark.slow
@@ -268,8 +270,11 @@ def test_delete_existing_source(annotations_folder):
         f.flush()
         subprocess.check_call(["lineapy", "annotate", "add", f.name])
 
+    source_name = os.path.basename(f.name)
+    source_name = remove_annotations_file_extension(source_name)
+    source_name = slugify(source_name)
     subprocess.check_call(
-        ["lineapy", "annotate", "delete", os.path.basename(f.name)]
+        ["lineapy", "annotate", "delete", os.path.basename(source_name)]
     )
     proc = subprocess.run(
         ["lineapy", "annotate", "list"], check=True, capture_output=True
