@@ -188,7 +188,7 @@ def test_nested_from_import_starred(execute):
     code = """from matplotlib.pyplot import *
 x = ylabel('label')
 """
-    res = execute(code, artifacts=["x"])
+    res = execute(code, artifacts=["x"], snapshot=False)
     assert res.values["x"].__class__.__name__ == "Text"
     assert res.artifacts["x"] == prettify(code)
 
