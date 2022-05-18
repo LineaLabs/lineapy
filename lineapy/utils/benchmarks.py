@@ -73,7 +73,7 @@ def performance_change(
     like they do in the paper.
 
     :param old_distribution: The old distribution
-    :param new_distribuation: The new distribution
+    :param new_distribution: The new distribution
     :param n:  The number of samples from each system (must be equal)
     :param confidence_interval:  The confidence interval for the results.
     """

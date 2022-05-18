@@ -1,5 +1,5 @@
 """
-Logging util for outputing function calls as trees!
+Logging util for outputting function calls as trees!
 
 
 This is currently exposed through the `--tree-log` pytest command, which will log each test case to stdout.

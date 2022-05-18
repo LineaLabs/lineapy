@@ -100,7 +100,7 @@ def input_transformer_post(lines: List[str]) -> List[str]:
     if isinstance(STATE, StartedState):
         configure_logging()
         db = RelationalLineaDB.from_environment(STATE.db_url)
-        # pass in globals from ipython so that `get_ipthon()` works
+        # pass in globals from ipython so that `get_ipython()` works
         # and things like `!cat df.csv` work in the notebook
         ipython_globals = STATE.ipython.user_global_ns
         tracer = Tracer(

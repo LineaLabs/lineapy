@@ -132,9 +132,9 @@ def l_assert(v: object, message: Optional[str] = None) -> None:
 
 
 # Magic variable name used internally in the `__exec__` function, when we
-# are execuing an expression and want to save its result. To do so, we have
+# are executing an expression and want to save its result. To do so, we have
 # to set it to a variable, then retrieve that variable from the scope.
-_EXEC_EXPRESSION_SAVED_NAME = "__linea_expresion__"
+_EXEC_EXPRESSION_SAVED_NAME = "__linea_expression__"
 
 
 @register
@@ -155,11 +155,11 @@ def l_exec_statement(code: str) -> None:
     source_location = context.node.source_location
     if source_location:
         location = source_location.source_code.location
-        # Pad the code with extra lines, so that the linenumbers match up
+        # Pad the code with extra lines, so that the line numbers match up
         code = (source_location.lineno - 1) * "\n" + code
         path = str(get_location_path(location))
     else:
-        path = "<unkown>"
+        path = "<unknown>"
     bytecode = compile(code, path, "exec")
     trace_fn = exec_and_record_function_calls(
         bytecode, context.global_variables
@@ -275,9 +275,7 @@ def l_import(
     full_name = base_module.__name__ + "." + name if base_module else name
     try:
         value = importlib.import_module(full_name)
-    # wrap all exceptions happening during import into a single importerror
-    # this can potentially be changed to a custom error if it messes with
-    # imports inside blackboxes
+    # wrap all exceptions happening during import into a single LImportError
     except Exception as e:
         raise LImportError from e
 
