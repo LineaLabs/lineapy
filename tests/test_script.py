@@ -5,9 +5,9 @@ import tempfile
 
 import pytest
 
-from lineapy.utils.config import CUSTOM_ANNOTATIONS_FOLDER_NAME, linea_folder
-from lineapy.plugins.utils import slugify
 from lineapy.cli.cli import remove_annotations_file_extension
+from lineapy.plugins.utils import slugify
+from lineapy.utils.config import CUSTOM_ANNOTATIONS_FOLDER_NAME, linea_folder
 
 
 @pytest.mark.slow
