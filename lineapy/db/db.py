@@ -488,7 +488,7 @@ class RelationalLineaDB:
                     ImportNodeORM.version is not None,
                 )
             )
-            .distinct()
+            .distinct(ImportNodeORM.package_name)
             .all()
         )
 
