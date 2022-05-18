@@ -392,9 +392,14 @@ def annotations():
 
 def validate_annotations_path(ctx, param, value: pathlib.Path):
     if value.suffix != ".yaml":
-        raise click.BadParameter("path must be a yaml file")
+        raise click.BadParameter(
+            f"Invalid path '{str(value)}'\n" + "path must be a yaml file"
+        )
     if not value.exists():
-        raise click.BadParameter("path must be to an existing yaml file")
+        raise click.BadParameter(
+            f"Invalid path '{str(value)}'\n"
+            + "path must be to an existing yaml file"
+        )
     return value
 
 
@@ -434,7 +439,7 @@ def add(path: pathlib.Path, name: str):
         invalid_specs = validate_spec(path)
         if len(invalid_specs) > 0:
             for invalid_spec in invalid_specs:
-                print(f"Invalid item {invalid_spec}")
+                logger.error(f"Invalid item {invalid_spec}")
             exit(1)
     except yaml.YAMLError as e:
         logger.error(f"Unable to parse yaml file\n{e}")
