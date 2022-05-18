@@ -13,7 +13,7 @@ configs to IPython (e.g., `c.InteractiveShellApp.extensions = ["lineapy"]` to `i
 
 ### Removing Lineapy errors
 
-To reduce user confusion, we remove Lineapy's stack trace from the trace shared
+To reduce user confusion, we remove LineaPy's stack trace from the trace shared
 with the user.
 
 We do this by tracking the user error, and modifying the top level errors 

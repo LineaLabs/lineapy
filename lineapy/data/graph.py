@@ -66,7 +66,7 @@ class Graph(object):
         # Generally, we want to traverse the graph in a way to maintain two
         # constraints:
 
-        # 1. All parents must be traveresed before their children
+        # 1. All parents must be traversed before their children
         # 2. If we have any freedom, those with earlier line number should come first
 
         # To do this, we do a breadth first traversal, keeping our queue ordered
@@ -102,7 +102,7 @@ class Graph(object):
             remaining_parents[node.id] = n_remaining_parents
 
         while queue.qsize():
-            # Find the first node in the queue whcih has all its parents removed
+            # Find the first node in the queue which has all its parents removed
             node = queue_get_when(
                 queue, lambda n: remaining_parents[n.id] == 0
             )
@@ -171,7 +171,7 @@ def queue_get_when(queue: "Queue[T]", filter_fn: Callable[[T], bool]) -> T:
     # We have to pop off a number of elements, stopping when we find one that
     # satisfies our conditional, since we can't iterate through a queue.
 
-    # Use a timeout of 0 for the gets, otherewise if we have some bug
+    # Use a timeout of 0 for the gets, otherwise if we have some bug
     # where we are trying to get off the queue and its empty it will just
     # block forever. with a timeout of 0, it will raise an exception instead.
     popped_off = [queue.get(timeout=0)]

@@ -112,7 +112,7 @@ class Tracer:
 
         ##
         # Update the graph from the side effects of the node,
-        # If an artifact could not be created, quitely return without saving
+        # If an artifact could not be created, quietly return without saving
         # the node to the DB.
         ##
         logger.debug("Executing node %s", node)

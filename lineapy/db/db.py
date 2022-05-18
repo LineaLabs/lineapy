@@ -63,7 +63,7 @@ logger = logging.getLogger(__name__)
 
 class RelationalLineaDB:
     """
-    - Note that LineaDB coordinates with assset manager and relational db.
+    - Note that LineaDB coordinates with asset manager and relational db.
 
       - The asset manager deals with binaries (e.g., cached values)
         The relational db deals with more structured data,
