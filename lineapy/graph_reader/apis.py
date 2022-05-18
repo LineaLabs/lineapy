@@ -195,7 +195,7 @@ class LineaCatalog:
     .. note::
 
         - The export is pretty limited right now and we should expand later.
-    
+
     """
 
     def __init__(self, db):
