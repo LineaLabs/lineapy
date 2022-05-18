@@ -487,7 +487,7 @@ class RelationalLineaDB:
             .filter(
                 and_(
                     ImportNodeORM.session_id == session_id,
-                    ImportNodeORM.version is not None,
+                    ImportNodeORM.version != "None",
                 )
             )
             .distinct()
