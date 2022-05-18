@@ -110,6 +110,11 @@ def test_export_slice_housing_multiple():
 
 @pytest.fixture
 def annotations_folder():
+    """
+    Fixture for annotate commands. It moves user's
+    '.lineapy/custom-annotations'dir and
+    replaces it with a temp for testing.
+    """
     path = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME
     path_str = str(path.resolve())
     stash_path = linea_folder() / (CUSTOM_ANNOTATIONS_FOLDER_NAME + ".old")
@@ -133,6 +138,9 @@ def test_annotate_list(annotations_folder):
 
 @pytest.mark.slow
 def test_annotate_add_invalid_path(tmp_path, annotations_folder):
+    """
+    Verifies failure of adding non-existent path.
+    """
     invalid_path = tmp_path / "nonexistent.yaml"
     with pytest.raises(subprocess.CalledProcessError):
         subprocess.check_call(
@@ -147,6 +155,9 @@ def test_annotate_add_invalid_path(tmp_path, annotations_folder):
 
 @pytest.mark.slow
 def test_annotate_add_non_yaml_file(annotations_folder):
+    """
+    Verifies failure of adding file that does not end in '.yaml'.
+    """
     valid_yaml = """
 
 - module: keras.engine.training
@@ -172,6 +183,9 @@ def test_annotate_add_non_yaml_file(annotations_folder):
 
 @pytest.mark.slow
 def test_annotate_add_invalid_yaml(annotations_folder):
+    """
+    Verifies failure of adding invalid spec.
+    """
     invalid_yaml = """
 
 - module: keras.engine.training
@@ -198,6 +212,9 @@ def test_annotate_add_invalid_yaml(annotations_folder):
 
 @pytest.mark.slow
 def test_annotate_add_valid_yaml(annotations_folder):
+    """
+    Verifies success of adding valid spec.
+    """
     valid_yaml = """
 
 - module: keras.engine.training
@@ -221,6 +238,9 @@ def test_annotate_add_valid_yaml(annotations_folder):
 
 
 def test_annotate_delete_invalid_path(tmp_path, annotations_folder):
+    """
+    Verifies failure of deleting non-existent source.
+    """
     invalid_path = tmp_path / "nonexistent.yaml"
     with pytest.raises(subprocess.CalledProcessError):
         subprocess.check_call(
@@ -229,6 +249,9 @@ def test_annotate_delete_invalid_path(tmp_path, annotations_folder):
 
 
 def test_delete_existing_source(annotations_folder):
+    """
+    Verifies success of deleting source.
+    """
     valid_yaml = """
 
 - module: keras.engine.training
