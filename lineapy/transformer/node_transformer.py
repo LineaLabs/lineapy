@@ -105,8 +105,7 @@ def transform(
 
 class NodeTransformer(ast.NodeTransformer):
     """
-    NOTE
-    ----
+    .. note:
 
     - Need to be careful about the order by which these calls are invoked
       so that the transformation do not get called more than once.
