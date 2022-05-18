@@ -8,7 +8,7 @@ on:
       - "v[0-9]+.[0-9]+.x"
   
 jobs:
-  copy-docs:
+  build-n-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
