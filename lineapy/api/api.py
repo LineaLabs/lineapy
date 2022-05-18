@@ -239,7 +239,11 @@ def to_pipeline(
     """
     execution_context = get_context()
     db = execution_context.executor.db
-    session_orm = db.session.query(SessionContextORM).all()
+    session_orm = (
+        db.session.query(SessionContextORM)
+        .order_by(SessionContextORM.creation_time.desc())
+        .all()
+    )
     if len(session_orm) == 0:
         track(ExceptionEvent("DBError", "NoSessionFound"))
         raise Exception("No sessions found in the database.")

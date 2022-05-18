@@ -41,5 +41,7 @@ def get_lib_version_text(name: str) -> str:
     # change to pip package name if an override exists
     package_name = PIP_PACKAGE_NAMES.get(package_name, package_name)
 
-    text = package_name + (("==" + mod_version) if mod_version else "")
-    return text
+    if package_name == "lineapy":
+        return package_name
+    else:
+        return package_name + (("==" + mod_version) if mod_version else "")
