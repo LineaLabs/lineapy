@@ -1,4 +1,5 @@
 import ast
+from email.policy import default
 import logging
 import os
 import pathlib
@@ -49,6 +50,11 @@ logger = logging.getLogger(__name__)
     "--verbose",
     help="Print out logging for graph creation and execution",
     is_flag=True,
+)
+@click.option(
+    "--do_not_track",
+    default = False,
+    help="Opt out for user analytics"
 )
 def linea_cli(verbose: bool):
     # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
