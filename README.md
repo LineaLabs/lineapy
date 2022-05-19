@@ -16,7 +16,7 @@ of the code and its context. This understanding allows LineaPy to provide a set 
 data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
 <p align="center">
-    <a href="https://www.youtube.com/embed/qVnXSefzakg" target="_blank">
+    <a href="https://www.youtube.com/embed/qVnXSefzakg" target="_self">
         <img src="https://i.ytimg.com/vi/qVnXSefzakg/maxresdefault.jpg" alt="Introducing LineaPy" width="560" height="315" border="10" />
     </a>
 </p>
