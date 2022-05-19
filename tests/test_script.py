@@ -239,6 +239,7 @@ def test_annotate_add_valid_yaml(annotations_folder):
     assert len(str(proc.stdout).split("\n")) == 1
 
 
+@pytest.mark.slow
 def test_annotate_delete_invalid_path(tmp_path, annotations_folder):
     """
     Verifies failure of deleting non-existent source.
@@ -246,10 +247,11 @@ def test_annotate_delete_invalid_path(tmp_path, annotations_folder):
     invalid_path = tmp_path / "nonexistent.yaml"
     with pytest.raises(subprocess.CalledProcessError):
         subprocess.check_call(
-            ["lineapy", "annotate", "delete", str(invalid_path)]
+            ["lineapy", "annotate", "delete", "-n", str(invalid_path)]
         )
 
 
+@pytest.mark.slow
 def test_delete_existing_source(annotations_folder):
     """
     Verifies success of deleting source.
@@ -274,7 +276,13 @@ def test_delete_existing_source(annotations_folder):
     source_name = remove_annotations_file_extension(source_name)
     source_name = slugify(source_name)
     subprocess.check_call(
-        ["lineapy", "annotate", "delete", os.path.basename(source_name)]
+        [
+            "lineapy",
+            "annotate",
+            "delete",
+            "--name",
+            os.path.basename(source_name),
+        ]
     )
     proc = subprocess.run(
         ["lineapy", "annotate", "list"], check=True, capture_output=True

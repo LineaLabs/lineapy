@@ -7,7 +7,7 @@ import yaml
 from lineapy.utils.validate_annotation_spec import validate_spec
 
 
-def test_validate_unsafe_spec(tmp_path):
+def test_validate_unsafe_spec():
     valid_yaml = """
 -- invalid stuff:: ;
 - module: keras.engine.training
@@ -27,7 +27,7 @@ def test_validate_unsafe_spec(tmp_path):
             invalid_specs = validate_spec(Path(f.name))
 
 
-def test_validate_invalid_spec(tmp_path):
+def test_validate_invalid_spec():
     valid_yaml = """
 - module: keras.engine.training
   annotations_bug:
@@ -46,7 +46,7 @@ def test_validate_invalid_spec(tmp_path):
         assert len(invalid_specs) == 1
 
 
-def test_validate_valid_spec(tmp_path):
+def test_validate_valid_spec():
     valid_yaml = """
 
 - module: keras.engine.training

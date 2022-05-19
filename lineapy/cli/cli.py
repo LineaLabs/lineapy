@@ -425,7 +425,7 @@ def remove_annotations_file_extension(filename: str) -> str:
     "--name",
     "-n",
     default=None,
-    help="What to name imported resource (do not include .yaml extension). Input file name is used as default",
+    help="What to name source. Input file name is used as default",
     type=str,
 )
 def add(path: pathlib.Path, name: str):
@@ -435,6 +435,7 @@ def add(path: pathlib.Path, name: str):
     This command copies the yaml file whose path is provided by the user into the user's .lineapy directory to allow Lineapy to manage it.
     """
 
+    # validate that source is in correct format before importing
     try:
         invalid_specs = validate_spec(path)
         if len(invalid_specs) > 0:
@@ -445,6 +446,7 @@ def add(path: pathlib.Path, name: str):
         logger.error(f"Unable to parse yaml file\n{e}")
         exit(1)
 
+    # calculate name of new annotation source
     name = name or path.stem
     name = remove_annotations_file_extension(name)
     name = slugify(name)
@@ -455,7 +457,7 @@ def add(path: pathlib.Path, name: str):
     destination_file = (
         annotate_folder / (name + CUSTOM_ANNOTATIONS_EXTENSION_NAME)
     ).resolve()
-    print(f"Creating annotation source at {destination_file}")
+    print(f"Creating annotation source {name} at {destination_file}")
 
     # Copy annotation file to destinatiion
     try:
@@ -478,19 +480,28 @@ def list():
     )
 
     for annotation_path in glob.glob(wildcard_path):
-        print(annotation_path)
+        # display source name and path to .annotations.yaml file in .lineapy folder
+        source_filename = os.path.basename(annotation_path)
+        source_name = remove_annotations_file_extension(source_filename)
+        print(f"{source_name}\t{annotation_path}")
 
 
 @annotations.command("delete")
-@click.argument("filename")
-def delete(filename: str):
+@click.option(
+    "--name",
+    "-n",
+    required=True,
+    help="Name of source to delete. Type `lineapy annotate list` to see all sources.",
+    type=str,
+)
+def delete(name: str):
     """
     Deletes imported annotation source.
     """
-    filename = remove_annotations_file_extension(filename)
-    filename += CUSTOM_ANNOTATIONS_EXTENSION_NAME
+    name = remove_annotations_file_extension(name)
+    name += CUSTOM_ANNOTATIONS_EXTENSION_NAME
 
-    delete_path = custom_annotations_folder() / filename
+    delete_path = custom_annotations_folder() / name
     try:
         os.remove(delete_path)
     except IsADirectoryError as e:
