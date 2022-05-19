@@ -33,6 +33,10 @@ from lineapy.instrumentation.annotation_spec import (
     ValuePointer,
     ViewOfValues,
 )
+from lineapy.utils.config import (
+    CUSTOM_ANNOTATIONS_EXTENSION_NAME,
+    custom_annotations_folder,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -103,9 +107,18 @@ def get_specs() -> Dict[str, List[Annotation]]:
     Captures all the .annotations.yaml files in the lineapy directory.
     """
     relative_path = "../*.annotations.yaml"
-    path = os.path.join(os.path.dirname(__file__), relative_path)
+    paths = glob.glob(os.path.join(os.path.dirname(__file__), relative_path))
+    paths.extend(
+        glob.glob(
+            os.path.join(
+                custom_annotations_folder().resolve(),
+                "./*" + CUSTOM_ANNOTATIONS_EXTENSION_NAME,
+            )
+        )
+    )
     valid_specs: Dict[str, List[Annotation]] = defaultdict(list)
-    for filename in glob.glob(path):
+
+    for filename in paths:
         with open(filename, "r") as f:
             doc = yaml.safe_load(f)
             for item in doc:
@@ -113,6 +126,7 @@ def get_specs() -> Dict[str, List[Annotation]]:
                 if v is None:
                     continue
                 valid_specs[v.module].extend(v.annotations)
+
     return valid_specs
 
 
