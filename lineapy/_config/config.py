@@ -64,5 +64,3 @@ for var_name in var_names:
 print('after environment variables')
 print(_config)
 
-class options:
-  

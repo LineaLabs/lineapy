@@ -11,6 +11,7 @@ from io import TextIOWrapper
 from statistics import mean
 from time import perf_counter
 from typing import Iterable, List, Optional
+from toml import dump
 
 import click
 import nbformat
@@ -36,6 +37,7 @@ from lineapy.utils.logging_config import (
     configure_logging,
 )
 from lineapy.utils.utils import prettify
+from lineapy._config.config import _config
 
 """
 We are using click because our package will likely already have a dependency on
@@ -48,20 +50,96 @@ logger = logging.getLogger(__name__)
 @click.group()
 @click.option(
     "--verbose",
-    help="Print out logging for graph creation and execution",
+    help="Print out logging for graph creation and execution.",
     is_flag=True,
 )
 @click.option(
-    "--do_not_track",
-    default = False,
-    help="Opt out for user analytics"
+    "--home-dir",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="LineaPy home directory."
 )
-def linea_cli(verbose: bool):
+@click.option(
+    "--artifact-database-connection-string",
+    type=click.STRING,
+    help="SQLAlchemy connection string for LineaPy database."
+)
+@click.option(
+    "--artifact-storage-backend",
+    type=click.Choice(['local','s3'], case_sensitive=False),
+    help="Storage backend for LineaPy artifact."
+)
+@click.option(
+    "--artifact-storage-dir",
+    type=click.Path(dir_okay=True, path_type=pathlib.Path),
+    help="LineaPy artifact directory."
+)
+@click.option(
+    "--customized-annotation-dir",
+    type=click.Path(dir_okay=True, path_type=pathlib.Path),
+    help="Customized annotation directory."
+)
+@click.option(
+    "--do-not-track",
+    type=click.BOOL,
+    help="Opt out for user analytics."
+)
+@click.option(
+    "--logging-level",
+    type=click.Choice(['CRITICAL','ERROR','WARNING','INFO','DEBUG','NOTSET'], case_sensitive=False),
+    help="Logging level for LineaPy."
+)
+@click.option(
+    "--logging-file",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Logging file"
+)
+def linea_cli(
+    verbose: bool, 
+    home_dir: Optional[pathlib.Path],
+    artifact_database_connection_string: Optional[str],
+    artifact_storage_backend: Optional[str],
+    artifact_storage_dir: Optional[pathlib.Path],
+    customized_annotation_dir: Optional[pathlib.Path],
+    do_not_track: Optional[bool],
+    logging_level: Optional[str],
+    logging_file: Optional[pathlib.Path],
+):
     # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
     if verbose:
         os.environ[LOGGING_ENV_VARIABLE] = "DEBUG"
     configure_logging()
 
+    if home_dir:
+        _config['home_dir'] = home_dir
+    if artifact_database_connection_string:
+        _config['artifact_database_connection_string'] = artifact_database_connection_string
+    if artifact_storage_backend:
+        _config['artifact_storage_backend'] = artifact_storage_backend
+    if artifact_storage_dir:
+        _config['artifact_storage_dir'] = artifact_storage_dir
+    if customized_annotation_dir:
+        _config['customized_annotation_dir'] = customized_annotation_dir
+    if do_not_track:
+        _config['do_not_track'] = do_not_track
+    if logging_level:
+        _config['logging_level'] = logging_level
+    if logging_file:
+        _config['logging_file'] = logging_file
+
+@linea_cli.command()
+@click.option(
+    "--output-file",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Output LineaPy config file"    
+)
+def init(output_file: Optional[pathlib.Path]):
+    """
+    Create configure file 
+    """
+    if output_file is None:
+        output_file = pathlib.Path.home().joinpath('lineapy_config.toml')
+    with open(output_file,'w') as f:
+        dump(_config, f)
 
 @linea_cli.command()
 @click.argument("file", type=click.File())
