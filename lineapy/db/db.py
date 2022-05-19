@@ -481,14 +481,16 @@ class RelationalLineaDB:
         make it distinct on a subset of columns: session_id, name, and version.
         """
         return (
-            self.session.query(ImportNodeORM)
+            self.session.query(
+                ImportNodeORM.package_name, ImportNodeORM.version
+            )
             .filter(
                 and_(
                     ImportNodeORM.session_id == session_id,
-                    ImportNodeORM.version is not None,
+                    ImportNodeORM.version != "None",
                 )
             )
-            .distinct(ImportNodeORM.package_name)
+            .distinct()
             .all()
         )
 
