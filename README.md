@@ -16,6 +16,10 @@ of the code and its context. This understanding allows LineaPy to provide a set 
 data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
 <p align="center">
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/qVnXSefzakg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</p>
+
+<p align="center">
     <b style="font-size:24px;">👇 Try It Out! 👇</b>
     <br>
     <a href="https://colab.research.google.com/drive/1o7SoVlQ-2SxjqKL7A1Dk2TbMx-utJXf2?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
