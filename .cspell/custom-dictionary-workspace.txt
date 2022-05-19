@@ -15,6 +15,7 @@ kwargs
 linea
 lineabuiltins
 lineapy
+listify
 maxdepth
 nbconvert
 nbformat
@@ -22,6 +23,7 @@ nbsphinx
 nbval
 NBVAL_IGNORE_OUTPUT
 networkx
+orms
 psycopg2
 Pydantic
 scipy

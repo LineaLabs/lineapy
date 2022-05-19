@@ -35,9 +35,9 @@ def allow_do_not_track(fn: C) -> C:
 def send_lib_info_from_db(db: RelationalLineaDB, session_id: LineaID):
     import_nodes = db.get_libraries_for_session(session_id)
     [
-        track(LibImportEvent(str(n.name), str(n.version)))
+        track(LibImportEvent(str(n.package_name), str(n.version)))
         for n in import_nodes
-        if n.name != "lineapy"
+        if n.package_name != "lineapy"
     ]
     return
 
