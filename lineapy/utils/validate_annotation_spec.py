@@ -6,6 +6,7 @@ import json  # for pretty printing dicts
 from pathlib import Path
 from typing import Any, List
 
+import pydantic
 import yaml
 
 from lineapy.instrumentation.annotation_spec import ModuleAnnotation
@@ -29,6 +30,6 @@ def validate_spec(spec_file: Path) -> List[Any]:
 
             try:
                 a = ModuleAnnotation(**item)
-            except TypeError as e:
+            except pydantic.error_wrappers.ValidationError as e:
                 invalid_specs.append(item)
     return invalid_specs
