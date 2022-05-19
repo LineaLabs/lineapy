@@ -145,7 +145,9 @@ def test_annotate_add_invalid_path(tmp_path, annotations_folder):
     """
     invalid_path = tmp_path / "nonexistent.yaml"
     with pytest.raises(subprocess.CalledProcessError):
-        subprocess.check_call(["lineapy", "annotate", "add", str(invalid_path)])
+        subprocess.check_call(
+            ["lineapy", "annotate", "add", str(invalid_path)]
+        )
 
     proc = subprocess.run(
         ["lineapy", "annotate", "list"], check=True, capture_output=True
@@ -274,7 +276,13 @@ def test_delete_existing_source(annotations_folder):
     source_name = remove_annotations_file_extension(source_name)
     source_name = slugify(source_name)
     subprocess.check_call(
-        ["lineapy", "annotate", "delete", "--name", os.path.basename(source_name)]
+        [
+            "lineapy",
+            "annotate",
+            "delete",
+            "--name",
+            os.path.basename(source_name),
+        ]
     )
     proc = subprocess.run(
         ["lineapy", "annotate", "list"], check=True, capture_output=True
@@ -306,7 +314,9 @@ def test_linea_python_equivalent(tmp_path, code):
     f = tmp_path / "script.py"
     f.write_text(code)
 
-    linea_run = subprocess.run(["lineapy", "python", str(f)], capture_output=True)
+    linea_run = subprocess.run(
+        ["lineapy", "python", str(f)], capture_output=True
+    )
     python_run = subprocess.run(["python", str(f)], capture_output=True)
     assert linea_run.returncode == python_run.returncode
     assert linea_run.stdout.decode() == python_run.stdout.decode()
@@ -315,6 +325,8 @@ def test_linea_python_equivalent(tmp_path, code):
 
 def test_ipython():
     raw_code = 'import lineapy; print(lineapy.save(1, "one").get_code())'
-    clean_code = """import lineapy\n\nprint(lineapy.save(1, "one").get_code())"""
+    clean_code = (
+        """import lineapy\n\nprint(lineapy.save(1, "one").get_code())"""
+    )
     res = subprocess.check_output(["lineapy", "ipython", "-c", raw_code])
     assert res.decode().strip().endswith(clean_code)
