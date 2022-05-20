@@ -1,0 +1,10 @@
+- module: tempfile
+  annotations:
+    - criteria:
+        function_name: TemporaryFile
+      side_effects:
+        - mutated_value:
+            external_state: file_system
+        - views:
+            - result: RESULT
+            - external_state: file_system

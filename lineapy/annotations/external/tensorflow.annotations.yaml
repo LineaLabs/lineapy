@@ -1,0 +1,9 @@
+- module: tensorflow.keras.utils
+  annotations:
+    - criteria:
+        function_name: get_file
+      side_effects:
+        - dependency:
+            external_state: file_system
+        - mutated_value:
+            external_state: file_system

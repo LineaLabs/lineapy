@@ -106,7 +106,8 @@ def get_specs() -> Dict[str, List[Annotation]]:
     yaml specs are for non-built in functions.
     Captures all the .annotations.yaml files in the lineapy directory.
     """
-    relative_path = "../*.annotations.yaml"
+    relative_path = "../annotations/**/*.annotations.yaml"
+
     paths = glob.glob(os.path.join(os.path.dirname(__file__), relative_path))
     paths.extend(
         glob.glob(
@@ -273,24 +274,34 @@ class FunctionInspectorParsed:
         side_effects: List[InspectFunctionSideEffect],
     ) -> None:
         if isinstance(criteria, KeywordArgumentCriteria):
-            class_ = getattr(module, criteria.class_instance)
+            class_ = getattr(module, criteria.class_instance, None)
+            if class_ is None:
+                return None
             self.keyword_name_and_value_to_type_to_side_effects[
                 (criteria.keyword_arg_name, criteria.keyword_arg_value)
             ][class_] = side_effects
         elif isinstance(criteria, FunctionNames):
             for name in criteria.function_names:
-                fn = getattr(module, name)
+                fn = getattr(module, name, None)
+                if fn is None:
+                    return
                 self.function_to_side_effects[fn] = side_effects
         elif isinstance(criteria, FunctionName):
-            fn = getattr(module, criteria.function_name)
+            fn = getattr(module, criteria.function_name, None)
+            if fn is None:
+                return
             self.function_to_side_effects[fn] = side_effects
         elif isinstance(criteria, ClassMethodName):
-            tp = getattr(module, criteria.class_instance)
+            tp = getattr(module, criteria.class_instance, None)
+            if tp is None:
+                return
             self.method_name_to_type_to_side_effects[
                 criteria.class_method_name
             ][tp] = side_effects
         elif isinstance(criteria, ClassMethodNames):
-            tp = getattr(module, criteria.class_instance)
+            tp = getattr(module, criteria.class_instance, None)
+            if tp is None:
+                return
             for name in criteria.class_method_names:
                 self.method_name_to_type_to_side_effects[name][
                     tp
