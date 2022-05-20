@@ -111,11 +111,6 @@ def get_specs() -> Dict[str, List[Annotation]]:
     paths = glob.glob(os.path.join(os.path.dirname(__file__), relative_path))
     paths.extend(
         glob.glob(
-            os.path.join(os.path.dirname(__file__), relative_path)
-        )
-    )
-    paths.extend(
-        glob.glob(
             os.path.join(
                 custom_annotations_folder().resolve(),
                 "./*" + CUSTOM_ANNOTATIONS_EXTENSION_NAME,
