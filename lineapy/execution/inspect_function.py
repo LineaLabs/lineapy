@@ -111,7 +111,7 @@ def get_specs() -> Dict[str, List[Annotation]]:
     paths = glob.glob(os.path.join(os.path.dirname(__file__), relative_path))
     paths.extend(
         glob.glob(
-            os.path.join(os.path.dirname(__file__), external_relative_path)
+            os.path.join(os.path.dirname(__file__), relative_path)
         )
     )
     paths.extend(
