@@ -1,3 +1,4 @@
+import os
 import pathlib
 import subprocess
 
@@ -86,13 +87,6 @@ def test_run_script_dag(virtualenv, tmp_path):
         ]
     )
 
-    virtualenv.run(
-        "pip install pandas scikit-learn", capture=False, cd=str(tmp_path)
-    )
+    os.chdir(str(tmp_path))
 
-    virtualenv.run(
-        "python sliced_housing_multiple_script_dag.py",
-        capture=False,
-        # Run in current root lineapy so that relative paths are accurate
-        cd=str(tmp_path),
-    )
+    subprocess.check_call(["python", "sliced_housing_multiple_script_dag.py"])
