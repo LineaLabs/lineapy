@@ -1,66 +1,140 @@
 import logging
 import os
-import toml
+from dataclasses import dataclass
 from pathlib import Path
-
 from typing import Any
-from enum import Enum
 
-_global_config: dict[str, Any] = {}
+import toml
 
-# Default Config (all other config should be able to derive from here)
-_config = dict(
-  home_dir = f"{os.environ.get('HOME','~')}/.lineapy",
-  artifact_storage_backend = 'local',
-  do_not_track = False,
-  logging_level = 'INFO'
-)
+LINEAPY_FOLDER_NAME = ".lineapy"
+LOG_FILE_NAME = "lineapy.log"
+CONFIG_FILE_NAME = "lineapy_config.toml"
+FILE_PICKLER_BASEDIR = "linea_pickles"
+DB_FILE_NAME = "db.sqlite"
 
-print(toml.dumps(_config))
-# with open(f"{_config['home_dir']}/lineapy_config.toml" ,'w') as f:
-#   toml.dump(_config, f)
-
-## config file
-config_file_path = Path(os.environ.get('LINEAPY_HOME_DIR', f"{os.environ.get('HOME','~')}/.lineapy")).joinpath('lineapy_config.toml')
-if config_file_path.exists():
-  _read_config = toml.load(config_file_path)
-else:
-  config_file_path = Path(os.environ.get('HOME','~')).joinpath('lineapy_config.toml')
-  if config_file_path.exists():
-    _read_config = toml.load(config_file_path)
-  else:
-    _read_config = {}
+logger = logging.getLogger(__name__)
 
 
-print('default config')
-print(_config)
+@dataclass
+class LineapyConfig:
+    home_dir: Path
+    artifact_database_connection_string: str
+    artifact_storage_backend: str
+    artifact_storage_dir: Path
+    customized_annotation_folder: Path
+    do_not_track: bool
+    logging_level: str
+    logging_file: Path
+    # artifact_aws_s3_bucket : str
+    # artifact_aws_s3_bucket_prefix : str
+    # ipython_dir : Path
 
-for k, v in _read_config.items():
-  _config[k] = v
+    def __init__(
+        self,
+        home_dir=f"{os.environ.get('HOME','~')}/{LINEAPY_FOLDER_NAME}",
+        artifact_database_connection_string=None,
+        artifact_storage_backend="local",
+        artifact_storage_dir=None,
+        customized_annotation_folder=None,
+        do_not_track=False,
+        logging_level="INFO",
+        logging_file=None,
+        # artifact_aws_s3_bucket = None,
+        # artifact_aws_s3_bucket_prefix = None,
+        # ipython_dir = None
+    ):
+        self.home_dir = home_dir
+        self.artifact_database_connection_string = (
+            artifact_database_connection_string
+        )
+        self.artifact_storage_backend = artifact_storage_backend
+        self.artifact_storage_dir = artifact_storage_dir
+        self.customized_annotation_folder = customized_annotation_folder
+        self.do_not_track = do_not_track
+        self.logging_level = logging_level
+        self.logging_file = logging_file
+        # self.artifact_aws_s3_bucket = artifact_aws_s3_bucket
+        # self.artifact_aws_s3_bucket_prefix = artifact_aws_s3_bucket_prefix
+        # self.ipython_dir = ipython_dir
 
-print('after reading config')
-print(_config)
+        ## config file
+        config_file_path = Path(
+            os.environ.get(
+                "LINEAPY_HOME_DIR",
+                f"{os.environ.get('HOME','~')}/{LINEAPY_FOLDER_NAME}",
+            )
+        ).joinpath(CONFIG_FILE_NAME)
+        if config_file_path.exists():
+            _read_config = toml.load(config_file_path)
+        else:
+            config_file_path = Path(os.environ.get("HOME", "~")).joinpath(
+                CONFIG_FILE_NAME
+            )
+            if config_file_path.exists():
+                _read_config = toml.load(config_file_path)
+            else:
+                _read_config = {}
 
-## environmental_variables
+        for key, value in _read_config.items():
+            if key in self.__dict__.keys():
+                self.set(key, value)
 
-var_names = [
-  'home_dir',
-  'artifact_database_connection_string',
-  'artifact_storage_backend',
-  'artifact_storage_dir',
-  'customized_annotation_folder',
-  'do_not_track',
-  'logging_level',
-  'logging_file',
-  'artifact_aws_s3_bucket',
-  'artifact_aws_s3_bucket_prefix',
-  'ipython_dir'
-]
-for var_name in var_names:
-  env_var_value = os.environ.get(f'LINEAPY_{var_name.upper()}')
-  if env_var_value is not None:
-    _config[var_name] = env_var_value
+        ## envs
+        for var_name in self.__dict__.keys():
+            env_var_value = os.environ.get(f"LINEAPY_{var_name.upper()}")
+            if env_var_value is not None:
+                self.set(var_name, env_var_value)
 
-print('after environment variables')
-print(_config)
+    def get(self, key: str) -> Any:
+        if key in self.__dict__.keys():
+            return getattr(self, key)
+        else:
+            logger.error(key, "is not a lineapy config item")
+            raise Exception  # Unimplemented
 
+    def set(self, key, value) -> None:
+        if key not in self.__dict__.keys():
+            logger.error(key, "is not a lineapy config item")
+            raise Exception  # Unimplemented
+        else:
+            self.__dict__[key] = value
+            os.environ[f"LINEAPY_{key.upper()}"] = str(value)
+
+    def get_artifact_storage_dir(self) -> Path:
+        """
+        If artifact_storage_dir is set, return it; otherwise use home_dir/FILE_PICKLER_BASEDIR
+        """
+        artifact_storage_dir = self.artifact_storage_dir
+        if artifact_storage_dir is None:
+            artifact_storage_dir = Path(self.home_dir).joinpath(
+                FILE_PICKLER_BASEDIR
+            )
+
+        if not artifact_storage_dir.exists():
+            # logger.warning(
+            #     f"No {FOLDER_NAME} folder found. Creating a new folder in {Path.home()} directory."
+            # )
+            artifact_storage_dir.mkdir(parents=False, exist_ok=True)
+        return artifact_storage_dir
+
+    def get_artifact_database_connection_string(self) -> str:
+        """
+        If artifact_database_connection_string is set, return it; otherwise use sqlite:///home_dir/DB_FILE_NAME
+        """
+        artifact_database_connection_string = (
+            self.artifact_database_connection_string
+        )
+        if artifact_database_connection_string is None:
+            artifact_database_connection_string = (
+                f"sqlite:///{Path(self.home_dir)}/{DB_FILE_NAME}"
+            )
+        return artifact_database_connection_string
+
+    def get_logging_file(self) -> Path:
+        logging_file = self.logging_file
+        if logging_file is None:
+            logging_file = Path(self.home_dir).joinpath(LOG_FILE_NAME)
+        return logging_file
+
+
+options = LineapyConfig()

@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
+from lineapy._config.config import options
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import FILE_PICKLER_BASEDIR, FilePickler
@@ -144,10 +145,8 @@ def _try_write_to_db(value: object) -> Path:
     if isinstance(value, types.ModuleType):
         raise ArtifactSaveException()
     # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = (
-        linea_folder()
-        / FILE_PICKLER_BASEDIR
-        / "".join(
+    filepath = options.get_artifact_storage_dir().joinpath(
+        "".join(
             random.choices(
                 string.ascii_uppercase
                 + string.ascii_lowercase

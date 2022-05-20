@@ -57,6 +57,7 @@ from lineapy.utils.analytics.event_schemas import ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track  # circular dep issues
 from lineapy.utils.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
 from lineapy.utils.utils import get_literal_value_from_string
+from lineapy._config.config import LineapyConfig
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,13 @@ class RelationalLineaDB:
             self.commit()
             self.session = scoped_session(sessionmaker())
             self.session.configure(bind=self.engine)
+
+    @classmethod
+    def from_configuration(cls, options: LineapyConfig) -> RelationalLineaDB:
+        f"""
+        Creates a new database.
+        """        
+        return cls(options.get_artifact_database_connection_string())
 
     @classmethod
     def from_environment(cls, url: Optional[str] = None) -> RelationalLineaDB:

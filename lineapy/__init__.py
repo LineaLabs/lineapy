@@ -7,6 +7,7 @@ from lineapy.editors.ipython import start, stop, visualize
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils.lineabuiltins import db, file_system
+from lineapy._config.config import options
 
 __all__ = [
     "Graph",
@@ -21,6 +22,7 @@ __all__ = [
     "visualize",
     "db",
     "file_system",
+    "options",
     "__version__",
 ]
 
