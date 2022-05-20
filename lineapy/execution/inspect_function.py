@@ -106,12 +106,9 @@ def get_specs() -> Dict[str, List[Annotation]]:
     yaml specs are for non-built in functions.
     Captures all the .annotations.yaml files in the lineapy directory.
     """
-    internal_relative_path = "../annotations/internal/*.annotations.yaml"
-    external_relative_path = "../annotations/external/*.annotations.yaml"
+    relative_path = "../annotations/**/*.annotations.yaml"
 
-    paths = glob.glob(
-        os.path.join(os.path.dirname(__file__), internal_relative_path)
-    )
+    paths = glob.glob(os.path.join(os.path.dirname(__file__), relative_path))
     paths.extend(
         glob.glob(
             os.path.join(os.path.dirname(__file__), external_relative_path)
