@@ -1,0 +1,20 @@
+- module: gym.wrappers.monitor
+  annotations:
+    - criteria:
+        class_instance: Monitor
+        class_method_name: seed
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF # self is a keyword...
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT
+    - criteria:
+        class_instance: Monitor
+        class_method_name: reset
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF # self is a keyword...
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT

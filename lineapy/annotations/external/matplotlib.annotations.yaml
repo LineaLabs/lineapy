@@ -1,0 +1,78 @@
+- module: matplotlib.pyplot
+  annotations:
+    - criteria:
+        function_names:
+          - plot
+          - boxplot
+          - xlim
+          - xticks
+          - ylim
+          - yticks
+          - axvline
+          - axes
+          - text
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+    - criteria:
+        function_names:
+          - figure
+          - subplot
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT
+    - criteria:
+        function_name: savefig
+      side_effects:
+        - mutated_value:
+            external_state: file_system
+- module: matplotlib.figure
+  annotations:
+    - criteria:
+        class_instance: Figure
+        class_method_names:
+          - gca
+          - add_axes
+          - add_subplot
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT
+    - criteria:
+        class_instance: Figure
+        class_method_name: savefig
+      side_effects:
+        - mutated_value:
+            external_state: file_system
+- module: matplotlib.patches
+  annotations:
+    - criteria:
+        class_instance: Rectangle
+        class_method_name: set_alpha
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+- module: matplotlib.axes._subplots
+  annotations:
+    - criteria:
+        class_instance: SubplotBase
+        class_method_names:
+          - axvline
+          - set_xticks
+          - set_xlim
+          - set_xlabel
+          - set_yticks
+          - set_ylim
+          - set_ylabel
+          - invert_yaxis
+          - set_title
+          - bar_label
+          - plot
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF

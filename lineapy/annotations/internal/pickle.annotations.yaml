@@ -1,0 +1,7 @@
+- module: pickle
+  annotations:
+    - criteria:
+        function_name: dump # Note: `load` doesn't need annotation
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 1

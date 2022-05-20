@@ -1,0 +1,43 @@
+- module: operator
+  annotations:
+    - criteria: # setitem(dict, key, value)
+        function_name: setitem
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
+        - views:
+            - positional_argument_index: 2
+            - positional_argument_index: 0
+    - criteria: # getitem(dict, key)
+        function_name: getitem
+      side_effects:
+        - views:
+            - positional_argument_index: 0
+            - result: RESULT
+    - criteria: # delitem(dict, key)
+        function_name: delitem
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
+    - criteria: # inplace ops
+        function_names:
+          - iadd
+          - iand
+          - iconcat
+          - ifloordiv
+          - ilshift
+          - imod
+          - imul
+          - imatmul
+          - ior
+          - ipow
+          - irshift
+          - isub
+          - itruediv
+          - ixor
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
+        - views:
+            - positional_argument_index: 0
+            - result: RESULT

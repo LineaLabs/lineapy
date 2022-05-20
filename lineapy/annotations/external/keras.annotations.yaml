@@ -1,0 +1,20 @@
+- module: keras.engine.training
+  annotations:
+    - criteria:
+        class_method_name: compile
+        class_instance: Model
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+    - criteria:
+        class_method_name: fit
+        class_instance: Model
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+    - criteria:
+        class_method_name: save
+        class_instance: Model
+      side_effects:
+        - mutated_value:
+            external_state: file_system

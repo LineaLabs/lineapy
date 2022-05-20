@@ -1,0 +1,9 @@
+- module: numpy
+  annotations:
+    - criteria:
+        function_names:
+          - savetxt
+          - savez
+      side_effects:
+        - mutated_value:
+            external_state: file_system

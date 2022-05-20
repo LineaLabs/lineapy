@@ -1,0 +1,7 @@
+- module: joblib
+  annotations:
+    - criteria:
+        function_name: dump
+      side_effects:
+        - mutated_value:
+            external_state: file_system

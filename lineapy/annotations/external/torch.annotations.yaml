@@ -1,0 +1,15 @@
+- module: torch
+  annotations:
+    - criteria:
+        function_name: manual_seed
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+- module: torch.jit._script
+  annotations:
+    - criteria:
+        class_method_name: save
+        class_instance: ScriptModule
+      side_effects:
+        - mutated_value:
+            external_state: file_system

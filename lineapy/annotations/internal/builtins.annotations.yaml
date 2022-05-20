@@ -1,0 +1,119 @@
+- module: builtins
+  annotations:
+    - criteria:
+        function_name: setattr
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 0
+        - views:
+            - positional_argument_index: 2
+            - positional_argument_index: 0
+    - criteria:
+        function_name: iter
+      side_effects:
+        - views:
+            - positional_argument_index: 0
+            - result: RESULT
+    - criteria:
+        function_name: next
+      side_effects:
+        # Don't consider next as mutating the iterator, even though it does
+        # So that we don't consider `for x in xs: ...` as mutating `xs`,
+        # which it would do if we do think of `next` as mutating, since the iterator
+        # is a view of the list.
+        # This shouldn't be a problem unless users are manually using `next` which
+        # probably isn't that common
+        # Consider the following example
+        # ```
+        # x = (x for x in range(10))
+        # for _ in x:
+        #   pass
+        # y = list(x) # it will be empty because x is exhausted and the slice
+        #             # should be included
+        # ```
+        # - mutated_value:
+        #     positional_argument_index: 0
+        - views:
+            - positional_argument_index: 0
+            - result: RESULT
+    - criteria:
+        # these methods take an argument
+        class_method_names:
+          - add
+          - update
+          - difference_update
+          - discard
+          - intersection_update
+          - remove
+          - symmetric_difference_update
+        class_instance: set
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - positional_argument_index: 0
+    - criteria:
+        # these methods take no arguments or we dont care about them
+        # eg. pop works with and without args but it mutates and we dont care abt the arg
+        class_method_names:
+          - clear
+          - remove
+          - pop
+        class_instance: set
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+    - criteria:
+        # these methods take an argument
+        class_method_names:
+          - append
+          - extend
+          - insert
+          - remove
+        class_instance: list
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - positional_argument_index: 0
+    - criteria:
+        # ones without args or we dont care about them
+        class_method_names:
+          - clear
+          - pop
+          - reverse
+          - sort
+        class_instance: list
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+    - criteria:
+        # these methods take an argument
+        # pop for dict takes an argument and it could be a var so we track it
+        class_method_names:
+          - update
+          - pop
+        class_instance: dict
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - positional_argument_index: 0
+    - criteria:
+        # ones without args or we dont care about them
+        class_method_names:
+          - clear
+          - popitem
+        class_instance: dict
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+    - criteria:
+        function_name: map
+      side_effects:
+        - views:
+            - positional_argument_index: 1
+            - result: RESULT
