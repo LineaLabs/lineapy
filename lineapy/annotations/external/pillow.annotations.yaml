@@ -1,0 +1,13 @@
+- module: PIL.Image
+  annotations:
+    - criteria:
+        class_instance: Image
+        class_method_name: save
+      side_effects:
+        - mutated_value:
+            external_state: file_system
+    - criteria:
+        function_name: open
+      side_effects:
+        - dependency:
+            external_state: file_system

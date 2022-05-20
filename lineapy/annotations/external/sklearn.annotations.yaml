@@ -1,0 +1,11 @@
+- module: sklearn.base
+  annotations:
+    - criteria:
+        class_instance: BaseEstimator
+        class_method_name: fit
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF # self is a keyword...
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT

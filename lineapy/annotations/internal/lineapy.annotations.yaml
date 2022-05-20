@@ -1,0 +1,46 @@
+- module: lineapy.utils.lineabuiltins
+  annotations:
+    - criteria:
+        function_name: l_list
+      side_effects:
+        - views:
+            - result: RESULT
+            - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
+    - criteria:
+        function_name: l_dict
+      side_effects:
+        - views:
+            - result: RESULT
+            - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
+    - criteria:
+        function_name: l_tuple
+      side_effects:
+        - views:
+            - result: RESULT
+            - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
+    - criteria:
+        function_name: l_set
+      side_effects:
+        - views:
+            - result: RESULT
+            - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS
+    - criteria:
+        function_name: l_unpack_sequence
+      side_effects:
+        - views:
+            - result: RESULT
+            - positional_argument_index: 0
+    - criteria:
+        function_name: l_unpack_ex
+      side_effects:
+        - views:
+            - result: RESULT
+            - positional_argument_index: 0
+    - criteria:
+        function_name: l_import
+      side_effects:
+        - mutated_value:
+            positional_argument_index: 1
+        - views:
+            - result: RESULT
+            - positional_argument_index: 1

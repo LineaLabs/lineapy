@@ -1,0 +1,32 @@
+- module: io
+  annotations:
+    - criteria:
+        function_name: open
+      side_effects:
+        - dependency:
+            external_state: file_system
+        - views:
+            - result: RESULT
+            - external_state: file_system
+    - criteria:
+        class_method_names:
+          - close
+          - flush
+          - readline
+          - readlines
+          - seek
+          - truncate
+          - writelines
+          - write
+        class_instance: IOBase
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+    - criteria:
+        class_method_names:
+          - __enter__
+        class_instance: IOBase
+      side_effects:
+        - views:
+            - result: RESULT
+            - self_ref: SELF_REF

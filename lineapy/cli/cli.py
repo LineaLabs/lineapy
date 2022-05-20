@@ -1,7 +1,9 @@
 import ast
+import glob
 import logging
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -16,6 +18,7 @@ import nbformat
 import rich
 import rich.syntax
 import rich.tree
+import yaml
 from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
@@ -27,14 +30,20 @@ from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
+from lineapy.plugins.utils import slugify
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
+from lineapy.utils.config import (
+    CUSTOM_ANNOTATIONS_EXTENSION_NAME,
+    custom_annotations_folder,
+)
 from lineapy.utils.logging_config import (
     LOGGING_ENV_VARIABLE,
     configure_logging,
 )
 from lineapy.utils.utils import prettify
+from lineapy.utils.validate_annotation_spec import validate_spec
 
 """
 We are using click because our package will likely already have a dependency on
@@ -369,6 +378,142 @@ def setup_ipython_dir() -> None:
     (profile_dir / "ipython_kernel_config.py").write_text(settings)
 
     os.environ["IPYTHONDIR"] = ipython_dir_name
+
+
+@linea_cli.group("annotate")
+def annotations():
+    """
+    The annotate command can be used to import custom annotation sources
+    into LineaPy. It can be used to add a source, list all sources,
+    delete a source, and validate all sources.
+    """
+    pass
+
+
+def validate_annotations_path(ctx, param, value: pathlib.Path):
+    if value.suffix != ".yaml":
+        raise click.BadParameter(
+            f"Invalid path '{str(value)}'\n" + "path must be a yaml file"
+        )
+    if not value.exists():
+        raise click.BadParameter(
+            f"Invalid path '{str(value)}'\n"
+            + "path must be to an existing yaml file"
+        )
+    return value
+
+
+def remove_annotations_file_extension(filename: str) -> str:
+    """
+    Remove '.annotations.yaml' or '.yaml'.
+    """
+    filename = filename.replace(" ", "")
+    for ext_to_strip in (".yaml", ".annotations"):
+        name, ext = os.path.splitext(filename)
+        if ext == ext_to_strip:
+            filename = name
+    return filename
+
+
+@annotations.command("add")
+@click.argument(
+    "path",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    callback=validate_annotations_path,
+)
+@click.option(
+    "--name",
+    "-n",
+    default=None,
+    help="What to name source. Input file name is used as default",
+    type=str,
+)
+def add(path: pathlib.Path, name: str):
+    """
+    Import user-defined function annotations into Lineapy.
+
+    This command copies the yaml file whose path is provided by the user into the user's .lineapy directory to allow Lineapy to manage it.
+    """
+
+    # validate that source is in correct format before importing
+    try:
+        invalid_specs = validate_spec(path)
+        if len(invalid_specs) > 0:
+            for invalid_spec in invalid_specs:
+                logger.error(f"Invalid item {invalid_spec}")
+            exit(1)
+    except yaml.YAMLError as e:
+        logger.error(f"Unable to parse yaml file\n{e}")
+        exit(1)
+
+    # calculate name of new annotation source
+    name = name or path.stem
+    name = remove_annotations_file_extension(name)
+    name = slugify(name)
+
+    annotate_folder = custom_annotations_folder()
+
+    # Path to copy destination in user's .lineapy directory
+    destination_file = (
+        annotate_folder / (name + CUSTOM_ANNOTATIONS_EXTENSION_NAME)
+    ).resolve()
+    print(f"Creating annotation source {name} at {destination_file}")
+
+    # Copy annotation file to destinatiion
+    try:
+        shutil.copyfile(path, destination_file)
+    except IOError as e:
+        logger.error(
+            f"Failed to copy file from {path} to {destination_file}.\n{str(e)}"
+        )
+        sys.exit(1)
+
+
+@annotations.command("list")
+def list():
+    """
+    Lists full paths to all imported annotation sources.
+    """
+    wildcard_path = os.path.join(
+        custom_annotations_folder().resolve(),
+        "*" + CUSTOM_ANNOTATIONS_EXTENSION_NAME,
+    )
+
+    for annotation_path in glob.glob(wildcard_path):
+        # display source name and path to .annotations.yaml file in .lineapy folder
+        source_filename = os.path.basename(annotation_path)
+        source_name = remove_annotations_file_extension(source_filename)
+        print(f"{source_name}\t{annotation_path}")
+
+
+@annotations.command("delete")
+@click.option(
+    "--name",
+    "-n",
+    required=True,
+    help="Name of source to delete. Type `lineapy annotate list` to see all sources.",
+    type=str,
+)
+def delete(name: str):
+    """
+    Deletes imported annotation source.
+    """
+    name = remove_annotations_file_extension(name)
+    name += CUSTOM_ANNOTATIONS_EXTENSION_NAME
+
+    delete_path = custom_annotations_folder() / name
+    try:
+        os.remove(delete_path)
+    except IsADirectoryError as e:
+        logger.error(
+            f"{delete_path} must be the path to a file, not a directory\n{e}"
+        )
+        sys.exit(1)
+    except FileNotFoundError as e:
+        logger.error(
+            f"{delete_path} not a valid path. Run 'lineapy annotations list' for valid resources."
+        )
+        sys.exit(1)
 
 
 def validate_benchmark_path(ctx, param, value: pathlib.Path):

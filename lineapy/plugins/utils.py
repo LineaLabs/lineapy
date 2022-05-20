@@ -1,4 +1,5 @@
 import re
+import unicodedata
 from pathlib import Path
 from typing import Dict
 
@@ -26,12 +27,28 @@ def load_plugin_template(template_name: str) -> Template:
     return template_env.get_template(template_name)
 
 
-def safe_var_name(name: str) -> str:
+def slugify(value, allow_unicode=False):
     """
-    Returns a python-safe variable name for the given string.
-    eg for name = "p value"  "p_value" is returned
+    Taken from https://github.com/django/django/blob/master/django/utils/text.py
+
+    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+    dashes to single dashes. Remove characters that aren't alphanumerics,
+    underscores, or hyphens. Convert to lowercase. Also strip leading and
+    trailing whitespace, dashes, and underscores. Lastly, replace all dashes with underscores.
     """
-    return re.sub("\W|^(?=\d)", "_", name)  # noqa
+    value = str(value)
+    if allow_unicode:
+        value = unicodedata.normalize("NFKC", value)
+    else:
+        value = (
+            unicodedata.normalize("NFKD", value)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
+    value = re.sub(r"[^\w\s-]", "", value.lower())
+    value = re.sub(r"[-\s]+", "_", value).strip("-_")
+    value = re.sub("-", "_", value)
+    return value
 
 
 def get_lib_version_text(name: str) -> str:
