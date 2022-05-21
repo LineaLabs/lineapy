@@ -21,8 +21,8 @@ Use Case 1: Cleaning Messy Notebooks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When working in a Jupyter notebook day-to-day, it is easy to write messy code by
-jumping around between cells, deleting cells, editing cells, and executing the same cell multiple times
-&mdash; until we think we have some good results (e.g., tables, models, charts).
+jumping around between cells, deleting cells, editing cells, and executing the same cell multiple times - 
+until we think we have some good results (e.g., tables, models, charts).
 With this highly dynamic and interactive nature of notebook use, some issues may arise. For instance,
 our colleagues who try to rerun the notebook may not be able to reproduce our results. Worse, with time passing,
 we ourselves may have forgotten the exact steps to produce the previous results, hence unable to help our
