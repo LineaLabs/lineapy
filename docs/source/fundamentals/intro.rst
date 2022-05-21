@@ -34,7 +34,7 @@ thoughts, decreasing our productivity. Therefore, it is much more common to clea
 
 .. note::
 
-    To see how LineaPy can help here, check out `this <https://github.com/LineaLabs/demos/blob/main/story/clean_up_a_messy_notebook/clean_up_a_messy_notebook.ipynb>`_ demo.
+    To see how LineaPy can help here, check out `cleaning up a messy notebook <https://github.com/LineaLabs/demos/blob/main/story/clean_up_a_messy_notebook/clean_up_a_messy_notebook.ipynb>`_ demo.
 
 Use Case 2: Revisiting Previous Work
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -53,7 +53,7 @@ unreliable and even unusable.
 
 .. note::
 
-    To see how LineaPy can help here, check out `this <https://github.com/LineaLabs/demos/blob/main/story/discover_and_trace_past_work/discover_and_trace_past_work.ipynb>`_ demo.
+    To see how LineaPy can help here, check out `discovering and tracing past work <https://github.com/LineaLabs/demos/blob/main/story/discover_and_trace_past_work/discover_and_trace_past_work.ipynb>`_ demo.
 
 Use Case 3: Building Pipelines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,4 +69,4 @@ All this operational work involves time-consuming, manual labor, which means les
 
 .. note::
 
-    To see how LineaPy can help here, check out `this <https://github.com/LineaLabs/demos/blob/main/story/create_a_simple_pipeline/create_a_simple_pipeline.ipynb>`_ demo.
+    To see how LineaPy can help here, check out `creating pipelines <https://github.com/LineaLabs/demos/blob/main/story/create_a_simple_pipeline/create_a_simple_pipeline.ipynb>`_ demo.
