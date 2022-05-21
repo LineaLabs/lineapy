@@ -258,6 +258,19 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     return linea_artifact
 
 
+def reload() -> None:
+    """
+    Reloads lineapy context.
+
+    .. note::
+
+    Currently only reloads annotations but in the future can be a container for other items like configs etc.
+
+    """
+    execution_context = get_context()
+    execution_context.executor.reload_annotations()
+
+
 def artifact_store() -> LineaArtifactStore:
     """
     Returns

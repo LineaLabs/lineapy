@@ -436,6 +436,9 @@ class Executor:
         # Add executed nodes to DB
         self.db.session.commit()
 
+    def reload_annotations(self) -> None:
+        self._function_inspector.reload_annotations()
+
     def _translate_pointer(
         self, node: CallNode, pointer: ValuePointer
     ) -> ExecutorPointer:

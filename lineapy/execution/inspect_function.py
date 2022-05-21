@@ -344,6 +344,10 @@ class FunctionInspector:
     def __post_init__(self):
         self._parse()
 
+    def reload_annotations(self) -> None:
+        self.specs = get_specs()
+        self._parse()
+
     def inspect(
         self,
         function: Callable,
