@@ -34,7 +34,7 @@ artifact = lineapy.save(lineapy.file_system, "test_mplt")
 """
 
 
-@pytest.mark.xfail("libraries used inside a blackbox are not captured")
+@pytest.mark.xfail(reason="libraries used inside a blackbox are not captured")
 def test_mplt_inside_blackbox_does_not_fail(execute):
     # simply a test to check if the code runs without exceptions.
     # Later on this will be edited to ensure that the slice is accurate.
