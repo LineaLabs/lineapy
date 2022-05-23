@@ -73,10 +73,10 @@ def pointer_to_objects(
     elif isinstance(pointer, AllPositionalArgs):
         yield from function_call.args
     elif isinstance(pointer, BoundSelfOfFunction):
-        if hasattr(function_call.fn, "self"):
+        if hasattr(function_call.fn, "__self__"):
             yield function_call.fn.__self__  # type: ignore
         else:
-            yield []
+            yield from []
     elif isinstance(pointer, Result):
         yield function_call.res
     elif isinstance(pointer, ExternalState):
