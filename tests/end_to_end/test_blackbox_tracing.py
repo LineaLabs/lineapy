@@ -2,6 +2,7 @@ import pytest
 
 LINEA_CODE = """import lineapy
 """
+
 CODE = """import matplotlib.pyplot as plt
 import numpy as np
 
