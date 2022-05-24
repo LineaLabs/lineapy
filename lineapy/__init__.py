@@ -1,5 +1,6 @@
 import atexit
 
+from lineapy._config.config import options
 from lineapy.api.api import catalog, get, save, to_pipeline
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
@@ -21,6 +22,7 @@ __all__ = [
     "visualize",
     "db",
     "file_system",
+    "options",
     "__version__",
 ]
 

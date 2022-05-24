@@ -10,6 +10,7 @@ from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
+from lineapy._config.config import LineapyConfig
 from lineapy.data.types import (
     Artifact,
     CallNode,
@@ -101,6 +102,15 @@ class RelationalLineaDB:
             self.commit()
             self.session = scoped_session(sessionmaker())
             self.session.configure(bind=self.engine)
+
+    @classmethod
+    def from_configuration(cls, options: LineapyConfig) -> RelationalLineaDB:
+        f"""
+        Creates a new database.
+
+        url: {OVERRIDE_HELP_TEXT}
+        """
+        return cls(options.get_artifact_database_connection_string())
 
     @classmethod
     def from_environment(cls, url: Optional[str] = None) -> RelationalLineaDB:

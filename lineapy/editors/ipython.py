@@ -6,11 +6,12 @@ https://ipython.readthedocs.io/en/stable/config/inputtransforms.html
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import DisplayHandle, DisplayObject, display
 
+from lineapy._config.config import options
 from lineapy.data.types import JupyterCell, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.editors.ipython_cell_storage import cleanup_cells, get_cell_path
@@ -36,6 +37,7 @@ __all__ = ["_end_cell", "start", "stop", "visualize"]
 #    an extension load during ipython startup.
 # SS: do not explicitly set the state to `None` here
 STATE: Union[None, StartedState, CellsExecutedState]
+GLOBALS: Dict[str, Any]
 
 
 @dataclass
@@ -75,7 +77,9 @@ def start(
     Initializing the runtime so that the cells are traced with lineapy.
     """
     global STATE
+    global GLOBALS
     ipython = ipython or get_ipython()  # type: ignore
+    GLOBALS = ipython.user_global_ns
     # IPython does not use exceptionhook, so instead we monkeypatch
     # how it processes the exceptions, in order to add our handler
     # that removes the outer frames.
@@ -86,11 +90,15 @@ def start(
     STATE = StartedState(ipython, session_name=session_name, db_url=db_url)
 
 
-def input_transformer_post(lines: List[str]) -> List[str]:
+def input_transformer_post(
+    lines: List[str],
+    session_name: Optional[str] = None,
+) -> List[str]:
     """
     Translate the lines of code for the cell provided by ipython.
     """
     global STATE
+    global GLOBALS
     if not STATE:
         raise RuntimeError(
             "input_transformer_post shouldn't be called when we don't have an active tracer"
@@ -99,7 +107,7 @@ def input_transformer_post(lines: List[str]) -> List[str]:
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
         configure_logging()
-        db = RelationalLineaDB.from_environment(STATE.db_url)
+        db = RelationalLineaDB.from_configuration(options)
         # pass in globals from ipython so that `get_ipython()` works
         # and things like `!cat df.csv` work in the notebook
         ipython_globals = STATE.ipython.user_global_ns
@@ -109,6 +117,19 @@ def input_transformer_post(lines: List[str]) -> List[str]:
 
         STATE = CellsExecutedState(tracer, code=code)
     else:
+        if (
+            STATE.tracer.db.url
+            != options.get_artifact_database_connection_string()
+        ):
+            configure_logging()
+            db = RelationalLineaDB.from_configuration(options)
+            # pass in globals from ipython so that `get_ipython()` works
+            # and things like `!cat df.csv` work in the notebook
+            print(db.url)
+            tracer = Tracer(db, SessionType.JUPYTER, session_name, GLOBALS)
+
+            STATE = CellsExecutedState(tracer, code=code)
+
         STATE.code = code
 
     return RETURNED_LINES

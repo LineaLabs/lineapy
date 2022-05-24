@@ -22,10 +22,11 @@ import yaml
 from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
+from toml import dump
 
+from lineapy._config.config import CONFIG_FILE_NAME, options
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
@@ -56,14 +57,98 @@ logger = logging.getLogger(__name__)
 @click.group()
 @click.option(
     "--verbose",
-    help="Print out logging for graph creation and execution",
+    help="Print out logging for graph creation and execution.",
     is_flag=True,
 )
-def linea_cli(verbose: bool):
+@click.option(
+    "--home-dir",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="LineaPy home directory.",
+)
+@click.option(
+    "--artifact-database-connection-string",
+    type=click.STRING,
+    help="SQLAlchemy connection string for LineaPy database.",
+)
+@click.option(
+    "--artifact-storage-backend",
+    type=click.Choice(["local", "s3"], case_sensitive=False),
+    help="Storage backend for LineaPy artifact.",
+)
+@click.option(
+    "--artifact-storage-dir",
+    type=click.Path(dir_okay=True, path_type=pathlib.Path),
+    help="LineaPy artifact directory.",
+)
+@click.option(
+    "--customized-annotation-dir",
+    type=click.Path(dir_okay=True, path_type=pathlib.Path),
+    help="Customized annotation directory.",
+)
+@click.option(
+    "--do-not-track", type=click.BOOL, help="Opt out for user analytics."
+)
+@click.option(
+    "--logging-level",
+    type=click.Choice(
+        ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
+        case_sensitive=False,
+    ),
+    help="Logging level for LineaPy.",
+)
+@click.option(
+    "--logging-file",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Logging file",
+)
+def linea_cli(
+    verbose: bool,
+    home_dir: Optional[pathlib.Path],
+    artifact_database_connection_string: Optional[str],
+    artifact_storage_backend: Optional[str],
+    artifact_storage_dir: Optional[pathlib.Path],
+    customized_annotation_dir: Optional[pathlib.Path],
+    do_not_track: Optional[bool],
+    logging_level: Optional[str],
+    logging_file: Optional[pathlib.Path],
+):
+    args = list(locals().keys())
+
     # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
     if verbose:
         os.environ[LOGGING_ENV_VARIABLE] = "DEBUG"
     configure_logging()
+
+    for arg in args:
+        if arg in options.__dict__.keys() and locals().get(arg) is not None:
+            options.set(arg, locals().get(arg))
+
+    logging.info("Starting LineaPy with following configurations")
+    logging.info({k: v for k, v in options.__dict__.items() if v is not None})
+    if not pathlib.Path(options.home_dir).exists():
+        logger.warning(
+            f"LineaPy home directory {pathlib.Path(options.home_dir).as_posix()} does not exist. Creating a new one."
+        )
+        pathlib.Path(options.home_dir).mkdir(parents=True, exist_ok=True)
+
+
+@linea_cli.command()
+@click.option(
+    "--output-file",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Output LineaPy config file",
+)
+def init(output_file: Optional[pathlib.Path]):
+    """
+    Create configure file.
+    """
+    if output_file is None:
+        output_file = pathlib.Path(options.home_dir).joinpath(CONFIG_FILE_NAME)
+
+    with open(output_file, "w") as f:
+        logging.info(f"Writing LineaPy config file to {output_file}")
+        config = {k: v for k, v in options.__dict__.items() if v is not None}
+        dump(config, f)
 
 
 @linea_cli.command()
@@ -111,7 +196,7 @@ def notebook(
     logger.info("Printing slice")
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
-    db = RelationalLineaDB.from_environment()
+    db = RelationalLineaDB.from_configuration(options)
     artifact = db.get_artifact_by_name(artifact_name)
     # FIXME: mypy issue with SQLAlchemy, see https://github.com/python/typeshed/issues/974
     api_artifact = LineaArtifact(
@@ -123,8 +208,7 @@ def notebook(
         name=artifact_name,
         date_created=artifact.date_created,  # type: ignore
     )
-    # logger.info(api_artifact.get_code())
-    print(api_artifact.get_code())
+    logger.info(api_artifact.get_code())
 
 
 @linea_cli.command()
@@ -155,7 +239,7 @@ def file(
     )
 
     # Run the code:
-    db = RelationalLineaDB.from_environment()
+    db = RelationalLineaDB.from_configuration(options)
     tracer = Tracer(db, SessionType.SCRIPT)
     # Redirect all stdout to stderr, so its not printed.
     with redirect_stdout(sys.stderr):
@@ -198,7 +282,6 @@ def generate_save_code(
 
 
 @linea_cli.command()
-@click.option("--db-url", default=None, help=OVERRIDE_HELP_TEXT)
 @click.option(
     "--slice",
     default=None,
@@ -247,7 +330,6 @@ def generate_save_code(
 )
 def python(
     file_name: pathlib.Path,
-    db_url: str,
     slice: List[str],  # cast tuple into list
     export_slice: List[str],  # cast tuple into list
     export_slice_to_airflow_dag: str,
@@ -260,7 +342,7 @@ def python(
     set_custom_excepthook()
     tree = rich.tree.Tree(f"📄 {file_name}")
 
-    db = RelationalLineaDB.from_environment(db_url)
+    db = RelationalLineaDB.from_configuration(options)
     code = file_name.read_text()
 
     if print_source:
@@ -342,17 +424,14 @@ def python(
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("jupyter_args", nargs=-1, type=click.UNPROCESSED)
 def jupyter(jupyter_args):
-    # Note that Jupyter wraps around iPython, which takes care of the lib sending
-    setup_ipython_dir()
-    res = subprocess.run(["jupyter", *jupyter_args])
+    res = subprocess.run(["jupyter", "--ext=lineapy", *jupyter_args])
     sys.exit(res.returncode)
 
 
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("ipython_args", nargs=-1, type=click.UNPROCESSED)
 def ipython(ipython_args):
-    setup_ipython_dir()
-    res = subprocess.run(["ipython", *ipython_args])
+    res = subprocess.run(["ipython", "--ext=lineapy", *ipython_args])
     sys.exit(res.returncode)
 
 
@@ -362,7 +441,6 @@ def jupytext(jupytext_args):
     setup_ipython_dir()
     res = subprocess.run(["jupytext", *jupytext_args])
     sys.exit(res.returncode)
-
 
 def setup_ipython_dir() -> None:
     """
