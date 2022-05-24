@@ -7,12 +7,14 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from io import IOBase
+from pathlib import Path
 from types import ModuleType
 from typing import Callable, Dict, Hashable, Iterable, List, Optional, Tuple
 
 import yaml
 from pydantic import ValidationError
 
+from lineapy._config.config import CUSTOM_ANNOTATIONS_EXTENSION_NAME, options
 from lineapy.instrumentation.annotation_spec import (
     AllPositionalArgs,
     Annotation,
@@ -32,10 +34,6 @@ from lineapy.instrumentation.annotation_spec import (
     Result,
     ValuePointer,
     ViewOfValues,
-)
-from lineapy.utils.config import (
-    CUSTOM_ANNOTATIONS_EXTENSION_NAME,
-    custom_annotations_folder,
 )
 
 logger = logging.getLogger(__name__)
@@ -112,7 +110,9 @@ def get_specs() -> Dict[str, List[Annotation]]:
     paths.extend(
         glob.glob(
             os.path.join(
-                custom_annotations_folder().resolve(),
+                Path(
+                    options._safe_get_customized_annotation_folder()
+                ).resolve(),
                 "./*" + CUSTOM_ANNOTATIONS_EXTENSION_NAME,
             )
         )

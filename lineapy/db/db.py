@@ -110,7 +110,8 @@ class RelationalLineaDB:
 
         url: {OVERRIDE_HELP_TEXT}
         """
-        return cls(options.get_artifact_database_connection_string())
+        return cls(options._safe_get_artifact_database_connection_string())
+        # return cls(options.artifact_database_connection_string)
 
     @classmethod
     def from_environment(cls, url: Optional[str] = None) -> RelationalLineaDB:

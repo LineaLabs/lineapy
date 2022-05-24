@@ -9,6 +9,7 @@ import sys
 import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 from io import TextIOWrapper
+from pathlib import Path
 from statistics import mean
 from time import perf_counter
 from typing import Iterable, List, Optional
@@ -24,7 +25,11 @@ from rich.console import Console
 from rich.progress import Progress
 from toml import dump
 
-from lineapy._config.config import CONFIG_FILE_NAME, options
+from lineapy._config.config import (
+    CONFIG_FILE_NAME,
+    CUSTOM_ANNOTATIONS_EXTENSION_NAME,
+    options,
+)
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
@@ -35,14 +40,7 @@ from lineapy.plugins.utils import slugify
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
-from lineapy.utils.config import (
-    CUSTOM_ANNOTATIONS_EXTENSION_NAME,
-    custom_annotations_folder,
-)
-from lineapy.utils.logging_config import (
-    LOGGING_ENV_VARIABLE,
-    configure_logging,
-)
+from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 from lineapy.utils.validate_annotation_spec import validate_spec
 
@@ -62,7 +60,7 @@ logger = logging.getLogger(__name__)
 )
 @click.option(
     "--home-dir",
-    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    type=click.Path(dir_okay=True, path_type=pathlib.Path),
     help="LineaPy home directory.",
 )
 @click.option(
@@ -70,11 +68,11 @@ logger = logging.getLogger(__name__)
     type=click.STRING,
     help="SQLAlchemy connection string for LineaPy database.",
 )
-@click.option(
-    "--artifact-storage-backend",
-    type=click.Choice(["local", "s3"], case_sensitive=False),
-    help="Storage backend for LineaPy artifact.",
-)
+# @click.option(
+#     "--artifact-storage-backend",
+#     type=click.Choice(["local", "s3"], case_sensitive=False),
+#     help="Storage backend for LineaPy artifact.",
+# )
 @click.option(
     "--artifact-storage-dir",
     type=click.Path(dir_okay=True, path_type=pathlib.Path),
@@ -105,31 +103,31 @@ def linea_cli(
     verbose: bool,
     home_dir: Optional[pathlib.Path],
     artifact_database_connection_string: Optional[str],
-    artifact_storage_backend: Optional[str],
+    # artifact_storage_backend: Optional[str],
     artifact_storage_dir: Optional[pathlib.Path],
     customized_annotation_dir: Optional[pathlib.Path],
     do_not_track: Optional[bool],
     logging_level: Optional[str],
     logging_file: Optional[pathlib.Path],
 ):
-    args = list(locals().keys())
+    """ """
+    args = [x for x in locals().keys()]
 
     # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
     if verbose:
-        os.environ[LOGGING_ENV_VARIABLE] = "DEBUG"
+        # os.environ[LOGGING_ENV_VARIABLE] = "DEBUG"
+        options.set("LINEAPY_LOG_LEVEL", "DEBUG")
+
     configure_logging()
 
     for arg in args:
         if arg in options.__dict__.keys() and locals().get(arg) is not None:
             options.set(arg, locals().get(arg))
 
-    logging.info("Starting LineaPy with following configurations")
-    logging.info({k: v for k, v in options.__dict__.items() if v is not None})
-    if not pathlib.Path(options.home_dir).exists():
-        logger.warning(
-            f"LineaPy home directory {pathlib.Path(options.home_dir).as_posix()} does not exist. Creating a new one."
-        )
-        pathlib.Path(options.home_dir).mkdir(parents=True, exist_ok=True)
+    options.fill_empty()
+
+    # logger.info("Starting LineaPy with following configurations")
+    # logger.info({k: v for k, v in options.__dict__.items() if v is not None})
 
 
 @linea_cli.command()
@@ -258,8 +256,7 @@ def file(
         name=artifact_name,
         date_created=artifact.date_created,  # type:ignore
     )
-    # logger.info(api_artifact.get_code())
-    print(api_artifact.get_code())
+    logger.info(api_artifact.get_code())
 
 
 def generate_save_code(
@@ -442,6 +439,7 @@ def jupytext(jupytext_args):
     res = subprocess.run(["jupytext", *jupytext_args])
     sys.exit(res.returncode)
 
+
 def setup_ipython_dir() -> None:
     """
     Set the ipython directory to include the lineapy extension by default
@@ -529,13 +527,13 @@ def add(path: pathlib.Path, name: str):
     name = remove_annotations_file_extension(name)
     name = slugify(name)
 
-    annotate_folder = custom_annotations_folder()
+    annotate_folder = options._safe_get_customized_annotation_folder()
 
     # Path to copy destination in user's .lineapy directory
     destination_file = (
         annotate_folder / (name + CUSTOM_ANNOTATIONS_EXTENSION_NAME)
     ).resolve()
-    print(f"Creating annotation source {name} at {destination_file}")
+    logger.info(f"Creating annotation source {name} at {destination_file}")
 
     # Copy annotation file to destinatiion
     try:
@@ -553,7 +551,7 @@ def list():
     Lists full paths to all imported annotation sources.
     """
     wildcard_path = os.path.join(
-        custom_annotations_folder().resolve(),
+        options._safe_get_customized_annotation_folder().resolve(),
         "*" + CUSTOM_ANNOTATIONS_EXTENSION_NAME,
     )
 
@@ -579,7 +577,9 @@ def delete(name: str):
     name = remove_annotations_file_extension(name)
     name += CUSTOM_ANNOTATIONS_EXTENSION_NAME
 
-    delete_path = custom_annotations_folder() / name
+    delete_path = options._safe_get_customized_annotation_folder().joinpath(
+        name
+    )
     try:
         os.remove(delete_path)
     except IsADirectoryError as e:

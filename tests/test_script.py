@@ -2,12 +2,13 @@ import os
 import shutil
 import subprocess
 import tempfile
+from pathlib import Path
 
 import pytest
 
+from lineapy._config.config import options
 from lineapy.cli.cli import remove_annotations_file_extension
 from lineapy.plugins.utils import slugify
-from lineapy.utils.config import CUSTOM_ANNOTATIONS_FOLDER_NAME, linea_folder
 
 
 @pytest.mark.slow
@@ -117,9 +118,11 @@ def annotations_folder():
     '.lineapy/custom-annotations'dir and
     replaces it with a temp for testing.
     """
-    path = linea_folder() / CUSTOM_ANNOTATIONS_FOLDER_NAME
+    path = Path(options._safe_get_customized_annotation_folder())
     path_str = str(path.resolve())
-    stash_path = linea_folder() / (CUSTOM_ANNOTATIONS_FOLDER_NAME + ".old")
+    stash_path = path.parent.joinpath(path.name + ".old")
+    if not stash_path.exists():
+        stash_path.mkdir()
     stash_path_str = str(stash_path.resolve())
     shutil.move(path_str, stash_path_str)
 
@@ -315,7 +318,8 @@ def test_linea_python_equivalent(tmp_path, code):
     f.write_text(code)
 
     linea_run = subprocess.run(
-        ["lineapy", "python", str(f)], capture_output=True
+        ["lineapy", "python", str(f)],
+        capture_output=True,
     )
     python_run = subprocess.run(["python", str(f)], capture_output=True)
     assert linea_run.returncode == python_run.returncode

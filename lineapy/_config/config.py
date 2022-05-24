@@ -11,6 +11,8 @@ LOG_FILE_NAME = "lineapy.log"
 CONFIG_FILE_NAME = "lineapy_config.toml"
 FILE_PICKLER_BASEDIR = "linea_pickles"
 DB_FILE_NAME = "db.sqlite"
+CUSTOM_ANNOTATIONS_FOLDER_NAME = "custom-annotations"
+CUSTOM_ANNOTATIONS_EXTENSION_NAME = ".annotations.yaml"
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ logger = logging.getLogger(__name__)
 class LineapyConfig:
     home_dir: Path
     artifact_database_connection_string: Optional[str]
-    artifact_storage_backend: str
+    # artifact_storage_backend: str
     artifact_storage_dir: Optional[Path]
     customized_annotation_folder: Optional[Path]
     do_not_track: bool
@@ -33,7 +35,7 @@ class LineapyConfig:
         self,
         home_dir=f"{os.environ.get('HOME','~')}/{LINEAPY_FOLDER_NAME}",
         artifact_database_connection_string=None,
-        artifact_storage_backend="local",
+        # artifact_storage_backend="local",
         artifact_storage_dir=None,
         customized_annotation_folder=None,
         do_not_track=False,
@@ -41,13 +43,12 @@ class LineapyConfig:
         logging_file=None,
         # artifact_aws_s3_bucket = None,
         # artifact_aws_s3_bucket_prefix = None,
-        # ipython_dir = None
     ):
         self.home_dir = home_dir
         self.artifact_database_connection_string = (
             artifact_database_connection_string
         )
-        self.artifact_storage_backend = artifact_storage_backend
+        # self.artifact_storage_backend = artifact_storage_backend
         self.artifact_storage_dir = artifact_storage_dir
         self.customized_annotation_folder = customized_annotation_folder
         self.do_not_track = do_not_track
@@ -55,7 +56,6 @@ class LineapyConfig:
         self.logging_file = logging_file
         # self.artifact_aws_s3_bucket = artifact_aws_s3_bucket
         # self.artifact_aws_s3_bucket_prefix = artifact_aws_s3_bucket_prefix
-        # self.ipython_dir = ipython_dir
 
         # config file
         config_file_path = Path(
@@ -80,10 +80,13 @@ class LineapyConfig:
                 self.set(key, value)
 
         # env vars
-        for var_name in self.__dict__.keys():
-            env_var_value = os.environ.get(f"LINEAPY_{var_name.upper()}")
+        for key, value in self.__dict__.items():
+            env_var_value = os.environ.get(f"LINEAPY_{key.upper()}")
             if env_var_value is not None:
-                self.set(var_name, env_var_value)
+                self.set(key, env_var_value)
+
+            if value is not None:
+                os.environ[f"LINEAPY_{key.upper()}"] = str(value)
 
     def get(self, key: str) -> Any:
         if key in self.__dict__.keys():
@@ -92,10 +95,7 @@ class LineapyConfig:
             logger.error(key, "is not a lineapy config item")
             raise Exception  # Unimplemented
 
-    def set(self, key, value) -> None:
-        logger.warning(
-            "Modify lineapy config during session might cause some unexpected behaviors"
-        )
+    def set(self, key: str, value: Any) -> None:
         if key not in self.__dict__.keys():
             logger.error(key, "is not a lineapy config item")
             raise Exception  # Unimplemented
@@ -103,48 +103,55 @@ class LineapyConfig:
             self.__dict__[key] = value
             os.environ[f"LINEAPY_{key.upper()}"] = str(value)
 
-    # def reset(self)
+    def fill_empty(self):
+        self._safe_get_logging_file()
+        self._safe_get_artifact_database_connection_string()
+        self._safe_get_artifact_storage_dir()
+        self._safe_get_customized_annotation_folder()
 
-    def get_artifact_storage_dir(self) -> Path:
-        """
-        If artifact_storage_dir is set, return it; otherwise use home_dir/FILE_PICKLER_BASEDIR
-        """
-        artifact_storage_dir = self.artifact_storage_dir
-        if artifact_storage_dir is None:
-            artifact_storage_dir = self._save_get_home_dir().joinpath(
-                FILE_PICKLER_BASEDIR
-            )
-
-        if not artifact_storage_dir.exists():
+    def _safe_get_folder(self, name) -> Path:
+        if not Path(self.__dict__[name]).exists():
             logger.warning(
-                f"No {artifact_storage_dir.name} folder found. Creating a new folder in {artifact_storage_dir.parent.as_posix()} directory."
+                f"Folder {Path(self.__dict__[name]).as_posix()} does not exist. Creating a new one."
             )
-            artifact_storage_dir.mkdir(parents=False, exist_ok=True)
-        return artifact_storage_dir
+            Path(self.__dict__[name]).mkdir(parents=True, exist_ok=True)
+        return Path(self.__dict__[name])
 
-    def get_artifact_database_connection_string(self) -> str:
-        """
-        If artifact_database_connection_string is set, return it; otherwise use sqlite:///home_dir/DB_FILE_NAME
-        """
-        artifact_database_connection_string = (
-            self.artifact_database_connection_string
-        )
-        if artifact_database_connection_string is None:
-            artifact_database_connection_string = (
-                f"sqlite:///{self._save_get_home_dir()}/{DB_FILE_NAME}"
+    def _safe_get_logging_file(self) -> Path:
+        if self.logging_file is None:
+            self.set(
+                "logging_file",
+                self._safe_get_folder("home_dir").joinpath(LOG_FILE_NAME),
             )
-        return artifact_database_connection_string
+        return Path(self.logging_file)
 
-    def get_logging_file(self) -> Path:
-        logging_file = self.logging_file
-        if logging_file is None:
-            logging_file = self._save_get_home_dir().joinpath(LOG_FILE_NAME)
-        return logging_file
+    def _safe_get_artifact_database_connection_string(self) -> str:
+        if self.artifact_database_connection_string is None:
+            self.set(
+                "artifact_database_connection_string",
+                f"sqlite:///{self._safe_get_folder('home_dir')}/{DB_FILE_NAME}",
+            )
+        return self.artifact_database_connection_string
 
-    def _save_get_home_dir(self) -> Path:
-        if not Path(self.home_dir).exists():
-            Path(self.home_dir).mkdir()
-        return Path(self.home_dir)
+    def _safe_get_artifact_storage_dir(self) -> Path:
+        if self.artifact_storage_dir is None:
+            self.set(
+                "artifact_storage_dir",
+                self._safe_get_folder("home_dir").joinpath(
+                    FILE_PICKLER_BASEDIR
+                ),
+            )
+        return self._safe_get_folder("artifact_storage_dir")
+
+    def _safe_get_customized_annotation_folder(self) -> Path:
+        if self.customized_annotation_folder is None:
+            self.set(
+                "customized_annotation_folder",
+                self._safe_get_folder("home_dir").joinpath(
+                    CUSTOM_ANNOTATIONS_FOLDER_NAME
+                ),
+            )
+        return self._safe_get_folder("customized_annotation_folder")
 
 
 options = LineapyConfig()

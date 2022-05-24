@@ -117,17 +117,10 @@ def input_transformer_post(
 
         STATE = CellsExecutedState(tracer, code=code)
     else:
-        if (
-            STATE.tracer.db.url
-            != options.get_artifact_database_connection_string()
-        ):
+        if STATE.tracer.db.url != options.artifact_database_connection_string:
             configure_logging()
             db = RelationalLineaDB.from_configuration(options)
-            # pass in globals from ipython so that `get_ipython()` works
-            # and things like `!cat df.csv` work in the notebook
-            print(db.url)
             tracer = Tracer(db, SessionType.JUPYTER, session_name, GLOBALS)
-
             STATE = CellsExecutedState(tracer, code=code)
 
         STATE.code = code
