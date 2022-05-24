@@ -3,7 +3,7 @@ import pickle
 from pathlib import Path
 from typing import Optional
 
-from lineapy._config.config import DB_FILE_NAME, LINEAPY_FOLDER_NAME, options
+from lineapy.utils.config import DB_FILE_NAME, LINEAPY_FOLDER_NAME, options
 
 # The name of the database URL environmental variable
 DB_URL_ENV_VARIABLE = "LINEA_DATABASE_URL"

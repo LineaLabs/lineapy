@@ -9,7 +9,6 @@ import sys
 import tempfile
 from contextlib import redirect_stderr, redirect_stdout
 from io import TextIOWrapper
-from pathlib import Path
 from statistics import mean
 from time import perf_counter
 from typing import Iterable, List, Optional
@@ -25,11 +24,6 @@ from rich.console import Console
 from rich.progress import Progress
 from toml import dump
 
-from lineapy._config.config import (
-    CONFIG_FILE_NAME,
-    CUSTOM_ANNOTATIONS_EXTENSION_NAME,
-    options,
-)
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
@@ -40,6 +34,11 @@ from lineapy.plugins.utils import slugify
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
+from lineapy.utils.config import (
+    CONFIG_FILE_NAME,
+    CUSTOM_ANNOTATIONS_EXTENSION_NAME,
+    options,
+)
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 from lineapy.utils.validate_annotation_spec import validate_spec
@@ -84,7 +83,10 @@ logger = logging.getLogger(__name__)
     help="Customized annotation directory.",
 )
 @click.option(
-    "--do-not-track", type=click.BOOL, help="Opt out for user analytics."
+    "--do-not-track",
+    type=click.BOOL,
+    help="Opt out for user analytics.",
+    is_flag=True,
 )
 @click.option(
     "--logging-level",
@@ -103,19 +105,19 @@ def linea_cli(
     verbose: bool,
     home_dir: Optional[pathlib.Path],
     artifact_database_connection_string: Optional[str],
-    # artifact_storage_backend: Optional[str],
     artifact_storage_dir: Optional[pathlib.Path],
     customized_annotation_dir: Optional[pathlib.Path],
     do_not_track: Optional[bool],
     logging_level: Optional[str],
     logging_file: Optional[pathlib.Path],
 ):
-    """ """
+    """
+    Pass all configuration to LineapyConfig
+    """
     args = [x for x in locals().keys()]
 
     # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
     if verbose:
-        # os.environ[LOGGING_ENV_VARIABLE] = "DEBUG"
         options.set("LINEAPY_LOG_LEVEL", "DEBUG")
 
     configure_logging()
@@ -138,7 +140,15 @@ def linea_cli(
 )
 def init(output_file: Optional[pathlib.Path]):
     """
-    Create configure file.
+    Create configure file based on your input options at desired file path.
+    If not specify file path, it will be at LINEAPY_HOME_DIR/CONFIG_FILE_NAME
+
+    For example,
+
+        lineapy --home-dir=/lineapy init
+
+
+    will generate a configure file with home_dir='/lineapy'
     """
     if output_file is None:
         output_file = pathlib.Path(options.home_dir).joinpath(CONFIG_FILE_NAME)
@@ -535,7 +545,7 @@ def add(path: pathlib.Path, name: str):
     ).resolve()
     logger.info(f"Creating annotation source {name} at {destination_file}")
 
-    # Copy annotation file to destinatiion
+    # Copy annotation file to destination
     try:
         shutil.copyfile(path, destination_file)
     except IOError as e:

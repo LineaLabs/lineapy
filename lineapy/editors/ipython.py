@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Optional, Union
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import DisplayHandle, DisplayObject, display
 
-from lineapy._config.config import options
 from lineapy.data.types import JupyterCell, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.editors.ipython_cell_storage import cleanup_cells, get_cell_path
@@ -21,6 +20,7 @@ from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
+from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 
 __all__ = ["_end_cell", "start", "stop", "visualize"]

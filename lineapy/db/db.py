@@ -10,7 +10,6 @@ from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
-from lineapy._config.config import LineapyConfig
 from lineapy.data.types import (
     Artifact,
     CallNode,
@@ -56,6 +55,7 @@ from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.utils.analytics.event_schemas import ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track  # circular dep issues
+from lineapy.utils.config import LineapyConfig
 from lineapy.utils.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
 from lineapy.utils.utils import get_literal_value_from_string
 

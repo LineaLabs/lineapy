@@ -1,12 +1,12 @@
 import atexit
 
-from lineapy._config.config import options
 from lineapy.api.api import catalog, get, save, to_pipeline
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
 from lineapy.editors.ipython import start, stop, visualize
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils.config import options
 from lineapy.utils.lineabuiltins import db, file_system
 
 __all__ = [

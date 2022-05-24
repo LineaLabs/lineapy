@@ -14,7 +14,7 @@ from typing import List, Optional
 
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
-from lineapy.db.utils import FILE_PICKLER_BASEDIR, FilePickler
+from lineapy.db.utils import FilePickler
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
@@ -31,7 +31,7 @@ from lineapy.utils.analytics import (
     side_effect_to_str,
     track,
 )
-from lineapy.utils.config import linea_folder
+from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_value_type
 
@@ -144,10 +144,8 @@ def _try_write_to_db(value: object) -> Path:
     if isinstance(value, types.ModuleType):
         raise ArtifactSaveException()
     # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = (
-        linea_folder()
-        / FILE_PICKLER_BASEDIR
-        / "".join(
+    filepath = options._safe_get_artifact_storage_dir().joinpath(
+        "".join(
             random.choices(
                 string.ascii_uppercase
                 + string.ascii_lowercase

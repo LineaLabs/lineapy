@@ -15,8 +15,8 @@ from functools import lru_cache
 
 import requests
 
-from lineapy._config.config import options
 from lineapy.utils.analytics.event_schemas import AllEvents
+from lineapy.utils.config import options
 
 logger = logging.getLogger(__name__)
 

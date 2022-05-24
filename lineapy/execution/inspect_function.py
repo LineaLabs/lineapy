@@ -14,7 +14,6 @@ from typing import Callable, Dict, Hashable, Iterable, List, Optional, Tuple
 import yaml
 from pydantic import ValidationError
 
-from lineapy._config.config import CUSTOM_ANNOTATIONS_EXTENSION_NAME, options
 from lineapy.instrumentation.annotation_spec import (
     AllPositionalArgs,
     Annotation,
@@ -35,6 +34,7 @@ from lineapy.instrumentation.annotation_spec import (
     ValuePointer,
     ViewOfValues,
 )
+from lineapy.utils.config import CUSTOM_ANNOTATIONS_EXTENSION_NAME, options
 
 logger = logging.getLogger(__name__)
 

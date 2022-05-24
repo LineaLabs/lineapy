@@ -16,7 +16,6 @@ import yaml
 from pytest import mark, param
 
 # from lineapy.utils.logging_config import LOGGING_ENV_VARIABLE
-# from lineapy._config.config import LINEAPY_LOG_LEVEL
 from lineapy.utils.utils import prettify
 
 INTEGRATION_DIR = pathlib.Path(__file__).parent

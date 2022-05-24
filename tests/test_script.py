@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from lineapy._config.config import options
 from lineapy.cli.cli import remove_annotations_file_extension
 from lineapy.plugins.utils import slugify
+from lineapy.utils.config import options
 
 
 @pytest.mark.slow

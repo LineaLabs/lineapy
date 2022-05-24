@@ -10,7 +10,7 @@ import logging
 from rich.console import Console
 from rich.logging import RichHandler
 
-from lineapy._config.config import options
+from lineapy.utils.config import options
 
 # https://rich.readthedocs.io/en/stable/logging.html#logging-handler
 
