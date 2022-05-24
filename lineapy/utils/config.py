@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from dataclasses import dataclass
@@ -5,11 +6,9 @@ from os import PathLike
 from pathlib import Path
 from typing import Any, Optional
 
-import toml
-
 LINEAPY_FOLDER_NAME = ".lineapy"
 LOG_FILE_NAME = "lineapy.log"
-CONFIG_FILE_NAME = "lineapy_config.toml"
+CONFIG_FILE_NAME = "lineapy_config.json"
 FILE_PICKLER_BASEDIR = "linea_pickles"
 DB_FILE_NAME = "db.sqlite"
 CUSTOM_ANNOTATIONS_FOLDER_NAME = "custom-annotations"
@@ -74,13 +73,15 @@ class LineapyConfig:
             )
         ).joinpath(CONFIG_FILE_NAME)
         if config_file_path.exists():
-            _read_config = toml.load(config_file_path)
+            with open(config_file_path, "r") as f:
+                _read_config = json.load(f)
         else:
             config_file_path = Path(os.environ.get("HOME", "~")).joinpath(
                 CONFIG_FILE_NAME
             )
             if config_file_path.exists():
-                _read_config = toml.load(config_file_path)
+                with open(config_file_path, "r") as f:
+                    _read_config = json.load(f)
             else:
                 _read_config = {}
 
@@ -126,13 +127,13 @@ class LineapyConfig:
             Path(self.__dict__[name]).mkdir(parents=True, exist_ok=True)
         return Path(self.__dict__[name])
 
-    def _safe_get_logging_file(self) -> Optional[PathLike]:
+    def _safe_get_logging_file(self) -> Path:
         if self.logging_file is None:
             self.set(
                 "logging_file",
                 self._safe_get_folder("home_dir").joinpath(LOG_FILE_NAME),
             )
-        return self.logging_file
+        return Path(str(self.logging_file))
 
     def _safe_get_artifact_database_connection_string(self) -> str:
         if self.artifact_database_connection_string is None:

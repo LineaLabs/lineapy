@@ -1,5 +1,6 @@
 import ast
 import glob
+import json
 import logging
 import os
 import pathlib
@@ -22,7 +23,6 @@ import yaml
 from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
-from toml import dump
 
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
@@ -155,8 +155,10 @@ def init(output_file: Optional[pathlib.Path]):
 
     with open(output_file, "w") as f:
         logging.info(f"Writing LineaPy config file to {output_file}")
-        config = {k: v for k, v in options.__dict__.items() if v is not None}
-        dump(config, f)
+        config = {
+            k: str(v) for k, v in options.__dict__.items() if v is not None
+        }
+        json.dump(config, f)
 
 
 @linea_cli.command()
