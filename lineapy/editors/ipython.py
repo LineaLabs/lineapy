@@ -117,7 +117,7 @@ def input_transformer_post(
 
         STATE = CellsExecutedState(tracer, code=code)
     else:
-        if STATE.tracer.db.url != options.artifact_database_connection_string:
+        if STATE.tracer.db.url != options.database_connection_string:
             configure_logging()
             db = RelationalLineaDB.from_configuration(options)
             tracer = Tracer(db, SessionType.JUPYTER, session_name, GLOBALS)

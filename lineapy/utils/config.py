@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class LineapyConfig:
     home_dir: Path
-    artifact_database_connection_string: Optional[str]
+    database_connection_string: Optional[str]
     # artifact_storage_backend: str
     artifact_storage_dir: Optional[Path]
     customized_annotation_folder: Optional[Path]
@@ -34,7 +34,7 @@ class LineapyConfig:
     def __init__(
         self,
         home_dir=f"{os.environ.get('HOME','~')}/{LINEAPY_FOLDER_NAME}",
-        artifact_database_connection_string=None,
+        database_connection_string=None,
         # artifact_storage_backend="local",
         artifact_storage_dir=None,
         customized_annotation_folder=None,
@@ -53,9 +53,7 @@ class LineapyConfig:
         possible. Finally, we set all values in environmental variables.
         """
         self.home_dir = home_dir
-        self.artifact_database_connection_string = (
-            artifact_database_connection_string
-        )
+        self.database_connection_string = database_connection_string
         # self.artifact_storage_backend = artifact_storage_backend
         self.artifact_storage_dir = artifact_storage_dir
         self.customized_annotation_folder = customized_annotation_folder
@@ -115,7 +113,7 @@ class LineapyConfig:
 
     def fill_empty(self):
         self._safe_get_logging_file()
-        self._safe_get_artifact_database_connection_string()
+        self._safe_get_database_connection_string()
         self._safe_get_artifact_storage_dir()
         self._safe_get_customized_annotation_folder()
 
@@ -135,13 +133,13 @@ class LineapyConfig:
             )
         return Path(str(self.logging_file))
 
-    def _safe_get_artifact_database_connection_string(self) -> str:
-        if self.artifact_database_connection_string is None:
+    def _safe_get_database_connection_string(self) -> str:
+        if self.database_connection_string is None:
             self.set(
-                "artifact_database_connection_string",
+                "database_connection_string",
                 f"sqlite:///{self._safe_get_folder('home_dir')}/{DB_FILE_NAME}",
             )
-        return str(self.artifact_database_connection_string)
+        return str(self.database_connection_string)
 
     def _safe_get_artifact_storage_dir(self) -> Path:
         if self.artifact_storage_dir is None:
