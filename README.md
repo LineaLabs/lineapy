@@ -10,18 +10,21 @@
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
 [![Twitter](https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter)](https://twitter.com/lineapy_oss)
 
+
 LineaPy is a Python package for capturing, analyzing, and automating data science workflows.
 At a high level, LineaPy traces the sequence of code execution to form a comprehensive understanding
 of the code and its context. This understanding allows LineaPy to provide a set of tools that help
 data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
+<p align="center">
+    <b style="font-size:48px;">👇 Try It Out! 👇</b>
+    <br>
+    <a href="https://bit.ly/38jC9Zq"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
+</p>
+
 https://user-images.githubusercontent.com/13392380/169427654-487d8d4b-3eda-462a-a96c-51c151f39ab9.mp4
 
-<p align="center">
-    <b style="font-size:24px;">👇 Try It Out! 👇</b>
-    <br>
-    <a href="https://colab.research.google.com/drive/1o7SoVlQ-2SxjqKL7A1Dk2TbMx-utJXf2?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
-</p>
+
 
 - [What Problems Can LineaPy Solve?](#what-problems-can-lineapy-solve)
   - [Cleaning Messy Notebooks](#use-case-1-cleaning-messy-notebooks)
