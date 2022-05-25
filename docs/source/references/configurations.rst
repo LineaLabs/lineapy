@@ -29,6 +29,20 @@ These items are determined by the following order:
 | logging_file                        | logging file path             | Path    | `$LINEAPY_HOME_DIR/lineapy.log`            | `LINEAPY_LOGGING_FILE`                          | 
 +-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
 
+All LineaPy configuration items follow following naming convention; in configuration file, all variable name should be lower case with underscore, 
+all environmental variable name should be upper case with underscore and all CLI options should be lower case 
+For instance, following three will achieve the same thing to change the LineaPy base folder to :code:`/lineapy` and start ipython.
+
+- Adding :code:`{"home_dir": "/lineapy"}` in configuration file: and run :code:`lineapy ipython`
+- In environmental variable: :code:`export LINEAPY_HOME_DIR=/lineapy && lineapy ipython` 
+- In CLI options: :code:`lineapy --home-dir='/lineapy' ipython`
+
+LineaPy also provides a CLI command to generate the configuration file (as a json file) based on your environmental variables and CLI options for example:
+
+.. code:: bash  
+    
+    $ lineapy --home-dir='/lineapy' init 
+
 
 Interactive Mode
 ----------------

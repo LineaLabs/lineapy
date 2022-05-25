@@ -126,7 +126,7 @@ def linea_cli(
         if arg in options.__dict__.keys() and locals().get(arg) is not None:
             options.set(arg, locals().get(arg))
 
-    options.fill_empty()
+    options._fill_empty()
 
     # logger.info("Starting LineaPy with following configurations")
     # logger.info({k: v for k, v in options.__dict__.items() if v is not None})

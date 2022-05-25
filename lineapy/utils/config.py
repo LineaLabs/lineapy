@@ -19,6 +19,17 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class LineapyConfig:
+    """LineaPy Configuration
+
+    A dataclass that holds configuration items and sets them as environmental
+    variables. All items are initialized with default value. Then replace
+    with values in the configuration file (if it is existing in LINEAPY_HOME_DIR,
+    use this one, otherwise look for home directory) if available. Then,
+    replace with values in environmental variables if possible. Finally, it sets
+    all values in environmental variables.
+
+    """
+
     home_dir: Path
     database_connection_string: Optional[str]
     # artifact_storage_backend: str
@@ -44,14 +55,6 @@ class LineapyConfig:
         # artifact_aws_s3_bucket = None,
         # artifact_aws_s3_bucket_prefix = None,
     ):
-
-        """
-        The configuration items are initialized with default value. Then replace
-        with value in the configuration file(if it is existing in
-        LINEAPY_HOME_DIR, use this one, otherwise look for home directory) if
-        available. Then, replace with value in environmental variables if
-        possible. Finally, we set all values in environmental variables.
-        """
         self.home_dir = home_dir
         self.database_connection_string = database_connection_string
         # self.artifact_storage_backend = artifact_storage_backend
@@ -97,6 +100,7 @@ class LineapyConfig:
                 self.set(key, default_value)
 
     def get(self, key: str) -> Any:
+        """Get LineaPy config field"""
         if key in self.__dict__.keys():
             return getattr(self, key)
         else:
@@ -104,6 +108,7 @@ class LineapyConfig:
             raise NotImplementedError
 
     def set(self, key: str, value: Any) -> None:
+        """Set LineaPy config field"""
         if key not in self.__dict__.keys():
             logger.error(key, "is not a lineapy config item")
             raise NotImplementedError
@@ -111,13 +116,16 @@ class LineapyConfig:
             self.__dict__[key] = value
             os.environ[f"LINEAPY_{key.upper()}"] = str(value)
 
-    def fill_empty(self):
+    def _fill_empty(self):
+        """Fill empty configuration items"""
         self._safe_get_logging_file()
         self._safe_get_database_connection_string()
         self._safe_get_artifact_storage_dir()
         self._safe_get_customized_annotation_folder()
 
     def _safe_get_folder(self, name) -> Path:
+        """Return folder as pathlib.Path
+        Create the folder if it doesn't exist"""
         if not Path(self.__dict__[name]).exists():
             logger.warning(
                 f"Folder {Path(self.__dict__[name]).as_posix()} does not exist. Creating a new one."
@@ -126,6 +134,8 @@ class LineapyConfig:
         return Path(self.__dict__[name])
 
     def _safe_get_logging_file(self) -> Path:
+        """Return logging_file path
+        Use LINEAPY_HOME_DIR/LOG_FILE_NAME if empty"""
         if self.logging_file is None:
             self.set(
                 "logging_file",
@@ -134,6 +144,8 @@ class LineapyConfig:
         return Path(str(self.logging_file))
 
     def _safe_get_database_connection_string(self) -> str:
+        """Return LINEAPY_DATABASE_CONNECTION_STRING
+        Use sqlite:///{LINEAPY_HOME_DIR}/{DB_FILE_NAME} if empty"""
         if self.database_connection_string is None:
             self.set(
                 "database_connection_string",
@@ -142,6 +154,8 @@ class LineapyConfig:
         return str(self.database_connection_string)
 
     def _safe_get_artifact_storage_dir(self) -> Path:
+        """Return LINEAPY_ARTIFACT_STORAGE_DIR
+        Use LINEAPY_HOME_DIR/FILE_PICKLER_BASEDIR if empty"""
         if self.artifact_storage_dir is None:
             self.set(
                 "artifact_storage_dir",
@@ -152,6 +166,8 @@ class LineapyConfig:
         return self._safe_get_folder("artifact_storage_dir")
 
     def _safe_get_customized_annotation_folder(self) -> Path:
+        """Return LINEAPY_CUSTOMIZED_ANNOTATION_FOLDER
+        Use LINEAPY_HOME_DIR/CUSTOM_ANNOTATIONS_FOLDER_NAME if empty"""
         if self.customized_annotation_folder is None:
             self.set(
                 "customized_annotation_folder",
