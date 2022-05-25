@@ -34,4 +34,5 @@ Welcome to LineaPy!
 
    references/development
    references/internals
+   references/configurations
    references/api_reference

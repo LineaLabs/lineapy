@@ -6,10 +6,10 @@ from typing import Optional
 from lineapy.utils.config import DB_FILE_NAME, LINEAPY_FOLDER_NAME, options
 
 # The name of the database URL environmental variable
-DB_URL_ENV_VARIABLE = "LINEA_DATABASE_URL"
+DB_URL_ENV_VARIABLE = "LINEAPY_DATABASE_CONNECTION_STRING"
 
 # The name for the linea home variable to be formatted in the db url
-LINEA_HOME_NAME = "LINEA_HOME"
+LINEA_HOME_NAME = "LINEAPY_HOME_DIR"
 
 FILE_PICKLER_BASEDIR = "linea_pickles"
 
