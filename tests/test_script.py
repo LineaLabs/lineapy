@@ -133,8 +133,10 @@ def annotations_folder():
     yield
 
     # clean up test-generated directories
-    shutil.rmtree(current_path_str)
-    shutil.move(old_path_str, current_path_str)
+    if current_path.exists():
+        shutil.rmtree(current_path_str)
+    if old_path.exists():
+        shutil.move(old_path_str, current_path_str)
 
 
 @pytest.mark.slow
