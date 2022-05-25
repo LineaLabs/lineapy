@@ -63,7 +63,7 @@ logger = logging.getLogger(__name__)
     help="LineaPy home directory.",
 )
 @click.option(
-    "--artifact-database-connection-string",
+    "--database-connection-string",
     type=click.STRING,
     help="SQLAlchemy connection string for LineaPy database.",
 )
