@@ -15,6 +15,7 @@ from time import perf_counter
 from typing import Iterable, List, Optional
 
 import click
+import IPython
 import nbformat
 import rich
 import rich.syntax
@@ -433,14 +434,16 @@ def python(
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("jupyter_args", nargs=-1, type=click.UNPROCESSED)
 def jupyter(jupyter_args):
-    res = subprocess.run(["jupyter", "--ext=lineapy", *jupyter_args])
+    setup_ipython_dir()
+    res = subprocess.run(["jupyter", *jupyter_args])
     sys.exit(res.returncode)
 
 
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("ipython_args", nargs=-1, type=click.UNPROCESSED)
 def ipython(ipython_args):
-    res = subprocess.run(["ipython", "--ext=lineapy", *ipython_args])
+    setup_ipython_dir()
+    res = subprocess.run(["ipython", *ipython_args])
     sys.exit(res.returncode)
 
 
@@ -453,17 +456,43 @@ def jupytext(jupytext_args):
 
 
 def setup_ipython_dir() -> None:
+    """Set the ipython directory to include the lineapy extension.
+
+    If ipython configure files exist, we copy them to temp the folder and append
+    a line to add lineapy into extra_extensions. If they do not exist, we create
+    new config files in the temp folder and add a line to specify extra_extensions.
     """
-    Set the ipython directory to include the lineapy extension by default
-    """
-    ipython_dir_name = tempfile.mkdtemp()
     # Make a default profile with the extension added to the ipython and kernel
     # configs
+    ipython_dir_name = tempfile.mkdtemp()
     profile_dir = pathlib.Path(ipython_dir_name) / "profile_default"
     profile_dir.mkdir()
-    settings = 'c.InteractiveShellApp.extensions = ["lineapy"]'
-    (profile_dir / "ipython_config.py").write_text(settings)
-    (profile_dir / "ipython_kernel_config.py").write_text(settings)
+
+    append_settings = (
+        '\nc.InteractiveShellApp.extra_extensions.append("lineapy")'
+    )
+    write_settings = 'c.InteractiveShellApp.extra_extensions = ["lineapy"]'
+
+    existing_profile_dir = pathlib.Path(
+        IPython.paths.get_ipython_dir()
+    ).joinpath("profile_default")
+
+    for config_file in ["ipython_config.py", "ipython_kernel_config.py"]:
+        if existing_profile_dir.joinpath(config_file).exists():
+            logger.debug(
+                f"Default {config_file} founded, append setting to this one."
+            )
+            shutil.copy(
+                existing_profile_dir.joinpath(config_file),
+                profile_dir.joinpath(config_file),
+            )
+            with open(profile_dir.joinpath(config_file), "a") as f:
+                f.write(append_settings)
+        else:
+            logger.debug(
+                f"No default {config_file} founded, create a new one."
+            )
+            profile_dir.joinpath(config_file).write_text(write_settings)
 
     os.environ["IPYTHONDIR"] = ipython_dir_name
 
