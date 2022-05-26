@@ -127,7 +127,7 @@ def linea_cli(
         if arg in options.__dict__.keys() and locals().get(arg) is not None:
             options.set(arg, locals().get(arg))
 
-    options._fill_empty()
+    options._set_defaults()
 
     # logger.info("Starting LineaPy with following configurations")
     # logger.info({k: v for k, v in options.__dict__.items() if v is not None})
@@ -462,9 +462,9 @@ def setup_ipython_dir() -> None:
     a line to add lineapy into extra_extensions. If they do not exist, we create
     new config files in the temp folder and add a line to specify extra_extensions.
     """
+    ipython_dir_name = tempfile.mkdtemp()
     # Make a default profile with the extension added to the ipython and kernel
     # configs
-    ipython_dir_name = tempfile.mkdtemp()
     profile_dir = pathlib.Path(ipython_dir_name) / "profile_default"
     profile_dir.mkdir()
 

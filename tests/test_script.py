@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import subprocess
@@ -17,6 +18,99 @@ def test_cli_entrypoint():
     Verifies that the "--help" CLI command is aliased to the `lineapy` executable
     """
     subprocess.check_call(["lineapy", "--help"])
+
+
+@pytest.mark.slow
+def test_lineapy_init_with_options():
+    """
+    Verify that `lineapy init` generate with different type of cli options input
+    """
+    temp_dir_name = tempfile.mkdtemp()
+    subprocess.check_call(
+        [
+            "lineapy",
+            "--home-dir",
+            temp_dir_name,
+            "--do-not-track",
+            "--logging-level=debug",
+            "init",
+        ]
+    )
+
+    with open(Path(temp_dir_name).joinpath("lineapy_config.json"), "r") as f:
+        generated_config = json.load(f)
+
+    assert Path(temp_dir_name).joinpath("lineapy_config.json").exists()
+    assert generated_config["home_dir"] == temp_dir_name
+    assert generated_config["do_not_track"] == "True"
+    assert generated_config["logging_level"] == "DEBUG"
+
+
+@pytest.mark.slow
+def test_config_order():
+    def clean_lineapy_env_var():
+        existing_lineapy_env = {
+            x: os.environ[x]
+            for x in os.environ.keys()
+            if x.startswith("LINEAPY_")
+        }
+        for key in existing_lineapy_env.keys():
+            del os.environ[key]
+        return existing_lineapy_env
+
+    temp_dir_name = tempfile.mkdtemp()
+
+    # No config file, use default value logging_level=="INFO"
+    existing_lineapy_env = clean_lineapy_env_var()
+    subprocess.check_call(["lineapy", "--home-dir", temp_dir_name, "init"])
+    with open(Path(temp_dir_name).joinpath("lineapy_config.json"), "r") as f:
+        generated_config = json.load(f)
+    assert generated_config["logging_level"] == "INFO"
+
+    # With config file as 'INFO', use CLI option logging_level=='DEBUG'
+    clean_lineapy_env_var()
+    subprocess.check_call(
+        [
+            "lineapy",
+            "--home-dir",
+            temp_dir_name,
+            "--logging-level=DEBUG",
+            "init",
+        ]
+    )
+    with open(Path(temp_dir_name).joinpath("lineapy_config.json"), "r") as f:
+        generated_config = json.load(f)
+    assert generated_config["logging_level"] == "DEBUG"
+
+    # With config file as 'DEBUG', use config file logging_level=='DEBUG'
+    clean_lineapy_env_var()
+    os.environ["LINEAPY_HOME_DIR"] = temp_dir_name
+    subprocess.check_call(["lineapy", "init"])
+    with open(Path(temp_dir_name).joinpath("lineapy_config.json"), "r") as f:
+        generated_config = json.load(f)
+    assert generated_config["logging_level"] == "DEBUG"
+
+    # With config file as 'DEBUG' and env var as 'INFO', use env var logging_level='INFO'
+    clean_lineapy_env_var()
+    os.environ["LINEAPY_HOME_DIR"] = temp_dir_name
+    os.environ["LINEAPY_LOGGING_LEVEL"] = "INFO"
+    subprocess.check_call(["lineapy", "init"])
+    with open(Path(temp_dir_name).joinpath("lineapy_config.json"), "r") as f:
+        generated_config = json.load(f)
+    assert generated_config["logging_level"] == "INFO"
+
+    # With config file as 'INFO' and env var as 'DEBUG', use CLI option logging_level='NOTSET'
+    clean_lineapy_env_var()
+    os.environ["LINEAPY_HOME_DIR"] = temp_dir_name
+    os.environ["LINEAPY_LOGGING_LEVEL"] = "DEBUG"
+    subprocess.check_call(["lineapy", "--logging-level=NOTSET", "init"])
+    with open(Path(temp_dir_name).joinpath("lineapy_config.json"), "r") as f:
+        generated_config = json.load(f)
+    assert generated_config["logging_level"] == "NOTSET"
+
+    # Reset to original env variables
+    for k, v in existing_lineapy_env.items():
+        os.environ[k] = v
 
 
 @pytest.mark.slow

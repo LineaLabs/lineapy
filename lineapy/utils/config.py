@@ -116,7 +116,7 @@ class LineapyConfig:
             self.__dict__[key] = value
             os.environ[f"LINEAPY_{key.upper()}"] = str(value)
 
-    def _fill_empty(self):
+    def _set_defaults(self):
         """Fill empty configuration items"""
         self._safe_get_logging_file()
         self._safe_get_database_connection_string()
