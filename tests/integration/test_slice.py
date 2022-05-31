@@ -49,7 +49,7 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
         pip=["gym[atari]"],
     ),
     "pytorch": lambda: Environment(
-        conda_deps=["torchvision=0.11.3"],
+        # conda_deps=["torchvision=0.11.3"],
         conda_channels=["pytorch"],
         pip=[
             line
@@ -65,7 +65,7 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
                 # remove awscli dependency because its incompatible with recent rich version
                 and "awscli" not in line
                 # Make sure we use the conda version of torchvision, otherwise get bus error
-                and "torchvision" not in line
+                # and "torchvision" not in line
             )
         ],
     ),
