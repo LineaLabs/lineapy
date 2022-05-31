@@ -212,9 +212,9 @@ def annotations_folder():
     '.lineapy/custom-annotations'dir and
     replaces it with a temp for testing.
     """
-    current_path = Path(options._safe_get_customized_annotation_folder())
+    current_path = Path(options.safe_get_customized_annotation_folder())
     current_path_str = str(current_path.resolve())
-    old_path = path.parent.joinpath(current_path.name + ".old")
+    old_path = current_path.parent.joinpath(current_path.name + ".old")
     old_path_str = str(old_path.resolve())
 
     # If 'custom-annotations.old exists already, the test was canceled
