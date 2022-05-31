@@ -144,7 +144,7 @@ def _try_write_to_db(value: object) -> Path:
     if isinstance(value, types.ModuleType):
         raise ArtifactSaveException()
     # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = options._safe_get_artifact_storage_dir().joinpath(
+    filepath = Path(options.safe_get("artifact_storage_dir")).joinpath(
         "".join(
             random.choices(
                 string.ascii_uppercase

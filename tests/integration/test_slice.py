@@ -15,7 +15,6 @@ import astor
 import yaml
 from pytest import mark, param
 
-# from lineapy.utils.logging_config import LOGGING_ENV_VARIABLE
 from lineapy.utils.utils import prettify
 
 INTEGRATION_DIR = pathlib.Path(__file__).parent

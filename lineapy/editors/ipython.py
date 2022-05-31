@@ -5,6 +5,7 @@ https://ipython.readthedocs.io/en/stable/config/inputtransforms.html
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
@@ -38,6 +39,8 @@ __all__ = ["_end_cell", "start", "stop", "visualize"]
 # SS: do not explicitly set the state to `None` here
 STATE: Union[None, StartedState, CellsExecutedState]
 GLOBALS: Dict[str, Any]
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -107,7 +110,8 @@ def input_transformer_post(
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
         configure_logging()
-        db = RelationalLineaDB.from_configuration(options)
+
+        db = RelationalLineaDB.from_config(options)
         # pass in globals from ipython so that `get_ipython()` works
         # and things like `!cat df.csv` work in the notebook
         ipython_globals = STATE.ipython.user_global_ns
@@ -118,8 +122,11 @@ def input_transformer_post(
         STATE = CellsExecutedState(tracer, code=code)
     else:
         if STATE.tracer.db.url != options.database_connection_string:
+            logger.warning(
+                f"LineaPy database has changed from {STATE.tracer.db.url} to {options.database_connection_string}.\n Reset the current session."
+            )
             configure_logging()
-            db = RelationalLineaDB.from_configuration(options)
+            db = RelationalLineaDB.from_config(options)
             tracer = Tracer(db, SessionType.JUPYTER, session_name, GLOBALS)
             STATE = CellsExecutedState(tracer, code=code)
 

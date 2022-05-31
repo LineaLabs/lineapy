@@ -13,9 +13,6 @@ LINEA_HOME_NAME = "LINEAPY_HOME_DIR"
 
 FILE_PICKLER_BASEDIR = "linea_pickles"
 
-# DB_FILE_NAME = "db.sqlite"
-# Relative path to `db.sqlite` file
-# Similar to https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html#sql-alchemy-conn
 DEFAULT_DB_URL = f"sqlite:///{{{LINEA_HOME_NAME}}}/{DB_FILE_NAME}"
 
 MEMORY_DB_URL = "sqlite:///:memory:"

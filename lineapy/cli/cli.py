@@ -113,7 +113,7 @@ def linea_cli(
     logging_file: Optional[pathlib.Path],
 ):
     """
-    Pass all configuration to LineapyConfig
+    Pass all configuration to lineapy_config
     """
     args = [x for x in locals().keys()]
 
@@ -129,9 +129,6 @@ def linea_cli(
 
     options._set_defaults()
 
-    # logger.info("Starting LineaPy with following configurations")
-    # logger.info({k: v for k, v in options.__dict__.items() if v is not None})
-
 
 @linea_cli.command()
 @click.option(
@@ -141,15 +138,15 @@ def linea_cli(
 )
 def init(output_file: Optional[pathlib.Path]):
     """
-    Create configure file based on your input options at desired file path.
-    If not specify file path, it will be at LINEAPY_HOME_DIR/CONFIG_FILE_NAME
+    Create config file based on your desired output file path.
+    If the file path is not specified, it will be at ``LINEAPY_HOME_DIR/CONFIG_FILE_NAME``
 
     For example,
 
         lineapy --home-dir=/lineapy init
 
 
-    will generate a configure file with home_dir='/lineapy'
+    will generate a config file with ``home_dir='/lineapy'``
     """
     if output_file is None:
         output_file = pathlib.Path(options.home_dir).joinpath(CONFIG_FILE_NAME)
@@ -207,7 +204,7 @@ def notebook(
     logger.info("Printing slice")
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
-    db = RelationalLineaDB.from_configuration(options)
+    db = RelationalLineaDB.from_config(options)
     artifact = db.get_artifact_by_name(artifact_name)
     # FIXME: mypy issue with SQLAlchemy, see https://github.com/python/typeshed/issues/974
     api_artifact = LineaArtifact(
@@ -250,7 +247,7 @@ def file(
     )
 
     # Run the code:
-    db = RelationalLineaDB.from_configuration(options)
+    db = RelationalLineaDB.from_config(options)
     tracer = Tracer(db, SessionType.SCRIPT)
     # Redirect all stdout to stderr, so its not printed.
     with redirect_stdout(sys.stderr):
@@ -352,7 +349,7 @@ def python(
     set_custom_excepthook()
     tree = rich.tree.Tree(f"📄 {file_name}")
 
-    db = RelationalLineaDB.from_configuration(options)
+    db = RelationalLineaDB.from_config(options)
     code = file_name.read_text()
 
     if print_source:
@@ -458,9 +455,9 @@ def jupytext(jupytext_args):
 def setup_ipython_dir() -> None:
     """Set the ipython directory to include the lineapy extension.
 
-    If ipython configure files exist, we copy them to temp the folder and append
-    a line to add lineapy into extra_extensions. If they do not exist, we create
-    new config files in the temp folder and add a line to specify extra_extensions.
+    If IPython configure files exist, we copy them to temp the folder and append
+    a line to add lineapy into ``extra_extensions``. If they do not exist, we create
+    new config files in the temp folder and add a line to specify ``extra_extensions``.
     """
     ipython_dir_name = tempfile.mkdtemp()
     # Make a default profile with the extension added to the ipython and kernel
@@ -568,11 +565,12 @@ def add(path: pathlib.Path, name: str):
     name = remove_annotations_file_extension(name)
     name = slugify(name)
 
-    annotate_folder = options._safe_get_customized_annotation_folder()
+    annotate_folder = options.safe_get("customized_annotation_folder")
 
     # Path to copy destination in user's .lineapy directory
     destination_file = (
-        annotate_folder / (name + CUSTOM_ANNOTATIONS_EXTENSION_NAME)
+        pathlib.Path(annotate_folder)
+        / (name + CUSTOM_ANNOTATIONS_EXTENSION_NAME)
     ).resolve()
     logger.info(f"Creating annotation source {name} at {destination_file}")
 
@@ -592,7 +590,9 @@ def list():
     Lists full paths to all imported annotation sources.
     """
     wildcard_path = os.path.join(
-        options._safe_get_customized_annotation_folder().resolve(),
+        pathlib.Path(
+            options.safe_get("customized_annotation_folder")
+        ).resolve(),
         "*" + CUSTOM_ANNOTATIONS_EXTENSION_NAME,
     )
 
@@ -618,9 +618,9 @@ def delete(name: str):
     name = remove_annotations_file_extension(name)
     name += CUSTOM_ANNOTATIONS_EXTENSION_NAME
 
-    delete_path = options._safe_get_customized_annotation_folder().joinpath(
-        name
-    )
+    delete_path = pathlib.Path(
+        options.safe_get("customized_annotation_folder")
+    ).joinpath(name)
     try:
         os.remove(delete_path)
     except IsADirectoryError as e:

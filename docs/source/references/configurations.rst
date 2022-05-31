@@ -3,7 +3,7 @@
 Configuration Reference
 =======================
 
-This page contains all the LineaPy configuration items that you can set in `lineapy_config.json`, environment variables, and CLI options when starting LineaPy with :code:`lineapy command`.
+This page contains all the LineaPy configuration items that you can set in `lineapy_config.json`, environment variables, and CLI options when starting LineaPy with ``lineapy command``.
 These items are determined by the following order:
 
 - CLI options
@@ -30,12 +30,12 @@ These items are determined by the following order:
 +-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
 
 All LineaPy configuration items follow following naming convention; in configuration file, all variable name should be lower case with underscore, 
-all environmental variable name should be upper case with underscore and all CLI options should be lower case 
-For instance, following three will achieve the same thing to change the LineaPy base folder to :code:`/lineapy` and start ipython.
+all environmental variable name should be upper case with underscore and all CLI options should be lower case.
+For instance, all the following options will achieve the same effect of changing to change the LineaPy base folder to ``/lineapy`` and start ipython.
 
-- Adding :code:`{"home_dir": "/lineapy"}` in configuration file: and run :code:`lineapy ipython`
-- In environmental variable: :code:`export LINEAPY_HOME_DIR=/lineapy && lineapy ipython` 
-- In CLI options: :code:`lineapy --home-dir='/lineapy' ipython`
+- Adding ``{"home_dir": "/lineapy"}`` in configuration file: and run ``lineapy ipython``
+- In environmental variable: ``export LINEAPY_HOME_DIR=/lineapy && lineapy ipython`` 
+- In CLI options: ``lineapy --home-dir='/lineapy' ipython``
 
 LineaPy also provides a CLI command to generate the configuration file (as a json file) based on your environmental variables and CLI options for example:
 
@@ -47,7 +47,7 @@ LineaPy also provides a CLI command to generate the configuration file (as a jso
 Interactive Mode
 ----------------
 
-During an interactive session, you can change the lineapy configuration items listed above with :code:`lineapy.options.set(key, value)`.
+During an interactive session, you can change the lineapy configuration items listed above with ``lineapy.options.set(key, value)``.
 
 However, if you change the LineaPy database(with `LINEAPY_DATABASE_CONNECTION_STRING`), LineaPy will reset your ENTIRE notebook session since LineaPy is saving node information eagerly to the backend database. 
 It only makessense to reset the session when the backend database is changed since you cannot retrieve previous information from the new database.

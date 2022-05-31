@@ -63,7 +63,7 @@ def _send_amplitude_event(event_type, event_properties):
     headers = {"Content-Type": "application/json", "Accept": "*/*"}
 
     # also append to a local file for sanity checking
-    with open(options._safe_get_logging_file(), "a+") as f:
+    with open(options.safe_get("logging_file"), "a+") as f:
         f.write(json.dumps(events) + "\n")
 
     # send to amplitude

@@ -111,7 +111,7 @@ def get_specs() -> Dict[str, List[Annotation]]:
         glob.glob(
             os.path.join(
                 Path(
-                    options._safe_get_customized_annotation_folder()
+                    options.safe_get("customized_annotation_folder")
                 ).resolve(),
                 "./*" + CUSTOM_ANNOTATIONS_EXTENSION_NAME,
             )

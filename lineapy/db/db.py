@@ -55,7 +55,7 @@ from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.utils.analytics.event_schemas import ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track  # circular dep issues
-from lineapy.utils.config import LineapyConfig
+from lineapy.utils.config import lineapy_config
 from lineapy.utils.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
 from lineapy.utils.utils import get_literal_value_from_string
 
@@ -104,13 +104,13 @@ class RelationalLineaDB:
             self.session.configure(bind=self.engine)
 
     @classmethod
-    def from_configuration(cls, options: LineapyConfig) -> RelationalLineaDB:
+    def from_config(cls, options: lineapy_config) -> RelationalLineaDB:
         f"""
         Creates a new database.
 
         url: {OVERRIDE_HELP_TEXT}
         """
-        return cls(options._safe_get_database_connection_string())
+        return cls(str(options.safe_get("database_connection_string")))
 
     @classmethod
     def from_environment(cls, url: Optional[str] = None) -> RelationalLineaDB:
