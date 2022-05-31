@@ -212,18 +212,26 @@ def annotations_folder():
     '.lineapy/custom-annotations'dir and
     replaces it with a temp for testing.
     """
-    path = Path(options._safe_get_customized_annotation_folder())
-    path_str = str(path.resolve())
-    stash_path = path.parent.joinpath(path.name + ".old")
-    if not stash_path.exists():
-        stash_path.mkdir()
-    stash_path_str = str(stash_path.resolve())
-    shutil.move(path_str, stash_path_str)
+    current_path = Path(options._safe_get_customized_annotation_folder())
+    current_path_str = str(current_path.resolve())
+    old_path = path.parent.joinpath(current_path.name + ".old")
+    old_path_str = str(old_path.resolve())
 
-    yield path
+    # If 'custom-annotations.old exists already, the test was canceled
+    # early previously. Clean up 'custom-annotations' folder from
+    # previous run.
+    if old_path.exists():
+        shutil.rmtree(current_path_str, ignore_errors=True)
+    else:
+        shutil.move(current_path_str, old_path_str)
 
-    shutil.rmtree(path_str)
-    shutil.move(stash_path_str, path_str)
+    yield
+
+    # clean up test-generated directories
+    if current_path.exists():
+        shutil.rmtree(current_path_str)
+    if old_path.exists():
+        shutil.move(old_path_str, current_path_str)
 
 
 @pytest.mark.slow
