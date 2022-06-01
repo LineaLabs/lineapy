@@ -15,10 +15,7 @@ from typing import List, Optional
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import FILE_PICKLER_BASEDIR, FilePickler
-from lineapy.exceptions.db_exceptions import (
-    ArtifactDeleteException,
-    ArtifactSaveException,
-)
+from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
@@ -167,7 +164,7 @@ def delete(artifact_name: str, version: Optional[int]) -> None:
             if pickled_path is not None:
                 try:
                     _try_delete_from_db(Path(pickled_path))
-                except ArtifactDeleteException:
+                except KeyError:
                     logging.info(f"Pickle not found at {pickled_path}")
             else:
                 logging.info(f"No pickle associated with {node_id}")
@@ -190,7 +187,7 @@ def _try_delete_from_db(pickled_path: Path) -> None:
         if new_pickled_path.exists():
             new_pickled_path.unlink()
         else:
-            raise ArtifactDeleteException()
+            raise KeyError(f"Pickle not found at {pickled_path}")
 
 
 def _try_write_to_db(value: object) -> Path:
