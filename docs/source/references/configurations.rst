@@ -18,7 +18,7 @@ These items are determined by the following order:
 +-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
 | artifact_storage_dir                | artifact saving folder        | Path    | `$LINEAPY_HOME_DIR/linea_pickles`          | `LINEAPY_ARTIFACT_STORAGE_DIR`                  |
 +-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
-| database_connection_string          | LineaPy db connection string  | string  | `sqlite:///$LINEAPY_HOME_DIR/db.sqlite`    | `LINEAPY_DATABASE_CONNECTION_STRING`            |
+| database_url                        | LineaPy db connection string  | string  | `sqlite:///$LINEAPY_HOME_DIR/db.sqlite`    | `LINEAPY_DATABASE_URL`                          |
 +-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
 | customized_annotation_folder        | user annotations folder       | Path    | `$LINEAPY_HOME_DIR/customized_annotations` | `LINEAPY_CUSTOMIZED_ANNOTATION_FOLDER`          |
 +-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
@@ -43,15 +43,31 @@ LineaPy also provides a CLI command to generate the configuration file (as a jso
     
     $ lineapy --home-dir='/lineapy' init 
 
+The configuration file shall look like this:
+
+.. code:: json
+
+    {
+        "home_dir": "/lineapy",
+        "artifact_storage_dir": "/lineapy/linea_pickles",
+        "database_url": "sqlite:///lineapy/db.sqlite",
+        "customized_annotation_folder": "/lineapy/customized_annotations",
+        "do_not_track": false,
+        "logging_level": "INFO",
+        "logging_file": "/lineapy/lineapy.log"
+    }
+    
+
 
 Interactive Mode
 ----------------
 
-During an interactive session, you can change the lineapy configuration items listed above with ``lineapy.options.set(key, value)``.
+During an interactive session, you can see current configuration items by typing ``lineapy.options``.
 
+You can also change the lineapy configuration items listed above with ``lineapy.options.set(key, value)``.
 However, if you change the LineaPy database(with `LINEAPY_DATABASE_CONNECTION_STRING`), LineaPy will reset your ENTIRE notebook session since LineaPy is saving node information eagerly to the backend database. 
-It only makessense to reset the session when the backend database is changed since you cannot retrieve previous information from the new database.
+It only makes sense to reset the session when the backend database is changed since you cannot retrieve previous information from the new database.
 Thus, the only place to change the LineaPy database is at the beginning of the notebook.
 
-Note that, you need to make sure you are setting `LINEAPY_ARTIFACT_STORAGE_DIR` correctly whenever you set `LINEAPY_DATABASE_CONNECTION_STRING`.
-If not, `Artifact.get_value` might return an error that is related cannot find underlying pickle object.
+Note that, you need to make sure whenever you are setting `LINEAPY_DATABASE_CONNECTION_STRING`, you point to the  `LINEAPY_ARTIFACT_STORAGE_DIR`.
+If not, ``Artifact.get_value`` might return an error that is related cannot find underlying pickle object. 

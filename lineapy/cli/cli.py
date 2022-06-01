@@ -101,7 +101,7 @@ logger = logging.getLogger(__name__)
 def linea_cli(
     verbose: bool,
     home_dir: Optional[pathlib.Path],
-    database_connection_string: Optional[str],
+    database_url: Optional[str],
     artifact_storage_dir: Optional[pathlib.Path],
     customized_annotation_dir: Optional[pathlib.Path],
     do_not_track: Optional[bool],

@@ -33,7 +33,7 @@ class lineapy_config:
     """
 
     home_dir: Path
-    database_connection_string: Optional[str]
+    database_url: Optional[str]
     artifact_storage_dir: Optional[Path]
     customized_annotation_folder: Optional[Path]
     do_not_track: bool
@@ -43,7 +43,7 @@ class lineapy_config:
     def __init__(
         self,
         home_dir=f"{os.environ.get('HOME','~')}/{LINEAPY_FOLDER_NAME}",
-        database_connection_string=None,
+        database_url=None,
         artifact_storage_dir=None,
         customized_annotation_folder=None,
         do_not_track=False,
@@ -54,7 +54,7 @@ class lineapy_config:
             logging_level = logging._levelToName[int(logging_level)]
 
         self.home_dir = home_dir
-        self.database_connection_string = database_connection_string
+        self.database_url = database_url
         self.artifact_storage_dir = artifact_storage_dir
         self.customized_annotation_folder = customized_annotation_folder
         self.do_not_track = do_not_track
@@ -108,7 +108,7 @@ class lineapy_config:
             logger.error(key, "is not a lineapy config item")
             raise NotImplementedError
         else:
-            if key == "database_connection_string":
+            if key == "database_url":
                 try:
                     new_db = create_lineadb_engine(value)
                     self.__dict__[key] = value
@@ -128,7 +128,7 @@ class lineapy_config:
     def _set_defaults(self):
         """Fill empty configuration items"""
         self.safe_get("logging_file")
-        self.safe_get("database_connection_string")
+        self.safe_get("database_url")
         self.safe_get("artifact_storage_dir")
         self.safe_get("customized_annotation_folder")
 
@@ -153,15 +153,15 @@ class lineapy_config:
                 )
             return Path(str(self.logging_file))
 
-        # Return LINEAPY_DATABASE_CONNECTION_STRING, use sqlite:///{LINEAPY_HOME_DIR}/{DB_FILE_NAME} if empty
-        elif name == "database_connection_string":
-            if self.database_connection_string is None:
+        # Return LINEAPY_DATABASE_url, use sqlite:///{LINEAPY_HOME_DIR}/{DB_FILE_NAME} if empty
+        elif name == "database_url":
+            if self.database_url is None:
                 self.set(
-                    "database_connection_string",
+                    "database_url",
                     f"sqlite:///{safe_get_folder('home_dir')}/{DB_FILE_NAME}",
                     verbose=False,
                 )
-            return str(self.database_connection_string)
+            return str(self.database_url)
 
         # Return LINEAPY_ARTIFACT_STORAGE_DIR, use LINEAPY_HOME_DIR/FILE_PICKLER_BASEDIR if empty
         elif name == "artifact_storage_dir":

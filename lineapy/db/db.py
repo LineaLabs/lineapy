@@ -95,16 +95,16 @@ class RelationalLineaDB:
         """
         Creates a new database.
 
-        If no url is provided, it will use the result of ``lineapy_config.safe_get("database_connection_string")``
+        If no url is provided, it will use the result of ``lineapy_config.safe_get("database_url")``
         """
-        return cls(str(options.safe_get("database_connection_string")))
+        return cls(str(options.safe_get("database_url")))
 
     @classmethod
     def from_environment(cls, url: str) -> RelationalLineaDB:
         """
         Creates a new database.
 
-        If no url is provided, it will use the result of ``lineapy_config.safe_get("database_connection_string")``
+        If no url is provided, it will use the result of ``lineapy_config.safe_get("database_url")``
         """
         return cls(url)
 

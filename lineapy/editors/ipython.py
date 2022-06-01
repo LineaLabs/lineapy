@@ -117,7 +117,7 @@ def input_transformer_post(
 
         STATE = CellsExecutedState(STATE.ipython, tracer, code=code)
     else:
-        if STATE.tracer.db.url != options.database_connection_string:
+        if STATE.tracer.db.url != options.database_url:
             STATE.ipython.reset()  # TODO: double check we are not over deleting variables
             configure_logging()
             db = RelationalLineaDB.from_config(options)
