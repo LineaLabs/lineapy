@@ -88,11 +88,11 @@ class lineapy_config:
 
             # set config value based on environ -> config  -> default
             if env_var_value is not None:
-                self.set(key, env_var_value)
+                self.set(key, env_var_value, verbose=False)
             elif config_value is not None:
-                self.set(key, config_value)
+                self.set(key, config_value, verbose=False)
             elif default_value is not None:
-                self.set(key, default_value)
+                self.set(key, default_value, verbose=False)
 
     def get(self, key: str) -> Any:
         """Get LineaPy config field"""
@@ -102,7 +102,7 @@ class lineapy_config:
             logger.error(key, "is not a lineapy config item")
             raise NotImplementedError
 
-    def set(self, key: str, value: Any) -> None:
+    def set(self, key: str, value: Any, verbose=True) -> None:
         """Set LineaPy config field"""
         if key not in self.__dict__.keys():
             logger.error(key, "is not a lineapy config item")
@@ -113,6 +113,10 @@ class lineapy_config:
                     new_db = create_lineadb_engine(value)
                     self.__dict__[key] = value
                     os.environ[f"LINEAPY_{key.upper()}"] = str(value)
+                    if verbose:
+                        logger.warning(
+                            f"LineaPy database is changed to {value}, resetting notebook session in next cell"
+                        )
                 except Exception as e:
                     logger.warning(
                         f"LineaPy cannot connect to {value}. Is this a valid database connection string? Ignore setting LineaPy database."
@@ -145,6 +149,7 @@ class lineapy_config:
                 self.set(
                     "logging_file",
                     safe_get_folder("home_dir").joinpath(LOG_FILE_NAME),
+                    verbose=False,
                 )
             return Path(str(self.logging_file))
 
@@ -154,6 +159,7 @@ class lineapy_config:
                 self.set(
                     "database_connection_string",
                     f"sqlite:///{safe_get_folder('home_dir')}/{DB_FILE_NAME}",
+                    verbose=False,
                 )
             return str(self.database_connection_string)
 
@@ -163,6 +169,7 @@ class lineapy_config:
                 self.set(
                     "artifact_storage_dir",
                     safe_get_folder("home_dir").joinpath(FILE_PICKLER_BASEDIR),
+                    verbose=False,
                 )
             return safe_get_folder("artifact_storage_dir")
 
@@ -174,6 +181,7 @@ class lineapy_config:
                     safe_get_folder("home_dir").joinpath(
                         CUSTOM_ANNOTATIONS_FOLDER_NAME
                     ),
+                    verbose=False,
                 )
             return safe_get_folder("customized_annotation_folder")
 

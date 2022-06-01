@@ -5,7 +5,6 @@ https://ipython.readthedocs.io/en/stable/config/inputtransforms.html
 """
 from __future__ import annotations
 
-import logging
 from ast import Global
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
@@ -39,8 +38,6 @@ __all__ = ["_end_cell", "start", "stop", "visualize"]
 #    an extension load during ipython startup.
 # SS: do not explicitly set the state to `None` here
 STATE: Union[None, StartedState, CellsExecutedState]
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -124,9 +121,6 @@ def input_transformer_post(
             STATE.ipython.reset()  # TODO: double check we are not over deleting variables
             configure_logging()
             db = RelationalLineaDB.from_config(options)
-            logger.warning(
-                f"LineaPy database is changed to {options.database_connection_string}, resetting ipython"
-            )
             tracer = Tracer(
                 db,
                 SessionType.JUPYTER,
