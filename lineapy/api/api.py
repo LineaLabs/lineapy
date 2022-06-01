@@ -140,7 +140,7 @@ def save(reference: object, name: str) -> LineaArtifact:
     return linea_artifact
 
 
-def delete(artifact_name: str, version: Optional[int]) -> None:
+def delete(artifact_name: str, version: Optional[int] = None) -> None:
     """
     Deletes an artifact from artifact store. If no other artifacts
     refer to the value, the value is also deleted from both the
@@ -157,7 +157,8 @@ def delete(artifact_name: str, version: Optional[int]) -> None:
     node_id = artifact.node_id
     execution_id = artifact.execution_id
 
-    if db.number_of_artifacts_per_node(node_id, execution_id) == 1:
+    num_artifacts = db.number_of_artifacts_per_node(node_id, execution_id)
+    if num_artifacts == 1:
         try:
             pickled_path = db.get_node_value_path(node_id, execution_id)
             db.delete_node_value_from_db(node_id, execution_id)

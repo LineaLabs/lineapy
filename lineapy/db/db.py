@@ -477,14 +477,16 @@ class RelationalLineaDB:
         Returns number of artifacts that refer to
         the same execution node.
         """
-        return self.session.query(
-            self.session.query(ArtifactORM).filter(
+        return (
+            self.session.query(ArtifactORM)
+            .filter(
                 and_(
                     ArtifactORM.node_id == node_id,
                     ArtifactORM.execution_id == execution_id,
                 )
             )
-        ).count()
+            .count()
+        )
 
     def get_libraries_for_session(
         self, session_id: LineaID
