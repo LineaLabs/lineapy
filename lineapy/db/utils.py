@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 def create_lineadb_engine(url: str) -> Engine:
+    """Create a SQLAlchemy engine for LineaDB.
+    Take care of the SQLite database file name and configuration.
+    """
     echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
     logger.debug(f"Connecting to Linea DB at {url}")
     additional_args = {}

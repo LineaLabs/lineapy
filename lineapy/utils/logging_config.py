@@ -20,7 +20,6 @@ FORMAT = "%(message)s"
 def configure_logging(level=None, LOG_SQL=False):
     # Get the loglevel from `LOGGING_ENV_VARIABLE` or set to WARNING
     # if not defined
-    # level = level or os.environ.get(LOGGING_ENV_VARIABLE, logging.INFO)
     level = level or getattr(logging, options.logging_level, logging.INFO)
     # Disable black logging
     # https://github.com/psf/black/issues/2058

@@ -5,7 +5,6 @@ https://ipython.readthedocs.io/en/stable/config/inputtransforms.html
 """
 from __future__ import annotations
 
-from ast import Global
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
