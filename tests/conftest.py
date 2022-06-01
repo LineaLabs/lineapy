@@ -33,7 +33,7 @@ from tests.util import get_project_directory, test_prettify
 # https://github.com/tophat/syrupy/pull/552/files#diff-9bab2a0973c5e73c86ed7042300befcaa5a034df17cea4d013eeaece6af66979
 
 DUMMY_WORKING_DIR = "dummy_linea_repo/"
-DB_URL_ENV_VARIABLE = "LINEAPY_DATABASE_CONNECTION_STRING"
+DB_URL_ENV_VARIABLE = "LINEAPY_DATABASE_URL"
 MEMORY_DB_URL = "sqlite:///:memory:"
 
 

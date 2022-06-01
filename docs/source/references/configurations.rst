@@ -65,9 +65,9 @@ Interactive Mode
 During an interactive session, you can see current configuration items by typing ``lineapy.options``.
 
 You can also change the lineapy configuration items listed above with ``lineapy.options.set(key, value)``.
-However, if you change the LineaPy database(with `LINEAPY_DATABASE_CONNECTION_STRING`), LineaPy will reset your ENTIRE notebook session since LineaPy is saving node information eagerly to the backend database. 
+However, if you change the LineaPy database(with `LINEAPY_DATABASE_URL`), LineaPy will reset your ENTIRE notebook session since LineaPy is saving node information eagerly to the backend database. 
 It only makes sense to reset the session when the backend database is changed since you cannot retrieve previous information from the new database.
 Thus, the only place to change the LineaPy database is at the beginning of the notebook.
 
-Note that, you need to make sure whenever you are setting `LINEAPY_DATABASE_CONNECTION_STRING`, you point to the  `LINEAPY_ARTIFACT_STORAGE_DIR`.
+Note that, you need to make sure whenever you are setting `LINEAPY_DATABASE_URL`, you point to the  `LINEAPY_ARTIFACT_STORAGE_DIR`.
 If not, ``Artifact.get_value`` might return an error that is related cannot find underlying pickle object. 

@@ -4,7 +4,7 @@ services:
     image: ${IMAGE_NAME}
     build: .
     environment:
-      - LINEAPY_DATABASE_CONNECTION_STRING=${LINEAPY_DATABASE_CONNECTION_STRING}
+      - LINEAPY_DATABASE_URL=${LINEAPY_DATABASE_URL}
     volumes:
       - ./lineapy:/usr/src/base/lineapy
       - ./tests:/usr/src/base/tests
