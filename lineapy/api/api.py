@@ -10,7 +10,7 @@ import string
 import types
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
@@ -140,7 +140,9 @@ def save(reference: object, name: str) -> LineaArtifact:
     return linea_artifact
 
 
-def delete(artifact_name: str, version: Optional[int] = None) -> None:
+def delete(
+    artifact_name: str, version: Optional[Union[int, str]] = None
+) -> None:
     """
     Deletes an artifact from artifact store. If no other artifacts
     refer to the value, the value is also deleted from both the
@@ -152,7 +154,8 @@ def delete(artifact_name: str, version: Optional[int] = None) -> None:
     executor = execution_context.executor
     db = executor.db
 
-    artifact = db.get_artifact_by_name(artifact_name, version=version)
+    get_version = None if not isinstance(version, int) else version
+    artifact = db.get_artifact_by_name(artifact_name, version=get_version)
 
     node_id = artifact.node_id
     execution_id = artifact.execution_id

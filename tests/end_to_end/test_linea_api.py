@@ -171,3 +171,28 @@ num_versions = len(versions)
 
     assert res.values["num_versions"] == 2
     assert res.artifacts["x"] == "x = 300\n"
+
+
+def test_delete_artifact_all(execute):
+    res = execute(
+        """import lineapy
+x = 100
+lineapy.save(x, 'x')
+x = 200
+lineapy.save(x, 'x')
+x = 300
+lineapy.save(x, 'x')
+lineapy.delete('x', version='all')
+
+catalog = lineapy.catalog()
+versions = [x._version for x in catalog.artifacts if x.name=='x']
+num_versions = len(versions)
+
+
+""",
+        snapshot=False,
+    )
+
+    assert res.values["num_versions"] == 0
+    with pytest.raises(KeyError):
+        assert res.artifacts["x"]
