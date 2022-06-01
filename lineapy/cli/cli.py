@@ -64,7 +64,7 @@ logger = logging.getLogger(__name__)
     help="LineaPy home directory.",
 )
 @click.option(
-    "--database-connection-string",
+    "--database-url",
     type=click.STRING,
     help="SQLAlchemy connection string for LineaPy database.",
 )
