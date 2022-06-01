@@ -6,8 +6,9 @@ https://ipython.readthedocs.io/en/stable/config/inputtransforms.html
 from __future__ import annotations
 
 import logging
+from ast import Global
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import DisplayHandle, DisplayObject, display
@@ -38,7 +39,6 @@ __all__ = ["_end_cell", "start", "stop", "visualize"]
 #    an extension load during ipython startup.
 # SS: do not explicitly set the state to `None` here
 STATE: Union[None, StartedState, CellsExecutedState]
-GLOBALS: Dict[str, Any]
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +56,8 @@ class StartedState:
 
 @dataclass
 class CellsExecutedState:
+    # Keep the ipython for reset the session
+    ipython: InteractiveShell
     tracer: Tracer
     # The code for this cell's execution
     code: str
@@ -80,9 +82,7 @@ def start(
     Initializing the runtime so that the cells are traced with lineapy.
     """
     global STATE
-    global GLOBALS
     ipython = ipython or get_ipython()  # type: ignore
-    GLOBALS = ipython.user_global_ns
     # IPython does not use exceptionhook, so instead we monkeypatch
     # how it processes the exceptions, in order to add our handler
     # that removes the outer frames.
@@ -101,7 +101,6 @@ def input_transformer_post(
     Translate the lines of code for the cell provided by ipython.
     """
     global STATE
-    global GLOBALS
     if not STATE:
         raise RuntimeError(
             "input_transformer_post shouldn't be called when we don't have an active tracer"
@@ -119,17 +118,22 @@ def input_transformer_post(
             db, SessionType.JUPYTER, STATE.session_name, ipython_globals
         )
 
-        STATE = CellsExecutedState(tracer, code=code)
+        STATE = CellsExecutedState(STATE.ipython, tracer, code=code)
     else:
         if STATE.tracer.db.url != options.database_connection_string:
-            logger.warning(
-                f"LineaPy database has changed from {STATE.tracer.db.url} to {options.database_connection_string}.\n Reset the current session."
-            )
+            STATE.ipython.reset()  # TODO: double check we are not over deleting variables
             configure_logging()
             db = RelationalLineaDB.from_config(options)
-            tracer = Tracer(db, SessionType.JUPYTER, session_name, GLOBALS)
-            STATE = CellsExecutedState(tracer, code=code)
-
+            logger.warning(
+                f"LineaPy database is changed to {options.database_connection_string}, resetting ipython"
+            )
+            tracer = Tracer(
+                db,
+                SessionType.JUPYTER,
+                session_name,
+                STATE.ipython.user_global_ns,
+            )
+            STATE = CellsExecutedState(STATE.ipython, tracer, code=code)
         STATE.code = code
 
     return RETURNED_LINES

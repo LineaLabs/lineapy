@@ -15,17 +15,13 @@ from syrupy.extensions.single_file import SingleFileSnapshotExtension
 from lineapy import save
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.utils import (
-    DB_URL_ENV_VARIABLE,
-    MEMORY_DB_URL,
-    resolve_default_db_path,
-)
 from lineapy.execution.executor import Executor
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
 from lineapy.transformer.node_transformer import transform
+from lineapy.utils.config import DB_FILE_NAME, options
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.tree_logger import print_tree_log, start_tree_log
@@ -37,6 +33,8 @@ from tests.util import get_project_directory, test_prettify
 # https://github.com/tophat/syrupy/pull/552/files#diff-9bab2a0973c5e73c86ed7042300befcaa5a034df17cea4d013eeaece6af66979
 
 DUMMY_WORKING_DIR = "dummy_linea_repo/"
+DB_URL_ENV_VARIABLE = "LINEAPY_DATABASE_CONNECTION_STRING"
+MEMORY_DB_URL = "sqlite:///:memory:"
 
 
 def pytest_addoption(parser):
@@ -273,7 +271,7 @@ def remove_db():
         os.environ.get(DB_URL_ENV_VARIABLE, MEMORY_DB_URL) or MEMORY_DB_URL
     )
     if db_url.startswith(DB_SQLITE_PREFIX):
-        p = resolve_default_db_path()
+        p = Path(options.home_dir).joinpath(DB_FILE_NAME)
         if p.exists():
             p.unlink()
 

@@ -68,11 +68,6 @@ logger = logging.getLogger(__name__)
     type=click.STRING,
     help="SQLAlchemy connection string for LineaPy database.",
 )
-# @click.option(
-#     "--artifact-storage-backend",
-#     type=click.Choice(["local", "s3"], case_sensitive=False),
-#     help="Storage backend for LineaPy artifact.",
-# )
 @click.option(
     "--artifact-storage-dir",
     type=click.Path(dir_okay=True, path_type=pathlib.Path),
@@ -92,7 +87,8 @@ logger = logging.getLogger(__name__)
 @click.option(
     "--logging-level",
     type=click.Choice(
-        ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET"],
+        list(logging._nameToLevel.keys())
+        + sorted([str(x) for x in set(logging._levelToName.keys())]),
         case_sensitive=False,
     ),
     help="Logging level for LineaPy.",

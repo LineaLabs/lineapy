@@ -6,6 +6,8 @@ from os import PathLike
 from pathlib import Path
 from typing import Any, Optional, Union
 
+from lineapy.db.utils import create_lineadb_engine
+
 LINEAPY_FOLDER_NAME = ".lineapy"
 LOG_FILE_NAME = "lineapy.log"
 CONFIG_FILE_NAME = "lineapy_config.json"
@@ -48,6 +50,9 @@ class lineapy_config:
         logging_level="INFO",
         logging_file=None,
     ):
+        if logging_level.isdigit():
+            logging_level = logging._levelToName[int(logging_level)]
+
         self.home_dir = home_dir
         self.database_connection_string = database_connection_string
         self.artifact_storage_dir = artifact_storage_dir
@@ -103,8 +108,18 @@ class lineapy_config:
             logger.error(key, "is not a lineapy config item")
             raise NotImplementedError
         else:
-            self.__dict__[key] = value
-            os.environ[f"LINEAPY_{key.upper()}"] = str(value)
+            if key == "database_connection_string":
+                try:
+                    new_db = create_lineadb_engine(value)
+                    self.__dict__[key] = value
+                    os.environ[f"LINEAPY_{key.upper()}"] = str(value)
+                except Exception as e:
+                    logger.warning(
+                        f"LineaPy cannot connect to {value}. Is this a valid database connection string? Ignore setting LineaPy database."
+                    )
+            else:
+                self.__dict__[key] = value
+                os.environ[f"LINEAPY_{key.upper()}"] = str(value)
 
     def _set_defaults(self):
         """Fill empty configuration items"""
