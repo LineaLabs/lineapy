@@ -49,7 +49,9 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
         pip=["gym[atari]"],
     ),
     "pytorch": lambda: Environment(
-        conda_deps=["torchvision=0.11.3"],
+        # We do not use any conda dependencies and let pip handle all PyTorch dependencies
+        # (including torchvision) as using a particular version of torchvision using conda
+        # causes the child python process to abort and fail the test.
         conda_channels=["pytorch"],
         pip=[
             line
@@ -64,8 +66,6 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
                 and not line.startswith("#")
                 # remove awscli dependency because its incompatible with recent rich version
                 and "awscli" not in line
-                # Make sure we use the conda version of torchvision, otherwise get bus error
-                and "torchvision" not in line
             )
         ],
     ),
