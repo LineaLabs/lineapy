@@ -1,4 +1,4 @@
-import sys
+import pytest
 
 
 def test_sub(execute):
@@ -102,9 +102,9 @@ r12 =a & b
     assert res.values["r12"] == 2
 
 
+@pytest.mark.skipif("sys.version_info < (3, 8)")
 def test_walrus(execute):
-    if sys.version_info >= (3, 8):
-        code1 = """
+    code1 = """
 import lineapy
 x = (y := 10)
 (z := x) < 10
@@ -114,13 +114,13 @@ x = (y := 10)
 lineapy.save(z, 'z')
 """
 
-        res1 = execute(code1)
-        assert res1.values["z"] == 7
-        assert res1.artifacts["z"] == """(x := 7) > 9\n(z := x) > 9\n"""
+    res1 = execute(code1, snapshot=False)
+    assert res1.values["z"] == 7
+    assert res1.artifacts["z"] == """(x := 7) > 9\n(z := x) > 9\n"""
 
-        code2 = """
+    code2 = """
 z = 10
 z = (x := 8)
 """
-        res2 = execute(code2)
-        assert res2.values["z"] == 8
+    res2 = execute(code2, snapshot=False)
+    assert res2.values["z"] == 8
