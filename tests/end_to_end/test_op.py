@@ -105,22 +105,22 @@ r12 =a & b
 def test_walrus(execute):
     if sys.version_info >= (3, 8):
         code1 = """
-    import lineapy
-    x = (y := 10)
-    (z := x) < 10
-    (x := 7) > 9
-    (a := z)
-    (z := x) > 9
-    lineapy.save(z, 'z')
-    """
+import lineapy
+x = (y := 10)
+(z := x) < 10
+(x := 7) > 9
+(a := z)
+(z := x) > 9
+lineapy.save(z, 'z')
+"""
 
         res1 = execute(code1)
         assert res1.values["z"] == 7
         assert res1.artifacts["z"] == """(x := 7) > 9\n(z := x) > 9\n"""
 
         code2 = """
-    z = 10
-    z = (x := 8)
-    """
+z = 10
+z = (x := 8)
+"""
         res2 = execute(code2)
         assert res2.values["z"] == 8
