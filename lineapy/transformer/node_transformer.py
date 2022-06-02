@@ -387,6 +387,10 @@ class NodeTransformer(ast.NodeTransformer):
         # target assignments are handled from left to right in Python
         # x = y = z -> x = z, y = z
         for target in node.targets:
+            # TODO
+            # Aliasing can occur in different ways for complex objects,
+            # e.g. x = y[0]. Future indexing into y[0] will alter the object x as well
+
             # handle special case of assigning aliases e.g. x = y
             if isinstance(target, ast.Name) and isinstance(
                 node.value, ast.Name
@@ -660,6 +664,32 @@ class NodeTransformer(ast.NodeTransformer):
             self.visit(node.value),
             self.visit(ast.Constant(value=node.attr)),
         )
+
+    if sys.version_info >= (3, 8):
+
+        def visit_NamedExpr(self, node: ast.NamedExpr) -> Any:
+            # This is for expressions of the form (var := val), which behaves like an Assign statement
+            # but also returns val so that it can be used for further assignments, comparisions etc.
+            # without having to rewrite the expression.
+            # For example: "if (x := 10) > 9:", which assigns 10 to x and checks 10 > 9.
+            # We treat it similar to an Assign statement, with the difference that the assigned value
+            # is also returned so that it can be re-used.
+
+            if isinstance(node.target, ast.Name):
+                new_node = self.tracer.call(
+                    self.tracer.lookup_node(l_alias.__name__),
+                    self.get_source(node),
+                    self.visit(node.value),
+                )
+                self.tracer.assign(
+                    node.target.id,
+                    new_node,
+                )
+                return new_node
+            else:
+                raise NotImplementedError(
+                    "Assignment using the walrus operator (:=) is only supported for identifiers"
+                )
 
     def _exec_statement(self, node: ast.AST) -> None:
         code = self._get_code_from_node(node)
