@@ -8,7 +8,7 @@ export AIRFLOW_VENV?=/usr/src/airflow_venv
 BACKEND?=sqlite
 export POSTGRES_PASSWORD=supersecretpassword
 ifeq ("$(BACKEND)","PG")
-	export LINEA_DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+	export LINEAPY_DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
 endif
 
 build:

@@ -20,6 +20,7 @@ from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
+from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 
 __all__ = ["_end_cell", "start", "stop", "visualize"]
@@ -51,6 +52,8 @@ class StartedState:
 
 @dataclass
 class CellsExecutedState:
+    # Keep the ipython for reset the session
+    ipython: InteractiveShell
     tracer: Tracer
     # The code for this cell's execution
     code: str
@@ -86,7 +89,10 @@ def start(
     STATE = StartedState(ipython, session_name=session_name, db_url=db_url)
 
 
-def input_transformer_post(lines: List[str]) -> List[str]:
+def input_transformer_post(
+    lines: List[str],
+    session_name: Optional[str] = None,
+) -> List[str]:
     """
     Translate the lines of code for the cell provided by ipython.
     """
@@ -99,7 +105,8 @@ def input_transformer_post(lines: List[str]) -> List[str]:
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
         configure_logging()
-        db = RelationalLineaDB.from_environment(STATE.db_url)
+
+        db = RelationalLineaDB.from_config(options)
         # pass in globals from ipython so that `get_ipython()` works
         # and things like `!cat df.csv` work in the notebook
         ipython_globals = STATE.ipython.user_global_ns
@@ -107,8 +114,19 @@ def input_transformer_post(lines: List[str]) -> List[str]:
             db, SessionType.JUPYTER, STATE.session_name, ipython_globals
         )
 
-        STATE = CellsExecutedState(tracer, code=code)
+        STATE = CellsExecutedState(STATE.ipython, tracer, code=code)
     else:
+        if STATE.tracer.db.url != options.database_url:
+            STATE.ipython.reset()  # TODO: double check we are not over deleting variables
+            configure_logging()
+            db = RelationalLineaDB.from_config(options)
+            tracer = Tracer(
+                db,
+                SessionType.JUPYTER,
+                session_name,
+                STATE.ipython.user_global_ns,
+            )
+            STATE = CellsExecutedState(STATE.ipython, tracer, code=code)
         STATE.code = code
 
     return RETURNED_LINES

@@ -6,6 +6,7 @@ from lineapy.data.types import SessionType, ValueType
 from lineapy.editors.ipython import start, stop, visualize
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils.config import options
 from lineapy.utils.lineabuiltins import db, file_system
 
 __all__ = [
@@ -21,6 +22,7 @@ __all__ = [
     "visualize",
     "db",
     "file_system",
+    "options",
     "__version__",
 ]
 

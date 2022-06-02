@@ -1,5 +1,6 @@
 import ast
 import glob
+import json
 import logging
 import os
 import pathlib
@@ -14,6 +15,7 @@ from time import perf_counter
 from typing import Iterable, List, Optional
 
 import click
+import IPython
 import nbformat
 import rich
 import rich.syntax
@@ -25,7 +27,6 @@ from rich.progress import Progress
 
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.utils import OVERRIDE_HELP_TEXT
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
@@ -35,13 +36,11 @@ from lineapy.transformer.node_transformer import transform
 from lineapy.utils.analytics import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.config import (
+    CONFIG_FILE_NAME,
     CUSTOM_ANNOTATIONS_EXTENSION_NAME,
-    custom_annotations_folder,
+    options,
 )
-from lineapy.utils.logging_config import (
-    LOGGING_ENV_VARIABLE,
-    configure_logging,
-)
+from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 from lineapy.utils.validate_annotation_spec import validate_spec
 
@@ -56,14 +55,104 @@ logger = logging.getLogger(__name__)
 @click.group()
 @click.option(
     "--verbose",
-    help="Print out logging for graph creation and execution",
+    help="Print out logging for graph creation and execution.",
     is_flag=True,
 )
-def linea_cli(verbose: bool):
+@click.option(
+    "--home-dir",
+    type=click.Path(dir_okay=True, path_type=pathlib.Path),
+    help="LineaPy home directory.",
+)
+@click.option(
+    "--database-url",
+    type=click.STRING,
+    help="SQLAlchemy connection string for LineaPy database.",
+)
+@click.option(
+    "--artifact-storage-dir",
+    type=click.Path(dir_okay=True, path_type=pathlib.Path),
+    help="LineaPy artifact directory.",
+)
+@click.option(
+    "--customized-annotation-dir",
+    type=click.Path(dir_okay=True, path_type=pathlib.Path),
+    help="Customized annotation directory.",
+)
+@click.option(
+    "--do-not-track",
+    type=click.BOOL,
+    help="Opt out for user analytics.",
+    is_flag=True,
+)
+@click.option(
+    "--logging-level",
+    type=click.Choice(
+        list(logging._nameToLevel.keys())
+        + sorted([str(x) for x in set(logging._levelToName.keys())]),
+        case_sensitive=False,
+    ),
+    help="Logging level for LineaPy.",
+)
+@click.option(
+    "--logging-file",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Logging file",
+)
+def linea_cli(
+    verbose: bool,
+    home_dir: Optional[pathlib.Path],
+    database_url: Optional[str],
+    artifact_storage_dir: Optional[pathlib.Path],
+    customized_annotation_dir: Optional[pathlib.Path],
+    do_not_track: Optional[bool],
+    logging_level: Optional[str],
+    logging_file: Optional[pathlib.Path],
+):
+    """
+    Pass all configuration to lineapy_config
+    """
+    args = [x for x in locals().keys()]
+
     # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
     if verbose:
-        os.environ[LOGGING_ENV_VARIABLE] = "DEBUG"
+        options.set("LINEAPY_LOG_LEVEL", "DEBUG")
+
     configure_logging()
+
+    for arg in args:
+        if arg in options.__dict__.keys() and locals().get(arg) is not None:
+            options.set(arg, locals().get(arg))
+
+    options._set_defaults()
+
+
+@linea_cli.command()
+@click.option(
+    "--output-file",
+    type=click.Path(dir_okay=False, path_type=pathlib.Path),
+    help="Output LineaPy config file",
+)
+def init(output_file: Optional[pathlib.Path]):
+    """
+    Create config file based on your desired output file path.
+    If the file path is not specified, it will be at ``LINEAPY_HOME_DIR/CONFIG_FILE_NAME``
+
+    For example,
+
+        lineapy --home-dir=/lineapy init
+
+
+    will generate a config file with ``home_dir='/lineapy'``
+    """
+    if output_file is None:
+        output_file = pathlib.Path(options.home_dir).joinpath(CONFIG_FILE_NAME)
+
+    with open(output_file, "w") as f:
+        logging.info(f"Writing LineaPy config file to {output_file}")
+        config = {
+            k: str(v) for k, v in options.__dict__.items() if v is not None
+        }
+        json.dump(config, f)
 
 
 @linea_cli.command()
@@ -111,7 +200,7 @@ def notebook(
     logger.info("Printing slice")
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
-    db = RelationalLineaDB.from_environment()
+    db = RelationalLineaDB.from_config(options)
     artifact = db.get_artifact_by_name(artifact_name)
     # FIXME: mypy issue with SQLAlchemy, see https://github.com/python/typeshed/issues/974
     api_artifact = LineaArtifact(
@@ -123,8 +212,7 @@ def notebook(
         name=artifact_name,
         date_created=artifact.date_created,  # type: ignore
     )
-    # logger.info(api_artifact.get_code())
-    print(api_artifact.get_code())
+    logger.info(api_artifact.get_code())
 
 
 @linea_cli.command()
@@ -155,7 +243,7 @@ def file(
     )
 
     # Run the code:
-    db = RelationalLineaDB.from_environment()
+    db = RelationalLineaDB.from_config(options)
     tracer = Tracer(db, SessionType.SCRIPT)
     # Redirect all stdout to stderr, so its not printed.
     with redirect_stdout(sys.stderr):
@@ -174,8 +262,7 @@ def file(
         name=artifact_name,
         date_created=artifact.date_created,  # type:ignore
     )
-    # logger.info(api_artifact.get_code())
-    print(api_artifact.get_code())
+    logger.info(api_artifact.get_code())
 
 
 def generate_save_code(
@@ -198,7 +285,6 @@ def generate_save_code(
 
 
 @linea_cli.command()
-@click.option("--db-url", default=None, help=OVERRIDE_HELP_TEXT)
 @click.option(
     "--slice",
     default=None,
@@ -247,7 +333,6 @@ def generate_save_code(
 )
 def python(
     file_name: pathlib.Path,
-    db_url: str,
     slice: List[str],  # cast tuple into list
     export_slice: List[str],  # cast tuple into list
     export_slice_to_airflow_dag: str,
@@ -260,7 +345,7 @@ def python(
     set_custom_excepthook()
     tree = rich.tree.Tree(f"📄 {file_name}")
 
-    db = RelationalLineaDB.from_environment(db_url)
+    db = RelationalLineaDB.from_config(options)
     code = file_name.read_text()
 
     if print_source:
@@ -342,7 +427,6 @@ def python(
 @linea_cli.command(context_settings={"ignore_unknown_options": True})
 @click.argument("jupyter_args", nargs=-1, type=click.UNPROCESSED)
 def jupyter(jupyter_args):
-    # Note that Jupyter wraps around iPython, which takes care of the lib sending
     setup_ipython_dir()
     res = subprocess.run(["jupyter", *jupyter_args])
     sys.exit(res.returncode)
@@ -365,17 +449,43 @@ def jupytext(jupytext_args):
 
 
 def setup_ipython_dir() -> None:
-    """
-    Set the ipython directory to include the lineapy extension by default
+    """Set the ipython directory to include the lineapy extension.
+
+    If IPython configure files exist, we copy them to temp the folder and append
+    a line to add lineapy into ``extra_extensions``. If they do not exist, we create
+    new config files in the temp folder and add a line to specify ``extra_extensions``.
     """
     ipython_dir_name = tempfile.mkdtemp()
     # Make a default profile with the extension added to the ipython and kernel
     # configs
     profile_dir = pathlib.Path(ipython_dir_name) / "profile_default"
     profile_dir.mkdir()
-    settings = 'c.InteractiveShellApp.extensions = ["lineapy"]'
-    (profile_dir / "ipython_config.py").write_text(settings)
-    (profile_dir / "ipython_kernel_config.py").write_text(settings)
+
+    append_settings = (
+        '\nc.InteractiveShellApp.extra_extensions.append("lineapy")'
+    )
+    write_settings = 'c.InteractiveShellApp.extra_extensions = ["lineapy"]'
+
+    existing_profile_dir = pathlib.Path(
+        IPython.paths.get_ipython_dir()
+    ).joinpath("profile_default")
+
+    for config_file in ["ipython_config.py", "ipython_kernel_config.py"]:
+        if existing_profile_dir.joinpath(config_file).exists():
+            logger.debug(
+                f"Default {config_file} founded, append setting to this one."
+            )
+            shutil.copy(
+                existing_profile_dir.joinpath(config_file),
+                profile_dir.joinpath(config_file),
+            )
+            with open(profile_dir.joinpath(config_file), "a") as f:
+                f.write(append_settings)
+        else:
+            logger.debug(
+                f"No default {config_file} founded, create a new one."
+            )
+            profile_dir.joinpath(config_file).write_text(write_settings)
 
     os.environ["IPYTHONDIR"] = ipython_dir_name
 
@@ -451,15 +561,16 @@ def add(path: pathlib.Path, name: str):
     name = remove_annotations_file_extension(name)
     name = slugify(name)
 
-    annotate_folder = custom_annotations_folder()
+    annotate_folder = options.safe_get("customized_annotation_folder")
 
     # Path to copy destination in user's .lineapy directory
     destination_file = (
-        annotate_folder / (name + CUSTOM_ANNOTATIONS_EXTENSION_NAME)
+        pathlib.Path(annotate_folder)
+        / (name + CUSTOM_ANNOTATIONS_EXTENSION_NAME)
     ).resolve()
-    print(f"Creating annotation source {name} at {destination_file}")
+    logger.info(f"Creating annotation source {name} at {destination_file}")
 
-    # Copy annotation file to destinatiion
+    # Copy annotation file to destination
     try:
         shutil.copyfile(path, destination_file)
     except IOError as e:
@@ -475,7 +586,9 @@ def list():
     Lists full paths to all imported annotation sources.
     """
     wildcard_path = os.path.join(
-        custom_annotations_folder().resolve(),
+        pathlib.Path(
+            options.safe_get("customized_annotation_folder")
+        ).resolve(),
         "*" + CUSTOM_ANNOTATIONS_EXTENSION_NAME,
     )
 
@@ -501,7 +614,9 @@ def delete(name: str):
     name = remove_annotations_file_extension(name)
     name += CUSTOM_ANNOTATIONS_EXTENSION_NAME
 
-    delete_path = custom_annotations_folder() / name
+    delete_path = pathlib.Path(
+        options.safe_get("customized_annotation_folder")
+    ).joinpath(name)
     try:
         os.remove(delete_path)
     except IsADirectoryError as e:

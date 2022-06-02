@@ -15,7 +15,6 @@ import astor
 import yaml
 from pytest import mark, param
 
-from lineapy.utils.logging_config import LOGGING_ENV_VARIABLE
 from lineapy.utils.utils import prettify
 
 INTEGRATION_DIR = pathlib.Path(__file__).parent
@@ -524,7 +523,7 @@ def write_python_file(
 
 def run_and_log(*args, **kwargs) -> subprocess.CompletedProcess[str]:
     # Set lineapy subprocesses to have more verbose logging
-    env = {**os.environ, LOGGING_ENV_VARIABLE: "INFO"}
+    env = {**os.environ, "LINEAPY_LOG_LEVEL": "INFO"}
     logger.info("Calling %s", " ".join(map(str, args)))
     return subprocess.run(args, check=True, env=env, text=True, **kwargs)
 
