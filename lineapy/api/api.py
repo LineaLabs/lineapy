@@ -22,15 +22,15 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
 from lineapy.plugins.task import TaskGraphEdge
-from lineapy.utils.analytics import (
+from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ExceptionEvent,
     GetEvent,
     SaveEvent,
     ToPipelineEvent,
-    side_effect_to_str,
-    track,
 )
+from lineapy.utils.analytics.usage_tracking import track
+from lineapy.utils.analytics.utils import side_effect_to_str
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_value_type

@@ -4,17 +4,7 @@ from typing import Callable, TypeVar, cast
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.utils.analytics.event_schemas import (
-    CatalogEvent,
-    ExceptionEvent,
-    GetCodeEvent,
-    GetEvent,
-    GetValueEvent,
-    GetVersionEvent,
-    LibImportEvent,
-    SaveEvent,
-    ToPipelineEvent,
-)
+from lineapy.utils.analytics.event_schemas import LibImportEvent
 from lineapy.utils.analytics.usage_tracking import do_not_track, track
 
 C = TypeVar("C", bound=Callable)
@@ -46,19 +36,3 @@ def side_effect_to_str(reference: object):
     if isinstance(reference, ExternalState):
         return reference.external_state
     return ""
-
-
-__all__ = [
-    "track",
-    "ExceptionEvent",
-    "allow_do_not_track",
-    "side_effect_to_str",
-    "CatalogEvent",
-    "LibImportEvent",
-    "SaveEvent",
-    "GetEvent",
-    "ToPipelineEvent",
-    "GetValueEvent",
-    "GetCodeEvent",
-    "GetVersionEvent",
-]

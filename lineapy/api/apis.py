@@ -21,12 +21,12 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.utils.analytics import (
+from lineapy.utils.analytics.event_schemas import (
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,
-    track,
 )
+from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
 
