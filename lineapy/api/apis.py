@@ -55,8 +55,8 @@ class LineaArtifact:
     it is supposed to be automatically set when the 
     artifact gets saved to the db. so when creating lineaArtifact 
     the first time, it will be unset. When you get the artifact or 
-    catalog of artifacts, we retrieve the date from db and 
-    it will be set."""
+    list of artifacts as an artifact store, we retrieve the date 
+    from db and it will be set."""
 
     @property
     def version(self) -> int:
@@ -185,10 +185,10 @@ class LineaArtifact:
         return slice_exec.get_value(self._node_id)
 
 
-class LineaCatalog:
-    """LineaCatalog
+class LineaArtifactStore:
+    """LineaArtifactStore
 
-    A simple way to access meta data about artifacts in Linea
+    A simple way to access meta data about artifacts in Linea.
     """
 
     """
