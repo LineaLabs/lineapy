@@ -103,8 +103,8 @@ r12 =a & b
 
 
 @pytest.mark.skipif("sys.version_info < (3, 8)")
-def test_walrus(execute):
-    code1 = """
+def test_walrus_assigning_to_internal_identifier(execute):
+    code = """
 import lineapy
 x = (y := 10)
 (z := x) < 10
@@ -114,13 +114,16 @@ x = (y := 10)
 lineapy.save(z, 'z')
 """
 
-    res1 = execute(code1, snapshot=False)
-    assert res1.values["z"] == 7
-    assert res1.artifacts["z"] == """(x := 7) > 9\n(z := x) > 9\n"""
+    res = execute(code, snapshot=False)
+    assert res.values["z"] == 7
+    assert res.artifacts["z"] == """(x := 7) > 9\n(z := x) > 9\n"""
 
-    code2 = """
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_assigning_using_returned_value(execute):
+    code = """
 z = 10
 z = (x := 8)
 """
-    res2 = execute(code2, snapshot=False)
-    assert res2.values["z"] == 8
+    res = execute(code, snapshot=False)
+    assert res.values["z"] == 8
