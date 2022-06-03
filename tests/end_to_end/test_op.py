@@ -127,3 +127,49 @@ z = (x := 8)
 """
     res = execute(code, snapshot=False)
     assert res.values["z"] == 8
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_list_comprehensions(execute):
+    code = "(x := [t for t in range(3)])"
+
+    res = execute(code, snapshot=False)
+    assert res.values["x"] == [0, 1, 2]
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_multiple_identifiers(execute):
+    code = """
+import lineapy
+x = 1
+(x,y:=(1,2))
+lineapy.save(y, 'y')
+"""
+    res = execute(code, snapshot=False)
+    assert res.values["x"] == 1
+    assert res.values["y"] == (1, 2)
+    assert res.artifacts["y"] == "(x, y := (1, 2))\n"
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_if_condition(execute):
+    code = """
+import sys
+import pandas
+if ( lib := sys.modules['pandas']):
+    print(lib.__version__)
+"""
+    res = execute(code, snapshot=False)
+    assert res.values["lib"].__name__ == "pandas"
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_if_condition_list_comp(execute):
+    code = """
+import math
+[res for x in range(10) if (res:= math.sin(x)) >= 0]
+"""
+    res = execute(code, snapshot=False)
+    from math import sin
+
+    assert res.values["res"] == sin(9)

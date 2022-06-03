@@ -387,10 +387,6 @@ class NodeTransformer(ast.NodeTransformer):
         # target assignments are handled from left to right in Python
         # x = y = z -> x = z, y = z
         for target in node.targets:
-            # TODO
-            # Aliasing can occur in different ways for complex objects,
-            # e.g. x = y[0]. Future indexing into y[0] will alter the object x as well
-
             # handle special case of assigning aliases e.g. x = y
             if isinstance(target, ast.Name) and isinstance(
                 node.value, ast.Name
