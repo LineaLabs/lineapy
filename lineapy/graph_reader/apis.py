@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import List, Optional, cast
 
 from IPython.display import display
+from pandas.io.common import get_handle
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
@@ -27,6 +28,7 @@ from lineapy.utils.analytics import (
     GetVersionEvent,
     track,
 )
+from lineapy.utils.config import options
 from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
 
@@ -74,8 +76,13 @@ class LineaArtifact:
         else:
             # TODO - set unicode etc here
             track(GetValueEvent(has_value=True))
-            with open(value, "rb") as f:
-                return FilePickler.load(f)
+            with get_handle(
+                "df.pickle",
+                mode="rb",
+                is_text=False,
+                storage_options=options.storage_options,
+            ) as handles:
+                return FilePickler.load(handles.handle)
 
     # Note that I removed the @properties because they were not working
     # well with the lru_cache

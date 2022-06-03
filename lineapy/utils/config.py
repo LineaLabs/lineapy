@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from lineapy.db.utils import create_lineadb_engine
 
@@ -39,6 +39,7 @@ class lineapy_config:
     do_not_track: bool
     logging_level: str
     logging_file: Optional[PathLike]
+    storage_options: Dict[str, Any]
 
     def __init__(
         self,
@@ -49,6 +50,7 @@ class lineapy_config:
         do_not_track=False,
         logging_level="INFO",
         logging_file=None,
+        storage_options={},
     ):
         if logging_level.isdigit():
             logging_level = logging._levelToName[int(logging_level)]
@@ -60,6 +62,7 @@ class lineapy_config:
         self.do_not_track = do_not_track
         self.logging_level = logging_level
         self.logging_file = logging_file
+        self.storage_options = storage_options
 
         # config file
         config_file_path = Path(

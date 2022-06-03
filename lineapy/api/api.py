@@ -12,6 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
+from pandas.io.common import get_handle
+
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import FilePickler
@@ -155,9 +157,13 @@ def _try_write_to_db(value: object) -> Path:
         )
     )
     try:
-        os.makedirs(filepath.parent, exist_ok=True)
-        with open(filepath, "wb") as f:
-            FilePickler.dump(value, f)
+        with get_handle(
+            filepath,
+            mode="wb",
+            is_text=False,
+            storage_options=options.storage_options,
+        ) as handles:
+            FilePickler.dump(value, handles)
     except pickle.PicklingError as pe:
         logger.error(pe)
         track(ExceptionEvent("ArtifactSaveException", str(pe)))
