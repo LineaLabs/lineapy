@@ -125,7 +125,6 @@ lineapy.delete('x', version=0)
         assert res.artifacts["x"]
 
 
-@pytest.mark.xfail(reason="There might be a bug with artifact versions")
 def test_delete_artifact_version(execute):
     res = execute(
         """import lineapy
@@ -138,17 +137,16 @@ lineapy.delete('x', version=1)
 catalog = lineapy.catalog()
 versions = [x._version for x in catalog.artifacts if x.name=='x']
 num_versions = len(versions)
-
+x_retrieve = lineapy.get('x').get_value()
 
 """,
         snapshot=False,
     )
 
     assert res.values["num_versions"] == 1
-    assert res.artifacts["x"] == "x = 100\n"
+    assert res.values["x_retrieve"] == 100
 
 
-@pytest.mark.xfail(reason="There might be a bug with artifact versions")
 def test_delete_artifact_version_complex(execute):
     res = execute(
         """import lineapy
@@ -158,19 +156,18 @@ x = 200
 lineapy.save(x, 'x')
 x = 300
 lineapy.save(x, 'x')
-lineapy.delete('x', version=1)
 
-catalog = lineapy.catalog()
-versions = [x._version for x in catalog.artifacts if x.name=='x']
-num_versions = len(versions)
+# We want to Delete version 1, but the code is executed twice in testing, causing no version 1 to be deleted in second execution
+lineapy.delete('x', version=sorted([x._version for x in lineapy.catalog().artifacts if x.name=='x'])[-2])
 
-
+num_versions = len([x._version for x in lineapy.catalog().artifacts if x.name=='x'])
+x_retrieve = lineapy.get('x').get_value()
 """,
         snapshot=False,
     )
 
     assert res.values["num_versions"] == 2
-    assert res.artifacts["x"] == "x = 300\n"
+    assert res.values["x_retrieve"] == 300
 
 
 def test_delete_artifact_all(execute):
