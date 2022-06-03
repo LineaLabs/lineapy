@@ -12,12 +12,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
+from lineapy.api.apis import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import FilePickler
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
-from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
@@ -173,7 +173,7 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     ----------
     artifact_name: str
         name of the artifact. Note that if you do not remember the artifact,
-        you can use the catalog to browse the options
+        you can use the artifact_store to browse the options
     version: Optional[str]
         version of the artifact. If None, the latest version will be returned.
 
@@ -200,15 +200,15 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     return linea_artifact
 
 
-def catalog() -> LineaCatalog:
+def artifact_store() -> LineaArtifactStore:
     """
     Returns
     -------
-    LineaCatalog
-        An object of the class `LineaCatalog` that allows for printing and exporting artifacts metadata.
+    LineaArtifactStore
+        An object of the class `LineaArtifactStore` that allows for printing and exporting artifacts metadata.
     """
     execution_context = get_context()
-    cat = LineaCatalog(execution_context.executor.db)
+    cat = LineaArtifactStore(execution_context.executor.db)
     track(CatalogEvent(catalog_size=cat.len))
     return cat
 

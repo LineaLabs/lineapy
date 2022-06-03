@@ -1,4 +1,4 @@
-from lineapy.graph_reader.apis import LineaArtifact
+from lineapy.api.apis import LineaArtifact
 
 
 def test_execute_slice(execute):

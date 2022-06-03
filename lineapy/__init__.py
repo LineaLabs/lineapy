@@ -1,6 +1,6 @@
 import atexit
 
-from lineapy.api.api import catalog, get, save, to_pipeline
+from lineapy.api.api import artifact_store, get, save, to_pipeline
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
 from lineapy.editors.ipython import start, stop, visualize
@@ -14,7 +14,7 @@ __all__ = [
     "Tracer",
     "save",
     "get",
-    "catalog",
+    "artifact_store",
     "to_pipeline",
     "SessionType",
     "ValueType",

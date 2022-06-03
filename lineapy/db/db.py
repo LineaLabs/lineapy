@@ -534,7 +534,7 @@ class RelationalLineaDB:
             track(ExceptionEvent("UserException", "Artifact not found"))
             raise UserException(
                 NameError(
-                    f"{msg} not found. Perhaps there was a typo. Please try lineapy.catalog() to inspect all your artifacts."
+                    f"{msg} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
                 )
             )
         return res
@@ -554,7 +554,7 @@ class RelationalLineaDB:
 
     def get_all_artifacts(self) -> List[ArtifactORM]:
         """
-        Used by the catalog to get all the artifacts
+        Used by the artifact store to get all the artifacts
         """
         results = self.session.query(ArtifactORM).all()
         return results
