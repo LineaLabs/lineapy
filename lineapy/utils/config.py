@@ -39,7 +39,7 @@ class lineapy_config:
     do_not_track: bool
     logging_level: str
     logging_file: Optional[PathLike]
-    storage_options: Dict[str, Any]
+    storage_options: Optional[Dict[str, Any]]
 
     def __init__(
         self,
@@ -50,7 +50,7 @@ class lineapy_config:
         do_not_track=False,
         logging_level="INFO",
         logging_file=None,
-        storage_options={},
+        storage_options=None,
     ):
         if logging_level.isdigit():
             logging_level = logging._levelToName[int(logging_level)]

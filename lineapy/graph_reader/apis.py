@@ -77,7 +77,7 @@ class LineaArtifact:
             # TODO - set unicode etc here
             track(GetValueEvent(has_value=True))
             with get_handle(
-                "df.pickle",
+                value,
                 mode="rb",
                 is_text=False,
                 storage_options=options.storage_options,

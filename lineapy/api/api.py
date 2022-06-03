@@ -3,7 +3,6 @@ User facing APIs.
 """
 
 import logging
-import os
 import pickle
 import random
 import string
@@ -163,7 +162,7 @@ def _try_write_to_db(value: object) -> Path:
             is_text=False,
             storage_options=options.storage_options,
         ) as handles:
-            FilePickler.dump(value, handles)
+            FilePickler.dump(value, handles.handle)
     except pickle.PicklingError as pe:
         logger.error(pe)
         track(ExceptionEvent("ArtifactSaveException", str(pe)))
