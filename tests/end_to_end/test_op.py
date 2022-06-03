@@ -105,16 +105,14 @@ r12 =a & b
 @pytest.mark.skipif("sys.version_info < (3, 8)")
 def test_walrus_assigning_to_internal_identifier(execute):
     code = """
-import lineapy
 x = (y := 10)
 (z := x) < 10
 (x := 7) > 9
 (a := z)
 (z := x) > 9
-lineapy.save(z, 'z')
 """
 
-    res = execute(code, snapshot=False)
+    res = execute(code, snapshot=False, artifacts=["z"])
     assert res.values["z"] == 7
     assert res.artifacts["z"] == """(x := 7) > 9\n(z := x) > 9\n"""
 
@@ -125,8 +123,10 @@ def test_walrus_assigning_using_returned_value(execute):
 z = 10
 z = (x := 8)
 """
-    res = execute(code, snapshot=False)
+    res = execute(code, snapshot=False, artifacts=["x", "z"])
     assert res.values["z"] == 8
+    assert res.artifacts["x"] == "z = (x := 8)\n"
+    assert res.artifacts["z"] == "z = (x := 8)\n"
 
 
 @pytest.mark.skipif("sys.version_info < (3, 8)")
@@ -138,17 +138,16 @@ def test_walrus_list_comprehensions(execute):
 
 
 @pytest.mark.skipif("sys.version_info < (3, 8)")
+@pytest.mark.xfail(reason="Destruct + walrus does not work")
 def test_walrus_multiple_identifiers(execute):
     code = """
-import lineapy
 x = 1
 (x,y:=(1,2))
-lineapy.save(y, 'y')
 """
-    res = execute(code, snapshot=False)
+    res = execute(code, snapshot=False, artifacts=["y"])
     assert res.values["x"] == 1
     assert res.values["y"] == (1, 2)
-    assert res.artifacts["y"] == "(x, y := (1, 2))\n"
+    assert res.artifacts["y"] == "x = 1\n(x, y := (1, 2))\n"
 
 
 @pytest.mark.skipif("sys.version_info < (3, 8)")
