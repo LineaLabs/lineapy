@@ -25,10 +25,10 @@ from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
 
+from lineapy.api.apis import LineaArtifact
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
-from lineapy.graph_reader.artifact import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.utils import slugify

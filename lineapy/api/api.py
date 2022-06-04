@@ -12,12 +12,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
+from lineapy.api.apis import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import FilePickler
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
-from lineapy.graph_reader.artifact import LineaArtifact, LineaArtifactStore
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
