@@ -1,5 +1,5 @@
 """
-User exposed objects through the :mod:`lineapy.apis`.
+User exposed objects through the :mod:`lineapy.api`.
 """
 from __future__ import annotations
 
@@ -188,7 +188,7 @@ class LineaArtifact:
 class LineaArtifactStore:
     """LineaArtifactStore
 
-    A simple way to access meta data about artifacts in Linea.
+    A simple way to access meta data about artifacts in Linea
     """
 
     """
