@@ -125,16 +125,8 @@ lineapy.save(sys.argv[1], "first_arg")"""
     with tempfile.NamedTemporaryFile() as f:
         f.write(code.encode())
         f.flush()
-        subprocess.check_call(
-            [
-                "lineapy",
-                "python",
-                f.name,
-                "--slice",
-                "first_arg",
-                "--arg",
-                "an arg",
-            ]
+        python_cli(
+            file_name=pathlib.Path(f.name), slice=["first_arg"], arg=["an arg"]
         )
 
 
@@ -143,9 +135,6 @@ def test_slice_housing():
     """
     Verifies that the "--slice" CLI command is aliased to the `lineapy` executable
     """
-    # subprocess.check_call(
-    #     ["lineapy", "python", "tests/housing.py", "--slice", "p value"]
-    # )
     python_cli(file_name=pathlib.Path("tests/housing.py"), slice=["p value"])
 
 
@@ -154,16 +143,8 @@ def test_slice_housing_multiple():
     """
     Verifies that we can run "--slice" CLI command multiple times
     """
-    subprocess.check_call(
-        [
-            "lineapy",
-            "python",
-            "tests/housing.py",
-            "--slice",
-            "p value",
-            "--slice",
-            "y",
-        ]
+    python_cli(
+        file_name=pathlib.Path("tests/housing.py"), slice=["p value", "y"]
     )
 
 
@@ -172,16 +153,10 @@ def test_export_slice_housing():
     """
     Verifies that the "--export-slice" CLI command is aliased to the `lineapy` executable
     """
-    subprocess.check_call(
-        [
-            "lineapy",
-            "python",
-            "tests/housing.py",
-            "--slice",
-            "p value",
-            "--export-slice",
-            "sliced_housing",
-        ]
+    python_cli(
+        file_name=pathlib.Path("tests/housing.py"),
+        slice=["p value"],
+        export_slice=["sliced_housing"],
     )
 
 
@@ -190,20 +165,10 @@ def test_export_slice_housing_multiple():
     """
     Verifies that we can run "--export-slice" CLI command multiple times
     """
-    subprocess.check_call(
-        [
-            "lineapy",
-            "python",
-            "tests/housing.py",
-            "--slice",
-            "p value",
-            "--export-slice",
-            "p_value_housing",
-            "--slice",
-            "y",
-            "--export-slice",
-            "y_housing",
-        ]
+    python_cli(
+        file_name=pathlib.Path("tests/housing.py"),
+        slice=["p value", "y"],
+        export_slice=["p_value_housing", "y_housing"],
     )
 
 
