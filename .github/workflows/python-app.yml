@@ -47,7 +47,7 @@ jobs:
             ${{ runner.os }}-pip-
       - name: Install dependencies
         run: |
-          pip install wheel && pip install -r requirements.txt && python setup.py install && rm -rf build
+          pip install --disable-pip-version-check wheel && pip install --disable-pip-version-check -r requirements.txt && python setup.py install && rm -rf build
       - name: Test with pytest
         run: |
           pytest -v
