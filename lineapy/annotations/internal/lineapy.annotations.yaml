@@ -44,3 +44,9 @@
         - views:
             - result: RESULT
             - positional_argument_index: 1
+    - criteria:
+        function_name: l_alias
+      side_effects:
+        - views:
+            - result: RESULT
+            - all_positional_arguments: ALL_POSITIONAL_ARGUMENTS

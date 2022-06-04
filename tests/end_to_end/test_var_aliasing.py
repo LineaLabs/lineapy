@@ -43,3 +43,16 @@ lineapy.save(y, "y")
     assert res.slice("y") == "x = 100\ny = x\n"
     assert res.values["x"] == 200
     assert res.values["y"] == 100
+
+
+def test_alias_modifications_reflected_in_original_variable(execute):
+    code = """
+a = []
+a.append(5)
+b = a
+a.append(10)
+"""
+    res = execute(code, artifacts=["a", "b"])
+    assert res.values["a"] == res.values["b"] == [5, 10]
+    assert res.slice("a") == "a = []\na.append(5)\na.append(10)\n"
+    assert res.slice("b") == "a = []\na.append(5)\nb = a\na.append(10)\n"

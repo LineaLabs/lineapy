@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union, cast
 
-from sqlalchemy import create_engine
 from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
-from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql.expression import and_
 
 from lineapy.data.types import (
@@ -50,12 +47,13 @@ from lineapy.db.relational import (
     SessionContextORM,
     SourceCodeORM,
 )
-from lineapy.db.utils import OVERRIDE_HELP_TEXT, resolve_db_url
+from lineapy.db.utils import create_lineadb_engine
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.utils.analytics.event_schemas import ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track  # circular dep issues
-from lineapy.utils.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
+from lineapy.utils.config import lineapy_config
+from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.utils import get_literal_value_from_string
 
 logger = logging.getLogger(__name__)
@@ -81,17 +79,7 @@ class RelationalLineaDB:
         # create_engine params from
         # https://stackoverflow.com/questions/21766960/operationalerror-no-such-table-in-flask-with-sqlalchemy
         self.url: str = url
-        echo = os.getenv(SQLALCHEMY_ECHO, default="false").lower() == "true"
-        logger.debug(f"Connecting to Linea DB at {url}")
-        additional_args = {}
-        if url.startswith(DB_SQLITE_PREFIX):
-            additional_args = {"check_same_thread": False}
-        self.engine = create_engine(
-            url,
-            connect_args=additional_args,
-            poolclass=StaticPool,
-            echo=echo,
-        )
+        self.engine = create_lineadb_engine(self.url)
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=self.engine)
         Base.metadata.create_all(self.engine)
@@ -103,13 +91,22 @@ class RelationalLineaDB:
             self.session.configure(bind=self.engine)
 
     @classmethod
-    def from_environment(cls, url: Optional[str] = None) -> RelationalLineaDB:
-        f"""
+    def from_config(cls, options: lineapy_config) -> RelationalLineaDB:
+        """
         Creates a new database.
 
-        url: {OVERRIDE_HELP_TEXT}
+        If no url is provided, it will use the result of ``lineapy_config.safe_get("database_url")``
         """
-        return cls(resolve_db_url(url))
+        return cls(str(options.safe_get("database_url")))
+
+    @classmethod
+    def from_environment(cls, url: str) -> RelationalLineaDB:
+        """
+        Creates a new database.
+
+        If no url is provided, it will use the result of ``lineapy_config.safe_get("database_url")``
+        """
+        return cls(url)
 
     @staticmethod
     def get_type_of_literal_value(val: Any) -> LiteralType:
