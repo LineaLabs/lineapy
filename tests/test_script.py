@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import shutil
 import subprocess
 import tempfile
@@ -7,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from lineapy.cli.cli import remove_annotations_file_extension
+from lineapy.cli.cli import python_cli, remove_annotations_file_extension
 from lineapy.plugins.utils import slugify
 from lineapy.utils.config import options
 
@@ -142,9 +143,10 @@ def test_slice_housing():
     """
     Verifies that the "--slice" CLI command is aliased to the `lineapy` executable
     """
-    subprocess.check_call(
-        ["lineapy", "python", "tests/housing.py", "--slice", "p value"]
-    )
+    # subprocess.check_call(
+    #     ["lineapy", "python", "tests/housing.py", "--slice", "p value"]
+    # )
+    python_cli(file_name=pathlib.Path("tests/housing.py"), slice=["p value"])
 
 
 @pytest.mark.slow

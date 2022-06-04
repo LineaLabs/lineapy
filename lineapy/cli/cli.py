@@ -342,6 +342,30 @@ def python(
     visualize: bool,
     arg: Iterable[str],
 ):
+    python_cli(
+        file_name,
+        slice,
+        export_slice,
+        export_slice_to_airflow_dag,
+        airflow_task_dependencies,
+        print_source,
+        print_graph,
+        visualize,
+        arg,
+    )
+
+
+def python_cli(
+    file_name: pathlib.Path,
+    slice: List[str] = None,  # cast tuple into list
+    export_slice: List[str] = None,  # cast tuple into list
+    export_slice_to_airflow_dag: str = None,
+    airflow_task_dependencies: str = None,
+    print_source: bool = False,
+    print_graph: bool = False,
+    visualize: bool = False,
+    arg: Iterable[str] = [],
+):
     set_custom_excepthook()
     tree = rich.tree.Tree(f"📄 {file_name}")
 
@@ -401,7 +425,9 @@ def python(
         ap.sliced_airflow_dag(
             slice,
             export_slice_to_airflow_dag,
-            ast.literal_eval(airflow_task_dependencies),
+            ast.literal_eval(airflow_task_dependencies)
+            if airflow_task_dependencies
+            else {},
         )
 
     db.close()
