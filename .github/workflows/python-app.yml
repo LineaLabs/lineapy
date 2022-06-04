@@ -58,7 +58,7 @@ jobs:
           pip install --user -r requirements.txt && python setup.py install && rm -rf build
       - name: Test with pytest
         run: |
-          pytest -v
+          python -m pytest -v
   pre-commit:
     name: ${{ matrix.id }}
     runs-on: ubuntu-latest
