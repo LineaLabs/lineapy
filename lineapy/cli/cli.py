@@ -359,7 +359,7 @@ def python(
     sys.argv = [str(file_name), *arg]
     # Change the working directory to that of the script,
     # To pick up relative data paths
-    #
+    ##
     os.chdir(file_name.parent)
 
     tracer = Tracer(db, SessionType.SCRIPT)
