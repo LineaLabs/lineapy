@@ -45,7 +45,7 @@ jobs:
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-
           path: |
             ~/.cache/pip
-            /opt/hostedtoolcache/rikai/${{ matrix.python-version }}
+            /home/runner/linea 
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Install pip dependencies
@@ -59,6 +59,7 @@ jobs:
           python setup.py install && rm -rf build
       - name: Test with pytest
         run: |
+          PYTHONUSERBASE=/home/runner/linea \
           pytest -v
   pre-commit:
     name: ${{ matrix.id }}
