@@ -5,6 +5,7 @@ name: Python
 
 env:
   LINEAPY_DO_NOT_TRACK: true
+  PYTHONUSERBASE: /opt/hostedtoolcache/linea
 
 on:
   push:
@@ -45,21 +46,18 @@ jobs:
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-
           path: |
             ~/.cache/pip
-            /home/runner/linea 
+            /opt/hostedtoolcache/linea
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Install pip dependencies
         if: steps.pipcache.outputs.cache-hit != 'true'
         run: |
-          PYTHONUSERBASE=/home/runner/linea \
-          python -m pip install --user --disable-pip-version-check wheel -r requirements.txt
+          pip install --user --disable-pip-version-check wheel -r requirements.txt
       - name: Install linea
         run: |
-          PYTHONUSERBASE=/home/runner/linea \
           python setup.py install && rm -rf build
       - name: Test with pytest
         run: |
-          PYTHONUSERBASE=/home/runner/linea \
           pytest -v
   pre-commit:
     name: ${{ matrix.id }}
