@@ -42,7 +42,6 @@ jobs:
       - uses: actions/cache@v3
         id: pipcache
         with:
-          path: 
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-
           path: |
             ~/.cache/pip
