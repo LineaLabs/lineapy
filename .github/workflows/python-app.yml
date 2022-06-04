@@ -41,14 +41,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v3
-        id: pipcache
+        #id: pipcache
         with:
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-
           path: /opt/hostedtoolcache/linea #/opt/hostedtoolcache/linea/lib/python3.9/site-packages 
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Install pip dependencies
-        if: steps.pipcache.outputs.cache-hit != 'true'
+        #if: steps.pipcache.outputs.cache-hit != 'true'
         run: |
           pip install wheel && python -m pip install --user -r requirements.txt
       - name: Install linea
