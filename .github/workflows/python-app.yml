@@ -44,7 +44,7 @@ jobs:
         id: pipcache
         with:
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-
-          path: /opt/hostedtoolcache/linea
+          path: /opt/hostedtoolcache/linea #/opt/hostedtoolcache/linea/lib/python3.9/site-packages 
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Install pip dependencies
