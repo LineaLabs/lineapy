@@ -167,7 +167,7 @@ def delete(
             db.delete_node_value_from_db(node_id, execution_id)
             if pickled_path is not None:
                 try:
-                    _try_delete_from_db(Path(pickled_path))
+                    _try_delete_pickle_file(Path(pickled_path))
                 except KeyError:
                     logging.info(f"Pickle not found at {pickled_path}")
             else:
@@ -179,15 +179,15 @@ def delete(
     db.delete_artifact_by_name(artifact_name, version=delete_version)
 
 
-def _try_delete_from_db(pickled_path: Path) -> None:
+def _try_delete_pickle_file(pickled_path: Path) -> None:
     if pickled_path.exists():
         pickled_path.unlink()
     else:
         # Attempt to reconstruct path to pickle with current
         # linea folder and picke base directory.
-        new_pickled_path = (
-            linea_folder() / FILE_PICKLER_BASEDIR / pickled_path.name
-        )
+        new_pickled_path = Path(
+            options.safe_get("artifact_storage_dir")
+        ).joinpath(pickled_path.name)
         if new_pickled_path.exists():
             new_pickled_path.unlink()
         else:
