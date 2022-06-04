@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9.13"]
+        python-version: ["3.7", "3.8", "3.9"]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -43,7 +43,9 @@ jobs:
       - uses: actions/cache@v3
         #id: pipcache
         with:
-          path: ["/home/runner/.cache/pip", "/opt/hostedtoolcache/linea"] #/opt/hostedtoolcache/linea/lib/python3.9/site-packages 
+          path:
+            - "/home/runner/.cache/pip"
+            - "/opt/hostedtoolcache/linea" #/opt/hostedtoolcache/linea/lib/python3.9/site-packages 
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
