@@ -40,6 +40,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v3
+        id: pipcache
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -48,9 +49,13 @@ jobs:
       - name: Install graphviz
         # Note: Also need to add ffmpeg to run numpy integration tests, but omitting for time
         run: sudo apt-get install -y graphviz
-      - name: Install dependencies
+      - name: Install pip dependencies
+        if: steps.pipcache.outputs.cache-hit != 'true'
         run: |
-          pip install -r requirements.txt && python setup.py install && rm -rf build
+          pip install -r requirements.txt
+      - name: Install linea
+        run: |
+          python setup.py install && rm -rf build
       - name: Test with pytest
         run: |
           pytest -v
