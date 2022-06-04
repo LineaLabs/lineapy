@@ -43,7 +43,7 @@ jobs:
       - uses: actions/cache@v3
         #id: pipcache
         with:
-          path: /opt/hostedtoolcache/linea #/opt/hostedtoolcache/linea/lib/python3.9/site-packages 
+          path: ["/home/runner/.cache/pip", "/opt/hostedtoolcache/linea"] #/opt/hostedtoolcache/linea/lib/python3.9/site-packages 
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
