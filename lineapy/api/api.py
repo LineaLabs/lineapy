@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from pandas.io.common import get_handle
+from upath import UPath
 
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
@@ -145,7 +146,7 @@ def _try_write_to_db(value: object) -> Path:
     if isinstance(value, types.ModuleType):
         raise ArtifactSaveException()
     # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = Path(options.safe_get("artifact_storage_dir")).joinpath(
+    artifact_filename = (
         "".join(
             random.choices(
                 string.ascii_uppercase
@@ -154,7 +155,14 @@ def _try_write_to_db(value: object) -> Path:
                 k=7,
             )
         )
+        + ".pkl"
     )
+
+    artifact_storage_dir = UPath(options.safe_get("artifact_storage_dir"))
+    if not artifact_storage_dir.exists():
+        artifact_storage_dir.mkdir(parents=True)
+
+    filepath = artifact_storage_dir.joinpath(artifact_filename)
     try:
         with get_handle(
             filepath,
