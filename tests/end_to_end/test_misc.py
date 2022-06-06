@@ -70,11 +70,13 @@ class TestEndToEnd:
 
     def test_chained_ops(self, execute):
         code = "b = 1 < 2 < 3\nassert b"
-        execute(code)
+        res = execute(code)
+        assert res.values["b"]
 
     def test_import_name(self, execute):
         code = "import pandas as pd\nassert pd.__name__ == 'pandas'"
-        execute(code)
+        res = execute(code)
+        assert res.values["pd"].__name__ == "pandas"
 
     def test_fake_attribute(self, execute):
         code = "a = 1\nb=a.imag == 1"
@@ -111,7 +113,8 @@ class TestEndToEnd:
 
     def test_compareops(self, execute):
         code = "b = 1 < 2 < 3\nassert b"
-        execute(code)
+        res = execute(code)
+        assert res.values["b"]
 
     def test_simple(self, execute):
         assert execute("a = abs(11)").values["a"] == 11

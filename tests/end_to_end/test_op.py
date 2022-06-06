@@ -10,11 +10,13 @@ def test_add(execute):
     """
     Weird test case from https://stackoverflow.com/a/16819334/907060
     """
-    execute(
+    res = execute(
         """from decimal import Decimal
 obj = Decimal('3.1415926535897932384626433832795028841971')
 assert +obj != obj"""
     )
+    obj = res.values["obj"]
+    assert +obj != obj
 
 
 def test_invert(execute):

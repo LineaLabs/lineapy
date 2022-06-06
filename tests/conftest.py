@@ -167,7 +167,7 @@ class ExecuteFixture:
         self,
         code: str,
         *,
-        snapshot: bool = True,
+        snapshot: bool = False,
         artifacts: typing.Iterable[str] = (),
     ) -> Tracer:
         """

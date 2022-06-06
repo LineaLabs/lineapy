@@ -16,8 +16,8 @@ print(next(it))
 print(*it)
 """
     # should execute without failures
-    ret = execute(CODE2)
-    assert True
+    res = execute(CODE2)
+    assert res.values["it"]
 
 
 def test_starred_in_func_executes(execute):
