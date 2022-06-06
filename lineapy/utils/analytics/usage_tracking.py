@@ -8,7 +8,6 @@ except ModuleNotFoundError:
 
 import json
 import logging
-import os
 import sys
 import uuid
 from dataclasses import asdict
@@ -17,7 +16,7 @@ from functools import lru_cache
 import requests
 
 from lineapy.utils.analytics.event_schemas import AllEvents
-from lineapy.utils.config import LOG_FILE_NAME, linea_folder
+from lineapy.utils.config import options
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +48,7 @@ def _session_id():
 
 @lru_cache(maxsize=1)
 def do_not_track() -> bool:
-    return os.environ.get("LINEAPY_DO_NOT_TRACK", str(False)).lower() == "true"
+    return str(options.get("do_not_track")).lower() == "true"
 
 
 def _send_amplitude_event(event_type, event_properties):
@@ -64,7 +63,7 @@ def _send_amplitude_event(event_type, event_properties):
     headers = {"Content-Type": "application/json", "Accept": "*/*"}
 
     # also append to a local file for sanity checking
-    with open(linea_folder() / LOG_FILE_NAME, "a+") as f:
+    with open(options.safe_get("logging_file"), "a+") as f:
         f.write(json.dumps(events) + "\n")
 
     # send to amplitude

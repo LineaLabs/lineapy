@@ -60,11 +60,11 @@ Connect LineaPy with PostgreSQL
 
 Now that the new database is in place, we need to make LineaPy recognize and use it.
 We can do this by exporting the database connection string into an environmental variable
-``LINEA_DATABASE_URL``, like so:
+``LINEAPY_DATABASE_URL``, like so:
 
 .. code:: bash
 
-    $ export LINEA_DATABASE_URL=postgresql://postgresuser:postgrespwd@localhost:15432/postgresdb
+    $ export LINEAPY_DATABASE_URL=postgresql://postgresuser:postgrespwd@localhost:15432/postgresdb
 
 Note that this has to be done prior to using LineaPy so that the environment variable exists in runtime.
 

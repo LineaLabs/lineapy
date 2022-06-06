@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_sub(execute):
     res = execute("x = 1\ny=-x")
     assert res.values["y"] == -1
@@ -97,3 +100,75 @@ r12 =a & b
     assert res.values["r10"] == 11
     assert res.values["r11"] == 9
     assert res.values["r12"] == 2
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_assigning_to_internal_identifier(execute):
+    code = """
+x = (y := 10)
+(z := x) < 10
+(x := 7) > 9
+(a := z)
+(z := x) > 9
+"""
+
+    res = execute(code, snapshot=False, artifacts=["z"])
+    assert res.values["z"] == 7
+    assert res.artifacts["z"] == """(x := 7) > 9\n(z := x) > 9\n"""
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_assigning_using_returned_value(execute):
+    code = """
+z = 10
+z = (x := 8)
+"""
+    res = execute(code, snapshot=False, artifacts=["x", "z"])
+    assert res.values["z"] == 8
+    assert res.artifacts["x"] == "z = (x := 8)\n"
+    assert res.artifacts["z"] == "z = (x := 8)\n"
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_list_comprehensions(execute):
+    code = "(x := [t for t in range(3)])"
+
+    res = execute(code, snapshot=False)
+    assert res.values["x"] == [0, 1, 2]
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+@pytest.mark.xfail(reason="Destruct + walrus does not work")
+def test_walrus_multiple_identifiers(execute):
+    code = """
+x = 1
+(x,y:=(1,2))
+"""
+    res = execute(code, snapshot=False, artifacts=["y"])
+    assert res.values["x"] == 1
+    assert res.values["y"] == (1, 2)
+    assert res.artifacts["y"] == "x = 1\n(x, y := (1, 2))\n"
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_if_condition(execute):
+    code = """
+import sys
+import pandas
+if ( lib := sys.modules['pandas']):
+    print(lib.__version__)
+"""
+    res = execute(code, snapshot=False)
+    assert res.values["lib"].__name__ == "pandas"
+
+
+@pytest.mark.skipif("sys.version_info < (3, 8)")
+def test_walrus_if_condition_list_comp(execute):
+    code = """
+import math
+[res for x in range(10) if (res:= math.sin(x)) >= 0]
+"""
+    res = execute(code, snapshot=False)
+    from math import sin
+
+    assert res.values["res"] == sin(9)

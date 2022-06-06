@@ -1,11 +1,12 @@
 import atexit
 
-from lineapy.api.api import catalog, get, save, to_pipeline
+from lineapy.api.api import catalog, delete, get, save, to_pipeline
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
 from lineapy.editors.ipython import start, stop, visualize
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils.config import options
 from lineapy.utils.lineabuiltins import db, file_system
 
 __all__ = [
@@ -14,6 +15,7 @@ __all__ = [
     "save",
     "get",
     "catalog",
+    "delete",
     "to_pipeline",
     "SessionType",
     "ValueType",
@@ -21,6 +23,7 @@ __all__ = [
     "visualize",
     "db",
     "file_system",
+    "options",
     "__version__",
 ]
 

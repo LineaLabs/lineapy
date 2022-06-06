@@ -15,7 +15,6 @@ import astor
 import yaml
 from pytest import mark, param
 
-from lineapy.utils.logging_config import LOGGING_ENV_VARIABLE
 from lineapy.utils.utils import prettify
 
 INTEGRATION_DIR = pathlib.Path(__file__).parent
@@ -49,7 +48,9 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
         pip=["gym[atari]"],
     ),
     "pytorch": lambda: Environment(
-        conda_deps=["torchvision=0.11.3"],
+        # We do not use any conda dependencies and let pip handle all PyTorch dependencies
+        # (including torchvision) as using a particular version of torchvision using conda
+        # causes the child python process to abort and fail the test.
         conda_channels=["pytorch"],
         pip=[
             line
@@ -64,8 +65,6 @@ ENVS: Dict[str, Union[Environment, Callable[[], Environment]]] = {
                 and not line.startswith("#")
                 # remove awscli dependency because its incompatible with recent rich version
                 and "awscli" not in line
-                # Make sure we use the conda version of torchvision, otherwise get bus error
-                and "torchvision" not in line
             )
         ],
     ),
@@ -524,7 +523,7 @@ def write_python_file(
 
 def run_and_log(*args, **kwargs) -> subprocess.CompletedProcess[str]:
     # Set lineapy subprocesses to have more verbose logging
-    env = {**os.environ, LOGGING_ENV_VARIABLE: "INFO"}
+    env = {**os.environ, "LINEAPY_LOG_LEVEL": "INFO"}
     logger.info("Calling %s", " ".join(map(str, args)))
     return subprocess.run(args, check=True, env=env, text=True, **kwargs)
 
