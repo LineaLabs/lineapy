@@ -3,8 +3,9 @@ import logging
 import os
 from dataclasses import dataclass
 from os import PathLike
-from pathlib import Path
 from typing import Any, Dict, Optional, Union
+
+from upath import UPath
 
 from lineapy.db.utils import create_lineadb_engine
 
@@ -32,10 +33,10 @@ class lineapy_config:
 
     """
 
-    home_dir: Path
+    home_dir: UPath
     database_url: Optional[str]
-    artifact_storage_dir: Optional[Path]
-    customized_annotation_folder: Optional[Path]
+    artifact_storage_dir: Optional[UPath]
+    customized_annotation_folder: Optional[UPath]
     do_not_track: bool
     logging_level: str
     logging_file: Optional[PathLike]
@@ -65,7 +66,7 @@ class lineapy_config:
         self.storage_options = storage_options
 
         # config file
-        config_file_path = Path(
+        config_file_path = UPath(
             os.environ.get(
                 "LINEAPY_HOME_DIR",
                 f"{os.environ.get('HOME','~')}/{LINEAPY_FOLDER_NAME}",
@@ -75,7 +76,7 @@ class lineapy_config:
             with open(config_file_path, "r") as f:
                 _read_config = json.load(f)
         else:
-            config_file_path = Path(os.environ.get("HOME", "~")).joinpath(
+            config_file_path = UPath(os.environ.get("HOME", "~")).joinpath(
                 CONFIG_FILE_NAME
             )
             if config_file_path.exists():
@@ -135,16 +136,16 @@ class lineapy_config:
         self.safe_get("artifact_storage_dir")
         self.safe_get("customized_annotation_folder")
 
-    def safe_get(self, name) -> Union[Path, str]:
-        def safe_get_folder(name) -> Path:
-            """Return folder as pathlib.Path
+    def safe_get(self, name) -> Union[UPath, str]:
+        def safe_get_folder(name) -> UPath:
+            """Return folder as upath.UPath
             Create the folder if it doesn't exist"""
-            if not Path(self.__dict__[name]).exists():
+            if not UPath(self.__dict__[name]).exists():
                 logger.warning(
-                    f"Folder {Path(self.__dict__[name]).as_posix()} does not exist. Creating a new one."
+                    f"Folder {UPath(self.__dict__[name]).as_posix()} does not exist. Creating a new one."
                 )
-                Path(self.__dict__[name]).mkdir(parents=True, exist_ok=True)
-            return Path(self.__dict__[name])
+                UPath(self.__dict__[name]).mkdir(parents=True, exist_ok=True)
+            return UPath(self.__dict__[name])
 
         # Return logging_file path, use LINEAPY_HOME_DIR/LOG_FILE_NAME if empty
         if name == "logging_file":
@@ -154,7 +155,7 @@ class lineapy_config:
                     safe_get_folder("home_dir").joinpath(LOG_FILE_NAME),
                     verbose=False,
                 )
-            return Path(str(self.logging_file))
+            return UPath(str(self.logging_file))
 
         # Return LINEAPY_DATABASE_url, use sqlite:///{LINEAPY_HOME_DIR}/{DB_FILE_NAME} if empty
         elif name == "database_url":

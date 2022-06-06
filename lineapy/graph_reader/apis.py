@@ -10,6 +10,7 @@ from typing import List, Optional, cast
 
 from IPython.display import display
 from pandas.io.common import get_handle
+from upath import UPath
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
@@ -70,14 +71,19 @@ class LineaArtifact:
         """
         Get and return the value of the artifact
         """
-        value = self.db.get_node_value_path(self._node_id, self._execution_id)
-        if value is None:
+        pickle_filename = self.db.get_node_value_path(
+            self._node_id, self._execution_id
+        )
+        if pickle_filename is None:
             return None
         else:
             # TODO - set unicode etc here
             track(GetValueEvent(has_value=True))
+            filepath = UPath(
+                options.safe_get("artifact_storage_dir")
+            ).joinpath(pickle_filename)
             with get_handle(
-                value,
+                filepath,
                 mode="rb",
                 is_text=False,
                 storage_options=options.storage_options,
