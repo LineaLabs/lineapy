@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.sql.expression import and_
@@ -467,6 +467,24 @@ class RelationalLineaDB:
             .exists()
         ).scalar()
 
+    def number_of_artifacts_per_node(
+        self, node_id: LineaID, execution_id: LineaID
+    ) -> int:
+        """
+        Returns number of artifacts that refer to
+        the same execution node.
+        """
+        return (
+            self.session.query(ArtifactORM)
+            .filter(
+                and_(
+                    ArtifactORM.node_id == node_id,
+                    ArtifactORM.execution_id == execution_id,
+                )
+            )
+            .count()
+        )
+
     def get_libraries_for_session(
         self, session_id: LineaID
     ) -> List[ImportNodeORM]:
@@ -599,3 +617,67 @@ class RelationalLineaDB:
                 if script_source_code_orms is not None
                 else ""
             )
+
+    def delete_artifact_by_name(
+        self, artifact_name: str, version: Union[int, str] = None
+    ):
+        """
+        Deletes the most recent artifact with a certain name.
+        If a version is not specified, it will delete the most recent
+        version sorted by date_created
+        """
+        if (
+            not isinstance(version, int)
+            and version != "all"
+            and version != "latest"
+        ):
+            track(ExceptionEvent("UserException", "Artifact version invalid"))
+            raise UserException(NameError(f"{version} is an invalid version"))
+
+        res_query = self.session.query(ArtifactORM).filter(
+            ArtifactORM.name == artifact_name
+        )
+        if version == "all":
+            res_query.delete()
+        else:
+            if isinstance(version, int):
+                res_query = res_query.filter(ArtifactORM.version == version)
+            res = res_query.order_by(ArtifactORM.version.desc()).first()
+            if res is None:
+                msg = (
+                    f"Artifact {artifact_name} (version {version})"
+                    if version
+                    else f"Artifact {artifact_name}"
+                )
+                track(ExceptionEvent("UserException", "Artifact not found"))
+                raise UserException(
+                    NameError(
+                        f"{msg} not found. Perhaps there was a typo. Please try lineapy.catalog() to inspect all your artifacts."
+                    )
+                )
+            self.session.delete(res)
+        self.renew_session()
+
+    def delete_node_value_from_db(
+        self, node_id: LineaID, execution_id: LineaID
+    ):
+        value_orm = (
+            self.session.query(NodeValueORM)
+            .filter(
+                and_(
+                    NodeValueORM.node_id == node_id,
+                    NodeValueORM.execution_id == execution_id,
+                )
+            )
+            .first()
+        )
+        if value_orm is None:
+            track(ExceptionEvent("UserException", "Value node not found"))
+            raise UserException(
+                NameError(
+                    f"NodeID {node_id} and ExecutionID {execution_id} does not exist"
+                )
+            )
+
+        self.session.delete(value_orm)
+        self.renew_session()
