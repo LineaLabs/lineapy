@@ -10,6 +10,16 @@ from lineapy.utils.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
 
 logger = logging.getLogger(__name__)
 
+def is_artifact_version_valid(version: Union[int, str]):
+    if isinstance(version, int) and version >= 0:
+        return True
+    if version in ["all", "latest"]:
+        return True
+    try:
+        casted_version = int(version)
+        return casted_version >= 0
+    except ValueError:
+        return False
 
 def create_lineadb_engine(url: str) -> Engine:
     """Create a SQLAlchemy engine for LineaDB.

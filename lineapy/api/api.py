@@ -15,7 +15,7 @@ from typing import List, Optional, Union
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
-from lineapy.db.utils import FilePickler
+from lineapy.db.utils import FilePickler, is_artifact_version_valid
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
@@ -146,14 +146,35 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     refer to the value, the value is also deleted from both the
     value node store and the pickle store.
 
-    If version is not provided, latest version is used.
+    :param artifact_name: Key used to while saving the artifact
+    :param version: version number or 'latest' or 'all'
     """
+    if not is_artifact_version_valid(version):
+        raise ValueError(
+            f"Version {version} is not a valid version.\n"
+            + "Version must be a positive whole number or 'all' or 'latest'."
+        )
+
+    # if version is an integer string, cast to int
+    if version not in ["all", "latest"]:
+        version = int(version)
+
+    # get database instance
     execution_context = get_context()
     executor = execution_context.executor
     db = executor.db
 
-    get_version = None if not isinstance(version, int) else version
-    artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+    # if version is 'all' or 'latest', get_version is None
+    get_version = None
+    if isinstance(version, int):
+        get_version = version
+
+    try:
+        artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+    except UserException:
+        raise NameError(
+            f"{artifact_name} not found. Perhaps there was a typo. Please try lineapy.catalog() to inspect all your artifacts."
+        )
 
     node_id = artifact.node_id
     execution_id = artifact.execution_id
