@@ -36,7 +36,8 @@ from lineapy.system_tracing.function_call import FunctionCall
 from lineapy.system_tracing.function_calls_to_side_effects import (
     function_calls_to_side_effects,
 )
-from lineapy.utils.analytics import ExceptionEvent, track
+from lineapy.utils.analytics.event_schemas import ExceptionEvent
+from lineapy.utils.analytics.usage_tracking import track
 
 if TYPE_CHECKING:
     from lineapy.data.types import CallNode, LineaID
