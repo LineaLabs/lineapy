@@ -53,6 +53,8 @@ minimal_requirement = [
     "nbformat",
     "nbconvert<7.0.0",
     "requests",
+    "fsspec",
+    "universal_pathlib",
 ]
 
 graph_libs = [
@@ -116,11 +118,13 @@ postgres_libs = [
     "psycopg2",
 ]
 
+s3_libs = ["boto3", "s3fs", "botocore"]
 
 MINIMAL_REQUIRES = minimal_requirement
 INSTALL_REQUIRES = minimal_requirement + formatter_libs
 POSTGRES_REQUIRES = INSTALL_REQUIRES + postgres_libs
 GRAPH_REQUIRES = INSTALL_REQUIRES + graph_libs
+S3_REQUIRES = INSTALL_REQUIRES + s3_libs
 DEV_REQUIRES = (
     minimal_requirement
     + formatter_libs
@@ -132,12 +136,14 @@ DEV_REQUIRES = (
     + benchmark_libs
     + doc_libs
     + typing_libs
+    + s3_libs
 )
 EXTRA_REQUIRES = {
     "dev": DEV_REQUIRES,
     "graph": GRAPH_REQUIRES,
     "postgres": POSTGRES_REQUIRES,
     "minimal": MINIMAL_REQUIRES,
+    "s3": S3_REQUIRES,
 }
 
 setup(
