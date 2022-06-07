@@ -541,7 +541,7 @@ class RelationalLineaDB:
         res_query = self.session.query(ArtifactORM).filter(
             ArtifactORM.name == artifact_name
         )
-        if version:
+        if version is not None:
             res_query = res_query.filter(ArtifactORM.version == version)
         res = res_query.order_by(ArtifactORM.version.desc()).first()
         if res is None:
