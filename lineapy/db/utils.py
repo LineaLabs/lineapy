@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 def is_artifact_version_valid(version: Union[int, str]):
     if isinstance(version, int) and version >= 0:
         return True
+    if not isinstance(version, str):
+        return False
     if version in ["all", "latest"]:
         return True
     try:
