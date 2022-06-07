@@ -99,12 +99,11 @@ def save(reference: object, name: str) -> LineaArtifact:
 
         # pickles value of artifact and saves to filesystem
         pickled_path = _try_write_to_db(reference)
-
         # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=pickled_path.name,
+                value=str(pickled_path),
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -186,7 +185,7 @@ def _try_delete_pickle_file(pickled_path: Path) -> None:
         pickled_path.unlink()
     else:
         # Attempt to reconstruct path to pickle with current
-        # linea folder and picke base directory.
+        # linea folder and pickle base directory.
         new_pickled_path = Path(
             options.safe_get("artifact_storage_dir")
         ).joinpath(pickled_path.name)
@@ -196,9 +195,9 @@ def _try_delete_pickle_file(pickled_path: Path) -> None:
             raise KeyError(f"Pickle not found at {pickled_path}")
 
 
-def _try_write_to_db(value: object) -> Path:
+def _try_write_to_db(value: object) -> str:
     """
-    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
+    Saves the value to a random file inside linea folder. The file name is returned and eventually saved to the db.
 
     """
     if isinstance(value, types.ModuleType):
@@ -233,7 +232,7 @@ def _try_write_to_db(value: object) -> Path:
         logger.error(pe)
         track(ExceptionEvent("ArtifactSaveException", str(pe)))
         raise ArtifactSaveException()
-    return filepath
+    return filepath.name
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:

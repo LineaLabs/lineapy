@@ -42,10 +42,8 @@ def test_slice_artifact_inline(run_cell):
 
 
 @pytest.mark.slow
-@patch("lineapy.api.api._try_write_to_db")
+@patch("lineapy.api.api._try_write_to_db", return_value="/tmp/fake")
 def test_to_airflow_pymodule(try_write_to_db, python_snapshot, run_cell):
-    try_write_to_db.return_value = MagicMock()
-    try_write_to_db.return_value.resolve.return_value = "/tmp/fake"
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     py_module_path = run_cell(
@@ -66,12 +64,10 @@ def test_to_airflow_dagmodule(python_snapshot, run_cell):
 
 
 @pytest.mark.slow
-@patch("lineapy.api.api._try_write_to_db")
+@patch("lineapy.api.api._try_write_to_db", return_value="/tmp/fake")
 def test_to_airflow_with_config_pymodule(
     try_write_to_db, python_snapshot, run_cell
 ):
-    try_write_to_db.return_value = MagicMock()
-    try_write_to_db.return_value.resolve.return_value = "/tmp/fake"
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
     py_module_path = run_cell(
