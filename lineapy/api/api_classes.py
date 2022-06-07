@@ -237,7 +237,7 @@ class LineaArtifactStore:
         """
         :return: a dictionary of artifact information, which the user can then
             manipulate with their favorite dataframe tools, such as pandas,
-            e.g., `cat_df = pd.DataFrame(catalog.export())`.
+            e.g., `cat_df = pd.DataFrame(artifact_store.export())`.
         """
         return [
             {
