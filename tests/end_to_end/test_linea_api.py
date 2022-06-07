@@ -100,8 +100,8 @@ x = 200
 lineapy.save(x, 'x')
 lineapy.delete('x')
 
-catalog = lineapy.catalog()
-versions = [x._version for x in catalog.artifacts if x.name=='x']
+store = lineapy.artifact_store()
+versions = [x._version for x in store.artifacts if x.name=='x']
 num_versions = len(versions)
 """,
         snapshot=False,
@@ -134,8 +134,8 @@ x = 200
 lineapy.save(x, 'x')
 lineapy.delete('x', version=1)
 
-catalog = lineapy.catalog()
-versions = [x._version for x in catalog.artifacts if x.name=='x']
+store = lineapy.artifact_store()
+versions = [x._version for x in store.artifacts if x.name=='x']
 num_versions = len(versions)
 x_retrieve = lineapy.get('x').get_value()
 
@@ -158,9 +158,9 @@ x = 300
 lineapy.save(x, 'x')
 
 # We want to Delete version 1, but the code is executed twice in testing, causing no version 1 to be deleted in second execution
-lineapy.delete('x', version=sorted([x._version for x in lineapy.catalog().artifacts if x.name=='x'])[-2])
+lineapy.delete('x', version=sorted([x._version for x in lineapy.artifact_store().artifacts if x.name=='x'])[-2])
 
-num_versions = len([x._version for x in lineapy.catalog().artifacts if x.name=='x'])
+num_versions = len([x._version for x in lineapy.artifact_store().artifacts if x.name=='x'])
 x_retrieve = lineapy.get('x').get_value()
 """,
         snapshot=False,
@@ -181,8 +181,8 @@ x = 300
 lineapy.save(x, 'x')
 lineapy.delete('x', version='all')
 
-catalog = lineapy.catalog()
-versions = [x._version for x in catalog.artifacts if x.name=='x']
+store = lineapy.artifact_store()
+versions = [x._version for x in store.artifacts if x.name=='x']
 num_versions = len(versions)
 
 
