@@ -16,6 +16,7 @@ from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import FilePickler, is_artifact_version_valid
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
+from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
@@ -140,8 +141,6 @@ def save(reference: object, name: str) -> LineaArtifact:
     return linea_artifact
 
 
-
-
 def delete(artifact_name: str, *, version: Union[int, str]) -> None:
     """
     Deletes an artifact from artifact store. If no other artifacts
@@ -158,7 +157,7 @@ def delete(artifact_name: str, *, version: Union[int, str]) -> None:
         )
 
     # if version is an integer string, cast to int
-    if version not in ['all', 'latest']:
+    if version not in ["all", "latest"]:
         version = int(version)
 
     # get database instance
@@ -175,8 +174,8 @@ def delete(artifact_name: str, *, version: Union[int, str]) -> None:
         artifact = db.get_artifact_by_name(artifact_name, version=get_version)
     except UserException:
         raise NameError(
-                    f"{artifact_name} not found. Perhaps there was a typo. Please try lineapy.catalog() to inspect all your artifacts."
-                )
+            f"{artifact_name} not found. Perhaps there was a typo. Please try lineapy.catalog() to inspect all your artifacts."
+        )
 
     node_id = artifact.node_id
     execution_id = artifact.execution_id
@@ -192,12 +191,11 @@ def delete(artifact_name: str, *, version: Union[int, str]) -> None:
                 except KeyError:
                     logging.info(f"Pickle not found at {pickled_path}")
             else:
-                logging.info(f"No pickle associated with {node_id}")
+                logging.info(f"No valid pickle path found for {node_id}")
         except ValueError:
-            logging.info(f"No pickle associated with {node_id}")
+            logging.info(f"No valid pickle path found for {node_id}")
 
-    delete_version = version or "latest"
-    db.delete_artifact_by_name(artifact_name, version=delete_version)
+    db.delete_artifact_by_name(artifact_name, version=version)
 
 
 def _try_delete_pickle_file(pickled_path: Path) -> None:

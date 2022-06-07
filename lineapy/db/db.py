@@ -619,7 +619,7 @@ class RelationalLineaDB:
             )
 
     def delete_artifact_by_name(
-        self, artifact_name: str, version: Union[int, str] = None
+        self, artifact_name: str, *, version: Union[int, str]
     ):
         """
         Deletes the most recent artifact with a certain name.
