@@ -160,23 +160,33 @@ def delete(
     node_id = artifact.node_id
     execution_id = artifact.execution_id
 
-    num_artifacts = db.number_of_artifacts_per_node(node_id, execution_id)
-    if num_artifacts == 1:
-        try:
-            pickled_path = db.get_node_value_path(node_id, execution_id)
-            db.delete_node_value_from_db(node_id, execution_id)
-            if pickled_path is not None:
-                try:
-                    _try_delete_pickle_file(Path(pickled_path))
-                except KeyError:
-                    logging.info(f"Pickle not found at {pickled_path}")
-            else:
-                logging.info(f"No pickle associated with {node_id}")
-        except ValueError:
-            logging.info(f"No pickle associated with {node_id}")
+    db.delete_artifact_by_name(artifact_name, version=version)
 
-    delete_version = version or "latest"
-    db.delete_artifact_by_name(artifact_name, version=delete_version)
+    num_artifacts = db.number_of_artifacts_per_node(node_id, execution_id)
+
+    # if no other artifacts depend on this value,
+    # delete from the database and pickle store
+    if num_artifacts != 1:
+        return
+    try:
+        db.delete_node_value_from_db(node_id, execution_id)
+    except UserException:
+        pass
+
+    pickled_path = None
+    try:
+        pickled_path = db.get_node_value_path(node_id, execution_id)
+    except ValueError:
+        logging.info(f"No valid pickle path found for {node_id}")
+
+    if pickled_path is not None:
+        try:
+            _try_delete_pickle_file(Path(pickled_path))
+        except KeyError:
+            logging.info(f"Pickle not found at {pickled_path}")
+    else:
+        logging.info(f"No valid pickle path found for {node_id}")
+
 
 
 def _try_delete_pickle_file(pickled_path: Path) -> None:
