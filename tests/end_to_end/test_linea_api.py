@@ -100,8 +100,8 @@ x = 200
 lineapy.save(x, 'x')
 lineapy.delete('x')
 
-catalog = lineapy.artifact_store()
-versions = [x._version for x in catalog.artifacts if x.name=='x']
+store = lineapy.artifact_store()
+versions = [x._version for x in store.artifacts if x.name=='x']
 num_versions = len(versions)
 """,
         snapshot=False,
@@ -134,8 +134,8 @@ x = 200
 lineapy.save(x, 'x')
 lineapy.delete('x', version=1)
 
-catalog = lineapy.artifact_store()
-versions = [x._version for x in catalog.artifacts if x.name=='x']
+store = lineapy.artifact_store()
+versions = [x._version for x in store.artifacts if x.name=='x']
 num_versions = len(versions)
 x_retrieve = lineapy.get('x').get_value()
 
@@ -181,8 +181,8 @@ x = 300
 lineapy.save(x, 'x')
 lineapy.delete('x', version='all')
 
-catalog = lineapy.artifact_store()
-versions = [x._version for x in catalog.artifacts if x.name=='x']
+store = lineapy.artifact_store()
+versions = [x._version for x in store.artifacts if x.name=='x']
 num_versions = len(versions)
 
 
