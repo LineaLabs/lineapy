@@ -74,16 +74,16 @@ art_version = art.version
     assert res.slice("x") == "x = 1\n"
 
 
-def test_catalog_shows_all_versions(execute):
+def test_artifactstore_shows_all_versions(execute):
     code = """import lineapy
 from time import sleep
 x = 1
 lineapy.save(x, "x")
 x = 2
 lineapy.save(x, "x")
-catalog = lineapy.catalog()
-all_artifacts = catalog.export
-all_print = catalog.print
+artifactstore = lineapy.artifact_store()
+all_artifacts = artifactstore.export
+all_print = artifactstore.print
 """
     res = execute(code, snapshot=False)
     db_values = res.values["all_artifacts"]

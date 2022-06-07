@@ -19,7 +19,7 @@ from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.node_transformer import transform
-from lineapy.utils.analytics import send_lib_info_from_db
+from lineapy.utils.analytics.utils import send_lib_info_from_db
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 

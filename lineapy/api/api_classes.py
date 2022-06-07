@@ -23,12 +23,12 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.utils.analytics import (
+from lineapy.utils.analytics.event_schemas import (
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,
-    track,
 )
+from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.config import options
 from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
@@ -51,15 +51,14 @@ class LineaArtifact:
     name: str
     """name of the artifact"""
     _version: int
-    """version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`"""
+    """version of the artifact - currently start from 0"""
     date_created: Optional[datetime] = field(default=None, repr=False)
     # setting repr to false for date_created for now since it duplicates version
     """Optional because date_created cannot be set by the user. 
-    it is supposed to be automatically set when the 
-    artifact gets saved to the db. so when creating lineaArtifact 
-    the first time, it will be unset. When you get the artifact or 
-    catalog of artifacts, we retrieve the date from db and 
-    it will be set."""
+    it is supposed to be automatically set when the artifact gets saved to the 
+    db. so when creating lineaArtifact the first time, it will be unset. When 
+    you get the artifact or list of artifacts as an artifact store, we retrieve 
+    the date from db directly"""
 
     @property
     def version(self) -> int:
@@ -198,10 +197,10 @@ class LineaArtifact:
         return slice_exec.get_value(self._node_id)
 
 
-class LineaCatalog:
-    """LineaCatalog
+class LineaArtifactStore:
+    """LineaArtifactStore
 
-    A simple way to access meta data about artifacts in Linea
+    A simple way to access meta data about artifacts in Linea.
     """
 
     """
@@ -251,7 +250,7 @@ class LineaCatalog:
         """
         :return: a dictionary of artifact information, which the user can then
             manipulate with their favorite dataframe tools, such as pandas,
-            e.g., `cat_df = pd.DataFrame(catalog.export())`.
+            e.g., `cat_df = pd.DataFrame(artifact_store.export())`.
         """
         return [
             {

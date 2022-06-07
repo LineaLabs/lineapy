@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
-from lineapy.utils.analytics import SaveEvent, track
+from lineapy.utils.analytics.event_schemas import SaveEvent
+from lineapy.utils.analytics.usage_tracking import track
 
 
 @patch("lineapy.utils.analytics.usage_tracking.requests.post")
