@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from lineapy.api.apis import LineaArtifact, LineaArtifactStore
+from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import FilePickler
