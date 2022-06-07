@@ -73,9 +73,6 @@ lineapy.save(y, 'y')
     )
     assert res.values["x"] == 100
     assert res.artifacts["x"] == "x = 100\n"
-
-    with pytest.raises(KeyError):
-        assert res.artifacts["x"]
     assert res.values["y"] == 100
     assert res.artifacts["y"] == "y = 100\n"
 
