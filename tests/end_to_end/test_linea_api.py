@@ -73,6 +73,7 @@ lineapy.save(y, 'y')
     )
     assert res.values["x"] == 100
     assert res.artifacts["x"] == "x = 100\n"
+
     assert res.values["y"] == 100
     assert res.artifacts["y"] == "y = 100\n"
 
@@ -82,7 +83,7 @@ def test_delete_artifact(execute):
         """import lineapy
 x = 100
 lineapy.save(x, 'x')
-lineapy.delete('x')
+lineapy.delete('x', version='latest')
 """,
         snapshot=False,
     )
@@ -98,7 +99,7 @@ x = 100
 lineapy.save(x, 'x')
 x = 200
 lineapy.save(x, 'x')
-lineapy.delete('x')
+lineapy.delete('x', version='latest')
 
 store = lineapy.artifact_store()
 versions = [x._version for x in store.artifacts if x.name=='x']
@@ -123,6 +124,26 @@ lineapy.delete('x', version=0)
 
     with pytest.raises(KeyError):
         assert res.artifacts["x"]
+
+
+def test_delete_artifact_version_zero(execute):
+    res = execute(
+        """import lineapy
+x = 100
+lineapy.save(x, 'x')
+x = 200
+lineapy.save(x, 'x')
+lineapy.delete('x', version=0)
+
+catalog = lineapy.catalog()
+versions = [x._version for x in catalog.artifacts if x.name=='x']
+num_versions = len(versions)
+x_retrieve = lineapy.get('x').get_value()
+""",
+        snapshot=False,
+    )
+    assert res.values["num_versions"] == 1
+    assert res.values["x_retrieve"] == 200
 
 
 def test_delete_artifact_version(execute):
