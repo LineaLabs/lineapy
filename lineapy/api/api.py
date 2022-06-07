@@ -208,7 +208,6 @@ def delete(artifact_name: str, *, version: Union[int, str]) -> None:
         logging.info(f"No valid pickle path found for {node_id}")
 
 
-
 def _try_delete_pickle_file(pickled_path: Path) -> None:
     if pickled_path.exists():
         pickled_path.unlink()
