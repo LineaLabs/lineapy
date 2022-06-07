@@ -10,7 +10,7 @@ import string
 import types
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
@@ -94,7 +94,11 @@ def save(reference: object, name: str) -> LineaArtifact:
         node_id=value_node_id, execution_id=execution_id
     ):
         # can raise ArtifactSaveException
+
+        # pickles value of artifact and saves to filesystem
         pickled_path = _try_write_to_db(reference)
+
+        # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
@@ -134,6 +138,60 @@ def save(reference: object, name: str) -> LineaArtifact:
         _version=artifact_version,
     )
     return linea_artifact
+
+
+def delete(
+    artifact_name: str, version: Optional[Union[int, str]] = None
+) -> None:
+    """
+    Deletes an artifact from artifact store. If no other artifacts
+    refer to the value, the value is also deleted from both the
+    value node store and the pickle store.
+
+    If version is not provided, latest version is used.
+    """
+    execution_context = get_context()
+    executor = execution_context.executor
+    db = executor.db
+
+    get_version = None if not isinstance(version, int) else version
+    artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+
+    node_id = artifact.node_id
+    execution_id = artifact.execution_id
+
+    num_artifacts = db.number_of_artifacts_per_node(node_id, execution_id)
+    if num_artifacts == 1:
+        try:
+            pickled_path = db.get_node_value_path(node_id, execution_id)
+            db.delete_node_value_from_db(node_id, execution_id)
+            if pickled_path is not None:
+                try:
+                    _try_delete_pickle_file(Path(pickled_path))
+                except KeyError:
+                    logging.info(f"Pickle not found at {pickled_path}")
+            else:
+                logging.info(f"No pickle associated with {node_id}")
+        except ValueError:
+            logging.info(f"No pickle associated with {node_id}")
+
+    delete_version = version or "latest"
+    db.delete_artifact_by_name(artifact_name, version=delete_version)
+
+
+def _try_delete_pickle_file(pickled_path: Path) -> None:
+    if pickled_path.exists():
+        pickled_path.unlink()
+    else:
+        # Attempt to reconstruct path to pickle with current
+        # linea folder and picke base directory.
+        new_pickled_path = Path(
+            options.safe_get("artifact_storage_dir")
+        ).joinpath(pickled_path.name)
+        if new_pickled_path.exists():
+            new_pickled_path.unlink()
+        else:
+            raise KeyError(f"Pickle not found at {pickled_path}")
 
 
 def _try_write_to_db(value: object) -> Path:
