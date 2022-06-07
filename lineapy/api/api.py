@@ -140,9 +140,7 @@ def save(reference: object, name: str) -> LineaArtifact:
     return linea_artifact
 
 
-def delete(
-    artifact_name: str, version: Optional[Union[int, str]] = None
-) -> None:
+def delete(artifact_name: str, version: Union[int, str]) -> None:
     """
     Deletes an artifact from artifact store. If no other artifacts
     refer to the value, the value is also deleted from both the
@@ -193,7 +191,7 @@ def _try_delete_pickle_file(pickled_path: Path) -> None:
         pickled_path.unlink()
     else:
         # Attempt to reconstruct path to pickle with current
-        # linea folder and picke base directory.
+        # linea folder and pickle base directory.
         new_pickled_path = Path(
             options.safe_get("artifact_storage_dir")
         ).joinpath(pickled_path.name)
