@@ -14,6 +14,7 @@ from dataclasses import asdict
 from functools import lru_cache
 
 import requests
+from IPython import get_ipython
 
 from lineapy.utils.analytics.event_schemas import AllEvents
 from lineapy.utils.config import options
@@ -31,6 +32,17 @@ def _py_version():
         minor=sys.version_info.minor,
         micro=sys.version_info.micro,
     )
+
+
+@lru_cache(maxsize=1)
+def _runtime():
+    if options.get("runtime") is not None:
+        return str(options.get("runtime"))  # Return manually set value
+
+    if get_ipython() is not None:
+        return str(get_ipython())
+    else:
+        return "non-ipython"
 
 
 def _amplitude_url():
@@ -86,5 +98,6 @@ def track(event: AllEvents):
     event_properties = asdict(event)
     event_properties["py_version"] = _py_version()
     event_properties["lineapy_version"] = LINEAPY_VERSION
+    event_properties["runtime"] = _runtime()
 
     return _send_amplitude_event(event.__class__.__name__, event_properties)

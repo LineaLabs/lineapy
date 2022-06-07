@@ -49,6 +49,7 @@ class lineapy_config:
         do_not_track=False,
         logging_level="INFO",
         logging_file=None,
+        runtime=None,
     ):
         if logging_level.isdigit():
             logging_level = logging._levelToName[int(logging_level)]
@@ -60,6 +61,7 @@ class lineapy_config:
         self.do_not_track = do_not_track
         self.logging_level = logging_level
         self.logging_file = logging_file
+        self.runtime = runtime
 
         # config file
         config_file_path = Path(
