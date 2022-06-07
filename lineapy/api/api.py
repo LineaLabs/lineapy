@@ -141,7 +141,7 @@ def save(reference: object, name: str) -> LineaArtifact:
     return linea_artifact
 
 
-def delete(artifact_name: str, *, version: Union[int, str]) -> None:
+def delete(artifact_name: str, version: Union[int, str]) -> None:
     """
     Deletes an artifact from artifact store. If no other artifacts
     refer to the value, the value is also deleted from both the
