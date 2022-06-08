@@ -126,29 +126,6 @@ lineapy.delete('x', version=0)
         assert res.artifacts["x"]
 
 
-def test_delete_artifact_version_zero(execute):
-    res = execute(
-        """import lineapy
-x = 100
-lineapy.save(x, 'x')
-x = 200
-lineapy.save(x, 'x')
-x = 300
-lineapy.save(x, 'x')
-lineapy.delete('x', version=1)
-
-catalog = lineapy.artifact_store()
-versions = [x._version for x in catalog.artifacts if x.name=='x']
-num_versions = len(versions)
-x_retrieve = lineapy.get('x').get_value()
-""",
-        snapshot=False,
-    )
-    versions = res.values["versions"]
-    assert res.values["num_versions"] == 2
-    assert res.values["x_retrieve"] == 300
-
-
 def test_delete_artifact_version(execute):
     res = execute(
         """import lineapy

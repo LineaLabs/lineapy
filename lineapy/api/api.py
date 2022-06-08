@@ -171,13 +171,8 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     execution_id = artifact.execution_id
 
     db.delete_artifact_by_name(artifact_name, version=version)
+    logging.info(f"Deleted Artifact: {artifact_name} version: {version}")
 
-    num_artifacts = db.number_of_artifacts_per_node(node_id, execution_id)
-
-    # if no other artifacts depend on this value,
-    # delete from the database and pickle store
-    if num_artifacts != 1:
-        return
     try:
         db.delete_node_value_from_db(node_id, execution_id)
     except UserException:
