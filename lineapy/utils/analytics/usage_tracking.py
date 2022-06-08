@@ -42,15 +42,15 @@ def _runtime():
     else:
         envars: str = ";".join(list(os.environ))
         if "DATABRICKS_" in envars:
-            runtime = "databricks"
+            runtime = "ipython-databricks"
         elif "COLAB_" in envars:
-            runtime = "colab"
+            runtime = "ipython-colab"
         elif "DEEPNOTE_" in envars:
-            runtime = "deepnote"
+            runtime = "ipython-deepnote"
         elif "BINDER_" in envars:
-            runtime = "binder"
+            runtime = "ipython-binder"
         else:
-            runtime = "local-ipython"
+            runtime = "ipython"
 
     # Support optional custom tag which can be used to flag
     # and discard certain events such as those from dev work
