@@ -60,6 +60,12 @@ lineapy.utils.utils module
 .. automodule:: lineapy.utils.utils
    :members:
 
+lineapy.utils.validate\_annotation\_spec module
+-----------------------------------------------
+
+.. automodule:: lineapy.utils.validate_annotation_spec
+   :members:
+
 Module contents
 ---------------
 
