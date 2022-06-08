@@ -13,7 +13,6 @@ import sys
 import uuid
 from dataclasses import asdict
 from functools import lru_cache
-from typing import Union
 
 import requests
 from IPython import get_ipython
@@ -86,9 +85,7 @@ def do_not_track() -> bool:
     return str(options.get("do_not_track")).lower() == "true"
 
 
-def _send_amplitude_event(
-    event_type: str, event_properties: dict
-) -> Union[requests.Response, None]:
+def _send_amplitude_event(event_type: str, event_properties: dict):
     events = [
         {
             "event_type": event_type,
@@ -113,7 +110,7 @@ def _send_amplitude_event(
         logger.debug(f"Tracking Error: {str(err)}")
 
 
-def track(event: AllEvents) -> Union[requests.Response, None]:
+def track(event: AllEvents):
     """ """
     if do_not_track():
         return
