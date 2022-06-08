@@ -44,6 +44,9 @@ def _runtime() -> str:
         # Collect and concatenate all env var names to see
         # if this concatenated string contains a pattern
         # unique to each runtime.
+        # NOTE: We are not using ``get_ipython()`` as it does not really give the info we desire.
+        # For instance, it returns ``ipykernel.zmqshell.ZMQInteractiveShell`` object in both Databricks
+        # and local Jupyter; and it does not seem to contain attribute(s) to distinguish the two.
         envars: str = ";".join(list(os.environ))
         if "DATABRICKS_" in envars:
             runtime = "ipython-databricks"
