@@ -37,6 +37,8 @@ LineaPy offers several extras to extend its core capabilities:
 +----------+---------------------------------------+----------------------------------------------------------+
 | dev      | :code:`pip install lineapy[dev]`      | All LineaPy dependencies for testing and development     |
 +----------+---------------------------------------+----------------------------------------------------------+
+| s3       | :code:`pip install lineapy[s3]`       | Dependencies to use S3 to save artifact                  |
++----------+---------------------------------------+----------------------------------------------------------+
 | graph    | :code:`pip install lineapy[graph]`    | Dependencies to visualize LineaPy node graph             |
 +----------+---------------------------------------+----------------------------------------------------------+
 | postgres | :code:`pip install lineapy[postgres]` | Dependencies to use PostgreSQL backend                   |

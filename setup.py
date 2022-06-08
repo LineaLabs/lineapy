@@ -54,7 +54,7 @@ minimal_requirement = [
     "nbconvert<7.0.0",
     "requests",
     "fsspec",
-    "universal_pathlib",
+    "universal_pathlib>=0.0.18",
 ]
 
 graph_libs = [

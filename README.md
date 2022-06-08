@@ -10,7 +10,6 @@
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
 [![Twitter](https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter)](https://twitter.com/lineapy_oss)
 
-
 LineaPy is a Python package for capturing, analyzing, and automating data science workflows.
 At a high level, LineaPy traces the sequence of code execution to form a comprehensive understanding
 of the code and its context. This understanding allows LineaPy to provide a set of tools that help
@@ -22,9 +21,7 @@ data scientists bring their work to production more quickly and easily, with jus
     <a href="https://bit.ly/3N9WvDB"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
 </p>
 
-https://user-images.githubusercontent.com/13392380/169427654-487d8d4b-3eda-462a-a96c-51c151f39ab9.mp4
-
-
+<https://user-images.githubusercontent.com/13392380/169427654-487d8d4b-3eda-462a-a96c-51c151f39ab9.mp4>
 
 - [What Problems Can LineaPy Solve?](#what-problems-can-lineapy-solve)
   - [Cleaning Messy Notebooks](#use-case-1-cleaning-messy-notebooks)
@@ -41,10 +38,10 @@ https://user-images.githubusercontent.com/13392380/169427654-487d8d4b-3eda-462a-
 When working in a Jupyter notebook day-to-day, it is easy to write messy code by
 jumping around between cells, deleting cells, editing cells, and executing the same cell multiple times
 &mdash; until we think we have some good results (e.g., tables, models, charts).
-With this highly dynamic and interactive nature of notebook use, some issues may arise. For instance, 
+With this highly dynamic and interactive nature of notebook use, some issues may arise. For instance,
 our colleagues who try to rerun the notebook may not be able to reproduce our results. Worse, with time passing,
 we ourselves may have forgotten the exact steps to produce the previous results, hence unable to help our
-colleagues. 
+colleagues.
 
 One way to deal with this problem is to keep the notebook in sequential operations by constantly re-executing
 the entire notebook during development. However, we soon realize that this interrupts our natural workflows and stream of
@@ -70,7 +67,7 @@ To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/
 
 ### Use Case 3: Building Pipelines
 
-As our notebooks become more mature, they may get used like pipelines. For instance, our notebook might process the 
+As our notebooks become more mature, they may get used like pipelines. For instance, our notebook might process the
 latest data to update dashboards. Or, it may pre-process data and dump it to the filesystem for downstream model development.
 Since other people rely on up-to-date results from our work, we might be expected to re-execute these processes on a regular basis.
 Running a notebook is a manual, brittle process prone to errors, so we may want to set up proper pipelines for production.
@@ -103,6 +100,7 @@ LineaPy offers several extras to extend its core capabilities:
 |----------|---------------------------------|----------------------------------------------------------|
 | minimal  | `pip install lineapy[minimal]`  | Minimal dependencies for LineaPy                         |
 | dev      | `pip install lineapy[dev]`      | All LineaPy dependencies for testing and development     |
+| s3       | `pip install lineapy[s3]`       | Dependencies to use S3 to save artifact                  |
 | graph    | `pip install lineapy[graph]`    | Dependencies to visualize LineaPy node graph             |
 | postgres | `pip install lineapy[postgres]` | Dependencies to use PostgreSQL backend                   |
 
