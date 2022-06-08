@@ -1,7 +1,9 @@
-from lineapy.db.utils import is_artifact_version_valid
+from lineapy.db.utils import is_artifact_version_valid, parse_artifact_version
+
+import pytest
 
 
-def test_is_artifact_version_valid():
+def test_parse_artifact_version():
     cases = (
         (-1, False),
         (-102, False),
@@ -11,9 +13,9 @@ def test_is_artifact_version_valid():
         (3, True),
         (4, True),
         (5, True),
-        (0.3, False),
-        (3.0, False),
-        (1.0, False),
+        (0.3, True),
+        (3.0, True),
+        (1.0, True),
         ("all", True),
         ("latest", True),
         ("al", False),
@@ -21,9 +23,14 @@ def test_is_artifact_version_valid():
         ("1", True),
         ("3", True),
         ("5", True),
-        ("0.3", False),
-        ("1.1", False),
+        ("0.3", True),
+        ("1.1", True),
     )
-
     for version, is_valid in cases:
-        assert is_artifact_version_valid(version) == is_valid
+        if is_valid:
+            parse_artifact_version(version)
+        else:
+            print(version)
+            with pytest.raises(ValueError):
+                parse_artifact_version(version)
+

@@ -15,7 +15,7 @@ from typing import List, Optional, Union
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
-from lineapy.db.utils import FilePickler, is_artifact_version_valid
+from lineapy.db.utils import FilePickler, parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
@@ -150,15 +150,7 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     :param artifact_name: Key used to while saving the artifact
     :param version: version number or 'latest' or 'all'
     """
-    if not is_artifact_version_valid(version):
-        raise ValueError(
-            f"Version {version} is not a valid version.\n"
-            + "Version must be a positive whole number or 'all' or 'latest'."
-        )
-
-    # if version is an integer string, cast to int
-    if version not in ["all", "latest"]:
-        version = int(version)
+    version = parse_artifact_version(version)
 
     # get database instance
     execution_context = get_context()
@@ -166,15 +158,13 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     db = executor.db
 
     # if version is 'all' or 'latest', get_version is None
-    get_version = None
-    if isinstance(version, int):
-        get_version = version
+    get_version = None if version in ["all", "latest"] else version
 
     try:
         artifact = db.get_artifact_by_name(artifact_name, version=get_version)
     except UserException:
         raise NameError(
-            f"{artifact_name} not found. Perhaps there was a typo. Please try lineapy.catalog() to inspect all your artifacts."
+            f"{artifact_name} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
         )
 
     node_id = artifact.node_id
