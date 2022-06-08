@@ -3,6 +3,7 @@ import logging
 import os
 from dataclasses import dataclass
 from os import PathLike
+from pathlib import PosixPath
 from typing import Any, Dict, Optional, Union
 
 from upath import UPath
@@ -140,7 +141,10 @@ class lineapy_config:
         def safe_get_folder(name) -> UPath:
             """Return folder as upath.UPath
             Create the folder if it doesn't exist"""
-            if not UPath(self.__dict__[name]).exists():
+
+            if isinstance(UPath(self.__dict__[name]), PosixPath) and (
+                not UPath(self.__dict__[name]).exists()
+            ):
                 logger.warning(
                     f"Folder {UPath(self.__dict__[name]).as_posix()} does not exist. Creating a new one."
                 )
