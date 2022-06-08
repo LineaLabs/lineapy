@@ -158,7 +158,7 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     db = executor.db
 
     # if version is 'all' or 'latest', get_version is None
-    get_version = None if version in ["all", "latest"] else version
+    get_version = None if isinstance(version, str) else version
 
     try:
         artifact = db.get_artifact_by_name(artifact_name, version=get_version)

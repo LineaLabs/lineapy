@@ -12,7 +12,7 @@ from lineapy.utils.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
 logger = logging.getLogger(__name__)
 
 
-def parse_artifact_version(version: object) -> Union[int, str]:
+def parse_artifact_version(version) -> Union[int, str]:
     """
     Attempts to parse user-passed artifact version into a valid artifact version.
     A valid artifact version is either
@@ -23,33 +23,38 @@ def parse_artifact_version(version: object) -> Union[int, str]:
     """
     # attempt int cast
     try:
-        casted_version = int(version)
-        if casted_version >= 0:
-            return casted_version
+        int_casted = int(version)
+        if int_casted >= 0:
+            return int_casted
         else:
-            raise ValueError(f"Invalid version {version}\n" + "Version must either be a number >= 0  or a string \'all\' or \'nothing\'")
+            raise ValueError(
+                f"Invalid version {version}\n"
+                + "Version must either be a number >= 0  or a string 'all' or 'nothing'"
+            )
     except ValueError:
         pass
 
     # attempt float cast
     try:
-        casted_version = float(version)
-        if casted_version >= 0:
-            return int(casted_version)
-        else:
-            raise ValueError(f"Invalid version {version}\n" + "Version must either be a number >= 0  or a string \'all\' or \'nothing\'")
+        float_casted = float(version)
+        int_casted = int(float_casted)
+        if int_casted >= 0:
+            return int(int_casted)
     except ValueError:
         pass
 
     # attempt to cast to either 'all' or 'latest'
     try:
-        casted_version = str(version)
-        if casted_version in ["all", "latest"]:
-            return casted_version
-        else:
-            raise ValueError(f"Invalid version {version}\n" + "Version must either be a number >= 0  or a string \'all\' or \'nothing\'")
+        str_casted = str(version)
+        if str_casted in ["all", "latest"]:
+            return str_casted
     except ValueError:
-        raise ValueError(f"Invalid version {version}\n" + "Version must either be a number >= 0  or a string \'all\' or \'nothing\'")
+        pass
+
+    raise ValueError(
+        f"Invalid version {version}\n"
+        + "Version must either be a number >= 0  or a string 'all' or 'nothing'"
+    )
 
 
 def is_artifact_version_valid(version: Union[int, str]):

@@ -1,6 +1,6 @@
-from lineapy.db.utils import is_artifact_version_valid, parse_artifact_version
-
 import pytest
+
+from lineapy.db.utils import parse_artifact_version
 
 
 def test_parse_artifact_version():
@@ -33,4 +33,3 @@ def test_parse_artifact_version():
             print(version)
             with pytest.raises(ValueError):
                 parse_artifact_version(version)
-

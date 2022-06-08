@@ -135,7 +135,7 @@ x = 200
 lineapy.save(x, 'x')
 x = 300
 lineapy.save(x, 'x')
-# lineapy.delete('x', version=1)
+lineapy.delete('x', version=1)
 
 catalog = lineapy.artifact_store()
 versions = [x._version for x in catalog.artifacts if x.name=='x']
@@ -145,8 +145,7 @@ x_retrieve = lineapy.get('x').get_value()
         snapshot=False,
     )
     versions = res.values["versions"]
-    raise ValueError(f"Versions {versions}")
-    assert res.values["num_versions"] == 1
+    assert res.values["num_versions"] == 2
     assert res.values["x_retrieve"] == 300
 
 
