@@ -221,6 +221,7 @@ def _try_write_to_db(value: object) -> str:
 
     filepath = artifact_storage_dir.joinpath(artifact_filename)
     try:
+        logger.debug(f"Saving file to {filepath.as_posix()} ")
         with get_handle(
             filepath,
             mode="wb",

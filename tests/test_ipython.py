@@ -1,6 +1,6 @@
 import functools
 from typing import Callable
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from IPython.core.interactiveshell import InteractiveShell

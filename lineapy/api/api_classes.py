@@ -81,6 +81,9 @@ class LineaArtifact:
             filepath = UPath(
                 options.safe_get("artifact_storage_dir")
             ).joinpath(pickle_filename)
+            logger.debug(
+                f"Retriving pickle file from {filepath.as_posix()} ",
+            )
             with get_handle(
                 filepath,
                 mode="rb",
