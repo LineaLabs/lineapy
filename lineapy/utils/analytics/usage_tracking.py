@@ -40,6 +40,9 @@ def _runtime():
     if get_ipython() is None:
         runtime = "non-ipython"
     else:
+        # Collect and concatenate all env var names to see
+        # if this concatenated string contains a pattern
+        # unique to each runtime.
         envars: str = ";".join(list(os.environ))
         if "DATABRICKS_" in envars:
             runtime = "ipython-databricks"
