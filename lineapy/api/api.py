@@ -176,7 +176,9 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     try:
         db.delete_node_value_from_db(node_id, execution_id)
     except UserException:
-        pass
+        logging.info(
+            f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+        )
 
     pickled_path = None
     try:
