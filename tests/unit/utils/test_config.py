@@ -1,6 +1,5 @@
 import pathlib
 
-import pytest
 import upath
 
 from lineapy.utils.config import options
