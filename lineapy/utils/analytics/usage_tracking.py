@@ -13,6 +13,7 @@ import sys
 import uuid
 from dataclasses import asdict
 from functools import lru_cache
+from typing import Union
 
 import requests
 from IPython import get_ipython
@@ -27,7 +28,7 @@ LINEAPY_VERSION: str = importlib_metadata.version("lineapy")
 
 
 @lru_cache(maxsize=1)
-def _py_version():
+def _py_version() -> str:
     return "{major}.{minor}.{micro}".format(
         major=sys.version_info.major,
         minor=sys.version_info.minor,
@@ -36,7 +37,7 @@ def _py_version():
 
 
 @lru_cache(maxsize=1)
-def _runtime():
+def _runtime() -> str:
     if get_ipython() is None:
         runtime = "non-ipython"
     else:
@@ -64,16 +65,16 @@ def _runtime():
     return runtime
 
 
-def _amplitude_url():
+def _amplitude_url() -> str:
     return "https://api.amplitude.com/2/httpapi"
 
 
-def _api_key():
+def _api_key() -> str:
     return "90e7eb47aee98355e46e6f6ed81d1a80"
 
 
 @lru_cache(maxsize=1)
-def _session_id():
+def _session_id() -> str:
     return str(uuid.uuid4())  # uuid that marks current python session
 
 
@@ -82,7 +83,9 @@ def do_not_track() -> bool:
     return str(options.get("do_not_track")).lower() == "true"
 
 
-def _send_amplitude_event(event_type, event_properties):
+def _send_amplitude_event(
+    event_type: str, event_properties: dict
+) -> Union[requests.Response, None]:
     events = [
         {
             "event_type": event_type,
@@ -107,7 +110,7 @@ def _send_amplitude_event(event_type, event_properties):
         logger.debug(f"Tracking Error: {str(err)}")
 
 
-def track(event: AllEvents):
+def track(event: AllEvents) -> Union[requests.Response, None]:
     """ """
     if do_not_track():
         return
