@@ -70,4 +70,49 @@ It only makes sense to reset the session when the backend database is changed si
 Thus, the only place to change the LineaPy database is at the beginning of the notebook.
 
 Note that, you need to make sure whenever you are setting `LINEAPY_DATABASE_URL`, you point to the  `LINEAPY_ARTIFACT_STORAGE_DIR`.
-If not, ``Artifact.get_value`` might return an error that is related cannot find underlying pickle object. 
+If not, ``Artifact.get_value`` might return an error that is related cannot find underlying pickle object.
+
+
+
+Artifact Storage Location
+=========================
+
+You can change the artifact storage location by setting the `LINEAPY_ARTIFACT_STORAGE_DIR` environmental variable, or other ways mentioned in the above session.
+LineaPy is using the IO handler from ``pandas`` directly.
+In theory, we can use various filesystems like S3, GCS, Azure, etc... to store the artifact, just like we are using ``pandas.DataFrame.to_csv`` to save CSV files.
+Note that, LineaPy only supports S3 at this moment.
+Some filesystems might need extra configuration items to be set, in ``pandas``, you can pass these configurations as ``storage_options`` in ``pandas.DataFrame.to_csv(storage_options={some storage options})``, where the `storage_options` is a filesystem-specific dictionary pass into `fsspec.filesystem`.  .
+In LineaPy we are taking the same approach, you can set the ``storage_options`` with`
+
+.. code:: python
+
+    lineapy.options.set('storage_options',{'same storage_options as you use in pandas.io.read_csv'})
+
+Using S3 as artifact storage location
+-------------------------------------
+
+To use S3 as LineaPy artifact storage location, you can run the following command in your notebook to change your storage backend(both artifact locations and LineaPy database)
+
+.. code:: python
+
+    lineapy.options.set('artifact_storage_dir','s3://your-bucket/your-prefix')
+    lineapy.options.set('database_url','corresponding-database-url')
+
+You should configure your AWS account just like other tools you are using to access AWS, like ``aws cli`` or ``boto3``.
+And LineaPy will use the default AWS credentials to access the S3 bucket.
+
+If you want to use other profile available in your AWS configuration, you can set the profile name with
+
+.. code:: python
+
+    lineapy.options.set('storage_options',{'profile':'AWS PROFILE'})
+
+
+If you really need to use your AWS key and secret directly, you can set them with
+
+.. code:: python
+
+    lineapy.options.set('storage_options',{'key':'AWS KEY','secret':'AWS SECRET'})
+
+For more S3 configuration items, you can found in `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_ since ``fsspec`` is using ``s3fs`` under the hood to access S3.
+
