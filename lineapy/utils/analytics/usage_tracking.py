@@ -8,6 +8,7 @@ except ModuleNotFoundError:
 
 import json
 import logging
+import os
 import sys
 import uuid
 from dataclasses import asdict
@@ -36,13 +37,28 @@ def _py_version():
 
 @lru_cache(maxsize=1)
 def _runtime():
-    if options.get("runtime") is not None:
-        return str(options.get("runtime"))  # Return manually set value
-
-    if get_ipython() is not None:
-        return str(get_ipython())
+    if get_ipython() is None:
+        runtime = "non-ipython"
     else:
-        return "non-ipython"
+        envars: str = ";".join(list(os.environ))
+        if "DATABRICKS_" in envars:
+            runtime = "databricks"
+        elif "COLAB_" in envars:
+            runtime = "colab"
+        elif "DEEPNOTE_" in envars:
+            runtime = "deepnote"
+        elif "BINDER_" in envars:
+            runtime = "binder"
+        else:
+            runtime = "local-ipython"
+
+    # Support optional custom tag which can be used to flag
+    # and discard certain events such as those from dev work
+    tag = os.environ.get("LINEAPY_RUNTIME_TAG")
+    if tag is not None:
+        return f"[{tag}]{runtime}"
+
+    return runtime
 
 
 def _amplitude_url():
