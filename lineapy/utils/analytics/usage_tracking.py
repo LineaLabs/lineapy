@@ -54,7 +54,7 @@ def _runtime() -> str:
         elif "BINDER_" in envars:
             runtime = "ipython-binder"
         else:
-            runtime = "ipython"
+            runtime = "ipython-unknown"
 
     # Support optional custom tag which can be used to flag
     # and discard certain events such as those from dev work
