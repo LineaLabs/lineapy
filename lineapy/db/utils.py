@@ -21,33 +21,20 @@ def parse_artifact_version(version) -> Union[int, str]:
 
     Raises ValueError on failure.
     """
-    # attempt int cast
     try:
-        int_casted = int(version)
-        if int_casted >= 0:
-            return int_casted
-        else:
-            raise ValueError(
-                f"Invalid version {version}\n"
-                + "Version must either be a number >= 0  or a string 'all' or 'nothing'"
-            )
-    except ValueError:
-        pass
-
-    # attempt float cast
-    try:
-        float_casted = float(version)
-        int_casted = int(float_casted)
-        if int_casted >= 0:
-            return int(int_casted)
-    except ValueError:
-        pass
-
-    # attempt to cast to either 'all' or 'latest'
-    try:
+        # attempt to cast to either 'all' or 'latest'
         str_casted = str(version)
         if str_casted in ["all", "latest"]:
             return str_casted
+    except ValueError:
+        pass
+
+    try:
+        # attempt int cast
+        float_casted = float(version)
+        int_casted = int(float_casted)
+        if int_casted >= 0:
+            return int_casted
     except ValueError:
         pass
 
