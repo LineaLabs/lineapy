@@ -257,15 +257,18 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact
     """
-    if version is None:
-        version = "latest"
-    version = parse_artifact_version(version)
-    if version == "latest":
-        version = None
+    validated_version: Union[int, str]
+#     if version is None:
+#         validated_version = "latest"
+#     else:
+#         validated_version = version
+    validated_version = "latest" if version is None else version
+    validated_version = parse_artifact_version(validated_version)
+    final_version = validated_version if isinstance(validated_version, int) else None
 
     execution_context = get_context()
     db = execution_context.executor.db
-    artifact = db.get_artifact_by_name(artifact_name, version)
+    artifact = db.get_artifact_by_name(artifact_name, final_version)
     linea_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
