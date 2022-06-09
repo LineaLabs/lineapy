@@ -1,0 +1,33 @@
+- module: wandb
+  annotations:
+    - criteria:
+        function_names:
+          - teardown
+          - agent
+          - controller
+          - ensure_configured
+          - finish
+          - init
+          - load_ipython_extension
+          - login
+          - require
+          - restore
+          - sagemaker_auth
+          - set_trace
+          - setup
+          - sweep
+          - termerror
+          - termlog
+          - termsetup
+          - termwarn
+          - unwatch
+          - visualize
+          - watch
+          - save
+          - config
+          - log
+          - summary
+          - join
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
