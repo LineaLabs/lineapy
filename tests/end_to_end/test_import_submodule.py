@@ -99,3 +99,11 @@ import import_data.utils.__no_imported_submodule_prime
 second_is_prime = import_data.utils.__no_imported_submodule_prime.is_prime
 """
     )
+
+
+def test_reimport_does_not_fail(execute):
+    code = """from import_data import import_data
+from import_data import import_data
+"""
+    # successful execution is the test
+    _ = execute(code, snapshot=False)

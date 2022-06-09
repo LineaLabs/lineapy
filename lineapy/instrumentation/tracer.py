@@ -51,6 +51,7 @@ class Tracer:
     globals_: InitVar[Optional[Dict[str, object]]] = None
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
+    module_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
     tracer_context: TracerContext = field(init=False)
     executor: Executor = field(init=False)
@@ -267,8 +268,8 @@ class Tracer:
         Import a module. If we have already imported it, just return its ID.
         Otherwise, create new module nodes for each submodule in its parents and return it.
         """
-        if name in self.variable_name_to_node:
-            return self.variable_name_to_node[name]
+        if name in self.module_name_to_node:
+            return self.module_name_to_node[name]
         # Recursively go up the tree, to try to get parents, and if we don't have them, import them
         *parents, module_name = name.split(".")
         if parents:
@@ -288,7 +289,7 @@ class Tracer:
                 source_location,
                 self.literal(module_name),
             )
-        self.variable_name_to_node[name] = node
+        self.module_name_to_node[name] = node
         return node
 
     def trace_import(
