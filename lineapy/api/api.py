@@ -186,15 +186,15 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     try:
         pickled_path = db.get_node_value_path(node_id, execution_id)
     except ValueError:
-        logging.info(f"No valid pickle path found for {node_id}")
+        logging.debug(f"No valid pickle path found for {node_id}")
 
     if pickled_path is not None:
         try:
             _try_delete_pickle_file(Path(pickled_path))
         except KeyError:
-            logging.info(f"Pickle not found at {pickled_path}")
+            logging.debug(f"Pickle not found at {pickled_path}")
     else:
-        logging.info(f"No valid pickle path found for {node_id}")
+        logging.debug(f"No valid pickle path found for {node_id}")
 
 
 def _try_delete_pickle_file(pickled_path: Path) -> None:
