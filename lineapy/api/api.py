@@ -259,9 +259,7 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact
     """
-    validated_version: Union[int, str]
-    validated_version = "latest" if version is None else version
-    validated_version = parse_artifact_version(validated_version)
+    validated_version = parse_artifact_version(version is None ? "latest":version)
     final_version = (
         validated_version if isinstance(validated_version, int) else None
     )
