@@ -149,6 +149,8 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
 
     :param artifact_name: Key used to while saving the artifact
     :param version: version number or 'latest' or 'all'
+
+    :raises ValueError: if arifact not found or version invalid
     """
     version = parse_artifact_version(version)
 
@@ -258,10 +260,6 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         information we have stored about the artifact
     """
     validated_version: Union[int, str]
-    #     if version is None:
-    #         validated_version = "latest"
-    #     else:
-    #         validated_version = version
     validated_version = "latest" if version is None else version
     validated_version = parse_artifact_version(validated_version)
     final_version = (
