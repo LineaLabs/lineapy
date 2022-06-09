@@ -21,7 +21,7 @@
 [submodule "tests/integration/sources/tensorflow-decision-forests"]
 	path = tests/integration/sources/tensorflow-decision-forests
 	url = https://github.com/tensorflow/decision-forests.git
-    ignore = all
+        ignore = all
 [submodule "tests/integration/sources/xgboost"]
 	path = tests/integration/sources/xgboost
 	url = https://github.com/dmlc/xgboost.git
@@ -29,7 +29,7 @@
 [submodule "tests/integration/sources/pandas_exercises"]
 	path = tests/integration/sources/pandas_exercises
 	url = https://github.com/guipsamora/pandas_exercises.git
-    ignore = all
+        ignore = all
 [submodule "tests/integration/sources/scikit-learn"]
 	path = tests/integration/sources/scikit-learn
 	url = https://github.com/scikit-learn/scikit-learn.git
