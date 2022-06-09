@@ -26,9 +26,11 @@ def parse_artifact_version(version) -> Union[int, str]:
     Raises ValueError on failure to parse known types.
     Raises NotImplementedError on unknown types.
     """
+    err_msg = f"Version must be an int >={ARTIFACT_MIN_VERSION} or a string that is 'all' or 'latest'"
 
     # if version is a string, it must be 'all', 'latest', or castable to int
     if isinstance(version, str):
+        version = version.lower()
         if version in ["all", "latest"]:
             return version
         else:
@@ -38,8 +40,7 @@ def parse_artifact_version(version) -> Union[int, str]:
                 version = int(float_casted)
             except ValueError:
                 raise ValueError(
-                    f"Invalid version {version}\n"
-                    + "If version is str, it must be 'latest', 'all', or be castable to an int"
+                    f"Version string {version} could not be casted into a valid version int\n{err_msg}"
                 )
 
     # handle float case
@@ -52,12 +53,11 @@ def parse_artifact_version(version) -> Union[int, str]:
             return version
         else:
             raise ValueError(
-                f"Invalid version {version}\n"
-                + f"Version must be greater than or equal to {ARTIFACT_MIN_VERSION}"
+                f"Version value {version} must be >={ARTIFACT_MIN_VERSION}\n{err_msg}"
             )
 
     raise NotImplementedError(
-        f"Invalid version {version}\n" + "Unable to parse version."
+        f"Version {version} could not be parsed\n{err_msg}"
     )
 
 

@@ -166,7 +166,7 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
         artifact = db.get_artifact_by_name(artifact_name, version=get_version)
     except UserException:
         raise NameError(
-            f"{artifact_name} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
+            f"{artifact_name}:{version} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
         )
 
     node_id = artifact.node_id
