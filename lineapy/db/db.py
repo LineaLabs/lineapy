@@ -47,7 +47,7 @@ from lineapy.db.relational import (
     SessionContextORM,
     SourceCodeORM,
 )
-from lineapy.db.utils import create_lineadb_engine, is_artifact_version_valid
+from lineapy.db.utils import create_lineadb_engine
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.utils.analytics.event_schemas import ExceptionEvent
@@ -627,10 +627,6 @@ class RelationalLineaDB:
         If a version is not specified, it will delete the most recent
         version sorted by date_created
         """
-        if not is_artifact_version_valid(version):
-            track(ExceptionEvent("UserException", "Artifact version invalid"))
-            raise UserException(NameError(f"{version} is an invalid version"))
-
         res_query = self.session.query(ArtifactORM).filter(
             ArtifactORM.name == artifact_name
         )

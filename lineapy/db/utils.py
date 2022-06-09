@@ -44,20 +44,6 @@ def parse_artifact_version(version) -> Union[int, str]:
     )
 
 
-def is_artifact_version_valid(version: Union[int, str]):
-    if isinstance(version, int) and version >= 0:
-        return True
-    if not isinstance(version, str):
-        return False
-    if version in ["all", "latest"]:
-        return True
-    try:
-        casted_version = int(version)
-        return casted_version >= 0
-    except ValueError:
-        return False
-
-
 def create_lineadb_engine(url: str) -> Engine:
     """Create a SQLAlchemy engine for LineaDB.
     Take care of the SQLite database file name and configuration.

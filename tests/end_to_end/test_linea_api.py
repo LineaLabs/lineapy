@@ -54,7 +54,7 @@ x = 200
 lineapy.save(x, 'x')
 x_ret = lineapy.get('x', version=0).get_value()
 """
-    res = execute(c)
+    res = execute(c, snapshot=False)
     assert res.values["x_ret"] == 100
 
 
