@@ -7,7 +7,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import StaticPool
 
-from lineapy.utils.constants import DB_SQLITE_PREFIX, SQLALCHEMY_ECHO
+from lineapy.utils.constants import (
+    ARTIFACT_MIN_VERSION,
+    DB_SQLITE_PREFIX,
+    SQLALCHEMY_ECHO,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,28 +23,41 @@ def parse_artifact_version(version) -> Union[int, str]:
     - postive int
     - string "all" or "latest"
 
-    Raises ValueError on failure.
+    Raises ValueError on failure to parse known types.
+    Raises NotImplementedError on unknown types.
     """
-    try:
-        # attempt to cast to either 'all' or 'latest'
-        str_casted = str(version)
-        if str_casted in ["all", "latest"]:
-            return str_casted
-    except ValueError:
-        pass
 
-    try:
-        # attempt int cast
-        float_casted = float(version)
-        int_casted = int(float_casted)
-        if int_casted >= 0:
-            return int_casted
-    except ValueError:
-        pass
+    # if version is a string, it must be 'all', 'latest', or castable to int
+    if isinstance(version, str):
+        if version in ["all", "latest"]:
+            return version
+        else:
+            try:
+                # attempt int cast
+                float_casted = float(version)
+                version = int(float_casted)
+            except ValueError:
+                raise ValueError(
+                    f"Invalid version {version}\n"
+                    + "If version is str, it must be 'latest', 'all', or be castable to an int"
+                )
 
-    raise ValueError(
-        f"Invalid version {version}\n"
-        + "Version must either be a number >= 0  or a string 'all' or 'nothing'"
+    # handle float case
+    if isinstance(version, float):
+        version = int(version)
+
+    # if version is int, it must be greater than or equal to min version
+    if isinstance(version, int):
+        if version >= ARTIFACT_MIN_VERSION:
+            return version
+        else:
+            raise ValueError(
+                f"Invalid version {version}\n"
+                + f"Version must be greater than or equal to {ARTIFACT_MIN_VERSION}"
+            )
+
+    raise NotImplementedError(
+        f"Invalid version {version}\n" + "Unable to parse version."
     )
 
 
