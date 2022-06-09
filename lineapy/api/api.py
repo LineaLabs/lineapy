@@ -257,6 +257,12 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact
     """
+    if version is None:
+        version = "latest"
+    version = parse_artifact_version(version)
+    if version == "latest":
+        version = None
+
     execution_context = get_context()
     db = execution_context.executor.db
     artifact = db.get_artifact_by_name(artifact_name, version)
