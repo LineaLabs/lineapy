@@ -15,8 +15,9 @@ from typing import List, Optional, Union
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
-from lineapy.db.utils import FilePickler
+from lineapy.db.utils import FilePickler, parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
+from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
@@ -140,43 +141,60 @@ def save(reference: object, name: str) -> LineaArtifact:
     return linea_artifact
 
 
-def delete(
-    artifact_name: str, version: Optional[Union[int, str]] = None
-) -> None:
+def delete(artifact_name: str, version: Union[int, str]) -> None:
     """
     Deletes an artifact from artifact store. If no other artifacts
     refer to the value, the value is also deleted from both the
     value node store and the pickle store.
 
-    If version is not provided, latest version is used.
+    :param artifact_name: Key used to while saving the artifact
+    :param version: version number or 'latest' or 'all'
+
+    :raises ValueError: if arifact not found or version invalid
     """
+    version = parse_artifact_version(version)
+
+    # get database instance
     execution_context = get_context()
     executor = execution_context.executor
     db = executor.db
 
-    get_version = None if not isinstance(version, int) else version
-    artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+    # if version is 'all' or 'latest', get_version is None
+    get_version = None if isinstance(version, str) else version
+
+    try:
+        artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+    except UserException:
+        raise NameError(
+            f"{artifact_name}:{version} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
+        )
 
     node_id = artifact.node_id
     execution_id = artifact.execution_id
 
-    num_artifacts = db.number_of_artifacts_per_node(node_id, execution_id)
-    if num_artifacts == 1:
-        try:
-            pickled_path = db.get_node_value_path(node_id, execution_id)
-            db.delete_node_value_from_db(node_id, execution_id)
-            if pickled_path is not None:
-                try:
-                    _try_delete_pickle_file(Path(pickled_path))
-                except KeyError:
-                    logging.info(f"Pickle not found at {pickled_path}")
-            else:
-                logging.info(f"No pickle associated with {node_id}")
-        except ValueError:
-            logging.info(f"No pickle associated with {node_id}")
+    db.delete_artifact_by_name(artifact_name, version=version)
+    logging.info(f"Deleted Artifact: {artifact_name} version: {version}")
 
-    delete_version = version or "latest"
-    db.delete_artifact_by_name(artifact_name, version=delete_version)
+    try:
+        db.delete_node_value_from_db(node_id, execution_id)
+    except UserException:
+        logging.info(
+            f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+        )
+
+    pickled_path = None
+    try:
+        pickled_path = db.get_node_value_path(node_id, execution_id)
+    except ValueError:
+        logging.debug(f"No valid pickle path found for {node_id}")
+
+    if pickled_path is not None:
+        try:
+            _try_delete_pickle_file(Path(pickled_path))
+        except KeyError:
+            logging.debug(f"Pickle not found at {pickled_path}")
+    else:
+        logging.debug(f"No valid pickle path found for {node_id}")
 
 
 def _try_delete_pickle_file(pickled_path: Path) -> None:
@@ -184,7 +202,7 @@ def _try_delete_pickle_file(pickled_path: Path) -> None:
         pickled_path.unlink()
     else:
         # Attempt to reconstruct path to pickle with current
-        # linea folder and picke base directory.
+        # linea folder and pickle base directory.
         new_pickled_path = Path(
             options.safe_get("artifact_storage_dir")
         ).joinpath(pickled_path.name)
@@ -241,9 +259,16 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact
     """
+    validated_version = parse_artifact_version(
+        "latest" if version is None else version
+    )
+    final_version = (
+        validated_version if isinstance(validated_version, int) else None
+    )
+
     execution_context = get_context()
     db = execution_context.executor.db
-    artifact = db.get_artifact_by_name(artifact_name, version)
+    artifact = db.get_artifact_by_name(artifact_name, final_version)
     linea_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
