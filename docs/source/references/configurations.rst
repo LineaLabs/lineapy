@@ -78,24 +78,36 @@ Artifact Storage Location
 =========================
 
 You can change the artifact storage location by setting the `LINEAPY_ARTIFACT_STORAGE_DIR` environmental variable, or other ways mentioned in the above session.
-LineaPy is using the IO handler from ``pandas`` directly.
+
+For instance, if you want to use ``/lineapy/artifact_store`` as your artifact storage location and start IPython you can 
+
+- Adding ``{"artifact_storage_dir": "/lineapy/artifact_store"}`` in configuration file: and run ``lineapy ipython``
+- In environmental variable: ``export LINEAPY_ARTIFACT_STORAGE_DIR=/lineapy/artifact_store && lineapy ipython`` 
+- In CLI options: ``lineapy --artifact-storage-dir='/lineapy/artifact_store' ipython``
+
+or you can start ipython as usual then run ``lineapy.options.set('artifact_storage_dir', '/lineapy/artifact_store')`` at the beginning of the ipython session.
+
+Since LineaPy is using the IO handler from ``pandas`` directly.
 In theory, we can use various filesystems like S3, GCS, Azure, etc... to store the artifact, just like we are using ``pandas.DataFrame.to_csv`` to save CSV files.
 Note that, LineaPy only supports S3 at this moment.
-Some filesystems might need extra configuration items to be set, in ``pandas``, you can pass these configurations as ``storage_options`` in ``pandas.DataFrame.to_csv(storage_options={some storage options})``, where the `storage_options` is a filesystem-specific dictionary pass into `fsspec.filesystem`.  .
+Some filesystems might need extra configuration items to be set, in ``pandas``, you can pass these configurations as ``storage_options`` in ``pandas.DataFrame.to_csv(storage_options={some storage options})``, where the `storage_options` is a filesystem-specific dictionary pass into `fsspec.filesystem <https://filesystem-spec.readthedocs.io/en/latest/api.html>`_ .
 In LineaPy we are taking the same approach, you can set the ``storage_options`` with`
 
 .. code:: python
 
     lineapy.options.set('storage_options',{'same storage_options as you use in pandas.io.read_csv'})
 
-Using S3 as artifact storage location
--------------------------------------
+Note that, which ``storage_options`` items you can set are depends on the filesystem you are using.
+In the following section, we will discuss how to set the storage options for S3.
+
+Using S3 as an artifact storage location
+----------------------------------------
 
 To use S3 as LineaPy artifact storage location, you can run the following command in your notebook to change your storage backend(both artifact locations and LineaPy database)
 
 .. code:: python
 
-    lineapy.options.set('artifact_storage_dir','s3://your-bucket/your-prefix')
+    lineapy.options.set('artifact_storage_dir','s3://your-bucket/your-artifact-folder')
     lineapy.options.set('database_url','corresponding-database-url')
 
 You should configure your AWS account just like other tools you are using to access AWS, like ``aws cli`` or ``boto3``.
@@ -114,5 +126,5 @@ If you really need to use your AWS key and secret directly, you can set them wit
 
     lineapy.options.set('storage_options',{'key':'AWS KEY','secret':'AWS SECRET'})
 
-For more S3 configuration items, you can found in `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_ since ``fsspec`` is using ``s3fs`` under the hood to access S3.
+To learn more about which S3 configuration items that you can set in ``storage_options``, you can see the parameters of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_ since ``fsspec`` is passing ``storage_options`` items to ``s3fs.S3FileSystem`` to access S3 under the hood.
 
