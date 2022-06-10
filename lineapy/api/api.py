@@ -220,7 +220,7 @@ def _try_write_to_db(value: object) -> str:
         else f'{artifact_storage_dir.rstrip("/")}/{artifact_filename}'
     )
     try:
-        logger.info(f"Saving file to {filepath} ")
+        logger.debug(f"Saving file to {filepath} ")
         to_pickle(value, filepath)
     except Exception as e:
         # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now

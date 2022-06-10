@@ -1,5 +1,6 @@
 from fsspec.core import url_to_fs
 from fsspec.implementations.local import LocalFileSystem
+
 from lineapy.utils.config import options
 
 
@@ -12,10 +13,12 @@ def test_artifact_storage_dir_type():
         "/tmp/somelineapytestprefix/",
     )
     assert isinstance(
-        url_to_fs(str(options.safe_get("artifact_storage_dir")))[0], LocalFileSystem
+        url_to_fs(str(options.safe_get("artifact_storage_dir")))[0],
+        LocalFileSystem,
     )
 
     options.set("artifact_storage_dir", "~/")
     assert isinstance(
-        url_to_fs(str(options.safe_get("artifact_storage_dir")))[0], LocalFileSystem
+        url_to_fs(str(options.safe_get("artifact_storage_dir")))[0],
+        LocalFileSystem,
     )

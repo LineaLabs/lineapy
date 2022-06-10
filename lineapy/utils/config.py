@@ -155,7 +155,7 @@ class lineapy_config:
             if isinstance(self.__dict__[name], Path) or isinstance(
                 url_to_fs(self.__dict__[name])[0], LocalFileSystem
             ):
-                local_path = Path(self.__dict__[name])
+                local_path = Path(self.__dict__[name]).resolve()
                 if not local_path.exists():
                     logger.warning(
                         f"Folder {local_path.as_posix()} does not exist. Creating a new one."
