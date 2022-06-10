@@ -3,7 +3,6 @@ User facing APIs.
 """
 
 import logging
-import pickle
 import random
 import string
 import types
@@ -11,13 +10,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
-from pandas.io.common import get_handle
-from upath import UPath
+from pandas.io.pickle import to_pickle
 
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
-from lineapy.db.utils import FilePickler
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
@@ -215,23 +212,22 @@ def _try_write_to_db(value: object) -> str:
         + ".pkl"
     )
 
-    artifact_storage_dir = UPath(options.safe_get("artifact_storage_dir"))
+    artifact_storage_dir = options.safe_get("artifact_storage_dir")
 
-    filepath = artifact_storage_dir.joinpath(artifact_filename)
+    filepath = (
+        artifact_storage_dir.joinpath(artifact_filename)
+        if isinstance(artifact_storage_dir, Path)
+        else f'{artifact_storage_dir.rstrip("/")}/{artifact_filename}'
+    )
     try:
-        logger.debug(f"Saving file to {filepath.as_posix()} ")
-        with get_handle(
-            filepath,
-            mode="wb",
-            is_text=False,
-            storage_options=options.storage_options,
-        ) as handles:
-            FilePickler.dump(value, handles.handle)
-    except pickle.PicklingError as pe:
-        logger.error(pe)
-        track(ExceptionEvent("ArtifactSaveException", str(pe)))
-        raise ArtifactSaveException()
-    return filepath.name
+        logger.info(f"Saving file to {filepath} ")
+        to_pickle(value, filepath)
+    except Exception as e:
+        # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
+        logger.error(e)
+        track(ExceptionEvent("ArtifactSaveException", str(e)))
+        raise e
+    return artifact_filename
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:

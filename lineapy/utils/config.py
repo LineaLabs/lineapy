@@ -2,11 +2,11 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from os import PathLike
-from pathlib import PosixPath
+from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
-from upath import UPath
+from fsspec.core import url_to_fs
+from fsspec.implementations.local import LocalFileSystem
 
 from lineapy.db.utils import create_lineadb_engine
 
@@ -21,6 +21,9 @@ CUSTOM_ANNOTATIONS_EXTENSION_NAME = ".annotations.yaml"
 logger = logging.getLogger(__name__)
 
 
+FilePath = Union[str, Path]
+
+
 @dataclass
 class lineapy_config:
     """LineaPy Configuration
@@ -32,23 +35,23 @@ class lineapy_config:
     replace with values in environmental variables if possible. Finally, it sets
     all values in environmental variables.
 
-    :param home_dir: home directory of LineaPy
+    :param home_dir: home directory of LineaPy (must be local)
     :param database_url: database connection string for LineaPy database
     :param artifact_storage_dir: directory for storing artifacts
     :param customized_annotation_folder: directory for storing customized annotations
     :param do_not_track: opt out or user analytics
     :param logging_level: logging level
-    :param logging_file: logging file location
+    :param logging_file: logging file location (only support local for at this time)
     :param storage_options: a dictionary for artifact storage configuration(same as storage_options in pandas, Dask and fsspec)
     """
 
-    home_dir: UPath
+    home_dir: Path
     database_url: Optional[str]
-    artifact_storage_dir: Optional[UPath]
-    customized_annotation_folder: Optional[UPath]
+    artifact_storage_dir: Optional[FilePath]
+    customized_annotation_folder: Optional[FilePath]
     do_not_track: bool
     logging_level: str
-    logging_file: Optional[PathLike]
+    logging_file: Optional[Path]
     storage_options: Optional[Dict[str, Any]]
 
     def __init__(
@@ -75,7 +78,7 @@ class lineapy_config:
         self.storage_options = storage_options
 
         # config file
-        config_file_path = UPath(
+        config_file_path = Path(
             os.environ.get(
                 "LINEAPY_HOME_DIR",
                 f"{os.environ.get('HOME','~')}/{LINEAPY_FOLDER_NAME}",
@@ -85,7 +88,7 @@ class lineapy_config:
             with open(config_file_path, "r") as f:
                 _read_config = json.load(f)
         else:
-            config_file_path = UPath(os.environ.get("HOME", "~")).joinpath(
+            config_file_path = Path(os.environ.get("HOME", "~")).joinpath(
                 CONFIG_FILE_NAME
             )
             if config_file_path.exists():
@@ -144,36 +147,41 @@ class lineapy_config:
         self.safe_get("artifact_storage_dir")
         self.safe_get("customized_annotation_folder")
 
-    def safe_get(self, name) -> Union[UPath, str]:
-        def safe_get_folder(name) -> UPath:
-            """Return folder as upath.UPath
+    def safe_get(self, name) -> FilePath:
+        def safe_get_folder(name) -> FilePath:
+            """Return folder as FilePath
             Create the folder if it doesn't exist"""
 
-            if isinstance(UPath(self.__dict__[name]), PosixPath) and (
-                not UPath(self.__dict__[name]).exists()
+            if isinstance(self.__dict__[name], Path) or isinstance(
+                url_to_fs(self.__dict__[name])[0], LocalFileSystem
             ):
-                logger.warning(
-                    f"Folder {UPath(self.__dict__[name]).as_posix()} does not exist. Creating a new one."
-                )
-                UPath(self.__dict__[name]).mkdir(parents=True, exist_ok=True)
-            return UPath(self.__dict__[name])
+                local_path = Path(self.__dict__[name])
+                if not local_path.exists():
+                    logger.warning(
+                        f"Folder {local_path.as_posix()} does not exist. Creating a new one."
+                    )
+                    local_path.mkdir(parents=True, exist_ok=True)
+                return local_path
+            return self.__dict__[name]
 
         # Return logging_file path, use LINEAPY_HOME_DIR/LOG_FILE_NAME if empty
         if name == "logging_file":
             if self.logging_file is None:
-                self.set(
-                    "logging_file",
-                    safe_get_folder("home_dir").joinpath(LOG_FILE_NAME),
-                    verbose=False,
+                logging_file = Path(safe_get_folder("home_dir")).joinpath(
+                    LOG_FILE_NAME
                 )
-            return UPath(str(self.logging_file))
+                self.set("logging_file", logging_file, verbose=False)
+            else:
+                logging_file = Path(str(self.logging_file))
+
+            return logging_file
 
         # Return LINEAPY_DATABASE_url, use sqlite:///{LINEAPY_HOME_DIR}/{DB_FILE_NAME} if empty
         elif name == "database_url":
             if self.database_url is None:
                 self.set(
                     "database_url",
-                    f"sqlite:///{safe_get_folder('home_dir')}/{DB_FILE_NAME}",
+                    f"sqlite:///{Path(safe_get_folder('home_dir')).as_posix()}/{DB_FILE_NAME}",
                     verbose=False,
                 )
             return str(self.database_url)
@@ -183,7 +191,9 @@ class lineapy_config:
             if self.artifact_storage_dir is None:
                 self.set(
                     "artifact_storage_dir",
-                    safe_get_folder("home_dir").joinpath(FILE_PICKLER_BASEDIR),
+                    Path(safe_get_folder("home_dir")).joinpath(
+                        FILE_PICKLER_BASEDIR
+                    ),
                     verbose=False,
                 )
             return safe_get_folder("artifact_storage_dir")
@@ -193,7 +203,7 @@ class lineapy_config:
             if self.customized_annotation_folder is None:
                 self.set(
                     "customized_annotation_folder",
-                    safe_get_folder("home_dir").joinpath(
+                    Path(safe_get_folder("home_dir")).joinpath(
                         CUSTOM_ANNOTATIONS_FOLDER_NAME
                     ),
                     verbose=False,

@@ -1,7 +1,5 @@
-import pathlib
-
-import upath
-
+from fsspec.core import url_to_fs
+from fsspec.implementations.local import LocalFileSystem
 from lineapy.utils.config import options
 
 
@@ -11,22 +9,13 @@ def test_artifact_storage_dir_type():
     """
     options.set(
         "artifact_storage_dir",
-        "s3://somelineapytestbucket/somelineapytestprefix/",
-    )
-    assert isinstance(
-        options.safe_get("artifact_storage_dir"),
-        upath.implementations.cloud.S3Path,
-    )
-
-    options.set(
-        "artifact_storage_dir",
         "/tmp/somelineapytestprefix/",
     )
     assert isinstance(
-        options.safe_get("artifact_storage_dir"), pathlib.PosixPath
+        url_to_fs(str(options.safe_get("artifact_storage_dir")))[0], LocalFileSystem
     )
 
-    options.set("artifact_storage_dir", "~")
+    options.set("artifact_storage_dir", "~/")
     assert isinstance(
-        options.safe_get("artifact_storage_dir"), pathlib.PosixPath
+        url_to_fs(str(options.safe_get("artifact_storage_dir")))[0], LocalFileSystem
     )

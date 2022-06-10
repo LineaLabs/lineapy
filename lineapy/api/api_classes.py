@@ -6,11 +6,11 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional, cast
 
 from IPython.display import display
 from pandas.io.common import get_handle
-from upath import UPath
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
@@ -78,11 +78,15 @@ class LineaArtifact:
         else:
             # TODO - set unicode etc here
             track(GetValueEvent(has_value=True))
-            filepath = UPath(
-                options.safe_get("artifact_storage_dir")
-            ).joinpath(pickle_filename)
+
+            artifact_storage_dir = options.safe_get("artifact_storage_dir")
+            filepath = (
+                artifact_storage_dir.joinpath(pickle_filename)
+                if isinstance(artifact_storage_dir, Path)
+                else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
+            )
             logger.debug(
-                f"Retriving pickle file from {filepath.as_posix()} ",
+                f"Retriving pickle file from {filepath} ",
             )
             with get_handle(
                 filepath,
