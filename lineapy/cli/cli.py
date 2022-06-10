@@ -82,7 +82,6 @@ logger = logging.getLogger(__name__)
     "--do-not-track",
     type=click.BOOL,
     help="Opt out for user analytics.",
-    is_flag=True,
 )
 @click.option(
     "--logging-level",
