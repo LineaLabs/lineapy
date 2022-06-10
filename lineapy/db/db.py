@@ -442,8 +442,9 @@ class RelationalLineaDB:
     ) -> Optional[str]:
         """
         Get the path to the value of the artifact.
+
         :param other: Additional argument to let you query another artifact's value path.
-                      This is set to be optional and if its not set, we will use the current artifact
+            This is set to be optional and if its not set, we will use the current artifact
         """
         value = self.get_node_value_from_db(node_id, execution_id)
         if not value:
@@ -540,7 +541,7 @@ class RelationalLineaDB:
         res_query = self.session.query(ArtifactORM).filter(
             ArtifactORM.name == artifact_name
         )
-        if version:
+        if version is not None:
             res_query = res_query.filter(ArtifactORM.version == version)
         res = res_query.order_by(ArtifactORM.version.desc()).first()
         if res is None:

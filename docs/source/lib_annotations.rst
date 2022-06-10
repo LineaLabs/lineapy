@@ -10,13 +10,13 @@ as whether a class method mutates the original object.
 
 
 
-Linea uses these annotations for both `internal <https://github.com/LineaLabs/lineapy/blob/main/lineapy/internal.annotations.yaml>`__ 
-libraries, such as ``os`` and ``_operator``, and `external <https://github.com/LineaLabs/lineapy/blob/main/lineapy/external.annotations.yaml>`__
+Linea uses these annotations for both `internal <https://github.com/LineaLabs/lineapy/blob/main/lineapy/annotations/internal>`__ 
+libraries, such as ``os`` and ``operator``, and `external <https://github.com/LineaLabs/lineapy/blob/main/lineapy/annotations/external>`__
 libraries, such as ``pandas`` and ``boto3``.
 
 What we currently support
 -------------------------
-We are in the process of augmenting `external <https://github.com/LineaLabs/lineapy/blob/main/lineapy/external.annotations.yaml>`__
+We are in the process of augmenting `external <https://github.com/LineaLabs/lineapy/blob/main/lineapy/annotations/external>`__
 libraries. We plan to add support 
 for widely used languages in the following libraries:
 
@@ -57,7 +57,7 @@ is :class:`~lineapy.instrumentation.annotation_spec.ModuleAnnotation`, to see ho
 
 With yaml, you need to be careful with the indentations levels which could get
 confusing. You can run the following bash script (from root): ``
-./tests/tools/test_validate_annotation_spec.py`` to test the annotations you added. It would also be easier to copy off from `existing instrumentations <https://github.com/LineaLabs/lineapy/blob/main/lineapy/external.annotations.yaml>`__.
+./tests/tools/test_validate_annotation_spec.py`` to test the annotations you added. It would also be easier to copy off from `existing instrumentations <https://github.com/LineaLabs/lineapy/blob/main/lineapy/annotations/external>`__.
 
 *If there are any syntax that the existing instrumentation doesn't support*,
 please `file an issue on GitHub <https://github.com/LineaLabs/lineapy/issues/new?assignees=&labels=bug%2C+alpha-user&template=bug_report.md&title=>`__,
