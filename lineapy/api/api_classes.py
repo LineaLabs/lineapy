@@ -10,13 +10,12 @@ from pathlib import Path
 from typing import List, Optional, cast
 
 from IPython.display import display
-from pandas.io.common import get_handle
+from pandas.io.pickle import read_pickle
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
-from lineapy.db.utils import FilePickler
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.api_utils import de_lineate_code
 from lineapy.graph_reader.program_slice import (
@@ -24,6 +23,7 @@ from lineapy.graph_reader.program_slice import (
     get_source_code_from_graph,
 )
 from lineapy.utils.analytics.event_schemas import (
+    ExceptionEvent,
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,
@@ -85,16 +85,17 @@ class LineaArtifact:
                 if isinstance(artifact_storage_dir, Path)
                 else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
             )
-            logger.debug(
-                f"Retriving pickle file from {filepath} ",
-            )
-            with get_handle(
-                filepath,
-                mode="rb",
-                is_text=False,
-                storage_options=options.storage_options,
-            ) as handles:
-                return FilePickler.load(handles.handle)
+            try:
+                logger.debug(
+                    f"Retriving pickle file from {filepath} ",
+                )
+                return read_pickle(
+                    filepath, storage_options=options.get("storage_options")
+                )
+            except Exception as e:
+                logger.error(e)
+                track(ExceptionEvent("ArtifactSaveException", str(e)))
+                raise e
 
     # Note that I removed the @properties because they were not working
     # well with the lru_cache

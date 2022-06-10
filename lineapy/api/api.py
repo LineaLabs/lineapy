@@ -221,7 +221,9 @@ def _try_write_to_db(value: object) -> str:
     )
     try:
         logger.debug(f"Saving file to {filepath} ")
-        to_pickle(value, filepath)
+        to_pickle(
+            value, filepath, storage_options=options.get("storage_options")
+        )
     except Exception as e:
         # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
         logger.error(e)
