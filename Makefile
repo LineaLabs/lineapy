@@ -54,7 +54,7 @@ build-docs:
 
 test:
 	make deps
-	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow and not airflow and not integration" tests/
+	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow and not airflow and not integration and not smoke" tests/
 
 test-github-action:
 	docker-compose run --rm ${service_name} pytest ${args}

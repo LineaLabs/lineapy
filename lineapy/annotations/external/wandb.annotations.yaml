@@ -1,4 +1,4 @@
-- module: wandb
+- module: wandb.sdk
   annotations:
     - criteria:
         function_names:
