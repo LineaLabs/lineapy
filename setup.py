@@ -55,6 +55,7 @@ minimal_requirement = [
     "requests",
     "fsspec",
     "universal_pathlib>=0.0.18",
+    "pandas",
 ]
 
 graph_libs = [
@@ -68,7 +69,6 @@ formatter_libs = ["black", "isort"]
 
 extra_test_libs = [
     "altair",
-    "pandas",
     "scikit-learn",
     "flake8",
     "fastparquet",

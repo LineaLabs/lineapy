@@ -32,6 +32,14 @@ class lineapy_config:
     replace with values in environmental variables if possible. Finally, it sets
     all values in environmental variables.
 
+    :param home_dir: home directory of LineaPy
+    :param database_url: database connection string for LineaPy database
+    :param artifact_storage_dir: directory for storing artifacts
+    :param customized_annotation_folder: directory for storing customized annotations
+    :param do_not_track: opt out or user analytics
+    :param logging_level: logging level
+    :param logging_file: logging file location
+    :param storage_options: a dictionary for artifact storage configuration(same as storage_options in pandas, Dask and fsspec)
     """
 
     home_dir: UPath
@@ -90,7 +98,6 @@ class lineapy_config:
         for key, default_value in self.__dict__.items():
             env_var_value = os.environ.get(f"LINEAPY_{key.upper()}")
             config_value = _read_config.get(key, None)
-
             # set config value based on environ -> config  -> default
             if env_var_value is not None:
                 self.set(key, env_var_value, verbose=False)

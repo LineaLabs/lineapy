@@ -216,8 +216,6 @@ def _try_write_to_db(value: object) -> str:
     )
 
     artifact_storage_dir = UPath(options.safe_get("artifact_storage_dir"))
-    if not artifact_storage_dir.exists():
-        artifact_storage_dir.mkdir(parents=True)
 
     filepath = artifact_storage_dir.joinpath(artifact_filename)
     try:
