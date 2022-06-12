@@ -1,8 +1,18 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional, Union
 
 # I think amplitude doesn't really support nested objects,
 # so flattening the object here.
+
+
+class ErrorType(Enum):
+    SAVE = "save_API_exception"
+    DELETE = "delete_API_exception"
+    RETRIEVE = "retrieve_API_exception"
+    PIPELINE = "pipeline_API_exception"
+    DATABASE = "database_error"
+    USER = "user_exception"
 
 
 @dataclass
@@ -36,8 +46,7 @@ class LibImportEvent:
 
 @dataclass
 class ExceptionEvent:
-    # TODO: set error_type to be string enums
-    error_type: str
+    error_type: ErrorType
     error_msg: Optional[str] = None
 
 
