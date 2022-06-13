@@ -277,10 +277,10 @@ def remove_db():
 
 
 @pytest.fixture
-@patch("lineapy.api.api._try_write_to_db")
-def housing_tracer(try_write_to_db, execute):
-    try_write_to_db.return_value = MagicMock()
-    try_write_to_db.return_value.resolve.return_value = "/tmp/fake"
+@patch("lineapy.api.api.try_write_to_pickle")
+def housing_tracer(try_write_to_pickle, execute):
+    try_write_to_pickle.return_value = MagicMock()
+    try_write_to_pickle.return_value.resolve.return_value = "/tmp/fake"
     tests_dir = Path(__file__).parent
 
     # Change directory to tests dir before executing
