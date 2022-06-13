@@ -343,6 +343,7 @@ def python(
     arg: Iterable[str],
 ):
     set_custom_excepthook()
+    check_python_version()
     tree = rich.tree.Tree(f"📄 {file_name}")
 
     db = RelationalLineaDB.from_config(options)
@@ -455,6 +456,7 @@ def setup_ipython_dir() -> None:
     a line to add lineapy into ``extra_extensions``. If they do not exist, we create
     new config files in the temp folder and add a line to specify ``extra_extensions``.
     """
+    check_python_version()
     ipython_dir_name = tempfile.mkdtemp()
     # Make a default profile with the extension added to the ipython and kernel
     # configs
@@ -714,6 +716,14 @@ def benchmark(path: pathlib.Path, n: int, skip_baseline: bool):
             without_lineapy, with_lineapy, confidence_interval=0.90
         )
         rich.print(f"Lineapy is {str(change)}")
+
+
+def check_python_version():
+    if sys.version_info >= (3, 11):
+        logger.warn(
+            "WARNING: Support for Python 3.11 and above is in the experimental phase. \
+Please use caution while using LineaPy on your current Python installation!"
+        )
 
 
 if __name__ == "__main__":

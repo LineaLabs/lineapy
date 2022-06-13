@@ -38,7 +38,7 @@ class Frame(Structure):
             ("f_stacktop", POINTER(py_object)),
             ("f_trace", POINTER(py_object)),
         )
-    elif (3, 11) > sys.version_info >= (3, 10):
+    else:
         _fields_: Tuple[Tuple[str, object], ...] = (
             ("ob_refcnt", c_ssize_t),
             ("ob_type", c_void_p),
@@ -51,10 +51,6 @@ class Frame(Structure):
             ("f_valuestack", POINTER(py_object)),
             ("f_trace", POINTER(py_object)),
             ("f_stackdepth", c_int),
-        )
-    else:
-        raise NotImplementedError(
-            "LineaPy currently does not support Python 3.11 and above"
         )
 
 
@@ -69,12 +65,8 @@ PTR_SIZE = sizeof(POINTER(py_object))
 F_VALUESTACK_OFFSET = sizeof(Frame) - 3 * PTR_SIZE
 if sys.version_info < (3, 10):
     F_STACKTOP_OFFSET = sizeof(Frame) - 2 * PTR_SIZE
-elif (3, 11) > sys.version_info >= (3, 10):
-    F_STACKDEPTH_OFFSET = sizeof(Frame) - PTR_SIZE
 else:
-    raise NotImplementedError(
-        "LineaPy currently does not support Python 3.11 and above"
-    )
+    F_STACKDEPTH_OFFSET = sizeof(Frame) - PTR_SIZE
 
 
 class OpStack:
@@ -92,14 +84,10 @@ class OpStack:
                 id(frame) + F_STACKTOP_OFFSET
             ).value
             self._len = (stack_top_addr - stack_start_addr) // PTR_SIZE
-        elif (3, 11) > sys.version_info >= (3, 10):
+        else:
             self._len = c_int.from_address(
                 id(frame) + F_STACKDEPTH_OFFSET
             ).value
-        else:
-            raise NotImplementedError(
-                "LineaPy currently does not support Python 3.11 and above"
-            )
 
     def __getitem__(self, item: int) -> Any:
         if item < -self._len or item >= 0:
@@ -107,9 +95,5 @@ class OpStack:
         if item < 0:
             if sys.version_info < (3, 10):
                 return self._frame.f_stacktop[item]
-            elif (3, 11) > sys.version_info >= (3, 10):
-                return self._frame.f_valuestack[item + self._len]
             else:
-                raise NotImplementedError(
-                    "LineaPy currently does not support Python 3.11 and above"
-                )
+                return self._frame.f_valuestack[item + self._len]
