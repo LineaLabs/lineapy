@@ -21,6 +21,7 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
 from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ExceptionEvent,
@@ -205,7 +206,7 @@ def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
     Pickle file for a value to be named with the following scheme.
     <node_id-hash>-<exec_id-hash>-pickle
     """
-    return f"{hash(node_id)}-{hash(execution_id)}-pickle"
+    return f"picklepre-{slugify(hash(node_id + execution_id))}-picklepost"
 
 
 def try_write_to_pickle(value: object, filename: str) -> Path:
