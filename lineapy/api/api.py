@@ -60,6 +60,8 @@ def save(reference: object, name: str) -> LineaArtifact:
     name: str
         The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
 
+    Raises ArtifactSaveException
+
     Returns
     -------
     LineaArtifact
@@ -92,12 +94,13 @@ def save(reference: object, name: str) -> LineaArtifact:
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
-        # can raise ArtifactSaveException
-
-        # pickles value of artifact and saves to filesystem
-        pickled_path = _try_write_to_db(
-            reference, _pickle_name(value_node_id, execution_id)
-        )
+        try:
+            # pickles value of artifact and saves to filesystem
+            pickled_path = try_write_to_pickle(
+                reference, _pickle_name(value_node_id, execution_id)
+            )
+        except ValueError:
+            raise ArtifactSaveException()
 
         # adds reference to pickled file inside database
         db.write_node_value(
@@ -197,6 +200,40 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
         logging.debug(f"No valid pickle path found for {node_id}")
 
 
+def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
+    """
+    Pickle file for a value to be named with the following scheme.
+    <node_id-hash>-<exec_id-hash>-pickle
+    """
+    return f"{hash(node_id)}-{hash(execution_id)}-pickle"
+
+
+def try_write_to_pickle(value: object, filename: str) -> Path:
+    """
+    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
+
+    :param value: data to pickle
+    :param filename: name of pickle file
+
+    :return: path to saved pickle
+    """
+    if isinstance(value, types.ModuleType):
+        raise ValueError(
+            "Lineapy does not support saving Python Module Objects as pickles"
+        )
+    # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
+    filepath = Path(options.safe_get("artifact_storage_dir")) / filename
+    try:
+        os.makedirs(filepath.parent, exist_ok=True)
+        with open(filepath, "wb") as f:
+            FilePickler.dump(value, f)
+    except pickle.PicklingError as pe:
+        logger.error(pe)
+        track(ExceptionEvent("ArtifactSaveException", str(pe)))
+        raise ArtifactSaveException()
+    return filepath
+
+
 def _try_delete_pickle_file(pickled_path: Path) -> None:
     if pickled_path.exists():
         pickled_path.unlink()
@@ -210,30 +247,6 @@ def _try_delete_pickle_file(pickled_path: Path) -> None:
             new_pickled_path.unlink()
         else:
             raise KeyError(f"Pickle not found at {pickled_path}")
-
-
-def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
-    return f"{hash(node_id)}-{hash(execution_id)}-pickle"
-
-
-def _try_write_to_db(value: object, filename: str) -> Path:
-    """
-    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
-
-    """
-    if isinstance(value, types.ModuleType):
-        raise ArtifactSaveException()
-    # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = Path(options.safe_get("artifact_storage_dir")) / filename
-    try:
-        os.makedirs(filepath.parent, exist_ok=True)
-        with open(filepath, "wb") as f:
-            FilePickler.dump(value, f)
-    except pickle.PicklingError as pe:
-        logger.error(pe)
-        track(ExceptionEvent("ArtifactSaveException", str(pe)))
-        raise ArtifactSaveException()
-    return filepath
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
