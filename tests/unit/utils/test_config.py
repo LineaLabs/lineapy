@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fsspec.core import url_to_fs
 from fsspec.implementations.local import LocalFileSystem
 
@@ -17,7 +19,10 @@ def test_artifact_storage_dir_type():
         LocalFileSystem,
     )
 
-    options.set("artifact_storage_dir", "~/")
+    options.set(
+        "artifact_storage_dir",
+        Path("~").expanduser().resolve(),
+    )
     assert isinstance(
         url_to_fs(str(options.safe_get("artifact_storage_dir")))[0],
         LocalFileSystem,
