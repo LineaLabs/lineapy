@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
+import fsspec
 from pandas.io.pickle import to_pickle
 
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
@@ -161,11 +162,17 @@ def delete(
     num_artifacts = db.number_of_artifacts_per_node(node_id, execution_id)
     if num_artifacts == 1:
         try:
-            pickled_path = db.get_node_value_path(node_id, execution_id)
-            db.delete_node_value_from_db(node_id, execution_id)
-            if pickled_path is not None:
+            pickled_name = db.get_node_value_path(node_id, execution_id)
+            if pickled_name is not None:
+                pickled_path = (
+                    str(options.safe_get("artifact_storage_dir")).rstrip("/")
+                    + f"/{pickled_name}"
+                )
                 try:
-                    _try_delete_pickle_file(Path(pickled_path))
+                    # Wrap the db operation and file as a transaction
+                    with fsspec.open(pickled_path) as f:
+                        db.delete_node_value_from_db(node_id, execution_id)
+                        f.fs.delete(f.path)
                 except KeyError:
                     logging.info(f"Pickle not found at {pickled_path}")
             else:
@@ -175,21 +182,6 @@ def delete(
 
     delete_version = version or "latest"
     db.delete_artifact_by_name(artifact_name, version=delete_version)
-
-
-def _try_delete_pickle_file(pickled_path: Path) -> None:
-    if pickled_path.exists():
-        pickled_path.unlink()
-    else:
-        # Attempt to reconstruct path to pickle with current
-        # linea folder and pickle base directory.
-        new_pickled_path = Path(
-            options.safe_get("artifact_storage_dir")
-        ).joinpath(pickled_path.name)
-        if new_pickled_path.exists():
-            new_pickled_path.unlink()
-        else:
-            raise KeyError(f"Pickle not found at {pickled_path}")
 
 
 def _try_write_to_db(value: object) -> str:
