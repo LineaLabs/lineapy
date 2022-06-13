@@ -142,10 +142,13 @@ class LineaArtifact:
             )
         )
         code = str(
-            get_source_code_from_graph(self._get_subgraph(keep_lineapy_save))
+            get_source_code_from_graph(
+                self._get_subgraph(keep_lineapy_save),
+                use_lineapy_serialization,
+            )
         )
-        if not use_lineapy_serialization:
-            code = de_lineate_code(code, self.db)
+        # if not use_lineapy_serialization:
+        #     code = de_lineate_code(code, self.db)
         return prettify(code)
 
     @lru_cache(maxsize=None)
@@ -169,8 +172,8 @@ class LineaArtifact:
             )
         )
         code = self.db.get_source_code_for_session(self._session_id)
-        if not use_lineapy_serialization:
-            code = de_lineate_code(code, self.db)
+        # if not use_lineapy_serialization:
+        #     code = de_lineate_code(code, self.db)
         # NOTE: we are not prettifying this code because we want to preserve what
         # the user wrote originally, without processing
         return code

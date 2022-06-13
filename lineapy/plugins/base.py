@@ -57,9 +57,7 @@ class BasePlugin:
             full_import_block += "\n" + _import_block
             full_code_block += "\n" + _code_block
 
-        full_code = prettify(
-            de_lineate_code(full_import_block + full_code_block, self.db)
-        )
+        full_code = prettify(full_import_block + full_code_block)
         (output_dir_path / f"{module_name}.py").write_text(full_code)
         logger.info(f"Generated python module {module_name}.py")
 
@@ -132,7 +130,10 @@ class BasePlugin:
             if len(artifact_var) == 0:
                 raise ValueError(f"Invalid slice name {slice_name}.")
             slice_code: CodeSlice = get_program_slice_by_artifact_name(
-                self.db, slice_name, keep_lineapy_save=True
+                self.db,
+                slice_name,
+                keep_lineapy_save=True,
+                use_lineapy_serialization=False,
             )
             artifacts_code[artifact_var] = slice_code
             artifact_safe_names.append(artifact_var)

@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from re import L
 from typing import DefaultDict, List, Set
 
 from lineapy.data.graph import Graph
@@ -34,13 +35,17 @@ def get_slice_graph(
             child_ids = graph.get_children(sink)
             for c_id in child_ids:
                 c_node = graph.get_node(c_id)
-                if isinstance(c_node, CallNode) and c_node.source_location:
-                    source_code = c_node.source_location.source_code.code
-                    line_number = c_node.source_location.lineno
-                    line_code = source_code.split("\n")[line_number - 1]
-                    first_arg = c_node.positional_args[0]
-                    if "lineapy.save" in line_code and first_arg.id == sink:
-                        new_sink = c_id
+                # if isinstance(c_node, CallNode) and c_node.source_location:
+                #   source_code = c_node.source_location.source_code.code
+                #  line_number = c_node.source_location.lineno
+                # line_code = source_code.split("\n")[line_number - 1]
+                # first_arg = c_node.positional_args[0]
+                # if "lineapy.save" in line_code and first_arg.id == sink:
+                if (
+                    isinstance(c_node, LineaNode)
+                    and c_node.function_name == "save"
+                ):  # and first_arg.id == sink:
+                    new_sink = c_id
             new_sinks.append(new_sink)
         sinks = new_sinks
 
@@ -67,7 +72,9 @@ class CodeSlice:
         return str(self)
 
 
-def get_source_code_from_graph(program: Graph) -> CodeSlice:
+def get_source_code_from_graph(
+    program: Graph, use_lineapy_serialization: bool
+) -> CodeSlice:
     """
     Returns the code from some subgraph, by including all lines that
     are included in the graphs source.
@@ -96,6 +103,9 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
                     node.source_location.end_lineno + 1,
                 )
             )
+        elif isinstance(node, LineaCallNode):
+            # generate our pickle code here. using the use_lineapy_serialization
+            pass
         else:
             source_code_to_lines[node.source_location.source_code] |= set(
                 range(
@@ -126,7 +136,10 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
 
 
 def get_program_slice(
-    graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool = False
+    graph: Graph,
+    sinks: List[LineaID],
+    keep_lineapy_save: bool = False,
+    use_lineapy_serialization: bool = True,
 ) -> CodeSlice:
     """
     Find the necessary and sufficient code for computing the sink nodes.
@@ -142,13 +155,18 @@ def get_program_slice(
     logger.debug("Slicing graph %s", graph)
     subgraph = get_slice_graph(graph, sinks, keep_lineapy_save)
     logger.debug("Subgraph for %s: %s", sinks, subgraph)
-    return get_source_code_from_graph(subgraph)
+    return get_source_code_from_graph(subgraph, use_lineapy_serialization)
 
 
 def get_program_slice_by_artifact_name(
-    db: RelationalLineaDB, name: str, keep_lineapy_save: bool = False
+    db: RelationalLineaDB,
+    name: str,
+    keep_lineapy_save: bool = False,
+    use_lineapy_serialization: bool = True,
 ) -> CodeSlice:
     artifact = db.get_artifact_by_name(name)
     nodes = db.get_nodes_for_session(artifact.node.session_id)
     graph = Graph(nodes, db.get_session_context(artifact.node.session_id))
-    return get_program_slice(graph, [artifact.node_id], keep_lineapy_save)
+    return get_program_slice(
+        graph, [artifact.node_id], keep_lineapy_save, use_lineapy_serialization
+    )
