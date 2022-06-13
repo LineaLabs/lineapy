@@ -5,6 +5,7 @@ import os
 import pathlib
 import typing
 from pathlib import Path
+import shutil
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -275,6 +276,29 @@ def remove_db():
         if p.exists():
             p.unlink()
 
+
+@pytest.fixture
+def move_folder(request):
+    current_path = Path(request.param)
+    current_path_str = str(current_path.resolve())
+    old_path = current_path.parent.joinpath(current_path.name + ".old")
+    old_path_str = str(old_path.resolve())
+
+    # If folder exists already, the test was canceled
+    # early previously. Clean up folder from
+    # previous run.
+    if old_path.exists():
+        shutil.rmtree(current_path_str, ignore_errors=True)
+    else:
+        shutil.move(current_path_str, old_path_str)
+
+    yield
+
+    # clean up test-generated directories
+    if current_path.exists():
+        shutil.rmtree(current_path_str)
+    if old_path.exists():
+        shutil.move(old_path_str, current_path_str)
 
 @pytest.fixture
 @patch("lineapy.api.api.try_write_to_pickle")
