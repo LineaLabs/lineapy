@@ -1,6 +1,5 @@
 import json
 import os
-import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -205,10 +204,12 @@ def test_export_slice_housing_multiple():
     )
 
 
-
-
 @pytest.mark.slow
-@pytest.mark.parametrize("move_folder", [options.safe_get("customized_annotation_folder")], indirect=True)
+@pytest.mark.parametrize(
+    "move_folder",
+    [options.safe_get("customized_annotation_folder")],
+    indirect=True,
+)
 def test_annotate_list(move_folder):
     """Verifies existence of 'lineapy annotate list'"""
     proc = subprocess.run(
@@ -218,7 +219,11 @@ def test_annotate_list(move_folder):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("move_folder", [options.safe_get("customized_annotation_folder")], indirect=True)
+@pytest.mark.parametrize(
+    "move_folder",
+    [options.safe_get("customized_annotation_folder")],
+    indirect=True,
+)
 def test_annotate_add_invalid_path(tmp_path, move_folder):
     """
     Verifies failure of adding non-existent path.
@@ -236,7 +241,11 @@ def test_annotate_add_invalid_path(tmp_path, move_folder):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("move_folder", [options.safe_get("customized_annotation_folder")], indirect=True)
+@pytest.mark.parametrize(
+    "move_folder",
+    [options.safe_get("customized_annotation_folder")],
+    indirect=True,
+)
 def test_annotate_add_non_yaml_file(move_folder):
     """
     Verifies failure of adding file that does not end in '.yaml'.
@@ -265,7 +274,11 @@ def test_annotate_add_non_yaml_file(move_folder):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("move_folder", [options.safe_get("customized_annotation_folder")], indirect=True)
+@pytest.mark.parametrize(
+    "move_folder",
+    [options.safe_get("customized_annotation_folder")],
+    indirect=True,
+)
 def test_annotate_add_invalid_yaml(move_folder):
     """
     Verifies failure of adding invalid spec.
@@ -295,7 +308,11 @@ def test_annotate_add_invalid_yaml(move_folder):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("move_folder", [options.safe_get("customized_annotation_folder")], indirect=True)
+@pytest.mark.parametrize(
+    "move_folder",
+    [options.safe_get("customized_annotation_folder")],
+    indirect=True,
+)
 def test_annotate_add_valid_yaml(move_folder):
     """
     Verifies success of adding valid spec.
@@ -323,7 +340,11 @@ def test_annotate_add_valid_yaml(move_folder):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("move_folder", [options.safe_get("customized_annotation_folder")], indirect=True)
+@pytest.mark.parametrize(
+    "move_folder",
+    [options.safe_get("customized_annotation_folder")],
+    indirect=True,
+)
 def test_annotate_delete_invalid_path(tmp_path, move_folder):
     """
     Verifies failure of deleting non-existent source.
@@ -336,7 +357,11 @@ def test_annotate_delete_invalid_path(tmp_path, move_folder):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("move_folder", [options.safe_get("customized_annotation_folder")], indirect=True)
+@pytest.mark.parametrize(
+    "move_folder",
+    [options.safe_get("customized_annotation_folder")],
+    indirect=True,
+)
 def test_delete_existing_source(move_folder):
     """
     Verifies success of deleting source.

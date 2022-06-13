@@ -3,9 +3,9 @@ from __future__ import annotations
 import dataclasses
 import os
 import pathlib
+import shutil
 import typing
 from pathlib import Path
-import shutil
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -299,6 +299,7 @@ def move_folder(request):
         shutil.rmtree(current_path_str)
     if old_path.exists():
         shutil.move(old_path_str, current_path_str)
+
 
 @pytest.fixture
 @patch("lineapy.api.api.try_write_to_pickle")
