@@ -20,6 +20,7 @@ data scientists bring their work to production more quickly and easily, with jus
     <b style="font-size:48px;">👇 Try It Out! 👇</b>
     <br>
     <a href="https://bit.ly/3N9WvDB"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
+    <a href="https://bit.ly/3MyW8RW"><img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/></a>    
 </p>
 
 https://user-images.githubusercontent.com/13392380/169427654-487d8d4b-3eda-462a-a96c-51c151f39ab9.mp4
@@ -50,7 +51,7 @@ One way to deal with this problem is to keep the notebook in sequential operatio
 the entire notebook during development. However, we soon realize that this interrupts our natural workflows and stream of
 thoughts, decreasing our productivity. Therefore, it is much more common to clean up the notebook after development. This is a very time-consuming process and is not immune from reproducibility issues caused by deleting cells and out-of-order cell executions.
 
-To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/demos/blob/main/story/clean_up_a_messy_notebook/clean_up_a_messy_notebook.ipynb) demo or <a href="https://bit.ly/3NMffcb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>.
+To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/demos/blob/main/story/clean_up_a_messy_notebook/clean_up_a_messy_notebook.ipynb) demo or <a href="https://bit.ly/3NMffcb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>, <a href="https://bit.ly/3O5iJ9H"><img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/></a>.
 
 ### Use Case 2: Revisiting Previous Work
 
@@ -66,7 +67,7 @@ Or, the person may no longer be in the organization with no proper handover of t
 In any of these cases, it becomes extremely difficult to identify the root of the issue, which may render the result
 unreliable and even unusable.
 
-To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/demos/blob/main/story/discover_and_trace_past_work/discover_and_trace_past_work.ipynb) demo or <a href="https://bit.ly/3GEYM7c"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>.
+To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/demos/blob/main/story/discover_and_trace_past_work/discover_and_trace_past_work.ipynb) demo or <a href="https://bit.ly/3GEYM7c"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>, <a href="https://bit.ly/3H9DG14"><img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/></a>.
 
 ### Use Case 3: Building Pipelines
 
@@ -79,7 +80,7 @@ orchestration systems or job schedulers (e.g., cron, Apache Airflow, Prefect). O
 what they are and how to work with them. If not, we need to spend time learning about them in the first place.
 All this operational work involves time-consuming, manual labor, which means less time for us to spend on our core duties as a data scientist.
 
-To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/demos/blob/main/story/create_a_simple_pipeline/create_a_simple_pipeline.ipynb) demo or <a href="https://bit.ly/3x4YOkq"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>.
+To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/demos/blob/main/story/create_a_simple_pipeline/create_a_simple_pipeline.ipynb) demo or <a href="https://bit.ly/3x4YOkq"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>, <a href="https://bit.ly/3mCG47e"><img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/></a>.
 
 ## Getting Started
 

@@ -1,35 +1,35 @@
 [submodule "tests/integration/numpy/tutorials"]
 	path = tests/integration/sources/numpy-tutorials
-	url = git@github.com:numpy/numpy-tutorials.git
+	url = https://github.com/numpy/numpy-tutorials.git
 	ignore = all
 [submodule "tests/integration/pytorch/vision"]
 	path = tests/integration/sources/pytorch-vision
-	url = git@github.com:pytorch/vision.git
+	url = https://github.com/pytorch/vision.git
 	ignore = all
 [submodule "tests/sources/pytorch-tutorials"]
 	path = tests/integration/sources/pytorch-tutorials
-	url = git@github.com:pytorch/tutorials.git
+	url = https://github.com/pytorch/tutorials.git
 	ignore = all
 [submodule "tests/integration/sources/dask-examples"]
 	path = tests/integration/sources/dask-examples
-	url = git@github.com:dask/dask-examples.git
+	url = https://github.com/dask/dask-examples.git
 	ignore = all
 [submodule "tests/integration/sources/tensorflow-docs"]
 	path = tests/integration/sources/tensorflow-docs
-	url = git@github.com:tensorflow/docs.git
+	url = https://github.com/tensorflow/docs.git
 	ignore = all
 [submodule "tests/integration/sources/tensorflow-decision-forests"]
 	path = tests/integration/sources/tensorflow-decision-forests
-	url = git@github.com:tensorflow/decision-forests.git
-    ignore = all
+	url = https://github.com/tensorflow/decision-forests.git
+        ignore = all
 [submodule "tests/integration/sources/xgboost"]
 	path = tests/integration/sources/xgboost
-	url = git@github.com:dmlc/xgboost.git
+	url = https://github.com/dmlc/xgboost.git
         ignore = all
 [submodule "tests/integration/sources/pandas_exercises"]
 	path = tests/integration/sources/pandas_exercises
-	url = git@github.com:guipsamora/pandas_exercises.git
-    ignore = all
+	url = https://github.com/guipsamora/pandas_exercises.git
+        ignore = all
 [submodule "tests/integration/sources/scikit-learn"]
 	path = tests/integration/sources/scikit-learn
 	url = https://github.com/scikit-learn/scikit-learn.git
