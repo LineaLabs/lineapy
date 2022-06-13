@@ -1,14 +1,19 @@
+import datetime
 import json
 import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
-from fsspec.core import url_to_fs
-from fsspec.implementations.local import LocalFileSystem
+import fsspec
 
+from lineapy.data.types import FilePath
 from lineapy.db.utils import create_lineadb_engine
+
+# from fsspec.core import url_to_fs
+# from fsspec.implementations.local import LocalFileSystem
+
 
 LINEAPY_FOLDER_NAME = ".lineapy"
 LOG_FILE_NAME = "lineapy.log"
@@ -19,9 +24,6 @@ CUSTOM_ANNOTATIONS_FOLDER_NAME = "custom-annotations"
 CUSTOM_ANNOTATIONS_EXTENSION_NAME = ".annotations.yaml"
 
 logger = logging.getLogger(__name__)
-
-
-FilePath = Union[str, Path]
 
 
 @dataclass
@@ -140,6 +142,17 @@ class lineapy_config:
                 self.__dict__[key] = value
                 os.environ[f"LINEAPY_{key.upper()}"] = str(value)
 
+            # Send a heartbeat to artifact_storage_dir
+            if key == "artifact_storage_dir":
+                with fsspec.open(
+                    str(self.safe_get("artifact_storage_dir")).rstrip("/")
+                    + "/heartbeat",
+                    "w",
+                ) as f:
+                    f.write(
+                        datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
+                    )
+
     def _set_defaults(self):
         """Fill empty configuration items"""
         self.safe_get("logging_file")
@@ -153,7 +166,8 @@ class lineapy_config:
             Create the folder if it doesn't exist"""
 
             if isinstance(self.__dict__[name], Path) or isinstance(
-                url_to_fs(self.__dict__[name])[0], LocalFileSystem
+                fsspec.core.url_to_fs(self.__dict__[name])[0],
+                fsspec.implementations.local.LocalFileSystem,
             ):
                 local_path = Path(self.__dict__[name]).resolve()
                 if not local_path.exists():
@@ -196,6 +210,7 @@ class lineapy_config:
                     ),
                     verbose=False,
                 )
+
             return safe_get_folder("artifact_storage_dir")
 
         # Return LINEAPY_CUSTOMIZED_ANNOTATION_FOLDER, use LINEAPY_HOME_DIR/CUSTOM_ANNOTATIONS_FOLDER_NAME if empty
