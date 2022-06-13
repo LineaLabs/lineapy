@@ -5,15 +5,13 @@ User facing APIs.
 import logging
 import os
 import pickle
-import random
-import string
 import types
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
-from lineapy.data.types import Artifact, NodeValue, PipelineType
+from lineapy.data.types import Artifact, LineaID, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import FilePickler, parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -97,7 +95,9 @@ def save(reference: object, name: str) -> LineaArtifact:
         # can raise ArtifactSaveException
 
         # pickles value of artifact and saves to filesystem
-        pickled_path = _try_write_to_db(reference)
+        pickled_path = _try_write_to_db(
+            reference, _pickle_name(value_node_id, execution_id)
+        )
 
         # adds reference to pickled file inside database
         db.write_node_value(
@@ -212,7 +212,11 @@ def _try_delete_pickle_file(pickled_path: Path) -> None:
             raise KeyError(f"Pickle not found at {pickled_path}")
 
 
-def _try_write_to_db(value: object) -> Path:
+def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
+    return f"{hash(node_id)}-{hash(execution_id)}-pickle"
+
+
+def _try_write_to_db(value: object, filename: str) -> Path:
     """
     Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
 
@@ -220,16 +224,7 @@ def _try_write_to_db(value: object) -> Path:
     if isinstance(value, types.ModuleType):
         raise ArtifactSaveException()
     # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = Path(options.safe_get("artifact_storage_dir")).joinpath(
-        "".join(
-            random.choices(
-                string.ascii_uppercase
-                + string.ascii_lowercase
-                + string.digits,
-                k=7,
-            )
-        )
-    )
+    filepath = Path(options.safe_get("artifact_storage_dir")) / filename
     try:
         os.makedirs(filepath.parent, exist_ok=True)
         with open(filepath, "wb") as f:
