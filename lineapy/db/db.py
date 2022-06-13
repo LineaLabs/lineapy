@@ -620,21 +620,13 @@ class RelationalLineaDB:
             )
 
     def delete_artifact_by_name(
-        self, artifact_name: str, version: Union[int, str] = None
+        self, artifact_name: str, version: Union[int, str]
     ):
         """
         Deletes the most recent artifact with a certain name.
         If a version is not specified, it will delete the most recent
         version sorted by date_created
         """
-        if (
-            not isinstance(version, int)
-            and version != "all"
-            and version != "latest"
-        ):
-            track(ExceptionEvent("UserException", "Artifact version invalid"))
-            raise UserException(NameError(f"{version} is an invalid version"))
-
         res_query = self.session.query(ArtifactORM).filter(
             ArtifactORM.name == artifact_name
         )

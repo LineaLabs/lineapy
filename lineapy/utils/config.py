@@ -58,7 +58,7 @@ class lineapy_config:
 
     def __init__(
         self,
-        home_dir=f"{os.environ.get('HOME','~')}/{LINEAPY_FOLDER_NAME}",
+        home_dir=f"{Path(os.environ.get('HOME','~')).expanduser().resolve()}/{LINEAPY_FOLDER_NAME}",
         database_url=None,
         artifact_storage_dir=None,
         customized_annotation_folder=None,
@@ -70,7 +70,7 @@ class lineapy_config:
         if logging_level.isdigit():
             logging_level = logging._levelToName[int(logging_level)]
 
-        self.home_dir = home_dir
+        self.home_dir = Path(home_dir).expanduser()
         self.database_url = database_url
         self.artifact_storage_dir = artifact_storage_dir
         self.customized_annotation_folder = customized_annotation_folder
@@ -83,15 +83,18 @@ class lineapy_config:
         config_file_path = Path(
             os.environ.get(
                 "LINEAPY_HOME_DIR",
-                f"{os.environ.get('HOME','~')}/{LINEAPY_FOLDER_NAME}",
+                f"{Path(os.environ.get('HOME','~')).expanduser().resolve()}/{LINEAPY_FOLDER_NAME}",
             )
         ).joinpath(CONFIG_FILE_NAME)
         if config_file_path.exists():
             with open(config_file_path, "r") as f:
                 _read_config = json.load(f)
         else:
-            config_file_path = Path(os.environ.get("HOME", "~")).joinpath(
-                CONFIG_FILE_NAME
+            config_file_path = (
+                Path(os.environ.get("HOME", "~"))
+                .expanduser()
+                .resolve()
+                .joinpath(CONFIG_FILE_NAME)
             )
             if config_file_path.exists():
                 with open(config_file_path, "r") as f:

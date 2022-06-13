@@ -46,6 +46,18 @@ y = res.get_value() + 1
     assert res.values["y"] == 2
 
 
+def test_get_version_zero(execute):
+    c = """import lineapy
+x = 100
+lineapy.save(x, 'x')
+x = 200
+lineapy.save(x, 'x')
+x_ret = lineapy.get('x', version=0).get_value()
+"""
+    res = execute(c, snapshot=False)
+    assert res.values["x_ret"] == 100
+
+
 def test_save_different_session(execute):
     execute("import lineapy\nlineapy.save(10, 'x')")
     c = """import lineapy
@@ -73,6 +85,7 @@ lineapy.save(y, 'y')
     )
     assert res.values["x"] == 100
     assert res.artifacts["x"] == "x = 100\n"
+
     assert res.values["y"] == 100
     assert res.artifacts["y"] == "y = 100\n"
 
@@ -82,7 +95,7 @@ def test_delete_artifact(execute):
         """import lineapy
 x = 100
 lineapy.save(x, 'x')
-lineapy.delete('x')
+lineapy.delete('x', version='latest')
 """,
         snapshot=False,
     )
@@ -98,7 +111,7 @@ x = 100
 lineapy.save(x, 'x')
 x = 200
 lineapy.save(x, 'x')
-lineapy.delete('x')
+lineapy.delete('x', version='latest')
 
 store = lineapy.artifact_store()
 versions = [x._version for x in store.artifacts if x.name=='x']
