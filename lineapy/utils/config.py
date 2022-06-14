@@ -51,6 +51,7 @@ class lineapy_config:
     logging_level: str
     logging_file: Optional[Path]
     storage_options: Optional[Dict[str, Any]]
+    is_demo: bool
 
     def __init__(
         self,
@@ -62,6 +63,7 @@ class lineapy_config:
         logging_level="INFO",
         logging_file=None,
         storage_options=None,
+        is_demo=False,
     ):
         if logging_level.isdigit():
             logging_level = logging._levelToName[int(logging_level)]
@@ -74,6 +76,7 @@ class lineapy_config:
         self.logging_level = logging_level
         self.logging_file = logging_file
         self.storage_options = storage_options
+        self.is_demo = is_demo
 
         # config file
         config_file_path = Path(
