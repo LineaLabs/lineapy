@@ -451,7 +451,7 @@ class RelationalLineaDB:
         if not value:
             track(
                 ExceptionEvent(
-                    ErrorType.DATABASE, "Value not found for the node"
+                    ErrorType.DATABASE, "Value path not found for the node"
                 )
             )
             raise ValueError("No value saved for this node")
