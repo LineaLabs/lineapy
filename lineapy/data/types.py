@@ -423,3 +423,6 @@ class PipelineType(Enum):
 
     SCRIPT = 1
     AIRFLOW = 2
+
+
+FilePath = Union[str, Path]

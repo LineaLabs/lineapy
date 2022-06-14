@@ -3,8 +3,6 @@ User facing APIs.
 """
 
 import logging
-import os
-import pickle
 import random
 import string
 import types
@@ -12,10 +10,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
+import fsspec
+from pandas.io.pickle import to_pickle
+
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
-from lineapy.db.utils import FilePickler, parse_artifact_version
+from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
@@ -98,12 +99,11 @@ def save(reference: object, name: str) -> LineaArtifact:
 
         # pickles value of artifact and saves to filesystem
         pickled_path = _try_write_to_db(reference)
-
         # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=str(pickled_path.resolve()),
+                value=str(pickled_path),
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -172,55 +172,39 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     node_id = artifact.node_id
     execution_id = artifact.execution_id
 
-    db.delete_artifact_by_name(artifact_name, version=version)
-    logging.info(f"Deleted Artifact: {artifact_name} version: {version}")
-
-    try:
-        db.delete_node_value_from_db(node_id, execution_id)
-    except UserException:
-        logging.info(
-            f"Node: {node_id} with execution ID: {execution_id} not found in DB"
-        )
-
     pickled_path = None
     try:
-        pickled_path = db.get_node_value_path(node_id, execution_id)
+        pickled_name = db.get_node_value_path(node_id, execution_id)
+        pickled_path = (
+            str(options.safe_get("artifact_storage_dir")).rstrip("/")
+            + f"/{pickled_name}"
+        )
+        # Wrap the db operation and file as a transaction
+        with fsspec.open(pickled_path) as f:
+            db.delete_artifact_by_name(artifact_name, version=version)
+            logging.info(
+                f"Deleted Artifact: {artifact_name} version: {version}"
+            )
+            try:
+                db.delete_node_value_from_db(node_id, execution_id)
+            except UserException:
+                logging.info(
+                    f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+                )
+            f.fs.delete(f.path)
     except ValueError:
         logging.debug(f"No valid pickle path found for {node_id}")
 
-    if pickled_path is not None:
-        try:
-            _try_delete_pickle_file(Path(pickled_path))
-        except KeyError:
-            logging.debug(f"Pickle not found at {pickled_path}")
-    else:
-        logging.debug(f"No valid pickle path found for {node_id}")
 
-
-def _try_delete_pickle_file(pickled_path: Path) -> None:
-    if pickled_path.exists():
-        pickled_path.unlink()
-    else:
-        # Attempt to reconstruct path to pickle with current
-        # linea folder and pickle base directory.
-        new_pickled_path = Path(
-            options.safe_get("artifact_storage_dir")
-        ).joinpath(pickled_path.name)
-        if new_pickled_path.exists():
-            new_pickled_path.unlink()
-        else:
-            raise KeyError(f"Pickle not found at {pickled_path}")
-
-
-def _try_write_to_db(value: object) -> Path:
+def _try_write_to_db(value: object) -> str:
     """
-    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
+    Saves the value to a random file inside linea folder. The file name is returned and eventually saved to the db.
 
     """
     if isinstance(value, types.ModuleType):
         raise ArtifactSaveException()
     # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = Path(options.safe_get("artifact_storage_dir")).joinpath(
+    artifact_filename = (
         "".join(
             random.choices(
                 string.ascii_uppercase
@@ -229,16 +213,27 @@ def _try_write_to_db(value: object) -> Path:
                 k=7,
             )
         )
+        + ".pkl"
+    )
+
+    artifact_storage_dir = options.safe_get("artifact_storage_dir")
+
+    filepath = (
+        artifact_storage_dir.joinpath(artifact_filename)
+        if isinstance(artifact_storage_dir, Path)
+        else f'{artifact_storage_dir.rstrip("/")}/{artifact_filename}'
     )
     try:
-        os.makedirs(filepath.parent, exist_ok=True)
-        with open(filepath, "wb") as f:
-            FilePickler.dump(value, f)
-    except pickle.PicklingError as pe:
-        logger.error(pe)
-        track(ExceptionEvent("ArtifactSaveException", str(pe)))
-        raise ArtifactSaveException()
-    return filepath
+        logger.debug(f"Saving file to {filepath} ")
+        to_pickle(
+            value, filepath, storage_options=options.get("storage_options")
+        )
+    except Exception as e:
+        # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
+        logger.error(e)
+        track(ExceptionEvent("ArtifactSaveException", str(e)))
+        raise e
+    return artifact_filename
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:

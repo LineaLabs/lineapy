@@ -82,7 +82,6 @@ logger = logging.getLogger(__name__)
     "--do-not-track",
     type=click.BOOL,
     help="Opt out for user analytics.",
-    is_flag=True,
 )
 @click.option(
     "--logging-level",
@@ -152,7 +151,7 @@ def init(output_file: Optional[pathlib.Path]):
         config = {
             k: str(v) for k, v in options.__dict__.items() if v is not None
         }
-        json.dump(config, f)
+        json.dump(config, f, indent=4, sort_keys=True)
 
 
 @linea_cli.command()
