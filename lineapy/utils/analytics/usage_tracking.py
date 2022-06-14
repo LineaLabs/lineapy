@@ -81,7 +81,9 @@ def _session_id() -> str:
 
 @lru_cache(maxsize=1)
 def do_not_track() -> bool:
-    return str(options.get("do_not_track")).lower() == "true"
+    do_not_track: bool = str(options.get("do_not_track")).lower() == "true"
+    is_demo: bool = str(options.get("is_demo")).lower() == "true"
+    return do_not_track or is_demo
 
 
 def _send_amplitude_event(event_type: str, event_properties: dict):
