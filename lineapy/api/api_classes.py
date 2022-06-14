@@ -23,6 +23,7 @@ from lineapy.graph_reader.program_slice import (
     get_source_code_from_graph,
 )
 from lineapy.utils.analytics.event_schemas import (
+    ErrorType,
     ExceptionEvent,
     GetCodeEvent,
     GetValueEvent,
@@ -94,7 +95,11 @@ class LineaArtifact:
                 )
             except Exception as e:
                 logger.error(e)
-                track(ExceptionEvent("ArtifactSaveException", str(e)))
+                track(
+                    ExceptionEvent(
+                        ErrorType.RETRIEVE, "Error in retriving pickle file"
+                    )
+                )
                 raise e
 
     # Note that I removed the @properties because they were not working

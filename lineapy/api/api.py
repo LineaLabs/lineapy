@@ -26,6 +26,7 @@ from lineapy.plugins.script import ScriptPlugin
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
+    ErrorType,
     ExceptionEvent,
     GetEvent,
     SaveEvent,
@@ -80,7 +81,9 @@ def save(reference: object, name: str) -> LineaArtifact:
         value_node_id = executor.lookup_external_state(reference)
         msg = f"No change to the {reference.external_state} was recorded. If it was in fact changed, please open a Github issue."
         if not value_node_id:
-            track(ExceptionEvent("SaveAPI", msg))
+            track(
+                ExceptionEvent(ErrorType.SAVE, "No change to external state")
+            )
             raise ValueError(msg)
     else:
         # Lookup the first arguments id, which is the id for the value, and
@@ -202,6 +205,7 @@ def _try_write_to_db(value: object) -> str:
 
     """
     if isinstance(value, types.ModuleType):
+        track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))
         raise ArtifactSaveException()
     # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
     artifact_filename = (
@@ -231,7 +235,7 @@ def _try_write_to_db(value: object) -> str:
     except Exception as e:
         # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
         logger.error(e)
-        track(ExceptionEvent("ArtifactSaveException", str(e)))
+        track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
         raise e
     return artifact_filename
 
@@ -334,7 +338,7 @@ def to_pipeline(
         .all()
     )
     if len(session_orm) == 0:
-        track(ExceptionEvent("DBError", "NoSessionFound"))
+        track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
         raise Exception("No sessions found in the database.")
     last_session = session_orm[0]
 
