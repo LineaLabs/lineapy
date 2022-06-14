@@ -204,7 +204,7 @@ def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
     Pickle file for a value to be named with the following scheme.
     <node_id-hash>-<exec_id-hash>-pickle
     """
-    return f"picklepre-{slugify(hash(node_id + execution_id))}-picklepost"
+    return f"pre-{slugify(hash(node_id + execution_id))}-post.pkl"
 
 
 def try_write_to_pickle(value: object, filename: str) -> None:

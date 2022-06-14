@@ -67,9 +67,10 @@ def test_to_airflow_dagmodule(python_snapshot, run_cell):
 
 
 @pytest.mark.slow
-@patch("lineapy.api.api.try_write_to_pickle")
+@patch("lineapy.api.api.try_write_to_pickle", return_value=None)
+@patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
 def test_to_airflow_with_config_pymodule(
-    try_write_to_pickle, python_snapshot, run_cell
+    _pickle_name, try_write_to_pickle, python_snapshot, run_cell
 ):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
