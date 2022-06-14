@@ -31,7 +31,7 @@ def test_lineapy_init_with_options():
             "lineapy",
             "--home-dir",
             temp_dir_name,
-            "--do-not-track",
+            "--do-not-track=true",
             "--logging-level=debug",
             "init",
         ]

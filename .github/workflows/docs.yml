@@ -20,7 +20,7 @@ jobs:
           git config --local user.email "infra@linea.ai"
           git config --local user.name "Humble bot servant"
           git add .
-          git commit -m "Add tutorials to docs"
+          (git diff --quiet && git diff --staged --quiet) || git commit -m "Add tutorials to docs"
       - name: push doc changes
         uses: ad-m/github-push-action@master
         with:

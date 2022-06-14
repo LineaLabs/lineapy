@@ -3,8 +3,6 @@ User facing APIs.
 """
 
 import logging
-import os
-import pickle
 import random
 import string
 import types
@@ -12,25 +10,30 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
+import fsspec
+from pandas.io.pickle import to_pickle
+
+from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
-from lineapy.db.utils import FilePickler
+from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
+from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
-from lineapy.graph_reader.apis import LineaArtifact, LineaCatalog
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
 from lineapy.plugins.task import TaskGraphEdge
-from lineapy.utils.analytics import (
+from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
+    ErrorType,
     ExceptionEvent,
     GetEvent,
     SaveEvent,
     ToPipelineEvent,
-    side_effect_to_str,
-    track,
 )
+from lineapy.utils.analytics.usage_tracking import track
+from lineapy.utils.analytics.utils import side_effect_to_str
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_value_type
@@ -78,7 +81,9 @@ def save(reference: object, name: str) -> LineaArtifact:
         value_node_id = executor.lookup_external_state(reference)
         msg = f"No change to the {reference.external_state} was recorded. If it was in fact changed, please open a Github issue."
         if not value_node_id:
-            track(ExceptionEvent("SaveAPI", msg))
+            track(
+                ExceptionEvent(ErrorType.SAVE, "No change to external state")
+            )
             raise ValueError(msg)
     else:
         # Lookup the first arguments id, which is the id for the value, and
@@ -97,12 +102,11 @@ def save(reference: object, name: str) -> LineaArtifact:
 
         # pickles value of artifact and saves to filesystem
         pickled_path = _try_write_to_db(reference)
-
         # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=str(pickled_path.resolve()),
+                value=str(pickled_path),
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -140,69 +144,71 @@ def save(reference: object, name: str) -> LineaArtifact:
     return linea_artifact
 
 
-def delete(
-    artifact_name: str, version: Optional[Union[int, str]] = None
-) -> None:
+def delete(artifact_name: str, version: Union[int, str]) -> None:
     """
     Deletes an artifact from artifact store. If no other artifacts
     refer to the value, the value is also deleted from both the
     value node store and the pickle store.
 
-    If version is not provided, latest version is used.
+    :param artifact_name: Key used to while saving the artifact
+    :param version: version number or 'latest' or 'all'
+
+    :raises ValueError: if arifact not found or version invalid
     """
+    version = parse_artifact_version(version)
+
+    # get database instance
     execution_context = get_context()
     executor = execution_context.executor
     db = executor.db
 
-    get_version = None if not isinstance(version, int) else version
-    artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+    # if version is 'all' or 'latest', get_version is None
+    get_version = None if isinstance(version, str) else version
+
+    try:
+        artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+    except UserException:
+        raise NameError(
+            f"{artifact_name}:{version} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
+        )
 
     node_id = artifact.node_id
     execution_id = artifact.execution_id
 
-    num_artifacts = db.number_of_artifacts_per_node(node_id, execution_id)
-    if num_artifacts == 1:
-        try:
-            pickled_path = db.get_node_value_path(node_id, execution_id)
-            db.delete_node_value_from_db(node_id, execution_id)
-            if pickled_path is not None:
-                try:
-                    _try_delete_pickle_file(Path(pickled_path))
-                except KeyError:
-                    logging.info(f"Pickle not found at {pickled_path}")
-            else:
-                logging.info(f"No pickle associated with {node_id}")
-        except ValueError:
-            logging.info(f"No pickle associated with {node_id}")
-
-    delete_version = version or "latest"
-    db.delete_artifact_by_name(artifact_name, version=delete_version)
-
-
-def _try_delete_pickle_file(pickled_path: Path) -> None:
-    if pickled_path.exists():
-        pickled_path.unlink()
-    else:
-        # Attempt to reconstruct path to pickle with current
-        # linea folder and picke base directory.
-        new_pickled_path = Path(
-            options.safe_get("artifact_storage_dir")
-        ).joinpath(pickled_path.name)
-        if new_pickled_path.exists():
-            new_pickled_path.unlink()
-        else:
-            raise KeyError(f"Pickle not found at {pickled_path}")
+    pickled_path = None
+    try:
+        pickled_name = db.get_node_value_path(node_id, execution_id)
+        pickled_path = (
+            str(options.safe_get("artifact_storage_dir")).rstrip("/")
+            + f"/{pickled_name}"
+        )
+        # Wrap the db operation and file as a transaction
+        with fsspec.open(pickled_path) as f:
+            db.delete_artifact_by_name(artifact_name, version=version)
+            logging.info(
+                f"Deleted Artifact: {artifact_name} version: {version}"
+            )
+            try:
+                db.delete_node_value_from_db(node_id, execution_id)
+            except UserException:
+                logging.info(
+                    f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+                )
+            f.fs.delete(f.path)
+    except ValueError:
+        logging.debug(f"No valid pickle path found for {node_id}")
 
 
-def _try_write_to_db(value: object) -> Path:
+def _try_write_to_db(value: object) -> str:
     """
-    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
+    Saves the value to a random file inside linea folder. The file name is returned and eventually saved to the db.
 
     """
     if isinstance(value, types.ModuleType):
+        track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))
         raise ArtifactSaveException()
     # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = Path(options.safe_get("artifact_storage_dir")).joinpath(
+    artifact_filename = (
         "".join(
             random.choices(
                 string.ascii_uppercase
@@ -211,16 +217,27 @@ def _try_write_to_db(value: object) -> Path:
                 k=7,
             )
         )
+        + ".pkl"
+    )
+
+    artifact_storage_dir = options.safe_get("artifact_storage_dir")
+
+    filepath = (
+        artifact_storage_dir.joinpath(artifact_filename)
+        if isinstance(artifact_storage_dir, Path)
+        else f'{artifact_storage_dir.rstrip("/")}/{artifact_filename}'
     )
     try:
-        os.makedirs(filepath.parent, exist_ok=True)
-        with open(filepath, "wb") as f:
-            FilePickler.dump(value, f)
-    except pickle.PicklingError as pe:
-        logger.error(pe)
-        track(ExceptionEvent("ArtifactSaveException", str(pe)))
-        raise ArtifactSaveException()
-    return filepath
+        logger.debug(f"Saving file to {filepath} ")
+        to_pickle(
+            value, filepath, storage_options=options.get("storage_options")
+        )
+    except Exception as e:
+        # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
+        logger.error(e)
+        track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
+        raise e
+    return artifact_filename
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
@@ -231,7 +248,7 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     ----------
     artifact_name: str
         name of the artifact. Note that if you do not remember the artifact,
-        you can use the catalog to browse the options
+        you can use the artifact_store to browse the options
     version: Optional[str]
         version of the artifact. If None, the latest version will be returned.
 
@@ -241,9 +258,16 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact
     """
+    validated_version = parse_artifact_version(
+        "latest" if version is None else version
+    )
+    final_version = (
+        validated_version if isinstance(validated_version, int) else None
+    )
+
     execution_context = get_context()
     db = execution_context.executor.db
-    artifact = db.get_artifact_by_name(artifact_name, version)
+    artifact = db.get_artifact_by_name(artifact_name, final_version)
     linea_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
@@ -258,15 +282,28 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     return linea_artifact
 
 
-def catalog() -> LineaCatalog:
+def reload() -> None:
+    """
+    Reloads lineapy context.
+
+    .. note::
+
+    Currently only reloads annotations but in the future can be a container for other items like configs etc.
+
+    """
+    execution_context = get_context()
+    execution_context.executor.reload_annotations()
+
+
+def artifact_store() -> LineaArtifactStore:
     """
     Returns
     -------
-    LineaCatalog
-        An object of the class `LineaCatalog` that allows for printing and exporting artifacts metadata.
+    LineaArtifactStore
+        An object of the class `LineaArtifactStore` that allows for printing and exporting artifacts metadata.
     """
     execution_context = get_context()
-    cat = LineaCatalog(execution_context.executor.db)
+    cat = LineaArtifactStore(execution_context.executor.db)
     track(CatalogEvent(catalog_size=cat.len))
     return cat
 
@@ -301,7 +338,7 @@ def to_pipeline(
         .all()
     )
     if len(session_orm) == 0:
-        track(ExceptionEvent("DBError", "NoSessionFound"))
+        track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
         raise Exception("No sessions found in the database.")
     last_session = session_orm[0]
 

@@ -36,7 +36,8 @@ from lineapy.system_tracing.function_call import FunctionCall
 from lineapy.system_tracing.function_calls_to_side_effects import (
     function_calls_to_side_effects,
 )
-from lineapy.utils.analytics import ExceptionEvent, track
+from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
+from lineapy.utils.analytics.usage_tracking import track
 
 if TYPE_CHECKING:
     from lineapy.data.types import CallNode, LineaID
@@ -57,6 +58,13 @@ f() # should print 15, instead of 10
 
 _global_variables: GlobalsDict = GlobalsDict()
 _current_context: Optional[ExecutionContext] = None
+
+NO_CONTEXT_ERROR_MESSAGE = (
+    "No context set. This could be because the LineaPy extension has not been loaded in your runtime environment. "
+    "To load the extension, you need to launch your environment with the `lineapy` command, e.g., `lineapy jupyter notebook`. "
+    "Or, to load the extension without relaunching the environment, execute `%load_ext lineapy` at the top of your session. "
+    "Check https://docs.lineapy.org/en/latest/fundamentals/interfaces.html#jupyter-and-ipython for more detailed instructions."
+)
 
 
 @dataclass
@@ -144,8 +152,8 @@ def set_context(
 
 def get_context() -> ExecutionContext:
     if not _current_context:
-        track(ExceptionEvent("DBError", "No context set"))
-        raise RuntimeError("No context set")
+        track(ExceptionEvent(ErrorType.DATABASE, "No context set"))
+        raise RuntimeError(NO_CONTEXT_ERROR_MESSAGE)
 
     return _current_context
 
@@ -157,7 +165,7 @@ def teardown_context() -> ContextResult:
     """
     global _current_context
     if not _current_context:
-        raise RuntimeError("No context set")
+        raise RuntimeError(NO_CONTEXT_ERROR_MESSAGE)
     res = _global_variables.teardown_globals()
     # If we didn't trace some function calls, use the legacy worst case assumptions for side effects
     if _current_context.function_calls is None:
