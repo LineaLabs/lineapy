@@ -11,10 +11,6 @@ import fsspec
 from lineapy.data.types import FilePath
 from lineapy.db.utils import create_lineadb_engine
 
-# from fsspec.core import url_to_fs
-# from fsspec.implementations.local import LocalFileSystem
-
-
 LINEAPY_FOLDER_NAME = ".lineapy"
 LOG_FILE_NAME = "lineapy.log"
 CONFIG_FILE_NAME = "lineapy_config.json"

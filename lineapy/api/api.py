@@ -174,7 +174,6 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
 
     pickled_path = None
     try:
-        # pickled_path = db.get_node_value_path(node_id, execution_id)
         pickled_name = db.get_node_value_path(node_id, execution_id)
         pickled_path = (
             str(options.safe_get("artifact_storage_dir")).rstrip("/")
