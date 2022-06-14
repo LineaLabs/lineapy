@@ -11,7 +11,6 @@ import logging
 import os
 import sys
 import uuid
-from dataclasses import asdict
 from functools import lru_cache
 
 import requests
@@ -115,9 +114,8 @@ def track(event: AllEvents):
     if do_not_track():
         return
 
-    # watch for perf!
-    # https://stackoverflow.com/questions/52229521/why-is-dataclasses-asdictobj-10x-slower-than-obj-dict
-    event_properties = asdict(event)
+    # We assume all events are un-nested objects
+    event_properties = {k: str(v) for k, v in event.__dict__.items()}
     event_properties["py_version"] = _py_version()
     event_properties["lineapy_version"] = LINEAPY_VERSION
     event_properties["runtime"] = _runtime()

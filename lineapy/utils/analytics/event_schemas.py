@@ -14,6 +14,9 @@ class ErrorType(Enum):
     DATABASE = "database_error"
     USER = "user_exception"
 
+    def __str__(self):
+        return str(self.value)
+
 
 @dataclass
 class SaveEvent:
