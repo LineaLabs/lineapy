@@ -1,6 +1,5 @@
 import logging
 import os
-import pickle
 from typing import Union
 
 from sqlalchemy import create_engine
@@ -76,22 +75,3 @@ def create_lineadb_engine(url: str) -> Engine:
         poolclass=StaticPool,
         echo=echo,
     )
-
-
-class FilePickler:
-    """
-    Tries to pickle an object, and if it fails returns None.
-    """
-
-    @staticmethod
-    def dump(value, fileobj, protocol=pickle.HIGHEST_PROTOCOL):
-        if fileobj is None:
-            return None
-        try:
-            return pickle.dump(value, fileobj, protocol)
-        except pickle.PicklingError:
-            return None
-
-    @staticmethod
-    def load(fileobj):
-        return pickle.load(fileobj)

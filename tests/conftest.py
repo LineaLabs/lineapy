@@ -6,7 +6,7 @@ import pathlib
 import shutil
 import typing
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import syrupy
@@ -302,10 +302,9 @@ def move_folder(request):
 
 
 @pytest.fixture
-@patch("lineapy.api.api.try_write_to_pickle")
-def housing_tracer(try_write_to_pickle, execute):
-    try_write_to_pickle.return_value = MagicMock()
-    try_write_to_pickle.return_value.resolve.return_value = "/tmp/fake"
+@patch("lineapy.api.api.try_write_to_pickle", return_value=None)
+@patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
+def housing_tracer(_pickle_name, try_write_to_pickle, execute):
     tests_dir = Path(__file__).parent
 
     # Change directory to tests dir before executing

@@ -3,17 +3,18 @@ User facing APIs.
 """
 
 import logging
-import os
-import pickle
 import types
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
+import fsspec
+from pandas.io.pickle import to_pickle
+
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
 from lineapy.data.types import Artifact, LineaID, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
-from lineapy.db.utils import FilePickler, parse_artifact_version
+from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
@@ -24,6 +25,7 @@ from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
+    ErrorType,
     ExceptionEvent,
     GetEvent,
     SaveEvent,
@@ -61,8 +63,6 @@ def save(reference: object, name: str) -> LineaArtifact:
     name: str
         The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
 
-    Raises ArtifactSaveException
-
     Returns
     -------
     LineaArtifact
@@ -80,7 +80,9 @@ def save(reference: object, name: str) -> LineaArtifact:
         value_node_id = executor.lookup_external_state(reference)
         msg = f"No change to the {reference.external_state} was recorded. If it was in fact changed, please open a Github issue."
         if not value_node_id:
-            track(ExceptionEvent("SaveAPI", msg))
+            track(
+                ExceptionEvent(ErrorType.SAVE, "No change to external state")
+            )
             raise ValueError(msg)
     else:
         # Lookup the first arguments id, which is the id for the value, and
@@ -95,19 +97,16 @@ def save(reference: object, name: str) -> LineaArtifact:
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
-        try:
-            # pickles value of artifact and saves to filesystem
-            pickled_path = try_write_to_pickle(
-                reference, _pickle_name(value_node_id, execution_id)
-            )
-        except ValueError:
-            raise ArtifactSaveException()
+
+        # pickles value of artifact and saves to filesystem
+        pickle_name = _pickle_name(value_node_id, execution_id)
+        try_write_to_pickle(reference, pickle_name)
 
         # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=str(pickled_path.resolve()),
+                value=str(pickle_name),
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -176,28 +175,27 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     node_id = artifact.node_id
     execution_id = artifact.execution_id
 
-    db.delete_artifact_by_name(artifact_name, version=version)
-    logging.info(f"Deleted Artifact: {artifact_name} version: {version}")
-
-    try:
-        db.delete_node_value_from_db(node_id, execution_id)
-    except UserException:
-        logging.info(
-            f"Node: {node_id} with execution ID: {execution_id} not found in DB"
-        )
-
     pickled_path = None
     try:
-        pickled_path = db.get_node_value_path(node_id, execution_id)
+        pickled_name = db.get_node_value_path(node_id, execution_id)
+        pickled_path = (
+            str(options.safe_get("artifact_storage_dir")).rstrip("/")
+            + f"/{pickled_name}"
+        )
+        # Wrap the db operation and file as a transaction
+        with fsspec.open(pickled_path) as f:
+            db.delete_artifact_by_name(artifact_name, version=version)
+            logging.info(
+                f"Deleted Artifact: {artifact_name} version: {version}"
+            )
+            try:
+                db.delete_node_value_from_db(node_id, execution_id)
+            except UserException:
+                logging.info(
+                    f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+                )
+            f.fs.delete(f.path)
     except ValueError:
-        logging.debug(f"No valid pickle path found for {node_id}")
-
-    if pickled_path is not None:
-        try:
-            _try_delete_pickle_file(Path(pickled_path))
-        except KeyError:
-            logging.debug(f"Pickle not found at {pickled_path}")
-    else:
         logging.debug(f"No valid pickle path found for {node_id}")
 
 
@@ -209,30 +207,34 @@ def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
     return f"picklepre-{slugify(hash(node_id + execution_id))}-picklepost"
 
 
-def try_write_to_pickle(value: object, filename: str) -> Path:
+def try_write_to_pickle(value: object, filename: str) -> None:
     """
     Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
 
     :param value: data to pickle
     :param filename: name of pickle file
-
-    :return: path to saved pickle
     """
     if isinstance(value, types.ModuleType):
-        raise ValueError(
+        raise ArtifactSaveException(
             "Lineapy does not support saving Python Module Objects as pickles"
         )
-    # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    filepath = Path(options.safe_get("artifact_storage_dir")) / filename
+
+    artifact_storage_dir = options.safe_get("artifact_storage_dir")
+    filepath = (
+        artifact_storage_dir.joinpath(filename)
+        if isinstance(artifact_storage_dir, Path)
+        else f'{artifact_storage_dir.rstrip("/")}/{filename}'
+    )
     try:
-        os.makedirs(filepath.parent, exist_ok=True)
-        with open(filepath, "wb") as f:
-            FilePickler.dump(value, f)
-    except pickle.PicklingError as pe:
-        logger.error(pe)
-        track(ExceptionEvent("ArtifactSaveException", str(pe)))
-        raise ArtifactSaveException()
-    return filepath
+        logger.debug(f"Saving file to {filepath} ")
+        to_pickle(
+            value, filepath, storage_options=options.get("storage_options")
+        )
+    except Exception as e:
+        # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
+        logger.error(e)
+        track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
+        raise ArtifactSaveException() from e
 
 
 def _try_delete_pickle_file(pickled_path: Path) -> None:
@@ -348,7 +350,7 @@ def to_pipeline(
         .all()
     )
     if len(session_orm) == 0:
-        track(ExceptionEvent("DBError", "NoSessionFound"))
+        track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
         raise Exception("No sessions found in the database.")
     last_session = session_orm[0]
 

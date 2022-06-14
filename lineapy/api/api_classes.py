@@ -6,15 +6,16 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional, cast
 
 from IPython.display import display
+from pandas.io.pickle import read_pickle
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
-from lineapy.db.utils import FilePickler
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.api_utils import de_lineate_code
 from lineapy.graph_reader.program_slice import (
@@ -22,11 +23,14 @@ from lineapy.graph_reader.program_slice import (
     get_source_code_from_graph,
 )
 from lineapy.utils.analytics.event_schemas import (
+    ErrorType,
+    ExceptionEvent,
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,
 )
 from lineapy.utils.analytics.usage_tracking import track
+from lineapy.utils.config import options
 from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
 
@@ -67,14 +71,36 @@ class LineaArtifact:
         """
         Get and return the value of the artifact
         """
-        value = self.db.get_node_value_path(self._node_id, self._execution_id)
-        if value is None:
+        pickle_filename = self.db.get_node_value_path(
+            self._node_id, self._execution_id
+        )
+        if pickle_filename is None:
             return None
         else:
             # TODO - set unicode etc here
             track(GetValueEvent(has_value=True))
-            with open(value, "rb") as f:
-                return FilePickler.load(f)
+
+            artifact_storage_dir = options.safe_get("artifact_storage_dir")
+            filepath = (
+                artifact_storage_dir.joinpath(pickle_filename)
+                if isinstance(artifact_storage_dir, Path)
+                else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
+            )
+            try:
+                logger.debug(
+                    f"Retriving pickle file from {filepath} ",
+                )
+                return read_pickle(
+                    filepath, storage_options=options.get("storage_options")
+                )
+            except Exception as e:
+                logger.error(e)
+                track(
+                    ExceptionEvent(
+                        ErrorType.RETRIEVE, "Error in retriving pickle file"
+                    )
+                )
+                raise e
 
     # Note that I removed the @properties because they were not working
     # well with the lru_cache

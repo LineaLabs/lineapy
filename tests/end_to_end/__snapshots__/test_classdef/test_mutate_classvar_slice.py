@@ -54,82 +54,6 @@ import_1 = ImportNode(
     version="",
     package_name="lineapy",
 )
-call_4 = CallNode(
-    source_location=SourceLocation(
-        lineno=13,
-        col_offset=4,
-        end_lineno=13,
-        end_col_offset=18,
-        source_code=source_1.id,
-    ),
-    function_id=GlobalNode(
-        name="A",
-        call_id=CallNode(
-            source_location=SourceLocation(
-                lineno=3,
-                col_offset=0,
-                end_lineno=7,
-                end_col_offset=30,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="l_exec_statement",
-            ).id,
-            positional_args=[
-                LiteralNode(
-                    value="""class A():
-    def __init__(self, initialname:str):
-        self.varname = initialname
-    def update_name(newname:str):
-        self.varname = newname""",
-                ).id
-            ],
-        ).id,
-    ).id,
-    positional_args=[
-        LiteralNode(
-            source_location=SourceLocation(
-                lineno=13,
-                col_offset=6,
-                end_lineno=13,
-                end_col_offset=17,
-                source_code=source_1.id,
-            ),
-            value="origvalue",
-        ).id
-    ],
-)
-call_5 = CallNode(
-    source_location=SourceLocation(
-        lineno=14,
-        col_offset=4,
-        end_lineno=14,
-        end_col_offset=14,
-        source_code=source_1.id,
-    ),
-    function_id=GlobalNode(
-        name="Modifier",
-        call_id=CallNode(
-            source_location=SourceLocation(
-                lineno=9,
-                col_offset=0,
-                end_lineno=11,
-                end_col_offset=41,
-                source_code=source_1.id,
-            ),
-            function_id=LookupNode(
-                name="l_exec_statement",
-            ).id,
-            positional_args=[
-                LiteralNode(
-                    value="""class Modifier():
-    def modify_A(self,classinstance):
-        classinstance.varname = new_value""",
-                ).id
-            ],
-        ).id,
-    ).id,
-)
 call_7 = CallNode(
     source_location=SourceLocation(
         lineno=15,
@@ -150,13 +74,89 @@ call_7 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            call_5.id,
+            CallNode(
+                source_location=SourceLocation(
+                    lineno=14,
+                    col_offset=4,
+                    end_lineno=14,
+                    end_col_offset=14,
+                    source_code=source_1.id,
+                ),
+                function_id=GlobalNode(
+                    name="Modifier",
+                    call_id=CallNode(
+                        source_location=SourceLocation(
+                            lineno=9,
+                            col_offset=0,
+                            end_lineno=11,
+                            end_col_offset=41,
+                            source_code=source_1.id,
+                        ),
+                        function_id=LookupNode(
+                            name="l_exec_statement",
+                        ).id,
+                        positional_args=[
+                            LiteralNode(
+                                value="""class Modifier():
+    def modify_A(self,classinstance):
+        classinstance.varname = new_value""",
+                            ).id
+                        ],
+                    ).id,
+                ).id,
+            ).id,
             LiteralNode(
                 value="modify_A",
             ).id,
         ],
     ).id,
-    positional_args=[call_4.id],
+    positional_args=[
+        CallNode(
+            source_location=SourceLocation(
+                lineno=13,
+                col_offset=4,
+                end_lineno=13,
+                end_col_offset=18,
+                source_code=source_1.id,
+            ),
+            function_id=GlobalNode(
+                name="A",
+                call_id=CallNode(
+                    source_location=SourceLocation(
+                        lineno=3,
+                        col_offset=0,
+                        end_lineno=7,
+                        end_col_offset=30,
+                        source_code=source_1.id,
+                    ),
+                    function_id=LookupNode(
+                        name="l_exec_statement",
+                    ).id,
+                    positional_args=[
+                        LiteralNode(
+                            value="""class A():
+    def __init__(self, initialname:str):
+        self.varname = initialname
+    def update_name(newname:str):
+        self.varname = newname""",
+                        ).id
+                    ],
+                ).id,
+            ).id,
+            positional_args=[
+                LiteralNode(
+                    source_location=SourceLocation(
+                        lineno=13,
+                        col_offset=6,
+                        end_lineno=13,
+                        end_col_offset=17,
+                        source_code=source_1.id,
+                    ),
+                    value="origvalue",
+                ).id
+            ],
+        ).id
+    ],
     global_reads={
         "new_value": LiteralNode(
             source_location=SourceLocation(
@@ -170,83 +170,59 @@ call_7 = CallNode(
         ).id
     },
 )
-call_9 = CallNode(
+call_8 = CallNode(
     source_location=SourceLocation(
         lineno=17,
         col_offset=0,
         end_lineno=17,
-        end_col_offset=20,
+        end_col_offset=12,
         source_code=source_1.id,
     ),
-    function_id=CallNode(
-        source_location=SourceLocation(
-            lineno=17,
-            col_offset=0,
-            end_lineno=17,
-            end_col_offset=12,
-            source_code=source_1.id,
-        ),
-        function_id=LookupNode(
-            name="getattr",
-        ).id,
-        positional_args=[
-            call_1.id,
-            LiteralNode(
-                value="save",
-            ).id,
-        ],
+    function_id=LookupNode(
+        name="getattr",
     ).id,
     positional_args=[
-        call_4.id,
+        call_1.id,
         LiteralNode(
-            source_location=SourceLocation(
-                lineno=17,
-                col_offset=16,
-                end_lineno=17,
-                end_col_offset=19,
-                source_code=source_1.id,
-            ),
-            value="a",
+            value="save",
         ).id,
     ],
 )
-call_11 = CallNode(
+literal_9 = LiteralNode(
+    source_location=SourceLocation(
+        lineno=17,
+        col_offset=16,
+        end_lineno=17,
+        end_col_offset=19,
+        source_code=source_1.id,
+    ),
+    value="a",
+)
+call_9 = CallNode(
     source_location=SourceLocation(
         lineno=18,
         col_offset=0,
         end_lineno=18,
-        end_col_offset=20,
+        end_col_offset=12,
         source_code=source_1.id,
     ),
-    function_id=CallNode(
-        source_location=SourceLocation(
-            lineno=18,
-            col_offset=0,
-            end_lineno=18,
-            end_col_offset=12,
-            source_code=source_1.id,
-        ),
-        function_id=LookupNode(
-            name="getattr",
-        ).id,
-        positional_args=[
-            call_1.id,
-            LiteralNode(
-                value="save",
-            ).id,
-        ],
+    function_id=LookupNode(
+        name="getattr",
     ).id,
     positional_args=[
-        call_5.id,
+        call_1.id,
         LiteralNode(
-            source_location=SourceLocation(
-                lineno=18,
-                col_offset=16,
-                end_lineno=18,
-                end_col_offset=19,
-                source_code=source_1.id,
-            ),
-            value="b",
+            value="save",
         ).id,
     ],
+)
+literal_10 = LiteralNode(
+    source_location=SourceLocation(
+        lineno=18,
+        col_offset=16,
+        end_lineno=18,
+        end_col_offset=19,
+        source_code=source_1.id,
+    ),
+    value="b",
 )

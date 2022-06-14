@@ -36,7 +36,7 @@ from lineapy.system_tracing.function_call import FunctionCall
 from lineapy.system_tracing.function_calls_to_side_effects import (
     function_calls_to_side_effects,
 )
-from lineapy.utils.analytics.event_schemas import ExceptionEvent
+from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track
 
 if TYPE_CHECKING:
@@ -152,7 +152,7 @@ def set_context(
 
 def get_context() -> ExecutionContext:
     if not _current_context:
-        track(ExceptionEvent("DBError", "No context set"))
+        track(ExceptionEvent(ErrorType.DATABASE, "No context set"))
         raise RuntimeError(NO_CONTEXT_ERROR_MESSAGE)
 
     return _current_context
