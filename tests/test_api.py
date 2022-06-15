@@ -41,11 +41,7 @@ if True:
     assert res.values["x"] == [1]
 
 
-@pytest.mark.parametrize(
-    "move_folder",
-    [options.safe_get("artifact_storage_dir")],
-    indirect=True,
-)
+@pytest.mark.folder(options.safe_get("artifact_storage_dir"))
 def test_write_to_pickle(move_folder):
     try_write_to_pickle(42, "test_pickle")
     pickle_path = (

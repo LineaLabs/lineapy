@@ -279,7 +279,13 @@ def remove_db():
 
 @pytest.fixture
 def move_folder(request):
-    current_path = Path(request.param)
+    marker = request.node.get_closest_marker("folder")
+    if marker is None or len(marker.args) == 0:
+        raise ValueError(
+            "When using move_folder pytest fixture, mark folder with name of folder to move must be provided."
+        )
+
+    current_path = Path(marker.args[0])
     current_path_str = str(current_path.resolve())
     old_path = current_path.parent.joinpath(current_path.name + ".old")
     old_path_str = str(old_path.resolve())
