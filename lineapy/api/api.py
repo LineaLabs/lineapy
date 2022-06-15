@@ -237,21 +237,6 @@ def try_write_to_pickle(value: object, filename: str) -> None:
         raise ArtifactSaveException() from e
 
 
-def _try_delete_pickle_file(pickled_path: Path) -> None:
-    if pickled_path.exists():
-        pickled_path.unlink()
-    else:
-        # Attempt to reconstruct path to pickle with current
-        # linea folder and pickle base directory.
-        new_pickled_path = Path(
-            options.safe_get("artifact_storage_dir")
-        ).joinpath(pickled_path.name)
-        if new_pickled_path.exists():
-            new_pickled_path.unlink()
-        else:
-            raise KeyError(f"Pickle not found at {pickled_path}")
-
-
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     """
     Gets an artifact from the DB.
