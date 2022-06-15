@@ -249,6 +249,8 @@ class Tracer:
         if variable_name in self.variable_name_to_node:
             # user define var and fun def
             return self.variable_name_to_node[variable_name]
+        elif variable_name in self.module_name_to_node:
+            return self.module_name_to_node[variable_name]
         else:
             new_node = LookupNode(
                 id=get_new_id(),

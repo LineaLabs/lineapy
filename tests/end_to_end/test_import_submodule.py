@@ -10,13 +10,14 @@ from lineapy.utils.utils import prettify
 @pytest.fixture(scope="function", autouse=True)
 def preconfigure(tmp_path):
     shutil.copytree("tests/end_to_end/import_data", tmp_path / "import_data")
+    shutil.copytree(
+        "tests/end_to_end/import_with_name_conflict",
+        tmp_path / "import_with_name_conflict",
+    )
     os.chdir(tmp_path)
     yield
 
 
-@pytest.mark.xfail(
-    reason="strangely no exception raised when pytest is running all the tests"
-)
 def test_error_not_imported(execute):
     """
     Verify that trying to access a not imported submodule raises an AttributeError
@@ -102,8 +103,8 @@ second_is_prime = import_data.utils.__no_imported_submodule_prime.is_prime
 
 
 def test_reimport_does_not_fail(execute):
-    code = """from import_data import import_data
-from import_data import import_data
+    code = """from import_with_name_conflict import import_with_name_conflict
+from import_with_name_conflict import import_with_name_conflict
 """
     # successful execution is the test
     _ = execute(code, snapshot=False)
