@@ -249,6 +249,7 @@ COMPARE_OPS: Dict[str, Callable] = {
     # Python 3.7
     "in": operator.contains,
     "is": operator.is_,
+    "is not": operator.is_not,
     "not in": composer(operator.not_, operator.contains),
 }
 
@@ -654,7 +655,9 @@ def resolve_bytecode_execution(
     if name == "IS_OP":
         args = [stack[-2], stack[-1]]
         return lambda post_stack, _: FunctionCall(
-            operator.is_, args, res=post_stack[-1]
+            operator.is_not if value == 1 else operator.is_,
+            args,
+            res=post_stack[-1],
         )
     if name == "CONTAINS_OP":
         args = [stack[-1], stack[-2]]
