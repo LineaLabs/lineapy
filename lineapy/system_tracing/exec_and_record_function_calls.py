@@ -19,7 +19,7 @@ def exec_and_record_function_calls(
     function has completed execution to prevent unnecessary logging.
     However, to ensure LineaPy works correctly while debugging using VSCode, we first capture any
     existing tracers using sys.gettrace(), perform our analysis using the LineaPy tracer, and reset
-     the existing tracer using sys.settrace()
+    the existing tracer using sys.settrace()
     """
     logger.debug("Executing code")
     original_trace = gettrace()
