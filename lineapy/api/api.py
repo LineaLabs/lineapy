@@ -98,6 +98,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         node_id=value_node_id, execution_id=execution_id
     ):
 
+        # TODO add version or timestamp to allow saving of multiple pickle files for the same node id
         # pickles value of artifact and saves to filesystem
         pickle_name = _pickle_name(value_node_id, execution_id)
         try_write_to_pickle(reference, pickle_name)
