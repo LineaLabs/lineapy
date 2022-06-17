@@ -216,6 +216,7 @@ def try_write_to_pickle(value: object, filename: str) -> None:
     :param filename: name of pickle file
     """
     if isinstance(value, types.ModuleType):
+        track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))
         raise ArtifactSaveException(
             "Lineapy does not support saving Python Module Objects as pickles"
         )
