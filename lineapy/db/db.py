@@ -46,6 +46,7 @@ from lineapy.db.relational import (
     PositionalArgORM,
     SessionContextORM,
     SourceCodeORM,
+    VariableNodeORM,
 )
 from lineapy.db.utils import create_lineadb_engine
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -260,6 +261,16 @@ class RelationalLineaDB:
         node_value: NodeValue,
     ) -> None:
         self.session.add(NodeValueORM(**node_value.dict()))
+        self.renew_session()
+
+    def write_assigned_variable(
+        self,
+        node_id: LineaID,
+        variable_name: str,
+    ) -> None:
+        self.session.add(
+            VariableNodeORM(id=node_id, variable_name=variable_name)
+        )
         self.renew_session()
 
     def write_artifact(self, artifact: Artifact) -> None:

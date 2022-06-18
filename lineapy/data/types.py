@@ -414,6 +414,15 @@ Node = Union[
 ]
 
 
+class AssignedVariable:
+    """
+    For local variables, this is the node that is assigned to.
+    """
+
+    node_id: LineaID
+    assigned_variable: str
+
+
 class PipelineType(Enum):
     """
     Pipeline types allow the to_pipeline to know what to expect
