@@ -1,4 +1,5 @@
 import logging
+import sys
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from os import getcwd
@@ -85,6 +86,9 @@ class Tracer:
         session_context = SessionContext(
             id=get_new_id(),
             environment_type=session_type,
+            python_version=float(
+                f"{sys.version_info.major}.{sys.version_info.minor}"
+            ),
             creation_time=datetime.now(),
             working_directory=getcwd(),
             session_name=session_name,
