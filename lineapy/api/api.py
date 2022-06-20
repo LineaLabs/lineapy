@@ -236,7 +236,7 @@ def try_write_to_pickle(value: object, filename: str) -> None:
         # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
         logger.error(e)
         track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
-        raise ArtifactSaveException() from e
+        raise e
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
