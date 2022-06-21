@@ -249,7 +249,6 @@ COMPARE_OPS: Dict[str, Callable] = {
     # Python 3.7
     "in": operator.contains,
     "is": operator.is_,
-    "is not": operator.is_not,
     "not in": composer(operator.not_, operator.contains),
 }
 
