@@ -1,6 +1,13 @@
 import atexit
 
-from lineapy.api.api import catalog, get, save, to_pipeline
+from lineapy.api.api import (
+    artifact_store,
+    delete,
+    get,
+    reload,
+    save,
+    to_pipeline,
+)
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
 from lineapy.editors.ipython import start, stop, visualize
@@ -14,7 +21,9 @@ __all__ = [
     "Tracer",
     "save",
     "get",
-    "catalog",
+    "artifact_store",
+    "delete",
+    "reload",
     "to_pipeline",
     "SessionType",
     "ValueType",
@@ -26,7 +35,7 @@ __all__ = [
     "__version__",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.4"
 
 # Create an ipython extension that starts and stops tracing
 # https://ipython.readthedocs.io/en/stable/config/extensions/index.html#writing-extensions

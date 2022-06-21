@@ -512,11 +512,11 @@ The life of a black box node goes through a number of stages:
    node for the string, and then a `CallNode` which execs the string.
    We differentiate between exec-ing a "statement" versus an "expression",
    since an expression will return some value, while a statement does not.
-#. The functions we use to do the `exec` are defined in :mod:`lineapy.utils.lineabuiltins`, :func:`lineapy.utils.lineabuiltins.l_exec_statement` and :func:`lineapy.utils.lineabuiltins.l_exec_expr`. Along with
-   actually calling `exec`, they set up the source code context, so that
-   exceptions raised in code that is `exec`ed has the proper traceback
+#. The functions we use to do the `exec` are defined in :mod:`lineapy.utils.lineabuiltins` , :func:`lineapy.utils.lineabuiltins.l_exec_statement` and :func:`lineapy.utils.lineabuiltins.l_exec_expr` . Along with
+   actually calling `exec` , they set up the source code context, so that
+   exceptions raised in code that is `exec` ed has the proper traceback
    and also make sure to use it uses the correct globals.
-#. Before this call node is executed, we set the :class:`lineapy.execution.context.ExecutionContext`, which is a global storing the current node and executor being called.
+#. Before this call node is executed, we set the :class:`lineapy.execution.context.ExecutionContext` , which is a global storing the current node and executor being called.
    This allows us to use the current binding of the global variables in the `l_exec_expr`
    and `l_exec_statement` functions.
 #. When we are tracing code, we initialize the globals with all globals we have traced
@@ -567,7 +567,7 @@ we could change how we think about nodes, that instead of having one returned va
 they have also have additional variables they set, and/or possibly multiple return values.
 This would make it more symmetrical to how we think about function inputs.
 
-In a similar manner, we could remove `MutateNode`s and represent them instead
+In a similar manner, we could remove `MutateNode` s and represent them instead
 in our function inputs.
 
 However, this would require changing all our references to not only say "we depend on node XXX"
@@ -577,7 +577,7 @@ calling XXX."
 
 For now though, we do have this asymmetry, where the global inputs show up
 as the `global_reads` property on the `CallNode` and the global outputs show up
-as separate `GlobalNode`s.
+as separate `GlobalNode` s.
 
 External side effects
 +++++++++++++++++++++

@@ -6,27 +6,31 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import List, Optional, cast
 
 from IPython.display import display
+from pandas.io.pickle import read_pickle
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
-from lineapy.db.utils import FilePickler
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.api_utils import de_lineate_code
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.utils.analytics import (
+from lineapy.utils.analytics.event_schemas import (
+    ErrorType,
+    ExceptionEvent,
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,
-    track,
 )
+from lineapy.utils.analytics.usage_tracking import track
+from lineapy.utils.config import options
 from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
 
@@ -48,15 +52,14 @@ class LineaArtifact:
     name: str
     """name of the artifact"""
     _version: int
-    """version of the artifact - This is set when the artifact is saved. The format of the version currently is specified by the constant :const:`lineapy.utils.constants.VERSION_DATE_STRING`"""
+    """version of the artifact - currently start from 0"""
     date_created: Optional[datetime] = field(default=None, repr=False)
     # setting repr to false for date_created for now since it duplicates version
     """Optional because date_created cannot be set by the user. 
-    it is supposed to be automatically set when the 
-    artifact gets saved to the db. so when creating lineaArtifact 
-    the first time, it will be unset. When you get the artifact or 
-    catalog of artifacts, we retrieve the date from db and 
-    it will be set."""
+    it is supposed to be automatically set when the artifact gets saved to the 
+    db. so when creating lineaArtifact the first time, it will be unset. When 
+    you get the artifact or list of artifacts as an artifact store, we retrieve 
+    the date from db directly"""
 
     @property
     def version(self) -> int:
@@ -68,14 +71,36 @@ class LineaArtifact:
         """
         Get and return the value of the artifact
         """
-        value = self.db.get_node_value_path(self._node_id, self._execution_id)
-        if value is None:
+        pickle_filename = self.db.get_node_value_path(
+            self._node_id, self._execution_id
+        )
+        if pickle_filename is None:
             return None
         else:
             # TODO - set unicode etc here
             track(GetValueEvent(has_value=True))
-            with open(value, "rb") as f:
-                return FilePickler.load(f)
+
+            artifact_storage_dir = options.safe_get("artifact_storage_dir")
+            filepath = (
+                artifact_storage_dir.joinpath(pickle_filename)
+                if isinstance(artifact_storage_dir, Path)
+                else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
+            )
+            try:
+                logger.debug(
+                    f"Retriving pickle file from {filepath} ",
+                )
+                return read_pickle(
+                    filepath, storage_options=options.get("storage_options")
+                )
+            except Exception as e:
+                logger.error(e)
+                track(
+                    ExceptionEvent(
+                        ErrorType.RETRIEVE, "Error in retriving pickle file"
+                    )
+                )
+                raise e
 
     # Note that I removed the @properties because they were not working
     # well with the lru_cache
@@ -185,10 +210,10 @@ class LineaArtifact:
         return slice_exec.get_value(self._node_id)
 
 
-class LineaCatalog:
-    """LineaCatalog
+class LineaArtifactStore:
+    """LineaArtifactStore
 
-    A simple way to access meta data about artifacts in Linea
+    A simple way to access meta data about artifacts in Linea.
     """
 
     """
@@ -238,7 +263,7 @@ class LineaCatalog:
         """
         :return: a dictionary of artifact information, which the user can then
             manipulate with their favorite dataframe tools, such as pandas,
-            e.g., `cat_df = pd.DataFrame(catalog.export())`.
+            e.g., `cat_df = pd.DataFrame(artifact_store.export())`.
         """
         return [
             {

@@ -1,4 +1,11 @@
-from lineapy.graph_reader.apis import LineaArtifact
+import pickle
+from pathlib import Path
+
+import pytest
+
+from lineapy.api.api import try_write_to_pickle
+from lineapy.api.api_classes import LineaArtifact
+from lineapy.utils.config import options
 
 
 def test_execute_slice(execute):
@@ -32,3 +39,15 @@ if True:
 """
     )
     assert res.values["x"] == [1]
+
+
+@pytest.mark.folder(options.safe_get("artifact_storage_dir"))
+def test_write_to_pickle(move_folder):
+    try_write_to_pickle(42, "test_pickle")
+    pickle_path = (
+        Path(options.safe_get("artifact_storage_dir")) / "test_pickle"
+    )
+    assert pickle_path.exists()
+
+    with pickle_path.open("rb") as f:
+        assert pickle.load(f) == 42

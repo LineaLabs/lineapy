@@ -25,15 +25,15 @@ from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
 
+from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
-from lineapy.graph_reader.apis import LineaArtifact
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.utils import slugify
 from lineapy.transformer.node_transformer import transform
-from lineapy.utils.analytics import send_lib_info_from_db
+from lineapy.utils.analytics.utils import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.config import (
     CONFIG_FILE_NAME,
@@ -82,7 +82,6 @@ logger = logging.getLogger(__name__)
     "--do-not-track",
     type=click.BOOL,
     help="Opt out for user analytics.",
-    is_flag=True,
 )
 @click.option(
     "--logging-level",
@@ -152,7 +151,7 @@ def init(output_file: Optional[pathlib.Path]):
         config = {
             k: str(v) for k, v in options.__dict__.items() if v is not None
         }
-        json.dump(config, f)
+        json.dump(config, f, indent=4, sort_keys=True)
 
 
 @linea_cli.command()
@@ -367,6 +366,7 @@ def python_cli(
     arg: Iterable[str] = [],
 ):
     set_custom_excepthook()
+    check_python_version()
     tree = rich.tree.Tree(f"📄 {file_name}")
 
     db = RelationalLineaDB.from_config(options)
@@ -481,6 +481,7 @@ def setup_ipython_dir() -> None:
     a line to add lineapy into ``extra_extensions``. If they do not exist, we create
     new config files in the temp folder and add a line to specify ``extra_extensions``.
     """
+    check_python_version()
     ipython_dir_name = tempfile.mkdtemp()
     # Make a default profile with the extension added to the ipython and kernel
     # configs
@@ -757,6 +758,14 @@ def benchmark(path: pathlib.Path, n: int, skip_baseline: bool):
             without_lineapy, with_lineapy, confidence_interval=0.90
         )
         rich.print(f"Lineapy is {str(change)}")
+
+
+def check_python_version():
+    if sys.version_info >= (3, 11):
+        logger.warn(
+            "WARNING: Support for Python 3.11 and above is in the experimental phase. \
+Please use caution while using LineaPy on your current Python installation!"
+        )
 
 
 if __name__ == "__main__":

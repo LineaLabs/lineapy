@@ -71,9 +71,34 @@ call_3 = CallNode(
         call_2.id,
     ],
 )
-mutate_1 = MutateNode(
-    source_id=call_2.id,
-    call_id=call_3.id,
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=2,
+        col_offset=0,
+        end_lineno=2,
+        end_col_offset=53,
+        source_code=source_1.id,
+    ),
+    function_id=LookupNode(
+        name="l_import",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            value="__no_imported_submodule",
+        ).id,
+        call_3.id,
+    ],
+)
+mutate_2 = MutateNode(
+    source_id=call_3.id,
+    call_id=call_4.id,
+)
+mutate_3 = MutateNode(
+    source_id=MutateNode(
+        source_id=call_2.id,
+        call_id=call_3.id,
+    ).id,
+    call_id=call_4.id,
 )
 call_7 = CallNode(
     source_location=SourceLocation(
@@ -130,24 +155,7 @@ call_7 = CallNode(
                 name="getattr",
             ).id,
             positional_args=[
-                CallNode(
-                    source_location=SourceLocation(
-                        lineno=2,
-                        col_offset=0,
-                        end_lineno=2,
-                        end_col_offset=53,
-                        source_code=source_1.id,
-                    ),
-                    function_id=LookupNode(
-                        name="getattr",
-                    ).id,
-                    positional_args=[
-                        call_3.id,
-                        LiteralNode(
-                            value="__no_imported_submodule",
-                        ).id,
-                    ],
-                ).id,
+                call_4.id,
                 LiteralNode(
                     value="is_prime",
                 ).id,

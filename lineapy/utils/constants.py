@@ -57,3 +57,4 @@ Optional vs app objects that should reflect the app's expectation of not allowin
 The app object's property does not get set to None and the ORM object doesn't need to worry 
 about knowing what the app is doing."""
 ARTIFACT_NAME_PLACEHOLDER: str = "NONAME"
+ARTIFACT_MIN_VERSION = 0

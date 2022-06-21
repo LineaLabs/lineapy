@@ -206,7 +206,7 @@ class FunctionNames(BaseModel):
     """
     References a list of function names (vs. a single one in :class:`~lineapy.instrumentation.annotation_spec.FunctionName`).
 
-    One example is for the module `pandas` (and you can find the code `here <https://github.com/LineaLabs/lineapy/blob/main/lineapy/external.annotations.yaml>`__):
+    One example is for the module `boto3` (you can find all the annotations `here <https://github.com/LineaLabs/lineapy/blob/main/lineapy/annotations/external>`__):
 
     .. code-block:: yaml
 

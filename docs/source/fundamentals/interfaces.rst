@@ -45,7 +45,7 @@ In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle
 that you do not start your notebook from CLI (such as Jupyter extension within VS Code), you need to
 install ``lineapy`` directly within your notebook first via:
 
-.. code:: python
+.. code:: bash
 
     !pip install lineapy
 
@@ -57,7 +57,7 @@ Then you can manually load ``lineapy`` extension with :
 
 For environments with older versions ``IPython<7.0`` like Google Colab, we need to upgrade the ``IPython>=7.0`` module before the above steps, we can upgrade ``IPython`` via:
 
-.. code:: python
+.. code:: bash
 
     !pip install --upgrade ipython
 
