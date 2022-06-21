@@ -10,12 +10,6 @@ lineapy.graph\_reader.api\_utils module
 .. automodule:: lineapy.graph_reader.api_utils
    :members:
 
-lineapy.graph\_reader.apis module
----------------------------------
-
-.. automodule:: lineapy.graph_reader.apis
-   :members:
-
 lineapy.graph\_reader.graph\_printer module
 -------------------------------------------
 

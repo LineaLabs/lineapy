@@ -287,7 +287,7 @@ def reload() -> None:
 
     .. note::
 
-    Currently only reloads annotations but in the future can be a container for other items like configs etc.
+        Currently only reloads annotations but in the future can be a container for other items like configs etc.
 
     """
     execution_context = get_context()

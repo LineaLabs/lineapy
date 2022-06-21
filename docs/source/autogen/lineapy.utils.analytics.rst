@@ -16,6 +16,12 @@ lineapy.utils.analytics.usage\_tracking module
 .. automodule:: lineapy.utils.analytics.usage_tracking
    :members:
 
+lineapy.utils.analytics.utils module
+------------------------------------
+
+.. automodule:: lineapy.utils.analytics.utils
+   :members:
+
 Module contents
 ---------------
 
