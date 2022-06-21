@@ -1,6 +1,5 @@
 import json
 import os
-import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -205,37 +204,8 @@ def test_export_slice_housing_multiple():
     )
 
 
-@pytest.fixture
-def annotations_folder():
-    """
-    Fixture for annotate commands. It moves user's
-    '.lineapy/custom-annotations'dir and
-    replaces it with a temp for testing.
-    """
-    current_path = Path(options.safe_get("customized_annotation_folder"))
-    current_path_str = str(current_path.resolve())
-    old_path = current_path.parent.joinpath(current_path.name + ".old")
-    old_path_str = str(old_path.resolve())
-
-    # If 'custom-annotations.old exists already, the test was canceled
-    # early previously. Clean up 'custom-annotations' folder from
-    # previous run.
-    if old_path.exists():
-        shutil.rmtree(current_path_str, ignore_errors=True)
-    else:
-        shutil.move(current_path_str, old_path_str)
-
-    yield
-
-    # clean up test-generated directories
-    if current_path.exists():
-        shutil.rmtree(current_path_str)
-    if old_path.exists():
-        shutil.move(old_path_str, current_path_str)
-
-
-@pytest.mark.slow
-def test_annotate_list(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_list(move_folder):
     """Verifies existence of 'lineapy annotate list'"""
     proc = subprocess.run(
         ["lineapy", "annotate", "list"], check=True, capture_output=True
@@ -243,8 +213,8 @@ def test_annotate_list(annotations_folder):
     assert len(proc.stdout) == 0
 
 
-@pytest.mark.slow
-def test_annotate_add_invalid_path(tmp_path, annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_add_invalid_path(tmp_path, move_folder):
     """
     Verifies failure of adding non-existent path.
     """
@@ -260,8 +230,8 @@ def test_annotate_add_invalid_path(tmp_path, annotations_folder):
     assert len(proc.stdout) == 0
 
 
-@pytest.mark.slow
-def test_annotate_add_non_yaml_file(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_add_non_yaml_file(move_folder):
     """
     Verifies failure of adding file that does not end in '.yaml'.
     """
@@ -289,7 +259,8 @@ def test_annotate_add_non_yaml_file(annotations_folder):
 
 
 @pytest.mark.slow
-def test_annotate_add_invalid_yaml(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_add_invalid_yaml(move_folder):
     """
     Verifies failure of adding invalid spec.
     """
@@ -318,7 +289,8 @@ def test_annotate_add_invalid_yaml(annotations_folder):
 
 
 @pytest.mark.slow
-def test_annotate_add_valid_yaml(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_add_valid_yaml(move_folder):
     """
     Verifies success of adding valid spec.
     """
@@ -345,7 +317,8 @@ def test_annotate_add_valid_yaml(annotations_folder):
 
 
 @pytest.mark.slow
-def test_annotate_delete_invalid_path(tmp_path, annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_delete_invalid_path(tmp_path, move_folder):
     """
     Verifies failure of deleting non-existent source.
     """
@@ -357,7 +330,8 @@ def test_annotate_delete_invalid_path(tmp_path, annotations_folder):
 
 
 @pytest.mark.slow
-def test_delete_existing_source(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_delete_existing_source(move_folder):
     """
     Verifies success of deleting source.
     """

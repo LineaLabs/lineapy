@@ -3,8 +3,6 @@ User facing APIs.
 """
 
 import logging
-import random
-import string
 import types
 from datetime import datetime
 from pathlib import Path
@@ -14,7 +12,7 @@ import fsspec
 from pandas.io.pickle import to_pickle
 
 from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
-from lineapy.data.types import Artifact, NodeValue, PipelineType
+from lineapy.data.types import Artifact, LineaID, NodeValue, PipelineType
 from lineapy.db.relational import SessionContextORM
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -24,6 +22,7 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
 from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ErrorType,
@@ -98,15 +97,17 @@ def save(reference: object, name: str) -> LineaArtifact:
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
-        # can raise ArtifactSaveException
 
+        # TODO add version or timestamp to allow saving of multiple pickle files for the same node id
         # pickles value of artifact and saves to filesystem
-        pickled_path = _try_write_to_db(reference)
+        pickle_name = _pickle_name(value_node_id, execution_id)
+        try_write_to_pickle(reference, pickle_name)
+
         # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=str(pickled_path),
+                value=str(pickle_name),
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -199,33 +200,32 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
         logging.debug(f"No valid pickle path found for {node_id}")
 
 
-def _try_write_to_db(value: object) -> str:
+def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
     """
-    Saves the value to a random file inside linea folder. The file name is returned and eventually saved to the db.
+    Pickle file for a value to be named with the following scheme.
+    <node_id-hash>-<exec_id-hash>-pickle
+    """
+    return f"pre-{slugify(hash(node_id + execution_id))}-post.pkl"
 
+
+def try_write_to_pickle(value: object, filename: str) -> None:
+    """
+    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
+
+    :param value: data to pickle
+    :param filename: name of pickle file
     """
     if isinstance(value, types.ModuleType):
         track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))
-        raise ArtifactSaveException()
-    # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    artifact_filename = (
-        "".join(
-            random.choices(
-                string.ascii_uppercase
-                + string.ascii_lowercase
-                + string.digits,
-                k=7,
-            )
+        raise ArtifactSaveException(
+            "Lineapy does not support saving Python Module Objects as pickles"
         )
-        + ".pkl"
-    )
 
     artifact_storage_dir = options.safe_get("artifact_storage_dir")
-
     filepath = (
-        artifact_storage_dir.joinpath(artifact_filename)
+        artifact_storage_dir.joinpath(filename)
         if isinstance(artifact_storage_dir, Path)
-        else f'{artifact_storage_dir.rstrip("/")}/{artifact_filename}'
+        else f'{artifact_storage_dir.rstrip("/")}/{filename}'
     )
     try:
         logger.debug(f"Saving file to {filepath} ")
@@ -237,7 +237,6 @@ def _try_write_to_db(value: object) -> str:
         logger.error(e)
         track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
         raise e
-    return artifact_filename
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
