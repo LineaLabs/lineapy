@@ -326,6 +326,11 @@ def generate_save_code(
     multiple=True,
     help="Args to pass to the underlying Python script",
 )
+@click.option(
+    "--update-db",
+    help="Update lineapy database to the latest version",
+    is_flag=True,
+)
 @click.argument(
     "file_name",
     type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
@@ -340,6 +345,7 @@ def python(
     print_graph: bool,
     visualize: bool,
     arg: Iterable[str],
+    update_db: bool,
 ):
     set_custom_excepthook()
     check_python_version()
@@ -365,6 +371,17 @@ def python(
     transform(code, file_name, tracer)
 
     send_lib_info_from_db(tracer.db, tracer.get_session_id())
+
+    if update_db:
+        from alembic import command
+        from alembic.config import Config
+
+        alembic_cfg = Config("alembic.ini")
+        # TODO: redundant with env.py call.
+        # should probably favor this one over that one for readability. otoh env.py can be used in
+        # multiple different ways, not just cli path, so easier to maintain
+        alembic_cfg.set_main_option("sqlalchemy.url", options.database_url)
+        command.upgrade(alembic_cfg, "head")
 
     if visualize:
         from lineapy.visualizer import Visualizer
