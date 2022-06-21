@@ -36,7 +36,7 @@ from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.analytics.utils import side_effect_to_str
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
-from lineapy.utils.utils import get_value_type
+from lineapy.utils.utils import get_system_python_version, get_value_type
 
 logger = logging.getLogger(__name__)
 # TODO: figure out if we need to configure it all the time
@@ -279,9 +279,7 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     )
 
     # Check version compatibility
-    system_python_version = float(
-        f"{sys.version_info.major}.{sys.version_info.minor}"
-    )
+    system_python_version = get_system_python_version()  # up to minor version
     artifact_python_version = db.get_session_context(
         linea_artifact._session_id
     ).python_version

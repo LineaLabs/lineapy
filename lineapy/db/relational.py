@@ -34,7 +34,6 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
-    Float,
     ForeignKey,
     Integer,
     String,
@@ -58,7 +57,7 @@ class SessionContextORM(Base):
     __tablename__ = "session_context"
     id = Column(String, primary_key=True)
     environment_type = Column(Enum(SessionType))
-    python_version = Column(Float)
+    python_version = Column(String)
     creation_time = Column(DateTime)
     working_directory = Column(String)
     session_name = Column(String, nullable=True)

@@ -1,5 +1,4 @@
 import logging
-import sys
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from os import getcwd
@@ -38,7 +37,11 @@ from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
 from lineapy.utils.lineabuiltins import l_import, l_tuple
-from lineapy.utils.utils import get_lib_package_version, get_new_id
+from lineapy.utils.utils import (
+    get_lib_package_version,
+    get_new_id,
+    get_system_python_version,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -86,9 +89,7 @@ class Tracer:
         session_context = SessionContext(
             id=get_new_id(),
             environment_type=session_type,
-            python_version=float(
-                f"{sys.version_info.major}.{sys.version_info.minor}"
-            ),
+            python_version=get_system_python_version(),  # up to minor version
             creation_time=datetime.now(),
             working_directory=getcwd(),
             session_name=session_name,
