@@ -560,14 +560,6 @@ PYTHON_39 = version_info >= (3, 9)
             id="IS_OP",
         ),
         pytest.param(
-            "x is not y",
-            {"x": 3, "y": 1},
-            [
-                FunctionCall(operator.is_not, [3, 1], res=True),
-            ],
-            id="IS_NOT_OP",
-        ),
-        pytest.param(
             "x in y",
             {"x": 3, "y": [1]},
             [
