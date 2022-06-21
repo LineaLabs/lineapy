@@ -1,14 +1,24 @@
+import io
 import json
 import os
 import pathlib
 import shutil
 import subprocess
 import tempfile
+from contextlib import redirect_stdout
 from pathlib import Path
 
 import pytest
+from click import BadParameter
 
-from lineapy.cli.cli import python_cli, remove_annotations_file_extension
+from lineapy.cli.cli import (
+    annotations_add,
+    annotations_delete,
+    annotations_list,
+    python_cli,
+    remove_annotations_file_extension,
+    validate_annotations_path,
+)
 from lineapy.plugins.utils import slugify
 from lineapy.utils.config import options
 
@@ -201,33 +211,33 @@ def annotations_folder():
         shutil.move(old_path_str, current_path_str)
 
 
-@pytest.mark.slow
+def assert_annotations_count(n=0):
+    f = io.StringIO()
+    with redirect_stdout(f):
+        annotations_list()
+    out = f.getvalue()
+    if n > 0:
+        assert len(str(out.strip()).split("\n")) == n
+    else:
+        assert len(out) == n
+
+
 def test_annotate_list(annotations_folder):
     """Verifies existence of 'lineapy annotate list'"""
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    assert_annotations_count()
 
 
-@pytest.mark.slow
 def test_annotate_add_invalid_path(tmp_path, annotations_folder):
     """
     Verifies failure of adding non-existent path.
     """
     invalid_path = tmp_path / "nonexistent.yaml"
-    with pytest.raises(subprocess.CalledProcessError):
-        subprocess.check_call(
-            ["lineapy", "annotate", "add", str(invalid_path)]
-        )
+    with pytest.raises(FileNotFoundError):
+        annotations_add(pathlib.Path(str(invalid_path)))
 
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    assert_annotations_count()
 
 
-@pytest.mark.slow
 def test_annotate_add_non_yaml_file(annotations_folder):
     """
     Verifies failure of adding file that does not end in '.yaml'.
@@ -246,16 +256,14 @@ def test_annotate_add_non_yaml_file(annotations_folder):
     with tempfile.NamedTemporaryFile(suffix=".not-yaml") as f:
         f.write(valid_yaml.encode())
         f.flush()
-        with pytest.raises(subprocess.CalledProcessError):
-            subprocess.check_call(["lineapy", "annotate", "add", f.name])
+        with pytest.raises(BadParameter):
+            # this is called as a callback in click argument
+            validate_annotations_path(None, None, pathlib.Path(f.name))
+            annotations_add(pathlib.Path(f.name))
 
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    assert_annotations_count()
 
 
-@pytest.mark.slow
 def test_annotate_add_invalid_yaml(annotations_folder):
     """
     Verifies failure of adding invalid spec.
@@ -275,16 +283,16 @@ def test_annotate_add_invalid_yaml(annotations_folder):
     with tempfile.NamedTemporaryFile(suffix=".yaml") as f:
         f.write(invalid_yaml.encode())
         f.flush()
-        with pytest.raises(subprocess.CalledProcessError):
-            subprocess.check_call(["lineapy", "annotate", "add", f.name])
+        with pytest.raises(SystemExit) as pytest_wrapped_e:
+            validate_annotations_path(None, None, pathlib.Path(f.name))
+            annotations_add(pathlib.Path(f.name))
 
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    assert pytest_wrapped_e.type == SystemExit
+    assert pytest_wrapped_e.value.code == 1
+
+    assert_annotations_count()
 
 
-@pytest.mark.slow
 def test_annotate_add_valid_yaml(annotations_folder):
     """
     Verifies success of adding valid spec.
@@ -303,27 +311,23 @@ def test_annotate_add_valid_yaml(annotations_folder):
     with tempfile.NamedTemporaryFile(suffix=".yaml") as f:
         f.write(valid_yaml.encode())
         f.flush()
-        subprocess.check_call(["lineapy", "annotate", "add", f.name])
+        annotations_add(pathlib.Path(f.name))
 
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(str(proc.stdout).split("\n")) == 1
+    assert_annotations_count(1)
 
 
-@pytest.mark.slow
 def test_annotate_delete_invalid_path(tmp_path, annotations_folder):
     """
     Verifies failure of deleting non-existent source.
     """
     invalid_path = tmp_path / "nonexistent.yaml"
-    with pytest.raises(subprocess.CalledProcessError):
-        subprocess.check_call(
-            ["lineapy", "annotate", "delete", "-n", str(invalid_path)]
-        )
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        annotations_delete(str(invalid_path))
+
+    assert pytest_wrapped_e.type == SystemExit
+    assert pytest_wrapped_e.value.code == 1
 
 
-@pytest.mark.slow
 def test_delete_existing_source(annotations_folder):
     """
     Verifies success of deleting source.
@@ -342,24 +346,13 @@ def test_delete_existing_source(annotations_folder):
     with tempfile.NamedTemporaryFile(suffix=".yaml") as f:
         f.write(valid_yaml.encode())
         f.flush()
-        subprocess.check_call(["lineapy", "annotate", "add", f.name])
+        annotations_add(pathlib.Path(f.name))
 
     source_name = os.path.basename(f.name)
     source_name = remove_annotations_file_extension(source_name)
     source_name = slugify(source_name)
-    subprocess.check_call(
-        [
-            "lineapy",
-            "annotate",
-            "delete",
-            "--name",
-            os.path.basename(source_name),
-        ]
-    )
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    annotations_delete(os.path.basename(source_name))
+    assert_annotations_count()
 
 
 @pytest.mark.parametrize(

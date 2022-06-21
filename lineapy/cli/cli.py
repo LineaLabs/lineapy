@@ -571,6 +571,11 @@ def add(path: pathlib.Path, name: str):
     This command copies the yaml file whose path is provided by the user into the user's .lineapy directory to allow Lineapy to manage it.
     """
 
+    annotations_add(path, name)
+
+
+def annotations_add(path: pathlib.Path, orig_name: Optional[str] = None):
+
     # validate that source is in correct format before importing
     try:
         invalid_specs = validate_spec(path)
@@ -583,7 +588,7 @@ def add(path: pathlib.Path, name: str):
         exit(1)
 
     # calculate name of new annotation source
-    name = name or path.stem
+    name = orig_name or path.stem
     name = remove_annotations_file_extension(name)
     name = slugify(name)
 
@@ -611,6 +616,10 @@ def list():
     """
     Lists full paths to all imported annotation sources.
     """
+    annotations_list()
+
+
+def annotations_list():
     wildcard_path = os.path.join(
         pathlib.Path(
             options.safe_get("customized_annotation_folder")
@@ -637,7 +646,12 @@ def delete(name: str):
     """
     Deletes imported annotation source.
     """
-    name = remove_annotations_file_extension(name)
+
+    annotations_delete(name)
+
+
+def annotations_delete(custom_name: str):
+    name = remove_annotations_file_extension(custom_name)
     name += CUSTOM_ANNOTATIONS_EXTENSION_NAME
 
     delete_path = pathlib.Path(
@@ -645,6 +659,9 @@ def delete(name: str):
     ).joinpath(name)
     try:
         os.remove(delete_path)
+        logger.info(
+            f"Deleted annotation source {custom_name} at {delete_path}"
+        )
     except IsADirectoryError as e:
         logger.error(
             f"{delete_path} must be the path to a file, not a directory\n{e}"
