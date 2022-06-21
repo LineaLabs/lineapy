@@ -1,3 +1,5 @@
+import sys
+
 from lineapy.data.types import NodeType
 
 
@@ -40,21 +42,22 @@ art_e = lineapy.save(e, "e")
                 art_e.db.get_node_by_id(node_id).node_type == NodeType.CallNode
             )
 
-    walrus_code = """import lineapy
+    if sys.version_info.minor >= 8:
+        walrus_code = """import lineapy
 seal = (b:='seal')
 art_seal = lineapy.save(seal, "seal")
-    """
-    warlus_res = execute(walrus_code, snapshot=False)
-    warlus_art = warlus_res.values["art_seal"]
-    warlus_code_variables = [
-        x[1]
-        for x in warlus_art.db.get_variables_for_session(
-            warlus_art._session_id
-        )
-    ]
+        """
+        warlus_res = execute(walrus_code, snapshot=False)
+        warlus_art = warlus_res.values["art_seal"]
+        warlus_code_variables = [
+            x[1]
+            for x in warlus_art.db.get_variables_for_session(
+                warlus_art._session_id
+            )
+        ]
 
-    assert len(warlus_code_variables) == 4
-    assert ["lineapy" in warlus_code_variables]
-    assert ["b" in warlus_code_variables]
-    assert ["seal" in warlus_code_variables]
-    assert ["art_seal" in warlus_code_variables]
+        assert len(warlus_code_variables) == 4
+        assert ["lineapy" in warlus_code_variables]
+        assert ["b" in warlus_code_variables]
+        assert ["seal" in warlus_code_variables]
+        assert ["art_seal" in warlus_code_variables]
