@@ -8,6 +8,7 @@ from lineapy.utils.config import options
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+# NOTE: custom code in env.py to add lineapy db url
 section = config.config_ini_section
 config.set_section_option(section, "lineapy_db_url", options.database_url)
 
