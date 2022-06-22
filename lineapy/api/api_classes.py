@@ -22,6 +22,7 @@ from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
+from lineapy.plugins.task import TaskGraph
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -273,3 +274,10 @@ class LineaArtifactStore:
             }
             for a in self.artifacts
         ]
+
+
+class Pipeline:
+    artifacts: TaskGraph
+
+    def __init__(self, artifacts: TaskGraph):
+        self.artifacts = artifacts

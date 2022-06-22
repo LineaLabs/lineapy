@@ -26,7 +26,7 @@ CallNode
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Union
+from typing import List, Union
 
 from sqlalchemy import (
     Boolean,
@@ -40,6 +40,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from sqlalchemy.scheme import Table
 
 from lineapy.data.types import (
     LineaID,
@@ -63,6 +64,27 @@ class SessionContextORM(Base):
     user_name = Column(String, nullable=True)
     hardware_spec = Column(String, nullable=True)
     execution_id = Column(String, ForeignKey("execution.id"))
+
+
+artifact_to_pipeline_table = Table(
+    "association",
+    Base.metadata,
+    Column("pipeline_name", ForeignKey("pipeline.name")),
+    Column("artifact_name", ForeignKey("artifact.name")),
+)
+
+
+class PipelineORM(Base):
+    __tablename__ = "pipeline"
+    name = Column(
+        String,
+        nullable=False,
+        default=ARTIFACT_NAME_PLACEHOLDER,
+        primary_key=True,
+    )
+    artifacts: List[ArtifactORM] = relationship(
+        "ArtifactORM", secondary=artifact_to_pipeline_table
+    )
 
 
 class ArtifactORM(Base):
