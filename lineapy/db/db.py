@@ -84,6 +84,14 @@ class RelationalLineaDB:
         self.session.configure(bind=self.engine)
         Base.metadata.create_all(self.engine)
 
+        # establish alembic db version for migration
+        # https://alembic.sqlalchemy.org/en/latest/cookbook.html#building-an-up-to-date-database-from-scratch
+        from alembic import command
+        from alembic.config import Config
+
+        alembic_cfg = Config("alembic.ini")
+        command.stamp(alembic_cfg, "head")
+
     def renew_session(self):
         if self.url.startswith(DB_SQLITE_PREFIX):
             self.commit()
