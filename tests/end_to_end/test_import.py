@@ -201,3 +201,17 @@ x = pyplot.ylabel('label')
     res = execute(code, artifacts=["x"])
     assert res.values["x"].__class__.__name__ == "Text"
     assert res.artifacts["x"] == prettify(code)
+
+
+def test_import_samething_twice(execute):
+    """
+    Test import samething twice
+    """
+    code = """
+import sys
+import sys
+
+import pandas as pd
+import pandas as pd
+    """
+    res = execute(code, snapshot=False)
