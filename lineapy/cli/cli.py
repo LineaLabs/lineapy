@@ -126,8 +126,8 @@ def linea_cli(
 
 
 @linea_cli.command()
-def update_db():
-    """Update lineapy database to the latest version"""
+def upgrade_db():
+    """Upgrade lineapy database to the latest version"""
     from alembic import command
     from alembic.config import Config
 
