@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.sql.expression import and_
@@ -46,6 +46,7 @@ from lineapy.db.relational import (
     PositionalArgORM,
     SessionContextORM,
     SourceCodeORM,
+    VariableNodeORM,
 )
 from lineapy.db.utils import create_lineadb_engine
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -260,6 +261,16 @@ class RelationalLineaDB:
         node_value: NodeValue,
     ) -> None:
         self.session.add(NodeValueORM(**node_value.dict()))
+        self.renew_session()
+
+    def write_assigned_variable(
+        self,
+        node_id: LineaID,
+        variable_name: str,
+    ) -> None:
+        self.session.add(
+            VariableNodeORM(id=node_id, variable_name=variable_name)
+        )
         self.renew_session()
 
     def write_artifact(self, artifact: Artifact) -> None:
@@ -682,3 +693,39 @@ class RelationalLineaDB:
 
         self.session.delete(value_orm)
         self.renew_session()
+
+    def get_variable_by_id(self, linea_id: LineaID) -> List[str]:
+        """
+        Returns the variable names(as a list) for a node with a certain ID
+        """
+
+        variable_node_orm = (
+            self.session.query(VariableNodeORM)
+            .filter(VariableNodeORM.id == linea_id)
+            .all()
+        )
+        return [n.variable_name for n in variable_node_orm]
+
+    def get_variables_for_session(
+        self, session_id: LineaID
+    ) -> List[Tuple[LineaID, str]]:
+        """
+        Returns the variable names for a session, as (LineaID, variable_name)
+        """
+
+        results = (
+            self.session.query(BaseNodeORM, VariableNodeORM)
+            .join(
+                VariableNodeORM,
+                VariableNodeORM.id == BaseNodeORM.id,
+                # isouter=None,
+            )
+            .filter(
+                and_(
+                    BaseNodeORM.id == VariableNodeORM.id,
+                    BaseNodeORM.session_id == session_id,
+                )
+            )
+            .all()
+        )
+        return [(n[0].id, n[1].variable_name) for n in results]

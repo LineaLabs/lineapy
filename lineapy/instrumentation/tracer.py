@@ -473,6 +473,7 @@ class Tracer:
         """
         logger.debug("assigning %s = %s", variable_name, value_node)
         self.variable_name_to_node[variable_name] = value_node
+        self.db.write_assigned_variable(value_node.id, variable_name)
         return
 
     def tuple(

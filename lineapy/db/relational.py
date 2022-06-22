@@ -347,3 +347,11 @@ NodeORM = Union[
     MutateNodeORM,
     GlobalNodeORM,
 ]
+
+
+class VariableNodeORM(Base):
+
+    __tablename__ = "assigned_variable_node"
+    id = Column(String, primary_key=True)
+    # Warlus operator can assign to multiple variables at the same node,  so need two primary keys
+    variable_name: str = Column(String, nullable=False, primary_key=True)
