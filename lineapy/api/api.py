@@ -4,6 +4,7 @@ User facing APIs.
 
 import logging
 import types
+import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Union
@@ -35,7 +36,7 @@ from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.analytics.utils import side_effect_to_str
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
-from lineapy.utils.utils import get_value_type
+from lineapy.utils.utils import get_system_python_version, get_value_type
 
 logger = logging.getLogger(__name__)
 # TODO: figure out if we need to configure it all the time
@@ -276,6 +277,16 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         name=artifact_name,
         date_created=artifact.date_created,  # type: ignore
     )
+
+    # Check version compatibility
+    system_python_version = get_system_python_version()  # up to minor version
+    artifact_python_version = db.get_session_context(
+        linea_artifact._session_id
+    ).python_version
+    if system_python_version != artifact_python_version:
+        warnings.warn(
+            f"Current session runs on Python {system_python_version}, but the retrieved artifact was created on Python {artifact_python_version}. This may result in incompatibility issues."
+        )
 
     track(GetEvent(version_specified=version is not None))
     return linea_artifact
