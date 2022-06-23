@@ -23,6 +23,7 @@ from lineapy.data.types import (
     Execution,
     GlobalNode,
     ImportNode,
+    LineaCallNode,
     LineaID,
     LiteralNode,
     LookupNode,
@@ -355,6 +356,23 @@ class Executor:
         ]
 
         return PrivateExecuteResult(res, start_time, end_time, side_effects)
+
+    @_execute.register
+    def _execute_linea_call(
+        self,
+        node: LineaCallNode,
+        changes: Iterable[TracebackChange],
+        variables: Optional[Dict[str, LineaID]],
+    ) -> PrivateExecuteResult:
+        # dummy
+        # TODO - the value here should be the artifact. this should probably come from linea transformer.
+        # best if linea transformer adds the artifact's id to tracer directly and this piece can tie the value to the graph.
+        return PrivateExecuteResult(
+            value=None,
+            start_time=datetime.now(),
+            end_time=datetime.now(),
+            side_effects=[],
+        )
 
     def lookup_external_state(self, state: ExternalState) -> Optional[LineaID]:
         """

@@ -1,3 +1,4 @@
+# noqa
 from lineapy.transformer.node_transformer import NodeTransformer
 
 

@@ -9,8 +9,9 @@ import asttokens
 import pytest
 from mock import MagicMock, patch
 
-from lineapy.transformer.node_transformer import NodeTransformer, transform
+from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.transformer.source_giver import SourceGiver
+from lineapy.transformer.transform_code import transform
 
 
 def _get_ast_node(code):

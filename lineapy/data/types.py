@@ -355,6 +355,14 @@ class CallNode(BaseNode):
         yield from self.implicit_dependencies
 
 
+class LineaCallNode(CallNode):
+    module_name: str  # lineapy.api.api or lineapy.api.api_classes type of string
+    function_name: str  # save/get type of string
+    artifact_name: str
+    artifact_version: Optional[str]
+    execution_count: int = 0
+
+
 class LiteralNode(BaseNode):
     node_type: NodeType = Field(NodeType.LiteralNode, repr=False)
     value: Any

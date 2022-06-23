@@ -1,10 +1,9 @@
 import logging
 from dataclasses import dataclass
-from re import L
 from typing import DefaultDict, List, Set
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import CallNode, ImportNode, LineaID, SourceCode
+from lineapy.data.types import ImportNode, LineaCallNode, LineaID, SourceCode
 from lineapy.db.db import RelationalLineaDB
 from lineapy.utils.utils import prettify
 
@@ -42,7 +41,7 @@ def get_slice_graph(
                 # first_arg = c_node.positional_args[0]
                 # if "lineapy.save" in line_code and first_arg.id == sink:
                 if (
-                    isinstance(c_node, LineaNode)
+                    isinstance(c_node, LineaCallNode)
                     and c_node.function_name == "save"
                 ):  # and first_arg.id == sink:
                     new_sink = c_id

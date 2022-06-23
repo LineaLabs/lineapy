@@ -32,7 +32,7 @@ from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.utils import slugify
-from lineapy.transformer.node_transformer import transform
+from lineapy.transformer.transform_code import transform
 from lineapy.utils.analytics.utils import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.config import (
