@@ -52,7 +52,7 @@ from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track  # circular dep issues
-from lineapy.utils.config import lineapy_config
+from lineapy.utils.config import lineapy_config, options
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.utils import get_literal_value_from_string
 
@@ -89,7 +89,17 @@ class RelationalLineaDB:
         from alembic import command
         from alembic.config import Config
 
-        alembic_cfg = Config("alembic.ini")
+        lp_install_dir = Path(__file__).resolve().parent.parent.parent
+
+        alembic_cfg = Config(lp_install_dir / "alembic.ini")
+        alembic_cfg.set_main_option(
+            "script_location",
+            (lp_install_dir / "alembic").as_posix(),
+        )
+        alembic_cfg.set_main_option(
+            "sqlalchemy.url",
+            options.database_url,
+        )
         command.stamp(alembic_cfg, "head")
 
     def renew_session(self):

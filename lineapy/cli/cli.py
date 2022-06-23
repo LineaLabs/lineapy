@@ -131,7 +131,11 @@ def upgrade_db():
     from alembic import command
     from alembic.config import Config
 
-    alembic_cfg = Config("alembic.ini")
+    alembic_cfg = Config(
+        pathlib.Path(__file__)
+        .resolve()
+        .parent.parent.joinpath("../alembic.ini")
+    )
     command.upgrade(alembic_cfg, "head")
 
 
