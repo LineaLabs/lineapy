@@ -279,5 +279,9 @@ class LineaArtifactStore:
 class Pipeline:
     artifacts: TaskGraph
 
-    def __init__(self, artifacts: TaskGraph):
+    def __init__(self, name: str, artifacts: TaskGraph):
+        self.name = name
         self.artifacts = artifacts
+
+    def generate_pipeline(framework="SCRIPT", ouput_dir: Optional[str] = None):
+        pass

@@ -39,6 +39,7 @@ class TaskGraph(object):
         mapping: Dict[str, str],
         edges: TaskGraphEdge = {},
     ):
+        self.dependencies = edges
         self.graph = nx.DiGraph()
         self.graph.add_nodes_from(nodes)
         # parsing the other format to our tuple-based format

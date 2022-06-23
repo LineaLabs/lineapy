@@ -40,7 +40,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.scheme import Table
+from sqlalchemy.schema import Table
 
 from lineapy.data.types import (
     LineaID,
