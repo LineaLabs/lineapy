@@ -323,6 +323,11 @@ def move_artifact_storage_dir():
     else:
         shutil.move(current_path_str, old_path_str)
 
+    # create temp pickle folder to ensure debug message from
+    # folder creation in options does not cause tests in
+    # test_script to fail
+    current_path.mkdir(parents=True, exist_ok=True)
+
     yield
 
     # clean up test-generated directories
