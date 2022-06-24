@@ -310,7 +310,7 @@ def move_folder(request):
 @pytest.fixture(autouse=True)
 def move_artifact_storage_dir():
 
-    current_path = Path(options.safe_get('artifact_storage_dir'))
+    current_path = Path(options.safe_get("artifact_storage_dir"))
     current_path_str = str(current_path.resolve())
     old_path = current_path.parent.joinpath(current_path.name + ".old")
     old_path_str = str(old_path.resolve())
