@@ -15,6 +15,7 @@ from lineapy.data.types import (
     ImportNode,
     JupyterCell,
     KeywordArgument,
+    LineaCallNode,
     LineaID,
     LiteralNode,
     LiteralType,
@@ -38,8 +39,13 @@ from lineapy.db.relational import (
     ImplicitDependencyORM,
     ImportNodeORM,
     KeywordArgORM,
+    LGlobalReferenceORM,
+    LImplicitDependencyORM,
+    LineaCallNodeORM,
     LiteralNodeORM,
+    LKeywordArgORM,
     LookupNodeORM,
+    LPositionalArgORM,
     MutateNodeORM,
     NodeORM,
     NodeValueORM,
@@ -191,7 +197,41 @@ class RelationalLineaDB:
             args["source_code_id"] = s.source_code.id
 
         node_orm: NodeORM
-        if isinstance(node, CallNode):
+        if isinstance(node, LineaCallNode):
+            node_orm = LineaCallNodeORM(
+                **args,
+                module_name=node.module_name,
+                function_name=node.function_name,
+                artifact_name=node.artifact_name,
+                artifact_version=node.artifact_version,
+                execution_count=node.execution_count,
+                # function_id=node.function_id,
+                positional_args={
+                    LPositionalArgORM(
+                        index=i, starred=v.starred, arg_node_id=v.id
+                    )
+                    for i, v in enumerate(node.positional_args)
+                },
+                keyword_args={
+                    LKeywordArgORM(
+                        name=v.key, arg_node_id=v.value, starred=v.starred
+                    )
+                    for v in node.keyword_args
+                },
+                global_reads={
+                    LGlobalReferenceORM(
+                        call_node_id=node.id,
+                        variable_name=k,
+                        variable_node_id=id_,
+                    )
+                    for k, id_ in node.global_reads.items()
+                },
+                implicit_dependencies={
+                    LImplicitDependencyORM(index=k, arg_node_id=id_)
+                    for k, id_ in enumerate(node.implicit_dependencies)
+                },
+            )
+        elif isinstance(node, CallNode):
             node_orm = CallNodeORM(
                 **args,
                 function_id=node.function_id,
@@ -358,6 +398,50 @@ class RelationalLineaDB:
                 version=node.version,
                 package_name=node.package_name,
                 path=node.path,
+                **args,
+            )
+        if isinstance(node, LineaCallNodeORM):
+            positional_args = [
+                v
+                for _, v in sorted(
+                    (
+                        # Not sure why we need cast here, index field isn't optional
+                        # but mypy thinks it is
+                        (
+                            cast(int, p.index),
+                            PositionalArgument(
+                                id=p.arg_node_id, starred=p.starred
+                            ),
+                        )
+                        for p in node.positional_args
+                    ),
+                    key=lambda p: p[0],
+                )
+            ]
+            keyword_args = [
+                KeywordArgument(
+                    key=n.name, value=n.arg_node_id, starred=n.starred
+                )
+                for n in node.keyword_args
+            ]
+            global_reads = {
+                gr.variable_name: gr.variable_node_id
+                for gr in node.global_reads
+            }
+            implicit_dependencies = [
+                n.arg_node_id for n in node.implicit_dependencies
+            ]
+            return LineaCallNode(
+                # function_id=node.function_id,
+                positional_args=positional_args,
+                keyword_args=keyword_args,
+                global_reads=global_reads,
+                implicit_dependencies=implicit_dependencies,
+                artifact_name=node.artifact_name,
+                artifact_version=node.artifact_version,
+                module_name=node.module_name,
+                execution_count=node.execution_count,
+                function_name=node.function_name,
                 **args,
             )
         if isinstance(node, CallNodeORM):

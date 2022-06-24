@@ -70,10 +70,16 @@ def save(reference: object, name: str) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact (value, version), and other automation capabilities, such as :func:`to_pipeline`.
     """
-    execution_context = get_context()
-    executor = execution_context.executor
-    db = executor.db
-    call_node = execution_context.node
+    logger.warn("Calling save inside control blocks is not supported")
+
+
+def _save(
+    call_node, executor, db, reference: object, name: str
+) -> LineaArtifact:
+    # execution_context = get_context()
+    # executor = execution_context.executor
+    # db = executor.db
+    # call_node = execution_context.node
 
     # If this value is stored as a global in the executor (meaning its an external side effect)
     # then look it up from there, instead of using this node.
@@ -258,6 +264,12 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         returned value offers methods to access
         information we have stored about the artifact
     """
+    logger.warn("cant use get inside blackbox")
+
+
+def _get(
+    call_node, executor, db, artifact_name: str, version: Optional[int] = None
+) -> LineaArtifact:
     validated_version = parse_artifact_version(
         "latest" if version is None else version
     )
@@ -265,8 +277,8 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         validated_version if isinstance(validated_version, int) else None
     )
 
-    execution_context = get_context()
-    db = execution_context.executor.db
+    # execution_context = get_context()
+    # db = execution_context.executor.db
     artifact = db.get_artifact_by_name(artifact_name, final_version)
     linea_artifact = LineaArtifact(
         db=db,
@@ -312,8 +324,11 @@ def artifact_store() -> LineaArtifactStore:
     LineaArtifactStore
         An object of the class `LineaArtifactStore` that allows for printing and exporting artifacts metadata.
     """
-    execution_context = get_context()
-    cat = LineaArtifactStore(execution_context.executor.db)
+    logger.warn("Cant use artifact_store in blackboxes")
+
+
+def _artifact_store(_call_node, _executor, db) -> LineaArtifactStore:
+    cat = LineaArtifactStore(db)
     track(CatalogEvent(catalog_size=cat.len))
     return cat
 
@@ -385,3 +400,8 @@ def to_pipeline(
 
     else:
         raise Exception(f"No PipelineType for {framework}")
+
+
+def healthcheck(*args, **kwargs):
+    print(args)
+    print(kwargs)

@@ -232,10 +232,36 @@ class PositionalArgORM(Base):
     argument = relationship(BaseNodeORM, uselist=False)
 
 
+class LPositionalArgORM(Base):
+    __tablename__ = "lpositional_arg"
+    call_node_id: str = Column(
+        ForeignKey("linea_call_node.id"), primary_key=True, nullable=False
+    )
+    arg_node_id: LineaID = Column(
+        ForeignKey("node.id"), primary_key=True, nullable=False
+    )
+    starred: bool = Column(Boolean, nullable=False, default=False)
+    index = Column(Integer, primary_key=True, nullable=False)
+    argument = relationship(BaseNodeORM, uselist=False)
+
+
 class KeywordArgORM(Base):
     __tablename__ = "keyword_arg"
     call_node_id: str = Column(
         ForeignKey("call_node.id"), primary_key=True, nullable=False
+    )
+    arg_node_id: LineaID = Column(
+        ForeignKey("node.id"), primary_key=True, nullable=False
+    )
+    starred: bool = Column(Boolean, nullable=False, default=False)
+    name: str = Column(String, primary_key=True, nullable=False)
+    argument = relationship(BaseNodeORM, uselist=False)
+
+
+class LKeywordArgORM(Base):
+    __tablename__ = "lkeyword_arg"
+    call_node_id: str = Column(
+        ForeignKey("linea_call_node.id"), primary_key=True, nullable=False
     )
     arg_node_id: LineaID = Column(
         ForeignKey("node.id"), primary_key=True, nullable=False
@@ -257,10 +283,34 @@ class GlobalReferenceORM(Base):
     variable_node = relationship(BaseNodeORM, uselist=False)
 
 
+class LGlobalReferenceORM(Base):
+    __tablename__ = "lglobal_reference"
+    call_node_id: str = Column(
+        ForeignKey("linea_call_node.id"), primary_key=True, nullable=False
+    )
+    variable_node_id: str = Column(
+        ForeignKey("node.id"), primary_key=True, nullable=False
+    )
+    variable_name = Column(String, primary_key=True, nullable=False)
+    variable_node = relationship(BaseNodeORM, uselist=False)
+
+
 class ImplicitDependencyORM(Base):
     __tablename__ = "implicit_dependency"
     call_node_id: str = Column(
         ForeignKey("call_node.id"), primary_key=True, nullable=False
+    )
+    arg_node_id: str = Column(
+        ForeignKey("node.id"), primary_key=True, nullable=False
+    )
+    index = Column(Integer, primary_key=True, nullable=False)
+    argument = relationship(BaseNodeORM, uselist=False)
+
+
+class LImplicitDependencyORM(Base):
+    __tablename__ = "limplicit_dependency"
+    call_node_id: str = Column(
+        ForeignKey("linea_call_node.id"), primary_key=True, nullable=False
     )
     arg_node_id: str = Column(
         ForeignKey("node.id"), primary_key=True, nullable=False
@@ -293,6 +343,42 @@ class CallNodeORM(BaseNodeORM):
 
     __mapper_args__ = {
         "polymorphic_identity": NodeType.CallNode,
+        # Need this so that sqlalchemy doesn't get confused about additional
+        # foreign key from function_id
+        # https://stackoverflow.com/a/39518177/907060
+        "inherit_condition": id == BaseNodeORM.id,
+    }
+
+
+class LineaCallNodeORM(BaseNodeORM):
+    __tablename__ = "linea_call_node"
+
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
+    # function_id = Column(String, ForeignKey("node.id"))
+
+    positional_args = relationship(
+        LPositionalArgORM, collection_class=set, lazy="joined"
+    )
+    keyword_args = relationship(
+        LKeywordArgORM, collection_class=set, lazy="joined"
+    )
+    global_reads = relationship(
+        LGlobalReferenceORM, collection_class=set, lazy="joined"
+    )
+
+    implicit_dependencies = relationship(
+        LImplicitDependencyORM,
+        collection_class=set,
+        lazy="joined",
+    )
+
+    module_name = Column(String)
+    function_name = Column(String)
+    artifact_name = Column(String)
+    artifact_version = Column(String)
+    execution_count = Column(Integer, nullable=False, default=0)
+    __mapper_args__ = {
+        "polymorphic_identity": NodeType.LineaCallNode,
         # Need this so that sqlalchemy doesn't get confused about additional
         # foreign key from function_id
         # https://stackoverflow.com/a/39518177/907060
@@ -343,6 +429,7 @@ NodeORM = Union[
     LookupNodeORM,
     ImportNodeORM,
     CallNodeORM,
+    LineaCallNodeORM,
     LiteralNodeORM,
     MutateNodeORM,
     GlobalNodeORM,

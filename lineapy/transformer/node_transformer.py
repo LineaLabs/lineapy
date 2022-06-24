@@ -308,7 +308,8 @@ class NodeTransformer(ast.NodeTransformer):
 
     def visit_LineaCallNode(self, node: LineaCallNode):
         print("Nothing to do here but we'll need to save this")
-        return self.tracer.process_node(node)
+        self.tracer.process_node(node)
+        return node
 
     def visit_Delete(self, node: ast.Delete) -> None:
         target = node.targets[0]

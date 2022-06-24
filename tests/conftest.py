@@ -242,6 +242,8 @@ class ExecuteFixture:
 
         # Verify that execution works again, with a new session
         new_executor = Executor(self.db, globals())
+        for ids in tracer.linea_node_id_to_value:
+            new_executor._id_to_value[ids] = tracer.linea_node_id_to_value[ids]
         current_working_dir = os.getcwd()
         os.chdir(self.tmp_path)
         new_executor.execute_graph(tracer.graph)

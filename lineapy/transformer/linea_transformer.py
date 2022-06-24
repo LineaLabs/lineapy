@@ -3,15 +3,17 @@ import logging
 from pathlib import Path
 from types import ModuleType
 from typing import Optional, Union
-from winreg import KEY_WOW64_32KEY
 
+from lineapy.api.api import _artifact_store, _get, _save, healthcheck
 from lineapy.data.types import (
     LineaCallNode,
     Node,
+    PositionalArgument,
     SourceCode,
     SourceCodeLocation,
     SourceLocation,
 )
+from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils.utils import get_new_id
 
@@ -46,28 +48,56 @@ class LineaTransformer(ast.NodeTransformer):
         visitor = getattr(self, method, self.lgeneric_visit)
         return visitor(node)
 
-    def visit_Call(self, node: ast.Call) -> Union[ast.Call, LineaCallNode]:
+    def visit_Call(
+        self, node: ast.Call
+    ) -> Union[None, ast.Call, LineaCallNode]:
         func = self.lvisit(node.func)
         if func is not None and func[0] == "lineapy":
+            args_to_pass = []
+            to_exec = healthcheck
+            artifact_name: Optional[str] = None
             argument_values = [self.lvisit(arg) for arg in node.args]
+            dependent = []
             # keyword_values = {key:value for }
             if func[1] == "save":
                 artifact_name = argument_values[1]
                 # this is to locate this node in the graph. its predecessors
                 # are the var we are trying to save as an artifact
-                dependent = self.tracer.lookup_node(
-                    argument_values[0], self.get_source(node)
+                # there can only be one - for now
+                argnode = self.tracer.lookup_node(argument_values[0], None)
+                # TODO - might not need to look up the latest mutated node here. will revisit
+                argnode_latest = (
+                    self.tracer.mutation_tracker.get_latest_mutate_node(
+                        argnode.id
+                    )
                 )
+                dependent = [argnode_latest]
+                args_to_pass = [
+                    self.tracer.executor.get_value(argnode_latest),
+                    argument_values[1],
+                ]
+                to_exec = _save  # type: ignore
             if func[1] == "get":
                 artifact_name = argument_values[0]
+                args_to_pass = [artifact_name]
+                to_exec = _get  # type: ignore
+
+            if func[1] == "artifact_store":
+                to_exec = _artifact_store  # type:ignore
 
             lineanode = LineaCallNode(
                 id=get_new_id(),
                 session_id=self.tracer.get_session_id(),
-                function_id=get_new_id(),
+                # function_id=get_new_id(),
                 artifact_name=artifact_name,
                 artifact_version=None,
-                positional_args=[dependent],  # there can only be one - for now
+                positional_args=[
+                    PositionalArgument(
+                        id=d,
+                        starred=False,
+                    )
+                    for d in dependent
+                ],
                 keyword_args=[],
                 module_name=func[0],
                 function_name=func[1],
@@ -77,15 +107,37 @@ class LineaTransformer(ast.NodeTransformer):
             print(
                 "I'm gonna do it.. i'm gonna save the artifact here. ready or not"
             )
+            print(artifact_name, args_to_pass)
+            args_to_pass = [
+                lineanode,
+                self.tracer.executor,
+                self.tracer.db,
+            ] + args_to_pass
+            print(to_exec)
+            # set the equivalent of
+            try:
+                value = to_exec(*args_to_pass)
+                # the tracer dict linea_node_id_to_value preserves linea nodes across runs
+                self.tracer.linea_node_id_to_value[lineanode.id] = value
+                # the executor dict is the one that are used during execution. the tracer
+                # dict containing linea node values gets copied over pre-populating the executor
+                self.tracer.executor._id_to_value[lineanode.id] = value
+            except ArtifactSaveException as exc_info:
+                logger.error("Artifact could not be saved.")
+                logger.debug(exc_info)
+                return node
+
             return lineanode
 
         return node
 
     def lvisit_Attribute(self, node: ast.Attribute):
         value = self.lvisit(node.value)
-        if value in self.tracer.variable_name_to_node:
+        # if the module is in our imports list - because we only care about lineapy,
+        # we will simply bother with this dict and ignore others
+        if value in self.tracer.module_name_to_node:
             module_imported: ModuleType = self.tracer.executor.get_value(  # type: ignore
-                self.tracer.variable_name_to_node[value].id
+                self.tracer.module_name_to_node[value].id
             )
             module_name = module_imported.__name__
             attribute = node.attr

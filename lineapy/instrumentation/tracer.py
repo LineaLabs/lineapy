@@ -56,6 +56,7 @@ class Tracer:
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
     module_name_to_node: Dict[str, Node] = field(default_factory=dict)
+    linea_node_id_to_value: dict[LineaID, object] = field(default_factory=dict)
 
     tracer_context: TracerContext = field(init=False)
     executor: Executor = field(init=False)

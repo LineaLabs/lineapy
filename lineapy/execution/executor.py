@@ -368,7 +368,7 @@ class Executor:
         # TODO - the value here should be the artifact. this should probably come from linea transformer.
         # best if linea transformer adds the artifact's id to tracer directly and this piece can tie the value to the graph.
         return PrivateExecuteResult(
-            value=None,
+            value=self._id_to_value[node.id],
             start_time=datetime.now(),
             end_time=datetime.now(),
             side_effects=[],

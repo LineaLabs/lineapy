@@ -61,6 +61,7 @@ class SessionContext(BaseModel):
 
 class NodeType(Enum):
     Node = auto()
+    LineaCallNode = auto()
     CallNode = auto()
     LiteralNode = auto()
     ImportNode = auto()
@@ -355,12 +356,32 @@ class CallNode(BaseNode):
         yield from self.implicit_dependencies
 
 
-class LineaCallNode(CallNode):
+class LineaCallNode(BaseNode):
     module_name: str  # lineapy.api.api or lineapy.api.api_classes type of string
     function_name: str  # save/get type of string
-    artifact_name: str
+    artifact_name: Optional[
+        str
+    ]  # some commands like artifact_store do not need artifact_name
     artifact_version: Optional[str]
     execution_count: int = 0
+    node_type: NodeType = Field(NodeType.LineaCallNode, repr=False)
+
+    # function_id: LineaID
+    positional_args: List[PositionalArgument] = []
+    keyword_args: List[KeywordArgument] = []
+
+    # Mapping of global variables that need to be set to call this function
+    global_reads: Dict[str, LineaID] = {}
+
+    # TODO: add documentation
+    implicit_dependencies: List[LineaID] = []
+
+    def parents(self) -> Iterable[LineaID]:
+        # yield self.function_id
+        yield from [node.id for node in self.positional_args]
+        yield from [node.value for node in self.keyword_args]
+        yield from self.global_reads.values()
+        yield from self.implicit_dependencies
 
 
 class LiteralNode(BaseNode):
@@ -419,7 +440,13 @@ class GlobalNode(BaseNode):
 # We can use this for more precise type definitions, to make sure we hit
 # all the node cases
 Node = Union[
-    ImportNode, CallNode, LiteralNode, LookupNode, MutateNode, GlobalNode
+    ImportNode,
+    CallNode,
+    LineaCallNode,
+    LiteralNode,
+    LookupNode,
+    MutateNode,
+    GlobalNode,
 ]
 
 
