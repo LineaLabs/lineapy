@@ -6,7 +6,6 @@ from lineapy.api.api import (
     get,
     reload,
     save,
-    test_refactor,
     to_pipeline,
 )
 from lineapy.data.graph import Graph
