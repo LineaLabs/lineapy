@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from lineapy.utils.config import options
+# from lineapy.utils.config import options
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -11,16 +11,16 @@ config = context.config
 # NOTE: custom code in env.py
 # lp_install_dir = Path(__file__).resolve().parent.parent
 # ...to point alembic to lineapy db
-config.set_main_option(
-    "script_location",
-    # (lp_install_dir / "alembic").as_posix(),
-    "lineapy:alembic",
-)
+# config.set_main_option(
+#     "script_location",
+#     # (lp_install_dir / "alembic").as_posix(),
+#     "lineapy:alembic",
+# )
 # ...to run alembic from lineapy install directory, which contains alembic data
-config.set_main_option(
-    "sqlalchemy.url",
-    options.database_url,
-)
+# config.set_main_option(
+#     "sqlalchemy.url",
+#     options.database_url,
+# )
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
