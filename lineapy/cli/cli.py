@@ -148,7 +148,7 @@ def upgrade_db():
     alembic_cfg.set_main_option(
         "script_location",
         # "lineapy:alembic",
-        (lp_install_dir / "alembic").as_posix(),
+        (lp_install_dir / "_alembic").as_posix(),
     )
     alembic_cfg.set_main_option("sqlalchemy.url", options.database_url)
 
