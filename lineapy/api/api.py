@@ -19,6 +19,7 @@ from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
+from lineapy.graph_reader.graph_refactorer import GraphRefactorer
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
@@ -385,3 +386,9 @@ def to_pipeline(
 
     else:
         raise Exception(f"No PipelineType for {framework}")
+
+
+def test_refactor(session_id):
+    execution_context = get_context()
+    db = execution_context.executor.db
+    return GraphRefactorer(db)._segment_session_graph_by_artifacts(session_id)
