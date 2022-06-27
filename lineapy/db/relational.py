@@ -67,7 +67,7 @@ class SessionContextORM(Base):
 
 
 artifact_to_pipeline_table = Table(
-    "association",
+    "artifact_to_pipeline",
     Base.metadata,
     Column("pipeline_name", ForeignKey("pipeline.name")),
     Column("artifact_name", ForeignKey("artifact.name")),
