@@ -109,7 +109,7 @@ class RelationalLineaDB:
             # "lineapy:alembic",
             (lp_install_dir / "alembic").as_posix(),
         )
-        alembic_cfg.set_main_option("sqlalchemy.url", url)
+        alembic_cfg.set_main_option("sqlalchemy.url", self.url)
         command.stamp(alembic_cfg, "head")
 
     def renew_session(self):
