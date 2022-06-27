@@ -100,6 +100,7 @@ COLORS: Dict[ColorableType, str] = defaultdict(
     lambda: "#d4d4d4",  # use a slightly darker grey by default
     {
         NodeType.CallNode: BREWER_PASTEL["pink"],
+        NodeType.LineaCallNode: BREWER_PASTEL["pink"],
         NodeType.LiteralNode: BREWER_PASTEL["green"],
         NodeType.MutateNode: BREWER_PASTEL["red"],
         NodeType.ImportNode: BREWER_PASTEL["purple"],
@@ -117,6 +118,7 @@ COLORS: Dict[ColorableType, str] = defaultdict(
 # Labels for node types for legend
 NODE_LABELS: Dict[NodeType, str] = {
     NodeType.CallNode: "Call",
+    NodeType.LineaCallNode: "LineaCall",
     NodeType.LiteralNode: "Literal",
     NodeType.ImportNode: "Import",
     NodeType.LookupNode: "Lookup",
@@ -127,6 +129,7 @@ NODE_LABELS: Dict[NodeType, str] = {
 
 NODE_SHAPES: Dict[NodeType, str] = {
     NodeType.CallNode: "record",
+    NodeType.LineaCallNode: "record",
     NodeType.LiteralNode: "box",
     NodeType.ImportNode: "box",
     NodeType.LookupNode: "box",

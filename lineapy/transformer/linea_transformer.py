@@ -64,11 +64,18 @@ class LineaTransformer(ast.NodeTransformer):
                 # this is to locate this node in the graph. its predecessors
                 # are the var we are trying to save as an artifact
                 # there can only be one - for now
-                argnode = self.tracer.lookup_node(argument_values[0], None)
+                arg = argument_values[0]
+                if isinstance(arg, tuple):
+                    # if this happens the artifact you are trying to save is a lineapy function/var like external state etc.
+                    # in that case, we pick the actual attribute.
+                    arg = argument_values[0][3]
+                    argnode = self.tracer.executor._value_to_node[arg]
+                else:
+                    argnode = self.tracer.lookup_node(arg, None).id
                 # TODO - might not need to look up the latest mutated node here. will revisit
                 argnode_latest = (
                     self.tracer.mutation_tracker.get_latest_mutate_node(
-                        argnode.id
+                        argnode
                     )
                 )
                 dependent = [argnode_latest]
@@ -140,8 +147,9 @@ class LineaTransformer(ast.NodeTransformer):
                 self.tracer.module_name_to_node[value].id
             )
             module_name = module_imported.__name__
-            attribute = node.attr
-            return (module_name, attribute)
+            attribute = getattr(module_imported, node.attr)
+            attribute_name = attribute.__name__
+            return (module_name, attribute_name, module_imported, attribute)
         return None
 
     def lvisit_Name(self, node):
