@@ -6,8 +6,9 @@ Create Date: 2022-06-27 18:10:07.339148
 
 """
 import sqlalchemy as sa
-from _alembic import maybe_add_column, maybe_create_table
 from alembic import op
+
+from lineapy.utils.migration import maybe_add_column, maybe_create_table
 
 # revision identifiers, used by Alembic.
 revision = "38d5f834d3b7"
