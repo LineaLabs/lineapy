@@ -317,6 +317,7 @@ class MutateNodeORM(BaseNodeORM):
     id = Column(String, ForeignKey("node.id"), primary_key=True)
     source_id = Column(String, ForeignKey("node.id"))
     call_id = Column(String, ForeignKey("node.id"))
+    is_clear_node = Column(Boolean)
 
     __mapper_args__ = {
         "polymorphic_identity": NodeType.MutateNode,

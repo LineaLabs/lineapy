@@ -27,6 +27,7 @@ from lineapy.execution.executor import Executor
 from lineapy.execution.side_effects import (
     ID,
     AccessedGlobals,
+    ClearNode,
     ExecutorPointer,
     ImplicitDependencyNode,
     Variable,
@@ -133,6 +134,14 @@ class Tracer:
             return
         logger.debug("Processing side effects")
 
+        clear_node_observed = False
+
+        # In case any side effect is a clear Node, we set the same flag in any MutateNode generated
+        for e in side_effects:
+            clear_node_observed = clear_node_observed or isinstance(
+                e, ClearNode
+            )
+
         # Iterate through each side effect and process it, depending on its type
         for e in side_effects:
             if isinstance(e, ImplicitDependencyNode):
@@ -148,6 +157,8 @@ class Tracer:
                 self._process_accessed_globals(
                     node.session_id, node, e.retrieved, e.added_or_updated
                 )
+            elif isinstance(e, ClearNode):
+                pass
             # Mutate case
             else:
                 mutated_node_id = self._resolve_pointer(e.pointer)
@@ -160,6 +171,7 @@ class Tracer:
                         session_id=node.session_id,
                         source_id=source_id,
                         call_id=node.id,
+                        is_clear_node=clear_node_observed,
                     )
                     self.process_node(mutate_node)
 
@@ -491,6 +503,7 @@ class Tracer:
 
     @property
     def graph(self) -> Graph:
+        # a = self.slice("b")
         return self.tracer_context.graph
 
     def session_artifacts(self) -> List[ArtifactORM]:

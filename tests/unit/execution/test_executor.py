@@ -389,6 +389,7 @@ def test_execute_mutate(executor: Executor):
             session_id="",
             source_id="list",
             call_id="call_append",
+            is_clear_node=False,
         )
     )
     # Verify there is a view now between them

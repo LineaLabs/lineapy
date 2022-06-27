@@ -186,8 +186,18 @@ class ImplicitDependencyValue(BaseModel):
     dependency: ValuePointer
 
 
+class ClearValue(BaseModel):
+    """
+    Denotes that this state resets the object to a previous Clear state
+    One example is matplotlib.figure.Figure.clear(), calling this function resets the Figure object
+    to the original state, so that all operations before the previous original state are removed from the slice
+    """
+
+    clear: ValuePointer
+
+
 InspectFunctionSideEffect = Union[
-    ViewOfValues, MutatedValue, ImplicitDependencyValue
+    ViewOfValues, MutatedValue, ImplicitDependencyValue, ClearValue
 ]
 
 

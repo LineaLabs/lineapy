@@ -245,6 +245,7 @@ class RelationalLineaDB:
                 **args,
                 call_id=node.call_id,
                 source_id=node.source_id,
+                is_clear_node=node.is_clear_node,
             )
         elif isinstance(node, GlobalNode):
             node_orm = GlobalNodeORM(
@@ -403,6 +404,7 @@ class RelationalLineaDB:
             return MutateNode(
                 call_id=node.call_id,
                 source_id=node.source_id,
+                is_clear_node=node.is_clear_node,
                 **args,
             )
         if isinstance(node, GlobalNodeORM):

@@ -9,3 +9,5 @@
         - views:
             - self_ref: SELF_REF
             - result: RESULT
+        - clear: 
+            self_ref: SELF_REF

@@ -385,6 +385,8 @@ class MutateNode(BaseNode):
     # Points to the CallNode that did the mutation
     call_id: LineaID
 
+    is_clear_node: bool
+
     def parents(self) -> Iterable[LineaID]:
         yield self.source_id
         yield self.call_id

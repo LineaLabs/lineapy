@@ -44,6 +44,7 @@ from lineapy.execution.context import set_context, teardown_context
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.execution.side_effects import (
     ID,
+    ClearNode,
     ExecutorPointer,
     ImplicitDependencyNode,
     MutatedNode,
@@ -52,6 +53,7 @@ from lineapy.execution.side_effects import (
 )
 from lineapy.instrumentation.annotation_spec import (
     BoundSelfOfFunction,
+    ClearValue,
     ExternalState,
     ImplicitDependencyValue,
     InspectFunctionSideEffect,
@@ -475,6 +477,8 @@ class Executor:
             return ViewOfNodes(
                 [self._translate_pointer(node, ptr) for ptr in e.views]
             )
+        elif isinstance(e, ClearValue):
+            return ClearNode(self._translate_pointer(node, e.clear))
         raise NotImplementedError(
             f"Unknown side effect {e}, of type {type(e)}"
         )

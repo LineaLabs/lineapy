@@ -29,6 +29,16 @@ class ViewOfNodes:
 
 
 @dataclass
+class ClearNode:
+    """
+    Represents that the current Node resets all mutations performed upon this object.
+    """
+
+    # The node upon which the reset operation was performed
+    pointer: ExecutorPointer
+
+
+@dataclass
 class ImplicitDependencyNode:
     """
     Represents that the call node has an implicit dependency on another node.
@@ -48,7 +58,11 @@ class AccessedGlobals:
 
 
 SideEffect = Union[
-    MutatedNode, ViewOfNodes, AccessedGlobals, ImplicitDependencyNode
+    MutatedNode,
+    ViewOfNodes,
+    AccessedGlobals,
+    ImplicitDependencyNode,
+    ClearNode,
 ]
 SideEffects = List[SideEffect]
 
