@@ -436,3 +436,47 @@ def test_ipython():
     )
     res = subprocess.check_output(["lineapy", "ipython", "-c", raw_code])
     assert res.decode().strip().endswith(clean_code)
+
+
+@pytest.mark.slow
+def test_lineapy_upgrade_db():
+    """
+    Verify that `lineapy upgrade-db` brings db up to date.
+    """
+    # initialize
+    temp_dir_name = tempfile.mkdtemp()
+    subprocess.check_call(
+        [
+            "lineapy",
+            "--home-dir",
+            temp_dir_name,
+            "--do-not-track=true",
+            "--logging-level=debug",
+            "init",
+        ]
+    )
+    # create a db
+    code = 'import lineapy; print(lineapy.save(1, "one").get_code())'
+    subprocess.check_call(
+        [
+            "lineapy",
+            "--home-dir",
+            temp_dir_name,
+            "--do-not-track=true",
+            "--logging-level=debug",
+            "ipython",
+            "-c",
+            code,
+        ]
+    )
+    # upgrade db
+    subprocess.check_call(
+        [
+            "lineapy",
+            "--home-dir",
+            temp_dir_name,
+            "--do-not-track=true",
+            "--logging-level=debug",
+            "upgrade-db",
+        ]
+    )
