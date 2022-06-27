@@ -3,6 +3,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+from lineapy.db.relational import Base
+
 # from lineapy.utils.config import options
 
 # this is the Alembic Config object, which provides
@@ -31,7 +33,6 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from lineapy.db.relational import Base
 
 target_metadata = Base.metadata
 
