@@ -89,11 +89,24 @@ class RelationalLineaDB:
         from alembic import command
         from alembic.config import Config
 
-        lp_install_dir = Path(__file__).resolve().parent.parent.parent
+        # try:
+        #     import pkg_resources
+        #     lp_install_dir = pkg_resources.resource_filename(
+        #         "lineapy", "alembic"
+        #     )
+        # except ImportError:
+        #     lp_install_dir = Path(__file__).resolve().parent.parent
 
-        alembic_cfg = Config(lp_install_dir / "alembic.ini")
+        lp_install_dir = Path(__file__).resolve().parent.parent
+
+        alembic_cfg = Config(
+            # "lineapy:alembic.ini"
+            lp_install_dir
+            / "alembic.ini"
+        )
         alembic_cfg.set_main_option(
             "script_location",
+            # "lineapy:alembic",
             (lp_install_dir / "alembic").as_posix(),
         )
         alembic_cfg.set_main_option(

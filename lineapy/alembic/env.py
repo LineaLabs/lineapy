@@ -10,11 +10,12 @@ from lineapy.utils.config import options
 # access to the values within the .ini file in use.
 config = context.config
 # NOTE: custom code in env.py
-lp_install_dir = Path(__file__).resolve().parent.parent
+# lp_install_dir = Path(__file__).resolve().parent.parent
 # ...to point alembic to lineapy db
 config.set_main_option(
     "script_location",
-    (lp_install_dir / "alembic").as_posix(),
+    # (lp_install_dir / "alembic").as_posix(),
+    "lineapy:alembic",
 )
 # ...to run alembic from lineapy install directory, which contains alembic data
 config.set_main_option(
