@@ -11,7 +11,7 @@ from typing import List, Optional, Union
 import fsspec
 from pandas.io.pickle import to_pickle
 
-from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
+from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore, Pipeline
 from lineapy.data.types import Artifact, LineaID, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -313,7 +313,7 @@ def to_pipeline(
     dependencies: TaskGraphEdge = {},
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
     output_dir: Optional[str] = None,
-) -> None:
+) -> Path:
     """
     Writes the pipeline job to a path on disk.
 
@@ -326,4 +326,7 @@ def to_pipeline(
         saved in; only use for PipelineType.AIRFLOW
     :return: string containing the path of the DAG file that was exported.
     """
-    logger.warn("to_pipeline is deprecated.")
+    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    return pipeline.generate_pipeline(
+        framework, output_dir, pipeline_dag_config
+    )

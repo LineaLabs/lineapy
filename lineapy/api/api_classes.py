@@ -314,7 +314,7 @@ class Pipeline:
         framework: str = "SCRIPT",
         output_dir: Optional[str] = None,
         pipeline_dag_config: Optional[AirflowDagConfig] = {},
-    ):
+    ) -> Path:
         execution_context = get_context()
         db = execution_context.executor.db
         session_orm = (
