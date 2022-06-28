@@ -25,7 +25,8 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
-from lineapy.plugins.task import TaskGraph
+from lineapy.plugins.task import TaskGraph, TaskGraphEdge
+from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -230,7 +231,7 @@ class LineaArtifactStore:
 
     def __init__(self, db):
         db_artifacts: List[ArtifactORM] = db.get_all_artifacts()
-        self.artifacts: List[LineaArtifact] = [
+        self.artifact_names: List[LineaArtifact] = [
             LineaArtifact(
                 db=db,
                 _execution_id=db_artifact.execution_id,
@@ -245,7 +246,7 @@ class LineaArtifactStore:
 
     @property
     def len(self) -> int:
-        return len(self.artifacts)
+        return len(self.artifact_names)
 
     @property
     def print(self) -> str:
@@ -253,7 +254,7 @@ class LineaArtifactStore:
         return "\n".join(
             [
                 f"{a.name}:{a.version} created on {a.date_created}"
-                for a in self.artifacts
+                for a in self.artifact_names
             ]
         )
 
@@ -276,24 +277,41 @@ class LineaArtifactStore:
                 "artifact_version": a.version,
                 "date_created": a.date_created,
             }
-            for a in self.artifacts
+            for a in self.artifact_names
         ]
 
 
 class Pipeline:
     def __init__(
         self,
-        name: str,
         artifacts: List[str],
-        dependencies: TaskGraph,
+        name: Optional[str] = None,
+        dependencies: TaskGraphEdge = {},
     ):
-        self.name = name
-        self.artifacts: List[str] = artifacts
-        self.dep_graph = dependencies
+        artifact_safe_names = []
+        for artifact_name in artifacts:
+            artifact_var = slugify(artifact_name)
+            if len(artifact_var) == 0:
+                raise ValueError(f"Invalid slice name {artifact_name}.")
+            artifact_safe_names.append(artifact_var)
+
+        self.name = name or "_".join(artifact_safe_names)
+        self.artifact_names: List[str] = artifacts
+        self.artifact_safe_names = artifact_safe_names
+        self.task_graph = TaskGraph(
+            self.artifact_names,
+            {
+                slice: task
+                for slice, task in zip(
+                    self.artifact_names, self.artifact_safe_names
+                )
+            },
+            dependencies,
+        )
 
     def generate_pipeline(
         self,
-        framework="SCRIPT",
+        framework: str = "SCRIPT",
         output_dir: Optional[str] = None,
         pipeline_dag_config: Optional[AirflowDagConfig] = {},
     ):
@@ -313,9 +331,9 @@ class Pipeline:
             if PipelineType[framework] == PipelineType.AIRFLOW:
 
                 ret = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
-                    self.artifacts,
+                    self.artifact_names,
                     self.name,
-                    self.dep_graph.dependencies,
+                    self.task_graph,
                     output_dir=output_dir,
                     airflow_dag_config=pipeline_dag_config,
                 )
@@ -323,9 +341,9 @@ class Pipeline:
             else:
 
                 ret = ScriptPlugin(db, last_session.id).sliced_pipeline_dag(
-                    self.artifacts,
+                    self.artifact_names,
                     self.name,
-                    self.dep_graph.dependencies,
+                    self.task_graph,
                     output_dir=output_dir,
                 )
 
@@ -333,8 +351,8 @@ class Pipeline:
             track(
                 ToPipelineEvent(
                     framework,
-                    len(self.artifacts),
-                    self.dep_graph.dependencies != "",
+                    len(self.artifact_names),
+                    self.task_graph.get_airflow_dependency() != "",
                     pipeline_dag_config is not None,
                 )
             )
