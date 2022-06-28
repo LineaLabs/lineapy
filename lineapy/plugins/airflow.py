@@ -73,7 +73,6 @@ class AirflowPlugin(BasePlugin):
 
     def sliced_airflow_dag(
         self,
-        slice_names: List[str],
         module_name: str,
         task_graph: TaskGraph,
         output_dir: Optional[str] = None,

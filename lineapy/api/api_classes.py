@@ -12,13 +12,13 @@ from typing import List, Optional, cast
 from IPython.display import display
 from pandas.io.pickle import read_pickle
 
+from lineapy.api.api_utils import de_lineate_code, extract_taskgraph
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID, PipelineType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM, SessionContextORM
 from lineapy.execution.context import get_context
 from lineapy.execution.executor import Executor
-from lineapy.graph_reader.api_utils import de_lineate_code
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
@@ -288,26 +288,11 @@ class Pipeline:
         name: Optional[str] = None,
         dependencies: TaskGraphEdge = {},
     ):
-        artifact_safe_names = []
-        for artifact_name in artifacts:
-            artifact_var = slugify(artifact_name)
-            if len(artifact_var) == 0:
-                raise ValueError(f"Invalid slice name {artifact_name}.")
-            artifact_safe_names.append(artifact_var)
-
-        self.name = name or "_".join(artifact_safe_names)
-        self.artifact_names: List[str] = artifacts
-        self.artifact_safe_names = artifact_safe_names
-        self.task_graph = TaskGraph(
-            self.artifact_names,
-            {
-                slice: task
-                for slice, task in zip(
-                    self.artifact_names, self.artifact_safe_names
-                )
-            },
-            dependencies,
+        self.artifact_safe_names, self.task_graph = extract_taskgraph(
+            artifacts, dependencies
         )
+        self.name = name or "_".join(self.artifact_safe_names)
+        self.artifact_names: List[str] = artifacts
 
     def generate_pipeline(
         self,
@@ -331,7 +316,6 @@ class Pipeline:
             if PipelineType[framework] == PipelineType.AIRFLOW:
 
                 ret = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
-                    self.artifact_names,
                     self.name,
                     self.task_graph,
                     output_dir=output_dir,
@@ -341,7 +325,6 @@ class Pipeline:
             else:
 
                 ret = ScriptPlugin(db, last_session.id).sliced_pipeline_dag(
-                    self.artifact_names,
                     self.name,
                     self.task_graph,
                     output_dir=output_dir,

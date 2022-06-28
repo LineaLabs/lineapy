@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Optional
 
+from lineapy.api.api_utils import de_lineate_code
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
-from lineapy.graph_reader.api_utils import de_lineate_code
 from lineapy.graph_reader.program_slice import (
     CodeSlice,
     get_program_slice_by_artifact_name,

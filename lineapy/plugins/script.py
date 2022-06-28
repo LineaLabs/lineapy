@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from typing_extensions import TypedDict
 
@@ -49,7 +49,6 @@ class ScriptPlugin(BasePlugin):
 
     def sliced_pipeline_dag(
         self,
-        slice_names: List[str],
         module_name: str,
         task_graph: TaskGraph,
         output_dir: Optional[str] = None,

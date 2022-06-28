@@ -1,6 +1,24 @@
 import re
 
 from lineapy.db.db import RelationalLineaDB
+from lineapy.plugins.task import TaskGraph
+from lineapy.plugins.utils import slugify
+
+
+def extract_taskgraph(artifacts, dependencies):
+    artifact_safe_names = []
+    for artifact_name in artifacts:
+        artifact_var = slugify(artifact_name)
+        if len(artifact_var) == 0:
+            raise ValueError(f"Invalid slice name {artifact_name}.")
+        artifact_safe_names.append(artifact_var)
+
+    task_graph = TaskGraph(
+        artifacts,
+        {slice: task for slice, task in zip(artifacts, artifact_safe_names)},
+        dependencies,
+    )
+    return (artifact_safe_names, task_graph)
 
 
 def de_lineate_code(code: str, db: RelationalLineaDB) -> str:
