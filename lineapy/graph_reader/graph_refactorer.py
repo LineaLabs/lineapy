@@ -230,21 +230,6 @@ class SessionArtifacts:
                             ]
                         )
 
-        for i, art in enumerate(artifact_ordering.items()):
-            for p, prev_art in enumerate(artifact_ordering.items()):
-                if p < i:
-                    variables_required_downstream = art[1][
-                        "input_variables"
-                    ].intersection(prev_art[1]["all_variables"])
-                    if len(variables_required_downstream) > 0:
-                        prev_art[1]["return_variables"] += sorted(
-                            [
-                                x
-                                for x in variables_required_downstream
-                                if x not in prev_art[1]["return_variables"]
-                            ]
-                        )
-
 
 """
 call from 
