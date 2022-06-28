@@ -278,6 +278,11 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     return linea_artifact
 
 
+def get_pipeline() -> Pipeline:
+    # TODO
+    pass
+
+
 def reload() -> None:
     """
     Reloads lineapy context.
@@ -327,6 +332,7 @@ def to_pipeline(
     :return: string containing the path of the DAG file that was exported.
     """
     pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    # TODO - save this pipeline
     return pipeline.generate_pipeline(
         framework, output_dir, pipeline_dag_config
     )
