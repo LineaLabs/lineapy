@@ -2,8 +2,7 @@
 # Code based on https://github.com/talkpython/data-driven-web-apps-with-flask
 
 from alembic import op
-from sqlalchemy import engine_from_config
-from sqlalchemy.engine import reflection
+from sqlalchemy import engine_from_config, inspect
 
 
 def table_exists(table, schema=None):
@@ -11,7 +10,7 @@ def table_exists(table, schema=None):
     engine = engine_from_config(
         config.get_section(config.config_ini_section), prefix="sqlalchemy."
     )
-    insp = reflection.Inspector.from_engine(engine)
+    insp = inspect(engine)
     return insp.has_table(table, schema)
 
 
@@ -25,7 +24,7 @@ def table_has_column(table, column):
     engine = engine_from_config(
         config.get_section(config.config_ini_section), prefix="sqlalchemy."
     )
-    insp = reflection.Inspector.from_engine(engine)
+    insp = inspect(engine)
     return any([column.name == col["name"] for col in insp.get_columns(table)])
 
 
