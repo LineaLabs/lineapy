@@ -90,6 +90,7 @@ class SessionArtifacts:
     graph_segments: List[GraphSegment]
 
     def __init__(self, artifacts: List[LineaArtifact]) -> None:
+        # TODO: Check if all passed artifacts come from the same session; if not, raise error
         self.session_id = artifacts[0]._session_id
         self.db = artifacts[0].db
         self.graph = artifacts[0]._get_graph()
@@ -98,9 +99,11 @@ class SessionArtifacts:
         self.graph_segments = []
 
         # Map each variable node ID to the corresponding variable name(when variable assigned)
-        session_variables = self.db.get_variables_for_session(self.session_id)
+        self.session_variables = self.db.get_variables_for_session(
+            self.session_id
+        )
         variable_dict: Dict[LineaID, Set[str]] = dict()
-        for node_id, variable_name in session_variables:
+        for node_id, variable_name in self.session_variables:
             variable_dict[node_id] = (
                 set([variable_name])
                 if node_id not in variable_dict.keys()
@@ -276,7 +279,7 @@ class ArtifactCollections:
                     art = get(art_name[0], version=art_name[1])
             except:
                 logger.error("Cannot retrive artifact %s", art_name)
-                raise  # Fix me, add error type
+                raise  # FIXME: add error type
 
             self.artifacts.append(art)
             self.sessions.add(art._session_id)
