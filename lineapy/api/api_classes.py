@@ -13,15 +13,18 @@ from IPython.display import display
 from pandas.io.pickle import read_pickle
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID
+from lineapy.data.types import LineaID, PipelineType
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import ArtifactORM
+from lineapy.db.relational import ArtifactORM, SessionContextORM
+from lineapy.execution.context import get_context
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.api_utils import de_lineate_code
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
+from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
+from lineapy.plugins.script import ScriptPlugin
 from lineapy.plugins.task import TaskGraph
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
@@ -29,6 +32,7 @@ from lineapy.utils.analytics.event_schemas import (
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,
+    ToPipelineEvent,
 )
 from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.config import options
@@ -277,11 +281,65 @@ class LineaArtifactStore:
 
 
 class Pipeline:
-    artifacts: TaskGraph
 
-    def __init__(self, name: str, artifacts: TaskGraph):
+    def __init__(
+        self,
+        name: str,
+        artifacts: List[str],
+        dependencies: TaskGraph,
+    ):
         self.name = name
-        self.artifacts = artifacts
+        self.artifacts: List[str] = artifacts
+        self.dep_graph = dependencies
 
-    def generate_pipeline(framework="SCRIPT", ouput_dir: Optional[str] = None):
-        pass
+    def generate_pipeline(
+        self,
+        framework="SCRIPT",
+        output_dir: Optional[str] = None,
+        pipeline_dag_config: Optional[AirflowDagConfig] = {},
+    ):
+        execution_context = get_context()
+        db = execution_context.executor.db
+        session_orm = (
+            db.session.query(SessionContextORM)
+            .order_by(SessionContextORM.creation_time.desc())
+            .all()
+        )
+        if len(session_orm) == 0:
+            track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
+            raise Exception("No sessions found in the database.")
+        last_session = session_orm[0]
+
+        if framework in PipelineType.__members__:
+            if PipelineType[framework] == PipelineType.AIRFLOW:
+
+                ret = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
+                    self.artifacts,
+                    self.name,
+                    self.dep_graph.dependencies,
+                    output_dir=output_dir,
+                    airflow_dag_config=pipeline_dag_config,
+                )
+
+            else:
+
+                ret = ScriptPlugin(db, last_session.id).sliced_pipeline_dag(
+                    self.artifacts,
+                    self.name,
+                    self.dep_graph.dependencies,
+                    output_dir=output_dir,
+                )
+
+            # send the info
+            track(
+                ToPipelineEvent(
+                    framework,
+                    len(self.artifacts),
+                    self.dep_graph.dependencies != "",
+                    pipeline_dag_config is not None,
+                )
+            )
+            return ret
+
+        else:
+            raise Exception(f"No PipelineType for {framework}")
