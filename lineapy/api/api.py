@@ -332,7 +332,18 @@ def to_pipeline(
     :return: string containing the path of the DAG file that was exported.
     """
     pipeline = Pipeline(artifacts, pipeline_name, dependencies)
-    # TODO - save this pipeline
-    return pipeline.generate_pipeline(
-        framework, output_dir, pipeline_dag_config
-    )
+    pipeline.save()
+    return pipeline.export(framework, output_dir, pipeline_dag_config)
+
+
+def create_pipeline(
+    artifacts: List[str],
+    pipeline_name: Optional[str] = None,
+    dependencies: TaskGraphEdge = {},
+    persist: bool = False,
+) -> Pipeline:
+    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    if persist:
+        pipeline.save()
+
+    return pipeline

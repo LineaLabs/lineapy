@@ -25,8 +25,7 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
-from lineapy.plugins.task import TaskGraph, TaskGraphEdge
-from lineapy.plugins.utils import slugify
+from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -294,7 +293,7 @@ class Pipeline:
         self.name = name or "_".join(self.artifact_safe_names)
         self.artifact_names: List[str] = artifacts
 
-    def generate_pipeline(
+    def export(
         self,
         framework: str = "SCRIPT",
         output_dir: Optional[str] = None,
@@ -343,3 +342,7 @@ class Pipeline:
 
         else:
             raise Exception(f"No PipelineType for {framework}")
+
+    def save(self):
+        # TODO save this pipeline to the db using PipelineORM
+        pass
