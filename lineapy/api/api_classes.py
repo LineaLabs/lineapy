@@ -231,7 +231,7 @@ class LineaArtifactStore:
 
     def __init__(self, db):
         db_artifacts: List[ArtifactORM] = db.get_all_artifacts()
-        self.artifact_names: List[LineaArtifact] = [
+        self.artifacts: List[LineaArtifact] = [
             LineaArtifact(
                 db=db,
                 _execution_id=db_artifact.execution_id,
@@ -246,7 +246,7 @@ class LineaArtifactStore:
 
     @property
     def len(self) -> int:
-        return len(self.artifact_names)
+        return len(self.artifacts)
 
     @property
     def print(self) -> str:
@@ -254,7 +254,7 @@ class LineaArtifactStore:
         return "\n".join(
             [
                 f"{a.name}:{a.version} created on {a.date_created}"
-                for a in self.artifact_names
+                for a in self.artifacts
             ]
         )
 
@@ -277,7 +277,7 @@ class LineaArtifactStore:
                 "artifact_version": a.version,
                 "date_created": a.date_created,
             }
-            for a in self.artifact_names
+            for a in self.artifacts
         ]
 
 
