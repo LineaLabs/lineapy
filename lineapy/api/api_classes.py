@@ -281,7 +281,6 @@ class LineaArtifactStore:
 
 
 class Pipeline:
-
     def __init__(
         self,
         name: str,
