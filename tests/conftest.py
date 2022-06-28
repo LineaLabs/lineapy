@@ -326,27 +326,28 @@ def print_tree_log_fixture(request, capsys):
             print_tree_log()
 
 
-@pytest.fixture
-def alembic_config():
-    lp_install_dir = Path(__file__).resolve().parent.parent / "lineapy"
-    alembic_cfg = config.Config(
-        # "lineapy:alembic.ini"
-        lp_install_dir
-        / "alembic.ini"
+@pytest.fixture()
+def db_url(tmp_path_factory):
+    return (
+        f"sqlite:///{tmp_path_factory.mktemp('db').as_posix()}/{DB_FILE_NAME}"
     )
+
+
+@pytest.fixture
+def alembic_config(db_url):
+    lp_install_dir = Path(__file__).resolve().parent.parent / "lineapy"
+    alembic_cfg = config.Config(lp_install_dir / "alembic.ini")
     alembic_cfg.set_main_option(
         "script_location",
-        # "lineapy:alembic",
         (lp_install_dir / "_alembic").as_posix(),
     )
     alembic_cfg.set_main_option(
         "sqlalchemy.url",
-        f"sqlite:////tmp/{DB_FILE_NAME}",
+        db_url,
     )
     return alembic_cfg
 
 
 @pytest.fixture
-def alembic_engine():
-    # return create_engine("sqlite:///")
-    return create_lineadb_engine(f"sqlite:////tmp/{DB_FILE_NAME}")
+def alembic_engine(db_url):
+    return create_lineadb_engine(db_url)
