@@ -69,13 +69,17 @@ class SessionContextORM(Base):
 artifact_to_pipeline_table = Table(
     "artifact_to_pipeline",
     Base.metadata,
-    Column("pipeline_name", ForeignKey("pipeline.name")),
-    Column("artifact_name", ForeignKey("artifact.name")),
+    Column("pipeline_id", ForeignKey("pipeline.id")),
+    Column("artifact_id", ForeignKey("artifact.id")),
 )
+
+# Pipeline ID, left artifact, right artifact
 
 
 class PipelineORM(Base):
     __tablename__ = "pipeline"
+    # convert to auto increment
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(
         String,
         nullable=False,
@@ -92,7 +96,10 @@ class ArtifactORM(Base):
     An artifact is a named pointer to a node.
     """
 
+    # artifact should have a UUID
+    # should still be LineaID, auto increment has a problem between multiple databases
     __tablename__ = "artifact"
+    id = Column(Integer, primary_key=True, autoincrement=True)
     node_id: LineaID = Column(String, ForeignKey("node.id"), primary_key=True)
     execution_id: LineaID = Column(
         String, ForeignKey("execution.id"), primary_key=True

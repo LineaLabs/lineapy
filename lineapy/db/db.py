@@ -273,6 +273,10 @@ class RelationalLineaDB:
         self.session.add(artifact_orm)
         self.renew_session()
 
+    def write_pipeline(self, pipeline: PipelineORM) -> None:
+        self.session.add(pipeline)
+        self.renew_session()
+
     def artifact_in_db(
         self, node_id: LineaID, execution_id: LineaID, name: str, version: int
     ) -> bool:

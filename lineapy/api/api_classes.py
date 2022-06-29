@@ -35,6 +35,7 @@ from lineapy.utils.analytics.event_schemas import (
     ToPipelineEvent,
 )
 from lineapy.utils.analytics.usage_tracking import track
+from lineapy.utils.utils import get_new_id
 from lineapy.utils.config import options
 from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
@@ -292,6 +293,7 @@ class Pipeline:
         )
         self.name = name or "_".join(self.artifact_safe_names)
         self.artifact_names: List[str] = artifacts
+        self.id = get_new_id()
 
     def export(
         self,
@@ -345,4 +347,22 @@ class Pipeline:
 
     def save(self):
         # TODO save this pipeline to the db using PipelineORM
-        pass
+        execution_context = get_context()
+        db = execution_context.executor.db
+        session_orm = (
+            db.session.query(SessionContextORM)
+            .order_by(SessionContextORM.creation_time.desc())
+            .all()
+        )
+        if len(session_orm) == 0:
+            track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
+            raise Exception("No sessions found in the database.")
+        last_session = session_orm[0]
+
+        artifacts_to_save = [db.get_artifact_by_name(artifact_name) for artifact_name in self.artifacts]
+        pipeline_to_write = PipelineORM(self.name, artifacts_to_save)
+        db.write_pipeline(pipeline_to_write)
+
+
+
+
