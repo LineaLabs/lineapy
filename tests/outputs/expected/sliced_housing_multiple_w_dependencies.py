@@ -16,7 +16,7 @@ def p_value():
     x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
     clf.fit(x, y)
     p = clf.predict([[100 * 1000, 10, 4]])
-    pickle.dump(p, open("/tmp/fake", "wb"))
+    pickle.dump(p, open("pickle-sample.pkl", "wb"))
 
 
 def y():
@@ -29,4 +29,4 @@ def y():
 
     assets["is_new"] = is_new(assets["Year_Built"])
     y = assets["is_new"]
-    pickle.dump(y, open("/tmp/fake", "wb"))
+    pickle.dump(y, open("pickle-sample.pkl", "wb"))

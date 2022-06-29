@@ -371,6 +371,30 @@ def python(
     visualize: bool,
     arg: Iterable[str],
 ):
+    python_cli(
+        file_name,
+        slice,
+        export_slice,
+        export_slice_to_airflow_dag,
+        airflow_task_dependencies,
+        print_source,
+        print_graph,
+        visualize,
+        arg,
+    )
+
+
+def python_cli(
+    file_name: pathlib.Path,
+    slice: List[str] = None,  # cast tuple into list
+    export_slice: List[str] = None,  # cast tuple into list
+    export_slice_to_airflow_dag: str = None,
+    airflow_task_dependencies: str = None,
+    print_source: bool = False,
+    print_graph: bool = False,
+    visualize: bool = False,
+    arg: Iterable[str] = [],
+):
     set_custom_excepthook()
     check_python_version()
     tree = rich.tree.Tree(f"📄 {file_name}")
@@ -431,7 +455,9 @@ def python(
         ap.sliced_airflow_dag(
             slice,
             export_slice_to_airflow_dag,
-            ast.literal_eval(airflow_task_dependencies),
+            ast.literal_eval(airflow_task_dependencies)
+            if airflow_task_dependencies
+            else {},
         )
 
     db.close()
@@ -576,6 +602,11 @@ def add(path: pathlib.Path, name: str):
     This command copies the yaml file whose path is provided by the user into the user's .lineapy directory to allow Lineapy to manage it.
     """
 
+    annotations_add(path, name)
+
+
+def annotations_add(path: pathlib.Path, orig_name: Optional[str] = None):
+
     # validate that source is in correct format before importing
     try:
         invalid_specs = validate_spec(path)
@@ -588,7 +619,7 @@ def add(path: pathlib.Path, name: str):
         exit(1)
 
     # calculate name of new annotation source
-    name = name or path.stem
+    name = orig_name or path.stem
     name = remove_annotations_file_extension(name)
     name = slugify(name)
 
@@ -616,6 +647,10 @@ def list():
     """
     Lists full paths to all imported annotation sources.
     """
+    annotations_list()
+
+
+def annotations_list():
     wildcard_path = os.path.join(
         pathlib.Path(
             options.safe_get("customized_annotation_folder")
@@ -642,7 +677,12 @@ def delete(name: str):
     """
     Deletes imported annotation source.
     """
-    name = remove_annotations_file_extension(name)
+
+    annotations_delete(name)
+
+
+def annotations_delete(custom_name: str):
+    name = remove_annotations_file_extension(custom_name)
     name += CUSTOM_ANNOTATIONS_EXTENSION_NAME
 
     delete_path = pathlib.Path(
@@ -650,6 +690,9 @@ def delete(name: str):
     ).joinpath(name)
     try:
         os.remove(delete_path)
+        logger.info(
+            f"Deleted annotation source {custom_name} at {delete_path}"
+        )
     except IsADirectoryError as e:
         logger.error(
             f"{delete_path} must be the path to a file, not a directory\n{e}"

@@ -37,7 +37,11 @@ from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
 from lineapy.utils.lineabuiltins import l_import, l_tuple
-from lineapy.utils.utils import get_lib_package_version, get_new_id
+from lineapy.utils.utils import (
+    get_lib_package_version,
+    get_new_id,
+    get_system_python_version,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +89,7 @@ class Tracer:
         session_context = SessionContext(
             id=get_new_id(),
             environment_type=session_type,
+            python_version=get_system_python_version(),  # up to minor version
             creation_time=datetime.now(),
             working_directory=getcwd(),
             session_name=session_name,
@@ -316,10 +321,7 @@ class Tracer:
         """
         module_node = self.import_module(name, source_location)
         if alias:
-            self.assign(
-                alias,
-                module_node,
-            )
+            self.assign(alias, module_node, from_import=True)
         elif attributes:
             module_value = self.executor.get_value(module_node.id)
             if IMPORT_STAR in attributes:
@@ -351,16 +353,17 @@ class Tracer:
                             module_node,
                             self.literal(attr_or_module),
                         ),
+                        from_import=True,
                     )
                 else:
                     full_name = f"{name}.{attr_or_module}"
                     sub_module_node = self.import_module(
                         full_name, source_location
                     )
-                    self.assign(alias, sub_module_node)
+                    self.assign(alias, sub_module_node, from_import=True)
 
         else:
-            self.assign(name, module_node)
+            self.assign(name, module_node, from_import=True)
 
         node = ImportNode(
             id=get_new_id(),
@@ -455,19 +458,22 @@ class Tracer:
         return node
 
     def assign(
-        self,
-        variable_name: str,
-        value_node: Node,
+        self, variable_name: str, value_node: Node, from_import: bool = False
     ) -> None:
         """
         Assign updates a local mapping of variable nodes.
-
-        It doesn't save this to the graph, and currently the source
-        location for the assignment is discarded. In the future, if we need
-        to trace where in some code a node is assigned, we can record that again.
         """
         logger.debug("assigning %s = %s", variable_name, value_node)
-        self.variable_name_to_node[variable_name] = value_node
+        existing_value_node = self.variable_name_to_node.get(
+            variable_name, None
+        )
+        if (
+            existing_value_node is None
+            or existing_value_node.id != value_node.id
+            or not from_import
+        ):
+            self.variable_name_to_node[variable_name] = value_node
+            self.db.write_assigned_variable(value_node.id, variable_name)
         return
 
     def tuple(

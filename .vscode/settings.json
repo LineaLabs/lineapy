@@ -42,7 +42,7 @@
   "cSpell.dictionaries": [
     "python"
   ],
-  "cSpell.diagnosticLevel": "Error",
+  "cSpell.diagnosticLevel": "Information",
   "cSpell.showAutocompleteSuggestions": true,
   "cSpell.files": [
     "**"

@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import os
 import pathlib
-import tempfile
+import shutil
 import typing
 from pathlib import Path
 from unittest.mock import patch
@@ -280,8 +280,39 @@ def remove_db():
 
 
 @pytest.fixture
-@patch("lineapy.api.api._try_write_to_db", return_value="/tmp/fake")
-def housing_tracer(try_write_to_db, execute):
+def move_folder(request):
+    marker = request.node.get_closest_marker("folder")
+    if marker is None or len(marker.args) == 0:
+        raise ValueError(
+            "When using move_folder pytest fixture, mark folder with name of folder to move must be provided."
+        )
+
+    current_path = Path(marker.args[0])
+    current_path_str = str(current_path.resolve())
+    old_path = current_path.parent.joinpath(current_path.name + ".old")
+    old_path_str = str(old_path.resolve())
+
+    # If folder exists already, the test was canceled
+    # early previously. Clean up folder from
+    # previous run.
+    if old_path.exists():
+        shutil.rmtree(current_path_str, ignore_errors=True)
+    else:
+        shutil.move(current_path_str, old_path_str)
+
+    yield
+
+    # clean up test-generated directories
+    if current_path.exists():
+        shutil.rmtree(current_path_str)
+    if old_path.exists():
+        shutil.move(old_path_str, current_path_str)
+
+
+@pytest.fixture
+@patch("lineapy.api.api.try_write_to_pickle", return_value=None)
+@patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
+def housing_tracer(_pickle_name, try_write_to_pickle, execute):
     tests_dir = Path(__file__).parent
 
     # Change directory to tests dir before executing
