@@ -1,11 +1,12 @@
 import re
+from typing import List
 
 from lineapy.db.db import RelationalLineaDB
-from lineapy.plugins.task import TaskGraph
+from lineapy.plugins.task import TaskGraph, TaskGraphEdge
 from lineapy.plugins.utils import slugify
 
 
-def extract_taskgraph(artifacts, dependencies):
+def extract_taskgraph(artifacts: List[str], dependencies: TaskGraphEdge):
     artifact_safe_names = []
     for artifact_name in artifacts:
         artifact_var = slugify(artifact_name)
