@@ -16,7 +16,7 @@ from lineapy.api.api_utils import de_lineate_code, extract_taskgraph
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID, PipelineType
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import ArtifactORM, SessionContextORM
+from lineapy.db.relational import ArtifactORM, PipelineORM, SessionContextORM
 from lineapy.execution.context import get_context
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
@@ -35,10 +35,9 @@ from lineapy.utils.analytics.event_schemas import (
     ToPipelineEvent,
 )
 from lineapy.utils.analytics.usage_tracking import track
-from lineapy.utils.utils import get_new_id
 from lineapy.utils.config import options
 from lineapy.utils.deprecation_utils import lru_cache
-from lineapy.utils.utils import prettify
+from lineapy.utils.utils import get_new_id, prettify
 
 logger = logging.getLogger(__name__)
 
@@ -359,10 +358,11 @@ class Pipeline:
             raise Exception("No sessions found in the database.")
         last_session = session_orm[0]
 
-        artifacts_to_save = [db.get_artifact_by_name(artifact_name) for artifact_name in self.artifacts]
-        pipeline_to_write = PipelineORM(self.name, artifacts_to_save)
+        artifacts_to_save = [
+            db.get_artifact_by_name(artifact_name)
+            for artifact_name in self.artifact_names
+        ]
+        pipeline_to_write = PipelineORM(
+            name=self.name, artifacts=artifacts_to_save
+        )
         db.write_pipeline(pipeline_to_write)
-
-
-
-

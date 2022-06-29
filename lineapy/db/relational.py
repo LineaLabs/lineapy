@@ -37,6 +37,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    UniqueConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -81,10 +82,7 @@ class PipelineORM(Base):
     # convert to auto increment
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(
-        String,
-        nullable=False,
-        default=ARTIFACT_NAME_PLACEHOLDER,
-        primary_key=True,
+        String, nullable=False, default=ARTIFACT_NAME_PLACEHOLDER, unique=True
     )
     artifacts: List[ArtifactORM] = relationship(
         "ArtifactORM", secondary=artifact_to_pipeline_table
@@ -100,24 +98,35 @@ class ArtifactORM(Base):
     # should still be LineaID, auto increment has a problem between multiple databases
     __tablename__ = "artifact"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    node_id: LineaID = Column(String, ForeignKey("node.id"), primary_key=True)
+    node_id: LineaID = Column(String, ForeignKey("node.id"), nullable=False)
     execution_id: LineaID = Column(
-        String, ForeignKey("execution.id"), primary_key=True
+        String, ForeignKey("execution.id"), nullable=False
     )
+
     name = Column(
         String,
         nullable=False,
         default=ARTIFACT_NAME_PLACEHOLDER,
-        primary_key=True,
     )
     date_created = Column(DateTime, nullable=False)
-    version = Column(Integer, nullable=False, primary_key=True)
+    version = Column(Integer, nullable=False)
 
     node: BaseNodeORM = relationship(
         "BaseNodeORM", uselist=False, lazy="joined", innerjoin=True
     )
     execution: ExecutionORM = relationship(
         "ExecutionORM", uselist=False, lazy="joined", innerjoin=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "name", "version", name="_unique_artifact_name_and_version"
+        ),
+        UniqueConstraint(
+            "node_id",
+            "execution_id",
+            name="_unique_artifact_node_id_and_exec_id",
+        ),
     )
 
 
