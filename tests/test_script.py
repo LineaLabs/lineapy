@@ -378,7 +378,7 @@ def test_ipython():
 @pytest.mark.slow
 def test_lineapy_upgrade_db():
     """
-    Verify that `lineapy upgrade-db` brings db up to date.
+    Verify that `lineapy upgrade-db` runs without errors.
     """
     # initialize
     temp_dir_name = tempfile.mkdtemp()
