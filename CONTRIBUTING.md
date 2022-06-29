@@ -28,8 +28,9 @@
     1. [Performance Profiling](#41-performance-profiling)
     2. [Known Issues](#42-known-issues)
     3. [Using venv instead of Conda](#43-using-venv-instead-of-conda)
-    4. [Further Readings](#44-further-readings)
-    5. [Benchmarking](#45-benchmarking)
+    4. [Database Migrations](#44-database-migrations)
+    5. [Further Readings](#45-further-readings)
+    6. [Benchmarking](#46-benchmarking)
 
 https://github.com/LineaLabs/lineapy/blob/update_docs/CONTRIBUTING.md#1-where-to-start
 
@@ -415,12 +416,28 @@ lineapy --help
 pytest tests
 ```
 
-### 4.4. Further Readings
+### 4.4. Database Migrations
+
+We use the `alembic` package to support database migrations for the LineaPy DB. If your contribution
+changes the schema of our database, you must write a database migration so that users with existing
+DBs can upgrade them to work on the latest version. To create a migration, do the following:
+
+First, from the `lineapy` subdirectory, run `alembic revision -m "<description of change>"`. This will generate a migration template in the `alembic/versions` directory.
+
+Then implement the migration scripts in the the bodies of the `upgrade` and `downgrade` functions
+using the `alembic` package's API.
+
+See https://alembic.sqlalchemy.org/en/latest/tutorial.html#create-a-migration-script for more
+information on the contents of alembic version files and how to write alembic migrations.
+
+Note: If you want to inspect the current version of a database, you can inspect the `alembic_version` table, which has a single column named `version_num`.
+
+### 4.5. Further Readings
 
 The [Docker](https://github.com/LineaLabs/lineapy/blob/main/Dockerfile) and 
 [make](https://github.com/LineaLabs/lineapy/blob/main/Makefile) files are good starting point to see the main components of `lineapy`
 
-### 4.5. Benchmarking
+### 4.6. Benchmarking
 
 We provide a benchmarking command to test how much lineapy impacts the performance. To use it,
 pass in the path to a notebook (which does not import lineapy) to `lineapy benchmark` 
