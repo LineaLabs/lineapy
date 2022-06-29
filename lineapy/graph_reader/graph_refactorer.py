@@ -88,16 +88,22 @@ class SessionArtifacts:
     db: RelationalLineaDB
     nx_graph: nx.DiGraph
     graph_segments: List[GraphSegment]
+    artifact_list: List[LineaArtifact]
+    node_context: Dict[LineaID, Dict[str, Any]]
 
     def __init__(self, artifacts: List[LineaArtifact]) -> None:
-        # TODO: Check if all passed artifacts come from the same session; if not, raise error
+        self.artifact_list = artifacts
         self.session_id = artifacts[0]._session_id
         self.db = artifacts[0].db
         self.graph = artifacts[0]._get_graph()
         self.nx_graph = self.graph.nx_graph
-
         self.graph_segments = []
+        self.node_context = OrderedDict()
 
+        self._resolve_dependencies()
+        self._slice_session_artifacts()
+
+    def _resolve_dependencies(self):
         # Map each variable node ID to the corresponding variable name(when variable assigned)
         self.session_variables = self.db.get_variables_for_session(
             self.session_id
@@ -117,10 +123,9 @@ class SessionArtifacts:
         }
 
         # Identify variable dependencies of each node in topological order
-        node_context: Dict[LineaID, Dict[str, Any]] = OrderedDict()
         for node_id in nx.topological_sort(self.nx_graph):
             predecessors = self.nx_graph.predecessors(node_id)
-            node_context[node_id] = {
+            self.node_context[node_id] = {
                 "assigned_variables": variable_dict.get(node_id, set()),
                 "assigned_artifact": artifact_dict.get(node_id, None),
                 "dependent_variables": set(),
@@ -128,17 +133,24 @@ class SessionArtifacts:
             for p_node_id in predecessors:
                 # If predecessor is variable assignment use the variable, else use its dependencies
                 dep = variable_dict.get(
-                    p_node_id, node_context[p_node_id]["dependent_variables"]
+                    p_node_id,
+                    self.node_context[p_node_id]["dependent_variables"],
                 )
-                node_context[node_id]["dependent_variables"] = node_context[
-                    node_id
-                ]["dependent_variables"].union(dep)
+                self.node_context[node_id][
+                    "dependent_variables"
+                ] = self.node_context[node_id]["dependent_variables"].union(
+                    dep
+                )
 
+    def _slice_session_artifacts(self) -> None:
         # Identify artifact nodes and topologically sort them
         used_node_ids: Set[LineaID] = set()  # Track nodes that get ever used
         artifact_ordering = OrderedDict()
-        for node_id, n in node_context.items():
-            if n["assigned_artifact"] is not None:
+        for node_id, n in self.node_context.items():
+            if (
+                n["assigned_artifact"] is not None
+                and n["assigned_artifact"] in self.artifact_list
+            ):
                 artifact_ordering[node_id] = {
                     "artifact_name": n["assigned_artifact"],
                     "return_variables": list(
@@ -171,7 +183,7 @@ class SessionArtifacts:
                 dependent_variables = set(
                     itertools.chain.from_iterable(
                         [
-                            node_context[nid]["dependent_variables"]
+                            self.node_context[nid]["dependent_variables"]
                             for nid in artifact_node_ids
                         ]
                     )
@@ -180,7 +192,7 @@ class SessionArtifacts:
                 assigned_variables = set(
                     itertools.chain.from_iterable(
                         [
-                            node_context[nid]["assigned_variables"]
+                            self.node_context[nid]["assigned_variables"]
                             for nid in artifact_node_ids
                         ]
                     )
@@ -232,65 +244,3 @@ class SessionArtifacts:
                                 if x not in prev_graph_segment.return_variables
                             ]
                         )
-
-
-"""
-call from 
-def to_pipeline_2(
-    artifacts: List[str], #
-    framework: str = "SCRIPT",
-    pipeline_name: Optional[str] = None,
-    dependencies: TaskGraphEdge = {},
-    pipeline_dag_config: Optional[AirflowDagConfig] = {},
-    output_dir: Optional[str] = None,
-) -> Path:
-
-eventually replace current to_pipeline
-
-"""
-
-
-@dataclass
-class ArtifactCollections:
-    """
-    Take all artifact name, get session id, check input dependency,
-
-    TBD --- need more work !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    """
-
-    artifacts: List[LineaArtifact]
-    # sessions : Set[LineaID]
-    session_artifacts: Dict[LineaID, SessionArtifacts]
-
-    """
-    add whatever necessary you think you need
-    """
-
-    def __init__(self, artifacts=List[Union[str, Tuple[str, int]]]) -> None:
-        self.artifacts = []
-        self.sessions = set()
-
-        for art_name in artifacts:
-            try:
-                if isinstance(art_name, str):
-                    art = get(art_name)
-                elif isinstance(art_name, tuple):
-                    art = get(art_name[0], version=art_name[1])
-            except:
-                logger.error("Cannot retrive artifact %s", art_name)
-                raise  # FIXME: add error type
-
-            self.artifacts.append(art)
-            self.sessions.add(art._session_id)
-
-
-#         for session_id in list_of_session_id:
-
-#             SessionArtifacts()
-
-#     def code_generation(self, framework, lineapysave, ....):
-#         pass
-
-
-# ------------------------------------------------------------------------------------------------------------------------------------------------------
