@@ -123,9 +123,10 @@ class ArtifactORM(Base):
             "name", "version", name="_unique_artifact_name_and_version"
         ),
         UniqueConstraint(
+            "name",
             "node_id",
             "execution_id",
-            name="_unique_artifact_node_id_and_exec_id",
+            name="_unique_artifact_name_for_a_node_id_and_exec_id",
         ),
     )
 

@@ -142,6 +142,7 @@ class RelationalLineaDB:
             self.session.commit()
         except Exception as e:
             self.session.rollback()
+            logger.debug(e)
             track(ExceptionEvent(ErrorType.DATABASE, "Failed commit"))
             raise ArtifactSaveException() from e
 
