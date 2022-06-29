@@ -23,8 +23,7 @@ configure_logging()
 
 
 function_definition_template = string.Template(
-    """
-def get_${aname}(${args_string}):
+    """def get_${aname}(${args_string}):
 ${artifact_codeblock}
 ${indentation_block}return ${return_string}
 """
@@ -74,6 +73,19 @@ class GraphSegment:
             indentation_block=indentation_block,
             return_string=", ".join([v for v in self.return_variables]),
         )
+
+
+session_module_definitaion_template = string.Template(
+    """${function_definitions}
+
+def pipeline():
+${calculation_codeblock}
+${indentation_block}return ${return_string}
+
+if __name__=='__main__':
+${indentation_block}pipeline()
+"""
+)
 
 
 @dataclass
@@ -147,10 +159,9 @@ class SessionArtifacts:
         used_node_ids: Set[LineaID] = set()  # Track nodes that get ever used
         artifact_ordering = OrderedDict()
         for node_id, n in self.node_context.items():
-            if (
-                n["assigned_artifact"] is not None
-                and n["assigned_artifact"] in self.artifact_list
-            ):
+            if n["assigned_artifact"] is not None and node_id in [
+                art._node_id for art in self.artifact_list
+            ]:
                 artifact_ordering[node_id] = {
                     "artifact_name": n["assigned_artifact"],
                     "return_variables": list(
@@ -244,3 +255,32 @@ class SessionArtifacts:
                                 if x not in prev_graph_segment.return_variables
                             ]
                         )
+
+    def get_session_module_definition(self, indentation=4) -> str:
+        indentation_block = " " * indentation
+
+        function_definitions = "\n".join(
+            [
+                graph_seg.get_function_definition(indentation=indentation)
+                for graph_seg in self.graph_segments
+            ]
+        )
+        calculation_codeblock = "\n".join(
+            [
+                f"{indentation_block}{', '.join(graph_seg.return_variables)} = get_{graph_seg.artifact_name}({','.join(graph_seg.input_variables)})"
+                for graph_seg in self.graph_segments
+            ]
+        )
+        return_string = ", ".join(
+            [
+                graph_seg.return_variables[0]
+                for graph_seg in self.graph_segments
+            ]
+        )
+
+        return session_module_definitaion_template.safe_substitute(
+            indentation_block=indentation_block,
+            function_definitions=function_definitions,
+            calculation_codeblock=calculation_codeblock,
+            return_string=return_string,
+        )
