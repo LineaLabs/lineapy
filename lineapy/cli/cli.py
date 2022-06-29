@@ -134,22 +134,8 @@ def upgrade_db():
     from alembic.config import Config
 
     lp_install_dir = Path(__file__).resolve().parent.parent
-    # alembic_cfg = Config(
-    #     "lineapy:alembic.ini"
-    #     # pathlib.Path(__file__)
-    #     # .resolve()
-    #     # .parent.parent.joinpath("../alembic.ini")
-    # )
-    alembic_cfg = Config(
-        # "lineapy:alembic.ini"
-        lp_install_dir
-        / "alembic.ini"
-    )
-    alembic_cfg.set_main_option(
-        "script_location",
-        # "lineapy:alembic",
-        (lp_install_dir / "_alembic").as_posix(),
-    )
+    alembic_cfg = Config(lp_install_dir / "alembic.ini")
+    alembic_cfg.set_main_option("script_location", (lp_install_dir / "_alembic").as_posix())
     alembic_cfg.set_main_option("sqlalchemy.url", options.database_url)
 
     command.upgrade(alembic_cfg, "head")
