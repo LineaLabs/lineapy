@@ -43,6 +43,7 @@ from lineapy.db.relational import (
     MutateNodeORM,
     NodeORM,
     NodeValueORM,
+    PipelineORM,
     PositionalArgORM,
     SessionContextORM,
     SourceCodeORM,
@@ -277,6 +278,19 @@ class RelationalLineaDB:
     def write_pipeline(self, pipeline: PipelineORM) -> None:
         self.session.add(pipeline)
         self.renew_session()
+
+    def get_pipeline_by_name(self, name: str) -> PipelineORM:
+
+        res = (
+            self.session.query(PipelineORM)
+            .filter(PipelineORM.name == name)
+            .first()
+        )
+        if res is None:
+            msg = f"Pipeline {name} not found."
+            track(ExceptionEvent(ErrorType.USER, "Pipeline not found"))
+            raise UserException(NameError(msg))
+        return res
 
     def artifact_in_db(
         self, node_id: LineaID, execution_id: LineaID, name: str, version: int

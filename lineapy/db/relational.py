@@ -79,7 +79,6 @@ artifact_to_pipeline_table = Table(
 
 class PipelineORM(Base):
     __tablename__ = "pipeline"
-    # convert to auto increment
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(
         String, nullable=False, default=ARTIFACT_NAME_PLACEHOLDER, unique=True
@@ -94,8 +93,6 @@ class ArtifactORM(Base):
     An artifact is a named pointer to a node.
     """
 
-    # artifact should have a UUID
-    # should still be LineaID, auto increment has a problem between multiple databases
     __tablename__ = "artifact"
     id = Column(Integer, primary_key=True, autoincrement=True)
     node_id: LineaID = Column(String, ForeignKey("node.id"), nullable=False)
