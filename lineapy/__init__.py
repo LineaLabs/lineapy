@@ -8,6 +8,7 @@ from lineapy.api.api import (
     reload,
     save,
     to_pipeline,
+    create_pipeline,
 )
 from lineapy.data.graph import Graph
 from lineapy.data.types import SessionType, ValueType
@@ -27,6 +28,7 @@ __all__ = [
     "delete",
     "reload",
     "to_pipeline",
+    "create_pipeline",
     "SessionType",
     "ValueType",
     "_is_executing",

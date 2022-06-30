@@ -51,3 +51,5 @@ def test_write_to_pickle(move_folder):
 
     with pickle_path.open("rb") as f:
         assert pickle.load(f) == 42
+
+

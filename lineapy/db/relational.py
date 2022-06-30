@@ -74,13 +74,12 @@ artifact_to_pipeline_table = Table(
     Column("artifact_id", ForeignKey("artifact.id")),
 )
 
-# Pipeline ID, left artifact, right artifact
-
+# Pipeline ID, left artifact, right artifact list
 
 class PipelineORM(Base):
     __tablename__ = "pipeline"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     artifacts: List[ArtifactORM] = relationship(
         "ArtifactORM", secondary=artifact_to_pipeline_table
     )

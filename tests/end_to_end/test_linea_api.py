@@ -221,3 +221,11 @@ num_versions = len(versions)
     assert res.values["num_versions"] == 0
     with pytest.raises(KeyError):
         assert res.artifacts["x"]
+
+def test_pipeline_simple(execute):
+
+    c = """import lineapy
+lineapy.create_pipeline([], "x", persist=True)
+x = lineapy.get_pipeline("x")"""
+    res = execute(c, snapshot=False)
+    assert res.values["x"].name == "x"
