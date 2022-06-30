@@ -1,8 +1,6 @@
 import pickle
 from pathlib import Path
 
-import pytest
-
 from lineapy.api.api import try_write_to_pickle
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.utils.config import options
