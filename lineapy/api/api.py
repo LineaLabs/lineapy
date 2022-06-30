@@ -278,9 +278,19 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     return linea_artifact
 
 
-def get_pipeline() -> Pipeline:
-    # TODO
-    pass
+def get_pipeline(name: str) -> Pipeline:
+
+    execution_context = get_context()
+    db = execution_context.executor.db
+
+    pipeline_orm = db.get_pipeline_by_name(name)
+
+    artifact_names = [
+        artifact.name
+        for artifact in pipeline_orm.artifacts
+        if artifact.name is not None
+    ]
+    return Pipeline(artifact_names, name)
 
 
 def reload() -> None:

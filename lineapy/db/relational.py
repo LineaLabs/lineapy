@@ -80,9 +80,7 @@ artifact_to_pipeline_table = Table(
 class PipelineORM(Base):
     __tablename__ = "pipeline"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(
-        String, nullable=False, default=ARTIFACT_NAME_PLACEHOLDER, unique=True
-    )
+    name = Column(String, nullable=False, unique=True)
     artifacts: List[ArtifactORM] = relationship(
         "ArtifactORM", secondary=artifact_to_pipeline_table
     )
