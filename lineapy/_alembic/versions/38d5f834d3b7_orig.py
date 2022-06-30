@@ -8,7 +8,7 @@ Create Date: 2022-06-27 18:10:07.339148
 import sqlalchemy as sa
 from alembic import op
 
-from lineapy.utils.migration import maybe_add_column, maybe_create_table
+from lineapy.utils.migration import ensure_column, ensure_table
 
 # revision identifiers, used by Alembic.
 revision = "38d5f834d3b7"
@@ -18,13 +18,13 @@ depends_on = None
 
 
 def upgrade() -> None:
-    maybe_create_table(
+    ensure_table(
         "execution",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("timestamp", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_create_table(
+    ensure_table(
         "source_code",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("code", sa.String(), nullable=True),
@@ -39,7 +39,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_create_table(
+    ensure_table(
         "node",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("session_id", sa.String(), nullable=True),
@@ -71,7 +71,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_create_table(
+    ensure_table(
         "session_context",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column(
@@ -91,8 +91,8 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_add_column("session_context", sa.Column("python_version", sa.String))
-    maybe_create_table(
+    ensure_column("session_context", sa.Column("python_version", sa.String))
+    ensure_table(
         "artifact",
         sa.Column("node_id", sa.String(), nullable=False),
         sa.Column("execution_id", sa.String(), nullable=False),
@@ -109,7 +109,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("node_id", "execution_id", "name", "version"),
     )
-    maybe_create_table(
+    ensure_table(
         "call_node",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("function_id", sa.String(), nullable=True),
@@ -123,7 +123,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_create_table(
+    ensure_table(
         "global_node",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("name", sa.String(), nullable=True),
@@ -138,7 +138,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_create_table(
+    ensure_table(
         "import_node",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("name", sa.String(), nullable=True),
@@ -151,7 +151,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_create_table(
+    ensure_table(
         "literal_assign_node",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column(
@@ -174,7 +174,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_create_table(
+    ensure_table(
         "lookup",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("name", sa.String(), nullable=False),
@@ -184,7 +184,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_create_table(
+    ensure_table(
         "mutate_node",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("source_id", sa.String(), nullable=True),
@@ -203,7 +203,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    maybe_create_table(
+    ensure_table(
         "node_value",
         sa.Column("node_id", sa.String(), nullable=False),
         sa.Column("execution_id", sa.String(), nullable=False),
@@ -227,7 +227,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("node_id", "execution_id"),
     )
-    maybe_create_table(
+    ensure_table(
         "global_reference",
         sa.Column("call_node_id", sa.String(), nullable=False),
         sa.Column("variable_node_id", sa.String(), nullable=False),
@@ -244,7 +244,7 @@ def upgrade() -> None:
             "call_node_id", "variable_node_id", "variable_name"
         ),
     )
-    maybe_create_table(
+    ensure_table(
         "implicit_dependency",
         sa.Column("call_node_id", sa.String(), nullable=False),
         sa.Column("arg_node_id", sa.String(), nullable=False),
@@ -259,7 +259,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("call_node_id", "arg_node_id", "index"),
     )
-    maybe_create_table(
+    ensure_table(
         "keyword_arg",
         sa.Column("call_node_id", sa.String(), nullable=False),
         sa.Column("arg_node_id", sa.String(), nullable=False),
@@ -275,7 +275,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("call_node_id", "arg_node_id", "name"),
     )
-    maybe_create_table(
+    ensure_table(
         "positional_arg",
         sa.Column("call_node_id", sa.String(), nullable=False),
         sa.Column("arg_node_id", sa.String(), nullable=False),

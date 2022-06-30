@@ -14,7 +14,7 @@ def table_exists(table, schema=None):
     return insp.has_table(table, schema)
 
 
-def maybe_create_table(name, *args, **kwargs):
+def ensure_table(name, *args, **kwargs):
     if not table_exists(name):
         op.create_table(name, *args, **kwargs)
 
@@ -28,6 +28,6 @@ def table_has_column(table, column):
     return any([column.name == col["name"] for col in insp.get_columns(table)])
 
 
-def maybe_add_column(table_name, column, *args, **kwargs):
+def ensure_column(table_name, column, *args, **kwargs):
     if not table_has_column(table_name, column):
         op.add_column(table_name, column, *args, **kwargs)
