@@ -79,11 +79,11 @@ class ArtifactDependencyORM(Base):
     __tablename__ = "dependency"
     id = Column(Integer, primary_key=True, autoincrement=True)
     pipeline_id = Column(Integer, ForeignKey("pipeline.id"), nullable=False)
-    artifact_id = Column(Integer, ForeignKey("artifact.id"), nullable=False)
-    sources: List[ArtifactORM] = relationship("ArtifactORM")
-
-
-# Pipeline ID, left artifact, right artifact list
+    post_artifact_id = Column(
+        Integer, ForeignKey("artifact.id"), nullable=False
+    )
+    post_artifact: ArtifactORM = relationship("ArtifactORM", uselist=False)
+    pre_artifacts: List[ArtifactORM] = relationship("ArtifactORM")
 
 
 class PipelineORM(Base):
@@ -92,6 +92,9 @@ class PipelineORM(Base):
     name = Column(String, nullable=False)
     artifacts: List[ArtifactORM] = relationship(
         "ArtifactORM", secondary=artifact_to_pipeline_table
+    )
+    dependencies: List[ArtifactDependencyORM] = relationship(
+        "ArtifactDependencyORM"
     )
 
 
@@ -114,6 +117,8 @@ class ArtifactORM(Base):
     )
     date_created = Column(DateTime, nullable=False)
     version = Column(Integer, nullable=False)
+
+    dependency_id = Column(Integer, ForeignKey("dependency.id"))
 
     node: BaseNodeORM = relationship(
         "BaseNodeORM", uselist=False, lazy="joined", innerjoin=True
