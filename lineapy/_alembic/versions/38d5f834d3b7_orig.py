@@ -8,7 +8,11 @@ Create Date: 2022-06-27 18:10:07.339148
 import sqlalchemy as sa
 from alembic import op
 
-from lineapy.utils.migration import ensure_column, ensure_table
+from lineapy.utils.migration import (
+    ensure_column,
+    ensure_table,
+    table_has_column,
+)
 
 # revision identifiers, used by Alembic.
 revision = "38d5f834d3b7"
@@ -91,7 +95,12 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    ensure_column("session_context", sa.Column("python_version", sa.String))
+    if not table_has_column("session_context", "python_version"):
+        op.add_column(
+            "session_context", sa.Column("python_version", sa.String)
+        )
+        op.execute('UPDATE session_context SET python_version = ""')
+
     ensure_table(
         "artifact",
         sa.Column("node_id", sa.String(), nullable=False),

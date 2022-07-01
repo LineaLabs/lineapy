@@ -25,9 +25,9 @@ def table_has_column(table, column):
         config.get_section(config.config_ini_section), prefix="sqlalchemy."
     )
     insp = inspect(engine)
-    return any([column.name == col["name"] for col in insp.get_columns(table)])
+    return any([column == col["name"] for col in insp.get_columns(table)])
 
 
 def ensure_column(table_name, column, *args, **kwargs):
-    if not table_has_column(table_name, column):
+    if not table_has_column(table_name, column.name):
         op.add_column(table_name, column, *args, **kwargs)
