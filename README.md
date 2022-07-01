@@ -10,6 +10,7 @@
 
 [![Twitter](https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter)](https://twitter.com/lineapy_oss) 
 [![Youtube](https://img.shields.io/badge/Youtube-LineaPy%20Biweekly%20Workshop%20Recordings-white.svg?logo=YouTube&logoColor=white&labelColor=FF0000)](https://www.youtube.com/channel/UCn0Ocjh8q5g02hwH2GVTzlw/playlists)
+
 [![Slack](https://img.shields.io/badge/slack-Join%20our%20Slack%20to%20stay%20updated%20on%20the%20latest%20features%20and%20events-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40)](https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q) 
 
 LineaPy is a Python package for capturing, analyzing, and automating data science workflows.
@@ -17,8 +18,8 @@ At a high level, LineaPy traces the sequence of code execution to form a compreh
 of the code and its context. This understanding allows LineaPy to provide a set of tools that help
 data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
-<p align="center">
-    <b style="font-size:96px;">👇 Try It Out! 👇</b>
+<p align="center" style="font-size:96px;">
+    👇 Try It Out! 👇
 </p>
 <p align="center">
     <a href="https://bit.ly/3N9WvDB"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
