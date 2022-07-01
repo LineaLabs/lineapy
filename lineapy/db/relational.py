@@ -74,7 +74,17 @@ artifact_to_pipeline_table = Table(
     Column("artifact_id", ForeignKey("artifact.id")),
 )
 
+
+class ArtifactDependencyORM(Base):
+    __tablename__ = "dependency"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pipeline_id = Column(Integer, ForeignKey("pipeline.id"), nullable=False)
+    artifact_id = Column(Integer, ForeignKey("artifact.id"), nullable=False)
+    sources: List[ArtifactORM] = relationship("ArtifactORM")
+
+
 # Pipeline ID, left artifact, right artifact list
+
 
 class PipelineORM(Base):
     __tablename__ = "pipeline"

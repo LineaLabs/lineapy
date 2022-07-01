@@ -222,6 +222,7 @@ num_versions = len(versions)
     with pytest.raises(KeyError):
         assert res.artifacts["x"]
 
+
 def test_pipeline_simple(execute):
 
     c = """import lineapy
