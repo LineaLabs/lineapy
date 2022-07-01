@@ -18,9 +18,14 @@ At a high level, LineaPy traces the sequence of code execution to form a compreh
 of the code and its context. This understanding allows LineaPy to provide a set of tools that help
 data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
-<div align="center" style="font-size:96px;">
+<style>
+font{
+    font-size:96px;
+}
+</style>
+<font align="center">
     👇 Try It Out! 👇
-</div>
+</font>
 <p align="center">
     <a href="https://bit.ly/3N9WvDB"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
     <a href="https://bit.ly/3MyW8RW"><img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/></a>    
