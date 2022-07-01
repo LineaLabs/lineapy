@@ -34,6 +34,7 @@ class Graph(object):
                 (parent_id, node.id)
                 for node in nodes
                 for parent_id in node.parents()
+                if parent_id in set(self.ids.keys())
             ]
         )
 
