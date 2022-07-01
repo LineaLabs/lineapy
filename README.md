@@ -19,14 +19,8 @@ of the code and its context. This understanding allows LineaPy to provide a set 
 data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
 
-font{
-    font-size:96px;
-}
-
-<font align="center">
-    👇 Try It Out! 👇
-</font>
 <p align="center">
+    <img src="try.png"></img>
     <a href="https://bit.ly/3N9WvDB"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
     <a href="https://bit.ly/3MyW8RW"><img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/></a>    
 </p>
