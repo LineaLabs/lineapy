@@ -5,10 +5,12 @@
 ![Python Versions](https://img.shields.io/badge/Python--versions-3.7%20%7C%203.8%20%7C%203.9-brightgreen)
 [![Build](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml/badge.svg)](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml)
 [![Documentation Status](https://readthedocs.com/projects/lineapy-org-lineapy/badge/?version=latest&token=925cd1d5eaedb7cc60508c9cce377574da748a7d6c050bb2c3de2a360a9f4f20)](https://docs.lineapy.org/en/latest/?badge=latest)
-[![Slack](https://img.shields.io/badge/slack-@lineapy--community-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40)](https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?logo=apache)](https://github.com/LineaLabs/lineapy/blob/main/LICENSE.txt)
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
-[![Twitter](https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter)](https://twitter.com/lineapy_oss)
+
+[![Twitter](https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter)](https://twitter.com/lineapy_oss) 
+[![Youtube](https://img.shields.io/badge/Youtube-LineaPy%20Biweekly%20Workshop%20Recordings-white.svg?logo=YouTube&logoColor=white&labelColor=FF0000)](https://www.youtube.com/channel/UCn0Ocjh8q5g02hwH2GVTzlw/playlists)
+[![Slack](https://img.shields.io/badge/slack-Join%20our%20Slack%20to%20stay%20updated%20on%20the%20latest%20features%20and%20events-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40)](https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q) 
 
 LineaPy is a Python package for capturing, analyzing, and automating data science workflows.
 At a high level, LineaPy traces the sequence of code execution to form a comprehensive understanding
@@ -16,7 +18,7 @@ of the code and its context. This understanding allows LineaPy to provide a set 
 data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
 <p align="center">
-    <b style="font-size:48px;">👇 Try It Out! 👇</b>
+    <b style="font-size:144px;">👇 Try It Out! 👇</b>
     <br>
     <a href="https://bit.ly/3N9WvDB"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
     <a href="https://bit.ly/3MyW8RW"><img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/></a>    
