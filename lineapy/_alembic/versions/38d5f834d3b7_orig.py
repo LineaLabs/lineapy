@@ -8,11 +8,7 @@ Create Date: 2022-06-27 18:10:07.339148
 import sqlalchemy as sa
 from alembic import op
 
-from lineapy.utils.migration import (
-    ensure_column,
-    ensure_table,
-    table_has_column,
-)
+from lineapy.utils.migration import ensure_table, table_has_column
 
 # revision identifiers, used by Alembic.
 revision = "38d5f834d3b7"
