@@ -3,13 +3,13 @@ import logging
 from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Optional, Set
 
 import networkx as nx
 
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID
+from lineapy.data.types import LineaID, Node
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
@@ -112,7 +112,7 @@ class SessionArtifacts:
     graph_segments: List[GraphSegment]
     artifact_list: List[LineaArtifact]
     artifact_ordering: List
-    artifact_dict: OrderedDict[LineaID, str]
+    artifact_dict: Dict[LineaID, Optional[str]]
     variable_dict: OrderedDict[LineaID, Set[str]]
     node_context: Dict[LineaID, Dict[str, Any]]
 
@@ -182,9 +182,14 @@ class SessionArtifacts:
         Return the subgraph from list of node id
         """
 
-        return self.graph.get_subgraph(
-            [self.graph.get_node(node_id) for node_id in node_list]
-        )
+        # Fix me, ugly code to satisfy type checking
+        nodes: List[Node] = []
+        for node_id in node_list:
+            node = self.graph.get_node(node_id)
+            if node is not None:
+                nodes.append(node)
+
+        return self.graph.get_subgraph(nodes)
 
     def _get_involved_variables_from_node_list(
         self, node_list
