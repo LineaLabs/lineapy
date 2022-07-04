@@ -83,18 +83,19 @@ class GraphSegment:
 
         return f"def get_{artifact_name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
 
-    def get_function_call_block(self, keep_lineapy_save=False) -> str:
+    def get_function_call_block(
+        self, indentation=0, keep_lineapy_save=False
+    ) -> str:
         """
         Return a codeblock to call the function with return variables
         """
+        indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
         args_string = ",".join(self.input_variables)
 
-        codeblock = (
-            f"{return_string} = get_{self.artifact_safename}({args_string})"
-        )
+        codeblock = f"{indentation_block}{return_string} = get_{self.artifact_safename}({args_string})"
         if keep_lineapy_save:
-            codeblock += f"\nlineapy.save({self.return_variables[0]}, '{self.artifact_name}')"
+            codeblock += f"\n{indentation_block}lineapy.save({self.return_variables[0]}, '{self.artifact_name}')"
 
         return codeblock
 
@@ -113,7 +114,7 @@ class SessionArtifacts:
     artifact_list: List[LineaArtifact]
     artifact_ordering: List
     artifact_dict: Dict[LineaID, Optional[str]]
-    variable_dict: OrderedDict[LineaID, Set[str]]
+    variable_dict: OrderedDict[LineaID, Set]
     node_context: Dict[LineaID, Dict[str, Any]]
 
     def __init__(self, artifacts: List[LineaArtifact]) -> None:
@@ -477,13 +478,9 @@ class SessionArtifacts:
 
         calculation_codeblock = "\n".join(
             [
-                "\n".join(
-                    [
-                        f"{indentation_block}{row}"
-                        for row in graph_seg.get_function_call_block(
-                            keep_lineapy_save=keep_lineapy_save
-                        ).split("\n")
-                    ]
+                graph_seg.get_function_call_block(
+                    indentation=indentation,
+                    keep_lineapy_save=keep_lineapy_save,
                 )
                 for graph_seg in self.graph_segments
             ]
