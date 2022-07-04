@@ -1,6 +1,9 @@
 import logging
 from dataclasses import dataclass
+from itertools import chain
 from typing import Dict, List, Tuple, Union
+
+import networkx as nx
 
 from lineapy.api.api import get
 from lineapy.api.api_classes import LineaArtifact
@@ -65,11 +68,41 @@ class ArtifactCollection:
                 session_artifacts
             )
 
+    def _check_acyclic_graph(self, dependencies: TaskGraphEdge = {}) -> bool:
+        # Construct a combined graph across multiple sessions
+        combined_graph = nx.DiGraph()
+        for session_artifacts in self.session_artifacts.values():
+            session_graph = session_artifacts.graph.nx_graph
+            combined_graph.add_nodes_from(session_graph.nodes)
+            combined_graph.add_edges_from(session_graph.edges)
+
+        # Add user-provided dependency info
+        dependency_edges = list(
+            chain.from_iterable(
+                (
+                    (
+                        self.artifact_node_id.get(node, None),
+                        self.artifact_node_id.get(to_node, None),
+                    )
+                    for node in from_node
+                )
+                for to_node, from_node in dependencies.items()
+            )
+        )
+        if None in list(chain.from_iterable(dependency_edges)):
+            raise KeyError(
+                "Dependency graph includes artifacts not in this artifact collection."
+            )
+        combined_graph.add_edges_from(dependency_edges)
+
+        return nx.is_directed_acyclic_graph(combined_graph)
+
     def generate_python_modules(
         self, dependencies: TaskGraphEdge = {}, keep_lineapy_save: bool = False
     ) -> dict:
-        # TODO: Take in task dependency as user input and check it is acyclic
-        dependencies
+        # Check if the graph is acyclic
+        if self._check_acyclic_graph(dependencies) is False:
+            raise Exception("Provided dependencies result in a cyclic graph.")
 
         # Initiate main module (which imports and combines session modules)
         main_module_dict = {
