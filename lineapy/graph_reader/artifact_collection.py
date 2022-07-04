@@ -9,6 +9,7 @@ from lineapy.graph_reader.graph_refactorer import (
     GraphSegmentType,
     SessionArtifacts,
 )
+from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -24,22 +25,36 @@ class ArtifactCollection:
 
     artifacts_by_session: Dict[LineaID, List[LineaArtifact]]
     session_artifacts: Dict[LineaID, SessionArtifacts]
+    artifact_node_id: Dict[str, LineaID]
 
     def __init__(self, artifacts=List[Union[str, Tuple[str, int]]]) -> None:
         self.artifacts_by_session = {}
         self.session_artifacts = {}
+        self.artifact_node_id = {}
 
         # Retrieve artifact objects and group them by session ID
-        for art_name in artifacts:
+        for art_entry in artifacts:
+            # Construct args for artifact retrieval
+            args = {}
+            if isinstance(art_entry, str):
+                args["artifact_name"] = art_entry
+            elif isinstance(art_entry, tuple):
+                args["artifact_name"] = art_entry[0]
+                args["version"] = art_entry[1]
+            else:
+                raise ValueError(
+                    "An artifact should be passed in as a string or (string, integer) tuple."
+                )
+
+            # Retrieve artifact
             try:
-                if isinstance(art_name, str):
-                    art = get(art_name)
-                elif isinstance(art_name, tuple):
-                    art = get(art_name[0], version=art_name[1])
+                art = get(**args)
+                self.artifact_node_id[args["artifact_name"]] = art._node_id
             except Exception as e:
-                logger.error("Cannot retrive artifact %s", art_name)
+                logger.error("Cannot retrive artifact %s", art_entry)
                 raise Exception(e)
 
+            # Put artifact in the right session group
             self.artifacts_by_session[
                 art._session_id
             ] = self.artifacts_by_session.get(art._session_id, []) + [art]
@@ -50,8 +65,11 @@ class ArtifactCollection:
                 session_artifacts
             )
 
-    def generate_python_modules(self, keep_lineapy_save: bool = False):
+    def generate_python_modules(
+        self, dependencies: TaskGraphEdge = {}, keep_lineapy_save: bool = False
+    ) -> dict:
         # TODO: Take in task dependency as user input and check it is acyclic
+        dependencies
 
         # Initiate main module (which imports and combines session modules)
         main_module_dict = {
