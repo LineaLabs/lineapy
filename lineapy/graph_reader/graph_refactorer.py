@@ -114,7 +114,7 @@ class SessionArtifacts:
     artifact_list: List[LineaArtifact]
     artifact_ordering: List
     artifact_dict: Dict[LineaID, Optional[str]]
-    variable_dict: OrderedDict[LineaID, Set]
+    variable_dict: Dict[LineaID, Set[str]]
     node_context: Dict[LineaID, Dict[str, Any]]
 
     def __init__(self, artifacts: List[LineaArtifact]) -> None:
