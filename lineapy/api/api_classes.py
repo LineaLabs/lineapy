@@ -122,7 +122,8 @@ class LineaArtifact:
         self,
         use_lineapy_serialization: bool = True,
         keep_lineapy_save: bool = False,
-    ) -> str:
+        new_cell: bool = False,
+    ) -> str | None:
         """
         Return the slices code for the artifact
 
@@ -132,6 +133,7 @@ class LineaArtifact:
                 Currently, we use the native ``pickle`` serializer.
         :param keep_lineapy_save: Whether to retain ``lineapy.save()`` in code slice.
                 Defaults to ``False``.
+        :param new_cell: Whether to create a new IPython cell or not.
 
         """
         # FIXME: this seems a little heavy to just get the slice?
@@ -146,7 +148,26 @@ class LineaArtifact:
         )
         if not use_lineapy_serialization:
             code = de_lineate_code(code, self.db)
-        return prettify(code)
+
+        pretty_code = prettify(code)
+        if new_cell:
+            # https://stackoverflow.com/a/54987401
+            def create_new_cell(contents):
+                from IPython.core.getipython import get_ipython
+
+                shell = get_ipython()
+
+                payload = dict(
+                    source="set_next_input",
+                    text=contents,
+                    replace=False,
+                )
+                shell.payload_manager.write_payload(payload, single=False)
+
+            create_new_cell(pretty_code)
+            return
+        else:
+            return pretty_code
 
     @lru_cache(maxsize=None)
     def get_session_code(self, use_lineapy_serialization=True) -> str:
