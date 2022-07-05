@@ -75,17 +75,6 @@ artifact_to_pipeline_table = Table(
 )
 
 
-class ArtifactDependencyORM(Base):
-    __tablename__ = "dependency"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    pipeline_id = Column(Integer, ForeignKey("pipeline.id"), nullable=False)
-    post_artifact_id = Column(
-        Integer, ForeignKey("artifact.id"), nullable=False
-    )
-    post_artifact: ArtifactORM = relationship("ArtifactORM", uselist=False)
-    pre_artifacts: List[ArtifactORM] = relationship("ArtifactORM")
-
-
 class PipelineORM(Base):
     __tablename__ = "pipeline"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -94,7 +83,8 @@ class PipelineORM(Base):
         "ArtifactORM", secondary=artifact_to_pipeline_table
     )
     dependencies: List[ArtifactDependencyORM] = relationship(
-        "ArtifactDependencyORM", lazy="join"
+        "ArtifactDependencyORM",
+        lazy="joined",
     )
 
 
@@ -137,6 +127,24 @@ class ArtifactORM(Base):
             "execution_id",
             name="_unique_artifact_name_for_a_node_id_and_exec_id",
         ),
+    )
+
+
+class ArtifactDependencyORM(Base):
+    __tablename__ = "dependency"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pipeline_id = Column(Integer, ForeignKey("pipeline.id"), nullable=False)
+    post_artifact_id = Column(
+        Integer, ForeignKey("artifact.id"), nullable=False
+    )
+    post_artifact: ArtifactORM = relationship(
+        "ArtifactORM",
+        uselist=False,
+        lazy="joined",
+        foreign_keys=[post_artifact_id],
+    )
+    pre_artifacts: List[ArtifactORM] = relationship(
+        "ArtifactORM", lazy="joined", foreign_keys=[ArtifactORM.dependency_id]
     )
 
 
