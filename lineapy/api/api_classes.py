@@ -36,6 +36,19 @@ from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 
+# https://stackoverflow.com/a/54987401
+def create_new_cell(contents: str):
+    from IPython.core.getipython import get_ipython
+
+    shell = get_ipython()
+
+    payload = dict(
+        source="set_next_input",
+        text=contents,
+        replace=False,
+    )
+    shell.payload_manager.write_payload(payload)
+
 
 @dataclass
 class LineaArtifact:
@@ -151,21 +164,8 @@ class LineaArtifact:
 
         pretty_code = prettify(code)
         if new_cell:
-            # https://stackoverflow.com/a/54987401
-            def create_new_cell(contents):
-                from IPython.core.getipython import get_ipython
-
-                shell = get_ipython()
-
-                payload = dict(
-                    source="set_next_input",
-                    text=contents,
-                    replace=False,
-                )
-                shell.payload_manager.write_payload(payload, single=False)
-
             create_new_cell(pretty_code)
-            return
+            return None
         else:
             return pretty_code
 
