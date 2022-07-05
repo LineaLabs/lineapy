@@ -36,6 +36,7 @@ from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 
+
 # https://stackoverflow.com/a/54987401
 def create_new_cell(contents: str):
     from IPython.core.getipython import get_ipython
