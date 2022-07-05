@@ -47,6 +47,7 @@ class SessionContext(BaseModel):
 
     id: LineaID  # populated on creation by uuid.uuid4()
     environment_type: SessionType
+    python_version: str
     creation_time: datetime.datetime
     working_directory: str  # must be passed in for now
     session_name: Optional[str] = None
@@ -412,6 +413,15 @@ class GlobalNode(BaseNode):
 Node = Union[
     ImportNode, CallNode, LiteralNode, LookupNode, MutateNode, GlobalNode
 ]
+
+
+class AssignedVariable:
+    """
+    For local variables, this is the node that is assigned to.
+    """
+
+    node_id: LineaID
+    assigned_variable: str
 
 
 class PipelineType(Enum):

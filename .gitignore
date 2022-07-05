@@ -116,6 +116,12 @@ ENV/
 env.bak/
 venv.bak/
 .idea/
+lineapy/bin
+lineapy/etc
+lineapy/include
+lineapy/lib64
+lineapy/pyvenv.cfg
+lineapy/share
 
 # Spyder project settings
 .spyderproject

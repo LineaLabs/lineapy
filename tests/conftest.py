@@ -307,6 +307,36 @@ def move_folder(request):
         shutil.move(old_path_str, current_path_str)
 
 
+@pytest.fixture(autouse=True)
+def move_artifact_storage_dir():
+
+    current_path = Path(options.safe_get("artifact_storage_dir"))
+    current_path_str = str(current_path.resolve())
+    old_path = current_path.parent.joinpath(current_path.name + ".old")
+    old_path_str = str(old_path.resolve())
+
+    # If folder exists already, the test was canceled
+    # early previously. Clean up folder from
+    # previous run.
+    if old_path.exists():
+        shutil.rmtree(current_path_str, ignore_errors=True)
+    else:
+        shutil.move(current_path_str, old_path_str)
+
+    # create temp pickle folder to ensure debug message from
+    # folder creation in options does not cause tests in
+    # test_script to fail
+    current_path.mkdir(parents=True, exist_ok=True)
+
+    yield
+
+    # clean up test-generated directories
+    if current_path.exists():
+        shutil.rmtree(current_path_str)
+    if old_path.exists():
+        shutil.move(old_path_str, current_path_str)
+
+
 @pytest.fixture
 @patch("lineapy.api.api.try_write_to_pickle", return_value=None)
 @patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
