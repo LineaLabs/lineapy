@@ -165,6 +165,8 @@ class LineaArtifact:
 
         pretty_code = prettify(code)
         if new_cell:
+            # remove trailing newline
+            pretty_code = pretty_code.rstrip()
             create_new_cell(pretty_code)
             return None
         else:
