@@ -10,6 +10,7 @@ def test_artifact_storage_dir_type():
     """
     Making sure the path we are setting is correct typing, so pandas.io.common.get_handler can process it correctly.
     """
+    old_artifact_storage_dir = options.safe_get("artifact_storage_dir")
     options.set(
         "artifact_storage_dir",
         "/tmp/somelineapytestprefix/",
@@ -27,3 +28,5 @@ def test_artifact_storage_dir_type():
         url_to_fs(str(options.safe_get("artifact_storage_dir")))[0],
         LocalFileSystem,
     )
+
+    options.set("artifact_storage_dir", old_artifact_storage_dir)
