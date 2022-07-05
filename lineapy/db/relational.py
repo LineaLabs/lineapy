@@ -94,7 +94,7 @@ class PipelineORM(Base):
         "ArtifactORM", secondary=artifact_to_pipeline_table
     )
     dependencies: List[ArtifactDependencyORM] = relationship(
-        "ArtifactDependencyORM"
+        "ArtifactDependencyORM", lazy="join"
     )
 
 

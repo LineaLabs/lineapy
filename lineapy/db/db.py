@@ -28,6 +28,7 @@ from lineapy.data.types import (
     SourceLocation,
 )
 from lineapy.db.relational import (
+    ArtifactDependencyORM,
     ArtifactORM,
     Base,
     BaseNodeORM,
@@ -275,7 +276,11 @@ class RelationalLineaDB:
         self.session.add(artifact_orm)
         self.renew_session()
 
-    def write_pipeline(self, pipeline: PipelineORM) -> None:
+    def write_pipeline(
+        self, dependencies: List[ArtifactDependencyORM], pipeline: PipelineORM
+    ) -> None:
+        for dep in dependencies:
+            self.session.add(dep)
         self.session.add(pipeline)
         self.renew_session()
 

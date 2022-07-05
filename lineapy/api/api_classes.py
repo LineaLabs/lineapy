@@ -16,7 +16,12 @@ from lineapy.api.api_utils import de_lineate_code, extract_taskgraph
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID, PipelineType
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import ArtifactORM, PipelineORM, SessionContextORM
+from lineapy.db.relational import (
+    ArtifactDependencyORM,
+    ArtifactORM,
+    PipelineORM,
+    SessionContextORM,
+)
 from lineapy.execution.context import get_context
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
@@ -291,6 +296,7 @@ class Pipeline:
             artifacts, dependencies
         )
         self.name = name or "_".join(self.artifact_safe_names)
+        self.dependencies = dependencies
         self.artifact_names: List[str] = artifacts
         self.id = get_new_id()
 
@@ -362,7 +368,19 @@ class Pipeline:
             db.get_artifact_by_name(artifact_name)
             for artifact_name in self.artifact_names
         ]
+
+        art_deps_to_save = []
+        for post_artifact, pre_artifacts in self.dependencies.items():
+            post_to_save = db.get_artifact_by_name(post_artifact)
+            pre_to_save = [db.get_artifact_by_name(a) for a in pre_artifacts]
+            art_dep_to_save = ArtifactDependencyORM(
+                post_artifact=post_to_save, pre_artifacts=pre_to_save
+            )
+            art_deps_to_save.append(art_dep_to_save)
+
         pipeline_to_write = PipelineORM(
-            name=self.name, artifacts=artifacts_to_save
+            name=self.name,
+            artifacts=artifacts_to_save,
+            dependencies=art_deps_to_save,
         )
-        db.write_pipeline(pipeline_to_write)
+        db.write_pipeline(art_deps_to_save, pipeline_to_write)
