@@ -227,7 +227,6 @@ a = 10
 b = 20
 lineapy.save(a, "a")
 lineapy.save(b, "b")
-b = 20
 lineapy.create_pipeline(["a", "b"], "x", persist=True)
 x = lineapy.get_pipeline("x")"""
     res = execute(c, snapshot=False)
@@ -281,3 +280,20 @@ y = lineapy.get_pipeline("y")"""
     arts_y = res.values["y"].artifact_names
     assert len(arts_y) == 1
     assert "b" in arts_y
+
+
+def test_pipeline_deps_simple(execute):
+    c = """import lineapy
+a = 10
+b = 20
+lineapy.save(a, "a")
+lineapy.save(b, "b")
+dep = {"a": {"b"}}
+lineapy.create_pipeline(["a", "b"], "x", persist=True, dependencies=dep)
+x = lineapy.get_pipeline("x")"""
+    res = execute(c, snapshot=False)
+    assert res.values["x"].name == "x"
+    deps = res.values["x"].dependencies
+    assert len(deps) == 1
+    assert len(deps["a"]) == 1
+    assert "b" in deps["a"]

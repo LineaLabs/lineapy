@@ -126,6 +126,7 @@ class ArtifactORM(Base):
             "name",
             "node_id",
             "execution_id",
+            "version",
             name="_unique_artifact_name_for_a_node_id_and_exec_id",
         ),
     )
