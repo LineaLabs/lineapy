@@ -26,14 +26,12 @@ class ArtifactCollection:
     such as graph refactor for pipeline building.
     """
 
-    artifacts_by_session: Dict[LineaID, List[LineaArtifact]]
-    session_artifacts: Dict[LineaID, SessionArtifacts]
-    artifact_node_id: Dict[str, LineaID]
-
     def __init__(self, artifacts=List[Union[str, Tuple[str, int]]]) -> None:
-        self.artifacts_by_session = {}
-        self.session_artifacts = {}
-        self.artifact_node_id = {}
+        self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
+        self.art_name_to_node_id: Dict[str, LineaID] = {}
+        self.node_id_to_session_id: Dict[LineaID, LineaID] = {}
+
+        artifacts_by_session: Dict[LineaID, List[LineaArtifact]] = {}
 
         # Retrieve artifact objects and group them by session ID
         for art_entry in artifacts:
@@ -52,23 +50,31 @@ class ArtifactCollection:
             # Retrieve artifact
             try:
                 art = get(**args)
-                self.artifact_node_id[args["artifact_name"]] = art._node_id
+                self.art_name_to_node_id[args["artifact_name"]] = art._node_id
+                self.node_id_to_session_id[art._node_id] = art._session_id
             except Exception as e:
                 logger.error("Cannot retrive artifact %s", art_entry)
                 raise Exception(e)
 
             # Put artifact in the right session group
-            self.artifacts_by_session[
-                art._session_id
-            ] = self.artifacts_by_session.get(art._session_id, []) + [art]
+            artifacts_by_session[art._session_id] = artifacts_by_session.get(
+                art._session_id, []
+            ) + [art]
 
         # For each session, construct SessionArtifacts object
-        for session_id, session_artifacts in self.artifacts_by_session.items():
+        for session_id, session_artifacts in artifacts_by_session.items():
             self.session_artifacts[session_id] = SessionArtifacts(
                 session_artifacts
             )
 
-    def _check_acyclic_graph(self, dependencies: TaskGraphEdge = {}) -> bool:
+    def _sort_session_artifacts(
+        self, dependencies: TaskGraphEdge = {}
+    ) -> List[SessionArtifacts]:
+        """
+        Use the user-provided artifact dependencies to
+        topologically sort a list of SessionArtifacts objects.
+        Raise an exception if the graph contains a cycle.
+        """
         # Construct a combined graph across multiple sessions
         combined_graph = nx.DiGraph()
         for session_artifacts in self.session_artifacts.values():
@@ -76,17 +82,17 @@ class ArtifactCollection:
             combined_graph.add_nodes_from(session_graph.nodes)
             combined_graph.add_edges_from(session_graph.edges)
 
-        # Add user-provided dependency info
+        # Augment the graph with user-specified edges
         dependency_edges = list(
             chain.from_iterable(
                 (
                     (
-                        self.artifact_node_id.get(node, None),
-                        self.artifact_node_id.get(to_node, None),
+                        self.art_name_to_node_id.get(artname, None),
+                        self.art_name_to_node_id.get(to_artname, None),
                     )
-                    for node in from_node
+                    for artname in from_artname
                 )
-                for to_node, from_node in dependencies.items()
+                for to_artname, from_artname in dependencies.items()
             )
         )
         if None in list(chain.from_iterable(dependency_edges)):
@@ -95,15 +101,72 @@ class ArtifactCollection:
             )
         combined_graph.add_edges_from(dependency_edges)
 
-        return nx.is_directed_acyclic_graph(combined_graph)
-
-    def generate_python_modules(
-        self, dependencies: TaskGraphEdge = {}, keep_lineapy_save: bool = False
-    ) -> dict:
         # Check if the graph is acyclic
-        if self._check_acyclic_graph(dependencies) is False:
+        if nx.is_directed_acyclic_graph(combined_graph) is False:
             raise Exception("Provided dependencies result in a cyclic graph.")
 
+        # Identify topological ordering between sessions
+        session_id_nodes = list(self.session_artifacts.keys())
+        session_id_edges = [
+            (
+                self.node_id_to_session_id.get(node_id, None),
+                self.node_id_to_session_id.get(to_node_id, None),
+            )
+            for node_id, to_node_id in dependency_edges
+        ]
+        inter_session_graph = nx.DiGraph()
+        inter_session_graph.add_nodes_from(session_id_nodes)
+        inter_session_graph.add_edges_from(session_id_edges)
+        session_id_sorted = list(nx.topological_sort(inter_session_graph))
+
+        return [
+            self.session_artifacts[session_id]
+            for session_id in session_id_sorted
+        ]
+
+    def generate_pipeline_files(
+        self,
+        framework: str = "SCRIPT",
+        dependencies: TaskGraphEdge = {},
+        keep_lineapy_save: bool = False,
+    ):
+        # Sort SessionArtifacts objects topologically
+        session_artifacts_sorted = self._sort_session_artifacts(
+            dependencies=dependencies
+        )
+
+        session_module_dict = self._write_session_modules(
+            session_artifacts_sorted, keep_lineapy_save
+        )
+        dag_module_dict = self._write_script_dag(
+            session_artifacts_sorted, keep_lineapy_save
+        )
+
+        return {**session_module_dict, **dag_module_dict}
+
+    def _write_session_modules(
+        self,
+        session_artifacts_sorted: List[SessionArtifacts],
+        keep_lineapy_save: bool,
+    ):
+        files_dict = {}
+        for session_artifacts in session_artifacts_sorted:
+            # Generate session module code
+            first_art_name = session_artifacts.graph_segments[0].artifact_name
+            module_name = f"session_including_artifact_{first_art_name}"
+            files_dict[
+                module_name
+            ] = session_artifacts.get_session_module_definition(
+                indentation=4, keep_lineapy_save=keep_lineapy_save
+            )
+
+        return files_dict
+
+    def _write_script_dag(
+        self,
+        session_artifacts_sorted: List[SessionArtifacts],
+        keep_lineapy_save: bool,
+    ):
         # Initiate main module (which imports and combines session modules)
         main_module_dict = {
             "import_lines": [],
@@ -111,16 +174,11 @@ class ArtifactCollection:
             "return_varnames": [],
         }
 
-        python_modules = {}
-        for session_artifacts in self.session_artifacts.values():
+        files_dict = {}
+        for session_artifacts in session_artifacts_sorted:
             # Generate session module code
             first_art_name = session_artifacts.graph_segments[0].artifact_name
             module_name = f"session_including_artifact_{first_art_name}"
-            python_modules[
-                module_name
-            ] = session_artifacts.get_session_module_definition(
-                indentation=4, keep_lineapy_save=keep_lineapy_save
-            )
 
             # Generate import statements for main module
             func_names = [
@@ -152,8 +210,8 @@ class ArtifactCollection:
         imports = "\n".join(main_module_dict["import_lines"])
         calculations = "\n".join(main_module_dict["calculation_lines"])
         returns = ", ".join(main_module_dict["return_varnames"])
-        python_modules[
-            "main"
+        files_dict[
+            "script_dag"
         ] = f"""
 {imports}
 
@@ -165,4 +223,4 @@ if __name__=='__main__':
     pipeline()
 """
 
-        return python_modules
+        return files_dict
