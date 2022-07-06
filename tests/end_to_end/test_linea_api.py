@@ -219,3 +219,65 @@ lineapy.create_pipeline([], "x", persist=True)
 x = lineapy.get_pipeline("x")"""
     res = execute(c, snapshot=False)
     assert res.values["x"].name == "x"
+
+
+def test_pipeline_complex(execute):
+    c = """import lineapy
+a = 10
+b = 20
+lineapy.save(a, "a")
+lineapy.save(b, "b")
+b = 20
+lineapy.create_pipeline(["a", "b"], "x", persist=True)
+x = lineapy.get_pipeline("x")"""
+    res = execute(c, snapshot=False)
+    assert res.values["x"].name == "x"
+    arts = res.values["x"].artifact_names
+    assert len(arts) == 2
+    assert "a" in arts
+    assert "b" in arts
+
+
+def test_two_pipelines_simple(execute):
+
+    c = """import lineapy
+a = 10
+b = 20
+lineapy.save(a, "a")
+lineapy.save(b, "b")
+lineapy.create_pipeline(["a"], "x", persist=True)
+lineapy.create_pipeline(["b"], "y", persist=True)
+x = lineapy.get_pipeline("x")
+y = lineapy.get_pipeline("y")"""
+    res = execute(c, snapshot=False)
+    assert res.values["x"].name == "x"
+    assert res.values["y"].name == "y"
+    arts_x = res.values["x"].artifact_names
+    assert len(arts_x) == 1
+    assert "a" in arts_x
+    arts_y = res.values["y"].artifact_names
+    assert len(arts_y) == 1
+    assert "b" in arts_y
+
+
+def test_two_pipelines_complex(execute):
+
+    c = """import lineapy
+a = 10
+b = 20
+lineapy.save(a, "a")
+lineapy.save(b, "b")
+lineapy.create_pipeline(["a", "b"], "x", persist=True)
+lineapy.create_pipeline(["b"], "y", persist=True)
+x = lineapy.get_pipeline("x")
+y = lineapy.get_pipeline("y")"""
+    res = execute(c, snapshot=False)
+    assert res.values["x"].name == "x"
+    assert res.values["y"].name == "y"
+    arts_x = res.values["x"].artifact_names
+    assert len(arts_x) == 2
+    assert "a" in arts_x
+    assert "b" in arts_x
+    arts_y = res.values["y"].artifact_names
+    assert len(arts_y) == 1
+    assert "b" in arts_y
