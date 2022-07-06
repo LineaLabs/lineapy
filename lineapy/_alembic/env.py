@@ -10,19 +10,6 @@ from lineapy.db.relational import Base
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-# NOTE: custom code in env.py
-# lp_install_dir = Path(__file__).resolve().parent.parent
-# ...to point alembic to lineapy db
-# config.set_main_option(
-#     "script_location",
-#     # (lp_install_dir / "alembic").as_posix(),
-#     "lineapy:alembic",
-# )
-# ...to run alembic from lineapy install directory, which contains alembic data
-# config.set_main_option(
-#     "sqlalchemy.url",
-#     options.database_url,
-# )
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
