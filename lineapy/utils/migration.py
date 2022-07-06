@@ -4,11 +4,12 @@
 from alembic import op
 from sqlalchemy import engine_from_config, inspect
 
+from lineapy.utils.config import options
+
 
 def table_exists(table, schema=None):
-    config = op.get_context().config
     engine = engine_from_config(
-        config.get_section(config.config_ini_section), prefix="sqlalchemy."
+        {"sqlalchemy.url": options.database_url}, prefix="sqlalchemy."
     )
     insp = inspect(engine)
     return insp.has_table(table, schema)
@@ -20,9 +21,8 @@ def ensure_table(name, *args, **kwargs):
 
 
 def table_has_column(table, column):
-    config = op.get_context().config
     engine = engine_from_config(
-        config.get_section(config.config_ini_section), prefix="sqlalchemy."
+        {"sqlalchemy.url": options.database_url}, prefix="sqlalchemy."
     )
     insp = inspect(engine)
     return any([column == col["name"] for col in insp.get_columns(table)])
