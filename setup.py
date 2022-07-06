@@ -55,6 +55,7 @@ minimal_requirement = [
     "requests",
     "fsspec",
     "pandas",
+    "alembic==1.8.0",
 ]
 
 graph_libs = [
