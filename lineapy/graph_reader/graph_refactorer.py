@@ -75,6 +75,7 @@ class GraphSegment:
             [
                 f"{indentation_block}{line}"
                 for line in artifact_code.split("\n")
+                if len(line.strip(" ")) > 0
             ]
         )
         artifact_name = self.artifact_safename

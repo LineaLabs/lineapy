@@ -4,7 +4,7 @@ from lineapy.utils.utils import prettify
 
 def test_refactor(execute):
     """
-    Tests that calling a mutate function in an exec properly tracks it.
+    Tests a non-trivial examples
     """
     code = """import lineapy
 art = {}
@@ -34,47 +34,39 @@ art['h'] = lineapy.save(h,'h')
 
     expection_result = """def get_a():
   a = 1
-  
   return a
 
 def get_a0():
   a0 = 0
   a0 += 1
-  
   return a0
 
 def get_a_for_artifact_c_and_downstream(a):
   a += 1
-  
   return a
 
 def get_c(a, a0):
   b = a * 2 + a0
   c = b + 3
-  
   return c
 
 def get_f(c):
   f = c + 7
-  
   return f
 
 def get_e(a):
   d = a * 4
   e = d + 5
   e += 6
-  
   return e
 
 def get_g2(c, e):
   g = c + e * 2
-  
   return g
 
 def get_h(a, g):
   a += 1
   h = a + g
-  
   return h
 
 def pipeline():
