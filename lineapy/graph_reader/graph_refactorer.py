@@ -78,7 +78,7 @@ class GraphSegment:
             ]
         )
         artifact_name = self.artifact_safename
-        args_string = ", ".join([v for v in self.input_variables])
+        args_string = ", ".join(sorted([v for v in self.input_variables]))
         return_string = ", ".join([v for v in self.return_variables])
 
         return f"def get_{artifact_name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
@@ -91,11 +91,15 @@ class GraphSegment:
         """
         indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
-        args_string = ",".join(self.input_variables)
+        args_string = ", ".join(sorted([v for v in self.input_variables]))
 
         codeblock = f"{indentation_block}{return_string} = get_{self.artifact_safename}({args_string})"
-        if keep_lineapy_save:
-            codeblock += f"\n{indentation_block}lineapy.save({self.return_variables[0]}, '{self.artifact_name}')"
+        # print(self.artifact_safename, self.segment_type)
+        if (
+            keep_lineapy_save
+            and self.segment_type == GraphSegmentType.ARTIFACT
+        ):
+            codeblock += f"""\n{indentation_block}lineapy.save({self.return_variables[0]}, "{self.artifact_name}")"""
 
         return codeblock
 
@@ -499,6 +503,6 @@ def pipeline():
 {calculation_codeblock}
 {indentation_block}return {return_string}
 
-if __name__=='__main__':
+if __name__=="__main__":
 {indentation_block}pipeline()
 """
