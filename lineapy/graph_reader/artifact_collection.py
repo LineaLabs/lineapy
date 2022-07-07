@@ -139,39 +139,66 @@ class ArtifactCollection:
 
         if framework in PipelineType.__members__:
             if PipelineType[framework] == PipelineType.AIRFLOW:
-                pass
+                raise NotImplementedError("Airflow writer to be implemented!")
             else:
-                session_module_dict = self._write_session_modules(
-                    session_artifacts_sorted, keep_lineapy_save
+                pipeline_writer = ScriptPipelineWriter(
+                    session_artifacts_sorted=session_artifacts_sorted,
+                    keep_lineapy_save=keep_lineapy_save,
                 )
-                dag_module_dict = self._write_script_dag(
-                    session_artifacts_sorted, keep_lineapy_save
-                )
-                return {**session_module_dict, **dag_module_dict}
+        else:
+            raise ValueError(
+                f'"{framework}" is an invalid value for framework.'
+            )
 
-    def _write_session_modules(
+        return pipeline_writer.write_pipeline_files()
+
+
+class BasePipelineWriter:
+    """
+    Base class for pipeline file writer.
+    """
+
+    def __init__(
         self,
         session_artifacts_sorted: List[SessionArtifacts],
         keep_lineapy_save: bool,
-    ):
+    ) -> None:
+        self.session_artifacts_sorted = session_artifacts_sorted
+        self.keep_lineapy_save = keep_lineapy_save
+
+    def _write_modules(self):
         files_dict = {}
-        for session_artifacts in session_artifacts_sorted:
+        for session_artifacts in self.session_artifacts_sorted:
             # Generate session module code
             first_art_name = session_artifacts.graph_segments[0].artifact_name
             module_name = f"session_including_artifact_{first_art_name}"
             files_dict[
                 module_name
             ] = session_artifacts.get_session_module_definition(
-                indentation=4, keep_lineapy_save=keep_lineapy_save
+                indentation=4, keep_lineapy_save=self.keep_lineapy_save
             )
 
         return files_dict
 
-    def _write_script_dag(
-        self,
-        session_artifacts_sorted: List[SessionArtifacts],
-        keep_lineapy_save: bool,
-    ):
+    def _write_requirements(self):
+        pass
+
+    def _write_dag(self):
+        raise NotImplementedError
+
+    def _write_docker(self):
+        raise NotImplementedError
+
+    def write_pipeline_files(self):
+        raise NotImplementedError
+
+
+class ScriptPipelineWriter(BasePipelineWriter):
+    """
+    Pipeline file writer for "SCRIPT" framework.
+    """
+
+    def _write_dag(self):
         # Initiate main module (which imports and combines session modules)
         main_module_dict = {
             "import_lines": [],
@@ -180,7 +207,7 @@ class ArtifactCollection:
         }
 
         files_dict = {}
-        for session_artifacts in session_artifacts_sorted:
+        for session_artifacts in self.session_artifacts_sorted:
             # Generate session module code
             first_art_name = session_artifacts.graph_segments[0].artifact_name
             module_name = f"session_including_artifact_{first_art_name}"
@@ -197,7 +224,7 @@ class ArtifactCollection:
             # Generate calculation lines for main module
             calc_lines = [
                 seg.get_function_call_block(
-                    indentation=4, keep_lineapy_save=keep_lineapy_save
+                    indentation=4, keep_lineapy_save=self.keep_lineapy_save
                 )
                 for seg in session_artifacts.graph_segments
             ]
@@ -229,3 +256,9 @@ if __name__=='__main__':
 """
 
         return files_dict
+
+    def write_pipeline_files(self):
+        modules_dict = self._write_modules()
+        dag_dict = self._write_dag()
+
+        return {**modules_dict, **dag_dict}
