@@ -292,11 +292,11 @@ class Pipeline:
         name: Optional[str] = None,
         dependencies: TaskGraphEdge = {},
     ):
+        self.dependencies = dependencies
         self.artifact_safe_names, self.task_graph = extract_taskgraph(
             artifacts, dependencies
         )
         self.name = name or "_".join(self.artifact_safe_names)
-        self.dependencies = dependencies
         self.artifact_names: List[str] = artifacts
         self.id = get_new_id()
 

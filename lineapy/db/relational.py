@@ -75,6 +75,13 @@ artifact_to_pipeline_table = Table(
     Column("artifact_id", ForeignKey("artifact.id")),
 )
 
+dependency_to_artifact_table = Table(
+    "dependency_to_artifact_table",
+    Base.metadata,
+    Column("dependency_id", ForeignKey("dependency.id")),
+    Column("artifact_id", ForeignKey("artifact.id")),
+)
+
 
 class PipelineORM(Base):
     __tablename__ = "pipeline"
@@ -85,7 +92,7 @@ class PipelineORM(Base):
     )
     dependencies: List[ArtifactDependencyORM] = relationship(
         "ArtifactDependencyORM",
-        lazy="joined",
+        back_populates="pipeline",
     )
 
 
@@ -108,8 +115,6 @@ class ArtifactORM(Base):
     )
     date_created = Column(DateTime, nullable=False)
     version = Column(Integer, nullable=False)
-
-    dependency_id = Column(Integer, ForeignKey("dependency.id"))
 
     node: BaseNodeORM = relationship(
         "BaseNodeORM", uselist=False, lazy="joined", innerjoin=True
@@ -136,17 +141,18 @@ class ArtifactDependencyORM(Base):
     __tablename__ = "dependency"
     id = Column(Integer, primary_key=True, autoincrement=True)
     pipeline_id = Column(Integer, ForeignKey("pipeline.id"), nullable=False)
+    pipeline = relationship("PipelineORM", back_populates="dependencies")
     post_artifact_id = Column(
         Integer, ForeignKey("artifact.id"), nullable=False
     )
     post_artifact: ArtifactORM = relationship(
         "ArtifactORM",
         uselist=False,
-        lazy="joined",
         foreign_keys=[post_artifact_id],
     )
     pre_artifacts: List[ArtifactORM] = relationship(
-        "ArtifactORM", lazy="joined", foreign_keys=[ArtifactORM.dependency_id]
+        "ArtifactORM",
+        secondary=dependency_to_artifact_table,
     )
 
 
