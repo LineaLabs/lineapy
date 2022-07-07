@@ -83,19 +83,6 @@ dependency_to_artifact_table = Table(
 )
 
 
-class PipelineORM(Base):
-    __tablename__ = "pipeline"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, nullable=False)
-    artifacts: List[ArtifactORM] = relationship(
-        "ArtifactORM", secondary=artifact_to_pipeline_table
-    )
-    dependencies: List[ArtifactDependencyORM] = relationship(
-        "ArtifactDependencyORM",
-        back_populates="pipeline",
-    )
-
-
 class ArtifactORM(Base):
     """
     An artifact is a named pointer to a node.
@@ -137,22 +124,38 @@ class ArtifactORM(Base):
     )
 
 
+class PipelineORM(Base):
+    __tablename__ = "pipeline"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    artifacts = relationship(
+        ArtifactORM, secondary=artifact_to_pipeline_table, collection_class=set
+    )
+    dependencies: List[ArtifactDependencyORM] = relationship(
+        "ArtifactDependencyORM",
+        back_populates="pipeline",
+    )
+
+
 class ArtifactDependencyORM(Base):
     __tablename__ = "dependency"
     id = Column(Integer, primary_key=True, autoincrement=True)
     pipeline_id = Column(Integer, ForeignKey("pipeline.id"), nullable=False)
-    pipeline = relationship("PipelineORM", back_populates="dependencies")
+    pipeline = relationship(
+        PipelineORM, back_populates="dependencies", uselist=False
+    )
     post_artifact_id = Column(
         Integer, ForeignKey("artifact.id"), nullable=False
     )
-    post_artifact: ArtifactORM = relationship(
-        "ArtifactORM",
+    post_artifact = relationship(
+        ArtifactORM,
         uselist=False,
         foreign_keys=[post_artifact_id],
     )
-    pre_artifacts: List[ArtifactORM] = relationship(
-        "ArtifactORM",
+    pre_artifacts = relationship(
+        ArtifactORM,
         secondary=dependency_to_artifact_table,
+        collection_class=set,
     )
 
 

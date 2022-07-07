@@ -362,25 +362,25 @@ class Pipeline:
         if len(session_orm) == 0:
             track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
             raise Exception("No sessions found in the database.")
-        last_session = session_orm[0]
 
-        artifacts_to_save = [
-            db.get_artifact_by_name(artifact_name)
+        artifacts_to_save = {
+            artifact_name: db.get_artifact_by_name(artifact_name)
             for artifact_name in self.artifact_names
-        ]
+        }
 
         art_deps_to_save = []
         for post_artifact, pre_artifacts in self.dependencies.items():
-            post_to_save = db.get_artifact_by_name(post_artifact)
-            pre_to_save = [db.get_artifact_by_name(a) for a in pre_artifacts]
+            post_to_save = artifacts_to_save[post_artifact]
+            pre_to_save = [artifacts_to_save[a] for a in pre_artifacts]
             art_dep_to_save = ArtifactDependencyORM(
-                post_artifact=post_to_save, pre_artifacts=pre_to_save
+                post_artifact=post_to_save,
+                pre_artifacts=set(pre_to_save),
             )
             art_deps_to_save.append(art_dep_to_save)
 
         pipeline_to_write = PipelineORM(
             name=self.name,
-            artifacts=artifacts_to_save,
+            artifacts=set(artifacts_to_save.values()),
             dependencies=art_deps_to_save,
         )
         db.write_pipeline(art_deps_to_save, pipeline_to_write)
