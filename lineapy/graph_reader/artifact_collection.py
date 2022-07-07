@@ -113,11 +113,13 @@ class ArtifactCollection:
                 self.node_id_to_session_id.get(to_node_id, None),
             )
             for node_id, to_node_id in dependency_edges
+            if self.node_id_to_session_id.get(node_id, None)
+            != self.node_id_to_session_id.get(to_node_id, None)
         ]
         inter_session_graph = nx.DiGraph()
         inter_session_graph.add_nodes_from(session_id_nodes)
         inter_session_graph.add_edges_from(session_id_edges)
-        session_id_sorted = list(nx.topological_sort(inter_session_graph))
+        session_id_sorted = nx.topological_sort(inter_session_graph)
 
         return [
             self.session_artifacts[session_id]
