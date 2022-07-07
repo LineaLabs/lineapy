@@ -93,6 +93,7 @@ class RelationalLineaDB:
         alembic_cfg.set_main_option(
             "script_location", (lp_install_dir / "_alembic").as_posix()
         )
+        alembic_cfg.set_main_option("sqlalchemy.url", self.url)
         if not inspect(self.engine).get_table_names():
             # No tables in the database, so create them
             Base.metadata.create_all(self.engine)
