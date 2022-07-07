@@ -297,3 +297,31 @@ x = lineapy.get_pipeline("x")"""
     assert len(deps) == 1
     assert len(deps["a"]) == 1
     assert "b" in deps["a"]
+
+
+def test_pipeline_deps_complex(execute):
+    c = """import lineapy
+a = 10
+b = 20
+c = 30
+lineapy.save(a, "a")
+lineapy.save(b, "b")
+lineapy.save(c, "c")
+dep_x = {"a": {"b"}}
+dep_y = {"b": {"c", "a"}}
+lineapy.create_pipeline(["a", "b", "c"], "x", persist=True, dependencies=dep_x)
+lineapy.create_pipeline(["a", "b", "c"], "y", persist=True, dependencies=dep_y)
+x = lineapy.get_pipeline("x")
+y = lineapy.get_pipeline("y")"""
+    res = execute(c, snapshot=False)
+    assert res.values["x"].name == "x"
+    assert res.values["y"].name == "y"
+    dep_x = res.values["x"].dependencies
+    assert len(dep_x) == 1
+    assert len(dep_x["a"]) == 1
+    assert "b" in dep_x["a"]
+    dep_y = res.values["y"].dependencies
+    assert len(dep_y) == 1
+    assert len(dep_y["b"]) == 2
+    assert "c" in dep_y["b"]
+    assert "a" in dep_y["b"]
