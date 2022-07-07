@@ -7,7 +7,7 @@ import networkx as nx
 
 from lineapy.api.api import get
 from lineapy.api.api_classes import LineaArtifact
-from lineapy.data.types import LineaID
+from lineapy.data.types import LineaID, PipelineType
 from lineapy.graph_reader.graph_refactorer import (
     GraphSegmentType,
     SessionArtifacts,
@@ -135,14 +135,17 @@ class ArtifactCollection:
             dependencies=dependencies
         )
 
-        session_module_dict = self._write_session_modules(
-            session_artifacts_sorted, keep_lineapy_save
-        )
-        dag_module_dict = self._write_script_dag(
-            session_artifacts_sorted, keep_lineapy_save
-        )
-
-        return {**session_module_dict, **dag_module_dict}
+        if framework in PipelineType.__members__:
+            if PipelineType[framework] == PipelineType.AIRFLOW:
+                pass
+            else:
+                session_module_dict = self._write_session_modules(
+                    session_artifacts_sorted, keep_lineapy_save
+                )
+                dag_module_dict = self._write_script_dag(
+                    session_artifacts_sorted, keep_lineapy_save
+                )
+                return {**session_module_dict, **dag_module_dict}
 
     def _write_session_modules(
         self,
