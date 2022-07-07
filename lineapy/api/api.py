@@ -304,7 +304,10 @@ def get_pipeline(name: str) -> Pipeline:
 
     dependencies = dict()
     for dep_orm in pipeline_orm.dependencies:
-        post_name = dep_orm.post_artifact.name
+        post_artifact = dep_orm.post_artifact
+        if post_artifact is None:
+            continue
+        post_name = post_artifact.name
         if post_name is None:
             continue
 
