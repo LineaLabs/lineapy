@@ -123,7 +123,6 @@ def linea_cli(
             options.set(arg, locals().get(arg))
 
 
-
 @linea_cli.command()
 @click.option(
     "--output-file",
