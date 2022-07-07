@@ -372,6 +372,10 @@ def alembic_config(db_url):
         "script_location",
         (lp_install_dir / "_alembic").as_posix(),
     )
+    alembic_cfg.set_main_option(
+        "sqlalchemy.url",
+        db_url,
+    )
     return alembic_cfg
 
 
