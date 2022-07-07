@@ -301,7 +301,22 @@ def get_pipeline(name: str) -> Pipeline:
         for artifact in pipeline_orm.artifacts
         if artifact.name is not None
     ]
-    return Pipeline(artifact_names, name)
+
+    dependencies = dict()
+    for dep_orm in pipeline_orm.dependencies:
+        post_name = dep_orm.post_artifact.name
+        if post_name is None:
+            continue
+
+        pre_names = set(
+            [
+                pre_art.name
+                for pre_art in dep_orm.pre_artifacts
+                if pre_art.name is not None
+            ]
+        )
+        dependencies[post_name] = pre_names
+    return Pipeline(artifact_names, name, dependencies=dependencies)
 
 
 def reload() -> None:
