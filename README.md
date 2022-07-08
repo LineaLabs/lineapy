@@ -9,35 +9,33 @@
     <a href="https://twitter.com/lineapy_oss">
       <img alt="Follow LineaPy on Twitter!" src="https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter">
     </a>
+    <a href="https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q">
+      <img alt="Join the LineaPy Slack!" src="https://img.shields.io/badge/slack-@lineapy--community-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40">
+    </a>
   </p>
   <p>
   Ask questions or learn about our workshops on our <a target="_blank" href="https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q">Slack!</a></p>
 </div>
 
-<p align="center">
+<div align="center" style="display:flex;flex-direction:column;">
+    <h1>👇 Try It Out! 👇</h1>
+    <div>
+        <a href="https://bit.ly/3N9WvDB">
+            <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/>
+        </a>
+        <a href="https://bit.ly/3MyW8RW">
+            <img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/>
+        </a>
+    </div>
+</div>
 
-</p>
-
-<p align="center">
-    <b style="font-size:48px;">👇 Try It Out! 👇</b>
-    <br>
-    <a href="https://bit.ly/3N9WvDB"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
-    <a href="https://bit.ly/3MyW8RW"><img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/></a>    
-</p>
+<https://user-images.githubusercontent.com/13392380/169427654-487d8d4b-3eda-462a-a96c-51c151f39ab9.mp4>
 
 ![Python Versions](https://img.shields.io/badge/Python--versions-3.7%20%7C%203.8%20%7C%203.9-brightgreen)
 [![Build](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml/badge.svg)](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml)
 [![Documentation Status](https://readthedocs.com/projects/lineapy-org-lineapy/badge/?version=latest&token=925cd1d5eaedb7cc60508c9cce377574da748a7d6c050bb2c3de2a360a9f4f20)](https://docs.lineapy.org/en/latest/?badge=latest)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?logo=apache)](https://github.com/LineaLabs/lineapy/blob/main/LICENSE.txt)
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
-
-<https://user-images.githubusercontent.com/13392380/169427654-487d8d4b-3eda-462a-a96c-51c151f39ab9.mp4>
-
-
-LineaPy is a Python package for capturing, analyzing, and automating data science workflows.
-At a high level, LineaPy traces the sequence of code execution to form a comprehensive understanding
-of the code and its context. This understanding allows LineaPy to provide a set of tools that help
-data scientists bring their work to production more quickly and easily, with just *two lines* of code.
 
 - [What Problems Can LineaPy Solve?](#what-problems-can-lineapy-solve)
   - [Use Case 1: Cleaning Messy Notebooks](#use-case-1-cleaning-messy-notebooks)
