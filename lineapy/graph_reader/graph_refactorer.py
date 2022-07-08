@@ -340,12 +340,7 @@ class SessionArtifacts:
                     "artifact_type": GraphSegmentType.ARTIFACT,
                     "artifact_name": n["assigned_artifact"],
                     "tracked_variables": n["tracked_variables"],
-                    "return_variables": list(n["tracked_variables"])
-                    # "return_variables": list(
-                    #     n["assigned_variables"]
-                    #     if len(n["assigned_variables"]) > 0
-                    #     else n["dependent_variables"]
-                    # ),
+                    "return_variables": list(n["tracked_variables"]),
                 }
 
                 # All nodes related to this artifact

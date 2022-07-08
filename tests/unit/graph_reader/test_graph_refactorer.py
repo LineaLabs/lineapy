@@ -3,19 +3,19 @@ from lineapy.utils.utils import prettify
 
 
 def test_refactor(execute):
-    """
-    Tests the following non-trivial example: 
-    a0 --> (a0+=1) \                       /--> (f=c+7)
-                    \                     /
-                     >--> b=a*2+a0 --> (c=b+3) -------\ 
-                    /                                  \
-    (a=1) --> a+=1 /-----> d=a*4 --> e=d+5 --> (e+=6) --\
-                      \                                 \  
-                        \--> a+=1 ------------------------\--> (g = c+e*2)--\
-                                                      \                     \
-                                                        \---------------------\--> (h=a+g)
+    #    Tests the following non-trivial example:
+    #    a0 --> (a0+=1) \                       /--> (f=c+7)
+    #                    \                     /
+    #                     >--> b=a*2+a0 --> (c=b+3) -------\
+    #                    /                                  \
+    #    (a=1) --> a+=1 /-----> d=a*4 --> e=d+5 --> (e+=6) --\
+    #                      \                                 \
+    #                        \--> a+=1 ------------------------\--> (g = c+e*2)--\
+    #                                                      \                     \
+    #                                                        \---------------------\--> (h=a+g)
 
-    Node with parentheses are artifacts, 
+    """
+    Node with parentheses are artifacts,
     """
     code = """import lineapy
 art = {}
@@ -41,6 +41,9 @@ g = c+e *2
 art['g2'] = lineapy.save(g,'g2')
 h = a+g
 art['h'] = lineapy.save(h,'h')
+z = [1]
+z.append(h)
+art['z'] = lineapy.save(z,'z')
 """
 
     expection_result_all = """def get_a():
@@ -80,6 +83,11 @@ def get_h(a, g):
   h = a + g
   return h
 
+def get_z(h):
+  z = [1]
+  z.append(h)
+  return z
+
 def pipeline():
   a = get_a()
   lineapy.save(a, "a")
@@ -96,7 +104,9 @@ def pipeline():
   lineapy.save(g, "g2")
   h = get_h(a, g)
   lineapy.save(h, "h")
-  return a, a0, c, f, e, g, h
+  z = get_z(h)
+  lineapy.save(z, "z")
+  return a, a0, c, f, e, g, h, z
 
 if __name__=="__main__":
   pipeline()
@@ -104,7 +114,7 @@ if __name__=="__main__":
 
     res = execute(code, snapshot=False)
     art = res.values["art"]
-    assert len(res.values["art"]) == 7
+    assert len(res.values["art"]) == 8
 
     sas = SessionArtifacts(list(art.values()))
     refactor_code = sas.get_session_module_definition(
