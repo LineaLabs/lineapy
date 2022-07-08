@@ -9,7 +9,7 @@ import networkx as nx
 
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID, Node
+from lineapy.data.types import CallNode, GlobalNode, LineaID, MutateNode, Node
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
@@ -170,6 +170,7 @@ class SessionArtifacts:
                 "assigned_artifact": self.artifact_dict.get(node_id, None),
                 "dependent_variables": set(),
                 "predecessors": set(self.nx_graph.predecessors(node_id)),
+                "tracked_variables": set(),
             }
             for p_node_id in self.node_context[node_id]["predecessors"]:
                 # If predecessor is variable assignment use the variable; otherwise, use its dependencies.
@@ -182,6 +183,63 @@ class SessionArtifacts:
                 ] = self.node_context[node_id]["dependent_variables"].union(
                     dep
                 )
+
+            node = self.graph.get_node(node_id=node_id)
+
+            if len(self.node_context[node_id]["assigned_variables"]) > 0:
+                self.node_context[node_id][
+                    "tracked_variables"
+                ] = self.node_context[node_id]["assigned_variables"]
+            elif isinstance(node, MutateNode) or isinstance(node, GlobalNode):
+                predecessor_call_id = node.call_id
+                if (
+                    predecessor_call_id
+                    in self.node_context[node_id]["predecessors"]
+                ):
+                    self.node_context[node_id][
+                        "tracked_variables"
+                    ] = self.node_context[predecessor_call_id][
+                        "tracked_variables"
+                    ]
+            elif isinstance(node, CallNode):
+                if (
+                    len(node.global_reads) > 0
+                    and list(node.global_reads.values())[0]
+                    in self.node_context[node_id]["predecessors"]
+                ):
+                    self.node_context[node_id][
+                        "tracked_variables"
+                    ] = self.node_context[list(node.global_reads.values())[0]][
+                        "tracked_variables"
+                    ]
+                elif (
+                    node.function_id
+                    in self.node_context[node_id]["predecessors"]
+                    and len(
+                        self.node_context[node.function_id][
+                            "dependent_variables"
+                        ]
+                    )
+                    > 0
+                ):
+                    self.node_context[node_id][
+                        "tracked_variables"
+                    ] = self.node_context[node.function_id][
+                        "tracked_variables"
+                    ]
+                elif (
+                    node.positional_args[0].id
+                    in self.node_context[node_id]["predecessors"]
+                ):
+                    self.node_context[node_id][
+                        "tracked_variables"
+                    ] = self.node_context[node.positional_args[0].id][
+                        "tracked_variables"
+                    ]
+                else:
+                    self.node_context[node_id]["tracked_variables"] = set()
+            else:
+                self.node_context[node_id]["tracked_variables"] = set()
 
     def _get_subgraph_from_node_list(self, node_list: List[LineaID]) -> Graph:
         """
@@ -281,12 +339,13 @@ class SessionArtifacts:
                     "node_id": node_id,
                     "artifact_type": GraphSegmentType.ARTIFACT,
                     "artifact_name": n["assigned_artifact"],
-                    "tracked_variables": n["assigned_variables"],
-                    "return_variables": list(
-                        n["assigned_variables"]
-                        if len(n["assigned_variables"]) > 0
-                        else n["dependent_variables"]
-                    ),
+                    "tracked_variables": n["tracked_variables"],
+                    "return_variables": list(n["tracked_variables"])
+                    # "return_variables": list(
+                    #     n["assigned_variables"]
+                    #     if len(n["assigned_variables"]) > 0
+                    #     else n["dependent_variables"]
+                    # ),
                 }
 
                 # All nodes related to this artifact
@@ -386,15 +445,15 @@ class SessionArtifacts:
                         source_art_graph = self._get_subgraph_from_node_list(
                             source_artifact_context["node_list"]
                         )
+                        slice_variable_nodes = [
+                            n
+                            for n in artifact_context["predecessor_nodes"]
+                            if n in source_art_graph.nx_graph.nodes
+                            and self.node_context[n]["assigned_artifact"]
+                            != self.node_context[n]["artifact_name"]
+                        ]
                         source_art_slice_variable_graph = get_slice_graph(
-                            source_art_graph,
-                            [
-                                n
-                                for n in artifact_context["predecessor_nodes"]
-                                if n in source_art_graph.nx_graph.nodes
-                                and self.node_context[n]["assigned_artifact"]
-                                != self.node_context[n]["artifact_name"]
-                            ],
+                            source_art_graph, slice_variable_nodes
                         )
                         common_nodes = artifact_sliced_node_list.intersection(
                             set(source_art_slice_variable_graph.nx_graph.nodes)
@@ -431,6 +490,7 @@ class SessionArtifacts:
                                 )
                             )
                             remaining_artifact_context = {
+                                "node_id": source_artifact_context["node_id"],
                                 "artifact_name": source_artifact_context[
                                     "artifact_name"
                                 ],
