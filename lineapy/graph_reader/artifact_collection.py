@@ -177,11 +177,22 @@ class BasePipelineWriter:
             ] = session_artifacts.get_session_module_definition(
                 indentation=4, keep_lineapy_save=self.keep_lineapy_save
             )
+        logger.info("Generated session module files")
 
         return files_dict
 
     def _write_requirements(self):
-        pass
+        # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
+        lib_names_text = ""
+        for session_artifacts in self.session_artifacts_sorted:
+            session_libs = session_artifacts.db.get_libraries_for_session(
+                session_artifacts.session_id
+            )
+            for lib in session_libs:
+                lib_names_text += f"{lib.package_name}=={lib.version}\n"
+        logger.info("Generated requirements file")
+
+        return {"requirements": lib_names_text}
 
     def _write_dag(self):
         raise NotImplementedError
@@ -259,6 +270,7 @@ if __name__=='__main__':
 
     def write_pipeline_files(self):
         modules_dict = self._write_modules()
+        requirements_dict = self._write_requirements()
         dag_dict = self._write_dag()
 
-        return {**modules_dict, **dag_dict}
+        return {**modules_dict, **requirements_dict, **dag_dict}
