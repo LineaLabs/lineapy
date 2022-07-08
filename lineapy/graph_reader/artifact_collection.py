@@ -170,7 +170,9 @@ class BasePipelineWriter:
         files_dict = {}
         for session_artifacts in self.session_artifacts_sorted:
             # Generate session module code
-            first_art_name = session_artifacts.graph_segments[0].artifact_name
+            first_art_name = session_artifacts.graph_segments[
+                0
+            ].artifact_safename
             module_name = f"session_including_artifact_{first_art_name}"
             files_dict[
                 module_name
@@ -220,12 +222,14 @@ class ScriptPipelineWriter(BasePipelineWriter):
         files_dict = {}
         for session_artifacts in self.session_artifacts_sorted:
             # Generate session module code
-            first_art_name = session_artifacts.graph_segments[0].artifact_name
+            first_art_name = session_artifacts.graph_segments[
+                0
+            ].artifact_safename
             module_name = f"session_including_artifact_{first_art_name}"
 
             # Generate import statements for main module
             func_names = [
-                f"get_{seg.artifact_name}"
+                f"get_{seg.artifact_safename}"
                 for seg in session_artifacts.graph_segments
             ]
             main_module_dict["import_lines"].append(
