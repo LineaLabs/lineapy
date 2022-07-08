@@ -83,7 +83,26 @@ class RelationalLineaDB:
         self.engine = create_lineadb_engine(self.url)
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=self.engine)
-        Base.metadata.create_all(self.engine)
+        from alembic import command
+        from alembic.config import Config
+        from sqlalchemy import inspect
+
+        lp_install_dir = Path(__file__).resolve().parent.parent
+
+        alembic_cfg = Config((lp_install_dir / "alembic.ini").as_posix())
+        alembic_cfg.set_main_option(
+            "script_location", (lp_install_dir / "_alembic").as_posix()
+        )
+        alembic_cfg.set_main_option("sqlalchemy.url", self.url)
+        if not inspect(self.engine).get_table_names():
+            # No tables in the database, so create them
+            Base.metadata.create_all(self.engine)
+            # stamp the database with the latest alembic db version for migration
+            # https://alembic.sqlalchemy.org/en/latest/cookbook.html#building-an-up-to-date-database-from-scratch
+            command.stamp(alembic_cfg, "head")
+        else:
+            # Tables exist, so upgrade the database
+            command.upgrade(alembic_cfg, "head")
 
     def renew_session(self):
         if self.url.startswith(DB_SQLITE_PREFIX):

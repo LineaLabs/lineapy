@@ -1,3 +1,4 @@
+alembic==1.8.0
 altair==4.2.0
 astor==0.8.1
 astpretty==2.1.0
@@ -26,6 +27,7 @@ pre-commit==2.18.1
 psycopg2==2.9.3
 pydantic==1.9.0
 pytest==6.2.5
+pytest-alembic==0.8.2
 pytest-cov==3.0.0
 pytest-virtualenv==1.7.0
 pytest-xdist==2.5.0

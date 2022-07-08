@@ -113,6 +113,8 @@ class lineapy_config:
             elif default_value is not None:
                 self.set(key, default_value, verbose=False)
 
+        self._set_defaults()
+
     def get(self, key: str) -> Any:
         """Get LineaPy config field"""
         if key in self.__dict__.keys():
