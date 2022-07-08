@@ -18,7 +18,7 @@
 </div>
 
 <div align="center" style="display:flex;flex-direction:column;">
-    <h2>👇 Try It Out! 👇</h2>
+    <h3>👇 Try It Out! 👇</h3>
     <div>
         <a href="https://bit.ly/3N9WvDB">
             <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/>
