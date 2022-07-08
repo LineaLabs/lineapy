@@ -281,6 +281,7 @@ class SessionArtifacts:
                     "node_id": node_id,
                     "artifact_type": GraphSegmentType.ARTIFACT,
                     "artifact_name": n["assigned_artifact"],
+                    "tracked_variables": n["assigned_variables"],
                     "return_variables": list(
                         n["assigned_variables"]
                         if len(n["assigned_variables"]) > 0
@@ -382,7 +383,6 @@ class SessionArtifacts:
                         ]
                     )
                     if len(common_inner_variables) > 0:
-
                         source_art_graph = self._get_subgraph_from_node_list(
                             source_artifact_context["node_list"]
                         )
@@ -392,6 +392,8 @@ class SessionArtifacts:
                                 n
                                 for n in artifact_context["predecessor_nodes"]
                                 if n in source_art_graph.nx_graph.nodes
+                                and self.node_context[n]["assigned_artifact"]
+                                != self.node_context[n]["artifact_name"]
                             ],
                         )
                         common_nodes = artifact_sliced_node_list.intersection(
