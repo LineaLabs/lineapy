@@ -2,12 +2,15 @@ import logging
 from dataclasses import InitVar, dataclass, field
 from datetime import datetime
 from os import getcwd
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
+    CNode,
+    ElseNode,
     GlobalNode,
+    IfNode,
     ImportNode,
     KeywordArgument,
     LineaID,
@@ -33,6 +36,7 @@ from lineapy.execution.side_effects import (
     ViewOfNodes,
 )
 from lineapy.instrumentation.annotation_spec import ExternalState
+from lineapy.instrumentation.control_flow_tracker import ControlFlowTracker
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
@@ -60,6 +64,9 @@ class Tracer:
     tracer_context: TracerContext = field(init=False)
     executor: Executor = field(init=False)
     mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
+    control_flow_tracker: ControlFlowTracker = field(
+        default_factory=ControlFlowTracker
+    )
 
     def __post_init__(
         self,
@@ -160,6 +167,7 @@ class Tracer:
                         session_id=node.session_id,
                         source_id=source_id,
                         call_id=node.id,
+                        control_dependency=self.control_flow_tracker.current_control_dependency(),
                     )
                     self.process_node(mutate_node)
 
@@ -231,6 +239,7 @@ class Tracer:
                 session_id=session_id,
                 name=var,
                 call_id=node.id,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
             )
             self.process_node(global_node)
             self.variable_name_to_node[var] = global_node
@@ -262,6 +271,7 @@ class Tracer:
                 session_id=self.get_session_id(),
                 name=variable_name,
                 source_location=source_location,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
             )
             self.process_node(new_node)
             return new_node
@@ -370,6 +380,7 @@ class Tracer:
             name=name,
             session_id=self.get_session_id(),
             source_location=source_location,
+            control_dependency=self.control_flow_tracker.current_control_dependency(),
         )
         self.process_node(node)
 
@@ -384,6 +395,7 @@ class Tracer:
             session_id=self.get_session_id(),
             value=value,
             source_location=source_location,
+            control_dependency=self.control_flow_tracker.current_control_dependency(),
         )
         self.process_node(node)
         return node
@@ -453,8 +465,48 @@ class Tracer:
             source_location=source_location,
             global_reads={},
             implicit_dependencies=[],
+            control_dependency=self.control_flow_tracker.current_control_dependency(),
         )
         self.process_node(node)
+        return node
+
+    def control_node(
+        self,
+        type: Type[CNode],
+        source_location: Optional[SourceLocation] = None,
+        condition_node: Optional[Node] = None,
+        contents: Optional[LiteralNode] = None,
+        else_node_id: Optional[LineaID] = None,
+    ) -> CNode:
+        node: Union[IfNode, ElseNode]
+        if type is IfNode:
+            assert condition_node is not None
+            node = IfNode(
+                id=get_new_id(),
+                session_id=self.get_session_id(),
+                source_location=source_location,
+                call_id=condition_node.id,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
+                contents=contents.id if contents else None,
+                else_node=else_node_id,
+            )
+        elif type is ElseNode:
+            assert (
+                else_node_id is not None
+            ), "Else node ID must be present to link ElseNode with the corresponding If/For/While node"
+            node = ElseNode(
+                id=else_node_id,
+                session_id=self.get_session_id(),
+                source_location=source_location,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
+                contents=contents.id if contents else None,
+            )
+        else:
+            raise NotImplementedError(
+                "Requested control node type not implemented: ", type
+            )
+        self.process_node(node)
+        self.control_flow_tracker.push_node(node.id)
         return node
 
     def assign(
@@ -505,3 +557,6 @@ class Tracer:
 
     def get_working_dir(self) -> str:
         return self.tracer_context.session_context.working_directory
+
+    def pop_control_stack(self) -> LineaID:
+        return self.control_flow_tracker.pop_node()

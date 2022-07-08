@@ -10,8 +10,10 @@ from sqlalchemy.sql.expression import and_
 from lineapy.data.types import (
     Artifact,
     CallNode,
+    ElseNode,
     Execution,
     GlobalNode,
+    IfNode,
     ImportNode,
     JupyterCell,
     KeywordArgument,
@@ -33,9 +35,11 @@ from lineapy.db.relational import (
     Base,
     BaseNodeORM,
     CallNodeORM,
+    ElseNodeORM,
     ExecutionORM,
     GlobalNodeORM,
     GlobalReferenceORM,
+    IfNodeORM,
     ImplicitDependencyORM,
     ImportNodeORM,
     KeywordArgORM,
@@ -203,7 +207,15 @@ class RelationalLineaDB:
         self.renew_session()
 
     def write_node(self, node: Node) -> None:
-        args = node.dict(include={"id", "session_id", "node_type"})
+        args = node.dict(
+            include={"id", "session_id", "node_type", "control_dependency"}
+        )
+        # Converting list into string, for storage in the DB. Note there can only be one or zero control dependencies
+        args["control_dependency"] = (
+            args["control_dependency"]
+            if args["control_dependency"] is not None
+            else ""
+        )
         s = node.source_location
         if s:
             args["lineno"] = s.lineno
@@ -272,8 +284,22 @@ class RelationalLineaDB:
             node_orm = GlobalNodeORM(
                 **args, call_id=node.call_id, name=node.name
             )
-        else:
+        elif isinstance(node, LookupNode):
             node_orm = LookupNodeORM(**args, name=node.name)
+        else:
+            if isinstance(node, IfNode):
+                node_orm = IfNodeORM(
+                    **args,
+                    call_id=node.call_id,
+                    contents=node.contents,
+                    else_node=node.else_node,
+                )
+            elif isinstance(node, ElseNode):
+                node_orm = ElseNodeORM(**args, contents=node.contents)
+            else:
+                raise NotImplementedError(
+                    "Unimplemented node type: ", type(node)
+                )
 
         self.session.add(node_orm)
         self.renew_session()
@@ -366,6 +392,9 @@ class RelationalLineaDB:
             "id": node.id,
             "session_id": node.session_id,
             "node_type": node.node_type,
+            "control_dependency": node.control_dependency
+            if node.control_dependency != ""
+            else None,
         }
         if node.source_code:
             source_code = SourceCode(
@@ -454,7 +483,21 @@ class RelationalLineaDB:
                 name=node.name,
                 **args,
             )
-        return LookupNode(name=node.name, **args)
+        if isinstance(node, LookupNodeORM):
+            return LookupNode(
+                name=node.name,
+                **args,
+            )
+        if isinstance(node, IfNodeORM):
+            return IfNode(
+                call_id=node.call_id,
+                contents=node.contents,
+                else_node=node.else_node,
+                **args,
+            )
+        if isinstance(node, ElseNodeORM):
+            return ElseNode(**args, contents=node.contents)
+        raise NotImplementedError("Node type not implemented ", type(node))
 
     def get_node_by_id(self, linea_id: LineaID) -> Node:
         """

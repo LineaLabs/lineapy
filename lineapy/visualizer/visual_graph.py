@@ -25,7 +25,9 @@ from typing import Dict, FrozenSet, Iterable, List, Optional, Set, Union
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
+    ElseNode,
     GlobalNode,
+    IfNode,
     ImportNode,
     LineaID,
     LiteralNode,
@@ -198,6 +200,14 @@ def process_node(
     Returns the contents of a node and add its edges.
     """
     n_id = node.id
+    if node.control_dependency:
+        vg.edge(
+            VisualEdge(
+                VisualEdgeID(node.control_dependency),
+                VisualEdgeID(n_id),
+                VisualEdgeType.CONTROL_DEPENDENCY,
+            )
+        )
     if isinstance(node, ImportNode):
         return node.name
     if isinstance(node, CallNode):
@@ -298,6 +308,33 @@ def process_node(
             ),
         )
         return node.name
+    if isinstance(node, IfNode):
+        vg.edge(
+            VisualEdge(
+                VisualEdgeID(node.call_id),
+                VisualEdgeID(n_id),
+                VisualEdgeType.CONTROL_FLOW,
+            ),
+        )
+        if node.contents:
+            vg.edge(
+                VisualEdge(
+                    VisualEdgeID(node.contents),
+                    VisualEdgeID(n_id),
+                    VisualEdgeType.DUMMY_CONTROL_FLOW,
+                ),
+            )
+        return "if"
+    if isinstance(node, ElseNode):
+        if node.contents:
+            vg.edge(
+                VisualEdge(
+                    VisualEdgeID(node.contents),
+                    VisualEdgeID(n_id),
+                    VisualEdgeType.DUMMY_CONTROL_FLOW,
+                ),
+            )
+        return "else"
 
 
 @dataclass
@@ -466,5 +503,12 @@ class VisualEdgeType(Enum):
 
     # Edge from a node to global node that reads a value from it
     GLOBAL = auto()
+
+    # Control Flow
+    CONTROL_FLOW = auto()
+
+    DUMMY_CONTROL_FLOW = auto()
+
+    CONTROL_DEPENDENCY = auto()
 
     IMPLICIT_DEPENDENCY = auto()

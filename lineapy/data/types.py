@@ -67,6 +67,9 @@ class NodeType(Enum):
     LookupNode = auto()
     MutateNode = auto()
     GlobalNode = auto()
+    IfNode = auto()
+    ElseNode = auto()
+    IfElseNode = auto()
 
 
 class LiteralType(Enum):
@@ -264,6 +267,7 @@ class BaseNode(BaseModel):
     session_id: LineaID = Field(repr=False)  # refers to SessionContext.id
     node_type: NodeType = Field(NodeType.Node, repr=False)
     source_location: Optional[SourceLocation] = Field(repr=False)
+    control_dependency: Optional[LineaID]
 
     class Config:
         orm_mode = True
@@ -289,9 +293,9 @@ class BaseNode(BaseModel):
         """
         Returns the parents of this node.
         """
-        # Make an empty generator by yielding from an empty list
-
-        yield from []
+        # Return control dependencies, which could exist for any node
+        if self.control_dependency:
+            yield self.control_dependency
 
 
 class ImportNode(BaseNode):
@@ -348,6 +352,7 @@ class CallNode(BaseNode):
     implicit_dependencies: List[LineaID] = []
 
     def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
         yield self.function_id
         yield from [node.id for node in self.positional_args]
         yield from [node.value for node in self.keyword_args]
@@ -386,6 +391,7 @@ class MutateNode(BaseNode):
     call_id: LineaID
 
     def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
         yield self.source_id
         yield self.call_id
 
@@ -405,13 +411,88 @@ class GlobalNode(BaseNode):
     call_id: LineaID
 
     def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
         yield self.call_id
 
+
+# class IfElseNode(BaseNode):
+#     """
+#     Represents an `if`/`else` block
+#     """
+
+#     node_type = Field(NodeType.IfElseNode, repr=False)
+
+#     # Points to the call node which forms the expression to test
+#     call_id: LineaID
+
+#     # LiteralNode containing the code of the block which does NOT get executed
+#     # Would be None if both the blocks get executed
+#     non_executed_contents = Optional[LineaID]
+
+#     def parents(self) -> Iterable[LineaID]:
+#         yield from super().parents()
+#         yield self.call_id
+#         if self.non_executed_contents:
+#             yield self.non_executed_contents
+
+
+class IfNode(BaseNode):
+    """
+    Represents the `if` keyword
+    """
+
+    node_type = Field(NodeType.IfNode, repr=False)
+
+    # Points to the call node which forms the expression to test
+    call_id: LineaID
+
+    # LiteralNode containing the code, in case the `then` block is not executed
+    # If the block is executed, the list is blank
+    contents: Optional[LineaID]
+
+    else_node: Optional[LineaID]
+
+    def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
+        yield self.call_id
+        if self.contents:
+            yield self.contents
+        if self.else_node:
+            yield self.else_node
+
+
+class ElseNode(BaseNode):
+    """
+    Represents the `else` keyword
+    """
+
+    node_type = Field(NodeType.ElseNode, repr=False)
+
+    # LiteralNode containing the code, in case the `else` block is not executed
+    # If the block is executed, the list is blank
+    contents: Optional[LineaID]
+
+    def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
+        if self.contents:
+            yield self.contents
+
+
+CNode = Union[
+    IfNode,
+    ElseNode,
+]
 
 # We can use this for more precise type definitions, to make sure we hit
 # all the node cases
 Node = Union[
-    ImportNode, CallNode, LiteralNode, LookupNode, MutateNode, GlobalNode
+    ImportNode,
+    CallNode,
+    LiteralNode,
+    LookupNode,
+    MutateNode,
+    GlobalNode,
+    CNode,
 ]
 
 

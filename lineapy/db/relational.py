@@ -217,6 +217,7 @@ class BaseNodeORM(Base):
     col_offset = Column(Integer, nullable=True)  # col numbers are 0-indexed
     end_lineno = Column(Integer, nullable=True)
     end_col_offset = Column(Integer, nullable=True)
+    control_dependency = Column(String)
     source_code_id = Column(
         String, ForeignKey("source_code.id"), nullable=True
     )
@@ -403,6 +404,37 @@ class GlobalNodeORM(BaseNodeORM):
     }
 
 
+class IfNodeORM(BaseNodeORM):
+    __tablename__ = "if_node"
+
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
+    call_id = Column(String, ForeignKey("node.id"))
+    contents = Column(String, ForeignKey("node.id"))
+    else_node = Column(String, ForeignKey("node.id"))
+
+    __mapper_args__ = {
+        "polymorphic_identity": NodeType.IfNode,
+        "inherit_condition": id == BaseNodeORM.id,
+    }
+
+
+class ElseNodeORM(BaseNodeORM):
+    __tablename__ = "else_node"
+
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
+    contents = Column(String, ForeignKey("node.id"))
+
+    __mapper_args__ = {
+        "polymorphic_identity": NodeType.ElseNode,
+        "inherit_condition": id == BaseNodeORM.id,
+    }
+
+
+ControlORM = Union[
+    IfNodeORM,
+    ElseNodeORM,
+]
+
 # Explicitly define all subclasses of NodeORM, so that if we use this as a type
 # we can accurately know if we cover all cases
 NodeORM = Union[
@@ -412,6 +444,7 @@ NodeORM = Union[
     LiteralNodeORM,
     MutateNodeORM,
     GlobalNodeORM,
+    ControlORM,
 ]
 
 
