@@ -139,11 +139,12 @@ class SessionArtifacts:
         Traverse every node within the session in topologically sorted order and update
         node_context with following informations
 
-        assigned_variables : some variables are assigned at this node
+        assigned_variables : variables assigned at this node
         assigned_artifact : this node is pointing to some artifact
         predecessors : predecessors of the node
         dependent_variables : union of if any variable is assigned at predecessor node,
             use the assigned variables; otherwise, use the dependent_variables
+        tracked_variables : variables that this node is point to
         """
 
         # Map each variable node ID to the corresponding variable name(when variable assigned)
@@ -184,8 +185,8 @@ class SessionArtifacts:
                     dep
                 )
 
+            # Edit me when you see return variables in refactor behaves strange
             node = self.graph.get_node(node_id=node_id)
-
             if len(self.node_context[node_id]["assigned_variables"]) > 0:
                 self.node_context[node_id][
                     "tracked_variables"
@@ -228,7 +229,8 @@ class SessionArtifacts:
                         "tracked_variables"
                     ]
                 elif (
-                    node.positional_args[0].id
+                    len(node.positional_args) > 0
+                    and node.positional_args[0].id
                     in self.node_context[node_id]["predecessors"]
                 ):
                     self.node_context[node_id][
