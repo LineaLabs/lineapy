@@ -3,6 +3,7 @@ import subprocess
 
 import pytest
 
+from lineapy.api.api_utils import extract_taskgraph
 from lineapy.utils.utils import prettify
 
 
@@ -38,10 +39,10 @@ def test_slice_airflow(artifact_names, dag_name, deps, airflow_plugin):
     """
     Test the slice produced by airflow plugin against a snapshot.
     """
+    _, task_graph = extract_taskgraph(artifact_names, deps)
     airflow_plugin.sliced_airflow_dag(
-        artifact_names,
         dag_name,
-        deps,
+        task_graph,
         output_dir="outputs/generated",
     )
     for file_endings in [".py", "_dag.py", "_Dockerfile", "_requirements.txt"]:

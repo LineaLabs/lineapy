@@ -28,6 +28,7 @@ from lineapy.data.types import (
     SourceLocation,
 )
 from lineapy.db.relational import (
+    ArtifactDependencyORM,
     ArtifactORM,
     Base,
     BaseNodeORM,
@@ -43,6 +44,7 @@ from lineapy.db.relational import (
     MutateNodeORM,
     NodeORM,
     NodeValueORM,
+    PipelineORM,
     PositionalArgORM,
     SessionContextORM,
     SourceCodeORM,
@@ -162,6 +164,7 @@ class RelationalLineaDB:
             self.session.commit()
         except Exception as e:
             self.session.rollback()
+            logger.debug(e)
             track(ExceptionEvent(ErrorType.DATABASE, "Failed commit"))
             raise ArtifactSaveException() from e
 
@@ -302,6 +305,27 @@ class RelationalLineaDB:
         )
         self.session.add(artifact_orm)
         self.renew_session()
+
+    def write_pipeline(
+        self, dependencies: List[ArtifactDependencyORM], pipeline: PipelineORM
+    ) -> None:
+        for dep in dependencies:
+            self.session.add(dep)
+        self.session.add(pipeline)
+        self.renew_session()
+
+    def get_pipeline_by_name(self, name: str) -> PipelineORM:
+
+        res = (
+            self.session.query(PipelineORM)
+            .filter(PipelineORM.name == name)
+            .first()
+        )
+        if res is None:
+            msg = f"Pipeline {name} not found."
+            track(ExceptionEvent(ErrorType.USER, "Pipeline not found"))
+            raise UserException(NameError(msg))
+        return res
 
     def artifact_in_db(
         self, node_id: LineaID, execution_id: LineaID, name: str, version: int

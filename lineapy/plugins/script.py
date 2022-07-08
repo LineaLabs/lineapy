@@ -1,11 +1,11 @@
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from typing_extensions import TypedDict
 
 from lineapy.plugins.base import BasePlugin
-from lineapy.plugins.task import TaskGraph, TaskGraphEdge
+from lineapy.plugins.task import TaskGraph
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -49,18 +49,14 @@ class ScriptPlugin(BasePlugin):
 
     def sliced_pipeline_dag(
         self,
-        slice_names: List[str],
-        module_name: Optional[str] = None,
-        task_dependencies: TaskGraphEdge = {},
+        module_name: str,
+        task_graph: TaskGraph,
         output_dir: Optional[str] = None,
     ):
-        (
+        output_dir_path = self.slice_dag_helper(
+            task_graph.artifact_raw_to_safe_mapping,
             module_name,
-            artifact_safe_names,
-            output_dir_path,
-            task_graph,
-        ) = self.slice_dag_helper(
-            slice_names, module_name, task_dependencies, output_dir
+            output_dir,
         )
         self.to_script(
             module_name,
