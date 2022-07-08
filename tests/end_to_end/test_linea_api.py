@@ -212,45 +212,7 @@ num_versions = len(versions)
         assert res.artifacts["x"]
 
 
-def test_pipeline_artifact_list(execute):
-    c = """import lineapy
-a = 10
-b = 20
-lineapy.save(a, "a")
-lineapy.save(b, "b")
-lineapy.create_pipeline(["a", "b"], "x", persist=True)
-x = lineapy.get_pipeline("x")"""
-    res = execute(c, snapshot=False)
-    assert res.values["x"].name == "x"
-    arts = res.values["x"].artifact_names
-    assert len(arts) == 2
-    assert "a" in arts
-    assert "b" in arts
-
-
-def test_two_pipelines_simple(execute):
-
-    c = """import lineapy
-a = 10
-b = 20
-lineapy.save(a, "a")
-lineapy.save(b, "b")
-lineapy.create_pipeline(["a"], "x", persist=True)
-lineapy.create_pipeline(["b"], "y", persist=True)
-x = lineapy.get_pipeline("x")
-y = lineapy.get_pipeline("y")"""
-    res = execute(c, snapshot=False)
-    assert res.values["x"].name == "x"
-    assert res.values["y"].name == "y"
-    arts_x = res.values["x"].artifact_names
-    assert len(arts_x) == 1
-    assert "a" in arts_x
-    arts_y = res.values["y"].artifact_names
-    assert len(arts_y) == 1
-    assert "b" in arts_y
-
-
-def test_two_pipelines_complex(execute):
+def test_two_pipelines_artifact_list(execute):
 
     c = """import lineapy
 a = 10
@@ -273,24 +235,7 @@ y = lineapy.get_pipeline("y")"""
     assert "b" in arts_y
 
 
-def test_pipeline_deps_simple(execute):
-    c = """import lineapy
-a = 10
-b = 20
-lineapy.save(a, "a")
-lineapy.save(b, "b")
-dep = {"a": {"b"}}
-lineapy.create_pipeline(["a", "b"], "x", persist=True, dependencies=dep)
-x = lineapy.get_pipeline("x")"""
-    res = execute(c, snapshot=False)
-    assert res.values["x"].name == "x"
-    deps = res.values["x"].dependencies
-    assert len(deps) == 1
-    assert len(deps["a"]) == 1
-    assert "b" in deps["a"]
-
-
-def test_pipeline_deps_complex(execute):
+def test_pipeline_deps(execute):
     c = """import lineapy
 a = 10
 b = 20
@@ -326,7 +271,7 @@ c = 30
 lineapy.save(a, "a")
 lineapy.save(b, "b")
 lineapy.save(c, "c")
-dep_x = {"a": {"c"}, "b": {"c"}}
+dep_x = {"a": {"c"}, "b": {"c", "a"}}
 lineapy.create_pipeline(["a", "b", "c"], "x", persist=True, dependencies=dep_x)
 x = lineapy.get_pipeline("x")"""
     res = execute(c, snapshot=False)
@@ -335,5 +280,6 @@ x = lineapy.get_pipeline("x")"""
     assert len(dep_x) == 2
     assert len(dep_x["a"]) == 1
     assert "c" in dep_x["a"]
-    assert len(dep_x["b"]) == 1
+    assert len(dep_x["b"]) == 2
     assert "c" in dep_x["b"]
+    assert "a" in dep_x["b"]
