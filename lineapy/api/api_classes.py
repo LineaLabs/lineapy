@@ -292,6 +292,10 @@ class Pipeline:
         name: Optional[str] = None,
         dependencies: TaskGraphEdge = {},
     ):
+        if len(artifacts) == 0:
+            raise ValueError(
+                "Pipelines must contain atleast one artifact\nEmpty Pipelines are invalid"
+            )
         self.dependencies = dependencies
         self.artifact_safe_names, self.task_graph = extract_taskgraph(
             artifacts, dependencies

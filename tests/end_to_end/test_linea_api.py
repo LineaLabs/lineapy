@@ -212,16 +212,7 @@ num_versions = len(versions)
         assert res.artifacts["x"]
 
 
-def test_pipeline_simple(execute):
-
-    c = """import lineapy
-lineapy.create_pipeline([], "x", persist=True)
-x = lineapy.get_pipeline("x")"""
-    res = execute(c, snapshot=False)
-    assert res.values["x"].name == "x"
-
-
-def test_pipeline_complex(execute):
+def test_pipeline_artifact_list(execute):
     c = """import lineapy
 a = 10
 b = 20
@@ -325,3 +316,24 @@ y = lineapy.get_pipeline("y")"""
     assert len(dep_y["b"]) == 2
     assert "c" in dep_y["b"]
     assert "a" in dep_y["b"]
+
+
+def test_pipeline_deps_pre_overlap(execute):
+    c = """import lineapy
+a = 10
+b = 20
+c = 30
+lineapy.save(a, "a")
+lineapy.save(b, "b")
+lineapy.save(c, "c")
+dep_x = {"a": {"c"}, "b": {"c"}}
+lineapy.create_pipeline(["a", "b", "c"], "x", persist=True, dependencies=dep_x)
+x = lineapy.get_pipeline("x")"""
+    res = execute(c, snapshot=False)
+    assert res.values["x"].name == "x"
+    dep_x = res.values["x"].dependencies
+    assert len(dep_x) == 2
+    assert len(dep_x["a"]) == 1
+    assert "c" in dep_x["a"]
+    assert len(dep_x["b"]) == 1
+    assert "c" in dep_x["b"]
