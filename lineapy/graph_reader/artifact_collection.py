@@ -270,6 +270,8 @@ if __name__=='__main__':
     pipeline()
 """
 
+        logger.info("Generated dag file")
+
         return files_dict
 
     def write_pipeline_files(self):
