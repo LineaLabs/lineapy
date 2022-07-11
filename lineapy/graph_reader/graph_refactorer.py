@@ -9,7 +9,14 @@ import networkx as nx
 
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.graph import Graph
-from lineapy.data.types import CallNode, GlobalNode, LineaID, MutateNode, Node
+from lineapy.data.types import (
+    CallNode,
+    GlobalNode,
+    LineaID,
+    LookupNode,
+    MutateNode,
+    Node,
+)
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
@@ -30,6 +37,7 @@ class GraphSegmentType(Enum):
 
     ARTIFACT = 1
     COMMON_VARIABLE = 2
+    IMPORT = 3
 
 
 @dataclass
@@ -95,7 +103,6 @@ class GraphSegment:
         args_string = ", ".join(sorted([v for v in self.input_variables]))
 
         codeblock = f"{indentation_block}{return_string} = get_{self.artifact_safename}({args_string})"
-        # print(self.artifact_safename, self.segment_type)
         if (
             keep_lineapy_save
             and self.segment_type == GraphSegmentType.ARTIFACT
@@ -103,6 +110,23 @@ class GraphSegment:
             codeblock += f"""\n{indentation_block}lineapy.save({self.return_variables[0]}, "{self.artifact_name}")"""
 
         return codeblock
+
+    def get_import_block(self, indentation=0) -> str:
+        """
+        Return a code block for import
+        """
+        indentation_block = " " * indentation
+        import_code = get_source_code_from_graph(self.graph_segment).__str__()
+        import_codeblock = "\n".join(
+            [
+                f"{indentation_block}{line}"
+                for line in import_code.split("\n")
+                if len(line.strip(" ")) > 0
+            ]
+        )
+        if len(import_codeblock) > 0:
+            import_codeblock += "\n" * 2
+        return import_codeblock
 
 
 @dataclass
@@ -115,11 +139,13 @@ class SessionArtifacts:
     graph: Graph
     db: RelationalLineaDB
     nx_graph: nx.DiGraph
-    graph_segments: List[GraphSegment]
+    artifact_segments: List[GraphSegment]
+    import_segment: GraphSegment
     artifact_list: List[LineaArtifact]
     artifact_ordering: List
     artifact_dict: Dict[LineaID, Optional[str]]
     variable_dict: Dict[LineaID, Set[str]]
+    import_dict: Dict[LineaID, Set[str]]
     node_context: Dict[LineaID, Dict[str, Any]]
 
     def __init__(self, artifacts: List[LineaArtifact]) -> None:
@@ -128,7 +154,7 @@ class SessionArtifacts:
         self.db = artifacts[0].db
         self.graph = artifacts[0]._get_graph()
         self.nx_graph = self.graph.nx_graph
-        self.graph_segments = []
+        self.artifact_segments = []
         self.node_context = OrderedDict()
 
         self._update_node_context()
@@ -149,14 +175,39 @@ class SessionArtifacts:
 
         # Map each variable node ID to the corresponding variable name(when variable assigned)
         self.variable_dict = OrderedDict()
+        self.import_dict = OrderedDict()
         for node_id, variable_name in self.db.get_variables_for_session(
             self.session_id
         ):
-            self.variable_dict[node_id] = (
-                set([variable_name])
-                if node_id not in self.variable_dict.keys()
-                else self.variable_dict[node_id].union(set([variable_name]))
-            )
+            node = self.graph.get_node(node_id)
+
+            if (
+                hasattr(node, "function_id")
+                and (
+                    node.function_id
+                    in set(self.nx_graph.predecessors(node_id))
+                )
+                and isinstance(
+                    self.graph.get_node(node.function_id), LookupNode
+                )
+                and (
+                    self.graph.get_node(node.function_id).name == "l_import"
+                    or self.graph.get_node(node.function_id).name == "getattr"
+                )
+            ):
+                self.import_dict[node_id] = (
+                    set([variable_name])
+                    if node_id not in self.import_dict.keys()
+                    else self.import_dict[node_id].union(set([variable_name]))
+                )
+            else:
+                self.variable_dict[node_id] = (
+                    set([variable_name])
+                    if node_id not in self.variable_dict.keys()
+                    else self.variable_dict[node_id].union(
+                        set([variable_name])
+                    )
+                )
 
         # Map each artifact node ID to the corresponding artifact name
         self.artifact_dict = {
@@ -172,6 +223,8 @@ class SessionArtifacts:
                 "dependent_variables": set(),
                 "predecessors": set(self.nx_graph.predecessors(node_id)),
                 "tracked_variables": set(),
+                # "module_import": set(),
+                "module_import": self.import_dict.get(node_id, set()),
             }
             for p_node_id in self.node_context[node_id]["predecessors"]:
                 # If predecessor is variable assignment use the variable; otherwise, use its dependencies.
@@ -332,6 +385,7 @@ class SessionArtifacts:
         the other for the artifact itself.
         """
         used_node_ids: Set[LineaID] = set()  # Track nodes that get ever used
+        self.import_node_ids = set()
         self.artifact_ordering = list()
         for node_id, n in self.node_context.items():
             if n["assigned_artifact"] is not None and node_id in [
@@ -350,16 +404,31 @@ class SessionArtifacts:
                     get_slice_graph(self.graph, [node_id]).nx_graph.nodes
                 )
 
+                self.import_node_ids = self.import_node_ids.union(
+                    set(
+                        [
+                            _node
+                            for _node in artifact_sliced_node_list
+                            if len(self.node_context[_node]["module_import"])
+                            > 0
+                        ]
+                    )
+                )
+
                 # Nodes only belong to this artifact
                 artifact_context["node_list"] = (
-                    set(get_slice_graph(self.graph, [node_id]).nx_graph.nodes)
+                    artifact_sliced_node_list
                     - used_node_ids
+                    - self.import_node_ids
                 )
+
+                print(artifact_context)
+                print(self.import_node_ids)
 
                 # Update used nodes for next iteration
                 used_node_ids = used_node_ids.union(
                     artifact_context["node_list"]
-                )
+                ).union(self.import_node_ids)
 
                 artifact_context = {
                     **artifact_context,
@@ -374,15 +443,22 @@ class SessionArtifacts:
                         "assigned_artifact"
                     ]
 
+                for n_id in self.import_node_ids:
+                    self.node_context[n_id]["artifact_name"] = "module_import"
+
                 # Figure out where each predecessor is coming from which artifact
-                artifact_context["predecessor_nodes"] = set(
-                    itertools.chain.from_iterable(
-                        [
-                            self.node_context[n_id]["predecessors"]
-                            for n_id in artifact_context["node_list"]
-                        ]
+                artifact_context["predecessor_nodes"] = (
+                    set(
+                        itertools.chain.from_iterable(
+                            [
+                                self.node_context[n_id]["predecessors"]
+                                for n_id in artifact_context["node_list"]
+                            ]
+                        )
                     )
-                ) - set(artifact_context["node_list"])
+                    - set(artifact_context["node_list"])
+                    - self.import_node_ids
+                )
 
                 artifact_context["predecessor_artifact"] = set(
                     [
@@ -416,7 +492,9 @@ class SessionArtifacts:
                         .get(predecessor_artifact, set())
                         .union(predecessor_variables)
                     )
+                    print(predecessor_artifact)
 
+                print(artifact_context)
                 # Check whether we need to breakdown existing artifact graph
                 # segment. If the precedent node in precedent artifact graph
                 # is not the artifact itself, this means we should split the
@@ -438,6 +516,7 @@ class SessionArtifacts:
                             source_artifact_context["artifact_name"]
                         ]
                     )
+                    print(common_inner_variables)
                     if len(common_inner_variables) > 0:
                         source_art_graph = self._get_subgraph_from_node_list(
                             source_artifact_context["node_list"]
@@ -519,7 +598,18 @@ class SessionArtifacts:
 
                 self.artifact_ordering.append(artifact_context)
 
-        self.graph_segments = [
+        self.import_segment = GraphSegment(
+            artifact_name="",
+            graph_segment=self._get_subgraph_from_node_list(
+                self.import_node_ids
+            ),
+            segment_type=GraphSegmentType.IMPORT,
+            all_variables=set(),
+            input_variables=set(),
+            return_variables=[],
+        )
+
+        self.artifact_segments = [
             self._get_graph_segment_from_artifact_context(artifact_context)
             for artifact_context in self.artifact_ordering
         ]
@@ -533,10 +623,12 @@ class SessionArtifacts:
 
         indentation_block = " " * indentation
 
+        import_block = self.import_segment.get_import_block(indentation=0)
+
         function_definitions = "\n\n".join(
             [
                 graph_seg.get_function_definition(indentation=indentation)
-                for graph_seg in self.graph_segments
+                for graph_seg in self.artifact_segments
             ]
         )
 
@@ -546,18 +638,18 @@ class SessionArtifacts:
                     indentation=indentation,
                     keep_lineapy_save=keep_lineapy_save,
                 )
-                for graph_seg in self.graph_segments
+                for graph_seg in self.artifact_segments
             ]
         )
         return_string = ", ".join(
             [
                 graph_seg.return_variables[0]
-                for graph_seg in self.graph_segments
+                for graph_seg in self.artifact_segments
                 if graph_seg.segment_type == GraphSegmentType.ARTIFACT
             ]
         )
 
-        return f"""{function_definitions}
+        return f"""{import_block}{function_definitions}
 
 def pipeline():
 {calculation_codeblock}
