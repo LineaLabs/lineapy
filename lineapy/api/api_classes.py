@@ -32,23 +32,9 @@ from lineapy.utils.analytics.event_schemas import (
 from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.config import options
 from lineapy.utils.deprecation_utils import lru_cache
-from lineapy.utils.utils import prettify
+from lineapy.utils.utils import create_new_cell, prettify
 
 logger = logging.getLogger(__name__)
-
-
-# https://stackoverflow.com/a/54987401
-def create_new_cell(contents: str):
-    from IPython.core.getipython import get_ipython
-
-    shell = get_ipython()
-
-    payload = dict(
-        source="set_next_input",
-        text=contents,
-        replace=False,
-    )
-    shell.payload_manager.write_payload(payload)
 
 
 @dataclass
