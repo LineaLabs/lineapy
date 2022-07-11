@@ -157,6 +157,18 @@ def test_slice_housing_multiple():
     )
 
 
+def test_slice_housing_airflow():
+    """
+    Verifies that the "--airflow" CLI command is aliased to the `lineapy` executable
+    """
+    python_cli(
+        file_name=pathlib.Path("tests/housing.py"),
+        slice=["p value", "y"],
+        export_slice_to_airflow_dag="sliced_housing_dag",
+        airflow_task_dependencies="{'p value': {'y'}}",
+    )
+
+
 @pytest.mark.slow
 def test_export_slice_housing():
     """

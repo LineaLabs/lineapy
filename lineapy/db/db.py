@@ -28,6 +28,7 @@ from lineapy.data.types import (
     SourceLocation,
 )
 from lineapy.db.relational import (
+    ArtifactDependencyORM,
     ArtifactORM,
     Base,
     BaseNodeORM,
@@ -43,6 +44,7 @@ from lineapy.db.relational import (
     MutateNodeORM,
     NodeORM,
     NodeValueORM,
+    PipelineORM,
     PositionalArgORM,
     SessionContextORM,
     SourceCodeORM,
@@ -83,7 +85,26 @@ class RelationalLineaDB:
         self.engine = create_lineadb_engine(self.url)
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=self.engine)
-        Base.metadata.create_all(self.engine)
+        from alembic import command
+        from alembic.config import Config
+        from sqlalchemy import inspect
+
+        lp_install_dir = Path(__file__).resolve().parent.parent
+
+        alembic_cfg = Config((lp_install_dir / "alembic.ini").as_posix())
+        alembic_cfg.set_main_option(
+            "script_location", (lp_install_dir / "_alembic").as_posix()
+        )
+        alembic_cfg.set_main_option("sqlalchemy.url", self.url)
+        if not inspect(self.engine).get_table_names():
+            # No tables in the database, so create them
+            Base.metadata.create_all(self.engine)
+            # stamp the database with the latest alembic db version for migration
+            # https://alembic.sqlalchemy.org/en/latest/cookbook.html#building-an-up-to-date-database-from-scratch
+            command.stamp(alembic_cfg, "head")
+        else:
+            # Tables exist, so upgrade the database
+            command.upgrade(alembic_cfg, "head")
 
     def renew_session(self):
         if self.url.startswith(DB_SQLITE_PREFIX):
@@ -143,6 +164,7 @@ class RelationalLineaDB:
             self.session.commit()
         except Exception as e:
             self.session.rollback()
+            logger.debug(e)
             track(ExceptionEvent(ErrorType.DATABASE, "Failed commit"))
             raise ArtifactSaveException() from e
 
@@ -283,6 +305,27 @@ class RelationalLineaDB:
         )
         self.session.add(artifact_orm)
         self.renew_session()
+
+    def write_pipeline(
+        self, dependencies: List[ArtifactDependencyORM], pipeline: PipelineORM
+    ) -> None:
+        for dep in dependencies:
+            self.session.add(dep)
+        self.session.add(pipeline)
+        self.renew_session()
+
+    def get_pipeline_by_name(self, name: str) -> PipelineORM:
+
+        res = (
+            self.session.query(PipelineORM)
+            .filter(PipelineORM.name == name)
+            .first()
+        )
+        if res is None:
+            msg = f"Pipeline {name} not found."
+            track(ExceptionEvent(ErrorType.USER, "Pipeline not found"))
+            raise UserException(NameError(msg))
+        return res
 
     def artifact_in_db(
         self, node_id: LineaID, execution_id: LineaID, name: str, version: int

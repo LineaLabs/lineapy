@@ -26,6 +26,7 @@ from rich.console import Console
 from rich.progress import Progress
 
 from lineapy.api.api_classes import LineaArtifact
+from lineapy.api.api_utils import extract_taskgraph
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
@@ -121,8 +122,6 @@ def linea_cli(
     for arg in args:
         if arg in options.__dict__.keys() and locals().get(arg) is not None:
             options.set(arg, locals().get(arg))
-
-    options._set_defaults()
 
 
 @linea_cli.command()
@@ -422,13 +421,9 @@ def python_cli(
             exit(1)
 
         ap = AirflowPlugin(db, tracer.tracer_context.get_session_id())
-        ap.sliced_airflow_dag(
-            slice,
-            export_slice_to_airflow_dag,
-            ast.literal_eval(airflow_task_dependencies)
-            if airflow_task_dependencies
-            else {},
-        )
+        task_dependencies = ast.literal_eval(airflow_task_dependencies or "{}")
+        _, task_graph = extract_taskgraph(slice, task_dependencies)
+        ap.sliced_airflow_dag(export_slice_to_airflow_dag, task_graph)
 
     db.close()
     if print_graph:

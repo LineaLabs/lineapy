@@ -10,12 +10,14 @@ from unittest.mock import patch
 
 import pytest
 import syrupy
+from alembic import config
 from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy import save
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
+from lineapy.db.utils import create_lineadb_engine
 from lineapy.execution.executor import Executor
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.tracer import Tracer
@@ -383,3 +385,30 @@ def print_tree_log_fixture(request, capsys):
         # Don't capture stdout when printing, to preserve colors and column width
         with capsys.disabled():
             print_tree_log()
+
+
+@pytest.fixture()
+def db_url(tmp_path_factory):
+    return (
+        f"sqlite:///{tmp_path_factory.mktemp('db').as_posix()}/{DB_FILE_NAME}"
+    )
+
+
+@pytest.fixture
+def alembic_config(db_url):
+    lp_install_dir = Path(__file__).resolve().parent.parent / "lineapy"
+    alembic_cfg = config.Config(lp_install_dir / "alembic.ini")
+    alembic_cfg.set_main_option(
+        "script_location",
+        (lp_install_dir / "_alembic").as_posix(),
+    )
+    alembic_cfg.set_main_option(
+        "sqlalchemy.url",
+        db_url,
+    )
+    return alembic_cfg
+
+
+@pytest.fixture
+def alembic_engine(db_url):
+    return create_lineadb_engine(db_url)

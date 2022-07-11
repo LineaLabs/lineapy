@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from lineapy.graph_reader.api_utils import de_lineate_code
+from lineapy.api.api_utils import de_lineate_code
 
 FAKE_PATH = "/tmp/path/to/value/file/xey"
 

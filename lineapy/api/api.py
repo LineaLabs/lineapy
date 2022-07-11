@@ -12,16 +12,14 @@ from typing import List, Optional, Union
 import fsspec
 from pandas.io.pickle import to_pickle
 
-from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
-from lineapy.data.types import Artifact, LineaID, NodeValue, PipelineType
-from lineapy.db.relational import SessionContextORM
+from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore, Pipeline
+from lineapy.data.types import Artifact, LineaID, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
-from lineapy.plugins.script import ScriptPlugin
+from lineapy.plugins.airflow import AirflowDagConfig
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
@@ -30,7 +28,6 @@ from lineapy.utils.analytics.event_schemas import (
     ExceptionEvent,
     GetEvent,
     SaveEvent,
-    ToPipelineEvent,
 )
 from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.analytics.utils import side_effect_to_str
@@ -292,6 +289,39 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     return linea_artifact
 
 
+def get_pipeline(name: str) -> Pipeline:
+
+    execution_context = get_context()
+    db = execution_context.executor.db
+
+    pipeline_orm = db.get_pipeline_by_name(name)
+
+    artifact_names = [
+        artifact.name
+        for artifact in pipeline_orm.artifacts
+        if artifact.name is not None
+    ]
+
+    dependencies = dict()
+    for dep_orm in pipeline_orm.dependencies:
+        post_artifact = dep_orm.post_artifact
+        if post_artifact is None:
+            continue
+        post_name = post_artifact.name
+        if post_name is None:
+            continue
+
+        pre_names = set(
+            [
+                pre_art.name
+                for pre_art in dep_orm.pre_artifacts
+                if pre_art.name is not None
+            ]
+        )
+        dependencies[post_name] = pre_names
+    return Pipeline(artifact_names, name, dependencies=dependencies)
+
+
 def reload() -> None:
     """
     Reloads lineapy context.
@@ -340,48 +370,19 @@ def to_pipeline(
         saved in; only use for PipelineType.AIRFLOW
     :return: string containing the path of the DAG file that was exported.
     """
-    execution_context = get_context()
-    db = execution_context.executor.db
-    session_orm = (
-        db.session.query(SessionContextORM)
-        .order_by(SessionContextORM.creation_time.desc())
-        .all()
-    )
-    if len(session_orm) == 0:
-        track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
-        raise Exception("No sessions found in the database.")
-    last_session = session_orm[0]
+    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    pipeline.save()
+    return pipeline.export(framework, output_dir, pipeline_dag_config)
 
-    if framework in PipelineType.__members__:
-        if PipelineType[framework] == PipelineType.AIRFLOW:
 
-            ret = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
-                artifacts,
-                pipeline_name,
-                dependencies,
-                output_dir=output_dir,
-                airflow_dag_config=pipeline_dag_config,
-            )
+def create_pipeline(
+    artifacts: List[str],
+    pipeline_name: Optional[str] = None,
+    dependencies: TaskGraphEdge = {},
+    persist: bool = False,
+) -> Pipeline:
+    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    if persist:
+        pipeline.save()
 
-        else:
-
-            ret = ScriptPlugin(db, last_session.id).sliced_pipeline_dag(
-                artifacts,
-                pipeline_name,
-                dependencies,
-                output_dir=output_dir,
-            )
-
-        # send the info
-        track(
-            ToPipelineEvent(
-                framework,
-                len(artifacts),
-                dependencies != "",
-                pipeline_dag_config is not None,
-            )
-        )
-        return ret
-
-    else:
-        raise Exception(f"No PipelineType for {framework}")
+    return pipeline

@@ -4,6 +4,8 @@ import subprocess
 
 import pytest
 
+from lineapy.api.api_utils import extract_taskgraph
+
 
 def check_requirements_txt(t1: str, t2: str):
     return set(t1.split("\n")) == set(t2.split("\n"))
@@ -37,10 +39,10 @@ def test_slice_pythonscript(artifact_names, dag_name, deps, script_plugin):
     """
     Test the slice produced by script plugin against a snapshot.
     """
+    _, task_graph = extract_taskgraph(artifact_names, deps)
     script_plugin.sliced_pipeline_dag(
-        artifact_names,
         dag_name,
-        deps,
+        task_graph,
         output_dir="outputs/generated",
     )
     for file_endings in [
