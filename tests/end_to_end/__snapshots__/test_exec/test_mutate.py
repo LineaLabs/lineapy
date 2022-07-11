@@ -37,7 +37,26 @@ call_2 = CallNode(
         name="l_list",
     ).id,
 )
-call_5 = CallNode(
+if_else_1 = IfElseNode(
+    source_location=SourceLocation(
+        lineno=3,
+        col_offset=3,
+        end_lineno=3,
+        end_col_offset=7,
+        source_code=source_1.id,
+    ),
+    test_id=LiteralNode(
+        source_location=SourceLocation(
+            lineno=3,
+            col_offset=3,
+            end_lineno=3,
+            end_col_offset=7,
+            source_code=source_1.id,
+        ),
+        value=True,
+    ).id,
+)
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=6,
         col_offset=0,
@@ -81,25 +100,51 @@ call_5 = CallNode(
     ).id,
     positional_args=[
         MutateNode(
+            control_dependency=if_else_1.id,
             source_id=call_2.id,
             call_id=CallNode(
                 source_location=SourceLocation(
-                    lineno=3,
-                    col_offset=0,
+                    lineno=4,
+                    col_offset=4,
                     end_lineno=4,
                     end_col_offset=15,
                     source_code=source_1.id,
                 ),
-                function_id=LookupNode(
-                    name="l_exec_statement",
+                control_dependency=if_else_1.id,
+                function_id=CallNode(
+                    source_location=SourceLocation(
+                        lineno=4,
+                        col_offset=4,
+                        end_lineno=4,
+                        end_col_offset=12,
+                        source_code=source_1.id,
+                    ),
+                    control_dependency=if_else_1.id,
+                    function_id=LookupNode(
+                        control_dependency=if_else_1.id,
+                        name="getattr",
+                    ).id,
+                    positional_args=[
+                        call_2.id,
+                        LiteralNode(
+                            control_dependency=if_else_1.id,
+                            value="append",
+                        ).id,
+                    ],
                 ).id,
                 positional_args=[
                     LiteralNode(
-                        value="""if True:
-    x.append(1)""",
+                        source_location=SourceLocation(
+                            lineno=4,
+                            col_offset=13,
+                            end_lineno=4,
+                            end_col_offset=14,
+                            source_code=source_1.id,
+                        ),
+                        control_dependency=if_else_1.id,
+                        value=1,
                     ).id
                 ],
-                global_reads={"x": call_2.id},
             ).id,
         ).id,
         LiteralNode(
