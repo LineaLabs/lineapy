@@ -404,36 +404,21 @@ class GlobalNodeORM(BaseNodeORM):
     }
 
 
-class IfNodeORM(BaseNodeORM):
-    __tablename__ = "if_node"
+class IfElseNodeORM(BaseNodeORM):
+    __tablename__ = "if_else_node"
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
-    call_id = Column(String, ForeignKey("node.id"))
-    contents = Column(String, ForeignKey("node.id"))
+    test_id = Column(String, ForeignKey("node.id"))
+    unexec_contents = Column(String, ForeignKey("node.id"))
     else_node = Column(String, ForeignKey("node.id"))
 
     __mapper_args__ = {
-        "polymorphic_identity": NodeType.IfNode,
+        "polymorphic_identity": NodeType.IfElseNode,
         "inherit_condition": id == BaseNodeORM.id,
     }
 
 
-class ElseNodeORM(BaseNodeORM):
-    __tablename__ = "else_node"
-
-    id = Column(String, ForeignKey("node.id"), primary_key=True)
-    contents = Column(String, ForeignKey("node.id"))
-
-    __mapper_args__ = {
-        "polymorphic_identity": NodeType.ElseNode,
-        "inherit_condition": id == BaseNodeORM.id,
-    }
-
-
-ControlORM = Union[
-    IfNodeORM,
-    ElseNodeORM,
-]
+ControlORM = IfElseNodeORM
 
 # Explicitly define all subclasses of NodeORM, so that if we use this as a type
 # we can accurately know if we cover all cases

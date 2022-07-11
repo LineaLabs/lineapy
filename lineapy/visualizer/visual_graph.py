@@ -25,9 +25,8 @@ from typing import Dict, FrozenSet, Iterable, List, Optional, Set, Union
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
-    ElseNode,
     GlobalNode,
-    IfNode,
+    IfElseNode,
     ImportNode,
     LineaID,
     LiteralNode,
@@ -308,33 +307,31 @@ def process_node(
             ),
         )
         return node.name
-    if isinstance(node, IfNode):
+    if isinstance(node, IfElseNode):
         vg.edge(
             VisualEdge(
-                VisualEdgeID(node.call_id),
+                VisualEdgeID(node.test_id),
                 VisualEdgeID(n_id),
                 VisualEdgeType.CONTROL_FLOW,
-            ),
+            )
         )
-        if node.contents:
+        if node.unexec_contents:
             vg.edge(
                 VisualEdge(
-                    VisualEdgeID(node.contents),
+                    VisualEdgeID(node.unexec_contents),
                     VisualEdgeID(n_id),
                     VisualEdgeType.DUMMY_CONTROL_FLOW,
                 ),
             )
-        return "if"
-    if isinstance(node, ElseNode):
-        if node.contents:
+        if node.else_id:
             vg.edge(
                 VisualEdge(
-                    VisualEdgeID(node.contents),
+                    VisualEdgeID(node.else_id),
                     VisualEdgeID(n_id),
                     VisualEdgeType.DUMMY_CONTROL_FLOW,
-                ),
+                )
             )
-        return "else"
+        return "if_else"
 
 
 @dataclass

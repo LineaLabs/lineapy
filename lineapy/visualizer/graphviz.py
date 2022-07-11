@@ -106,8 +106,7 @@ COLORS: Dict[ColorableType, str] = defaultdict(
         NodeType.LookupNode: BREWER_PASTEL["yellow"],
         # Make the global node and variables same color, since both are about variables
         NodeType.GlobalNode: BREWER_PASTEL["brown"],
-        NodeType.IfNode: BREWER_PASTEL["blue"],
-        NodeType.ElseNode: BREWER_PASTEL["blue"],
+        NodeType.IfElseNode: BREWER_PASTEL["blue"],
         ExtraLabelType.VARIABLE: BREWER_PASTEL["brown"],
         ExtraLabelType.ARTIFACT: BREWER_PASTEL["orange"],
         # Make same color as mutate node
@@ -124,8 +123,7 @@ NODE_LABELS: Dict[NodeType, str] = {
     NodeType.LookupNode: "Lookup",
     NodeType.MutateNode: "Mutate",
     NodeType.GlobalNode: "Global",
-    NodeType.IfNode: "If",
-    NodeType.ElseNode: "Else",
+    NodeType.IfElseNode: "If/Else",
 }
 
 
@@ -136,8 +134,7 @@ NODE_SHAPES: Dict[NodeType, str] = {
     NodeType.LookupNode: "box",
     NodeType.MutateNode: "record",
     NodeType.GlobalNode: "box",
-    NodeType.IfNode: "diamond",
-    NodeType.ElseNode: "diamond",
+    NodeType.IfElseNode: "diamond",
 }
 
 UNDIRECTED_EDGE_TYPES = {

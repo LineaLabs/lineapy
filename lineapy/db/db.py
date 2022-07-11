@@ -10,10 +10,9 @@ from sqlalchemy.sql.expression import and_
 from lineapy.data.types import (
     Artifact,
     CallNode,
-    ElseNode,
     Execution,
     GlobalNode,
-    IfNode,
+    IfElseNode,
     ImportNode,
     JupyterCell,
     KeywordArgument,
@@ -35,11 +34,10 @@ from lineapy.db.relational import (
     Base,
     BaseNodeORM,
     CallNodeORM,
-    ElseNodeORM,
     ExecutionORM,
     GlobalNodeORM,
     GlobalReferenceORM,
-    IfNodeORM,
+    IfElseNodeORM,
     ImplicitDependencyORM,
     ImportNodeORM,
     KeywordArgORM,
@@ -287,15 +285,13 @@ class RelationalLineaDB:
         elif isinstance(node, LookupNode):
             node_orm = LookupNodeORM(**args, name=node.name)
         else:
-            if isinstance(node, IfNode):
-                node_orm = IfNodeORM(
+            if isinstance(node, IfElseNode):
+                node_orm = IfElseNodeORM(
                     **args,
-                    call_id=node.call_id,
-                    contents=node.contents,
-                    else_node=node.else_node,
+                    test_id=node.test_id,
+                    unexec_contents=node.unexec_contents,
+                    else_node=node.else_id,
                 )
-            elif isinstance(node, ElseNode):
-                node_orm = ElseNodeORM(**args, contents=node.contents)
             else:
                 raise NotImplementedError(
                     "Unimplemented node type: ", type(node)
@@ -488,15 +484,13 @@ class RelationalLineaDB:
                 name=node.name,
                 **args,
             )
-        if isinstance(node, IfNodeORM):
-            return IfNode(
-                call_id=node.call_id,
-                contents=node.contents,
-                else_node=node.else_node,
+        if isinstance(node, IfElseNodeORM):
+            return IfElseNode(
+                unexec_contents=node.unexec_contents,
+                test_id=node.test_id,
+                else_id=node.else_node,
                 **args,
             )
-        if isinstance(node, ElseNodeORM):
-            return ElseNode(**args, contents=node.contents)
         raise NotImplementedError("Node type not implemented ", type(node))
 
     def get_node_by_id(self, linea_id: LineaID) -> Node:

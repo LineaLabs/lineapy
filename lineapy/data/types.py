@@ -67,8 +67,6 @@ class NodeType(Enum):
     LookupNode = auto()
     MutateNode = auto()
     GlobalNode = auto()
-    IfNode = auto()
-    ElseNode = auto()
     IfElseNode = auto()
 
 
@@ -436,52 +434,34 @@ class GlobalNode(BaseNode):
 #             yield self.non_executed_contents
 
 
-class IfNode(BaseNode):
+class IfElseNode(BaseNode):
     """
-    Represents the `if` keyword
+    Represents the `if`, `else`, `elif` block
     """
 
-    node_type = Field(NodeType.IfNode, repr=False)
+    node_type = Field(NodeType.IfElseNode, repr=False)
+
+    # LiteralNode containing the code, for the block that is not executed
+    # If both `if` and `else` blocks are executed, this is None
+    unexec_contents: Optional[LineaID]
 
     # Points to the call node which forms the expression to test
-    call_id: LineaID
+    test_id: LineaID
 
-    # LiteralNode containing the code, in case the `then` block is not executed
-    # If the block is executed, the list is blank
-    contents: Optional[LineaID]
-
-    else_node: Optional[LineaID]
+    # Points to a LiteralNode containing the `else` keyword if present
+    else_id: Optional[LineaID]
 
     def parents(self) -> Iterable[LineaID]:
         yield from super().parents()
-        yield self.call_id
-        if self.contents:
-            yield self.contents
-        if self.else_node:
-            yield self.else_node
+        yield self.test_id
+        if self.unexec_contents:
+            yield self.unexec_contents
+        if self.else_id:
+            yield self.else_id
 
 
-class ElseNode(BaseNode):
-    """
-    Represents the `else` keyword
-    """
+CNode = IfElseNode
 
-    node_type = Field(NodeType.ElseNode, repr=False)
-
-    # LiteralNode containing the code, in case the `else` block is not executed
-    # If the block is executed, the list is blank
-    contents: Optional[LineaID]
-
-    def parents(self) -> Iterable[LineaID]:
-        yield from super().parents()
-        if self.contents:
-            yield self.contents
-
-
-CNode = Union[
-    IfNode,
-    ElseNode,
-]
 
 # We can use this for more precise type definitions, to make sure we hit
 # all the node cases

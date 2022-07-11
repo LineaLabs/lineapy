@@ -8,9 +8,8 @@ from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
     CNode,
-    ElseNode,
     GlobalNode,
-    IfNode,
+    IfElseNode,
     ImportNode,
     KeywordArgument,
     LineaID,
@@ -473,33 +472,21 @@ class Tracer:
     def control_node(
         self,
         type: Type[CNode],
+        condition_node: Node,
         source_location: Optional[SourceLocation] = None,
-        condition_node: Optional[Node] = None,
         contents: Optional[LiteralNode] = None,
-        else_node_id: Optional[LineaID] = None,
+        else_literal: Optional[LiteralNode] = None,
     ) -> CNode:
-        node: Union[IfNode, ElseNode]
-        if type is IfNode:
-            assert condition_node is not None
-            node = IfNode(
+        node: CNode
+        if type is IfElseNode:
+            node = IfElseNode(
                 id=get_new_id(),
                 session_id=self.get_session_id(),
                 source_location=source_location,
-                call_id=condition_node.id,
                 control_dependency=self.control_flow_tracker.current_control_dependency(),
-                contents=contents.id if contents else None,
-                else_node=else_node_id,
-            )
-        elif type is ElseNode:
-            assert (
-                else_node_id is not None
-            ), "Else node ID must be present to link ElseNode with the corresponding If/For/While node"
-            node = ElseNode(
-                id=else_node_id,
-                session_id=self.get_session_id(),
-                source_location=source_location,
-                control_dependency=self.control_flow_tracker.current_control_dependency(),
-                contents=contents.id if contents else None,
+                unexec_contents=contents.id if contents else None,
+                test_id=condition_node.id,
+                else_id=else_literal.id if else_literal else None,
             )
         else:
             raise NotImplementedError(

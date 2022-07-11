@@ -20,10 +20,9 @@ from typing import (
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
-    ElseNode,
     Execution,
     GlobalNode,
-    IfNode,
+    IfElseNode,
     ImportNode,
     LineaID,
     LiteralNode,
@@ -244,31 +243,15 @@ class Executor:
     @_execute.register
     def _execute_if(
         self,
-        node: IfNode,
+        node: IfElseNode,
         changes: Iterable[TracebackChange],
         variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
         return PrivateExecuteResult(
             # An `execute if` uses the test condition to create a new control flow node  a global set by a call node so,
             # Copy the result and the timing from the call node
-            self._id_to_value[node.call_id],
-            *self._execution_time[node.call_id],
-            [],
-        )
-
-    @_execute.register
-    def _execute_else(
-        self,
-        node: ElseNode,
-        changes: Iterable[TracebackChange],
-        variables: Optional[Dict[str, LineaID]],
-    ) -> PrivateExecuteResult:
-        return PrivateExecuteResult(
-            # An `execute if` uses the test condition to create a new control flow node  a global set by a call node so,
-            # Copy the result and the timing from the call node
-            None,
-            datetime.now(),
-            datetime.now(),
+            self._id_to_value[node.test_id],
+            *self._execution_time[node.test_id],
             [],
         )
 

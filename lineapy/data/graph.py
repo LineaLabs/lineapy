@@ -41,7 +41,7 @@ class Graph(object):
 
         # validation
         if not nx.is_directed_acyclic_graph(self.nx_graph):
-            pass  # raise AssertionError("Graph should not be cyclic")
+            raise AssertionError("Graph should not be cyclic")
 
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
