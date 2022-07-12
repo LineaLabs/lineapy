@@ -288,12 +288,15 @@ class NodeTransformer(ast.NodeTransformer):
         else:
             exec = node.orelse
             unexec = node.body
+        else_source = self.get_else_source(node)
         self.tracer.control_node(
             IfElseNode,
             test_call_node,
             self.get_source(node.test),
-            self.get_black_box_without_executing(unexec),
-            self.get_else_source(node),
+            self.get_black_box_without_executing(unexec)
+            if else_source is not None
+            else None,
+            else_source,
         )
         for stmt in exec:
             self.visit(stmt)
