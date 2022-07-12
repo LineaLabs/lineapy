@@ -73,7 +73,7 @@ class GraphSegment:
 
     def get_function_definition(self, indentation=4) -> str:
         """
-        Return a codeblock to define the function
+        Return a codeblock to define the function of the graph segment
         """
         indentation_block = " " * indentation
         artifact_code = get_source_code_from_graph(
@@ -96,7 +96,7 @@ class GraphSegment:
         self, indentation=0, keep_lineapy_save=False
     ) -> str:
         """
-        Return a codeblock to call the function with return variables
+        Return a codeblock to call the function with return variables of the graph segment
         """
         indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
@@ -113,7 +113,7 @@ class GraphSegment:
 
     def get_import_block(self, indentation=0) -> str:
         """
-        Return a code block for import
+        Return a code block for import statement of the graph segment
         """
         indentation_block = " " * indentation
         import_code = get_source_code_from_graph(self.graph_segment).__str__()
@@ -189,6 +189,7 @@ class SessionArtifacts:
         """
 
         # Map each variable node ID to the corresponding variable name(when variable assigned)
+        # Need to treat import different from regular variable assignment
         self.variable_dict = OrderedDict()
         self.import_dict = OrderedDict()
         for node_id, variable_name in self.db.get_variables_for_session(
@@ -210,7 +211,7 @@ class SessionArtifacts:
                     )
                 )
 
-        # Map each artifact node ID to the corresponding artifact name
+        # Map node id to artifact assignment
         self.artifact_dict = {
             artifact.node_id: artifact.name
             for artifact in self.db.get_artifacts_for_session(self.session_id)
@@ -226,6 +227,8 @@ class SessionArtifacts:
                 "tracked_variables": set(),
                 "module_import": self.import_dict.get(node_id, set()),
             }
+            # Dependent variables of each node is union of all tracked
+            # variables from predecessors
             for p_node_id in self.node_context[node_id]["predecessors"]:
                 dep = self.variable_dict.get(
                     p_node_id,
@@ -237,7 +240,8 @@ class SessionArtifacts:
                     dep
                 )
 
-            # Edit me when you see return variables in refactor behaves strange
+            # Determine the tracked variables of each node
+            # Fix me when you see return variables in refactor behaves strange
             node = self.graph.get_node(node_id=node_id)
             if len(self.node_context[node_id]["assigned_variables"]) > 0:
                 self.node_context[node_id][
@@ -354,6 +358,12 @@ class SessionArtifacts:
     def _get_graph_segment_from_artifact_context(
         self, artifact_context
     ) -> GraphSegment:
+        """
+        Create the graphsegment from the artifact context
+
+        Note: might be able get rid of artifact_context entirely with some more
+        refactoring.
+        """
         subgraph = self._get_subgraph_from_node_list(
             artifact_context["node_list"]
         )
@@ -402,7 +412,7 @@ class SessionArtifacts:
                 artifact_sliced_node_list = set(
                     artifact_sliced_graph.nx_graph.nodes
                 )
-
+                # Identify import nodes(need to lift them out)
                 artifact_import_node = self.import_node_ids.union(
                     set(
                         [
@@ -413,7 +423,7 @@ class SessionArtifacts:
                         ]
                     )
                 )
-
+                # Ancestors of import node should be also for import
                 artifact_import_node_ancestors = set(
                     itertools.chain.from_iterable(
                         [
@@ -422,7 +432,7 @@ class SessionArtifacts:
                         ]
                     )
                 )
-
+                # All nodes related to import modules
                 self.import_node_ids = self.import_node_ids.union(
                     (
                         artifact_import_node.union(
@@ -522,6 +532,7 @@ class SessionArtifacts:
                         if context["artifact_name"] == source_artifact_name
                     ][0]
 
+                    # Common variables between two artifacts
                     common_inner_variables = (
                         source_artifact_context["all_variables"]
                         - set(source_artifact_context["return_variables"])
