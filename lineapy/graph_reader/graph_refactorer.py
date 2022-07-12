@@ -160,6 +160,18 @@ class SessionArtifacts:
         self._update_node_context()
         self._slice_session_artifacts()
 
+    def _is_import_node(self, node_id) -> bool:
+        node = self.graph.get_node(node_id)
+        return (
+            hasattr(node, "function_id")
+            and (node.function_id in set(self.nx_graph.predecessors(node_id)))
+            and isinstance(self.graph.get_node(node.function_id), LookupNode)
+            and (
+                self.graph.get_node(node.function_id).name == "l_import"
+                or self.graph.get_node(node.function_id).name == "getattr"
+            )
+        )
+
     def _update_node_context(self):
         """
         Traverse every node within the session in topologically sorted order and update
@@ -180,21 +192,7 @@ class SessionArtifacts:
             self.session_id
         ):
             node = self.graph.get_node(node_id)
-
-            if (
-                hasattr(node, "function_id")
-                and (
-                    node.function_id
-                    in set(self.nx_graph.predecessors(node_id))
-                )
-                and isinstance(
-                    self.graph.get_node(node.function_id), LookupNode
-                )
-                and (
-                    self.graph.get_node(node.function_id).name == "l_import"
-                    or self.graph.get_node(node.function_id).name == "getattr"
-                )
-            ):
+            if self._is_import_node(node_id):
                 self.import_dict[node_id] = (
                     set([variable_name])
                     if node_id not in self.import_dict.keys()
@@ -227,10 +225,9 @@ class SessionArtifacts:
                 "module_import": self.import_dict.get(node_id, set()),
             }
             for p_node_id in self.node_context[node_id]["predecessors"]:
-                # If predecessor is variable assignment use the variable; otherwise, use its dependencies.
                 dep = self.variable_dict.get(
                     p_node_id,
-                    self.node_context[p_node_id]["dependent_variables"],
+                    self.node_context[p_node_id]["tracked_variables"],
                 )
                 self.node_context[node_id][
                     "dependent_variables"
@@ -400,11 +397,12 @@ class SessionArtifacts:
                 }
 
                 # All nodes related to this artifact
+                artifact_sliced_graph = get_slice_graph(self.graph, [node_id])
                 artifact_sliced_node_list = set(
-                    get_slice_graph(self.graph, [node_id]).nx_graph.nodes
+                    artifact_sliced_graph.nx_graph.nodes
                 )
 
-                self.import_node_ids = self.import_node_ids.union(
+                artifact_import_node = self.import_node_ids.union(
                     set(
                         [
                             _node
@@ -415,15 +413,30 @@ class SessionArtifacts:
                     )
                 )
 
+                artifact_import_node_ancestors = set(
+                    itertools.chain.from_iterable(
+                        [
+                            self.graph.get_ancestors(import_node_id)
+                            for import_node_id in artifact_import_node
+                        ]
+                    )
+                )
+
+                self.import_node_ids = self.import_node_ids.union(
+                    (
+                        artifact_import_node.union(
+                            artifact_import_node_ancestors
+                        )
+                    ).intersection(artifact_sliced_node_list)
+                    - used_node_ids
+                )
+
                 # Nodes only belong to this artifact
                 artifact_context["node_list"] = (
                     artifact_sliced_node_list
                     - used_node_ids
                     - self.import_node_ids
                 )
-
-                print(artifact_context)
-                print(self.import_node_ids)
 
                 # Update used nodes for next iteration
                 used_node_ids = used_node_ids.union(
@@ -479,22 +492,22 @@ class SessionArtifacts:
                         )
                         > 0
                         else self.node_context[pred_node_id][
-                            "dependent_variables"
+                            # "dependent_variables"
+                            "tracked_variables"
                         ]
                     )
                     predecessor_artifact = self.node_context[pred_node_id][
                         "artifact_name"
                     ]
-                    artifact_context["input_variable_sources"][
-                        predecessor_artifact
-                    ] = (
-                        artifact_context["input_variable_sources"]
-                        .get(predecessor_artifact, set())
-                        .union(predecessor_variables)
-                    )
-                    print(predecessor_artifact)
+                    if predecessor_artifact != "module_import":
+                        artifact_context["input_variable_sources"][
+                            predecessor_artifact
+                        ] = (
+                            artifact_context["input_variable_sources"]
+                            .get(predecessor_artifact, set())
+                            .union(predecessor_variables)
+                        )
 
-                print(artifact_context)
                 # Check whether we need to breakdown existing artifact graph
                 # segment. If the precedent node in precedent artifact graph
                 # is not the artifact itself, this means we should split the
@@ -516,7 +529,6 @@ class SessionArtifacts:
                             source_artifact_context["artifact_name"]
                         ]
                     )
-                    print(common_inner_variables)
                     if len(common_inner_variables) > 0:
                         source_art_graph = self._get_subgraph_from_node_list(
                             source_artifact_context["node_list"]
