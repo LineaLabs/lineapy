@@ -160,17 +160,19 @@ class SessionArtifacts:
         self._update_node_context()
         self._slice_session_artifacts()
 
-    def _is_import_node(self, node_id) -> bool:
+    def _is_import_node(self, node_id: LineaID) -> bool:
+        """
+        Given node_id, check whether it is a CallNode doing module import
+        """
         node = self.graph.get_node(node_id)
-        return (
-            hasattr(node, "function_id")
-            and (node.function_id in set(self.nx_graph.predecessors(node_id)))
-            and isinstance(self.graph.get_node(node.function_id), LookupNode)
-            and (
-                self.graph.get_node(node.function_id).name == "l_import"
-                or self.graph.get_node(node.function_id).name == "getattr"
-            )
-        )
+        if isinstance(node, CallNode) and hasattr(node, "function_id"):
+            lookup_node_id = node.__dict__.get("function_id", None)
+            if lookup_node_id is not None:
+                lookup_node = self.graph.get_node(lookup_node_id)
+                if isinstance(lookup_node, LookupNode):
+                    lookup_node_name = lookup_node.__dict__.get("name", "")
+                    return lookup_node_name in ["l_import", "getattr"]
+        return False
 
     def _update_node_context(self):
         """
@@ -183,6 +185,7 @@ class SessionArtifacts:
         dependent_variables : union of if any variable is assigned at predecessor node,
             use the assigned variables; otherwise, use the dependent_variables
         tracked_variables : variables that this node is point to
+        module_import : module name/alias that this node is point to
         """
 
         # Map each variable node ID to the corresponding variable name(when variable assigned)
@@ -221,7 +224,6 @@ class SessionArtifacts:
                 "dependent_variables": set(),
                 "predecessors": set(self.nx_graph.predecessors(node_id)),
                 "tracked_variables": set(),
-                # "module_import": set(),
                 "module_import": self.import_dict.get(node_id, set()),
             }
             for p_node_id in self.node_context[node_id]["predecessors"]:
@@ -295,9 +297,8 @@ class SessionArtifacts:
 
     def _get_subgraph_from_node_list(self, node_list: List[LineaID]) -> Graph:
         """
-        Return the subgraph from list of node id
+        Return the subgraph as LineaPy Graph from list of node id
         """
-
         # Fix me, ugly code to satisfy type checking
         nodes: List[Node] = []
         for node_id in node_list:
@@ -382,7 +383,7 @@ class SessionArtifacts:
         the other for the artifact itself.
         """
         used_node_ids: Set[LineaID] = set()  # Track nodes that get ever used
-        self.import_node_ids = set()
+        self.import_node_ids: Set[LineaID] = set()
         self.artifact_ordering = list()
         for node_id, n in self.node_context.items():
             if n["assigned_artifact"] is not None and node_id in [
@@ -613,7 +614,7 @@ class SessionArtifacts:
         self.import_segment = GraphSegment(
             artifact_name="",
             graph_segment=self._get_subgraph_from_node_list(
-                self.import_node_ids
+                list(self.import_node_ids)
             ),
             segment_type=GraphSegmentType.IMPORT,
             all_variables=set(),
