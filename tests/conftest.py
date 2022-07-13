@@ -23,7 +23,7 @@ from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
-from lineapy.transformer.node_transformer import transform
+from lineapy.transformer.transform_code import transform
 from lineapy.utils.config import DB_FILE_NAME, options
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
