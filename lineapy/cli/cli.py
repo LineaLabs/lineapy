@@ -59,6 +59,13 @@ logger = logging.getLogger(__name__)
     help="Print out logging for graph creation and execution.",
     is_flag=True,
 )
+@click.version_option(
+    None,
+    "--version",
+    "-v",
+    message="%(package)s %(version)s",
+    help="Print the Lineapy version number and exit.",
+)
 @click.option(
     "--home-dir",
     type=click.Path(dir_okay=True, path_type=pathlib.Path),
