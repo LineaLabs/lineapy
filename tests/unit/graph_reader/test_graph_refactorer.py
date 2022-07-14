@@ -47,7 +47,8 @@ z.append(h)
 art['z'] = lineapy.save(z,'z')
 """
 
-    expection_result_all = """def get_a():
+    expection_result_all = """import copy
+def get_a():
   a = 1
   return a
 
@@ -90,24 +91,25 @@ def get_z(h):
   return z
 
 def pipeline():
+  sessionartifacts = []
   a = get_a()
-  lineapy.save(a, "a")
+  sessionartifacts.append(copy.deepcopy(a))
   a0 = get_a0()
-  lineapy.save(a0, "a0")
+  sessionartifacts.append(copy.deepcopy(a0))
   a = get_a_for_artifact_c_and_downstream(a)
   c = get_c(a, a0)
-  lineapy.save(c, "c")
+  sessionartifacts.append(copy.deepcopy(c))
   f = get_f(c)
-  lineapy.save(f, "f")
+  sessionartifacts.append(copy.deepcopy(f))
   e = get_e(a)
-  lineapy.save(e, "e")
+  sessionartifacts.append(copy.deepcopy(e))
   g = get_g2(c, e)
-  lineapy.save(g, "g2")
+  sessionartifacts.append(copy.deepcopy(g))
   h = get_h(a, g)
-  lineapy.save(h, "h")
+  sessionartifacts.append(copy.deepcopy(h))
   z = get_z(h)
-  lineapy.save(z, "z")
-  return a, a0, c, f, e, g, h, z
+  sessionartifacts.append(copy.deepcopy(z))
+  return sessionartifacts
 
 if __name__=="__main__":
   pipeline()
@@ -119,11 +121,12 @@ if __name__=="__main__":
 
     sas = SessionArtifacts(list(art.values()))
     refactor_code = sas.get_session_module_definition(
-        indentation=2, keep_lineapy_save=True
+        indentation=2, keep_lineapy_save=False
     )
     assert prettify(refactor_code) == prettify(expection_result_all)
 
-    expection_result_a0_c_h = """def get_a0():
+    expection_result_a0_c_h = """import copy
+def get_a0():
   a0 = 0
   a0 += 1
   return a0
@@ -148,18 +151,21 @@ def get_h(a, c):
   return h
 
 def pipeline():
+  sessionartifacts = []
   a0 = get_a0()
   lineapy.save(a0, "a0")
+  sessionartifacts.append(copy.deepcopy(a0))
   a = get_a_for_artifact_c_and_downstream()
   c = get_c(a, a0)
   lineapy.save(c, "c")
+  sessionartifacts.append(copy.deepcopy(c))
   h = get_h(a, c)
   lineapy.save(h, "h")
-  return a0, c, h
+  sessionartifacts.append(copy.deepcopy(h))
+  return sessionartifacts
 
 if __name__=="__main__":
   pipeline()
-
     """
 
     sas = SessionArtifacts(
@@ -169,6 +175,35 @@ if __name__=="__main__":
         indentation=2, keep_lineapy_save=True
     )
     assert prettify(refactor_code_a0_c_h) == prettify(expection_result_a0_c_h)
+
+    expection_result_h = """def get_h():
+  a0 = 0
+  a0 += 1
+  a = 1
+  a += 1
+  b = a * 2 + a0
+  c = b + 3
+  d = a * 4
+  e = d + 5
+  e += 6
+  a += 1
+  g = c + e * 2
+  h = a + g
+  return h
+
+def pipeline():
+  h = get_h()
+  return h
+
+if __name__=="__main__":
+  pipeline()
+    """
+
+    sas = SessionArtifacts(
+        [a for i, a in enumerate(list(art.values())) if i in [6]]
+    )  # a0, c, h
+    refactor_code_h = sas.get_session_module_definition(indentation=2)
+    assert prettify(refactor_code_h) == prettify(expection_result_h)
 
 
 def test_module_import(execute):
@@ -181,7 +216,8 @@ art['df'] = lineapy.save(df,'df')
 df2 = pandas.concat([df,df])
 art['df2'] = lineapy.save(df2,'df2')
     """
-    expection_result_all = """import pandas
+    expection_result_all = """import copy
+import pandas
 
 def get_df():
     df = pandas.DataFrame({"a": [1, 2]})
@@ -192,9 +228,12 @@ def get_df2(df):
     return df2
 
 def pipeline():
+    sessionartifacts = []
     df = get_df()
+    sessionartifacts.append(copy.deepcopy(df))
     df2 = get_df2(df)
-    return df, df2
+    sessionartifacts.append(copy.deepcopy(df2))
+    return sessionartifacts
 
 if __name__=="__main__":
     pipeline()
@@ -219,7 +258,8 @@ art['df'] = lineapy.save(df,'df')
 df2 = pd.concat([df,df])
 art['df2'] = lineapy.save(df2,'df2')
     """
-    expection_result_all = """import pandas as pd
+    expection_result_all = """import copy
+import pandas as pd
 
 def get_df():
     df = pd.DataFrame({"a": [1, 2]})
@@ -230,9 +270,12 @@ def get_df2(df):
     return df2
 
 def pipeline():
+    sessionartifacts = []
     df = get_df()
+    sessionartifacts.append(copy.deepcopy(df))
     df2 = get_df2(df)
-    return df, df2
+    sessionartifacts.append(copy.deepcopy(df2))
+    return sessionartifacts
 
 if __name__=="__main__":
     pipeline()
@@ -253,7 +296,8 @@ art = {}
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 # Load train data
-train_df = pd.read_csv("https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv")
+url1 = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+train_df = pd.read_csv(url1)
 # Initiate the model
 mod = LinearRegression()
 # Fit the model
@@ -264,19 +308,22 @@ mod.fit(
 # Save the fitted model as an artifact
 art['model'] = lineapy.save(mod, "iris_model")
 # Load data to predict (assume it comes from a different source)
-pred_df = pd.read_csv("https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv")
+pred_df = pd.read_csv(url1)
 # Make predictions
 petal_length_pred =  mod.predict(X=pred_df[["petal.width"]])
 # Save the predictions
 art['pred'] = lineapy.save(petal_length_pred, "iris_petal_length_pred")
     """
-    expection_result_all = """import pandas as pd
+    expection_result_all = """import copy
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 
-def get_iris_model():
-    train_df = pd.read_csv(
-        "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-    )
+def get_url1_for_artifact_iris_model_and_downstream():
+    url1 = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+    return url1
+
+def get_iris_model(url1):
+    train_df = pd.read_csv(url1)
     mod = LinearRegression()
     mod.fit(
         X=train_df[["petal.width"]],
@@ -284,17 +331,19 @@ def get_iris_model():
     )
     return mod
 
-def get_iris_petal_length_pred(mod):
-    pred_df = pd.read_csv(
-        "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-    )
+def get_iris_petal_length_pred(mod, url1):
+    pred_df = pd.read_csv(url1)
     petal_length_pred = mod.predict(X=pred_df[["petal.width"]])
     return petal_length_pred
 
 def pipeline():
-    mod = get_iris_model()
-    petal_length_pred = get_iris_petal_length_pred(mod)
-    return mod, petal_length_pred
+    sessionartifacts = []
+    url1 = get_url1_for_artifact_iris_model_and_downstream()
+    mod = get_iris_model(url1)
+    sessionartifacts.append(copy.deepcopy(mod))
+    petal_length_pred = get_iris_petal_length_pred(mod, url1)
+    sessionartifacts.append(copy.deepcopy(petal_length_pred))
+    return sessionartifacts
 
 if __name__=="__main__":
     pipeline()

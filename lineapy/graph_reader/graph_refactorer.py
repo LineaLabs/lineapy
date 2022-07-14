@@ -93,10 +93,14 @@ class GraphSegment:
         return f"def get_{artifact_name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
 
     def get_function_call_block(
-        self, indentation=0, keep_lineapy_save=False
+        self, indentation=0, keep_lineapy_save=False, result_placeholder=None
     ) -> str:
         """
         Return a codeblock to call the function with return variables of the graph segment
+
+        :param int indentation: indentation size
+        :param bool keep_lineapy_save: whether do lineapy.save() after execution
+        :param Optional[str] result_placeholder: if not null, append the return result to the result_placeholder
         """
         indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
@@ -108,6 +112,8 @@ class GraphSegment:
             and self.segment_type == GraphSegmentType.ARTIFACT
         ):
             codeblock += f"""\n{indentation_block}lineapy.save({self.return_variables[0]}, "{self.artifact_name}")"""
+        if result_placeholder is not None:
+            codeblock += f"""\n{indentation_block}{result_placeholder}.append(copy.deepcopy({self.return_variables[0]}))"""
 
         return codeblock
 
@@ -147,6 +153,8 @@ class SessionArtifacts:
     variable_dict: Dict[LineaID, Set[str]]
     import_dict: Dict[LineaID, Set[str]]
     node_context: Dict[LineaID, Dict[str, Any]]
+    input_parameters: List[str]
+    input_parameters_node: Dict[str, LineaID]
 
     def __init__(self, artifacts: List[LineaArtifact]) -> None:
         self.artifact_list = artifacts
@@ -156,6 +164,7 @@ class SessionArtifacts:
         self.nx_graph = self.graph.nx_graph
         self.artifact_segments = []
         self.node_context = OrderedDict()
+        self.input_parameters = []
 
         self._update_node_context()
         self._slice_session_artifacts()
@@ -192,6 +201,7 @@ class SessionArtifacts:
         # Need to treat import different from regular variable assignment
         self.variable_dict = OrderedDict()
         self.import_dict = OrderedDict()
+        self.input_parameters_node = dict()
         for node_id, variable_name in self.db.get_variables_for_session(
             self.session_id
         ):
@@ -210,6 +220,15 @@ class SessionArtifacts:
                         set([variable_name])
                     )
                 )
+
+                for var in set([variable_name]).intersection(
+                    set(self.input_parameters)
+                ):
+                    if self.input_parameters_node.get(var, None) is not None:
+                        # Duplicated variable name existing
+                        raise Exception
+                    else:
+                        self.input_parameters_node[var] = node_id
 
         # Map node id to artifact assignment
         self.artifact_dict = {
@@ -352,6 +371,13 @@ class SessionArtifacts:
             involved_variables["all_variables"]
             - involved_variables["assigned_variables"]
         )
+
+        # Add user defined parameter in to input variables list
+        for nid in node_list:
+            if self.input_parameters_node.get(nid, None) is not None:
+                involved_variables["input_variables"].add(
+                    self.input_parameters_node[nid]
+                )
 
         return involved_variables
 
@@ -620,6 +646,11 @@ class SessionArtifacts:
                                 ]
                             )
 
+                # Remove input parameter node
+                artifact_context["node_list"] = artifact_context[
+                    "node_list"
+                ] - set(self.input_parameters_node.values())
+
                 self.artifact_ordering.append(artifact_context)
 
         self.import_segment = GraphSegment(
@@ -661,6 +692,10 @@ class SessionArtifacts:
                 graph_seg.get_function_call_block(
                     indentation=indentation,
                     keep_lineapy_save=keep_lineapy_save,
+                    result_placeholder=None
+                    if len(self.artifact_list) == 1
+                    or graph_seg.segment_type != GraphSegmentType.ARTIFACT
+                    else "sessionartifacts",
                 )
                 for graph_seg in self.artifact_segments
             ]
@@ -673,7 +708,8 @@ class SessionArtifacts:
             ]
         )
 
-        return f"""{import_block}{function_definitions}
+        if len(self.artifact_list) == 1:
+            module_definition_string = f"""{import_block}{function_definitions}
 
 def pipeline():
 {calculation_codeblock}
@@ -682,3 +718,17 @@ def pipeline():
 if __name__=="__main__":
 {indentation_block}pipeline()
 """
+        else:
+            module_definition_string = f"""import copy
+{import_block}{function_definitions}
+
+def pipeline():
+{indentation_block}sessionartifacts = []
+{calculation_codeblock}
+{indentation_block}return sessionartifacts
+
+if __name__=="__main__":
+{indentation_block}pipeline()
+"""
+
+        return module_definition_string
