@@ -170,9 +170,10 @@ class BasePipelineWriter:
         files_dict = {}
         for session_artifacts in self.session_artifacts_sorted:
             # Generate session module code
-            first_art_name = session_artifacts.graph_segments[
-                0
-            ].artifact_safename
+            for seg in session_artifacts.graph_segments:
+                if seg.segment_type == GraphSegmentType.ARTIFACT:
+                    first_art_name = seg.artifact_safename
+                    break
             module_name = f"session_including_artifact_{first_art_name}"
             files_dict[
                 module_name
@@ -222,9 +223,10 @@ class ScriptPipelineWriter(BasePipelineWriter):
         files_dict = {}
         for session_artifacts in self.session_artifacts_sorted:
             # Generate session module code
-            first_art_name = session_artifacts.graph_segments[
-                0
-            ].artifact_safename
+            for seg in session_artifacts.graph_segments:
+                if seg.segment_type == GraphSegmentType.ARTIFACT:
+                    first_art_name = seg.artifact_safename
+                    break
             module_name = f"session_including_artifact_{first_art_name}"
 
             # Generate import statements for main module
@@ -280,3 +282,7 @@ if __name__=='__main__':
         dag_dict = self._write_dag()
 
         return {**modules_dict, **requirements_dict, **dag_dict}
+
+
+class AirflowPipelineWriter(BasePipelineWriter):
+    pass
