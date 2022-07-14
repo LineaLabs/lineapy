@@ -32,12 +32,15 @@ class GraphSegmentType(Enum):
     """
     GraphSegment type to identify the purpose of the graph segment
     - ARTIFACT : the segment returns an artifact
-    - HELPER : the segment returns variables used in multiple artifacts
+    - COMMON_VARIABLE : the segment returns variables used in multiple artifacts
+    - IMPORT : the segment with module import
+    - INPUT_VARIABLE : the segment for input variables
     """
 
     ARTIFACT = 1
     COMMON_VARIABLE = 2
     IMPORT = 3
+    INPUT_PARAMETERS = 4
 
 
 @dataclass
@@ -53,6 +56,7 @@ class GraphSegment:
     all_variables: Set[str]
     input_variables: Set[str]
     return_variables: List[str]
+    raw_codeblock: str
 
     def __init__(
         self,
@@ -70,26 +74,29 @@ class GraphSegment:
         self.all_variables = all_variables
         self.input_variables = input_variables
         self.return_variables = return_variables
+        self.raw_codeblock = get_source_code_from_graph(
+            self.graph_segment
+        ).__str__()
+        self.is_empty = self.raw_codeblock == ""
 
     def get_function_definition(self, indentation=4) -> str:
         """
         Return a codeblock to define the function of the graph segment
         """
+        if self.is_empty:
+            return ""
+
         indentation_block = " " * indentation
-        artifact_code = get_source_code_from_graph(
-            self.graph_segment
-        ).__str__()
         artifact_codeblock = "\n".join(
             [
                 f"{indentation_block}{line}"
-                for line in artifact_code.split("\n")
+                for line in self.raw_codeblock.split("\n")
                 if len(line.strip(" ")) > 0
             ]
         )
         artifact_name = self.artifact_safename
         args_string = ", ".join(sorted([v for v in self.input_variables]))
         return_string = ", ".join([v for v in self.return_variables])
-
         return f"def get_{artifact_name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
 
     def get_function_call_block(
@@ -102,6 +109,9 @@ class GraphSegment:
         :param bool keep_lineapy_save: whether do lineapy.save() after execution
         :param Optional[str] result_placeholder: if not null, append the return result to the result_placeholder
         """
+        if self.is_empty:
+            return ""
+
         indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
         args_string = ", ".join(sorted([v for v in self.input_variables]))
@@ -121,18 +131,44 @@ class GraphSegment:
         """
         Return a code block for import statement of the graph segment
         """
+        if self.is_empty:
+            return ""
+
         indentation_block = " " * indentation
-        import_code = get_source_code_from_graph(self.graph_segment).__str__()
         import_codeblock = "\n".join(
             [
                 f"{indentation_block}{line}"
-                for line in import_code.split("\n")
+                for line in self.raw_codeblock.split("\n")
                 if len(line.strip(" ")) > 0
             ]
         )
         if len(import_codeblock) > 0:
             import_codeblock += "\n" * 2
         return import_codeblock
+
+    def get_input_parameters_block(self, indentation=4) -> str:
+        """
+        Return a code block for input parameters of the graph segment
+        """
+        if self.is_empty:
+            return ""
+
+        indentation_block = " " * indentation
+        input_parameters_lines = self.raw_codeblock.rstrip("\n").split("\n")
+
+        if len(input_parameters_lines) > 1:
+            input_parameters_codeblock = "\n" + "".join(
+                [
+                    f"{indentation_block}{line},\n"
+                    for line in input_parameters_lines
+                ]
+            )
+        elif len(input_parameters_lines) == 1:
+            input_parameters_codeblock = input_parameters_lines[0]
+        else:
+            input_parameters_codeblock = ""
+
+        return input_parameters_codeblock
 
 
 @dataclass
@@ -156,7 +192,9 @@ class SessionArtifacts:
     input_parameters: List[str]
     input_parameters_node: Dict[str, LineaID]
 
-    def __init__(self, artifacts: List[LineaArtifact]) -> None:
+    def __init__(
+        self, artifacts: List[LineaArtifact], input_parameters: List[str] = []
+    ) -> None:
         self.artifact_list = artifacts
         self.session_id = artifacts[0]._session_id
         self.db = artifacts[0].db
@@ -164,7 +202,7 @@ class SessionArtifacts:
         self.nx_graph = self.graph.nx_graph
         self.artifact_segments = []
         self.node_context = OrderedDict()
-        self.input_parameters = []
+        self.input_parameters = input_parameters
 
         self._update_node_context()
         self._slice_session_artifacts()
@@ -664,6 +702,18 @@ class SessionArtifacts:
             return_variables=[],
         )
 
+        print(self.input_parameters_node)
+        self.input_parameters_segment = GraphSegment(
+            artifact_name="",
+            graph_segment=self._get_subgraph_from_node_list(
+                list(self.input_parameters_node.values())
+            ),
+            segment_type=GraphSegmentType.INPUT_PARAMETERS,
+            all_variables=set(),
+            input_variables=set(),
+            return_variables=[],
+        )
+
         self.artifact_segments = [
             self._get_graph_segment_from_artifact_context(artifact_context)
             for artifact_context in self.artifact_ordering
@@ -673,12 +723,20 @@ class SessionArtifacts:
         self, indentation: int = 4, keep_lineapy_save: bool = False
     ) -> str:
         """
-        Generate pipeline at session level
+        Generate a module definition for artifacts within the session.
+
+        This includes all functions that create artifacts and common variables.
+        It will also include a pipeline function that executes artifact creating
+        function in topologically sorted order.
         """
 
         indentation_block = " " * indentation
 
         import_block = self.import_segment.get_import_block(indentation=0)
+
+        input_parameters_block = (
+            self.input_parameters_segment.get_input_parameters_block()
+        )
 
         function_definitions = "\n\n".join(
             [
@@ -711,7 +769,7 @@ class SessionArtifacts:
         if len(self.artifact_list) == 1:
             module_definition_string = f"""{import_block}{function_definitions}
 
-def pipeline():
+def pipeline({input_parameters_block}):
 {calculation_codeblock}
 {indentation_block}return {return_string}
 
@@ -722,7 +780,7 @@ if __name__=="__main__":
             module_definition_string = f"""import copy
 {import_block}{function_definitions}
 
-def pipeline():
+def pipeline({input_parameters_block}):
 {indentation_block}sessionartifacts = []
 {calculation_codeblock}
 {indentation_block}return sessionartifacts
