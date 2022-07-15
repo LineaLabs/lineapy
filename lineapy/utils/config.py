@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import fsspec
+from fsspec.implementations.local import LocalFileSystem
 
 from lineapy.data.types import FilePath
 from lineapy.db.utils import create_lineadb_engine
@@ -171,7 +172,7 @@ class lineapy_config:
 
             if isinstance(self.__dict__[name], Path) or isinstance(
                 fsspec.core.url_to_fs(self.__dict__[name])[0],
-                fsspec.implementations.local.LocalFileSystem,
+                LocalFileSystem,
             ):
                 local_path = Path(self.__dict__[name]).resolve()
                 if not local_path.exists():
