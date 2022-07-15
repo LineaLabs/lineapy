@@ -290,10 +290,17 @@ class RelationalLineaDB:
         node_id: LineaID,
         variable_name: str,
     ) -> None:
-        self.session.add(
-            VariableNodeORM(id=node_id, variable_name=variable_name)
-        )
-        self.renew_session()
+        try:
+            self.session.add(
+                VariableNodeORM(id=node_id, variable_name=variable_name)
+            )
+            self.renew_session()
+        except Exception as e:
+            logger.info(
+                "%s has been defined at node %s before; most likely you have imported the library before.",
+                variable_name,
+                node_id,
+            )
 
     def write_artifact(self, artifact: Artifact) -> None:
         artifact_orm = ArtifactORM(
