@@ -41,8 +41,8 @@ executed at the top of your session. Please note:
 Hosted Jupyter Environment
 --------------------------
 
-In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle or other environments
-that you do not start your notebook from CLI (such as Jupyter extension within VS Code), you need to
+In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle, Databricks or in any other 
+environments that are not started using CLI (such as Jupyter extension within VS Code), you need to 
 install ``lineapy`` directly within your notebook first via:
 
 .. code:: bash
