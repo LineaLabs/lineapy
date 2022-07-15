@@ -702,7 +702,7 @@ class SessionArtifacts:
             return_variables=[],
         )
 
-        print(self.input_parameters_node)
+        # print(self.input_parameters_node)
         self.input_parameters_segment = GraphSegment(
             artifact_name="",
             graph_segment=self._get_subgraph_from_node_list(
@@ -790,3 +790,22 @@ if __name__=="__main__":
 """
 
         return module_definition_string
+
+    def get_session_module(self, keep_lineapy_save: bool = False):
+        import importlib.util
+        import sys
+
+        module_name = f"session_{self.session_id.replace('-','_')}"
+        with open(f"/tmp/{module_name}.py", "w") as f:
+            f.writelines(
+                self.get_session_module_definition(
+                    keep_lineapy_save=keep_lineapy_save
+                )
+            )
+        spec = importlib.util.spec_from_file_location(
+            module_name, f"/tmp/{module_name}.py"
+        )
+        session_module = importlib.util.module_from_spec(spec)
+        sys.modules["module.name"] = session_module
+        spec.loader.exec_module(session_module)
+        return session_module
