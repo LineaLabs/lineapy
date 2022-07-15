@@ -83,8 +83,6 @@ class GraphSegment:
         """
         Return a codeblock to define the function of the graph segment
         """
-        if self.is_empty:
-            return ""
 
         indentation_block = " " * indentation
         artifact_codeblock = "\n".join(
@@ -109,8 +107,6 @@ class GraphSegment:
         :param bool keep_lineapy_save: whether do lineapy.save() after execution
         :param Optional[str] result_placeholder: if not null, append the return result to the result_placeholder
         """
-        if self.is_empty:
-            return ""
 
         indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
@@ -434,12 +430,20 @@ class SessionArtifacts:
         involved_variables = self._get_involved_variables_from_node_list(
             artifact_context["node_list"]
         )
+        # If the return variable is assigned(only in the code block)
+        # and parameterized, it will not be in involved_variables["all_variables"]
+        all_variables = involved_variables["all_variables"].union(
+            set(artifact_context["return_variables"])
+        )
+        input_variables = (
+            all_variables - involved_variables["assigned_variables"]
+        )
         return GraphSegment(
             artifact_name=artifact_context["artifact_name"],
             graph_segment=subgraph,
             segment_type=artifact_context["artifact_type"],
-            all_variables=involved_variables["all_variables"],
-            input_variables=involved_variables["input_variables"],
+            all_variables=all_variables,
+            input_variables=input_variables,
             return_variables=artifact_context["return_variables"],
         )
 
@@ -794,6 +798,7 @@ if __name__=="__main__":
     def get_session_module(self, keep_lineapy_save: bool = False):
         import importlib.util
         import sys
+        from importlib.abc import Loader
 
         module_name = f"session_{self.session_id.replace('-','_')}"
         with open(f"/tmp/{module_name}.py", "w") as f:
@@ -805,7 +810,11 @@ if __name__=="__main__":
         spec = importlib.util.spec_from_file_location(
             module_name, f"/tmp/{module_name}.py"
         )
-        session_module = importlib.util.module_from_spec(spec)
-        sys.modules["module.name"] = session_module
-        spec.loader.exec_module(session_module)
-        return session_module
+        if spec is not None:
+            session_module = importlib.util.module_from_spec(spec)
+            assert isinstance(spec.loader, Loader)
+            sys.modules["module.name"] = session_module
+            spec.loader.exec_module(session_module)
+            return session_module
+
+        return
