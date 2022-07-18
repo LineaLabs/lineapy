@@ -101,17 +101,14 @@ class Tracer:
         )
 
         # create import lineapy node
+        self.import_module("lineapy")
         lineapy_import_node = ImportNode(
             id=get_new_id(),
             name="lineapy",
             source_location=None,
             session_id=self.get_session_id(),
         )
-        package_name, version = get_lib_package_version("lineapy")
-        lineapy_import_node.version = version
-        lineapy_import_node.package_name = package_name
-
-        self.db.write_node(lineapy_import_node)
+        self.process_node(lineapy_import_node)
 
     @property
     def values(self) -> Dict[str, object]:
