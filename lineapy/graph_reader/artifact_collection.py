@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 from itertools import chain
+from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 import networkx as nx
@@ -22,8 +23,14 @@ configure_logging()
 @dataclass
 class ArtifactCollection:
     """
-    A collection of artifacts, which can perform various code transformations
-    such as graph refactor for pipeline building.
+    `ArtifactCollection` can be thought of as a box where the inserted group of artifacts and
+    their graph(s) get refactored into reusable components (i.e., functions with non-overlapping
+    operations). With this modularization, it can then support various downstream code generation
+    tasks such as pipeline file writing.
+
+    For now, `ArtifactCollection` is meant to be kept and used as an abstraction/tool for internal
+    dev use only. That is, the class and its methods will NOT be exposed directly to the user.
+    Instead, it is intended to be used by/in/for other user-facing APIs.
     """
 
     def __init__(self, artifacts=List[Union[str, Tuple[str, int]]]) -> None:
@@ -131,7 +138,17 @@ class ArtifactCollection:
         framework: str = "SCRIPT",
         dependencies: TaskGraphEdge = {},
         keep_lineapy_save: bool = False,
+        pipeline_name: str = "pipeline",
+        output_dir: str = ".",
     ):
+        """
+        Use modularized artifact code to generate standard pipeline files,
+        including Python modules, DAG script, and infra files (e.g., Dockerfile).
+
+        Actual code generation and writing is delegated to the "writer" class
+        for each framework type (e.g., "SCRIPT").
+        """
+
         # Sort SessionArtifacts objects topologically
         session_artifacts_sorted = self._sort_session_artifacts(
             dependencies=dependencies
@@ -144,6 +161,8 @@ class ArtifactCollection:
                 pipeline_writer = ScriptPipelineWriter(
                     session_artifacts_sorted=session_artifacts_sorted,
                     keep_lineapy_save=keep_lineapy_save,
+                    pipeline_name=pipeline_name,
+                    output_dir=output_dir,
                 )
         else:
             raise ValueError(
@@ -162,11 +181,18 @@ class BasePipelineWriter:
         self,
         session_artifacts_sorted: List[SessionArtifacts],
         keep_lineapy_save: bool,
+        pipeline_name: str,
+        output_dir: str,
     ) -> None:
         self.session_artifacts_sorted = session_artifacts_sorted
         self.keep_lineapy_save = keep_lineapy_save
+        self.pipeline_name = pipeline_name
+        self.output_dir = Path(output_dir, pipeline_name)
 
-    def _write_modules(self):
+        # Create output directory folder(s) if nonexistent
+        self.output_dir.mkdir(exist_ok=True, parents=True)
+
+    def _write_modules(self) -> None:
         files_dict = {}
         for session_artifacts in self.session_artifacts_sorted:
             # Generate session module code
@@ -180,9 +206,12 @@ class BasePipelineWriter:
             ] = session_artifacts.get_session_module_definition(
                 indentation=4, keep_lineapy_save=self.keep_lineapy_save
             )
-        logger.info("Generated session module files")
 
-        return files_dict
+        # Write out files
+        for name, content in files_dict.items():
+            (self.output_dir / f"{name}.py").write_text(content)
+
+        logger.info("Generated session module files")
 
     def _write_requirements(self):
         # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
@@ -281,7 +310,7 @@ if __name__=='__main__':
         requirements_dict = self._write_requirements()
         dag_dict = self._write_dag()
 
-        return {**modules_dict, **requirements_dict, **dag_dict}
+        return {**requirements_dict, **dag_dict}
 
 
 class AirflowPipelineWriter(BasePipelineWriter):
