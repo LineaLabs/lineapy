@@ -126,11 +126,12 @@ print(y)
     artifact_f_save = """lineapy.save(y, "deferencedy")
 res = lineapy.get("deferencedy")
 """
-    assert run_cell(importl) is None
+    # assert run_cell(importl) is None
     assert run_cell(code_body) is None
     assert run_cell(artifact_f_save) is None
+    out = run_cell("res.get_session_code()")
     assert (
-        run_cell("res.get_session_code()")
+        out
         == importl + code_body + artifact_f_save + "res.get_session_code()\n"
     )
     assert (
@@ -139,6 +140,18 @@ res = lineapy.get("deferencedy")
         )
         == "JUPYTER"
     )
+
+
+def test_lineapy_import_included_in_artifact(run_cell):
+    code_body = """x = 1
+art = lineapy.save(x,"test")
+x =lineapy.get("test").get_value()
+y = x +1
+art2 = lineapy.save(y,"anthertest")"""
+    run_cell(code_body)
+    out = run_cell("art2.get_code()")
+    print(out)
+    assert "import lineapy\n" in out
 
 
 @pytest.fixture
