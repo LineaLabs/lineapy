@@ -14,6 +14,7 @@ from lineapy.graph_reader.graph_refactorer import (
     SessionArtifacts,
 )
 from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -244,6 +245,26 @@ class ScriptPipelineWriter(BasePipelineWriter):
     Pipeline file writer for "SCRIPT" framework.
     """
 
+    def __init__(
+        self,
+        session_artifacts_sorted: List[SessionArtifacts],
+        keep_lineapy_save: bool,
+        pipeline_name: str,
+        output_dir: str,
+    ) -> None:
+        super().__init__(
+            session_artifacts_sorted,
+            keep_lineapy_save,
+            pipeline_name,
+            output_dir,
+        )
+
+    def _write_modules(self) -> None:
+        return super()._write_modules()
+
+    def _write_requirements(self) -> None:
+        return super()._write_requirements()
+
     def _write_dag(self) -> None:
         # Initiate main module (which imports and combines session modules)
         main_module_dict = {
@@ -307,10 +328,23 @@ if __name__=='__main__':
 
         logger.info("Generated dag file")
 
+    def _write_docker(self):
+        DOCKERFILE_TEMPLATE = load_plugin_template("script_dockerfile.jinja")
+        dockerfile_text = DOCKERFILE_TEMPLATE.render(
+            pipeline_name=self.pipeline_name
+        )
+
+        # Write out file
+        file = self.output_dir / f"{self.pipeline_name}_Dockerfile"
+        file.write_text(dockerfile_text)
+
+        logger.info("Generated Docker file")
+
     def write_pipeline_files(self) -> None:
         self._write_modules()
-        self._write_requirements()
         self._write_dag()
+        self._write_requirements()
+        self._write_docker()
 
 
 class AirflowPipelineWriter(BasePipelineWriter):
