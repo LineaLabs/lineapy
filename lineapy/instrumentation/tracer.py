@@ -103,7 +103,7 @@ class Tracer:
         )
         import_source_code = SourceCode(
             id=get_new_id(),
-            code="import lineapy",
+            code="import lineapy\n",
             location=options.safe_get("import_dummy_file"),
         )
 
