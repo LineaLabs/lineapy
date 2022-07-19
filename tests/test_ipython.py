@@ -129,10 +129,15 @@ res = lineapy.get("deferencedy")
     # assert run_cell(importl) is None
     assert run_cell(code_body) is None
     assert run_cell(artifact_f_save) is None
-    out = run_cell("res.get_session_code()")
+
     assert (
-        out
-        == importl + code_body + artifact_f_save + "res.get_session_code()\n"
+        run_cell("res.get_session_code()")
+        == importl
+        + code_body
+        + importl
+        + artifact_f_save
+        + importl
+        + "res.get_session_code()\n"
     )
     assert (
         run_cell(
