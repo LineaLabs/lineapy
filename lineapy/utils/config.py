@@ -15,6 +15,7 @@ LINEAPY_FOLDER_NAME = ".lineapy"
 LOG_FILE_NAME = "lineapy.log"
 CONFIG_FILE_NAME = "lineapy_config.json"
 FILE_PICKLER_BASEDIR = "linea_pickles"
+IMPORT_DUMMY_FILE = "import_dummy.py"
 DB_FILE_NAME = "db.sqlite"
 CUSTOM_ANNOTATIONS_FOLDER_NAME = "custom-annotations"
 CUSTOM_ANNOTATIONS_EXTENSION_NAME = ".annotations.yaml"
@@ -45,6 +46,7 @@ class lineapy_config:
 
     home_dir: Path
     database_url: Optional[str]
+    import_dummy_file: Optional[Path]
     artifact_storage_dir: Optional[FilePath]
     customized_annotation_folder: Optional[FilePath]
     do_not_track: bool
@@ -58,6 +60,7 @@ class lineapy_config:
         home_dir=f"{Path(os.environ.get('HOME','~')).expanduser().resolve()}/{LINEAPY_FOLDER_NAME}",
         database_url=None,
         artifact_storage_dir=None,
+        import_dummy_file=None,
         customized_annotation_folder=None,
         do_not_track=False,
         logging_level="INFO",
@@ -71,6 +74,7 @@ class lineapy_config:
         self.home_dir = Path(home_dir).expanduser()
         self.database_url = database_url
         self.artifact_storage_dir = artifact_storage_dir
+        self.import_dummy_file = import_dummy_file
         self.customized_annotation_folder = customized_annotation_folder
         self.do_not_track = do_not_track
         self.logging_level = logging_level
@@ -203,6 +207,23 @@ class lineapy_config:
                     verbose=False,
                 )
             return str(self.database_url)
+
+        elif name == "import_dummy_file":
+            import_dummy_path = (
+                Path(safe_get_folder("home_dir")) / IMPORT_DUMMY_FILE
+            )
+            if self.import_dummy_file is None:
+
+                self.set(
+                    "import_dummy_file",
+                    import_dummy_path,
+                )
+
+                if not import_dummy_path.exists():
+                    with import_dummy_path.open("w") as f:
+                        f.write("import lineapy")
+
+            return import_dummy_path
 
         # Return LINEAPY_ARTIFACT_STORAGE_DIR, use LINEAPY_HOME_DIR/FILE_PICKLER_BASEDIR if empty
         elif name == "artifact_storage_dir":
