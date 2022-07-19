@@ -18,6 +18,7 @@ from lineapy.data.types import (
     PositionalArgument,
     SessionContext,
     SessionType,
+    SourceCode,
     SourceLocation,
 )
 from lineapy.db.db import RelationalLineaDB
@@ -35,6 +36,7 @@ from lineapy.execution.side_effects import (
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer_context import TracerContext
+from lineapy.utils.config import options
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
 from lineapy.utils.lineabuiltins import l_import, l_tuple
 from lineapy.utils.utils import (
@@ -99,16 +101,22 @@ class Tracer:
         self.tracer_context = TracerContext(
             session_context=session_context, db=self.db
         )
-
-        # create import lineapy node
-        self.import_module("lineapy")
-        lineapy_import_node = ImportNode(
+        import_source_code = SourceCode(
             id=get_new_id(),
-            name="lineapy",
-            source_location=None,
-            session_id=self.get_session_id(),
+            code="import lineapy",
+            location=options.safe_get("import_dummy_file"),
         )
-        self.process_node(lineapy_import_node)
+
+        self.trace_import(
+            "lineapy",
+            SourceLocation(
+                lineno=0,
+                end_lineno=0,
+                col_offset=0,
+                end_col_offset=13,
+                source_code=import_source_code,
+            ),
+        )
 
     @property
     def values(self) -> Dict[str, object]:
