@@ -9,6 +9,7 @@ import networkx as nx
 from lineapy.api.api import get
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID, PipelineType
+from lineapy.graph_reader.api_utils import de_lineate_code
 from lineapy.graph_reader.graph_refactorer import (
     GraphSegmentType,
     SessionArtifacts,
@@ -16,6 +17,7 @@ from lineapy.graph_reader.graph_refactorer import (
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
+from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
@@ -193,6 +195,9 @@ class BasePipelineWriter:
         # Create output directory folder(s) if nonexistent
         self.output_dir.mkdir(exist_ok=True, parents=True)
 
+        # We assume there is at least one SessionArtifacts object
+        self.db = self.session_artifacts_sorted[0].db
+
     def _write_modules(self) -> None:
         files_dict = {}
         for session_artifacts in self.session_artifacts_sorted:
@@ -210,7 +215,9 @@ class BasePipelineWriter:
 
         # Write out file(s)
         for name, content in files_dict.items():
-            (self.output_dir / f"{name}.py").write_text(content)
+            (self.output_dir / f"{name}.py").write_text(
+                prettify(de_lineate_code(content, self.db))
+            )
 
         logger.info("Generated session module files")
 
@@ -218,7 +225,7 @@ class BasePipelineWriter:
         # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
         lib_names_text = ""
         for session_artifacts in self.session_artifacts_sorted:
-            session_libs = session_artifacts.db.get_libraries_for_session(
+            session_libs = self.db.get_libraries_for_session(
                 session_artifacts.session_id
             )
             for lib in session_libs:
@@ -324,7 +331,7 @@ if __name__=='__main__':
 
         # Write out file
         file = self.output_dir / f"{self.pipeline_name}_script_dag.py"
-        file.write_text(script_dag_text)
+        file.write_text(prettify(de_lineate_code(script_dag_text, self.db)))
 
         logger.info("Generated dag file")
 
