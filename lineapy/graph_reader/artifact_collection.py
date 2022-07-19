@@ -207,13 +207,13 @@ class BasePipelineWriter:
                 indentation=4, keep_lineapy_save=self.keep_lineapy_save
             )
 
-        # Write out files
+        # Write out file(s)
         for name, content in files_dict.items():
             (self.output_dir / f"{name}.py").write_text(content)
 
         logger.info("Generated session module files")
 
-    def _write_requirements(self):
+    def _write_requirements(self) -> None:
         # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
         lib_names_text = ""
         for session_artifacts in self.session_artifacts_sorted:
@@ -222,9 +222,12 @@ class BasePipelineWriter:
             )
             for lib in session_libs:
                 lib_names_text += f"{lib.package_name}=={lib.version}\n"
-        logger.info("Generated requirements file")
 
-        return {"requirements": lib_names_text}
+        # Write out file
+        file = self.output_dir / f"{self.pipeline_name}_requirements.txt"
+        file.write_text(lib_names_text)
+
+        logger.info("Generated requirements file")
 
     def _write_dag(self):
         raise NotImplementedError
@@ -241,7 +244,7 @@ class ScriptPipelineWriter(BasePipelineWriter):
     Pipeline file writer for "SCRIPT" framework.
     """
 
-    def _write_dag(self):
+    def _write_dag(self) -> None:
         # Initiate main module (which imports and combines session modules)
         main_module_dict = {
             "import_lines": [],
@@ -249,7 +252,6 @@ class ScriptPipelineWriter(BasePipelineWriter):
             "return_varnames": [],
         }
 
-        files_dict = {}
         for session_artifacts in self.session_artifacts_sorted:
             # Generate session module code
             for seg in session_artifacts.graph_segments:
@@ -288,9 +290,7 @@ class ScriptPipelineWriter(BasePipelineWriter):
         imports = "\n".join(main_module_dict["import_lines"])
         calculations = "\n".join(main_module_dict["calculation_lines"])
         returns = ", ".join(main_module_dict["return_varnames"])
-        files_dict[
-            "script_dag"
-        ] = f"""
+        script_dag_text = f"""
 {imports}
 
 def pipeline():
@@ -301,16 +301,16 @@ if __name__=='__main__':
     pipeline()
 """
 
+        # Write out file
+        file = self.output_dir / f"{self.pipeline_name}_script_dag.py"
+        file.write_text(script_dag_text)
+
         logger.info("Generated dag file")
 
-        return files_dict
-
-    def write_pipeline_files(self):
-        modules_dict = self._write_modules()
-        requirements_dict = self._write_requirements()
-        dag_dict = self._write_dag()
-
-        return {**requirements_dict, **dag_dict}
+    def write_pipeline_files(self) -> None:
+        self._write_modules()
+        self._write_requirements()
+        self._write_dag()
 
 
 class AirflowPipelineWriter(BasePipelineWriter):
