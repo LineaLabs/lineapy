@@ -43,7 +43,7 @@ VERSION = version("lineapy/__init__.py")
 minimal_requirement = [
     "click>=8.0.0",
     "pydantic",
-    "SQLAlchemy",
+    "SQLAlchemy>=1.4",
     "networkx",
     "rich",
     "pyyaml",
