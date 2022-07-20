@@ -136,6 +136,151 @@ class ArtifactCollection:
             for session_id in session_id_sorted
         ]
 
+    @staticmethod
+    def _extract_session_module(
+        session_artifacts: SessionArtifacts,
+        indentation: int = 4,
+        keep_lineapy_save: bool = False,
+    ) -> dict:
+        """
+        Utility to extract relevant module components from the given SessionArtifacts.
+        To be used for composing the multi-session module.
+        """
+        indentation_block = " " * indentation
+
+        # Generate function definition for each session artifact
+        artifact_functions = "\n\n".join(
+            [
+                seg.get_function_definition(indentation=indentation)
+                for seg in session_artifacts.graph_segments
+            ]
+        )
+
+        # Generate session function name
+        for seg in session_artifacts.graph_segments:
+            if seg.segment_type == GraphSegmentType.ARTIFACT:
+                first_art_name = seg.artifact_safename
+                break
+        session_function_name = f"run_session_including_{first_art_name}"
+
+        # Generate session function body
+        session_function_body = "\n".join(
+            [
+                seg.get_function_call_block(
+                    indentation=indentation,
+                    keep_lineapy_save=keep_lineapy_save,
+                )
+                for seg in session_artifacts.graph_segments
+            ]
+        )
+
+        # Generate session function return value string
+        session_function_return = ", ".join(
+            [
+                seg.return_variables[0]
+                for seg in session_artifacts.graph_segments
+                if seg.segment_type == GraphSegmentType.ARTIFACT
+            ]
+        )
+
+        # Generate session function definition
+        session_function = f"""
+def {session_function_name}():
+{session_function_body}
+{indentation_block}return {session_function_return}
+"""
+
+        # Generate calculation code block for the session
+        # This is to be used in multi-session module
+        session_calculation = f"{indentation_block}{session_function_return} = {session_function_name}()"
+
+        return {
+            "artifact_functions": artifact_functions,
+            "session_function": session_function,
+            "session_function_return": session_function_return,
+            "session_calculation": session_calculation,
+        }
+
+    def _compose_module(
+        self,
+        session_artifacts_sorted: List[SessionArtifacts],
+        indentation: int = 4,
+        keep_lineapy_save: bool = False,
+    ) -> str:
+        """
+        Generate a Python module that calculates each artifact
+        in the given artifact collection.
+        """
+        indentation_block = " " * indentation
+
+        # Initiate store for module script components
+        module_dict = {
+            "artifact_functions": [],
+            "session_function": [],
+            "session_function_return": [],
+            "session_calculation": [],
+        }
+
+        for session_artifacts in session_artifacts_sorted:
+            session_module_dict = self._extract_session_module(
+                session_artifacts=session_artifacts,
+                indentation=indentation,
+                keep_lineapy_save=keep_lineapy_save,
+            )
+            module_dict["artifact_functions"].append(
+                session_module_dict["artifact_functions"]
+            )
+            module_dict["session_function"].append(
+                session_module_dict["session_function"]
+            )
+            module_dict["session_function_return"].append(
+                session_module_dict["session_function_return"]
+            )
+            module_dict["session_calculation"].append(
+                session_module_dict["session_calculation"]
+            )
+
+        artifact_functions = "\n\n".join(module_dict["artifact_functions"])
+        session_functions = "\n".join(module_dict["session_function"])
+        module_function_body = "\n".join(module_dict["session_calculation"])
+        module_function_return = ", ".join(
+            module_dict["session_function_return"]
+        )
+
+        module_text = f"""
+{artifact_functions}
+
+{session_functions}
+
+def run_all_sessions():
+{module_function_body}
+{indentation_block}return {module_function_return}
+
+if __name__ == "__main__":
+{indentation_block}run_all_sessions()
+"""
+
+        return module_text
+
+    def generate_module(
+        self,
+        dependencies: TaskGraphEdge = {},
+        indentation: int = 4,
+        keep_lineapy_save: bool = False,
+    ):
+        # Sort SessionArtifacts objects topologically
+        session_artifacts_sorted = self._sort_session_artifacts(
+            dependencies=dependencies
+        )
+
+        module_text = self._compose_module(
+            session_artifacts_sorted=session_artifacts_sorted,
+            indentation=indentation,
+            keep_lineapy_save=keep_lineapy_save,
+        )
+
+        return module_text
+
     def generate_pipeline_files(
         self,
         framework: str = "SCRIPT",
