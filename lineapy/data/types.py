@@ -67,7 +67,8 @@ class NodeType(Enum):
     LookupNode = auto()
     MutateNode = auto()
     GlobalNode = auto()
-    IfElseNode = auto()
+    IfNode = auto()
+    ElseNode = auto()
 
 
 class LiteralType(Enum):
@@ -413,54 +414,59 @@ class GlobalNode(BaseNode):
         yield self.call_id
 
 
-# class IfElseNode(BaseNode):
-#     """
-#     Represents an `if`/`else` block
-#     """
-
-#     node_type = Field(NodeType.IfElseNode, repr=False)
-
-#     # Points to the call node which forms the expression to test
-#     call_id: LineaID
-
-#     # LiteralNode containing the code of the block which does NOT get executed
-#     # Would be None if both the blocks get executed
-#     non_executed_contents = Optional[LineaID]
-
-#     def parents(self) -> Iterable[LineaID]:
-#         yield from super().parents()
-#         yield self.call_id
-#         if self.non_executed_contents:
-#             yield self.non_executed_contents
-
-
-class IfElseNode(BaseNode):
+class ControlFlowNode(BaseNode):
     """
-    Represents the `if`, `else`, `elif` block
+    Represents a control flow node like `if`, `else`, `for`, `while`
     """
 
-    node_type = Field(NodeType.IfElseNode, repr=False)
+    node_type = Field(NodeType.Node, repr=False)
 
-    # LiteralNode containing the code, for the block that is not executed
-    # If both `if` and `else` blocks are executed, this is None
-    unexec_contents: Optional[LineaID]
+    # Points to the attached node
+    # For `if` node, it will be an `else` node, for an `else` node it could be an `if` node, `while` node etc.
+    companion_id: Optional[LineaID]
+
+    # LiteralNode containing the code, if the block is not executed
+    unexec_id: Optional[LineaID]
+
+    def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
+        if self.companion_id:
+            yield self.companion_id
+        if self.unexec_id:
+            yield self.unexec_id
+
+
+class IfNode(ControlFlowNode):
+    """
+    Represents the `if` keyword
+    """
+
+    node_type = Field(NodeType.IfNode, repr=False)
 
     # Points to the call node which forms the expression to test
     test_id: LineaID
 
-    # Points to a LiteralNode containing the `else` keyword if present
-    else_id: Optional[LineaID]
-
     def parents(self) -> Iterable[LineaID]:
         yield from super().parents()
         yield self.test_id
-        if self.unexec_contents:
-            yield self.unexec_contents
-        if self.else_id:
-            yield self.else_id
 
 
-CNode = IfElseNode
+class ElseNode(ControlFlowNode):
+    """
+    Represents the `else` keyword
+    """
+
+    node_type = Field(NodeType.ElseNode, repr=False)
+
+    # Points to the attached node
+    # Could be `if`, `for`, `while`, etc.
+    companion_id: LineaID
+
+    def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
+
+
+ControlNode = Union[IfNode, ElseNode]
 
 
 # We can use this for more precise type definitions, to make sure we hit
@@ -472,7 +478,7 @@ Node = Union[
     LookupNode,
     MutateNode,
     GlobalNode,
-    CNode,
+    ControlNode,
 ]
 
 

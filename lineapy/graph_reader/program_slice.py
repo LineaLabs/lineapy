@@ -3,7 +3,13 @@ from dataclasses import dataclass
 from typing import DefaultDict, List, Set
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import CallNode, ImportNode, LineaID, SourceCode
+from lineapy.data.types import (
+    CallNode,
+    ControlFlowNode,
+    ImportNode,
+    LineaID,
+    SourceCode,
+)
 from lineapy.db.db import RelationalLineaDB
 from lineapy.utils.utils import prettify
 
@@ -49,9 +55,61 @@ def get_slice_graph(
     for sink in sinks:
         ancestors.update(graph.get_ancestors(sink))
 
+    ancestors = fill_dangling_nodes_in_graph(graph, ancestors)
+
     new_nodes = [graph.ids[node] for node in ancestors]
     subgraph = graph.get_subgraph(new_nodes)
     return subgraph
+
+
+def fill_dangling_nodes_in_graph(
+    graph: Graph, current_subset: Set[LineaID]
+) -> Set[LineaID]:
+    code_to_lines = DefaultDict[SourceCode, Set[int]](set)
+
+    for node_id in current_subset:
+        node = graph.get_node(node_id)
+        if node is None:
+            continue
+        if not node.source_location:
+            continue
+        code_to_lines[node.source_location.source_code] |= set(
+            range(
+                node.source_location.lineno,
+                node.source_location.end_lineno + 1,
+            )
+        )
+
+    to_be_added = set()
+    completed = True
+
+    for node_id in graph.get_all_node_ids():
+        if node_id not in current_subset:
+            node = graph.get_node(node_id)
+            if node is None:
+                continue
+            if not node.source_location:
+                continue
+            if (
+                set(
+                    range(
+                        node.source_location.lineno,
+                        node.source_location.end_lineno + 1,
+                    )
+                )
+                & code_to_lines[node.source_location.source_code]
+            ):
+                to_be_added |= {node_id}
+                completed = False
+
+    for node_id in to_be_added:
+        current_subset |= {node_id}
+        current_subset.update(graph.get_ancestors(node_id))
+
+    if completed:
+        return current_subset
+    else:
+        return fill_dangling_nodes_in_graph(graph, current_subset)
 
 
 @dataclass
@@ -84,10 +142,21 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
     # map of source code to set of included line numbers
     source_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
     import_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
+    incomplete_block_locations = DefaultDict[SourceCode, Set[int]](set)
 
     for node in program.nodes:
         if not node.source_location:
             continue
+        if isinstance(node, (ControlFlowNode)):
+            control_dependencies = [
+                child_id
+                for child_id in program.get_children(node.id)
+                if not child_id == node.companion_id
+            ] + ([node.unexec_id] if node.unexec_id is not None else [])
+            if len(control_dependencies) == 0:
+                incomplete_block_locations[
+                    node.source_location.source_code
+                ] |= {node.source_location.end_lineno}
         # check if import node
         if isinstance(node, (ImportNode)):
             import_code_to_lines[node.source_location.source_code] |= set(
@@ -113,6 +182,10 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
         source_code_lines = source_code.code.split("\n")
         for line in sorted(lines):
             body_code.append(source_code_lines[line - 1])
+            if line in incomplete_block_locations[source_code]:
+                line_str = source_code_lines[line - 1]
+                indent = len(line_str) - len(line_str.lstrip())
+                body_code.append(" " * (indent + 1) + "pass\n")
 
     import_code = []
     for import_source_code, lines in sorted(

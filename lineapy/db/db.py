@@ -10,9 +10,10 @@ from sqlalchemy.sql.expression import and_
 from lineapy.data.types import (
     Artifact,
     CallNode,
+    ElseNode,
     Execution,
     GlobalNode,
-    IfElseNode,
+    IfNode,
     ImportNode,
     JupyterCell,
     KeywordArgument,
@@ -34,10 +35,11 @@ from lineapy.db.relational import (
     Base,
     BaseNodeORM,
     CallNodeORM,
+    ElseNodeORM,
     ExecutionORM,
     GlobalNodeORM,
     GlobalReferenceORM,
-    IfElseNodeORM,
+    IfNodeORM,
     ImplicitDependencyORM,
     ImportNodeORM,
     KeywordArgORM,
@@ -209,11 +211,6 @@ class RelationalLineaDB:
             include={"id", "session_id", "node_type", "control_dependency"}
         )
         # Converting list into string, for storage in the DB. Note there can only be one or zero control dependencies
-        args["control_dependency"] = (
-            args["control_dependency"]
-            if args["control_dependency"] is not None
-            else ""
-        )
         s = node.source_location
         if s:
             args["lineno"] = s.lineno
@@ -282,20 +279,21 @@ class RelationalLineaDB:
             node_orm = GlobalNodeORM(
                 **args, call_id=node.call_id, name=node.name
             )
-        elif isinstance(node, LookupNode):
-            node_orm = LookupNodeORM(**args, name=node.name)
+        elif isinstance(node, IfNode):
+            node_orm = IfNodeORM(
+                **args,
+                test_id=node.test_id,
+                unexec_id=node.unexec_id,
+                else_id=node.companion_id,
+            )
+        elif isinstance(node, ElseNode):
+            node_orm = ElseNodeORM(
+                **args,
+                companion_id=node.companion_id,
+                unexec_id=node.unexec_id,
+            )
         else:
-            if isinstance(node, IfElseNode):
-                node_orm = IfElseNodeORM(
-                    **args,
-                    test_id=node.test_id,
-                    unexec_contents=node.unexec_contents,
-                    else_node=node.else_id,
-                )
-            else:
-                raise NotImplementedError(
-                    "Unimplemented node type: ", type(node)
-                )
+            node_orm = LookupNodeORM(**args, name=node.name)
 
         self.session.add(node_orm)
         self.renew_session()
@@ -388,9 +386,7 @@ class RelationalLineaDB:
             "id": node.id,
             "session_id": node.session_id,
             "node_type": node.node_type,
-            "control_dependency": node.control_dependency
-            if node.control_dependency != ""
-            else None,
+            "control_dependency": node.control_dependency,
         }
         if node.source_code:
             source_code = SourceCode(
@@ -479,19 +475,20 @@ class RelationalLineaDB:
                 name=node.name,
                 **args,
             )
-        if isinstance(node, LookupNodeORM):
-            return LookupNode(
-                name=node.name,
-                **args,
-            )
-        if isinstance(node, IfElseNodeORM):
-            return IfElseNode(
-                unexec_contents=node.unexec_contents,
+        if isinstance(node, IfNodeORM):
+            return IfNode(
+                unexec_id=node.unexec_id,
                 test_id=node.test_id,
-                else_id=node.else_node,
+                companion_id=node.else_id,
                 **args,
             )
-        raise NotImplementedError("Node type not implemented ", type(node))
+        if isinstance(node, ElseNodeORM):
+            return ElseNode(
+                unexec_id=node.unexec_id,
+                companion_id=node.companion_id,
+                **args,
+            )
+        return LookupNode(name=node.name, **args)
 
     def get_node_by_id(self, linea_id: LineaID) -> Node:
         """

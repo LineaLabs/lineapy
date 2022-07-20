@@ -106,7 +106,8 @@ COLORS: Dict[ColorableType, str] = defaultdict(
         NodeType.LookupNode: BREWER_PASTEL["yellow"],
         # Make the global node and variables same color, since both are about variables
         NodeType.GlobalNode: BREWER_PASTEL["brown"],
-        NodeType.IfElseNode: BREWER_PASTEL["blue"],
+        NodeType.IfNode: BREWER_PASTEL["blue"],
+        NodeType.ElseNode: BREWER_PASTEL["blue"],
         ExtraLabelType.VARIABLE: BREWER_PASTEL["brown"],
         ExtraLabelType.ARTIFACT: BREWER_PASTEL["orange"],
         # Make same color as mutate node
@@ -123,7 +124,8 @@ NODE_LABELS: Dict[NodeType, str] = {
     NodeType.LookupNode: "Lookup",
     NodeType.MutateNode: "Mutate",
     NodeType.GlobalNode: "Global",
-    NodeType.IfElseNode: "If/Else",
+    NodeType.IfNode: "If",
+    NodeType.ElseNode: "Else",
 }
 
 
@@ -134,7 +136,8 @@ NODE_SHAPES: Dict[NodeType, str] = {
     NodeType.LookupNode: "box",
     NodeType.MutateNode: "record",
     NodeType.GlobalNode: "box",
-    NodeType.IfElseNode: "diamond",
+    NodeType.IfNode: "diamond",
+    NodeType.ElseNode: "diamond",
 }
 
 UNDIRECTED_EDGE_TYPES = {
@@ -150,8 +153,8 @@ EDGE_STYLES = defaultdict(
         VisualEdgeType.SOURCE_CODE: "dotted",
         VisualEdgeType.IMPLICIT_DEPENDENCY: "bold",
         VisualEdgeType.CONTROL_DEPENDENCY: "tapered",
-        VisualEdgeType.CONTROL_FLOW: "tapered",
-        VisualEdgeType.DUMMY_CONTROL_FLOW: "tapered",
+        VisualEdgeType.LINKED_CONTROL_BLOCK: "tapered",
+        VisualEdgeType.UNEXEC_CODE_BLOCK: "tapered",
     },
 )
 
@@ -180,7 +183,7 @@ def edge_labels(
         VisualEdgeType.SOURCE_CODE: "Source Code",
         VisualEdgeType.MUTATE_CALL: "Mutate Call",
         VisualEdgeType.IMPLICIT_DEPENDENCY: "Implicit Dependency",
-        VisualEdgeType.CONTROL_FLOW: "Control Flow",
+        VisualEdgeType.CONTROL_DEPENDENCY: "Control Flow",
     }
     if options.show_implied_mutations:
         l[VisualEdgeType.LATEST_MUTATE_SOURCE] = "Implied Mutate"

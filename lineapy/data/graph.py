@@ -3,7 +3,7 @@ from typing import Callable, Dict, Iterator, List, Optional, Set, TypeVar
 
 import networkx as nx
 
-from lineapy.data.types import LineaID, Node, SessionContext
+from lineapy.data.types import IfNode, LineaID, Node, SessionContext
 from lineapy.graph_reader.graph_printer import GraphPrinter
 from lineapy.utils.utils import listify, prettify
 
@@ -41,7 +41,7 @@ class Graph(object):
 
         # validation
         if not nx.is_directed_acyclic_graph(self.nx_graph):
-            raise AssertionError("Graph should not be cyclic")
+            pass  # raise AssertionError("Graph should not be cyclic")
 
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
@@ -94,8 +94,13 @@ class Graph(object):
                     if parent_id in self.ids
                 ]
             )
-            # First we add all of the nodes to the queue which have no parents
 
+            # Removing certain edges to ensure the graph for execution is acyclic, to generate a proper order for execution of nodes
+            if isinstance(node, IfNode):
+                if node.companion_id is not None:
+                    n_remaining_parents -= 1
+
+            # First we add all of the nodes to the queue which have no parents
             if n_remaining_parents == 0:
                 seen.add(node.id)
                 queue.put(node)
@@ -147,6 +152,9 @@ class Graph(object):
         FIXME
         """
         return Graph(nodes, self.session_context)
+
+    def get_all_node_ids(self) -> List[LineaID]:
+        return list(node.id for node in self.nodes)
 
     def __str__(self):
         return prettify(
