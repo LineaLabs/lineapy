@@ -126,7 +126,7 @@ print(y)
     artifact_f_save = """lineapy.save(y, "deferencedy")
 res = lineapy.get("deferencedy")
 """
-    # assert run_cell(importl) is None
+    assert run_cell(importl) is None
     assert run_cell(code_body) is None
     assert run_cell(artifact_f_save) is None
 

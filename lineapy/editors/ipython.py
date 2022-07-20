@@ -115,9 +115,10 @@ def input_transformer_post(
             db, SessionType.JUPYTER, STATE.session_name, ipython_globals
         )
 
-        # add statement so it is include
-        # d in artifact.get_code()
-        code = "import lineapy\n" + code
+        # add statement so it is
+        # included in artifact.get_code()
+        if "import lineapy\n" not in lines:
+            code = "import lineapy\n" + code
 
         STATE = CellsExecutedState(STATE.ipython, tracer, code=code)
     else:
