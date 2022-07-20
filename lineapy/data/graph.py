@@ -149,6 +149,9 @@ class Graph(object):
         """
         return Graph(nodes, self.session_context)
 
+    def get_subgraph_from_id(self, nodeids: List[LineaID]) -> "Graph":
+        return self.get_subgraph([self.get_node(nodeid) for nodeid in nodeids])
+
     def __str__(self):
         return prettify(
             self.print(

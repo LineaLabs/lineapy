@@ -1,9 +1,9 @@
 import itertools
 import logging
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 
@@ -168,6 +168,76 @@ class GraphSegment:
 
 
 @dataclass
+class NodeInfo:
+    assigned_variables: Set[str] = field(default_factory=set)
+    assigned_artifact: Optional[str] = field(default=None)
+    dependent_variables: Set[str] = field(default_factory=set)
+    predecessors: Set[int] = field(default_factory=set)
+    tracked_variables: Set[str] = field(default_factory=set)
+    module_import: Set[str] = field(default_factory=set)
+    artifact_name: Optional[str] = field(default=None)
+
+
+@dataclass
+class NodeCollectionInfo:
+    collection_type: GraphSegmentType
+
+    node_list: Set[LineaID] = field(default_factory=set)
+
+    assigned_variables: Set[str] = field(default_factory=set)
+    dependent_variables: Set[str] = field(default_factory=set)
+    all_variables: Set[str] = field(default_factory=set)
+    input_variables: Set[str] = field(default_factory=set)
+
+    artifact_node_id: Optional[LineaID] = field(default=None)
+    artifact_name: Optional[str] = field(default=None)
+    tracked_variables: Set[str] = field(default_factory=set)
+    # Need to be a list to keep return order
+    return_variables: List[str] = field(default_factory=list)
+
+    predecessor_nodes: Set[LineaID] = field(default_factory=set)
+    predecessor_artifact: Set[str] = field(default_factory=set)
+
+    input_variable_sources: Dict[str, Set[str]] = field(default_factory=dict)
+
+    artifact_safename: Optional[str] = field(default=None)
+    graph_segment: Optional[Graph] = field(default=None)
+
+    raw_codeblock: str = field(default="")
+
+    def __init__(self, node_list: Set[LineaID]):
+        self.node_list = node_list
+
+    def _update_variable_info(self, node_context, input_parameters_node):
+        self.dependent_variables = self.dependent_variables.union(
+            [node_context[nid].dependent_variables for nid in self.node_list]
+        )
+        # variables got assigned within these nodes
+        self.assigned_variables = self.assigned_variables.union(
+            [node_context[nid].assigned_variables for nid in self.node_list]
+        )
+        # all variables within these nodes
+        self.all_variables = self.dependent_variables.union(
+            self.assigned_variables
+        )
+        # required input variables
+        self.input_variables = self.all_variables - self.assigned_variables
+        # Add user defined parameter in to input variables list
+        self.input_variables = self.input_variables.union(
+            set(
+                [
+                    input_parameters_node[nid]
+                    for nid in self.node_list
+                    if nid in input_parameters_node.keys()
+                ]
+            )
+        )
+
+    def _update_graph(self, graph: Graph):
+        self.graph_segment = graph.get_subgraph_from_id(self.node_list)
+
+
+@dataclass
 class SessionArtifacts:
     """
     Refactor a given session graph for use in a downstream task (e.g., pipeline building).
@@ -181,10 +251,7 @@ class SessionArtifacts:
     import_segment: GraphSegment
     artifact_list: List[LineaArtifact]
     artifact_ordering: List
-    artifact_dict: Dict[LineaID, Optional[str]]
-    variable_dict: Dict[LineaID, Set[str]]
-    import_dict: Dict[LineaID, Set[str]]
-    node_context: Dict[LineaID, Dict[str, Any]]
+    node_context: Dict[LineaID, NodeInfo]
     input_parameters: List[str]
     input_parameters_node: Dict[str, LineaID]
 
@@ -217,6 +284,69 @@ class SessionArtifacts:
                     return lookup_node_name in ["l_import", "getattr"]
         return False
 
+    def _update_dependent_variables(
+        self, nodeinfo: NodeInfo, variable_dict: Dict[str, Set[str]]
+    ) -> NodeInfo:
+        # Dependent variables of each node is union of all tracked
+        # variables from predecessors
+        for prev_node_id in nodeinfo.predecessors:
+            prev_nodeinfo = self.node_context[prev_node_id]
+            dep = variable_dict.get(
+                prev_node_id,
+                prev_nodeinfo.tracked_variables,
+            )
+            nodeinfo.dependent_variables = nodeinfo.dependent_variables.union(
+                dep
+            )
+        return nodeinfo
+
+    def _update_tracked_variables(
+        self, nodeinfo: NodeInfo, node_id: LineaID
+    ) -> NodeInfo:
+        # Determine the tracked variables of each node
+        # Fix me when you see return variables in refactor behaves strange
+        node = self.graph.get_node(node_id=node_id)
+        if len(nodeinfo.assigned_variables) > 0:
+            nodeinfo.tracked_variables = nodeinfo.assigned_variables
+        elif isinstance(node, MutateNode) or isinstance(node, GlobalNode):
+            predecessor_call_id = node.call_id
+            if predecessor_call_id in nodeinfo["predecessors"]:
+                predecessor_nodeinfo = self.node_context[predecessor_call_id]
+                nodeinfo.tracked_variables = (
+                    predecessor_nodeinfo.tracked_variables
+                )
+        elif isinstance(node, CallNode):
+            if (
+                len(node.global_reads) > 0
+                and list(node.global_reads.values())[0]
+                in nodeinfo.predecessors
+            ):
+                nodeinfo.tracked_variables = self.node_context[
+                    list(node.global_reads.values())[0]
+                ].tracked_variables
+            elif (
+                node.function_id in nodeinfo.predecessors
+                and len(
+                    self.node_context[node.function_id].dependent_variables
+                )
+                > 0
+            ):
+                nodeinfo.tracked_variables = self.node_context[
+                    node.function_id
+                ].tracked_variables
+            elif (
+                len(node.positional_args) > 0
+                and node.positional_args[0].id in nodeinfo.predecessors
+            ):
+                nodeinfo.tracked_variables = self.node_context[
+                    node.positional_args[0].id
+                ].tracked_variables
+            else:
+                nodeinfo.tracked_variables = set()
+        else:
+            nodeinfo.tracked_variables = set()
+        return nodeinfo
+
     def _update_node_context(self):
         """
         Traverse every node within the session in topologically sorted order and update
@@ -233,26 +363,24 @@ class SessionArtifacts:
 
         # Map each variable node ID to the corresponding variable name(when variable assigned)
         # Need to treat import different from regular variable assignment
-        self.variable_dict = OrderedDict()
-        self.import_dict = OrderedDict()
+        variable_dict: Dict[LineaID, Set[str]] = OrderedDict()
+        import_dict = OrderedDict()
         self.input_parameters_node = dict()
         for node_id, variable_name in self.db.get_variables_for_session(
             self.session_id
         ):
             node = self.graph.get_node(node_id)
             if self._is_import_node(node_id):
-                self.import_dict[node_id] = (
+                import_dict[node_id] = (
                     set([variable_name])
-                    if node_id not in self.import_dict.keys()
-                    else self.import_dict[node_id].union(set([variable_name]))
+                    if node_id not in import_dict.keys()
+                    else import_dict[node_id].union(set([variable_name]))
                 )
             else:
-                self.variable_dict[node_id] = (
+                variable_dict[node_id] = (
                     set([variable_name])
-                    if node_id not in self.variable_dict.keys()
-                    else self.variable_dict[node_id].union(
-                        set([variable_name])
-                    )
+                    if node_id not in variable_dict.keys()
+                    else variable_dict[node_id].union(set([variable_name]))
                 )
 
                 for var in set([variable_name]).intersection(
@@ -265,92 +393,30 @@ class SessionArtifacts:
                         self.input_parameters_node[var] = node_id
 
         # Map node id to artifact assignment
-        self.artifact_dict = {
+        artifact_dict = {
             artifact.node_id: artifact.name
             for artifact in self.db.get_artifacts_for_session(self.session_id)
         }
 
         # Identify variable dependencies of each node in topological order
         for node_id in nx.topological_sort(self.nx_graph):
-            self.node_context[node_id] = {
-                "assigned_variables": self.variable_dict.get(node_id, set()),
-                "assigned_artifact": self.artifact_dict.get(node_id, None),
-                "dependent_variables": set(),
-                "predecessors": set(self.nx_graph.predecessors(node_id)),
-                "tracked_variables": set(),
-                "module_import": self.import_dict.get(node_id, set()),
-            }
-            # Dependent variables of each node is union of all tracked
-            # variables from predecessors
-            for p_node_id in self.node_context[node_id]["predecessors"]:
-                dep = self.variable_dict.get(
-                    p_node_id,
-                    self.node_context[p_node_id]["tracked_variables"],
-                )
-                self.node_context[node_id][
-                    "dependent_variables"
-                ] = self.node_context[node_id]["dependent_variables"].union(
-                    dep
-                )
 
-            # Determine the tracked variables of each node
-            # Fix me when you see return variables in refactor behaves strange
-            node = self.graph.get_node(node_id=node_id)
-            if len(self.node_context[node_id]["assigned_variables"]) > 0:
-                self.node_context[node_id][
-                    "tracked_variables"
-                ] = self.node_context[node_id]["assigned_variables"]
-            elif isinstance(node, MutateNode) or isinstance(node, GlobalNode):
-                predecessor_call_id = node.call_id
-                if (
-                    predecessor_call_id
-                    in self.node_context[node_id]["predecessors"]
-                ):
-                    self.node_context[node_id][
-                        "tracked_variables"
-                    ] = self.node_context[predecessor_call_id][
-                        "tracked_variables"
-                    ]
-            elif isinstance(node, CallNode):
-                if (
-                    len(node.global_reads) > 0
-                    and list(node.global_reads.values())[0]
-                    in self.node_context[node_id]["predecessors"]
-                ):
-                    self.node_context[node_id][
-                        "tracked_variables"
-                    ] = self.node_context[list(node.global_reads.values())[0]][
-                        "tracked_variables"
-                    ]
-                elif (
-                    node.function_id
-                    in self.node_context[node_id]["predecessors"]
-                    and len(
-                        self.node_context[node.function_id][
-                            "dependent_variables"
-                        ]
-                    )
-                    > 0
-                ):
-                    self.node_context[node_id][
-                        "tracked_variables"
-                    ] = self.node_context[node.function_id][
-                        "tracked_variables"
-                    ]
-                elif (
-                    len(node.positional_args) > 0
-                    and node.positional_args[0].id
-                    in self.node_context[node_id]["predecessors"]
-                ):
-                    self.node_context[node_id][
-                        "tracked_variables"
-                    ] = self.node_context[node.positional_args[0].id][
-                        "tracked_variables"
-                    ]
-                else:
-                    self.node_context[node_id]["tracked_variables"] = set()
-            else:
-                self.node_context[node_id]["tracked_variables"] = set()
+            nodeinfo = NodeInfo(
+                assigned_variables=variable_dict.get(node_id, set()),
+                assigned_artifact=artifact_dict.get(node_id, None),
+                dependent_variables=set(),
+                predecessors=set(self.nx_graph.predecessors(node_id)),
+                tracked_variables=set(),
+                module_import=import_dict.get(node_id, set()),
+            )
+
+            nodeinfo = self._update_dependent_variables(
+                nodeinfo, variable_dict
+            )
+
+            nodeinfo = self._update_tracked_variables(nodeinfo, node_id)
+
+            self.node_context[node_id] = nodeinfo
 
     def _get_subgraph_from_node_list(self, node_list: List[LineaID]) -> Graph:
         """
@@ -365,9 +431,7 @@ class SessionArtifacts:
 
         return self.graph.get_subgraph(nodes)
 
-    def _get_involved_variables_from_node_list(
-        self, node_list
-    ) -> Dict[str, Set[str]]:
+    def _get_variable_information(self, node_list) -> Dict[str, Set[str]]:
         """
         How each variables are involved within these nodes.
 
@@ -378,8 +442,8 @@ class SessionArtifacts:
         input_variables : all_variables - assigned_variables
         """
 
-        involved_variables = dict()
-        involved_variables["dependent_variables"] = set(
+        var_info = dict()
+        var_info["dependent_variables"] = set(
             itertools.chain.from_iterable(
                 [
                     self.node_context[nid]["dependent_variables"]
@@ -388,7 +452,7 @@ class SessionArtifacts:
             )
         )
         # variables got assigned within these nodes
-        involved_variables["assigned_variables"] = set(
+        var_info["assigned_variables"] = set(
             itertools.chain.from_iterable(
                 [
                     self.node_context[nid]["assigned_variables"]
@@ -397,23 +461,22 @@ class SessionArtifacts:
             )
         )
         # all variables within these nodes
-        involved_variables["all_variables"] = involved_variables[
-            "dependent_variables"
-        ].union(involved_variables["assigned_variables"])
+        var_info["all_variables"] = var_info["dependent_variables"].union(
+            var_info["assigned_variables"]
+        )
         # required input variables
-        involved_variables["input_variables"] = (
-            involved_variables["all_variables"]
-            - involved_variables["assigned_variables"]
+        var_info["input_variables"] = (
+            var_info["all_variables"] - var_info["assigned_variables"]
         )
 
         # Add user defined parameter in to input variables list
         for nid in node_list:
             if self.input_parameters_node.get(nid, None) is not None:
-                involved_variables["input_variables"].add(
+                var_info["input_variables"].add(
                     self.input_parameters_node[nid]
                 )
 
-        return involved_variables
+        return var_info
 
     def _get_graph_segment_from_artifact_context(
         self, artifact_context
@@ -427,17 +490,15 @@ class SessionArtifacts:
         subgraph = self._get_subgraph_from_node_list(
             artifact_context["node_list"]
         )
-        involved_variables = self._get_involved_variables_from_node_list(
+        var_info = self._get_variable_information(
             artifact_context["node_list"]
         )
         # If the return variable is assigned(only in the code block)
-        # and parameterized, it will not be in involved_variables["all_variables"]
-        all_variables = involved_variables["all_variables"].union(
+        # and parameterized, it will not be in var_info["all_variables"]
+        all_variables = var_info["all_variables"].union(
             set(artifact_context["return_variables"])
         )
-        input_variables = (
-            all_variables - involved_variables["assigned_variables"]
-        )
+        input_variables = all_variables - var_info["assigned_variables"]
         return GraphSegment(
             artifact_name=artifact_context["artifact_name"],
             graph_segment=subgraph,
@@ -446,6 +507,118 @@ class SessionArtifacts:
             input_variables=input_variables,
             return_variables=artifact_context["return_variables"],
         )
+
+    # def _get_import_nodes(self, nodes: Set[LineaID]) -> Set[LineaID]:
+    #     importnodes = [
+    #         _node
+    #         for _node in nodes
+    #         if len(self.node_context[_node].module_import) > 0
+    #     ]
+    #     # Ancestors of import node should be also for import
+    #     importnodes = set(importnodes).union(
+    #         *[
+    #             self.graph.get_ancestors(import_node_id)
+    #             for import_node_id in importnodes
+    #         ]
+    #     )
+    #     # Ancestors might not in nodes
+    #     importnodes = importnodes.intersection(nodes)
+    #     return importnodes
+
+    def _get_sliced_nodes(
+        self, node_id: LineaID
+    ) -> Tuple[Set[LineaID], Set[LineaID]]:
+        nodes = set(get_slice_graph(self.graph, [node_id]).nx_graph.nodes)
+
+        importnodes = [
+            _node
+            for _node in nodes
+            if len(self.node_context[_node].module_import) > 0
+        ]
+        # Ancestors of import node should be also for import
+        importnodes = set(importnodes).union(
+            *[
+                self.graph.get_ancestors(import_node_id)
+                for import_node_id in importnodes
+            ]
+        )
+        # Ancestors might not in nodes
+        importnodes = importnodes.intersection(nodes)
+        return nodes, importnodes
+
+    def _get_predecessor_info(self, )
+
+    def _slice_session_artifacts(self) -> None:
+        used_nodes: Set[LineaID] = set()  # Track nodes that get ever used
+        import_nodes: Set[LineaID] = set()
+        self.artifact_ordering = list()
+        for node_id, n in self.node_context.items():
+            if n.assigned_artifact is not None and node_id in [
+                art._node_id for art in self.artifact_list
+            ]:
+                (
+                    sliced_nodes,
+                    sliced_importnodes,
+                ) = self._get_sliced_nodes(node_id)
+                import_nodes = import_nodes.union(
+                    sliced_importnodes - used_nodes
+                )
+                art_nodes = sliced_nodes - used_nodes - import_nodes
+                used_nodes += art_nodes + import_nodes
+
+                # Update node context to label the node is assigned to this artifact
+                for n_id in nodecollectioninfo.node_list:
+                    self.node_context[n_id].artifact_name = n.assigned_artifact
+                for n_id in import_nodes:
+                    self.node_context[n_id].artifact_name = "module_import"
+
+                # Figure out where each predecessor is coming from which artifact
+                predecessor_nodes = (
+                    set().union(
+                        *[
+                            self.node_context[n_id].predecessors
+                            for n_id in art_nodes
+                        ]
+                    )
+                    - art_nodes
+                    - import_nodes
+                )
+
+                predecessor_artifact = set(
+                    [
+                        self.node_context[n_id].artifact_name
+                        for n_id in predecessor_nodes
+                    ]
+                )
+
+                # Get information about which input variable is originated from which artifact
+                input_variable_sources: Dict[str, Set[str]] = dict()
+                for prev_id in predecessor_nodes:
+                    prev_variables = (
+                        self.node_context[prev_id].assigned_variables
+                        if len(self.node_context[prev_id].assigned_variables)
+                        > 0
+                        else self.node_context[prev_id].tracked_variables
+                    )
+                    prev_art = self.node_context[prev_id].artifact_name
+                    if prev_art != "module_import":
+                        input_variable_sources[
+                            prev_art
+                        ] = input_variable_sources.get(prev_art, set()).union(
+                            prev_variables
+                        )
+
+                nodecollectioninfo = NodeCollectionInfo(
+                    collection_type=GraphSegmentType.ARTIFACT,
+                    artifact_node_id=node_id,
+                    artifact_name=n.assigned_artifact,
+                    tracked_variables=n.tracked_variables,
+                    return_variables=list(n.tracked_variables),
+                    node_list=art_nodes,
+                    predecessor_nodes=predecessor_nodes,
+                    predecessor_artifact=predecessor_artifact,
+                    input_variable_sources=input_variable_sources,
+                )
 
     def _slice_session_artifacts(self) -> None:
         """
@@ -460,8 +633,8 @@ class SessionArtifacts:
         graph of predecessor artifact into two pieces. One for common variables,
         the other for the artifact itself.
         """
-        used_node_ids: Set[LineaID] = set()  # Track nodes that get ever used
-        self.import_node_ids: Set[LineaID] = set()
+        used_nodes: Set[LineaID] = set()  # Track nodes that get ever used
+        import_nodes: Set[LineaID] = set()
         self.artifact_ordering = list()
         for node_id, n in self.node_context.items():
             if n["assigned_artifact"] is not None and node_id in [
@@ -476,55 +649,49 @@ class SessionArtifacts:
                 }
 
                 # All nodes related to this artifact
-                artifact_sliced_graph = get_slice_graph(self.graph, [node_id])
-                artifact_sliced_node_list = set(
-                    artifact_sliced_graph.nx_graph.nodes
-                )
+                art_sliced_graph = get_slice_graph(self.graph, [node_id])
+                art_sliced_nodes = set(art_sliced_graph.nx_graph.nodes)
                 # Identify import nodes(need to lift them out)
-                artifact_import_node = self.import_node_ids.union(
+                art_import_node = import_nodes.union(
                     set(
                         [
                             _node
-                            for _node in artifact_sliced_node_list
+                            for _node in art_sliced_nodes
                             if len(self.node_context[_node]["module_import"])
                             > 0
                         ]
                     )
                 )
                 # Ancestors of import node should be also for import
-                artifact_import_node_ancestors = set(
+                art_import_node_ancestors = set(
                     itertools.chain.from_iterable(
                         [
                             self.graph.get_ancestors(import_node_id)
-                            for import_node_id in artifact_import_node
+                            for import_node_id in art_import_node
                         ]
                     )
                 )
                 # All nodes related to import modules
-                self.import_node_ids = self.import_node_ids.union(
+                import_nodes = import_nodes.union(
                     (
-                        artifact_import_node.union(
-                            artifact_import_node_ancestors
-                        )
-                    ).intersection(artifact_sliced_node_list)
-                    - used_node_ids
+                        art_import_node.union(art_import_node_ancestors)
+                    ).intersection(art_sliced_nodes)
+                    - used_nodes
                 )
 
                 # Nodes only belong to this artifact
                 artifact_context["node_list"] = (
-                    artifact_sliced_node_list
-                    - used_node_ids
-                    - self.import_node_ids
+                    art_sliced_nodes - used_nodes - import_nodes
                 )
 
                 # Update used nodes for next iteration
-                used_node_ids = used_node_ids.union(
+                used_nodes = used_nodes.union(
                     artifact_context["node_list"]
-                ).union(self.import_node_ids)
+                ).union(import_nodes)
 
                 artifact_context = {
                     **artifact_context,
-                    **self._get_involved_variables_from_node_list(
+                    **self._get_variable_information(
                         artifact_context["node_list"]
                     ),
                 }
@@ -535,7 +702,7 @@ class SessionArtifacts:
                         "assigned_artifact"
                     ]
 
-                for n_id in self.import_node_ids:
+                for n_id in import_nodes:
                     self.node_context[n_id]["artifact_name"] = "module_import"
 
                 # Figure out where each predecessor is coming from which artifact
@@ -549,7 +716,7 @@ class SessionArtifacts:
                         )
                     )
                     - set(artifact_context["node_list"])
-                    - self.import_node_ids
+                    - import_nodes
                 )
 
                 artifact_context["predecessor_artifact"] = set(
@@ -561,21 +728,19 @@ class SessionArtifacts:
 
                 # Get information about which input variable is originated from which artifact
                 artifact_context["input_variable_sources"] = dict()
-                for pred_node_id in artifact_context["predecessor_nodes"]:
+                for prev_id in artifact_context["predecessor_nodes"]:
                     predecessor_variables = (
-                        self.node_context[pred_node_id]["assigned_variables"]
+                        self.node_context[prev_id]["assigned_variables"]
                         if len(
-                            self.node_context[pred_node_id][
-                                "assigned_variables"
-                            ]
+                            self.node_context[prev_id]["assigned_variables"]
                         )
                         > 0
-                        else self.node_context[pred_node_id][
+                        else self.node_context[prev_id][
                             # "dependent_variables"
                             "tracked_variables"
                         ]
                     )
-                    predecessor_artifact = self.node_context[pred_node_id][
+                    predecessor_artifact = self.node_context[prev_id][
                         "artifact_name"
                     ]
                     if predecessor_artifact != "module_import":
@@ -623,16 +788,14 @@ class SessionArtifacts:
                         source_art_slice_variable_graph = get_slice_graph(
                             source_art_graph, slice_variable_nodes
                         )
-                        common_nodes = artifact_sliced_node_list.intersection(
+                        common_nodes = art_sliced_nodes.intersection(
                             set(source_art_slice_variable_graph.nx_graph.nodes)
                         )
 
                         # Split one artifact_context into two
                         if len(common_nodes) > 0:
                             common_artifact_variables = (
-                                self._get_involved_variables_from_node_list(
-                                    common_nodes
-                                )
+                                self._get_variable_information(common_nodes)
                             )
                             common_artifact_context = {
                                 "artifact_name": f"{'_'.join(common_inner_variables)}_for_artifact_{source_artifact_context['artifact_name']}_and_downstream",
@@ -653,9 +816,7 @@ class SessionArtifacts:
                                 "node_list"
                             ].difference(common_nodes)
                             remaining_artifact_variables = (
-                                self._get_involved_variables_from_node_list(
-                                    remaining_nodes
-                                )
+                                self._get_variable_information(remaining_nodes)
                             )
                             remaining_artifact_context = {
                                 "node_id": source_artifact_context["node_id"],
@@ -698,7 +859,7 @@ class SessionArtifacts:
         self.import_segment = GraphSegment(
             artifact_name="",
             graph_segment=self._get_subgraph_from_node_list(
-                list(self.import_node_ids)
+                list(import_nodes)
             ),
             segment_type=GraphSegmentType.IMPORT,
             all_variables=set(),
