@@ -4,6 +4,8 @@ from lineapy.api.api import (
     artifact_store,
     delete,
     get,
+    get_function,
+    get_module_definition,
     reload,
     save,
     to_pipeline,

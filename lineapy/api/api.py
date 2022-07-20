@@ -385,3 +385,24 @@ def to_pipeline(
 
     else:
         raise Exception(f"No PipelineType for {framework}")
+
+
+from typing import Callable
+
+from lineapy.graph_reader.graph_refactorer import SessionArtifacts
+
+
+def get_module_definition(artifact_list, input_parameters=[], **kwargs) -> str:
+    sas = SessionArtifacts(
+        [get(art_name) for art_name in artifact_list],
+        input_parameters=input_parameters,
+    )
+    return sas.get_session_module_definition(**kwargs)
+
+
+def get_function(artifact_list, input_parameters=[], **kwargs) -> Callable:
+    sas = SessionArtifacts(
+        [get(art_name) for art_name in artifact_list],
+        input_parameters=input_parameters,
+    )
+    return sas.get_session_module(**kwargs).pipeline
