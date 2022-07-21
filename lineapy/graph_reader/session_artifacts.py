@@ -7,21 +7,15 @@ import networkx as nx
 
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.graph import Graph
-from lineapy.data.types import (
-    CallNode,
-    GlobalNode,
-    LineaID,
-    LookupNode,
-    MutateNode,
-    Node,
-)
+from lineapy.data.types import CallNode, GlobalNode, LineaID, MutateNode, Node
 from lineapy.db.db import RelationalLineaDB
-from lineapy.graph_reader.graph_segment import (  # GraphSegment,
+from lineapy.graph_reader.graph_segment import (
     GraphSegment,
     GraphSegmentType,
     NodeInfo,
 )
 from lineapy.graph_reader.program_slice import get_slice_graph
+from lineapy.graph_reader.utils import _is_import_node
 from lineapy.utils.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -59,20 +53,6 @@ class SessionArtifacts:
 
         self._update_node_context()
         self._slice_session_artifacts()
-
-    def _is_import_node(self, node_id: LineaID) -> bool:
-        """
-        Given node_id, check whether it is a CallNode doing module import
-        """
-        node = self.graph.get_node(node_id)
-        if isinstance(node, CallNode) and hasattr(node, "function_id"):
-            lookup_node_id = node.__dict__.get("function_id", None)
-            if lookup_node_id is not None:
-                lookup_node = self.graph.get_node(lookup_node_id)
-                if isinstance(lookup_node, LookupNode):
-                    lookup_node_name = lookup_node.__dict__.get("name", "")
-                    return lookup_node_name in ["l_import", "getattr"]
-        return False
 
     def _update_dependent_variables(
         self, nodeinfo: NodeInfo, variable_dict: Dict[LineaID, Set[str]]
@@ -158,7 +138,7 @@ class SessionArtifacts:
             self.session_id
         ):
             # node = self.graph.get_node(node_id)
-            if self._is_import_node(node_id):
+            if _is_import_node(self.graph, node_id):
                 import_dict[node_id] = (
                     set([variable_name])
                     if node_id not in import_dict.keys()
@@ -176,6 +156,9 @@ class SessionArtifacts:
                 ):
                     if self.input_parameters_node.get(var, None) is not None:
                         # Duplicated variable name existing
+                        logger.error(
+                            "Variable %s, is defined more than once", var
+                        )
                         raise Exception
                     else:
                         self.input_parameters_node[var] = node_id
@@ -471,24 +454,24 @@ class SessionArtifacts:
         if len(self.artifact_list) == 1:
             module_definition_string = f"""{import_block}{function_definitions}
 
-def pipeline({input_parameters_block}):
+def run_all({input_parameters_block}):
 {calculation_codeblock}
 {indentation_block}return {return_string}
 
 if __name__=="__main__":
-{indentation_block}pipeline()
+{indentation_block}run_all()
 """
         else:
             module_definition_string = f"""import copy
 {import_block}{function_definitions}
 
-def pipeline({input_parameters_block}):
+def run_all({input_parameters_block}):
 {indentation_block}sessionartifacts = []
 {calculation_codeblock}
 {indentation_block}return sessionartifacts
 
 if __name__=="__main__":
-{indentation_block}pipeline()
+{indentation_block}run_all()
 """
 
         return module_definition_string

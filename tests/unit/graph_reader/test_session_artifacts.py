@@ -90,7 +90,7 @@ def get_z(h):
   z.append(h)
   return z
 
-def pipeline():
+def run_all():
   sessionartifacts = []
   a = get_a()
   sessionartifacts.append(copy.deepcopy(a))
@@ -112,7 +112,7 @@ def pipeline():
   return sessionartifacts
 
 if __name__=="__main__":
-  pipeline()
+  run_all()
     """
 
     res = execute(code, snapshot=False)
@@ -150,7 +150,7 @@ def get_h(a, c):
   h = a + g
   return h
 
-def pipeline():
+def run_all():
   sessionartifacts = []
   a0 = get_a0()
   lineapy.save(a0, "a0")
@@ -165,7 +165,7 @@ def pipeline():
   return sessionartifacts
 
 if __name__=="__main__":
-  pipeline()
+  run_all()
     """
 
     sas = SessionArtifacts(
@@ -191,12 +191,12 @@ if __name__=="__main__":
   h = a + g
   return h
 
-def pipeline():
+def run_all():
   h = get_h()
   return h
 
 if __name__=="__main__":
-  pipeline()
+  run_all()
     """
 
     sas = SessionArtifacts(
@@ -227,7 +227,7 @@ def get_df2(df):
     df2 = pandas.concat([df, df])
     return df2
 
-def pipeline():
+def run_all():
     sessionartifacts = []
     df = get_df()
     sessionartifacts.append(copy.deepcopy(df))
@@ -236,7 +236,7 @@ def pipeline():
     return sessionartifacts
 
 if __name__=="__main__":
-    pipeline()
+    run_all()
 """
 
     res = execute(code, snapshot=False)
@@ -269,7 +269,7 @@ def get_df2(df):
     df2 = pd.concat([df, df])
     return df2
 
-def pipeline():
+def run_all():
     sessionartifacts = []
     df = get_df()
     sessionartifacts.append(copy.deepcopy(df))
@@ -278,7 +278,7 @@ def pipeline():
     return sessionartifacts
 
 if __name__=="__main__":
-    pipeline()
+    run_all()
 """
 
     res = execute(code, snapshot=False)
@@ -336,7 +336,7 @@ def get_iris_petal_length_pred(mod, url1):
     petal_length_pred = mod.predict(X=pred_df[["petal.width"]])
     return petal_length_pred
 
-def pipeline():
+def run_all():
     sessionartifacts = []
     url1 = get_url1_for_artifact_iris_model_and_downstream()
     mod = get_iris_model(url1)
@@ -346,7 +346,7 @@ def pipeline():
     return sessionartifacts
 
 if __name__=="__main__":
-    pipeline()
+    run_all()
 """
 
     res = execute(code, snapshot=False)
