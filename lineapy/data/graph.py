@@ -150,7 +150,15 @@ class Graph(object):
         return Graph(nodes, self.session_context)
 
     def get_subgraph_from_id(self, nodeids: List[LineaID]) -> "Graph":
-        return self.get_subgraph([self.get_node(nodeid) for nodeid in nodeids])
+        """
+        Get subgraph from list of LineaID
+        """
+        nodes: List[Node] = []
+        for node_id in nodeids:
+            node = self.get_node(node_id)
+            if node is not None:
+                nodes.append(node)
+        return self.get_subgraph(nodes)
 
     def __str__(self):
         return prettify(
