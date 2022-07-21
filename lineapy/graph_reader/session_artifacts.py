@@ -137,16 +137,16 @@ class SessionArtifacts:
 
     def _update_node_context(self):
         """
-        Traverse every node within the session in topologically sorted order and update
-        node_context with following informations
+         Traverse every node within the session in topologically sorted order and update
+         node_context with following informations
 
         assigned_variables : variables assigned at this node
-        assigned_artifact : this node is pointing to some artifact
-        predecessors : predecessors of the node
-        dependent_variables : union of if any variable is assigned at predecessor node,
-            use the assigned variables; otherwise, use the dependent_variables
-        tracked_variables : variables that this node is point to
-        module_import : module name/alias that this node is point to
+         assigned_artifact : this node is pointing to some artifact
+         predecessors : predecessors of the node
+         dependent_variables : union of if any variable is assigned at predecessor node,
+             use the assigned variables; otherwise, use the dependent_variables
+         tracked_variables : variables that this node is point to
+         module_import : module name/alias that this node is point to
         """
 
         # Map each variable node ID to the corresponding variable name(when variable assigned)
@@ -157,7 +157,7 @@ class SessionArtifacts:
         for node_id, variable_name in self.db.get_variables_for_session(
             self.session_id
         ):
-            node = self.graph.get_node(node_id)
+            # node = self.graph.get_node(node_id)
             if self._is_import_node(node_id):
                 import_dict[node_id] = (
                     set([variable_name])

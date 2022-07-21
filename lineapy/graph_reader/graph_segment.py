@@ -29,6 +29,17 @@ class GraphSegmentType(Enum):
 
 @dataclass
 class NodeInfo:
+    """
+    assigned_variables : variables assigned at this node
+    assigned_artifact : this node is pointing to some artifact
+    dependent_variables : union of if any variable is assigned at predecessor node,
+        use the assigned variables; otherwise, use the dependent_variables
+    tracked_variables : variables that this node is point to
+    predecessors : predecessors of the node
+    module_import : module name/alias that this node is point to
+    artifact_name : this node belong to which artifact calculating block
+    """
+
     assigned_variables: Set[str] = field(default_factory=set)
     assigned_artifact: Optional[str] = field(default=None)
     dependent_variables: Set[str] = field(default_factory=set)
@@ -43,29 +54,23 @@ class GraphSegment:
     collection_type: GraphSegmentType
     node_list: Set[LineaID]
 
-    # node_list: Set[LineaID] = field(default_factory=set)
+    name: str = field(default="")
 
     assigned_variables: Set[str] = field(default_factory=set)
     dependent_variables: Set[str] = field(default_factory=set)
     all_variables: Set[str] = field(default_factory=set)
     input_variables: Set[str] = field(default_factory=set)
-
-    artifact_node_id: Optional[LineaID] = field(default=None)
-    name: str = field(default="")
     tracked_variables: Set[str] = field(default_factory=set)
     # Need to be a list to keep return order
     return_variables: List[str] = field(default_factory=list)
 
+    artifact_node_id: Optional[LineaID] = field(default=None)
     predecessor_nodes: Set[LineaID] = field(default_factory=set)
     predecessor_artifact: Set[str] = field(default_factory=set)
-
     input_variable_sources: Dict[str, Set[str]] = field(default_factory=dict)
-
     safename: str = field(default="")
     graph_segment: Optional[Graph] = field(default=None)
-
     sliced_nodes: Set[LineaID] = field(default_factory=set)
-
     raw_codeblock: str = field(default="")
     is_empty: bool = field(default=True)
 
@@ -73,6 +78,9 @@ class GraphSegment:
         self.safename = self.name.replace(" ", "")
 
     def _update_variable_info(self, node_context, input_parameters_node):
+        """
+        Update variable informations
+        """
         self.dependent_variables = self.dependent_variables.union(
             *[node_context[nid].dependent_variables for nid in self.node_list]
         )
@@ -97,7 +105,10 @@ class GraphSegment:
             )
         )
 
-    def _update_graph(self, graph: Graph):
+    def _update_graph(self, graph: Graph) -> None:
+        """
+        Update graph_segment class member based on node_list
+        """
         self.graph_segment = graph.get_subgraph_from_id(list(self.node_list))
         self.raw_codeblock = get_source_code_from_graph(
             self.graph_segment
@@ -131,6 +142,20 @@ class GraphSegment:
         :param int indentation: indentation size
         :param bool keep_lineapy_save: whether do lineapy.save() after execution
         :param Optional[str] result_placeholder: if not null, append the return result to the result_placeholder
+
+        The result_placeholder is a list to capture the artifact variables right
+        after calculation. Considering following code,
+
+        a = 1
+        lineapy.save(a,'a')
+        a+=1
+        b = a+1
+        lineapy.save(b,'b')
+        c = a+1
+        lineapy.save(c,'c')
+
+        we need to record the artifact a before it is mutated.
+
         """
 
         indentation_block = " " * indentation
