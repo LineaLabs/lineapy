@@ -318,7 +318,7 @@ if __name__ == "__main__":
             session_artifacts_sorted=session_artifacts_sorted
         )
         module_file = output_path / f"{pipeline_name}_module.py"
-        module_file.write_text(module_text)
+        module_file.write_text(prettify(module_text))
         logger.info("Generated module file")
 
         # Write out requirements file
