@@ -51,7 +51,7 @@ class GraphSegment:
     input_variables: Set[str] = field(default_factory=set)
 
     artifact_node_id: Optional[LineaID] = field(default=None)
-    artifact_name: str = field(default="")
+    name: str = field(default="")
     tracked_variables: Set[str] = field(default_factory=set)
     # Need to be a list to keep return order
     return_variables: List[str] = field(default_factory=list)
@@ -61,7 +61,7 @@ class GraphSegment:
 
     input_variable_sources: Dict[str, Set[str]] = field(default_factory=dict)
 
-    artifact_safename: str = field(default="")
+    safename: str = field(default="")
     graph_segment: Optional[Graph] = field(default=None)
 
     sliced_nodes: Set[LineaID] = field(default_factory=set)
@@ -70,7 +70,7 @@ class GraphSegment:
     is_empty: bool = field(default=True)
 
     def __post_init__(self):
-        self.artifact_safename = self.artifact_name.replace(" ", "")
+        self.safename = self.name.replace(" ", "")
 
     def _update_variable_info(self, node_context, input_parameters_node):
         self.dependent_variables = self.dependent_variables.union(
@@ -83,7 +83,7 @@ class GraphSegment:
         # all variables within these nodes
         self.all_variables = self.dependent_variables.union(
             self.assigned_variables
-        )
+        ).union(set(self.return_variables))
         # required input variables
         self.input_variables = self.all_variables - self.assigned_variables
         # Add user defined parameter in to input variables list
@@ -117,10 +117,10 @@ class GraphSegment:
                 if len(line.strip(" ")) > 0
             ]
         )
-        artifact_name = self.artifact_safename
+        name = self.safename
         args_string = ", ".join(sorted([v for v in self.input_variables]))
         return_string = ", ".join([v for v in self.return_variables])
-        return f"def get_{artifact_name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
+        return f"def get_{name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
 
     def get_function_call_block(
         self, indentation=0, keep_lineapy_save=False, result_placeholder=None
@@ -137,12 +137,12 @@ class GraphSegment:
         return_string = ", ".join(self.return_variables)
         args_string = ", ".join(sorted([v for v in self.input_variables]))
 
-        codeblock = f"{indentation_block}{return_string} = get_{self.artifact_safename}({args_string})"
+        codeblock = f"{indentation_block}{return_string} = get_{self.safename}({args_string})"
         if (
             keep_lineapy_save
             and self.collection_type == GraphSegmentType.ARTIFACT
         ):
-            codeblock += f"""\n{indentation_block}lineapy.save({self.return_variables[0]}, "{self.artifact_name}")"""
+            codeblock += f"""\n{indentation_block}lineapy.save({self.return_variables[0]}, "{self.name}")"""
         if result_placeholder is not None:
             codeblock += f"""\n{indentation_block}{result_placeholder}.append(copy.deepcopy({self.return_variables[0]}))"""
 

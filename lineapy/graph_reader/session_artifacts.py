@@ -270,10 +270,10 @@ class SessionArtifacts:
     def _get_common_variables(
         self, curr_seg: GraphSegment, pred_seg: GraphSegment
     ) -> Tuple[Set[str], Set[LineaID]]:
-        assert isinstance(pred_seg.artifact_name, str)
+        assert isinstance(pred_seg.name, str)
         common_inner_variables = (
             pred_seg.all_variables - set(pred_seg.return_variables)
-        ).intersection(curr_seg.input_variable_sources[pred_seg.artifact_name])
+        ).intersection(curr_seg.input_variable_sources[pred_seg.name])
 
         common_nodes = set()
         if len(common_inner_variables) > 0:
@@ -284,6 +284,7 @@ class SessionArtifacts:
                 and self.node_context[n].assigned_artifact
                 != self.node_context[n].artifact_name
             ]
+            assert pred_seg.graph_segment is not None
             source_art_slice_variable_graph = get_slice_graph(
                 pred_seg.graph_segment, slice_variable_nodes
             )
@@ -319,7 +320,7 @@ class SessionArtifacts:
                 nodecollectioninfo = GraphSegment(
                     collection_type=GraphSegmentType.ARTIFACT,
                     artifact_node_id=node_id,
-                    artifact_name=n.assigned_artifact,
+                    name=n.assigned_artifact,
                     tracked_variables=n.tracked_variables,
                     return_variables=list(n.tracked_variables),
                     node_list=art_nodes,
@@ -347,7 +348,7 @@ class SessionArtifacts:
                     source_id, source_info = [
                         (i, context)
                         for i, context in enumerate(self.artifact_segments)
-                        if context.artifact_name == source_artifact_name
+                        if context.name == source_artifact_name
                     ][0]
 
                     # Common variables between two artifacts
@@ -357,17 +358,12 @@ class SessionArtifacts:
                     ) = self._get_common_variables(
                         nodecollectioninfo, source_info
                     )
-                    print(
-                        nodecollectioninfo.artifact_name,
-                        source_info.artifact_name,
-                        common_inner_variables,
-                    )
 
                     if len(common_inner_variables) > 0 and len(common_nodes):
 
                         common_nodecollectioninfo = GraphSegment(
                             collection_type=GraphSegmentType.COMMON_VARIABLE,
-                            artifact_name=f"{'_'.join(common_inner_variables)}_for_artifact_{source_info.artifact_name}_and_downstream",
+                            name=f"{'_'.join(common_inner_variables)}_for_artifact_{source_info.name}_and_downstream",
                             return_variables=list(common_inner_variables),
                             node_list=common_nodes,
                         )
@@ -379,7 +375,7 @@ class SessionArtifacts:
                         remaining_nodes = source_info.node_list - common_nodes
                         remaining_nodecollectioninfo = GraphSegment(
                             collection_type=GraphSegmentType.ARTIFACT,
-                            artifact_name=source_info.artifact_name,
+                            name=source_info.name,
                             return_variables=source_info.return_variables,
                             node_list=remaining_nodes,
                         )
@@ -397,24 +393,25 @@ class SessionArtifacts:
                             + self.artifact_segments[(source_id + 1) :]
                         )
 
-                nodecollectioninfo._update_variable_info(
-                    self.node_context, self.input_parameters_node
-                )
                 # Remove input parameter node
                 nodecollectioninfo.node_list = (
                     nodecollectioninfo.node_list
                     - set(self.input_parameters_node.values())
                 )
+                nodecollectioninfo._update_variable_info(
+                    self.node_context, self.input_parameters_node
+                )
                 nodecollectioninfo._update_graph(self.graph)
-
                 self.artifact_segments.append(nodecollectioninfo)
 
+        # Graph segment for import
         self.import_segment = GraphSegment(
             collection_type=GraphSegmentType.IMPORT,
             node_list=self.import_nodes,
         )
         self.import_segment._update_graph(self.graph)
 
+        # Graph segment for input parameters
         self.input_parameters_segment = GraphSegment(
             collection_type=GraphSegmentType.INPUT_PARAMETERS,
             node_list=set(self.input_parameters_node.values()),
