@@ -1,4 +1,4 @@
-from lineapy.graph_reader.graph_refactorer import SessionArtifacts
+from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.utils.utils import prettify
 
 
