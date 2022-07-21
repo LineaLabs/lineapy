@@ -293,7 +293,7 @@ if __name__ == "__main__":
             keep_lineapy_save=keep_lineapy_save,
         )
 
-        return module_text
+        return prettify(module_text)
 
     def generate_pipeline_files(
         self,
@@ -311,10 +311,21 @@ if __name__ == "__main__":
         for each framework type (e.g., "SCRIPT").
         """
 
-        # Sort SessionArtifacts objects topologically
+        # Sort sessions topologically (applicable if artifacts come from multiple sessions)
         session_artifacts_sorted = self._sort_session_artifacts(
             dependencies=dependencies
         )
+
+        # Generate module text (common step for all pipeline frameworks)
+        module_text = self._compose_module(
+            session_artifacts_sorted=session_artifacts_sorted,
+            keep_lineapy_save=keep_lineapy_save,
+        )
+        output_path = (
+            Path(output_dir, pipeline_name) / f"{pipeline_name}_module.py"
+        )
+        output_path.write_text(module_text)
+        logger.info("Generated module file")
 
         if framework in PipelineType.__members__:
             if PipelineType[framework] == PipelineType.AIRFLOW:
@@ -356,29 +367,6 @@ class BasePipelineWriter:
 
         # We assume there is at least one SessionArtifacts object
         self.db = self.session_artifacts_sorted[0].db
-
-    def _write_modules(self) -> None:
-        files_dict = {}
-        for session_artifacts in self.session_artifacts_sorted:
-            # Generate session module code
-            for seg in session_artifacts.graph_segments:
-                if seg.segment_type == GraphSegmentType.ARTIFACT:
-                    first_art_name = seg.artifact_safename
-                    break
-            module_name = f"session_including_artifact_{first_art_name}"
-            files_dict[
-                module_name
-            ] = session_artifacts.get_session_module_definition(
-                indentation=4, keep_lineapy_save=self.keep_lineapy_save
-            )
-
-        # Write out file(s)
-        for name, content in files_dict.items():
-            (self.output_dir / f"{name}.py").write_text(
-                prettify(de_lineate_code(content, self.db))
-            )
-
-        logger.info("Generated session module files")
 
     def _write_requirements(self) -> None:
         # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
@@ -424,9 +412,6 @@ class ScriptPipelineWriter(BasePipelineWriter):
             pipeline_name,
             output_dir,
         )
-
-    def _write_modules(self) -> None:
-        return super()._write_modules()
 
     def _write_requirements(self) -> None:
         return super()._write_requirements()
@@ -507,7 +492,6 @@ if __name__=='__main__':
         logger.info("Generated Docker file")
 
     def write_pipeline_files(self) -> None:
-        self._write_modules()
         self._write_dag()
         self._write_requirements()
         self._write_docker()
