@@ -117,7 +117,8 @@ def input_transformer_post(
 
         # add statement so it is
         # included in artifact.get_code()
-        code = "import lineapy\n" + code
+        if not "import lineapy\n" in lines:
+            code = "import lineapy\n" + code
 
         STATE = CellsExecutedState(STATE.ipython, tracer, code=code)
     else:
