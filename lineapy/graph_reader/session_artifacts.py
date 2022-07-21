@@ -9,9 +9,9 @@ from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.graph import Graph
 from lineapy.data.types import CallNode, GlobalNode, LineaID, MutateNode, Node
 from lineapy.db.db import RelationalLineaDB
-from lineapy.graph_reader.graph_segment import (
-    GraphSegment,
-    GraphSegmentType,
+from lineapy.graph_reader.node_collection import (
+    NodeCollection,
+    NodeCollectionType,
     NodeInfo,
 )
 from lineapy.graph_reader.program_slice import get_slice_graph
@@ -32,8 +32,8 @@ class SessionArtifacts:
     graph: Graph
     db: RelationalLineaDB
     nx_graph: nx.DiGraph
-    artifact_segments: List[GraphSegment]
-    import_segment: GraphSegment
+    artifact_nodecollections: List[NodeCollection]
+    import_nodecollection: NodeCollection
     artifact_list: List[LineaArtifact]
     node_context: Dict[LineaID, NodeInfo]
     input_parameters: List[str]
@@ -47,7 +47,7 @@ class SessionArtifacts:
         self.db = artifacts[0].db
         self.graph = artifacts[0]._get_graph()
         self.nx_graph = self.graph.nx_graph
-        self.artifact_segments = []
+        self.artifact_nodecollections = []
         self.node_context = OrderedDict()
         self.input_parameters = input_parameters
 
@@ -251,25 +251,25 @@ class SessionArtifacts:
         return input_variable_sources
 
     def _get_common_variables(
-        self, curr_seg: GraphSegment, pred_seg: GraphSegment
+        self, curr_nc: NodeCollection, pred_nc: NodeCollection
     ) -> Tuple[Set[str], Set[LineaID]]:
-        assert isinstance(pred_seg.name, str)
+        assert isinstance(pred_nc.name, str)
         common_inner_variables = (
-            pred_seg.all_variables - set(pred_seg.return_variables)
-        ).intersection(curr_seg.input_variable_sources[pred_seg.name])
+            pred_nc.all_variables - set(pred_nc.return_variables)
+        ).intersection(curr_nc.input_variable_sources[pred_nc.name])
 
         common_nodes = set()
         if len(common_inner_variables) > 0:
             slice_variable_nodes = [
                 n
-                for n in curr_seg.predecessor_nodes
-                if n in pred_seg.node_list
+                for n in curr_nc.predecessor_nodes
+                if n in pred_nc.node_list
                 and self.node_context[n].assigned_artifact
                 != self.node_context[n].artifact_name
             ]
-            assert pred_seg.graph_segment is not None
+            assert pred_nc.graph_segment is not None
             source_art_slice_variable_graph = get_slice_graph(
-                pred_seg.graph_segment, slice_variable_nodes
+                pred_nc.graph_segment, slice_variable_nodes
             )
             common_nodes = set(source_art_slice_variable_graph.nx_graph.nodes)
         else:
@@ -280,7 +280,7 @@ class SessionArtifacts:
     def _slice_session_artifacts(self) -> None:
         self.used_nodes: Set[LineaID] = set()  # Track nodes that get ever used
         self.import_nodes: Set[LineaID] = set()
-        self.artifact_segments = list()
+        self.artifact_nodecollections = list()
         for node_id, n in self.node_context.items():
             if n.assigned_artifact is not None and node_id in [
                 art._node_id for art in self.artifact_list
@@ -300,8 +300,8 @@ class SessionArtifacts:
                     pred_nodes
                 )
 
-                nodecollectioninfo = GraphSegment(
-                    collection_type=GraphSegmentType.ARTIFACT,
+                nodecollectioninfo = NodeCollection(
+                    collection_type=NodeCollectionType.ARTIFACT,
                     artifact_node_id=node_id,
                     name=n.assigned_artifact,
                     tracked_variables=n.tracked_variables,
@@ -312,7 +312,6 @@ class SessionArtifacts:
                     input_variable_sources=input_variable_sources,
                     sliced_nodes=sliced_nodes,
                 )
-                # self.artifact_segments.append(nodecollectioninfo)
 
                 # Update node context to label the node is assigned to this artifact
                 for n_id in nodecollectioninfo.node_list:
@@ -320,17 +319,19 @@ class SessionArtifacts:
                 for n_id in self.import_nodes:
                     self.node_context[n_id].artifact_name = "module_import"
 
-                # Check whether we need to breakdown existing artifact graph
-                # segment. If the precedent node in precedent artifact graph
+                # Check whether we need to breakdown existing artifact node
+                # collection. If the precedent node in precedent collection
                 # is not the artifact itself, this means we should split the
-                # existing artifact graph segment.
+                # existing collection.
                 for (
                     source_artifact_name,
                     variables,
                 ) in input_variable_sources.items():
                     source_id, source_info = [
                         (i, context)
-                        for i, context in enumerate(self.artifact_segments)
+                        for i, context in enumerate(
+                            self.artifact_nodecollections
+                        )
                         if context.name == source_artifact_name
                     ][0]
 
@@ -344,8 +345,8 @@ class SessionArtifacts:
 
                     if len(common_inner_variables) > 0 and len(common_nodes):
 
-                        common_nodecollectioninfo = GraphSegment(
-                            collection_type=GraphSegmentType.COMMON_VARIABLE,
+                        common_nodecollectioninfo = NodeCollection(
+                            collection_type=NodeCollectionType.COMMON_VARIABLE,
                             name=f"{'_'.join(common_inner_variables)}_for_artifact_{source_info.name}_and_downstream",
                             return_variables=list(common_inner_variables),
                             node_list=common_nodes,
@@ -356,8 +357,8 @@ class SessionArtifacts:
                         common_nodecollectioninfo._update_graph(self.graph)
 
                         remaining_nodes = source_info.node_list - common_nodes
-                        remaining_nodecollectioninfo = GraphSegment(
-                            collection_type=GraphSegmentType.ARTIFACT,
+                        remaining_nodecollectioninfo = NodeCollection(
+                            collection_type=NodeCollectionType.ARTIFACT,
                             name=source_info.name,
                             return_variables=source_info.return_variables,
                             node_list=remaining_nodes,
@@ -367,13 +368,13 @@ class SessionArtifacts:
                         )
                         remaining_nodecollectioninfo._update_graph(self.graph)
 
-                        self.artifact_segments = (
-                            self.artifact_segments[:source_id]
+                        self.artifact_nodecollections = (
+                            self.artifact_nodecollections[:source_id]
                             + [
                                 common_nodecollectioninfo,
                                 remaining_nodecollectioninfo,
                             ]
-                            + self.artifact_segments[(source_id + 1) :]
+                            + self.artifact_nodecollections[(source_id + 1) :]
                         )
 
                 # Remove input parameter node
@@ -385,27 +386,30 @@ class SessionArtifacts:
                     self.node_context, self.input_parameters_node
                 )
                 nodecollectioninfo._update_graph(self.graph)
-                self.artifact_segments.append(nodecollectioninfo)
+                self.artifact_nodecollections.append(nodecollectioninfo)
 
-        # Graph segment for import
-        self.import_segment = GraphSegment(
-            collection_type=GraphSegmentType.IMPORT,
+        # NodeCollection for import
+        self.import_nodecollection = NodeCollection(
+            collection_type=NodeCollectionType.IMPORT,
             node_list=self.import_nodes,
         )
-        self.import_segment._update_graph(self.graph)
+        self.import_nodecollection._update_graph(self.graph)
 
-        # Graph segment for input parameters
-        self.input_parameters_segment = GraphSegment(
-            collection_type=GraphSegmentType.INPUT_PARAMETERS,
+        # NodeCollection for input parameters
+        self.input_parameters_nodecollection = NodeCollection(
+            collection_type=NodeCollectionType.INPUT_PARAMETERS,
             node_list=set(self.input_parameters_node.values()),
         )
-        self.input_parameters_segment._update_variable_info(
+        self.input_parameters_nodecollection._update_variable_info(
             self.node_context, self.input_parameters_node
         )
-        self.input_parameters_segment._update_graph(self.graph)
+        self.input_parameters_nodecollection._update_graph(self.graph)
 
     def get_session_module_definition(
-        self, indentation: int = 4, keep_lineapy_save: bool = False
+        self,
+        indentation: int = 4,
+        keep_lineapy_save: bool = False,
+        return_list_name: str = "artifacts",
     ) -> str:
         """
         Generate a module definition for artifacts within the session.
@@ -417,37 +421,41 @@ class SessionArtifacts:
 
         indentation_block = " " * indentation
 
-        import_block = self.import_segment.get_import_block(indentation=0)
+        import_block = self.import_nodecollection.get_import_block(
+            indentation=0
+        )
 
         input_parameters_block = (
-            self.input_parameters_segment.get_input_parameters_block()
+            self.input_parameters_nodecollection.get_input_parameters_block()
         )
 
         function_definitions = "\n\n".join(
             [
-                graph_seg.get_function_definition(indentation=indentation)
-                for graph_seg in self.artifact_segments
+                nodecollection.get_function_definition(indentation=indentation)
+                for nodecollection in self.artifact_nodecollections
             ]
         )
 
         calculation_codeblock = "\n".join(
             [
-                graph_seg.get_function_call_block(
+                nodecollection.get_function_call_block(
                     indentation=indentation,
                     keep_lineapy_save=keep_lineapy_save,
                     result_placeholder=None
                     if len(self.artifact_list) == 1
-                    or graph_seg.collection_type != GraphSegmentType.ARTIFACT
-                    else "sessionartifacts",
+                    or nodecollection.collection_type
+                    != NodeCollectionType.ARTIFACT
+                    else return_list_name,
                 )
-                for graph_seg in self.artifact_segments
+                for nodecollection in self.artifact_nodecollections
             ]
         )
         return_string = ", ".join(
             [
-                graph_seg.return_variables[0]
-                for graph_seg in self.artifact_segments
-                if graph_seg.collection_type == GraphSegmentType.ARTIFACT
+                nodecollection.return_variables[0]
+                for nodecollection in self.artifact_nodecollections
+                if nodecollection.collection_type
+                == NodeCollectionType.ARTIFACT
             ]
         )
 
@@ -466,9 +474,11 @@ if __name__=="__main__":
 {import_block}{function_definitions}
 
 def run_all({input_parameters_block}):
-{indentation_block}sessionartifacts = []
+{indentation_block}# Multiple return variables detected, need to save the variable
+{indentation_block}# right after calculation in case of mutation downstream
+{indentation_block}{return_list_name} = []
 {calculation_codeblock}
-{indentation_block}return sessionartifacts
+{indentation_block}return {return_list_name}
 
 if __name__=="__main__":
 {indentation_block}run_all()

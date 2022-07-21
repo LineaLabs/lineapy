@@ -91,25 +91,27 @@ def get_z(h):
   return z
 
 def run_all():
-  sessionartifacts = []
+  # Multiple return variables detected, need to save the variable
+  # right after calculation in case of mutation downstream  
+  artifacts = []
   a = get_a()
-  sessionartifacts.append(copy.deepcopy(a))
+  artifacts.append(copy.deepcopy(a))
   a0 = get_a0()
-  sessionartifacts.append(copy.deepcopy(a0))
+  artifacts.append(copy.deepcopy(a0))
   a = get_a_for_artifact_c_and_downstream(a)
   c = get_c(a, a0)
-  sessionartifacts.append(copy.deepcopy(c))
+  artifacts.append(copy.deepcopy(c))
   f = get_f(c)
-  sessionartifacts.append(copy.deepcopy(f))
+  artifacts.append(copy.deepcopy(f))
   e = get_e(a)
-  sessionartifacts.append(copy.deepcopy(e))
+  artifacts.append(copy.deepcopy(e))
   g = get_g2(c, e)
-  sessionartifacts.append(copy.deepcopy(g))
+  artifacts.append(copy.deepcopy(g))
   h = get_h(a, g)
-  sessionartifacts.append(copy.deepcopy(h))
+  artifacts.append(copy.deepcopy(h))
   z = get_z(h)
-  sessionartifacts.append(copy.deepcopy(z))
-  return sessionartifacts
+  artifacts.append(copy.deepcopy(z))
+  return artifacts
 
 if __name__=="__main__":
   run_all()
@@ -151,18 +153,20 @@ def get_h(a, c):
   return h
 
 def run_all():
-  sessionartifacts = []
+  # Multiple return variables detected, need to save the variable
+  # right after calculation in case of mutation downstream  
+  artifacts = []
   a0 = get_a0()
   lineapy.save(a0, "a0")
-  sessionartifacts.append(copy.deepcopy(a0))
+  artifacts.append(copy.deepcopy(a0))
   a = get_a_for_artifact_c_and_downstream()
   c = get_c(a, a0)
   lineapy.save(c, "c")
-  sessionartifacts.append(copy.deepcopy(c))
+  artifacts.append(copy.deepcopy(c))
   h = get_h(a, c)
   lineapy.save(h, "h")
-  sessionartifacts.append(copy.deepcopy(h))
-  return sessionartifacts
+  artifacts.append(copy.deepcopy(h))
+  return artifacts
 
 if __name__=="__main__":
   run_all()
@@ -228,12 +232,14 @@ def get_df2(df):
     return df2
 
 def run_all():
-    sessionartifacts = []
+    # Multiple return variables detected, need to save the variable
+    # right after calculation in case of mutation downstream  
+    artifacts = []
     df = get_df()
-    sessionartifacts.append(copy.deepcopy(df))
+    artifacts.append(copy.deepcopy(df))
     df2 = get_df2(df)
-    sessionartifacts.append(copy.deepcopy(df2))
-    return sessionartifacts
+    artifacts.append(copy.deepcopy(df2))
+    return artifacts
 
 if __name__=="__main__":
     run_all()
@@ -270,12 +276,14 @@ def get_df2(df):
     return df2
 
 def run_all():
-    sessionartifacts = []
+    # Multiple return variables detected, need to save the variable
+    # right after calculation in case of mutation downstream  
+    artifacts = []
     df = get_df()
-    sessionartifacts.append(copy.deepcopy(df))
+    artifacts.append(copy.deepcopy(df))
     df2 = get_df2(df)
-    sessionartifacts.append(copy.deepcopy(df2))
-    return sessionartifacts
+    artifacts.append(copy.deepcopy(df2))
+    return artifacts
 
 if __name__=="__main__":
     run_all()
@@ -337,13 +345,15 @@ def get_iris_petal_length_pred(mod, url1):
     return petal_length_pred
 
 def run_all():
-    sessionartifacts = []
+    # Multiple return variables detected, need to save the variable
+    # right after calculation in case of mutation downstream  
+    artifacts = []
     url1 = get_url1_for_artifact_iris_model_and_downstream()
     mod = get_iris_model(url1)
-    sessionartifacts.append(copy.deepcopy(mod))
+    artifacts.append(copy.deepcopy(mod))
     petal_length_pred = get_iris_petal_length_pred(mod, url1)
-    sessionartifacts.append(copy.deepcopy(petal_length_pred))
-    return sessionartifacts
+    artifacts.append(copy.deepcopy(petal_length_pred))
+    return artifacts
 
 if __name__=="__main__":
     run_all()

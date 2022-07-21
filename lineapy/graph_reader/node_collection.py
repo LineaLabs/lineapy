@@ -12,13 +12,13 @@ logger = logging.getLogger(__name__)
 configure_logging()
 
 
-class GraphSegmentType(Enum):
+class NodeCollectionType(Enum):
     """
-    GraphSegment type to identify the purpose of the graph segment
-    - ARTIFACT : the segment returns an artifact
-    - COMMON_VARIABLE : the segment returns variables used in multiple artifacts
-    - IMPORT : the segment with module import
-    - INPUT_VARIABLE : the segment for input variables
+    NodeCollection type to identify the purpose of the node collection
+    - ARTIFACT : node collection for artifact calculation
+    - COMMON_VARIABLE : node collection for calculating variables used in multiple artifacts
+    - IMPORT : node collection for module import
+    - INPUT_VARIABLE : node collection for input variables
     """
 
     ARTIFACT = 1
@@ -50,13 +50,13 @@ class NodeInfo:
 
 
 @dataclass
-class GraphSegment:
+class NodeCollection:
     """
     This class is used for holding a set of node(as a subgraph) with same purpose;
     for instance, calculating some variables, module import, variable assignments.
     It is initiated with list of nodes.
 
-    seg = GraphSegment(node_list)
+    seg = NodeCollection(node_list)
 
     For variable calculation calculation purpose, it can identify all variables
     related to these by running:
@@ -71,7 +71,7 @@ class GraphSegment:
     purpose.
     """
 
-    collection_type: GraphSegmentType
+    collection_type: NodeCollectionType
     node_list: Set[LineaID]
 
     name: str = field(default="")
@@ -188,7 +188,7 @@ class GraphSegment:
         codeblock = f"{indentation_block}{return_string} = get_{self.safename}({args_string})"
         if (
             keep_lineapy_save
-            and self.collection_type == GraphSegmentType.ARTIFACT
+            and self.collection_type == NodeCollectionType.ARTIFACT
         ):
             codeblock += f"""\n{indentation_block}lineapy.save({self.return_variables[0]}, "{self.name}")"""
         if result_placeholder is not None:
