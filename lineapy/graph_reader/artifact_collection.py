@@ -419,20 +419,13 @@ class ScriptPipelineWriter(BasePipelineWriter):
         }
 
         for session_artifacts in self.session_artifacts_sorted:
-            # Generate session module code
-            for seg in session_artifacts.graph_segments:
-                if seg.segment_type == GraphSegmentType.ARTIFACT:
-                    first_art_name = seg.artifact_safename
-                    break
-            module_name = f"session_including_artifact_{first_art_name}"
-
             # Generate import statements for main module
             func_names = [
                 f"get_{seg.artifact_safename}"
                 for seg in session_artifacts.graph_segments
             ]
             main_module_dict["import_lines"].append(
-                f"from {module_name} import {', '.join(func_names)}"
+                f"from {self.pipeline_name}_module import {', '.join(func_names)}"
             )
 
             # Generate calculation lines for main module
@@ -452,18 +445,20 @@ class ScriptPipelineWriter(BasePipelineWriter):
             ]
             main_module_dict["return_varnames"].extend(ret_varnames)
 
-        # Generate main module code
         imports = "\n".join(main_module_dict["import_lines"])
         calculations = "\n".join(main_module_dict["calculation_lines"])
         returns = ", ".join(main_module_dict["return_varnames"])
-        script_dag_text = f"""
+
+        # Generate main module code
+        # TODO: Replace with jinja template
+        script_dag_text = f"""\
 {imports}
 
 def pipeline():
 {calculations}
     return {returns}
 
-if __name__=='__main__':
+if __name__ == '__main__':
     pipeline()
 """
 
@@ -471,7 +466,7 @@ if __name__=='__main__':
         file = self.output_dir / f"{self.pipeline_name}_script_dag.py"
         file.write_text(prettify(de_lineate_code(script_dag_text, self.db)))
 
-        logger.info("Generated dag file")
+        logger.info("Generated DAG file")
 
     def _write_docker(self):
         DOCKERFILE_TEMPLATE = load_plugin_template("script_dockerfile.jinja")
