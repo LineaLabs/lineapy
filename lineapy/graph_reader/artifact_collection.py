@@ -305,27 +305,42 @@ if __name__ == "__main__":
         Actual code generation and writing is delegated to the "writer" class
         for each framework type (e.g., "SCRIPT").
         """
+        output_path = Path(output_dir, pipeline_name)
+        output_path.mkdir(exist_ok=True, parents=True)
 
         # Sort sessions topologically (applicable if artifacts come from multiple sessions)
         session_artifacts_sorted = self._sort_session_artifacts(
             dependencies=dependencies
         )
 
-        # Generate module text (common step for all pipeline frameworks)
+        # Write out module file
         module_text = self._compose_module(
             session_artifacts_sorted=session_artifacts_sorted
         )
-        output_path = (
-            Path(output_dir, pipeline_name) / f"{pipeline_name}_module.py"
-        )
-        output_path.write_text(module_text)
+        module_file = output_path / f"{pipeline_name}_module.py"
+        module_file.write_text(module_text)
         logger.info("Generated module file")
 
+        # Write out requirements file
+        # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
+        db = session_artifacts_sorted[0].db
+        lib_names_text = ""
+        for session_artifacts in session_artifacts_sorted:
+            session_libs = db.get_libraries_for_session(
+                session_artifacts.session_id
+            )
+            for lib in session_libs:
+                lib_names_text += f"{lib.package_name}=={lib.version}\n"
+        requirements_file = output_path / f"{pipeline_name}_requirements.txt"
+        requirements_file.write_text(lib_names_text)
+        logger.info("Generated requirements file")
+
+        # Delegate to framework-specific writer
         if framework in PipelineType.__members__:
             if PipelineType[framework] == PipelineType.AIRFLOW:
                 raise NotImplementedError("Airflow writer to be implemented!")
             else:
-                pipeline_writer = ScriptPipelineWriter(
+                pipeline_writer = BasePipelineWriter(
                     session_artifacts_sorted=session_artifacts_sorted,
                     keep_lineapy_save=keep_lineapy_save,
                     pipeline_name=pipeline_name,
@@ -341,7 +356,7 @@ if __name__ == "__main__":
 
 class BasePipelineWriter:
     """
-    Base class for pipeline file writer.
+    Base class for pipeline file writer. Corresponds to "SCRIPT" framework.
     """
 
     def __init__(
@@ -361,54 +376,6 @@ class BasePipelineWriter:
 
         # We assume there is at least one SessionArtifacts object
         self.db = self.session_artifacts_sorted[0].db
-
-    def _write_requirements(self) -> None:
-        # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
-        lib_names_text = ""
-        for session_artifacts in self.session_artifacts_sorted:
-            session_libs = self.db.get_libraries_for_session(
-                session_artifacts.session_id
-            )
-            for lib in session_libs:
-                lib_names_text += f"{lib.package_name}=={lib.version}\n"
-
-        # Write out file
-        file = self.output_dir / f"{self.pipeline_name}_requirements.txt"
-        file.write_text(lib_names_text)
-
-        logger.info("Generated requirements file")
-
-    def _write_dag(self):
-        raise NotImplementedError
-
-    def _write_docker(self):
-        raise NotImplementedError
-
-    def write_pipeline_files(self):
-        raise NotImplementedError
-
-
-class ScriptPipelineWriter(BasePipelineWriter):
-    """
-    Pipeline file writer for "SCRIPT" framework.
-    """
-
-    def __init__(
-        self,
-        session_artifacts_sorted: List[SessionArtifacts],
-        keep_lineapy_save: bool,
-        pipeline_name: str,
-        output_dir: str,
-    ) -> None:
-        super().__init__(
-            session_artifacts_sorted,
-            keep_lineapy_save,
-            pipeline_name,
-            output_dir,
-        )
-
-    def _write_requirements(self) -> None:
-        return super()._write_requirements()
 
     def _write_dag(self) -> None:
         # Initiate main module (which imports and combines session modules)
@@ -482,7 +449,6 @@ if __name__ == '__main__':
 
     def write_pipeline_files(self) -> None:
         self._write_dag()
-        self._write_requirements()
         self._write_docker()
 
 
