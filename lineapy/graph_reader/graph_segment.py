@@ -51,6 +51,26 @@ class NodeInfo:
 
 @dataclass
 class GraphSegment:
+    """
+    This class is used for holding a set of node(as a subgraph) with same purpose;
+    for instance, calculating some variables, module import, variable assignments.
+    It is initiated with list of nodes.
+
+    seg = GraphSegment(node_list)
+
+    For variable calculation calculation purpose, it can identify all variables
+    related to these by running:
+
+    seg._update_variable_info()
+
+    For all code generating purpose, it need to initiate a real graph objects by:
+
+    seg._update_graph()
+
+    Then, it provide following method to generat different codeblock for different
+    purpose.
+    """
+
     collection_type: GraphSegmentType
     node_list: Set[LineaID]
 
@@ -79,7 +99,7 @@ class GraphSegment:
 
     def _update_variable_info(self, node_context, input_parameters_node):
         """
-        Update variable informations
+        Update variable informations based on node_list
         """
         self.dependent_variables = self.dependent_variables.union(
             *[node_context[nid].dependent_variables for nid in self.node_list]
@@ -108,6 +128,9 @@ class GraphSegment:
     def _update_graph(self, graph: Graph) -> None:
         """
         Update graph_segment class member based on node_list
+
+        Need to manually run this function at least once if you need the graph object
+        for code generation
         """
         self.graph_segment = graph.get_subgraph_from_id(list(self.node_list))
         self.raw_codeblock = get_source_code_from_graph(
