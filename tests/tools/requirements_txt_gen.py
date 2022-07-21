@@ -26,6 +26,7 @@ INSTALL_REQUIRES = [
     "nbformat",
     "nbconvert",
     "requests",
+    "alembic==1.8.0",
 ]
 
 
@@ -40,7 +41,7 @@ DEV_REQUIRES = [
     ##
     "altair",
     "pandas",
-    "sklearn",
+    "scikit-learn",
     "flake8",
     "fastparquet",
     "matplotlib",
@@ -59,6 +60,7 @@ DEV_REQUIRES = [
     "pytest-cov",
     "pdbpp",
     "pytest-virtualenv",
+    "pytest-alembic",
     "nbval",
     "coveralls",
     "pre-commit",
@@ -78,6 +80,7 @@ DEV_REQUIRES = [
     "mypy",
     "types-PyYAML",
     "types-requests",
+    "types-mock",
     "SQLAlchemy[mypy]>=1.4.0",
     ##
     # DBs

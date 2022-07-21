@@ -23,7 +23,7 @@ from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
-from lineapy.transformer.node_transformer import transform
+from lineapy.transformer.transform_code import transform
 from lineapy.utils.config import DB_FILE_NAME, options
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
@@ -397,7 +397,7 @@ def db_url(tmp_path_factory):
 @pytest.fixture
 def alembic_config(db_url):
     lp_install_dir = Path(__file__).resolve().parent.parent / "lineapy"
-    alembic_cfg = config.Config(lp_install_dir / "alembic.ini")
+    alembic_cfg = config.Config(str(lp_install_dir / "alembic.ini"))
     alembic_cfg.set_main_option(
         "script_location",
         (lp_install_dir / "_alembic").as_posix(),
