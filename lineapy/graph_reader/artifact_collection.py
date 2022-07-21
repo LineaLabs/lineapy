@@ -184,7 +184,8 @@ class ArtifactCollection:
         )
 
         # Generate session function definition
-        session_function = f"""
+        # TODO: Replace with jinja template
+        session_function = f"""\
 def {session_function_name}():
 {session_function_body}
 {indentation_block}return {session_function_return}
@@ -208,7 +209,7 @@ def {session_function_name}():
         keep_lineapy_save: bool = False,
     ) -> str:
         """
-        Generate a Python module that calculates each artifact
+        Generate a Python module that calculates artifacts
         in the given artifact collection.
         """
         indentation_block = " " * indentation
@@ -221,6 +222,7 @@ def {session_function_name}():
             "session_calculation": [],
         }
 
+        # Extract module script components by session
         for session_artifacts in session_artifacts_sorted:
             session_module_dict = self._extract_session_module(
                 session_artifacts=session_artifacts,
@@ -240,6 +242,7 @@ def {session_function_name}():
                 session_module_dict["session_calculation"]
             )
 
+        # Combine components by "type"
         artifact_functions = "\n\n".join(module_dict["artifact_functions"])
         session_functions = "\n".join(module_dict["session_function"])
         module_function_body = "\n".join(module_dict["session_calculation"])
@@ -247,7 +250,9 @@ def {session_function_name}():
             module_dict["session_function_return"]
         )
 
-        module_text = f"""
+        # Put all together to generate module text
+        # TODO: Replace with jinja template
+        module_text = f"""\
 {artifact_functions}
 
 {session_functions}
@@ -267,12 +272,21 @@ if __name__ == "__main__":
         dependencies: TaskGraphEdge = {},
         indentation: int = 4,
         keep_lineapy_save: bool = False,
-    ):
-        # Sort SessionArtifacts objects topologically
+    ) -> str:
+        """
+        Generate a Python module that reproduces artifacts in the artifact collection.
+        This module is meant to provide function components that can be easily reused to
+        incorporate artifacts into other code contexts.
+
+        :param dependencies: Dependency between artifacts, expressed in graphlib format.
+            For instance, ``{"B": {"A", "C"}}`` means artifacts A and C are prerequisites for artifact B.
+        """
+        # Sort sessions topologically (applicable if artifacts come from multiple sessions)
         session_artifacts_sorted = self._sort_session_artifacts(
             dependencies=dependencies
         )
 
+        # Generate module text
         module_text = self._compose_module(
             session_artifacts_sorted=session_artifacts_sorted,
             indentation=indentation,
