@@ -140,7 +140,6 @@ class ArtifactCollection:
     def _extract_session_module(
         session_artifacts: SessionArtifacts,
         indentation: int = 4,
-        keep_lineapy_save: bool = False,
     ) -> dict:
         """
         Utility to extract relevant module components from the given SessionArtifacts.
@@ -168,7 +167,7 @@ class ArtifactCollection:
             [
                 seg.get_function_call_block(
                     indentation=indentation,
-                    keep_lineapy_save=keep_lineapy_save,
+                    keep_lineapy_save=False,
                 )
                 for seg in session_artifacts.graph_segments
             ]
@@ -206,7 +205,6 @@ def {session_function_name}():
         self,
         session_artifacts_sorted: List[SessionArtifacts],
         indentation: int = 4,
-        keep_lineapy_save: bool = False,
     ) -> str:
         """
         Generate a Python module that calculates artifacts
@@ -227,7 +225,6 @@ def {session_function_name}():
             session_module_dict = self._extract_session_module(
                 session_artifacts=session_artifacts,
                 indentation=indentation,
-                keep_lineapy_save=keep_lineapy_save,
             )
             module_dict["artifact_functions"].append(
                 session_module_dict["artifact_functions"]
@@ -271,7 +268,6 @@ if __name__ == "__main__":
         self,
         dependencies: TaskGraphEdge = {},
         indentation: int = 4,
-        keep_lineapy_save: bool = False,
     ) -> str:
         """
         Generate a Python module that reproduces artifacts in the artifact collection.
@@ -290,7 +286,6 @@ if __name__ == "__main__":
         module_text = self._compose_module(
             session_artifacts_sorted=session_artifacts_sorted,
             indentation=indentation,
-            keep_lineapy_save=keep_lineapy_save,
         )
 
         return prettify(module_text)
@@ -318,8 +313,7 @@ if __name__ == "__main__":
 
         # Generate module text (common step for all pipeline frameworks)
         module_text = self._compose_module(
-            session_artifacts_sorted=session_artifacts_sorted,
-            keep_lineapy_save=keep_lineapy_save,
+            session_artifacts_sorted=session_artifacts_sorted
         )
         output_path = (
             Path(output_dir, pipeline_name) / f"{pipeline_name}_module.py"
