@@ -102,6 +102,7 @@ def input_transformer_post(
             "input_transformer_post shouldn't be called when we don't have an active tracer"
         )
     code = "".join(lines)
+
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
         configure_logging()
@@ -113,6 +114,11 @@ def input_transformer_post(
         tracer = Tracer(
             db, SessionType.JUPYTER, STATE.session_name, ipython_globals
         )
+
+        # add statement so it is
+        # included in artifact.get_code()
+        if not "import lineapy\n" in lines:
+            code = "import lineapy\n" + code
 
         STATE = CellsExecutedState(STATE.ipython, tracer, code=code)
     else:
