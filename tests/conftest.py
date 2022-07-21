@@ -397,7 +397,7 @@ def db_url(tmp_path_factory):
 @pytest.fixture
 def alembic_config(db_url):
     lp_install_dir = Path(__file__).resolve().parent.parent / "lineapy"
-    alembic_cfg = config.Config(lp_install_dir / "alembic.ini")
+    alembic_cfg = config.Config(str(lp_install_dir / "alembic.ini"))
     alembic_cfg.set_main_option(
         "script_location",
         (lp_install_dir / "_alembic").as_posix(),
