@@ -10,10 +10,8 @@ from lineapy.api.api import get
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID, PipelineType
 from lineapy.graph_reader.api_utils import de_lineate_code
-from lineapy.graph_reader.graph_refactorer import (
-    GraphSegmentType,
-    SessionArtifacts,
-)
+from lineapy.graph_reader.node_collection import NodeCollectionType
+from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -147,38 +145,45 @@ class ArtifactCollection:
         """
         indentation_block = " " * indentation
 
+        # Generate import statement block for the given session
+        session_imports = (
+            session_artifacts.import_nodecollection.get_import_block(
+                indentation=0
+            )
+        )
+
         # Generate function definition for each session artifact
         artifact_functions = "\n\n".join(
             [
-                seg.get_function_definition(indentation=indentation)
-                for seg in session_artifacts.graph_segments
+                coll.get_function_definition(indentation=indentation)
+                for coll in session_artifacts.artifact_nodecollections
             ]
         )
 
         # Generate session function name
-        for seg in session_artifacts.graph_segments:
-            if seg.segment_type == GraphSegmentType.ARTIFACT:
-                first_art_name = seg.artifact_safename
+        for coll in session_artifacts.artifact_nodecollections:
+            if coll.collection_type == NodeCollectionType.ARTIFACT:
+                first_art_name = coll.safename
                 break
         session_function_name = f"run_session_including_{first_art_name}"
 
         # Generate session function body
         session_function_body = "\n".join(
             [
-                seg.get_function_call_block(
+                coll.get_function_call_block(
                     indentation=indentation,
                     keep_lineapy_save=False,
                 )
-                for seg in session_artifacts.graph_segments
+                for coll in session_artifacts.artifact_nodecollections
             ]
         )
 
         # Generate session function return value string
         session_function_return = ", ".join(
             [
-                seg.return_variables[0]
-                for seg in session_artifacts.graph_segments
-                if seg.segment_type == GraphSegmentType.ARTIFACT
+                coll.return_variables[0]
+                for coll in session_artifacts.artifact_nodecollections
+                if coll.collection_type == NodeCollectionType.ARTIFACT
             ]
         )
 
@@ -195,6 +200,7 @@ def {session_function_name}():
         session_calculation = f"{indentation_block}{session_function_return} = {session_function_name}()"
 
         return {
+            "session_imports": session_imports,
             "artifact_functions": artifact_functions,
             "session_function": session_function,
             "session_function_return": session_function_return,
@@ -214,6 +220,7 @@ def {session_function_name}():
 
         # Initiate store for module script components
         module_dict = {
+            "session_imports": [],
             "artifact_functions": [],
             "session_function": [],
             "session_function_return": [],
@@ -225,6 +232,9 @@ def {session_function_name}():
             session_module_dict = self._extract_session_module(
                 session_artifacts=session_artifacts,
                 indentation=indentation,
+            )
+            module_dict["session_imports"].append(
+                session_module_dict["session_imports"]
             )
             module_dict["artifact_functions"].append(
                 session_module_dict["artifact_functions"]
@@ -240,6 +250,7 @@ def {session_function_name}():
             )
 
         # Combine components by "type"
+        module_imports = "\n".join(module_dict["session_imports"])
         artifact_functions = "\n\n".join(module_dict["artifact_functions"])
         session_functions = "\n".join(module_dict["session_function"])
         module_function_body = "\n".join(module_dict["session_calculation"])
@@ -250,6 +261,8 @@ def {session_function_name}():
         # Put all together to generate module text
         # TODO: Replace with jinja template
         module_text = f"""\
+{module_imports}
+
 {artifact_functions}
 
 {session_functions}
@@ -378,45 +391,47 @@ class BasePipelineWriter:
         self.db = self.session_artifacts_sorted[0].db
 
     def _write_dag(self) -> None:
-        # Initiate main module (which imports and combines session modules)
+        # Initiate store for DAG script components
         main_module_dict = {
             "import_lines": [],
             "calculation_lines": [],
             "return_varnames": [],
         }
 
+        # Extract script components by session
         for session_artifacts in self.session_artifacts_sorted:
-            # Generate import statements for main module
+            # Generate import statements
             func_names = [
-                f"get_{seg.artifact_safename}"
-                for seg in session_artifacts.graph_segments
+                f"get_{coll.safename}"
+                for coll in session_artifacts.artifact_nodecollections
             ]
             main_module_dict["import_lines"].append(
                 f"from {self.pipeline_name}_module import {', '.join(func_names)}"
             )
 
-            # Generate calculation lines for main module
+            # Generate calculation lines
             calc_lines = [
-                seg.get_function_call_block(
+                coll.get_function_call_block(
                     indentation=4, keep_lineapy_save=self.keep_lineapy_save
                 )
-                for seg in session_artifacts.graph_segments
+                for coll in session_artifacts.artifact_nodecollections
             ]
             main_module_dict["calculation_lines"].extend(calc_lines)
 
-            # Generate return variables for main module
+            # Generate return variables
             ret_varnames = [
-                seg.return_variables[0]
-                for seg in session_artifacts.graph_segments
-                if seg.segment_type == GraphSegmentType.ARTIFACT
+                coll.return_variables[0]
+                for coll in session_artifacts.artifact_nodecollections
+                if coll.collection_type == NodeCollectionType.ARTIFACT
             ]
             main_module_dict["return_varnames"].extend(ret_varnames)
 
+        # Combine components by "type"
         imports = "\n".join(main_module_dict["import_lines"])
         calculations = "\n".join(main_module_dict["calculation_lines"])
         returns = ", ".join(main_module_dict["return_varnames"])
 
-        # Generate main module code
+        # Put all together to DAG script text
         # TODO: Replace with jinja template
         script_dag_text = f"""\
 {imports}
@@ -425,7 +440,7 @@ def pipeline():
 {calculations}
     return {returns}
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pipeline()
 """
 
@@ -436,6 +451,7 @@ if __name__ == '__main__':
         logger.info("Generated DAG file")
 
     def _write_docker(self):
+        # Generate Dockerfile text
         DOCKERFILE_TEMPLATE = load_plugin_template("script_dockerfile.jinja")
         dockerfile_text = DOCKERFILE_TEMPLATE.render(
             pipeline_name=self.pipeline_name
