@@ -290,7 +290,7 @@ def test_if_side_effect_in_condition(execute):
 if b := a.pop():
     b += 1
 """
-    res = execute(CODE, artifacts=["a"])
+    res = execute(CODE, snapshot=False, artifacts=["a"])
     assert (
         res.artifacts["a"]
         == """a = [1, 2, 3]
