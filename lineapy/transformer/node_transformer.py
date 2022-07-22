@@ -285,7 +285,7 @@ class NodeTransformer(ast.NodeTransformer):
         node_id = get_new_id()
         else_id = get_new_id() if len(node.orelse) > 0 else None
 
-        if self.tracer.executor._id_to_value[test_call_node.id] is True:
+        if self.tracer.executor._id_to_value[test_call_node.id]:
             with self.tracer.control_node(
                 NodeType.IfNode,
                 node_id,

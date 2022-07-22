@@ -511,6 +511,22 @@ class Tracer:
         self.process_node(node)
         return ControlFlowContext(node, self.control_flow_tracker)
 
+    def get_conditional_overwrite_node(
+        self, variable_name: str
+    ) -> Optional[Node]:
+        existing_value_node = self.variable_name_to_node.get(
+            variable_name, None
+        )
+        if existing_value_node is None:
+            return None
+        elif (
+            existing_value_node.control_dependency
+            == self.control_flow_tracker.current_control_dependency()
+        ):
+            return None
+        else:
+            return existing_value_node
+
     def assign(
         self, variable_name: str, value_node: Node, from_import: bool = False
     ) -> None:

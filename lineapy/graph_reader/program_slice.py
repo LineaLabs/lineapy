@@ -30,6 +30,11 @@ def get_slice_graph(
     :return: A subgraph extracted (i.e., sliced) for the desired node IDs.
 
     """
+    for node in graph.nodes:
+        if isinstance(node, ControlFlowNode):
+            if node.unexec_id is not None:
+                sinks.append(node.id)
+
     if keep_lineapy_save:
         # Children of an artifact sink include .save() statement.
         # Identify .save() statement and make it the new sink.
@@ -86,6 +91,8 @@ def fill_dangling_nodes_in_graph(
     for node_id in graph.get_all_node_ids():
         if node_id not in current_subset:
             node = graph.get_node(node_id)
+            if isinstance(node, ImportNode):
+                continue
             if node is None:
                 continue
             if not node.source_location:
@@ -185,7 +192,7 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
             if line in incomplete_block_locations[source_code]:
                 line_str = source_code_lines[line - 1]
                 indent = len(line_str) - len(line_str.lstrip())
-                body_code.append(" " * (indent + 1) + "pass\n")
+                body_code.append(" " * (indent + 1) + "pass")
 
     import_code = []
     for import_source_code, lines in sorted(

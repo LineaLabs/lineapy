@@ -3,10 +3,23 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils.utils import get_new_id
 
+lookup_1 = LookupNode(
+    name="invert",
+)
 source_1 = SourceCode(
     code="""a = 1
 b=~a""",
     location=PosixPath("[source file path]"),
+)
+literal_1 = LiteralNode(
+    source_location=SourceLocation(
+        lineno=1,
+        col_offset=4,
+        end_lineno=1,
+        end_col_offset=5,
+        source_code=source_1.id,
+    ),
+    value=1,
 )
 call_1 = CallNode(
     source_location=SourceLocation(
@@ -16,19 +29,6 @@ call_1 = CallNode(
         end_col_offset=4,
         source_code=source_1.id,
     ),
-    function_id=LookupNode(
-        name="invert",
-    ).id,
-    positional_args=[
-        LiteralNode(
-            source_location=SourceLocation(
-                lineno=1,
-                col_offset=4,
-                end_lineno=1,
-                end_col_offset=5,
-                source_code=source_1.id,
-            ),
-            value=1,
-        ).id
-    ],
+    function_id=lookup_1.id,
+    positional_args=[literal_1.id],
 )
