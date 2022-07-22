@@ -3,42 +3,6 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils.utils import get_new_id
 
-lookup_1 = LookupNode(
-    name="add",
-)
-lookup_2 = LookupNode(
-    name="truediv",
-)
-lookup_3 = LookupNode(
-    name="floordiv",
-)
-lookup_4 = LookupNode(
-    name="and_",
-)
-lookup_5 = LookupNode(
-    name="or_",
-)
-lookup_6 = LookupNode(
-    name="xor",
-)
-lookup_7 = LookupNode(
-    name="sub",
-)
-lookup_8 = LookupNode(
-    name="mul",
-)
-lookup_9 = LookupNode(
-    name="rshift",
-)
-lookup_10 = LookupNode(
-    name="lshift",
-)
-lookup_11 = LookupNode(
-    name="mod",
-)
-lookup_12 = LookupNode(
-    name="pow",
-)
 source_1 = SourceCode(
     code="""a = 11
 b = 2
@@ -86,7 +50,9 @@ call_1 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_1.id,
+    function_id=LookupNode(
+        name="add",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_2 = CallNode(
@@ -97,7 +63,9 @@ call_2 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_7.id,
+    function_id=LookupNode(
+        name="sub",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_3 = CallNode(
@@ -108,7 +76,9 @@ call_3 = CallNode(
         end_col_offset=9,
         source_code=source_1.id,
     ),
-    function_id=lookup_8.id,
+    function_id=LookupNode(
+        name="mul",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_4 = CallNode(
@@ -119,7 +89,9 @@ call_4 = CallNode(
         end_col_offset=9,
         source_code=source_1.id,
     ),
-    function_id=lookup_2.id,
+    function_id=LookupNode(
+        name="truediv",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_5 = CallNode(
@@ -130,7 +102,9 @@ call_5 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_3.id,
+    function_id=LookupNode(
+        name="floordiv",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_6 = CallNode(
@@ -141,7 +115,9 @@ call_6 = CallNode(
         end_col_offset=9,
         source_code=source_1.id,
     ),
-    function_id=lookup_11.id,
+    function_id=LookupNode(
+        name="mod",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_7 = CallNode(
@@ -152,7 +128,9 @@ call_7 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_12.id,
+    function_id=LookupNode(
+        name="pow",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_8 = CallNode(
@@ -163,7 +141,9 @@ call_8 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_10.id,
+    function_id=LookupNode(
+        name="lshift",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_9 = CallNode(
@@ -174,7 +154,9 @@ call_9 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_9.id,
+    function_id=LookupNode(
+        name="rshift",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_10 = CallNode(
@@ -185,7 +167,9 @@ call_10 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_5.id,
+    function_id=LookupNode(
+        name="or_",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_11 = CallNode(
@@ -196,7 +180,9 @@ call_11 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_6.id,
+    function_id=LookupNode(
+        name="xor",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_12 = CallNode(
@@ -207,6 +193,8 @@ call_12 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_4.id,
+    function_id=LookupNode(
+        name="and_",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )

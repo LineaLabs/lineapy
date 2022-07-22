@@ -114,19 +114,19 @@ class GraphPrinter:
                 # do not track version change, pin to 0.0.1
                 node.version = ""  # type: ignore
 
-                # if (
-                #     self.nest_nodes
-                #     and len(list(self.graph.nx_graph.successors(node_id))) == 1
-                # ):
-                #     self.id_to_attribute_name[node_id] = "\n".join(
-                #         self.pretty_print_model(node)
-                #     )
+            if (
+                self.nest_nodes
+                and len(list(self.graph.nx_graph.successors(node_id))) == 1
+            ):
+                self.id_to_attribute_name[node_id] = "\n".join(
+                    self.pretty_print_model(node)
+                )
 
-                # else:
-            yield f"{attr_name} = ("
-            yield from self.pretty_print_model(node)
-            yield ")"
-            self.id_to_attribute_name[node_id] = attr_name
+            else:
+                yield f"{attr_name} = ("
+                yield from self.pretty_print_model(node)
+                yield ")"
+                self.id_to_attribute_name[node_id] = attr_name
 
     def pretty_print_model(self, model: BaseModel) -> Iterable[str]:
         yield f"{type(model).__name__}("

@@ -3,24 +3,6 @@ from pathlib import *
 from lineapy.data.types import *
 from lineapy.utils.utils import get_new_id
 
-lookup_1 = LookupNode(
-    name="eq",
-)
-lookup_2 = LookupNode(
-    name="le",
-)
-lookup_3 = LookupNode(
-    name="gt",
-)
-lookup_4 = LookupNode(
-    name="ne",
-)
-lookup_5 = LookupNode(
-    name="lt",
-)
-lookup_6 = LookupNode(
-    name="ge",
-)
 source_1 = SourceCode(
     code="""a = 1
 b = 2
@@ -61,7 +43,9 @@ call_1 = CallNode(
         end_col_offset=11,
         source_code=source_1.id,
     ),
-    function_id=lookup_1.id,
+    function_id=LookupNode(
+        name="eq",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_2 = CallNode(
@@ -72,7 +56,9 @@ call_2 = CallNode(
         end_col_offset=11,
         source_code=source_1.id,
     ),
-    function_id=lookup_4.id,
+    function_id=LookupNode(
+        name="ne",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_3 = CallNode(
@@ -83,7 +69,9 @@ call_3 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_5.id,
+    function_id=LookupNode(
+        name="lt",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_4 = CallNode(
@@ -94,7 +82,9 @@ call_4 = CallNode(
         end_col_offset=11,
         source_code=source_1.id,
     ),
-    function_id=lookup_2.id,
+    function_id=LookupNode(
+        name="le",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_5 = CallNode(
@@ -105,7 +95,9 @@ call_5 = CallNode(
         end_col_offset=10,
         source_code=source_1.id,
     ),
-    function_id=lookup_3.id,
+    function_id=LookupNode(
+        name="gt",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
 call_6 = CallNode(
@@ -116,6 +108,8 @@ call_6 = CallNode(
         end_col_offset=11,
         source_code=source_1.id,
     ),
-    function_id=lookup_6.id,
+    function_id=LookupNode(
+        name="ge",
+    ).id,
     positional_args=[literal_1.id, literal_2.id],
 )
