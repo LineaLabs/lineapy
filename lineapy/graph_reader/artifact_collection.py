@@ -167,11 +167,16 @@ class ArtifactCollection:
         session_function_name = f"run_session_including_{first_art_name}"
 
         # Generate session function body
+        return_list_name = "artifacts"  # List for capturing artifacts before irrelevant downstream mutation
         session_function_body = "\n".join(
             [
                 coll.get_function_call_block(
                     indentation=indentation,
                     keep_lineapy_save=False,
+                    result_placeholder=None
+                    if len(session_artifacts.artifact_list) == 1
+                    or coll.collection_type != NodeCollectionType.ARTIFACT
+                    else return_list_name,
                 )
                 for coll in session_artifacts.artifact_nodecollections
             ]
@@ -188,10 +193,22 @@ class ArtifactCollection:
 
         # Generate session function definition
         # TODO: Replace with jinja template
-        session_function = f"""\
+        if len(session_artifacts.artifact_list) == 1:
+            session_function = f"""\
 def {session_function_name}():
 {session_function_body}
 {indentation_block}return {session_function_return}
+"""
+        else:
+            session_function = f"""\
+def {session_function_name}():
+{indentation_block}# Given multiple artifacts, we need to save each right after
+{indentation_block}# its calculation to protect from any irrelevant downstream
+{indentation_block}# mutations (e.g., inside other artifact calculations)
+{indentation_block}import copy
+{indentation_block}{return_list_name} = []
+{session_function_body}
+{indentation_block}return {return_list_name}
 """
 
         # Generate calculation code block for the session
