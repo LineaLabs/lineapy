@@ -94,11 +94,10 @@ logger = logging.getLogger(__name__)
 @click.option(
     "--logging-level",
     type=click.Choice(
-        list(logging._nameToLevel.keys())
-        + sorted([str(x) for x in set(logging._levelToName.keys())]),
+        list(logging._nameToLevel.keys()),
         case_sensitive=False,
     ),
-    help="Logging level for LineaPy.",
+    help="Logging level for LineaPy, overrides the --verbose flag if set.",
 )
 @click.option(
     "--logging-file",
@@ -122,7 +121,9 @@ def linea_cli(
 
     # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
     if verbose:
-        options.set("LINEAPY_LOG_LEVEL", "DEBUG")
+        options.set("logging_level", "DEBUG")
+    if logging_level:
+        options.set("logging_level", logging_level)
 
     configure_logging()
 
