@@ -409,7 +409,7 @@ class IfNodeORM(BaseNodeORM):
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
     test_id = Column(String, ForeignKey("node.id"))
-    else_id = Column(String, ForeignKey("node.id"))
+    companion_id = Column(String, ForeignKey("node.id"))
     unexec_id = Column(String, ForeignKey("literal_assign_node.id"))
 
     __mapper_args__ = {

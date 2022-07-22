@@ -265,8 +265,7 @@ class Executor:
     ) -> PrivateExecuteResult:
         return PrivateExecuteResult(
             # An `execute else` simply creates a new control flow node using no other variables,
-            # Copy the result and the timing from the attached `if` or `for` or `while` node
-            self._execution_time[node.companion_id],
+            None,
             *self._execution_time[node.companion_id],
             [],
         )

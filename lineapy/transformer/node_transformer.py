@@ -802,7 +802,7 @@ class NodeTransformer(ast.NodeTransformer):
             + 1,  # Else node can only start one line after if block
             col_offset=0,
             end_lineno=max(
-                orelse_source.lineno - 1, body_source.end_lineno
+                orelse_source.lineno - 1, body_source.end_lineno + 1
             ),  # Keyword else can be in the previous line or the same line as the first statement of the else block
             end_col_offset=orelse_source.col_offset,
         )

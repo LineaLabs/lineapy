@@ -284,7 +284,7 @@ class RelationalLineaDB:
                 **args,
                 test_id=node.test_id,
                 unexec_id=node.unexec_id,
-                else_id=node.companion_id,
+                companion_id=node.companion_id,
             )
         elif isinstance(node, ElseNode):
             node_orm = ElseNodeORM(
@@ -479,7 +479,7 @@ class RelationalLineaDB:
             return IfNode(
                 unexec_id=node.unexec_id,
                 test_id=node.test_id,
-                companion_id=node.else_id,
+                companion_id=node.companion_id,
                 **args,
             )
         if isinstance(node, ElseNodeORM):

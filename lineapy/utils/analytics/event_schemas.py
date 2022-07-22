@@ -69,6 +69,11 @@ class GetVersionEvent:
     dummy_entry: str  # just a dummy entry for now
 
 
+@dataclass
+class CyclicGraphEvent:
+    dummy_entry: str  # dummy entry, may populate with extra information later
+
+
 AllEvents = Union[
     CatalogEvent,
     LibImportEvent,
@@ -79,4 +84,5 @@ AllEvents = Union[
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,
+    CyclicGraphEvent,
 ]

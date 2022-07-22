@@ -60,14 +60,16 @@ def get_slice_graph(
     for sink in sinks:
         ancestors.update(graph.get_ancestors(sink))
 
-    ancestors = fill_dangling_nodes_in_graph(graph, ancestors)
+    ancestors = include_dependencies_for_indirectly_included_nodes_in_slice(
+        graph, ancestors
+    )
 
     new_nodes = [graph.ids[node] for node in ancestors]
     subgraph = graph.get_subgraph(new_nodes)
     return subgraph
 
 
-def fill_dangling_nodes_in_graph(
+def include_dependencies_for_indirectly_included_nodes_in_slice(
     graph: Graph, current_subset: Set[LineaID]
 ) -> Set[LineaID]:
     code_to_lines = DefaultDict[SourceCode, Set[int]](set)
@@ -88,7 +90,8 @@ def fill_dangling_nodes_in_graph(
     to_be_added = set()
     completed = True
 
-    for node_id in graph.get_all_node_ids():
+    for node in graph.nodes:
+        node_id = node.id  # type: ignore
         if node_id not in current_subset:
             node = graph.get_node(node_id)
             if isinstance(node, ImportNode):
@@ -116,7 +119,9 @@ def fill_dangling_nodes_in_graph(
     if completed:
         return current_subset
     else:
-        return fill_dangling_nodes_in_graph(graph, current_subset)
+        return include_dependencies_for_indirectly_included_nodes_in_slice(
+            graph, current_subset
+        )
 
 
 @dataclass

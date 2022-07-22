@@ -5,6 +5,8 @@ import networkx as nx
 
 from lineapy.data.types import IfNode, LineaID, Node, SessionContext
 from lineapy.graph_reader.graph_printer import GraphPrinter
+from lineapy.utils.analytics.event_schemas import CyclicGraphEvent
+from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.utils import listify, prettify
 
 
@@ -39,9 +41,9 @@ class Graph(object):
 
         self.session_context = session_context
 
-        # validation
+        # Checking whether the linea graph created is cyclic or not
         if not nx.is_directed_acyclic_graph(self.nx_graph):
-            pass  # raise AssertionError("Graph should not be cyclic")
+            track(CyclicGraphEvent(""))
 
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
@@ -152,9 +154,6 @@ class Graph(object):
         FIXME
         """
         return Graph(nodes, self.session_context)
-
-    def get_all_node_ids(self) -> List[LineaID]:
-        return list(node.id for node in self.nodes)
 
     def __str__(self):
         return prettify(

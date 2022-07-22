@@ -460,6 +460,7 @@ class ElseNode(ControlFlowNode):
 
     # Points to the attached node
     # Could be `if`, `for`, `while`, etc.
+    # The definition here is used only for typing purposes, it will automatically be included in super().parents()
     companion_id: LineaID
 
     def parents(self) -> Iterable[LineaID]:
