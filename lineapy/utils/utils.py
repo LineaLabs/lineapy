@@ -2,6 +2,8 @@ import sys
 from typing import Any, Callable, Iterable, Optional, Set, Tuple, TypeVar, cast
 from uuid import uuid4
 
+from IPython.core.getipython import get_ipython
+
 from lineapy.data.types import LineaID, LiteralType, ValueType
 
 try:
@@ -156,3 +158,19 @@ def get_system_python_version(include_patch_version: bool = False) -> str:
     if include_patch_version:
         return f"{ver.major}.{ver.minor}.{ver.micro}"
     return f"{ver.major}.{ver.minor}"
+
+
+def create_new_cell(contents: str):
+    """
+    Based on https://stackoverflow.com/a/54987401.
+    Create a new notebook cell with the given `contents`.
+    """
+
+    shell = get_ipython()
+
+    payload = dict(
+        source="set_next_input",
+        text=contents,
+        replace=False,
+    )
+    shell.payload_manager.write_payload(payload)
