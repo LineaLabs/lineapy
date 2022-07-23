@@ -264,7 +264,7 @@ class Executor:
         variables: Optional[Dict[str, LineaID]],
     ) -> PrivateExecuteResult:
         return PrivateExecuteResult(
-            # An `execute else` simply creates a new control flow node using no other variables,
+            # An `execute else` simply creates a new control flow node using no other variables
             None,
             *self._execution_time[node.companion_id],
             [],

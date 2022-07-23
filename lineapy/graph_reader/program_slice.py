@@ -31,6 +31,9 @@ def get_slice_graph(
 
     """
     for node in graph.nodes:
+        # If there is a control flow node which has a branch which was never encountered during runtime,
+        # we take a conservative approach and include all of the lines present in the unexecuted code block
+        # so that in case the branch is visited during production, we do not alter the user's intended behavior
         if isinstance(node, ControlFlowNode):
             if node.unexec_id is not None:
                 sinks.append(node.id)
@@ -60,7 +63,7 @@ def get_slice_graph(
     for sink in sinks:
         ancestors.update(graph.get_ancestors(sink))
 
-    ancestors = include_dependencies_for_indirectly_included_nodes_in_slice(
+    ancestors = _include_dependencies_for_indirectly_included_nodes_in_slice(
         graph, ancestors
     )
 
@@ -69,9 +72,33 @@ def get_slice_graph(
     return subgraph
 
 
-def include_dependencies_for_indirectly_included_nodes_in_slice(
+def _include_dependencies_for_indirectly_included_nodes_in_slice(
     graph: Graph, current_subset: Set[LineaID]
 ) -> Set[LineaID]:
+    """
+    Ensures that for each line in the sliced program output, all corresponding nodes are included in the
+    selected subgraph, and vice versa
+    """
+    # LineaPy's graph slicing mechanism takes in the Linea Graph, obtains a subset of the nodes which are necessary
+    # for the required artifact, and then selects the line numbers which the selected nodes of the subgraph
+    # correspond to. However, it is possible that there may be lines with multiple statements as follows:
+    #
+    #   a = []
+    #   b = []
+    #   a.append(10);b.append(20)
+    #   lineapy.save(a, 'a')
+    #
+    # In this case, our slicer would identify that lines 1, 3 and 4 are relevant for the artifact, and the slice
+    # generated would be as follows:
+    #
+    #   a = []
+    #   a.append(10);b.append(20)
+    #
+    # This code would not compile as `b.append(20)` relies on `b` being declared before, and hence our generated
+    # code would crash. To avoid this scenario, this function takes in the selected subgraph, finds out all relevant
+    # line numbers to be included, and checks whether there are any additional nodes whose line numbers intersect with
+    # already included line numbers, and adds those nodes and their ancestors to the graph. This process may increase
+    # the set of included line numbers, hence this function is called recursively.
     code_to_lines = DefaultDict[SourceCode, Set[int]](set)
 
     for node_id in current_subset:
@@ -119,7 +146,7 @@ def include_dependencies_for_indirectly_included_nodes_in_slice(
     if completed:
         return current_subset
     else:
-        return include_dependencies_for_indirectly_included_nodes_in_slice(
+        return _include_dependencies_for_indirectly_included_nodes_in_slice(
             graph, current_subset
         )
 
@@ -159,6 +186,29 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
     for node in program.nodes:
         if not node.source_location:
             continue
+        # In the following code sample:
+        #
+        # a = [10]
+        # if a.pop() > 5:
+        #       print(a)
+        # lineapy.save(a, 'a')
+        #
+        # If we slice on `a``, we note that all of the statements inside the if block get sliced out.
+        # Technically, one could say that the slice is:
+        #
+        # a = [10]
+        # if a.pop() > 5:
+        #
+        # Since the test condition of the if block modifies `a`, hence it must be included, and since print()
+        # statements do not affect `a`, we can slice them out. However, the generated code is not syntactically
+        # valid Python code, and hence we need to add a `pass` statement to ensure it compiles like the following:
+        #
+        # a = [10]
+        # if a.pop() > 5:
+        #       pass
+        #
+        # To find out the program locations where we need to append a `pass` statement, we maintain the
+        # `incomplete_block_location` variable to keep a track of these program lines.
         if isinstance(node, (ControlFlowNode)):
             control_dependencies = [
                 child_id
