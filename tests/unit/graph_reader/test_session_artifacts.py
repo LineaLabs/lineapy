@@ -2,7 +2,130 @@ from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.utils.utils import prettify
 
 
-def test_refactor(execute):
+def test_extract_common(execute):
+    code = """import lineapy
+art = {}
+a = 1
+a += 1
+b = a+1
+art['b'] = lineapy.save(b, 'b')
+c = a+2
+art['c'] = lineapy.save(c, 'c')
+    """
+
+    # Test extracting common cood used in two artifacts
+    extract_result_b_c = """import copy
+def get_a_for_artifact_b_and_downstream():
+    a = 1
+    a += 1
+    return a
+
+def get_b(a):
+    b = a + 1
+    return b
+
+def get_c(a):
+    c = a + 2
+    return c
+
+def run_all():
+    # Multiple return variables detected, need to save the variable
+    # right after calculation in case of mutation downstream
+    artifacts = []
+    a = get_a_for_artifact_b_and_downstream()
+    b = get_b(a)
+    artifacts.append(copy.deepcopy(b))
+    c = get_c(a)
+    artifacts.append(copy.deepcopy(c))
+    return artifacts
+
+if __name__=="__main__":
+    run_all()
+    """
+
+    res = execute(code, snapshot=False)
+    art = res.values["art"]
+
+    sas = SessionArtifacts([art["b"], art["c"]])
+    refactor_code = sas.get_session_module_definition(
+        indentation=2, keep_lineapy_save=False
+    )
+    assert prettify(refactor_code) == prettify(extract_result_b_c)
+
+    # Test above case but only want to extract one artifact
+    extract_result_b = """def get_b():
+    a = 1
+    a += 1
+    b = a + 1
+    return b
+
+def run_all():
+    b = get_b()
+    return b
+
+if __name__=="__main__":
+    run_all()
+    """
+
+    res = execute(code, snapshot=False)
+    art = res.values["art"]
+
+    sas = SessionArtifacts([art["b"]])
+    refactor_code = sas.get_session_module_definition(
+        indentation=2, keep_lineapy_save=False
+    )
+    assert prettify(refactor_code) == prettify(extract_result_b)
+
+
+def test_mutate_after_save(execute):
+    code = """import lineapy
+art = {}
+a = [1]
+art['a'] = lineapy.save(a,'a')
+a.append(2)
+b = a[-1]+1
+art['b'] = lineapy.save(b, 'b')
+    """
+
+    # Test extracting correct artifact value even it is mutated after saved to calculate other artifact
+    res = execute(code, snapshot=False)
+    art = res.values["art"]
+
+    sas = SessionArtifacts([art["a"], art["b"]])
+    a, b = sas.get_session_module().run_all()
+    assert a[-1] == 1 and len(a) == 1
+    assert b == 3
+
+    extract_result_a_b = """import copy
+def get_a():
+    a = [1]
+    return a
+
+def get_b(a):
+    a.append(2)
+    b = a[-1] + 1
+    return b
+
+def run_all():
+    # Multiple return variables detected, need to save the variable
+    # right after calculation in case of mutation downstream
+    artifacts = []
+    a = get_a()
+    artifacts.append(copy.deepcopy(a))
+    b = get_b(a)
+    artifacts.append(copy.deepcopy(b))
+    return artifacts
+
+if __name__=="__main__":
+    run_all()
+    """
+    refactor_code = sas.get_session_module_definition(
+        indentation=2, keep_lineapy_save=False
+    )
+    assert prettify(refactor_code) == prettify(extract_result_a_b)
+
+
+def test_complex_refactor(execute):
     # a0 --> (a0+=1) \                       /--> (f=c+7)
     #                 \                     /
     #                  >--> b=a*2+a0 --> (c=b+3) -------\
@@ -172,9 +295,7 @@ if __name__=="__main__":
   run_all()
     """
 
-    sas = SessionArtifacts(
-        [a for i, a in enumerate(list(art.values())) if i in [0, 2, 6]]
-    )  # a0, c, h
+    sas = SessionArtifacts([art["a0"], art["c"], art["h"]])
     refactor_code_a0_c_h = sas.get_session_module_definition(
         indentation=2, keep_lineapy_save=True
     )
@@ -203,9 +324,7 @@ if __name__=="__main__":
   run_all()
     """
 
-    sas = SessionArtifacts(
-        [a for i, a in enumerate(list(art.values())) if i in [6]]
-    )  # a0, c, h
+    sas = SessionArtifacts([art["h"]])
     refactor_code_h = sas.get_session_module_definition(indentation=2)
     assert prettify(refactor_code_h) == prettify(expection_result_h)
 
