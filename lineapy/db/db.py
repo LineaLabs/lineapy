@@ -10,8 +10,10 @@ from sqlalchemy.sql.expression import and_
 from lineapy.data.types import (
     Artifact,
     CallNode,
+    ElseNode,
     Execution,
     GlobalNode,
+    IfNode,
     ImportNode,
     JupyterCell,
     KeywordArgument,
@@ -33,9 +35,11 @@ from lineapy.db.relational import (
     Base,
     BaseNodeORM,
     CallNodeORM,
+    ElseNodeORM,
     ExecutionORM,
     GlobalNodeORM,
     GlobalReferenceORM,
+    IfNodeORM,
     ImplicitDependencyORM,
     ImportNodeORM,
     KeywordArgORM,
@@ -203,7 +207,10 @@ class RelationalLineaDB:
         self.renew_session()
 
     def write_node(self, node: Node) -> None:
-        args = node.dict(include={"id", "session_id", "node_type"})
+        args = node.dict(
+            include={"id", "session_id", "node_type", "control_dependency"}
+        )
+        # Converting list into string, for storage in the DB. Note there can only be one or zero control dependencies
         s = node.source_location
         if s:
             args["lineno"] = s.lineno
@@ -271,6 +278,19 @@ class RelationalLineaDB:
         elif isinstance(node, GlobalNode):
             node_orm = GlobalNodeORM(
                 **args, call_id=node.call_id, name=node.name
+            )
+        elif isinstance(node, IfNode):
+            node_orm = IfNodeORM(
+                **args,
+                test_id=node.test_id,
+                unexec_id=node.unexec_id,
+                companion_id=node.companion_id,
+            )
+        elif isinstance(node, ElseNode):
+            node_orm = ElseNodeORM(
+                **args,
+                companion_id=node.companion_id,
+                unexec_id=node.unexec_id,
             )
         else:
             node_orm = LookupNodeORM(**args, name=node.name)
@@ -373,6 +393,7 @@ class RelationalLineaDB:
             "id": node.id,
             "session_id": node.session_id,
             "node_type": node.node_type,
+            "control_dependency": node.control_dependency,
         }
         if node.source_code:
             source_code = SourceCode(
@@ -459,6 +480,19 @@ class RelationalLineaDB:
             return GlobalNode(
                 call_id=node.call_id,
                 name=node.name,
+                **args,
+            )
+        if isinstance(node, IfNodeORM):
+            return IfNode(
+                unexec_id=node.unexec_id,
+                test_id=node.test_id,
+                companion_id=node.companion_id,
+                **args,
+            )
+        if isinstance(node, ElseNodeORM):
+            return ElseNode(
+                unexec_id=node.unexec_id,
+                companion_id=node.companion_id,
                 **args,
             )
         return LookupNode(name=node.name, **args)

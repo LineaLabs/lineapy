@@ -3,8 +3,10 @@ from typing import Callable, Dict, Iterator, List, Optional, Set, TypeVar
 
 import networkx as nx
 
-from lineapy.data.types import LineaID, Node, SessionContext
+from lineapy.data.types import IfNode, LineaID, Node, SessionContext
 from lineapy.graph_reader.graph_printer import GraphPrinter
+from lineapy.utils.analytics.event_schemas import CyclicGraphEvent
+from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.utils import listify, prettify
 
 
@@ -39,9 +41,9 @@ class Graph(object):
 
         self.session_context = session_context
 
-        # validation
+        # Checking whether the linea graph created is cyclic or not
         if not nx.is_directed_acyclic_graph(self.nx_graph):
-            raise AssertionError("Graph should not be cyclic")
+            track(CyclicGraphEvent(""))
 
     def __eq__(self, other) -> bool:
         return nx.is_isomorphic(self.nx_graph, other.nx_graph)
@@ -59,11 +61,24 @@ class Graph(object):
         """
         # TODO: See if we could replace this with python's built in topological sort
         # https://docs.python.org/3/library/graphlib.html
-        # It seems to suggest that resulting order is determined by insertion order
-        # so this could possibly also implicitly sort by line number, if we insert
-        # in that order.
 
-        # Generally, we want to traverse the graph in a way to maintain two
+        # Before the introduction of Control Flow Analysis, the Linea Graph could be represented
+        # as a Directed Acyclic Graph with each node could be thought of as a computation with it's parents
+        # as it's dependencies. This was possible as without control flow analysis, we were only dealing with
+        # straight line code, which essentially is a sequence of instructions executed one after another with
+        # no jumps.
+        # However with the introduction of control flow, we need to introduce cycles in a graph to correspond
+        # to the cyclic dependencies possible, especially in loops, as the only way to avoid cycles would be
+        # to effectively unroll loops, which can become prohibitively expensive as the number of iterations in
+        # a loop increases.
+
+        # Cycles in the graph would be enough to represent data/control dependencies, however while executing
+        # the graph we cannot depend on future information to be present. We need a way to break cycles while
+        # executing the graph, for which we currently resort to removing certain edges in the graph, to ensure
+        # we are able to obtain a topological ordering of the nodes, so that any node being executed depends
+        # on a value which is already defined.
+
+        # For a Directed Acyclic Graph, generally, we want to traverse the graph in a way to maintain two
         # constraints:
 
         # 1. All parents must be traversed before their children
@@ -84,6 +99,13 @@ class Graph(object):
         # This can happen we evaluate part of a graph, then another part.
         # When evaluating the next part, we just have those nodes, so some
         # of the parents will be missing, we assume they are already executed
+
+        # We also want to remove certain nodes which result in a cycle being made. In case a cycle is present,
+        # we would have a set of nodes, all of which have a nonzero number of non-executed parents. To find the
+        # next node to execute, we want one of the remaining nodes to have zero non-executed parents, which will
+        # indicate to us that the particular node can be executed as all required information is present.
+
+        # We have certain cases of removing parents in order to ensure no cycles in the execution graph
         remaining_parents: Dict[str, int] = {}
 
         for node in self.nodes:
@@ -94,8 +116,22 @@ class Graph(object):
                     if parent_id in self.ids
                 ]
             )
-            # First we add all of the nodes to the queue which have no parents
 
+            # Removing certain edges to ensure the graph for execution is acyclic, to generate a proper order
+            # for execution of nodes
+
+            # Simply by reducing the counter n_remaining_counter by the appropriate amount is sufficient as we
+            # check whether n_remaining_parents for a particular node is zero for deciding whether it can be
+            # executed next, rather than modifying the edges in the actual graph
+
+            # There is a cyclic dependency amongst and IfNode and ElseNode, both being connected to each other
+            # To break the cycle, we do not consider the connection from the IfNode to the ElseNode (ElseNode
+            # is not a dependency for IfNode to run)
+            if isinstance(node, IfNode):
+                if node.companion_id is not None:
+                    n_remaining_parents -= 1
+
+            # First we add all of the nodes to the queue which have no parents
             if n_remaining_parents == 0:
                 seen.add(node.id)
                 queue.put(node)

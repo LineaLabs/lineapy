@@ -138,7 +138,6 @@ def test_walrus_list_comprehensions(execute):
 
 
 @pytest.mark.skipif("sys.version_info < (3, 8)")
-@pytest.mark.xfail(reason="Destruct + walrus does not work")
 def test_walrus_multiple_identifiers(execute):
     code = """
 x = 1

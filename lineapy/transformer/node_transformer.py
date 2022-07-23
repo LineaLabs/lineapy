@@ -2,12 +2,13 @@ import ast
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Iterable, Optional, cast
+from typing import Any, Iterable, List, Optional, cast
 
 from lineapy.data.types import (
     CallNode,
     LiteralNode,
     Node,
+    NodeType,
     SourceCode,
     SourceCodeLocation,
     SourceLocation,
@@ -238,6 +239,53 @@ class NodeTransformer(ast.NodeTransformer):
             self.get_source(node),
             attributes=create_lib_attributes(node.names),
         )
+
+    def visit_If(self, node: ast.If) -> Any:
+        test_call_node = self.visit(node.test)
+
+        node_id = get_new_id()
+        else_id = get_new_id() if len(node.orelse) > 0 else None
+
+        if self.tracer.executor._id_to_value[test_call_node.id]:
+            with self.tracer.control_node(
+                NodeType.IfNode,
+                node_id,
+                else_id,
+                self.get_source(node.test),
+                test_call_node.id,
+                None,
+            ):
+                for stmt in node.body:
+                    self.visit(stmt)
+            if else_id is not None:
+                with self.tracer.control_node(
+                    NodeType.ElseNode,
+                    else_id,
+                    node_id,
+                    self.get_else_source(node),
+                    None,
+                    self.get_black_box_without_executing(node.orelse).id,
+                ):
+                    pass
+        else:
+            with self.tracer.control_node(
+                NodeType.IfNode,
+                node_id,
+                else_id,
+                self.get_source(node.test),
+                test_call_node.id,
+                self.get_black_box_without_executing(node.body).id,
+            ):
+                pass
+            if else_id is not None:
+                with self.tracer.control_node(
+                    NodeType.ElseNode,
+                    else_id,
+                    node_id,
+                    self.get_else_source(node),
+                ):
+                    for stmt in node.orelse:
+                        self.visit(stmt)
 
     def visit_Index(self, node: ast.Index) -> Node:
         """
@@ -700,3 +748,46 @@ class NodeTransformer(ast.NodeTransformer):
             end_lineno=node.end_lineno,  # type: ignore
             end_col_offset=node.end_col_offset,  # type: ignore
         )
+
+    def get_else_source(self, node: ast.If) -> Optional[SourceLocation]:
+        body_source = self.get_source(node.body[-1])
+        orelse_source = (
+            self.get_source(node.orelse[0]) if node.orelse else None
+        )
+        assert body_source, "Body of If/Else must have at least one statement"
+        if not orelse_source:
+            return None  # If there is no else block, the else keyword would not be present
+        return SourceLocation(
+            source_code=self.source_code,
+            lineno=body_source.end_lineno
+            + 1,  # Else node can only start one line after if block
+            col_offset=0,
+            end_lineno=max(
+                orelse_source.lineno - 1, body_source.end_lineno + 1
+            ),  # Keyword else can be in the previous line or the same line as the first statement of the else block
+            end_col_offset=orelse_source.col_offset,
+        )
+
+    def get_black_box_without_executing(
+        self, nodes: List[ast.stmt]
+    ) -> LiteralNode:
+        # We simply create a LiteralNode with the code within the block
+        # Processing a LiteralNode does not actually execute the statement
+        assert (
+            len(nodes) > 0
+        ), "Atleast one statement should be part of code block"
+        code = "\n".join(
+            [
+                str(self._get_code_from_node(node))
+                for node in nodes
+                if (self._get_code_from_node(node) is not None)
+            ]
+        )
+        source_location = SourceLocation(
+            source_code=self.source_code,
+            lineno=nodes[0].lineno,
+            col_offset=nodes[0].col_offset,
+            end_lineno=nodes[-1].end_lineno,  # type: ignore
+            end_col_offset=nodes[-1].end_col_offset,  # type: ignore
+        )
+        return self.tracer.literal(code, source_location=source_location)
