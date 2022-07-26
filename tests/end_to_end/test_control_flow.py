@@ -216,6 +216,37 @@ else:
     )
 
 
+def test_if_nested_should_slice_within_elif(execute):
+    CODE = """a = 10
+b = 20
+if a <= 2:
+    a = 1
+    b = 2
+elif a > 0:
+    a = 3
+    b = 4
+else:
+    a = 5
+    b = 6
+"""
+    res = execute(CODE, artifacts=["a"])
+    assert res.values["a"] == 3
+    assert res.values["b"] == 4
+    assert (
+        res.artifacts["a"]
+        == """a = 10
+if a <= 2:
+    a = 1
+    b = 2
+elif a > 0:
+    a = 3
+else:
+    a = 5
+    b = 6
+"""
+    )
+
+
 def test_if_all_lines_sliced_out_within_if(execute):
     CODE = """a = 10
 if a < 20:
