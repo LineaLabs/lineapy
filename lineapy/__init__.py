@@ -4,6 +4,7 @@ from lineapy.api.api import (
     artifact_store,
     create_pipeline,
     delete,
+    diff,
     get,
     get_pipeline,
     reload,
@@ -37,6 +38,7 @@ __all__ = [
     "file_system",
     "options",
     "__version__",
+    "diff",
 ]
 
 __version__ = "0.1.4"
