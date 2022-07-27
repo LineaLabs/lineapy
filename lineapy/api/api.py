@@ -2,6 +2,7 @@
 User facing APIs.
 """
 
+import difflib
 import logging
 import types
 import warnings
@@ -235,6 +236,36 @@ def try_write_to_pickle(value: object, filename: str) -> None:
         logger.error(e)
         track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
         raise e
+
+
+def diff(artifact_name: str, base_version=None, head_version=None) -> str:
+    # get database instance
+    execution_context = get_context()
+    executor = execution_context.executor
+    db = executor.db
+
+    head_version = head_version or db.get_latest_artifact_version(
+        artifact_name
+    )
+    if head_version <= 0:
+        raise ValueError(
+            f"Artifact {artifact_name} must have multiple versions."
+        )
+
+    base_version = base_version or head_version - 1
+
+    try:
+        head_artifact = get(artifact_name, version=head_version)
+        base_artifact = get(artifact_name, version=base_version)
+    except UserException:
+        raise NameError(
+            f"{artifact_name}:{base_version} or {head_version} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
+        )
+
+    head_code = head_artifact.get_code().split("\n")
+    base_code = base_artifact.get_code().split("\n")
+    diff = difflib.unified_diff(a=head_code, b=base_code)
+    return "\n".join([d for d in diff])
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
