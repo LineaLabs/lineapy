@@ -1,9 +1,9 @@
-import lineapy
-
-art = {}
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 
+import lineapy
+
+art = {}
 # Load train data
 url1 = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
 train_df = pd.read_csv(url1)
