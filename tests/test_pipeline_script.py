@@ -11,7 +11,7 @@ def check_requirements_txt(t1: str, t2: str):
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "artifact_names, dag_name, deps",
+    "execute", "artifact_names, dag_name, deps", indirect=True,
     [
         pytest.param(
             ["p value"],
