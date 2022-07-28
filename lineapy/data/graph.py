@@ -34,6 +34,7 @@ class Graph(object):
                 (parent_id, node.id)
                 for node in nodes
                 for parent_id in node.parents()
+                if parent_id in set(self.ids.keys())
             ]
         )
 
@@ -147,6 +148,17 @@ class Graph(object):
         FIXME
         """
         return Graph(nodes, self.session_context)
+
+    def get_subgraph_from_id(self, nodeids: List[LineaID]) -> "Graph":
+        """
+        Get subgraph from list of LineaID
+        """
+        nodes: List[Node] = []
+        for node_id in nodeids:
+            node = self.get_node(node_id)
+            if node is not None:
+                nodes.append(node)
+        return self.get_subgraph(nodes)
 
     def __str__(self):
         return prettify(
