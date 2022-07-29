@@ -13,6 +13,7 @@ from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.pipeline_writers import BasePipelineWriter
 from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
@@ -57,6 +58,9 @@ class ArtifactCollection:
             # Retrieve artifact
             try:
                 art = get(**args)
+                if args["artifact_name"] in self.art_name_to_node_id.keys():
+                    logger.error("%s is duplicated", args["artifact_name"])
+                    raise Exception(e)
                 self.art_name_to_node_id[args["artifact_name"]] = art._node_id
                 self.node_id_to_session_id[art._node_id] = art._session_id
             except Exception as e:
@@ -194,22 +198,25 @@ class ArtifactCollection:
         # Generate session function definition
         # TODO: Replace with jinja template
         if len(session_artifacts.artifact_list) == 1:
-            session_function = f"""\
-def {session_function_name}():
-{session_function_body}
-{indentation_block}return {session_function_return}
-"""
+            SESSION_FUNCTION_TEMPLATE = load_plugin_template(
+                "session_function_one_variable.jinja"
+            )
+            session_function = SESSION_FUNCTION_TEMPLATE.render(
+                indentation_block=indentation_block,
+                session_function_name=session_function_name,
+                session_function_body=session_function_body,
+                session_function_return=session_function_return,
+            )
         else:
-            session_function = f"""\
-def {session_function_name}():
-{indentation_block}# Given multiple artifacts, we need to save each right after
-{indentation_block}# its calculation to protect from any irrelevant downstream
-{indentation_block}# mutations (e.g., inside other artifact calculations)
-{indentation_block}import copy
-{indentation_block}{return_list_name} = []
-{session_function_body}
-{indentation_block}return {return_list_name}
-"""
+            SESSION_FUNCTION_TEMPLATE = load_plugin_template(
+                "session_function_multi_variables.jinja"
+            )
+            session_function = SESSION_FUNCTION_TEMPLATE.render(
+                indentation_block=indentation_block,
+                session_function_name=session_function_name,
+                session_function_body=session_function_body,
+                return_list_name=return_list_name,
+            )
 
         # Generate calculation code block for the session
         # This is to be used in multi-session module
@@ -276,20 +283,15 @@ def {session_function_name}():
 
         # Put all together to generate module text
         # TODO: Replace with jinja template
-        module_text = f"""\
-{module_imports}
-
-{artifact_functions}
-
-{session_functions}
-
-def run_all_sessions():
-{module_function_body}
-{indentation_block}return {module_function_return}
-
-if __name__ == "__main__":
-{indentation_block}run_all_sessions()
-"""
+        MODULE_TEMPLATE = load_plugin_template("module.jinja")
+        module_text = MODULE_TEMPLATE.render(
+            indentation_block=indentation_block,
+            module_imports=module_imports,
+            artifact_functions=artifact_functions,
+            session_functions=session_functions,
+            module_function_body=module_function_body,
+            module_function_return=module_function_return,
+        )
 
         return module_text
 
