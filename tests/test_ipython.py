@@ -141,6 +141,22 @@ res = lineapy.get("deferencedy")
     )
 
 
+def test_lineapy_import_included_in_artifact(run_cell):
+    code_body = """x = 1
+art = lineapy.save(x,"test")
+x =lineapy.get("test").get_value()
+y = x +1
+art2 = lineapy.save(y,"anthertest")"""
+    run_cell(code_body)
+    out = run_cell("art2.get_code()")
+    expected = """import lineapy
+
+x = lineapy.get("test").get_value()
+y = x + 1
+"""
+    assert expected == out
+
+
 @pytest.fixture
 def ip():
     """

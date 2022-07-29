@@ -2,8 +2,10 @@ import atexit
 
 from lineapy.api.api import (
     artifact_store,
+    create_pipeline,
     delete,
     get,
+    get_pipeline,
     reload,
     save,
     to_pipeline,
@@ -21,10 +23,12 @@ __all__ = [
     "Tracer",
     "save",
     "get",
+    "get_pipeline",
     "artifact_store",
     "delete",
     "reload",
     "to_pipeline",
+    "create_pipeline",
     "SessionType",
     "ValueType",
     "_is_executing",

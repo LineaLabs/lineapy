@@ -18,26 +18,46 @@ FORMAT = "%(message)s"
 
 
 def configure_logging(level=None, LOG_SQL=False):
-    # Get the loglevel from `LOGGING_ENV_VARIABLE` or set to WARNING
-    # if not defined
+    """
+    Configure logging for Lineapy.
+
+    Logging level is read first from the function parameter,
+    then lineapy_config options and defaults to INFO.
+
+    This function should be idempotent.
+    """
+
+    # Get the loglevel from options or set to INFO if not defined
     level = level or getattr(logging, options.logging_level, logging.INFO)
     # Disable black logging
     # https://github.com/psf/black/issues/2058
     logging.getLogger("blib2to3").setLevel(logging.ERROR)
 
+    # Set SQL log levels to match alembic.ini file if LOG_SQL is set,
+    # otherwise suppress warnings
     if LOG_SQL:
-        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.WARN)
+        logging.getLogger("alembic").setLevel(logging.WARN)
+    else:
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
+        logging.getLogger("alembic").setLevel(logging.ERROR)
 
-    logging.basicConfig(
-        level=level,
-        format=FORMAT,
-        datefmt="[%X]",
-        handlers=[
-            RichHandler(
-                console=Console(stderr=True),
-                show_time=False,
-                show_path=False,
-                show_level=False,
-            )
-        ],
+    # Configure root Logger
+    logger = logging.getLogger()
+
+    formatter = logging.Formatter(fmt=FORMAT, datefmt="[%X]")
+    handler = RichHandler(
+        console=Console(stderr=True),
+        show_time=False,
+        show_path=False,
+        show_level=False,
     )
+    handler.setFormatter(formatter)
+
+    # Remove old root handler(s).
+    # This is to have idempotent behavior for the root logger handlers
+    # when configure logging is called multiple times.
+    logger.handlers = []
+    logger.addHandler(handler)
+
+    logger.setLevel(level=level)

@@ -26,13 +26,14 @@ from rich.console import Console
 from rich.progress import Progress
 
 from lineapy.api.api_classes import LineaArtifact
+from lineapy.api.api_utils import extract_taskgraph
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.utils import slugify
-from lineapy.transformer.node_transformer import transform
+from lineapy.transformer.transform_code import transform
 from lineapy.utils.analytics.utils import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.config import (
@@ -57,6 +58,13 @@ logger = logging.getLogger(__name__)
     "--verbose",
     help="Print out logging for graph creation and execution.",
     is_flag=True,
+)
+@click.version_option(
+    None,
+    "--version",
+    "-v",
+    message="%(package)s %(version)s",
+    help="Print the Lineapy version number and exit.",
 )
 @click.option(
     "--home-dir",
@@ -86,11 +94,10 @@ logger = logging.getLogger(__name__)
 @click.option(
     "--logging-level",
     type=click.Choice(
-        list(logging._nameToLevel.keys())
-        + sorted([str(x) for x in set(logging._levelToName.keys())]),
+        list(logging._nameToLevel.keys()),
         case_sensitive=False,
     ),
-    help="Logging level for LineaPy.",
+    help="Logging level for LineaPy, overrides the --verbose flag if set.",
 )
 @click.option(
     "--logging-file",
@@ -114,15 +121,15 @@ def linea_cli(
 
     # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
     if verbose:
-        options.set("LINEAPY_LOG_LEVEL", "DEBUG")
+        options.set("logging_level", "DEBUG")
+    if logging_level:
+        options.set("logging_level", logging_level)
 
     configure_logging()
 
     for arg in args:
         if arg in options.__dict__.keys() and locals().get(arg) is not None:
             options.set(arg, locals().get(arg))
-
-    options._set_defaults()
 
 
 @linea_cli.command()
@@ -422,13 +429,9 @@ def python_cli(
             exit(1)
 
         ap = AirflowPlugin(db, tracer.tracer_context.get_session_id())
-        ap.sliced_airflow_dag(
-            slice,
-            export_slice_to_airflow_dag,
-            ast.literal_eval(airflow_task_dependencies)
-            if airflow_task_dependencies
-            else {},
-        )
+        task_dependencies = ast.literal_eval(airflow_task_dependencies or "{}")
+        _, task_graph = extract_taskgraph(slice, task_dependencies)
+        ap.sliced_airflow_dag(export_slice_to_airflow_dag, task_graph)
 
     db.close()
     if print_graph:

@@ -12,8 +12,6 @@ from lineapy.data.types import (
     SourceCodeLocation,
     SourceLocation,
 )
-from lineapy.editors.ipython_cell_storage import get_location_path
-from lineapy.exceptions.user_exception import RemoveFrames, UserException
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.transformer_util import create_lib_attributes
 from lineapy.utils.constants import (
@@ -64,43 +62,6 @@ from lineapy.utils.lineabuiltins import (
 from lineapy.utils.utils import get_new_id
 
 logger = logging.getLogger(__name__)
-
-
-def transform(
-    code: str, location: SourceCodeLocation, tracer: Tracer
-) -> Optional[Node]:
-    """
-    Traces the given code, executing it and writing the results to the DB.
-
-    It returns the node corresponding to the last statement in the code,
-    if it exists.
-    """
-
-    node_transformer = NodeTransformer(code, location, tracer)
-    try:
-        tree = ast.parse(
-            code,
-            str(get_location_path(location).absolute()),
-        )
-    except SyntaxError as e:
-        raise UserException(e, RemoveFrames(2))
-    if sys.version_info < (3, 8):
-        from asttokens import ASTTokens
-
-        from lineapy.transformer.source_giver import SourceGiver
-
-        # if python version is 3.7 or below, we need to run the source_giver
-        # to add the end_lineno's to the nodes. We do this in two steps - first
-        # the asttoken lib does its thing and adds tokens to the nodes
-        # and then we swoop in and copy the end_lineno from the tokens
-        # and claim credit for their hard work
-        ASTTokens(code, parse=False, tree=tree)
-        SourceGiver().transform(tree)
-
-    node_transformer.visit(tree)
-
-    tracer.db.commit()
-    return node_transformer.last_statement_result
 
 
 class NodeTransformer(ast.NodeTransformer):

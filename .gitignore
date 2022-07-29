@@ -116,6 +116,12 @@ ENV/
 env.bak/
 venv.bak/
 .idea/
+lineapy/bin
+lineapy/etc
+lineapy/include
+lineapy/lib64
+lineapy/pyvenv.cfg
+lineapy/share
 
 # Spyder project settings
 .spyderproject
@@ -158,7 +164,7 @@ p_value_housing.py
 y_housing.py
 
 # Result of --export-slice-to-airflow-dag
-sliced_housing_dag.py
+sliced_housing_dag*
 
 tracer
 *.pdf

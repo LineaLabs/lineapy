@@ -5,8 +5,7 @@ from lineapy.data.types import NodeType
 
 def test_variable_assign_to_node(execute):
     """
-    Test
-
+    Test general case for variable assignment
     """
     code = """import lineapy
 a=1
@@ -63,7 +62,7 @@ art_seal = lineapy.save(seal, "seal")
 
 def test_variable_assign_from_other_variable(execute):
     """
-    Test
+    Test variable assignment from existing variables
     """
     code = """import lineapy
 a=[]
@@ -82,7 +81,7 @@ art = lineapy.save(c,'c')
 
 def test_variable_assign_tuple(execute):
     """
-    Test
+    Test tuple assignment to variables
     """
     code = """import lineapy
 a, b = (1,2)

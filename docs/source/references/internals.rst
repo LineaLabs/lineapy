@@ -162,8 +162,7 @@ but I have given them names for readability):
       positional_args=['added'],
    )
 
-
-TODO: add visual of this in markdown with:
+This can also be seen by visualizing the artifact.
 
 .. code-block:: python
 
@@ -171,6 +170,10 @@ TODO: add visual of this in markdown with:
 
    artifact = lineapy.save(res, "res")
    artifact.visualize()
+
+.. image:: ../_static/images/example_graph.png
+  :width: 800
+  :alt: Visualization of graph generated from example code.
 
 
 Creating Graphs

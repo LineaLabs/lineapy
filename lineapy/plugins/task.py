@@ -40,6 +40,7 @@ class TaskGraph(object):
         edges: TaskGraphEdge = {},
     ):
         self.graph = nx.DiGraph()
+        self.artifact_raw_to_safe_mapping = mapping
         self.graph.add_nodes_from(nodes)
         # parsing the other format to our tuple-based format
         # note that nesting is not allowed (enforced by the type signature)

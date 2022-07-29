@@ -26,7 +26,7 @@ CallNode
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Union
+from typing import List, Union
 
 from sqlalchemy import (
     Boolean,
@@ -37,9 +37,11 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    UniqueConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from sqlalchemy.schema import Table
 
 from lineapy.data.types import (
     LineaID,
@@ -66,30 +68,94 @@ class SessionContextORM(Base):
     execution_id = Column(String, ForeignKey("execution.id"))
 
 
+artifact_to_pipeline_table = Table(
+    "artifact_to_pipeline",
+    Base.metadata,
+    Column("pipeline_id", ForeignKey("pipeline.id")),
+    Column("artifact_id", ForeignKey("artifact.id")),
+)
+
+dependency_to_artifact_table = Table(
+    "dependency_to_artifact_table",
+    Base.metadata,
+    Column("dependency_id", ForeignKey("dependency.id")),
+    Column("artifact_id", ForeignKey("artifact.id")),
+)
+
+
 class ArtifactORM(Base):
     """
     An artifact is a named pointer to a node.
     """
 
     __tablename__ = "artifact"
-    node_id: LineaID = Column(String, ForeignKey("node.id"), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    node_id: LineaID = Column(String, ForeignKey("node.id"), nullable=False)
     execution_id: LineaID = Column(
-        String, ForeignKey("execution.id"), primary_key=True
+        String, ForeignKey("execution.id"), nullable=False
     )
+
     name = Column(
         String,
         nullable=False,
         default=ARTIFACT_NAME_PLACEHOLDER,
-        primary_key=True,
     )
     date_created = Column(DateTime, nullable=False)
-    version = Column(Integer, nullable=False, primary_key=True)
+    version = Column(Integer, nullable=False)
 
     node: BaseNodeORM = relationship(
         "BaseNodeORM", uselist=False, lazy="joined", innerjoin=True
     )
     execution: ExecutionORM = relationship(
         "ExecutionORM", uselist=False, lazy="joined", innerjoin=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "name", "version", name="_unique_artifact_name_and_version"
+        ),
+        UniqueConstraint(
+            "name",
+            "node_id",
+            "execution_id",
+            "version",
+            name="_unique_artifact_name_for_a_node_id_and_exec_id",
+        ),
+    )
+
+
+class PipelineORM(Base):
+    __tablename__ = "pipeline"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    artifacts = relationship(
+        ArtifactORM, secondary=artifact_to_pipeline_table, collection_class=set
+    )
+    dependencies: List[ArtifactDependencyORM] = relationship(
+        "ArtifactDependencyORM",
+        back_populates="pipeline",
+    )
+
+
+class ArtifactDependencyORM(Base):
+    __tablename__ = "dependency"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pipeline_id = Column(Integer, ForeignKey("pipeline.id"), nullable=False)
+    pipeline = relationship(
+        PipelineORM, back_populates="dependencies", uselist=False
+    )
+    post_artifact_id = Column(
+        Integer, ForeignKey("artifact.id"), nullable=False
+    )
+    post_artifact = relationship(
+        ArtifactORM,
+        uselist=False,
+        foreign_keys=[post_artifact_id],
+    )
+    pre_artifacts = relationship(
+        ArtifactORM,
+        secondary=dependency_to_artifact_table,
+        collection_class=set,
     )
 
 

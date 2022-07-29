@@ -1,12 +1,12 @@
 [tool.black]
 line-length = 79
-extend-exclude = '(__snapshots__|integration/slices|integration/sources|integration/envs|outputs)'
+extend-exclude = '(__snapshots__|integration/slices|integration/sources|integration/envs|outputs|_alembic)'
 
 [tool.isort]
 profile = "black"
 skip_gitignore = true
 skip = ["__snapshots__"]
-skip_glob=["tests/integration/slices/*", "tests/integration/sources/*", "tests/integration/envs/*", "tests/outputs/*"]
+skip_glob=["tests/integration/slices/*", "tests/integration/sources/*", "tests/integration/envs/*", "tests/outputs/*", "lineapy/_alembic/*"]
 line_length = 79
 
 [tool.coverage.run]
@@ -19,7 +19,7 @@ relative_files = true
 
 [tool.mypy]
 
-exclude = '(/__snapshots__/|sliced_housing_dag*.py|tutorials/.*|integration/slices/.*|integration/sources/.*|integration/envs/.*|/outputs/|/build/)$'
+exclude = '(/__snapshots__/|sliced_housing_dag*.py|tutorials/.*|integration/slices/.*|integration/sources/.*|integration/envs/.*|/outputs/|/build/|/_alembic/)$'
 
 # https://docs.sqlalchemy.org/en/14/orm/extensions/mypy.html
 # https://pydantic-docs.helpmanual.io/mypy_plugin/#enabling-the-plugin
@@ -34,6 +34,5 @@ ignore_missing_imports = true
 
 # Do not raise errors on ignores which we don't need - hassle when supporting multiple python versions
 warn_unused_ignores = false
-
 
 warn_unreachable = true

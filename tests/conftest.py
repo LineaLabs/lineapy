@@ -10,18 +10,20 @@ from unittest.mock import patch
 
 import pytest
 import syrupy
+from alembic import config
 from syrupy.data import SnapshotFossil
 from syrupy.extensions.single_file import SingleFileSnapshotExtension
 
 from lineapy import save
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
+from lineapy.db.utils import create_lineadb_engine
 from lineapy.execution.executor import Executor
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.plugins.airflow import AirflowPlugin
 from lineapy.plugins.script import ScriptPlugin
-from lineapy.transformer.node_transformer import transform
+from lineapy.transformer.transform_code import transform
 from lineapy.utils.config import DB_FILE_NAME, options
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.logging_config import configure_logging
@@ -307,6 +309,36 @@ def move_folder(request):
         shutil.move(old_path_str, current_path_str)
 
 
+@pytest.fixture(autouse=True)
+def move_artifact_storage_dir():
+
+    current_path = Path(options.safe_get("artifact_storage_dir"))
+    current_path_str = str(current_path.resolve())
+    old_path = current_path.parent.joinpath(current_path.name + ".old")
+    old_path_str = str(old_path.resolve())
+
+    # If folder exists already, the test was canceled
+    # early previously. Clean up folder from
+    # previous run.
+    if old_path.exists():
+        shutil.rmtree(current_path_str, ignore_errors=True)
+    else:
+        shutil.move(current_path_str, old_path_str)
+
+    # create temp pickle folder to ensure debug message from
+    # folder creation in options does not cause tests in
+    # test_script to fail
+    current_path.mkdir(parents=True, exist_ok=True)
+
+    yield
+
+    # clean up test-generated directories
+    if current_path.exists():
+        shutil.rmtree(current_path_str)
+    if old_path.exists():
+        shutil.move(old_path_str, current_path_str)
+
+
 @pytest.fixture
 @patch("lineapy.api.api.try_write_to_pickle", return_value=None)
 @patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
@@ -353,3 +385,30 @@ def print_tree_log_fixture(request, capsys):
         # Don't capture stdout when printing, to preserve colors and column width
         with capsys.disabled():
             print_tree_log()
+
+
+@pytest.fixture()
+def db_url(tmp_path_factory):
+    return (
+        f"sqlite:///{tmp_path_factory.mktemp('db').as_posix()}/{DB_FILE_NAME}"
+    )
+
+
+@pytest.fixture
+def alembic_config(db_url):
+    lp_install_dir = Path(__file__).resolve().parent.parent / "lineapy"
+    alembic_cfg = config.Config(str(lp_install_dir / "alembic.ini"))
+    alembic_cfg.set_main_option(
+        "script_location",
+        (lp_install_dir / "_alembic").as_posix(),
+    )
+    alembic_cfg.set_main_option(
+        "sqlalchemy.url",
+        db_url,
+    )
+    return alembic_cfg
+
+
+@pytest.fixture
+def alembic_engine(db_url):
+    return create_lineadb_engine(db_url)
