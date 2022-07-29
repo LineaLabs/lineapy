@@ -113,6 +113,9 @@ COLORS: Dict[ColorableType, str] = defaultdict(
         # Make same color as mutate node
         VisualEdgeType.LATEST_MUTATE_SOURCE: BREWER_PASTEL["red"],
         VisualEdgeType.VIEW: BREWER_PASTEL["blue"],
+        VisualEdgeType.CONTROL_DEPENDENCY: BREWER_PASTEL["red"],
+        VisualEdgeType.LINKED_CONTROL_BLOCK: BREWER_PASTEL["red"],
+        VisualEdgeType.UNEXEC_CODE_BLOCK: BREWER_PASTEL["red"],
     },
 )
 
@@ -152,9 +155,9 @@ EDGE_STYLES = defaultdict(
         VisualEdgeType.NEXT_LINE: "invis",
         VisualEdgeType.SOURCE_CODE: "dotted",
         VisualEdgeType.IMPLICIT_DEPENDENCY: "bold",
-        VisualEdgeType.CONTROL_DEPENDENCY: "tapered",
-        VisualEdgeType.LINKED_CONTROL_BLOCK: "tapered",
-        VisualEdgeType.UNEXEC_CODE_BLOCK: "tapered",
+        VisualEdgeType.CONTROL_DEPENDENCY: "dashed",
+        VisualEdgeType.LINKED_CONTROL_BLOCK: "dashed",
+        VisualEdgeType.UNEXEC_CODE_BLOCK: "dashed",
     },
 )
 

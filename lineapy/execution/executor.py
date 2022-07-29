@@ -251,7 +251,7 @@ class Executor:
         return PrivateExecuteResult(
             # An `execute if` uses the test condition to create a new control flow node  a global set by a call node so,
             # Copy the result and the timing from the call node
-            self._id_to_value[node.test_id],
+            None,
             *self._execution_time[node.test_id],
             [],
         )
