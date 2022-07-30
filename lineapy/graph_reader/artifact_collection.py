@@ -57,7 +57,15 @@ class ArtifactCollection:
 
             # Retrieve artifact
             try:
-                art = get(**args)
+                # art = get(**args)
+                version = args.get("version", None)
+                if version is None:
+                    art = get(artifact_name=args["artifact_name"])
+                else:
+                    art = get(
+                        artifact_name=args["artifact_name"],
+                        version=int(version),
+                    )
                 if args["artifact_name"] in self.art_name_to_node_id.keys():
                     logger.error("%s is duplicated", args["artifact_name"])
                     raise KeyError("%s is duplicated", args["artifact_name"])
@@ -118,15 +126,14 @@ class ArtifactCollection:
 
         # Identify topological ordering between sessions
         session_id_nodes = list(self.session_artifacts.keys())
-        session_id_edges = [
-            (
-                self.node_id_to_session_id.get(node_id, None),
-                self.node_id_to_session_id.get(to_node_id, None),
-            )
-            for node_id, to_node_id in dependency_edges
-            if self.node_id_to_session_id.get(node_id, None)
-            != self.node_id_to_session_id.get(to_node_id, None)
-        ]
+        session_id_edges = []
+        for node_id, to_node_id in dependency_edges:
+            assert node_id is not None
+            assert to_node_id is not None
+            from_session_id = self.node_id_to_session_id.get(node_id, None)
+            to_session_id = self.node_id_to_session_id.get(to_node_id, None)
+            if from_session_id is not None and to_session_id is not None:
+                session_id_edges.append((from_session_id, to_session_id))
         inter_session_graph = nx.DiGraph()
         inter_session_graph.add_nodes_from(session_id_nodes)
         inter_session_graph.add_edges_from(session_id_edges)
@@ -242,7 +249,7 @@ class ArtifactCollection:
         indentation_block = " " * indentation
 
         # Initiate store for module script components
-        module_dict = {
+        module_dict: Dict[str, List[str]] = {
             "session_imports": [],
             "artifact_functions": [],
             "session_function": [],
