@@ -1,8 +1,8 @@
 import logging
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
-from lineapy.graph_reader.api_utils import de_lineate_code
+from lineapy.api.api_utils import de_lineate_code
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.utils import load_plugin_template
@@ -38,7 +38,7 @@ class BasePipelineWriter:
 
     def _write_dag(self) -> None:
         # Initiate store for DAG script components
-        main_module_dict = {
+        main_module_dict: Dict[str, List[str]] = {
             "import_lines": [],
             "calculation_lines": [],
             "return_varnames": [],

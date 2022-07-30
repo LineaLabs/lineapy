@@ -60,7 +60,7 @@ class ArtifactCollection:
                 art = get(**args)
                 if args["artifact_name"] in self.art_name_to_node_id.keys():
                     logger.error("%s is duplicated", args["artifact_name"])
-                    raise Exception(e)
+                    raise KeyError("%s is duplicated", args["artifact_name"])
                 self.art_name_to_node_id[args["artifact_name"]] = art._node_id
                 self.node_id_to_session_id[art._node_id] = art._session_id
             except Exception as e:
