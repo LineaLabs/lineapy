@@ -1,0 +1,58 @@
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+
+def get_df():
+    df = pd.DataFrame({"a": [1, 2]})
+    return df
+
+
+def get_url1_for_artifact_iris_model_and_downstream():
+    url1 = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+    return url1
+
+
+def get_iris_model(url1):
+    train_df = pd.read_csv(url1)
+    mod = LinearRegression()
+    mod.fit(
+        X=train_df[["petal.width"]],
+        y=train_df["petal.length"],
+    )
+    return mod
+
+
+def get_iris_petal_length_pred(mod, url1):
+    pred_df = pd.read_csv(url1)
+    petal_length_pred = mod.predict(X=pred_df[["petal.width"]])
+    return petal_length_pred
+
+
+def run_session_including_df():
+    df = get_df()
+    return df
+
+
+def run_session_including_iris_model():
+    # Given multiple artifacts, we need to save each right after
+    # its calculation to protect from any irrelevant downstream
+    # mutations (e.g., inside other artifact calculations)
+    import copy
+
+    artifacts = []
+    url1 = get_url1_for_artifact_iris_model_and_downstream()
+    mod = get_iris_model(url1)
+    artifacts.append(copy.deepcopy(mod))
+    petal_length_pred = get_iris_petal_length_pred(mod, url1)
+    artifacts.append(copy.deepcopy(petal_length_pred))
+    return artifacts
+
+
+def run_all_sessions():
+    df = run_session_including_df()
+    mod, petal_length_pred = run_session_including_iris_model()
+    return df, mod, petal_length_pred
+
+
+if __name__ == "__main__":
+    run_all_sessions()
