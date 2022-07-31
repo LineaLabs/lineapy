@@ -328,6 +328,26 @@ class ArtifactCollection:
 
         return prettify(module_text)
 
+    def get_session_module(self, dependencies: TaskGraphEdge = {}):
+        import importlib.util
+        import sys
+        from importlib.abc import Loader
+
+        module_name = f"session_{'_'.join(self.session_artifacts.keys())}"
+        with open(f"/tmp/{module_name}.py", "w") as f:
+            f.writelines(self.generate_module(dependencies=dependencies))
+        spec = importlib.util.spec_from_file_location(
+            module_name, f"/tmp/{module_name}.py"
+        )
+        if spec is not None:
+            session_module = importlib.util.module_from_spec(spec)
+            assert isinstance(spec.loader, Loader)
+            sys.modules["module.name"] = session_module
+            spec.loader.exec_module(session_module)
+            return session_module
+
+        return
+
     def generate_pipeline_files(
         self,
         framework: str = "SCRIPT",
