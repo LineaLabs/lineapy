@@ -186,9 +186,9 @@ class TestNodeTransformer:
         # Checking whether all cases to set end_lineno for returned
         # SourceLocation are hit
         assert test_node.orelse[0].lineno - 1 == source_location.end_lineno
-        lines = slice(source_location.lineno - 1, source_location.end_lineno)
+        lines = slice(source_location.lineno, source_location.end_lineno + 1)
         # Ensuring that the line including "else:" in code above gets included
-        assert 5 in lines
+        assert 5 in range(lines.start, lines.stop)
 
     def test_get_else_source_no_newline_after_else_keyword(self):
         CODE = """if a:\n\tb\nelse: c"""
@@ -197,9 +197,9 @@ class TestNodeTransformer:
         # Checking whether all cases to set end_lineno for returned
         # SourceLocation are hit
         assert test_node.body[-1].end_lineno + 1 == source_location.end_lineno
-        lines = slice(source_location.lineno - 1, source_location.end_lineno)
+        lines = slice(source_location.lineno, source_location.end_lineno + 1)
         # Ensuring that the line including "else:" in code above gets included
-        assert 3 in lines
+        assert 3 in range(lines.start, lines.stop)
 
     @pytest.mark.parametrize(
         "code", ["del a[3]", "del a.x"], ids=["delitem", "delattr"]
