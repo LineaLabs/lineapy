@@ -474,7 +474,7 @@ class Tracer:
         self.process_node(node)
         return node
 
-    def control_node(
+    def get_control_node(
         self,
         type: NodeType,
         node_id: LineaID,

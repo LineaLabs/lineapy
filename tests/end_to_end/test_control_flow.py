@@ -44,7 +44,9 @@ while idx < len(x):
 
 
 def test_if_should_slice_within_if(execute):
-    # TODO: We only slice within a block if we can execute it. Later, we need to be able to ensure we can perform slicing among unvisited blocks as well
+    # TODO: We only slice within a block if we can execute it. Later, we need
+    # to be able to ensure we can perform slicing among unvisited blocks as
+    # well
     CODE = """a = 10
 b = 20
 if a > 5:
@@ -89,7 +91,9 @@ if a > 5:
 
 
 def test_if_should_slice_within_else(execute):
-    # TODO: We only slice within a block if we can execute it. Later, we need to be able to ensure we can perform slicing among unvisited blocks as well
+    # TODO: We only slice within a block if we can execute it. Later, we need
+    # to be able to ensure we can perform slicing among unvisited blocks as
+    # well
     CODE = """a = 10
 b = 20
 if a <= 5:
@@ -179,8 +183,9 @@ else:
 """
     )
 
-    # TODO: Note that the sliced code would not run in case we visit a different branch other than
-    # the one seen during the creation of the graph. When static analysis is introduced, this test should be fixed.
+    # TODO: Note that the sliced code would not run in case we visit a
+    # different branch other than the one seen during the creation of the graph.
+    # When static analysis is introduced, this test should be fixed.
 
 
 def test_if_nested_should_slice_within_inner_else(execute):

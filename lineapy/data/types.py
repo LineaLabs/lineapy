@@ -256,6 +256,12 @@ class BaseNode(BaseModel):
     - lineno, col_offset, end_lino, end_col_offsets: these record the position
       of the calls. They are optional because it's not required some nodes,
       such as side-effects nodes, which do not correspond to a line of code.
+    - control_dependency: points to a ControlFlowNode which the generation of
+      the current node is dependent upon. For example, in the snippet
+      `if condition: l.append(0)`, the `append` instruction's execution depends
+      on the condition being true or not, hence the MutateNode corresponding to
+      the append instruction will have it's control_dependency field pointing
+      to the IfNode of the condition. Refer to tracer.py for usage.
 
     - `class Config`'s orm_mode allows us to use from_orm to convert ORM
       objects to pydantic objects
@@ -459,12 +465,10 @@ class ElseNode(ControlFlowNode):
     node_type = Field(NodeType.ElseNode, repr=False)
 
     # Points to the attached node
-    # Could be `if`, `for`, `while`, etc.
-    # The definition here is used only for typing purposes, it will automatically be included in super().parents()
+    # Could be a node corresponding to `if`, `for`, `while`, etc.
+    # The definition here is used only for typing purposes, it will
+    # automatically be included in super().parents()
     companion_id: LineaID
-
-    def parents(self) -> Iterable[LineaID]:
-        yield from super().parents()
 
 
 ControlNode = Union[IfNode, ElseNode]

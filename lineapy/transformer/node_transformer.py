@@ -286,7 +286,7 @@ class NodeTransformer(ast.NodeTransformer):
         else_id = get_new_id() if len(node.orelse) > 0 else None
 
         if self.tracer.executor._id_to_value[test_call_node.id]:
-            with self.tracer.control_node(
+            with self.tracer.get_control_node(
                 NodeType.IfNode,
                 node_id,
                 else_id,
@@ -297,7 +297,7 @@ class NodeTransformer(ast.NodeTransformer):
                 for stmt in node.body:
                     self.visit(stmt)
             if else_id is not None:
-                with self.tracer.control_node(
+                with self.tracer.get_control_node(
                     NodeType.ElseNode,
                     else_id,
                     node_id,
@@ -307,7 +307,7 @@ class NodeTransformer(ast.NodeTransformer):
                 ):
                     pass
         else:
-            with self.tracer.control_node(
+            with self.tracer.get_control_node(
                 NodeType.IfNode,
                 node_id,
                 else_id,
@@ -317,7 +317,7 @@ class NodeTransformer(ast.NodeTransformer):
             ):
                 pass
             if else_id is not None:
-                with self.tracer.control_node(
+                with self.tracer.get_control_node(
                     NodeType.ElseNode,
                     else_id,
                     node_id,
