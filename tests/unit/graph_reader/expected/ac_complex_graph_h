@@ -15,13 +15,21 @@ def get_h():
 
 
 def run_session_including_h():
+    # Given multiple artifacts, we need to save each right after
+    # its calculation to protect from any irrelevant downstream
+    # mutations (e.g., inside other artifact calculations)
+    import copy
+
+    artifacts = dict()
     h = get_h()
-    return h
+    artifacts["h"] = copy.deepcopy(h)
+    return artifacts
 
 
 def run_all_sessions():
-    h = run_session_including_h()
-    return h
+    artifacts = dict()
+    artifacts.update(run_session_including_h())
+    return artifacts
 
 
 if __name__ == "__main__":

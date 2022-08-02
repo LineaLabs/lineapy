@@ -80,9 +80,6 @@ def test_one_session(execute, input_script, artifact_list, expected_output):
         + f"ac = ArtifactCollection([{artifact_string}])"
     )
     res = execute(code, snapshot=False)
-    # art = res.values["art"]
-    # sas = SessionArtifacts([art[art_name] for art_name in artifact_list])
-    # ac = ArtifactCollection(artifact_list)
     ac = res.values["ac"]
     refactor_result = ac.generate_module()
     expected_result = pathlib.Path(
@@ -106,17 +103,17 @@ def test_one_session(execute, input_script, artifact_list, expected_output):
             "simple",
             "complex",
             ["b0", "a0"],
-            "two_session_b0_a0",
-            {},
-            id="two_session_b0_a0",
+            "two_session_b0_a0_dependencies",
+            {"b0": {"a0"}},
+            id="two_session_b0_a0_dependencies",
         ),
         pytest.param(
             "simple",
             "complex",
             ["b0", "a0"],
-            "two_session_b0_a0_dependencies",
-            {"b0": {"a0"}},
-            id="two_session_b0_a0_dependencies",
+            "two_session_b0_a0_dependencies2",
+            {"a0": {"b0"}},
+            id="two_session_b0_a0_dependencies2",
         ),
         pytest.param(
             "module_import_alias",

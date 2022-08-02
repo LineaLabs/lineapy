@@ -55,30 +55,31 @@ def run_session_including_a():
     # mutations (e.g., inside other artifact calculations)
     import copy
 
-    artifacts = []
+    artifacts = dict()
     a = get_a()
-    artifacts.append(copy.deepcopy(a))
+    artifacts["a"] = copy.deepcopy(a)
     a0 = get_a0()
-    artifacts.append(copy.deepcopy(a0))
+    artifacts["a0"] = copy.deepcopy(a0)
     a = get_a_for_artifact_c_and_downstream(a)
     c = get_c(a, a0)
-    artifacts.append(copy.deepcopy(c))
+    artifacts["c"] = copy.deepcopy(c)
     f = get_f(c)
-    artifacts.append(copy.deepcopy(f))
+    artifacts["f"] = copy.deepcopy(f)
     e = get_e(a)
-    artifacts.append(copy.deepcopy(e))
+    artifacts["e"] = copy.deepcopy(e)
     g = get_g2(c, e)
-    artifacts.append(copy.deepcopy(g))
+    artifacts["g2"] = copy.deepcopy(g)
     h = get_h(a, g)
-    artifacts.append(copy.deepcopy(h))
+    artifacts["h"] = copy.deepcopy(h)
     z = get_z(h)
-    artifacts.append(copy.deepcopy(z))
+    artifacts["z"] = copy.deepcopy(z)
     return artifacts
 
 
 def run_all_sessions():
-    a, a0, c, f, e, g, h, z = run_session_including_a()
-    return a, a0, c, f, e, g, h, z
+    artifacts = dict()
+    artifacts.update(run_session_including_a())
+    return artifacts
 
 
 if __name__ == "__main__":

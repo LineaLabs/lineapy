@@ -17,17 +17,18 @@ def run_session_including_df():
     # mutations (e.g., inside other artifact calculations)
     import copy
 
-    artifacts = []
+    artifacts = dict()
     df = get_df()
-    artifacts.append(copy.deepcopy(df))
+    artifacts["df"] = copy.deepcopy(df)
     df2 = get_df2(df)
-    artifacts.append(copy.deepcopy(df2))
+    artifacts["df2"] = copy.deepcopy(df2)
     return artifacts
 
 
 def run_all_sessions():
-    df, df2 = run_session_including_df()
-    return df, df2
+    artifacts = dict()
+    artifacts.update(run_session_including_df())
+    return artifacts
 
 
 if __name__ == "__main__":

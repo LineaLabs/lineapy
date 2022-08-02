@@ -10,19 +10,34 @@ def get_b0():
 
 
 def run_session_including_a0():
+    # Given multiple artifacts, we need to save each right after
+    # its calculation to protect from any irrelevant downstream
+    # mutations (e.g., inside other artifact calculations)
+    import copy
+
+    artifacts = dict()
     a0 = get_a0()
-    return a0
+    artifacts["a0"] = copy.deepcopy(a0)
+    return artifacts
 
 
 def run_session_including_b0():
+    # Given multiple artifacts, we need to save each right after
+    # its calculation to protect from any irrelevant downstream
+    # mutations (e.g., inside other artifact calculations)
+    import copy
+
+    artifacts = dict()
     b0 = get_b0()
-    return b0
+    artifacts["b0"] = copy.deepcopy(b0)
+    return artifacts
 
 
 def run_all_sessions():
-    a0 = run_session_including_a0()
-    b0 = run_session_including_b0()
-    return a0, b0
+    artifacts = dict()
+    artifacts.update(run_session_including_a0())
+    artifacts.update(run_session_including_b0())
+    return artifacts
 
 
 if __name__ == "__main__":

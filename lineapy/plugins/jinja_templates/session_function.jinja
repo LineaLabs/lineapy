@@ -3,6 +3,6 @@ def {{session_function_name}}():
 {{indentation_block}}# its calculation to protect from any irrelevant downstream
 {{indentation_block}}# mutations (e.g., inside other artifact calculations)
 {{indentation_block}}import copy
-{{indentation_block}}{{return_list_name}} = []
+{{indentation_block}}{{return_dict_name}} = dict()
 {{session_function_body}}
-{{indentation_block}}return {{return_list_name}}
+{{indentation_block}}return {{return_dict_name}}

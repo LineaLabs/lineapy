@@ -29,18 +29,19 @@ def run_session_including_iris_model():
     # mutations (e.g., inside other artifact calculations)
     import copy
 
-    artifacts = []
+    artifacts = dict()
     url1 = get_url1_for_artifact_iris_model_and_downstream()
     mod = get_iris_model(url1)
-    artifacts.append(copy.deepcopy(mod))
+    artifacts["iris_model"] = copy.deepcopy(mod)
     petal_length_pred = get_iris_petal_length_pred(mod, url1)
-    artifacts.append(copy.deepcopy(petal_length_pred))
+    artifacts["iris_petal_length_pred"] = copy.deepcopy(petal_length_pred)
     return artifacts
 
 
 def run_all_sessions():
-    mod, petal_length_pred = run_session_including_iris_model()
-    return mod, petal_length_pred
+    artifacts = dict()
+    artifacts.update(run_session_including_iris_model())
+    return artifacts
 
 
 if __name__ == "__main__":

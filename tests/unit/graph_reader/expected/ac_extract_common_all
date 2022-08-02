@@ -20,18 +20,19 @@ def run_session_including_b():
     # mutations (e.g., inside other artifact calculations)
     import copy
 
-    artifacts = []
+    artifacts = dict()
     a = get_a_for_artifact_b_and_downstream()
     b = get_b(a)
-    artifacts.append(copy.deepcopy(b))
+    artifacts["b"] = copy.deepcopy(b)
     c = get_c(a)
-    artifacts.append(copy.deepcopy(c))
+    artifacts["c"] = copy.deepcopy(c)
     return artifacts
 
 
 def run_all_sessions():
-    b, c = run_session_including_b()
-    return b, c
+    artifacts = dict()
+    artifacts.update(run_session_including_b())
+    return artifacts
 
 
 if __name__ == "__main__":

@@ -178,16 +178,15 @@ class ArtifactCollection:
         session_function_name = f"run_session_including_{first_art_name}"
 
         # Generate session function body
-        return_list_name = "artifacts"  # List for capturing artifacts before irrelevant downstream mutation
+        return_dict_name = "artifacts"  # List for capturing artifacts before irrelevant downstream mutation
         session_function_body = "\n".join(
             [
                 coll.get_function_call_block(
                     indentation=indentation,
                     keep_lineapy_save=False,
                     result_placeholder=None
-                    if len(session_artifacts.artifact_list) == 1
-                    or coll.collection_type != NodeCollectionType.ARTIFACT
-                    else return_list_name,
+                    if coll.collection_type != NodeCollectionType.ARTIFACT
+                    else return_dict_name,
                 )
                 for coll in session_artifacts.artifact_nodecollections
             ]
@@ -202,32 +201,21 @@ class ArtifactCollection:
             ]
         )
 
-        # Generate session function definition
-        # TODO: Replace with jinja template
-        if len(session_artifacts.artifact_list) == 1:
-            SESSION_FUNCTION_TEMPLATE = load_plugin_template(
-                "session_function_one_variable.jinja"
-            )
-            session_function = SESSION_FUNCTION_TEMPLATE.render(
-                indentation_block=indentation_block,
-                session_function_name=session_function_name,
-                session_function_body=session_function_body,
-                session_function_return=session_function_return,
-            )
-        else:
-            SESSION_FUNCTION_TEMPLATE = load_plugin_template(
-                "session_function_multi_variables.jinja"
-            )
-            session_function = SESSION_FUNCTION_TEMPLATE.render(
-                indentation_block=indentation_block,
-                session_function_name=session_function_name,
-                session_function_body=session_function_body,
-                return_list_name=return_list_name,
-            )
+        SESSION_FUNCTION_TEMPLATE = load_plugin_template(
+            "session_function.jinja"
+        )
+        session_function = SESSION_FUNCTION_TEMPLATE.render(
+            indentation_block=indentation_block,
+            session_function_name=session_function_name,
+            session_function_body=session_function_body,
+            return_dict_name=return_dict_name,
+        )
 
         # Generate calculation code block for the session
         # This is to be used in multi-session module
-        session_calculation = f"{indentation_block}{session_function_return} = {session_function_name}()"
+        session_calculation = (
+            f"{indentation_block}artifacts.update({session_function_name}())"
+        )
 
         return {
             "session_imports": session_imports,
