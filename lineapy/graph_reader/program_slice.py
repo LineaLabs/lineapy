@@ -30,6 +30,28 @@ def get_slice_graph(
     :return: A subgraph extracted (i.e., sliced) for the desired node IDs.
 
     """
+    ancestors = _get_preliminary_slice(graph, sinks, keep_lineapy_save)
+
+    ancestors = _include_dependencies_for_indirectly_included_nodes_in_slice(
+        graph, ancestors
+    )
+
+    new_nodes = [graph.ids[node] for node in ancestors]
+    subgraph = graph.get_subgraph(new_nodes)
+    return subgraph
+
+
+def _get_preliminary_slice(
+    graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool
+) -> Set[LineaID]:
+    """
+    Computes a preliminary slice first evaluates what all nodes serve as sinks,
+    and then for each of the sinks from what all nodes in the graph, can the
+    sinks be reached (all ancestors of all sinks)
+    Note that this function is not the final slice as it is possible that some
+    relevant nodes are not included through the ancestor relation. For more
+    details see  _include_dependencies_for_indirectly_included_nodes_in_slice
+    """
     for node in graph.nodes:
         # If there is a control flow node which has a branch which was never
         # encountered during runtime, we take a conservative approach and
@@ -65,13 +87,7 @@ def get_slice_graph(
     for sink in sinks:
         ancestors.update(graph.get_ancestors(sink))
 
-    ancestors = _include_dependencies_for_indirectly_included_nodes_in_slice(
-        graph, ancestors
-    )
-
-    new_nodes = [graph.ids[node] for node in ancestors]
-    subgraph = graph.get_subgraph(new_nodes)
-    return subgraph
+    return ancestors
 
 
 def _include_dependencies_for_indirectly_included_nodes_in_slice(
