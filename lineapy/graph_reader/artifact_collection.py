@@ -1,17 +1,15 @@
 import logging
 from dataclasses import dataclass
 from itertools import chain
-from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 import networkx as nx
 
 from lineapy.api.api import get
 from lineapy.api.api_classes import LineaArtifact
-from lineapy.data.types import LineaID, PipelineType
+from lineapy.data.types import LineaID
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
-from lineapy.plugins.pipeline_writers import BasePipelineWriter
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -335,67 +333,3 @@ class ArtifactCollection:
             return session_module
 
         return
-
-    def generate_pipeline_files(
-        self,
-        framework: str = "SCRIPT",
-        dependencies: TaskGraphEdge = {},
-        keep_lineapy_save: bool = False,
-        pipeline_name: str = "pipeline",
-        output_dir: str = ".",
-    ):
-        """
-        Use modularized artifact code to generate standard pipeline files,
-        including Python modules, DAG script, and infra files (e.g., Dockerfile).
-
-        Actual code generation and writing is delegated to the "writer" class
-        for each framework type (e.g., "SCRIPT").
-        """
-        output_path = Path(output_dir, pipeline_name)
-        output_path.mkdir(exist_ok=True, parents=True)
-
-        # Sort sessions topologically (applicable if artifacts come from multiple sessions)
-        session_artifacts_sorted = self._sort_session_artifacts(
-            dependencies=dependencies
-        )
-
-        # Write out module file
-        module_text = self._compose_module(
-            session_artifacts_sorted=session_artifacts_sorted,
-            indentation=4,
-        )
-        module_file = output_path / f"{pipeline_name}_module.py"
-        module_file.write_text(prettify(module_text))
-        logger.info("Generated module file")
-
-        # Write out requirements file
-        # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
-        db = session_artifacts_sorted[0].db
-        lib_names_text = ""
-        for session_artifacts in session_artifacts_sorted:
-            session_libs = db.get_libraries_for_session(
-                session_artifacts.session_id
-            )
-            for lib in session_libs:
-                lib_names_text += f"{lib.package_name}=={lib.version}\n"
-        requirements_file = output_path / f"{pipeline_name}_requirements.txt"
-        requirements_file.write_text(lib_names_text)
-        logger.info("Generated requirements file")
-
-        # Delegate to framework-specific writer
-        if framework in PipelineType.__members__:
-            if PipelineType[framework] == PipelineType.AIRFLOW:
-                raise NotImplementedError("Airflow writer to be implemented!")
-            else:
-                pipeline_writer = BasePipelineWriter(
-                    session_artifacts_sorted=session_artifacts_sorted,
-                    keep_lineapy_save=keep_lineapy_save,
-                    pipeline_name=pipeline_name,
-                    output_dir=output_dir,
-                )
-        else:
-            raise ValueError(
-                f'"{framework}" is an invalid value for framework.'
-            )
-
-        return pipeline_writer.write_pipeline_files()
