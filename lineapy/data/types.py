@@ -67,6 +67,8 @@ class NodeType(Enum):
     LookupNode = auto()
     MutateNode = auto()
     GlobalNode = auto()
+    IfNode = auto()
+    ElseNode = auto()
 
 
 class LiteralType(Enum):
@@ -254,6 +256,12 @@ class BaseNode(BaseModel):
     - lineno, col_offset, end_lino, end_col_offsets: these record the position
       of the calls. They are optional because it's not required some nodes,
       such as side-effects nodes, which do not correspond to a line of code.
+    - control_dependency: points to a ControlFlowNode which the generation of
+      the current node is dependent upon. For example, in the snippet
+      `if condition: l.append(0)`, the `append` instruction's execution depends
+      on the condition being true or not, hence the MutateNode corresponding to
+      the append instruction will have it's control_dependency field pointing
+      to the IfNode of the condition. Refer to tracer.py for usage.
 
     - `class Config`'s orm_mode allows us to use from_orm to convert ORM
       objects to pydantic objects
@@ -264,6 +272,7 @@ class BaseNode(BaseModel):
     session_id: LineaID = Field(repr=False)  # refers to SessionContext.id
     node_type: NodeType = Field(NodeType.Node, repr=False)
     source_location: Optional[SourceLocation] = Field(repr=False)
+    control_dependency: Optional[LineaID]
 
     class Config:
         orm_mode = True
@@ -289,9 +298,9 @@ class BaseNode(BaseModel):
         """
         Returns the parents of this node.
         """
-        # Make an empty generator by yielding from an empty list
-
-        yield from []
+        # Return control dependencies, which could exist for any node
+        if self.control_dependency:
+            yield self.control_dependency
 
 
 class ImportNode(BaseNode):
@@ -348,6 +357,7 @@ class CallNode(BaseNode):
     implicit_dependencies: List[LineaID] = []
 
     def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
         yield self.function_id
         yield from [node.id for node in self.positional_args]
         yield from [node.value for node in self.keyword_args]
@@ -386,6 +396,7 @@ class MutateNode(BaseNode):
     call_id: LineaID
 
     def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
         yield self.source_id
         yield self.call_id
 
@@ -405,13 +416,74 @@ class GlobalNode(BaseNode):
     call_id: LineaID
 
     def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
         yield self.call_id
+
+
+class ControlFlowNode(BaseNode):
+    """
+    Represents a control flow node like `if`, `else`, `for`, `while`
+    """
+
+    node_type = Field(NodeType.Node, repr=False)
+
+    # Points to the attached node
+    # For `if` node, it will be an `else` node, for an `else` node it could be an `if` node, `while` node etc.
+    companion_id: Optional[LineaID]
+
+    # LiteralNode containing the code, if the block is not executed
+    unexec_id: Optional[LineaID]
+
+    def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
+        if self.companion_id:
+            yield self.companion_id
+        if self.unexec_id:
+            yield self.unexec_id
+
+
+class IfNode(ControlFlowNode):
+    """
+    Represents the `if` keyword
+    """
+
+    node_type = Field(NodeType.IfNode, repr=False)
+
+    # Points to the call node which forms the expression to test
+    test_id: LineaID
+
+    def parents(self) -> Iterable[LineaID]:
+        yield from super().parents()
+        yield self.test_id
+
+
+class ElseNode(ControlFlowNode):
+    """
+    Represents the `else` keyword
+    """
+
+    node_type = Field(NodeType.ElseNode, repr=False)
+
+    # Points to the attached node
+    # Could be a node corresponding to `if`, `for`, `while`, etc.
+    # The definition here is used only for typing purposes, it will
+    # automatically be included in super().parents()
+    companion_id: LineaID
+
+
+ControlNode = Union[IfNode, ElseNode]
 
 
 # We can use this for more precise type definitions, to make sure we hit
 # all the node cases
 Node = Union[
-    ImportNode, CallNode, LiteralNode, LookupNode, MutateNode, GlobalNode
+    ImportNode,
+    CallNode,
+    LiteralNode,
+    LookupNode,
+    MutateNode,
+    GlobalNode,
+    ControlNode,
 ]
 
 

@@ -164,6 +164,28 @@ class TestNodeTransformer:
         self.nt.visit(test_node.body[0])
         self.nt.visit_Delete.assert_called_once_with(test_node.body[0])
 
+    def test_get_else_source_space_after_if_block(self):
+        CODE = """if a:\n\tb\n\n\nelse:\n\tc"""
+        test_node = _get_ast_node(CODE).body[0]
+        source_location = self.nt.get_else_source(test_node)
+        # Checking whether all cases to set end_lineno for returned
+        # SourceLocation are hit
+        assert test_node.orelse[0].lineno - 1 == source_location.end_lineno
+        lines = slice(source_location.lineno, source_location.end_lineno + 1)
+        # Ensuring that the line including "else:" in code above gets included
+        assert 5 in range(lines.start, lines.stop)
+
+    def test_get_else_source_no_newline_after_else_keyword(self):
+        CODE = """if a:\n\tb\nelse: c"""
+        test_node = _get_ast_node(CODE).body[0]
+        source_location = self.nt.get_else_source(test_node)
+        # Checking whether all cases to set end_lineno for returned
+        # SourceLocation are hit
+        assert test_node.body[-1].end_lineno + 1 == source_location.end_lineno
+        lines = slice(source_location.lineno, source_location.end_lineno + 1)
+        # Ensuring that the line including "else:" in code above gets included
+        assert 3 in range(lines.start, lines.stop)
+
     @pytest.mark.parametrize(
         "code", ["del a[3]", "del a.x"], ids=["delitem", "delattr"]
     )

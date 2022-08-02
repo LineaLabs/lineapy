@@ -11,6 +11,7 @@
             "module": "lineapy.cli.cli",
             "args": [
                 "python",
+                "--print-graph",
                 "--slice",
                 "p value",
                 "tests/housing.py",

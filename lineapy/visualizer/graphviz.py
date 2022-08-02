@@ -106,11 +106,16 @@ COLORS: Dict[ColorableType, str] = defaultdict(
         NodeType.LookupNode: BREWER_PASTEL["yellow"],
         # Make the global node and variables same color, since both are about variables
         NodeType.GlobalNode: BREWER_PASTEL["brown"],
+        NodeType.IfNode: BREWER_PASTEL["blue"],
+        NodeType.ElseNode: BREWER_PASTEL["blue"],
         ExtraLabelType.VARIABLE: BREWER_PASTEL["brown"],
         ExtraLabelType.ARTIFACT: BREWER_PASTEL["orange"],
         # Make same color as mutate node
         VisualEdgeType.LATEST_MUTATE_SOURCE: BREWER_PASTEL["red"],
         VisualEdgeType.VIEW: BREWER_PASTEL["blue"],
+        VisualEdgeType.CONTROL_DEPENDENCY: BREWER_PASTEL["red"],
+        VisualEdgeType.LINKED_CONTROL_BLOCK: BREWER_PASTEL["red"],
+        VisualEdgeType.UNEXEC_CODE_BLOCK: BREWER_PASTEL["red"],
     },
 )
 
@@ -122,6 +127,8 @@ NODE_LABELS: Dict[NodeType, str] = {
     NodeType.LookupNode: "Lookup",
     NodeType.MutateNode: "Mutate",
     NodeType.GlobalNode: "Global",
+    NodeType.IfNode: "If",
+    NodeType.ElseNode: "Else",
 }
 
 
@@ -132,6 +139,8 @@ NODE_SHAPES: Dict[NodeType, str] = {
     NodeType.LookupNode: "box",
     NodeType.MutateNode: "record",
     NodeType.GlobalNode: "box",
+    NodeType.IfNode: "diamond",
+    NodeType.ElseNode: "diamond",
 }
 
 UNDIRECTED_EDGE_TYPES = {
@@ -146,6 +155,9 @@ EDGE_STYLES = defaultdict(
         VisualEdgeType.NEXT_LINE: "invis",
         VisualEdgeType.SOURCE_CODE: "dotted",
         VisualEdgeType.IMPLICIT_DEPENDENCY: "bold",
+        VisualEdgeType.CONTROL_DEPENDENCY: "dashed",
+        VisualEdgeType.LINKED_CONTROL_BLOCK: "dashed",
+        VisualEdgeType.UNEXEC_CODE_BLOCK: "dashed",
     },
 )
 
@@ -174,6 +186,7 @@ def edge_labels(
         VisualEdgeType.SOURCE_CODE: "Source Code",
         VisualEdgeType.MUTATE_CALL: "Mutate Call",
         VisualEdgeType.IMPLICIT_DEPENDENCY: "Implicit Dependency",
+        VisualEdgeType.CONTROL_DEPENDENCY: "Control Flow",
     }
     if options.show_implied_mutations:
         l[VisualEdgeType.LATEST_MUTATE_SOURCE] = "Implied Mutate"

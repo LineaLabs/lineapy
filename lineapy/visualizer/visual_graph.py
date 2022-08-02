@@ -25,7 +25,9 @@ from typing import Dict, FrozenSet, Iterable, List, Optional, Set, Union
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
+    ElseNode,
     GlobalNode,
+    IfNode,
     ImportNode,
     LineaID,
     LiteralNode,
@@ -198,6 +200,14 @@ def process_node(
     Returns the contents of a node and add its edges.
     """
     n_id = node.id
+    if node.control_dependency:
+        vg.edge(
+            VisualEdge(
+                VisualEdgeID(node.control_dependency),
+                VisualEdgeID(n_id),
+                VisualEdgeType.CONTROL_DEPENDENCY,
+            )
+        )
     if isinstance(node, ImportNode):
         return node.name
     if isinstance(node, CallNode):
@@ -298,6 +308,48 @@ def process_node(
             ),
         )
         return node.name
+    if isinstance(node, IfNode):
+        vg.edge(
+            VisualEdge(
+                VisualEdgeID(node.test_id),
+                VisualEdgeID(n_id),
+                VisualEdgeType.CONTROL_DEPENDENCY,
+            )
+        )
+        if node.unexec_id:
+            vg.edge(
+                VisualEdge(
+                    VisualEdgeID(node.unexec_id),
+                    VisualEdgeID(n_id),
+                    VisualEdgeType.UNEXEC_CODE_BLOCK,
+                ),
+            )
+        if node.companion_id:
+            vg.edge(
+                VisualEdge(
+                    VisualEdgeID(node.companion_id),
+                    VisualEdgeID(n_id),
+                    VisualEdgeType.LINKED_CONTROL_BLOCK,
+                )
+            )
+        return "if"
+    if isinstance(node, ElseNode):
+        vg.edge(
+            VisualEdge(
+                VisualEdgeID(node.companion_id),
+                VisualEdgeID(n_id),
+                VisualEdgeType.LINKED_CONTROL_BLOCK,
+            ),
+        )
+        if node.unexec_id:
+            vg.edge(
+                VisualEdge(
+                    VisualEdgeID(node.unexec_id),
+                    VisualEdgeID(n_id),
+                    VisualEdgeType.UNEXEC_CODE_BLOCK,
+                ),
+            )
+        return "else"
 
 
 @dataclass
@@ -466,5 +518,12 @@ class VisualEdgeType(Enum):
 
     # Edge from a node to global node that reads a value from it
     GLOBAL = auto()
+
+    # Control Flow: Used to link `if` and `else` and similarly connected nodes
+    LINKED_CONTROL_BLOCK = auto()
+
+    UNEXEC_CODE_BLOCK = auto()
+
+    CONTROL_DEPENDENCY = auto()
 
     IMPLICIT_DEPENDENCY = auto()

@@ -7,7 +7,10 @@ from typing import Dict, List, Optional, Tuple, Union
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
+    ControlNode,
+    ElseNode,
     GlobalNode,
+    IfNode,
     ImportNode,
     KeywordArgument,
     LineaID,
@@ -15,6 +18,7 @@ from lineapy.data.types import (
     LookupNode,
     MutateNode,
     Node,
+    NodeType,
     PositionalArgument,
     SessionContext,
     SessionType,
@@ -33,6 +37,10 @@ from lineapy.execution.side_effects import (
     ViewOfNodes,
 )
 from lineapy.instrumentation.annotation_spec import ExternalState
+from lineapy.instrumentation.control_flow_tracker import (
+    ControlFlowContext,
+    ControlFlowTracker,
+)
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
@@ -60,6 +68,9 @@ class Tracer:
     tracer_context: TracerContext = field(init=False)
     executor: Executor = field(init=False)
     mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
+    control_flow_tracker: ControlFlowTracker = field(
+        default_factory=ControlFlowTracker
+    )
 
     def __post_init__(
         self,
@@ -160,6 +171,7 @@ class Tracer:
                         session_id=node.session_id,
                         source_id=source_id,
                         call_id=node.id,
+                        control_dependency=self.control_flow_tracker.current_control_dependency(),
                     )
                     self.process_node(mutate_node)
 
@@ -231,6 +243,7 @@ class Tracer:
                 session_id=session_id,
                 name=var,
                 call_id=node.id,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
             )
             self.process_node(global_node)
             self.variable_name_to_node[var] = global_node
@@ -262,6 +275,7 @@ class Tracer:
                 session_id=self.get_session_id(),
                 name=variable_name,
                 source_location=source_location,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
             )
             self.process_node(new_node)
             return new_node
@@ -370,6 +384,7 @@ class Tracer:
             name=name,
             session_id=self.get_session_id(),
             source_location=source_location,
+            control_dependency=self.control_flow_tracker.current_control_dependency(),
         )
         self.process_node(node)
 
@@ -384,6 +399,7 @@ class Tracer:
             session_id=self.get_session_id(),
             value=value,
             source_location=source_location,
+            control_dependency=self.control_flow_tracker.current_control_dependency(),
         )
         self.process_node(node)
         return node
@@ -453,9 +469,47 @@ class Tracer:
             source_location=source_location,
             global_reads={},
             implicit_dependencies=[],
+            control_dependency=self.control_flow_tracker.current_control_dependency(),
         )
         self.process_node(node)
         return node
+
+    def get_control_node(
+        self,
+        type: NodeType,
+        node_id: LineaID,
+        companion_id: Optional[LineaID],
+        source_location: Optional[SourceLocation] = None,
+        test_id: Optional[LineaID] = None,
+        unexec_id: Optional[LineaID] = None,
+    ) -> ControlFlowContext:
+        node: ControlNode
+        if type == NodeType.IfNode:
+            node = IfNode(
+                id=node_id,
+                session_id=self.get_session_id(),
+                source_location=source_location,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
+                unexec_id=unexec_id,
+                test_id=test_id,
+                companion_id=companion_id,
+            )
+        elif type == NodeType.ElseNode:
+            node = ElseNode(
+                id=node_id,
+                session_id=self.get_session_id(),
+                source_location=source_location,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
+                companion_id=companion_id,
+                unexec_id=unexec_id,
+            )
+        else:
+            raise NotImplementedError(
+                "Requested node type is not implemented as a control flow node type: ",
+                type,
+            )
+        self.process_node(node)
+        return ControlFlowContext(node, self.control_flow_tracker)
 
     def assign(
         self, variable_name: str, value_node: Node, from_import: bool = False

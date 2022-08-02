@@ -2,12 +2,13 @@ import ast
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Iterable, Optional, cast
+from typing import Any, Iterable, List, Optional, cast
 
 from lineapy.data.types import (
     CallNode,
     LiteralNode,
     Node,
+    NodeType,
     SourceCode,
     SourceCodeLocation,
     SourceLocation,
@@ -238,6 +239,69 @@ class NodeTransformer(ast.NodeTransformer):
             self.get_source(node),
             attributes=create_lib_attributes(node.names),
         )
+
+    def visit_If(self, node: ast.If) -> Any:
+        test_call_node = self.visit(node.test)
+
+        node_id = get_new_id()
+        else_id = get_new_id() if len(node.orelse) > 0 else None
+
+        # We first check the value of the test node, depending on it's truth
+        # value we might have two cases as described below
+        if self.tracer.executor._id_to_value[test_call_node.id]:
+            # In case the test condition is truthy, we will visit only the
+            # statements within the body of the If node.
+            with self.tracer.get_control_node(
+                NodeType.IfNode,
+                node_id,
+                else_id,
+                self.get_source(node.test),
+                test_call_node.id,
+                None,
+            ):
+                for stmt in node.body:
+                    self.visit(stmt)
+            # For the statements within the orelse of the IfNode, since they
+            # are actually not executed, we simply treat all of the enclosed
+            # statements as a black box, and get a literal node containing all
+            # the unexecuted statements. We then create an ElseNode which
+            # points to the LiteralNode containing the unexecuted statements,
+            # which ensures all the unexecuted statements are always included
+            # in the sliced program
+            if else_id is not None:
+                with self.tracer.get_control_node(
+                    NodeType.ElseNode,
+                    else_id,
+                    node_id,
+                    self.get_else_source(node),
+                    None,
+                    self.get_black_box_without_executing(node.orelse).id,
+                ):
+                    pass
+        else:
+            # In this case, the test condition is falsy, so we reverse the
+            # analysis above: the statements in the body of the If node are not
+            # visited, hence they are treated as a blackbox, while the
+            # statements within the orelse branch are visited, and we call the
+            # visit() method on these statements.
+            with self.tracer.get_control_node(
+                NodeType.IfNode,
+                node_id,
+                else_id,
+                self.get_source(node.test),
+                test_call_node.id,
+                self.get_black_box_without_executing(node.body).id,
+            ):
+                pass
+            if else_id is not None:
+                with self.tracer.get_control_node(
+                    NodeType.ElseNode,
+                    else_id,
+                    node_id,
+                    self.get_else_source(node),
+                ):
+                    for stmt in node.orelse:
+                        self.visit(stmt)
 
     def visit_Index(self, node: ast.Index) -> Node:
         """
@@ -700,3 +764,49 @@ class NodeTransformer(ast.NodeTransformer):
             end_lineno=node.end_lineno,  # type: ignore
             end_col_offset=node.end_col_offset,  # type: ignore
         )
+
+    def get_else_source(self, node: ast.If) -> Optional[SourceLocation]:
+        body_source = self.get_source(node.body[-1])
+        orelse_source = (
+            self.get_source(node.orelse[0]) if node.orelse else None
+        )
+        assert body_source, "Body of If/Else must have at least one statement"
+        if not orelse_source:
+            # If there is no else block, the else keyword would not be present
+            return None
+        return SourceLocation(
+            source_code=self.source_code,
+            # Else node can only start one line after if block, hence we add 1
+            lineno=body_source.end_lineno + 1,
+            col_offset=0,
+            # Keyword else can be in the previous line or the same line as the
+            # first statement of the else block
+            end_lineno=max(
+                orelse_source.lineno - 1, body_source.end_lineno + 1
+            ),
+            end_col_offset=orelse_source.col_offset,
+        )
+
+    def get_black_box_without_executing(
+        self, nodes: List[ast.stmt]
+    ) -> LiteralNode:
+        # We simply create a LiteralNode with the code within the block
+        # Processing a LiteralNode does not actually execute the statement
+        assert (
+            len(nodes) > 0
+        ), "The code block should contain at least one statement."
+        code = "\n".join(
+            [
+                str(self._get_code_from_node(node))
+                for node in nodes
+                if (self._get_code_from_node(node) is not None)
+            ]
+        )
+        source_location = SourceLocation(
+            source_code=self.source_code,
+            lineno=nodes[0].lineno,
+            col_offset=nodes[0].col_offset,
+            end_lineno=nodes[-1].end_lineno,  # type: ignore
+            end_col_offset=nodes[-1].end_col_offset,  # type: ignore
+        )
+        return self.tracer.literal(code, source_location=source_location)

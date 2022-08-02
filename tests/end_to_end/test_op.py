@@ -138,7 +138,6 @@ def test_walrus_list_comprehensions(execute):
 
 
 @pytest.mark.skipif("sys.version_info < (3, 8)")
-@pytest.mark.xfail(reason="Destruct + walrus does not work")
 def test_walrus_multiple_identifiers(execute):
     code = """
 x = 1
@@ -172,3 +171,21 @@ import math
     from math import sin
 
     assert res.values["res"] == sin(9)
+
+
+def test_conditional_expression_true_branch(execute):
+    code = """a = 10
+b = 20
+c = 30
+res = b if a <= 10 else c"""
+    res = execute(code)
+    assert res.values["res"] == 20
+
+
+def test_conditional_expression_false_branch(execute):
+    code = """a = 10
+b = 20
+c = 30
+res = b if a > 10 else c"""
+    res = execute(code)
+    assert res.values["res"] == 30
