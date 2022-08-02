@@ -113,9 +113,7 @@ def _include_dependencies_for_indirectly_included_nodes_in_slice(
 
     for node_id in current_subset:
         node = graph.get_node(node_id)
-        if node is None:
-            continue
-        if not node.source_location:
+        if node is None or not node.source_location:
             continue
         code_to_lines[node.source_location.source_code] |= set(
             range(
@@ -131,11 +129,11 @@ def _include_dependencies_for_indirectly_included_nodes_in_slice(
         node_id = node.id  # type: ignore
         if node_id not in current_subset:
             node = graph.get_node(node_id)
-            if isinstance(node, ImportNode):
-                continue
-            if node is None:
-                continue
-            if not node.source_location:
+            if (
+                node is None
+                or isinstance(node, ImportNode)
+                or not node.source_location
+            ):
                 continue
             if (
                 set(

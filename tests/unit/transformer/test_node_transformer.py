@@ -179,23 +179,16 @@ class TestNodeTransformer:
         self.nt.visit(test_node.body[0])
         self.nt.visit_Delete.assert_called_once_with(test_node.body[0])
 
-    def test_visit_get_else_source_space_after_if_block(self):
-        CODE = """if a:
-    b
-
-
-else:
-    c"""
+    def test_get_else_source_space_after_if_block(self):
+        CODE = """if a:\n\tb\n\n\nelse:\n\tc"""
         test_node = _get_ast_node(CODE).body[0]
         source_location = self.nt.get_else_source(test_node)
         assert test_node.orelse[0].lineno - 1 == source_location.end_lineno
         lines = slice(source_location.lineno - 1, source_location.end_lineno)
         assert "else:" in "\n".join(CODE.split("\n")[lines])
 
-    def test_visit_get_else_source_no_newline_after_else_keyword(self):
-        CODE = """if a:
-    b
-else: c"""
+    def test_get_else_source_no_newline_after_else_keyword(self):
+        CODE = """if a:\n\tb\nelse: c"""
         test_node = _get_ast_node(CODE).body[0]
         source_location = self.nt.get_else_source(test_node)
         assert test_node.body[-1].end_lineno + 1 == source_location.end_lineno

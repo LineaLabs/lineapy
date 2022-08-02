@@ -2,12 +2,16 @@ from pytest import fixture
 
 from lineapy.data.types import (
     CallNode,
+    ElseNode,
     GlobalNode,
+    IfNode,
     LiteralNode,
     LookupNode,
+    NodeType,
     SessionType,
 )
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils.utils import get_new_id
 
 
 @fixture
@@ -81,3 +85,26 @@ def test_implicit_dependency(tracer: Tracer):
         tracer.lookup_node("open"), None, tracer.literal("setup.py")
     )
     assert isinstance(res, CallNode)
+
+
+def test_control_node(tracer: Tracer):
+
+    context = tracer.get_control_node(
+        NodeType.IfNode,
+        get_new_id(),
+        get_new_id(),
+        None,
+        get_new_id(),
+        get_new_id(),
+    )
+    assert isinstance(context.control_node, IfNode)
+
+    context = tracer.get_control_node(
+        NodeType.ElseNode,
+        get_new_id(),
+        get_new_id(),
+        None,
+        get_new_id(),
+        get_new_id(),
+    )
+    assert isinstance(context.control_node, ElseNode)

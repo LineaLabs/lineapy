@@ -431,8 +431,6 @@ class ElseNodeORM(BaseNodeORM):
     }
 
 
-ControlNodeORM = Union[IfNodeORM, ElseNodeORM]
-
 # Explicitly define all subclasses of NodeORM, so that if we use this as a type
 # we can accurately know if we cover all cases
 NodeORM = Union[
@@ -442,7 +440,8 @@ NodeORM = Union[
     LiteralNodeORM,
     MutateNodeORM,
     GlobalNodeORM,
-    ControlNodeORM,
+    IfNodeORM,
+    ElseNodeORM,
 ]
 
 
