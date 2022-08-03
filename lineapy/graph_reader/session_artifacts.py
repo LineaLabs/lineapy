@@ -1,7 +1,7 @@
 import logging
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 
@@ -404,3 +404,9 @@ class SessionArtifacts:
             self.node_context, self.input_parameters_node
         )
         self.input_parameters_nodecollection._update_graph(self.graph)
+
+    def _get_first_artifact_name(self) -> Optional[str]:
+        for coll in self.artifact_nodecollections:
+            if coll.collection_type == NodeCollectionType.ARTIFACT:
+                return coll.safename
+        return None

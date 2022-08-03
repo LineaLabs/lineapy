@@ -11,7 +11,10 @@ from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID, PipelineType
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
-from lineapy.plugins.pipeline_writers import BasePipelineWriter
+from lineapy.plugins.pipeline_writers import (
+    AirflowPipelineWriter,
+    BasePipelineWriter,
+)
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -171,10 +174,8 @@ class ArtifactCollection:
         )
 
         # Generate session function name
-        for coll in session_artifacts.artifact_nodecollections:
-            if coll.collection_type == NodeCollectionType.ARTIFACT:
-                first_art_name = coll.safename
-                break
+        first_art_name = session_artifacts._get_first_artifact_name()
+        assert isinstance(first_art_name, str)
         session_function_name = f"run_session_including_{first_art_name}"
 
         # Generate session function body
@@ -385,7 +386,12 @@ class ArtifactCollection:
         # Delegate to framework-specific writer
         if framework in PipelineType.__members__:
             if PipelineType[framework] == PipelineType.AIRFLOW:
-                raise NotImplementedError("Airflow writer to be implemented!")
+                pipeline_writer = AirflowPipelineWriter(
+                    session_artifacts_sorted=session_artifacts_sorted,
+                    keep_lineapy_save=keep_lineapy_save,
+                    pipeline_name=pipeline_name,
+                    output_dir=output_dir,
+                )
             else:
                 pipeline_writer = BasePipelineWriter(
                     session_artifacts_sorted=session_artifacts_sorted,
