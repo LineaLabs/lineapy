@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from itertools import chain
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
@@ -16,7 +16,7 @@ from lineapy.plugins.pipeline_writers import (
     AirflowPipelineWriter,
     BasePipelineWriter,
 )
-from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -357,6 +357,8 @@ class ArtifactCollection:
         keep_lineapy_save: bool = False,
         pipeline_name: str = "pipeline",
         output_dir: str = ".",
+        airflow_dag_config: Optional[AirflowDagConfig] = {},
+        airflow_dag_flavor: str = "PythonOperatorPerSession",
     ):
         """
         Use modularized artifact code to generate standard pipeline files,
@@ -394,6 +396,8 @@ class ArtifactCollection:
         requirements_file = output_path / f"{pipeline_name}_requirements.txt"
         requirements_file.write_text(lib_names_text)
         logger.info("Generated requirements file")
+
+        pipeline_writer: BasePipelineWriter
 
         # Delegate to framework-specific writer
         if framework in PipelineType.__members__:

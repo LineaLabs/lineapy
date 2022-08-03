@@ -1,7 +1,9 @@
+from enum import Enum
 from itertools import chain
 from typing import Dict, List, Set
 
 import networkx as nx
+from typing_extensions import TypedDict
 
 TaskGraphEdge = Dict[str, Set[str]]
 
@@ -66,3 +68,26 @@ class TaskGraph(object):
             if len(list(self.graph.edges)) > 0
             else ""
         )
+
+
+AirflowDagConfig = TypedDict(
+    "AirflowDagConfig",
+    {
+        "owner": str,
+        "retries": int,
+        "start_date": str,
+        "schedule_interval": str,
+        "max_active_runs": int,
+        "catchup": str,
+    },
+    total=False,
+)
+
+
+class AirflowDagFlavor(Enum):
+    PythonOperatorPerSession = 1
+    # To be implemented for different flavor of airflow dags
+    # PythonOperatorPerArtifact = 2
+    # BashOperator = 3
+    # DockerOperator = 4
+    # KubernetesPodOperator = 5

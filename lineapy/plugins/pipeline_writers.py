@@ -1,14 +1,11 @@
 import logging
-from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
-
-from typing_extensions import TypedDict
 
 from lineapy.api.api_utils import de_lineate_code
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
-from lineapy.plugins.task import TaskGraph
+from lineapy.plugins.task import AirflowDagConfig, AirflowDagFlavor, TaskGraph
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -118,30 +115,7 @@ if __name__ == "__main__":
         self._write_docker()
 
 
-AirflowDagConfig = TypedDict(
-    "AirflowDagConfig",
-    {
-        "owner": str,
-        "retries": int,
-        "start_date": str,
-        "schedule_interval": str,
-        "max_active_runs": int,
-        "catchup": str,
-    },
-    total=False,
-)
-
-
-class AirflowDagFlavor(Enum):
-    PythonOperatorPerSession = 1
-    # To be implemented for different flavor of airflow dags
-    # PythonOperatorPerArtifact = 2
-    # BashOperator = 3
-    # DockerOperator = 4
-    # KubernetesPodOperator = 5
-
-
-class AirflowPipelineWriter:
+class AirflowPipelineWriter(BasePipelineWriter):
     def __init__(
         self,
         session_artifacts_sorted: List[SessionArtifacts],
@@ -163,12 +137,12 @@ class AirflowPipelineWriter:
     def _write_dag(
         self,
         airflow_dag_config: Optional[AirflowDagConfig] = {},
-        flavor: str = "PythonOperatorPerArtifact",
+        airflow_dag_flavor: str = "PythonOperatorPerSession",
     ) -> None:
         airflow_dag_config = airflow_dag_config or {}
 
         if (
-            AirflowDagFlavor[flavor]
+            AirflowDagFlavor[airflow_dag_flavor]
             == AirflowDagFlavor.PythonOperatorPerSession
         ):
             AIRFLOW_DAG_TEMPLATE = load_plugin_template(
