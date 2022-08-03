@@ -1,7 +1,7 @@
 import pickle
 from pathlib import Path
 
-from lineapy.api.api import try_write_to_pickle
+from lineapy.api.api import _try_write_to_pickle
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.utils.config import options
 
@@ -40,7 +40,7 @@ if True:
 
 
 def test_write_to_pickle():
-    try_write_to_pickle(42, "test_pickle")
+    _try_write_to_pickle(42, "test_pickle")
     pickle_path = (
         Path(options.safe_get("artifact_storage_dir")) / "test_pickle"
     )

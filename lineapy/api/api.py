@@ -99,7 +99,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         # TODO add version or timestamp to allow saving of multiple pickle files for the same node id
         # pickles value of artifact and saves to filesystem
         pickle_name = _pickle_name(value_node_id, execution_id)
-        try_write_to_pickle(reference, pickle_name)
+        _try_write_to_pickle(reference, pickle_name)
 
         # adds reference to pickled file inside database
         db.write_node_value(
@@ -206,7 +206,7 @@ def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
     return f"pre-{slugify(hash(node_id + execution_id))}-post.pkl"
 
 
-def try_write_to_pickle(value: object, filename: str) -> None:
+def _try_write_to_pickle(value: object, filename: str) -> None:
     """
     Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
 
