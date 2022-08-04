@@ -1,4 +1,5 @@
 import logging
+import tempfile
 from dataclasses import dataclass
 from itertools import chain
 from pathlib import Path
@@ -6,7 +7,6 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import networkx as nx
 
-from lineapy.api.api import get
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID, PipelineType
 from lineapy.graph_reader.node_collection import NodeCollectionType
@@ -37,7 +37,13 @@ class ArtifactCollection:
     Instead, it is intended to be used by/in/for other user-facing APIs.
     """
 
-    def __init__(self, artifacts=List[Union[str, Tuple[str, int]]]) -> None:
+    def __init__(
+        self,
+        artifacts: List[Union[str, Tuple[str, int]]],
+        input_parameters: List[str] = [],
+    ) -> None:
+        from lineapy.api.api import get
+
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
         self.art_name_to_node_id: Dict[str, LineaID] = {}
         self.node_id_to_session_id: Dict[LineaID, LineaID] = {}
@@ -47,12 +53,12 @@ class ArtifactCollection:
         # Retrieve artifact objects and group them by session ID
         for art_entry in artifacts:
             # Construct args for artifact retrieval
-            args = {}
             if isinstance(art_entry, str):
-                args["artifact_name"] = art_entry
+                artifact_name = art_entry
+                version = None
             elif isinstance(art_entry, tuple):
-                args["artifact_name"] = art_entry[0]
-                args["version"] = art_entry[1]
+                artifact_name = art_entry[0]
+                version = int(art_entry[1])
             else:
                 raise ValueError(
                     "An artifact should be passed in as a string or (string, integer) tuple."
@@ -60,19 +66,17 @@ class ArtifactCollection:
 
             # Retrieve artifact
             try:
-                # art = get(**args)
-                version = args.get("version", None)
                 if version is None:
-                    art = get(artifact_name=args["artifact_name"])
+                    art = get(artifact_name=artifact_name)
                 else:
                     art = get(
-                        artifact_name=args["artifact_name"],
-                        version=int(version),
+                        artifact_name=artifact_name,
+                        version=version,
                     )
-                if args["artifact_name"] in self.art_name_to_node_id.keys():
-                    logger.error("%s is duplicated", args["artifact_name"])
-                    raise KeyError("%s is duplicated", args["artifact_name"])
-                self.art_name_to_node_id[args["artifact_name"]] = art._node_id
+                if artifact_name in self.art_name_to_node_id.keys():
+                    logger.error("%s is duplicated", artifact_name)
+                    raise KeyError("%s is duplicated", artifact_name)
+                self.art_name_to_node_id[artifact_name] = art._node_id
                 self.node_id_to_session_id[art._node_id] = art._session_id
             except Exception as e:
                 logger.error("Cannot retrive artifact %s", art_entry)
@@ -86,7 +90,7 @@ class ArtifactCollection:
         # For each session, construct SessionArtifacts object
         for session_id, session_artifacts in artifacts_by_session.items():
             self.session_artifacts[session_id] = SessionArtifacts(
-                session_artifacts
+                session_artifacts, input_parameters=input_parameters
             )
 
     def _sort_session_artifacts(
@@ -317,16 +321,17 @@ class ArtifactCollection:
 
         return prettify(module_text)
 
-    def get_session_module(self, dependencies: TaskGraphEdge = {}):
+    def get_module(self, dependencies: TaskGraphEdge = {}):
         import importlib.util
         import sys
         from importlib.abc import Loader
 
         module_name = f"session_{'_'.join(self.session_artifacts.keys())}"
-        with open(f"/tmp/{module_name}.py", "w") as f:
+        temp_folder = tempfile.mkdtemp()
+        with open(f"{temp_folder}/{module_name}.py", "w") as f:
             f.writelines(self.generate_module(dependencies=dependencies))
         spec = importlib.util.spec_from_file_location(
-            module_name, f"/tmp/{module_name}.py"
+            module_name, f"{temp_folder}/{module_name}.py"
         )
         if spec is not None:
             session_module = importlib.util.module_from_spec(spec)

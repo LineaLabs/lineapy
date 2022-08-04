@@ -7,7 +7,7 @@ import types
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 import fsspec
 from pandas.io.pickle import to_pickle
@@ -18,6 +18,7 @@ from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
+from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig
 from lineapy.plugins.task import TaskGraphEdge
@@ -386,3 +387,19 @@ def create_pipeline(
         pipeline.save()
 
     return pipeline
+
+
+def get_module_definition(artifact_list, input_parameters=[]) -> str:
+    art_collection = ArtifactCollection(
+        artifact_list,
+        input_parameters=input_parameters,
+    )
+    return art_collection.generate_module()
+
+
+def get_function(artifact_list, input_parameters=[]) -> Callable:
+    art_collection = ArtifactCollection(
+        artifact_list,
+        input_parameters=input_parameters,
+    )
+    return art_collection.get_module().run_all_sessions
