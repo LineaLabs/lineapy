@@ -1,4 +1,6 @@
 import pathlib
+import shutil
+import tempfile
 
 import pytest
 
@@ -159,3 +161,98 @@ def test_two_session(
         "tests/unit/graph_reader/expected/" + expected_output
     ).read_text()
     assert prettify(refactor_result) == prettify(expected_result)
+
+
+def check_requirements_txt(t1: str, t2: str):
+    return set(t1.split("\n")) == set(t2.split("\n"))
+
+
+@pytest.mark.parametrize(
+    "input_script1, input_script2, artifact_list, pipeline_name, dependencies, airflow_dag_config",
+    [
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "pipeline_a0_b0",
+            {},
+            {},
+            id="pipeline_a0_b0",
+        ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "pipeline_a0_b0_dependencies",
+            {"a0": {"b0"}},
+            {},
+            id="pipeline_a0_b0_dependencies",
+        ),
+    ],
+)
+def test_pipeline_generation(
+    execute,
+    input_script1,
+    input_script2,
+    artifact_list,
+    pipeline_name,
+    dependencies,
+    airflow_dag_config,
+):
+    """
+    Test two sessions
+    """
+
+    code1 = pathlib.Path(
+        "tests/unit/graph_reader/inputs/" + input_script1
+    ).read_text()
+    res = execute(code1, snapshot=False)
+
+    if input_script2 != "":
+        code2 = pathlib.Path(
+            "tests/unit/graph_reader/inputs/" + input_script2
+        ).read_text()
+        res = execute(code2, snapshot=False)
+
+    artifact_string = ", ".join([f'"{x}"' for x in artifact_list])
+    code = (
+        "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
+        + f"ac = ArtifactCollection([{artifact_string}])"
+    )
+    res = execute(code, snapshot=False)
+    ac = res.values["ac"]
+    tempfolder = tempfile.mkdtemp()
+    ac.generate_pipeline_files(
+        framework="AIRFLOW",
+        dependencies=dependencies,
+        pipeline_name=pipeline_name,
+        output_dir=tempfolder,
+        airflow_dag_config=airflow_dag_config,
+        airflow_dag_flavor="PythonOperatorPerSession",
+    )
+
+    for file_endings in [
+        "_module.py",
+        "_dag.py",
+        "_Dockerfile",
+        "_requirements.txt",
+    ]:
+        path = pathlib.Path(
+            f"{tempfolder}/{pipeline_name}/{pipeline_name}{file_endings}"
+        )
+        generated = path.read_text()
+        path_expected = pathlib.Path(
+            f"tests/unit/graph_reader/expected/{pipeline_name}/{pipeline_name}{file_endings}"
+        )
+        if file_endings != "_requirements.txt":
+            to_compare = path_expected.read_text()
+            if file_endings.endswith(".py"):
+                to_compare = prettify(to_compare)
+                generated = prettify(generated)
+            assert generated == to_compare
+        else:
+            assert check_requirements_txt(
+                path.read_text(), path_expected.read_text()
+            )
+
+    shutil.rmtree(tempfolder)
