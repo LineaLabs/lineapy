@@ -340,7 +340,7 @@ def move_artifact_storage_dir():
 
 
 @pytest.fixture
-@patch("lineapy.api.api.try_write_to_pickle", return_value=None)
+@patch("lineapy.api.api._try_write_to_pickle", return_value=None)
 @patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
 def housing_tracer(_pickle_name, try_write_to_pickle, execute):
     tests_dir = Path(__file__).parent
