@@ -206,21 +206,28 @@ class ArtifactCollection:
             ]
         )
 
+        session_input_parameters_body = session_artifacts.input_parameters_nodecollection.get_input_parameters_block(
+            indentation=indentation
+        )
+
         SESSION_FUNCTION_TEMPLATE = load_plugin_template(
             "session_function.jinja"
         )
         session_function = SESSION_FUNCTION_TEMPLATE.render(
+            session_input_parameters_body=session_input_parameters_body,
             indentation_block=indentation_block,
             session_function_name=session_function_name,
             session_function_body=session_function_body,
             return_dict_name=return_dict_name,
         )
 
+        session_input_parameters = ", ".join(
+            session_artifacts.input_parameters_node.keys()
+        )
+
         # Generate calculation code block for the session
         # This is to be used in multi-session module
-        session_calculation = (
-            f"{indentation_block}artifacts.update({session_function_name}())"
-        )
+        session_calculation = f"{indentation_block}artifacts.update({session_function_name}({session_input_parameters}))"
 
         return {
             "session_imports": session_imports,
@@ -228,6 +235,7 @@ class ArtifactCollection:
             "session_function": session_function,
             "session_function_return": session_function_return,
             "session_calculation": session_calculation,
+            "session_input_parameters_body": session_input_parameters_body,
         }
 
     def _compose_module(
@@ -248,6 +256,7 @@ class ArtifactCollection:
             "session_function": [],
             "session_function_return": [],
             "session_calculation": [],
+            "session_input_parameters_body": [],
         }
 
         # Extract module script components by session
@@ -272,6 +281,16 @@ class ArtifactCollection:
                 session_module_dict["session_calculation"]
             )
 
+            session_input_parameters_body_line = session_module_dict[
+                "session_input_parameters_body"
+            ].split("\n")
+
+            module_dict["session_input_parameters_body"] += [
+                line.lstrip(" ").rstrip(",")
+                for line in session_input_parameters_body_line
+                if len(line.lstrip(" ").rstrip(",")) > 0
+            ]
+
         # Combine components by "type"
         module_imports = "\n".join(module_dict["session_imports"])
         artifact_functions = "\n\n".join(module_dict["artifact_functions"])
@@ -279,6 +298,15 @@ class ArtifactCollection:
         module_function_body = "\n".join(module_dict["session_calculation"])
         module_function_return = ", ".join(
             module_dict["session_function_return"]
+        )
+        module_input_parameters = (
+            ",".join(module_dict["session_input_parameters_body"])
+            if len(module_dict["session_input_parameters_body"]) <= 1
+            else "\n"
+            + f",\n{indentation_block}".join(
+                module_dict["session_input_parameters_body"]
+            )
+            + ",\n"
         )
 
         # Put all together to generate module text
@@ -291,6 +319,7 @@ class ArtifactCollection:
             session_functions=session_functions,
             module_function_body=module_function_body,
             module_function_return=module_function_return,
+            module_input_parameters=module_input_parameters,
         )
 
         return module_text
