@@ -116,6 +116,10 @@ if __name__ == "__main__":
 
 
 class AirflowPipelineWriter(BasePipelineWriter):
+    """
+    Class for pipeline file writer. Corresponds to "AIRFLOW" framework.
+    """
+
     def __init__(
         self,
         session_artifacts_sorted: List[SessionArtifacts],
@@ -140,7 +144,6 @@ class AirflowPipelineWriter(BasePipelineWriter):
         airflow_dag_flavor: str = "PythonOperatorPerSession",
     ) -> None:
         airflow_dag_config = airflow_dag_config or {}
-
         if (
             AirflowDagFlavor[airflow_dag_flavor]
             == AirflowDagFlavor.PythonOperatorPerSession
@@ -180,8 +183,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
             # Write out file
             file = self.output_dir / f"{self.pipeline_name}_dag.py"
             file.write_text(prettify(full_code))
-
             logger.info("Generated DAG file %s", file)
+        else:
+            raise ValueError(
+                f'"{airflow_dag_flavor}" is an invalid airflow dag flavor.'
+            )
 
     def _write_docker(self):
         # Generate Dockerfile text
@@ -193,7 +199,6 @@ class AirflowPipelineWriter(BasePipelineWriter):
         # Write out file
         file = self.output_dir / f"{self.pipeline_name}_Dockerfile"
         file.write_text(dockerfile_text)
-
         logger.info("Generated Docker file %s", file)
 
     def write_pipeline_files(self) -> None:

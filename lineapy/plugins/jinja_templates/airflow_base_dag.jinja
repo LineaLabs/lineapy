@@ -1,0 +1,12 @@
+{% for import_block in import_blocks %}
+{{ import_block }}
+{% endfor %}
+{% block plugin_import_block %}{% endblock %}
+
+{% for code_block in code_blocks %}
+{{ code_block }}
+{% endfor %}
+
+{% block plugin_dag_block %}{% endblock %}
+{% block plugin_tasks_block %}{% endblock %}
+
