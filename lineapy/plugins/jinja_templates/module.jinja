@@ -1,0 +1,13 @@
+{{module_imports}}
+
+{{artifact_functions}}
+
+{{session_functions}}
+
+def run_all_sessions():
+{{indentation_block}}artifacts = dict()
+{{module_function_body}}
+{{indentation_block}}return artifacts
+
+if __name__ == "__main__":
+{{indentation_block}}run_all_sessions()

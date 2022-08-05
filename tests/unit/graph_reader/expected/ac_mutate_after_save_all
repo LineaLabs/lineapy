@@ -1,0 +1,33 @@
+def get_a():
+    a = [1]
+    return a
+
+
+def get_b(a):
+    a.append(2)
+    b = a[-1] + 1
+    return b
+
+
+def run_session_including_a():
+    # Given multiple artifacts, we need to save each right after
+    # its calculation to protect from any irrelevant downstream
+    # mutations (e.g., inside other artifact calculations)
+    import copy
+
+    artifacts = dict()
+    a = get_a()
+    artifacts["a"] = copy.deepcopy(a)
+    b = get_b(a)
+    artifacts["b"] = copy.deepcopy(b)
+    return artifacts
+
+
+def run_all_sessions():
+    artifacts = dict()
+    artifacts.update(run_session_including_a())
+    return artifacts
+
+
+if __name__ == "__main__":
+    run_all_sessions()

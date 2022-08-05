@@ -192,7 +192,8 @@ class NodeCollection:
         ):
             codeblock += f"""\n{indentation_block}lineapy.save({self.return_variables[0]}, "{self.name}")"""
         if result_placeholder is not None:
-            codeblock += f"""\n{indentation_block}{result_placeholder}.append(copy.deepcopy({self.return_variables[0]}))"""
+            # codeblock += f"""\n{indentation_block}{result_placeholder}.append(copy.deepcopy({self.return_variables[0]}))"""
+            codeblock += f"""\n{indentation_block}{result_placeholder}["{self.name}"]=copy.deepcopy({self.return_variables[0]})"""
 
         return codeblock
 

@@ -1,0 +1,7 @@
+import lineapy
+
+art = {}
+b0 = 0
+art["b0"] = lineapy.save(b0, "b0")
+a = b0 + 1
+art["a"] = lineapy.save(a, "a")
