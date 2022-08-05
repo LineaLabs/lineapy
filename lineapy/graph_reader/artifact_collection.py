@@ -4,6 +4,7 @@ from itertools import chain
 from typing import Dict, List, Tuple, Union
 
 import networkx as nx
+from networkx.exception import NetworkXUnfeasible
 
 from lineapy.api.api import get
 from lineapy.api.api_classes import LineaArtifact
@@ -55,7 +56,6 @@ class ArtifactCollection:
 
             # Retrieve artifact
             try:
-                # art = get(**args)
                 version = args.get("version", None)
                 if version is None:
                     art = get(artifact_name=args["artifact_name"])
@@ -91,6 +91,14 @@ class ArtifactCollection:
         Use the user-provided artifact dependencies to
         topologically sort a list of SessionArtifacts objects.
         Raise an exception if the graph contains a cycle.
+
+        NOTE: Current implementation of LineaPy demands it be able to
+        linearly order different sessions, which prohibits any
+        circular dependencies between sessions, e.g.,
+        Artifact A (Session 1) -> Artifact B (Session 2) -> Artifact C (Session 1).
+        We need to implement inter-session graph merge if we want to
+        support such circular dependencies between sessions,
+        which is a future project.
         """
         # Construct a combined graph across multiple sessions
         combined_graph = nx.DiGraph()
@@ -99,33 +107,45 @@ class ArtifactCollection:
             combined_graph.add_nodes_from(session_graph.nodes)
             combined_graph.add_edges_from(session_graph.edges)
 
-        # Augment the graph with user-specified edges
+        # Check if user-specified dependency includes artifacts not in the current collection
         dependency_edges = list(
             chain.from_iterable(
-                (
-                    (
-                        self.art_name_to_node_id.get(artname, None),
-                        self.art_name_to_node_id.get(to_artname, None),
-                    )
-                    for artname in from_artname
-                )
+                ((artname, to_artname) for artname in from_artname)
                 for to_artname, from_artname in dependencies.items()
             )
         )
-        if None in list(chain.from_iterable(dependency_edges)):
+        dependency_nodes = set(chain(*dependency_edges))
+        missing_artifacts = [
+            artname
+            for artname in dependency_nodes
+            if self.art_name_to_node_id.get(artname, None) is None
+        ]
+        if len(missing_artifacts) > 0:
             raise KeyError(
-                "Dependency graph includes artifacts not in this artifact collection."
+                f"Dependency graph includes artifact(s) not in this artifact collection: {missing_artifacts}"
             )
-        combined_graph.add_edges_from(dependency_edges)
+
+        # Augment the graph with user-specified edges
+        dependency_edges_by_id = [
+            (
+                self.art_name_to_node_id.get(edge_tuple[0]),
+                self.art_name_to_node_id.get(edge_tuple[1]),
+            )
+            for edge_tuple in dependency_edges
+        ]
+        combined_graph.add_edges_from(dependency_edges_by_id)
 
         # Check if the graph is acyclic
         if nx.is_directed_acyclic_graph(combined_graph) is False:
-            raise Exception("Provided dependencies result in a cyclic graph.")
+            raise Exception(
+                "LineaPy detected conflict with the provided dependencies. "
+                "Please check if the provided dependencies include circular relationships."
+            )
 
         # Identify topological ordering between sessions
         session_id_nodes = list(self.session_artifacts.keys())
         session_id_edges = []
-        for node_id, to_node_id in dependency_edges:
+        for node_id, to_node_id in dependency_edges_by_id:
             assert node_id is not None
             assert to_node_id is not None
             from_session_id = self.node_id_to_session_id.get(node_id, None)
@@ -135,7 +155,15 @@ class ArtifactCollection:
         inter_session_graph = nx.DiGraph()
         inter_session_graph.add_nodes_from(session_id_nodes)
         inter_session_graph.add_edges_from(session_id_edges)
-        session_id_sorted = nx.topological_sort(inter_session_graph)
+        try:
+            session_id_sorted = list(nx.topological_sort(inter_session_graph))
+        except NetworkXUnfeasible:
+            raise Exception(
+                "Current implementation of LineaPy demands it be able to linearly order different sessions, "
+                "which prohibits any circular dependencies between sessions. "
+                "Please check if your provided dependencies include such circular dependencies between sessions, "
+                "e.g., Artifact A (Session 1) -> Artifact B (Session 2) -> Artifact C (Session 1)."
+            )
 
         return [
             self.session_artifacts[session_id]
@@ -161,7 +189,7 @@ class ArtifactCollection:
         )
 
         # Generate function definition for each session artifact
-        artifact_functions = "\n\n".join(
+        artifact_functions = "\n".join(
             [
                 coll.get_function_definition(indentation=indentation)
                 for coll in session_artifacts.artifact_nodecollections
@@ -234,48 +262,33 @@ class ArtifactCollection:
         """
         indentation_block = " " * indentation
 
-        # Initiate store for module script components
-        module_dict: Dict[str, List[str]] = {
-            "session_imports": [],
-            "artifact_functions": [],
-            "session_function": [],
-            "session_function_return": [],
-            "session_calculation": [],
-        }
-
         # Extract module script components by session
-        for session_artifacts in session_artifacts_sorted:
-            session_module_dict = self._extract_session_module(
+        session_modules = [
+            self._extract_session_module(
                 session_artifacts=session_artifacts,
                 indentation=indentation,
             )
-            module_dict["session_imports"].append(
-                session_module_dict["session_imports"]
-            )
-            module_dict["artifact_functions"].append(
-                session_module_dict["artifact_functions"]
-            )
-            module_dict["session_function"].append(
-                session_module_dict["session_function"]
-            )
-            module_dict["session_function_return"].append(
-                session_module_dict["session_function_return"]
-            )
-            module_dict["session_calculation"].append(
-                session_module_dict["session_calculation"]
-            )
+            for session_artifacts in session_artifacts_sorted
+        ]
 
         # Combine components by "type"
-        module_imports = "\n".join(module_dict["session_imports"])
-        artifact_functions = "\n\n".join(module_dict["artifact_functions"])
-        session_functions = "\n".join(module_dict["session_function"])
-        module_function_body = "\n".join(module_dict["session_calculation"])
+        module_imports = "\n".join(
+            [module["session_imports"] for module in session_modules]
+        )
+        artifact_functions = "\n".join(
+            [module["artifact_functions"] for module in session_modules]
+        )
+        session_functions = "\n".join(
+            [module["session_function"] for module in session_modules]
+        )
+        module_function_body = "\n".join(
+            [module["session_calculation"] for module in session_modules]
+        )
         module_function_return = ", ".join(
-            module_dict["session_function_return"]
+            [module["session_function_return"] for module in session_modules]
         )
 
         # Put all together to generate module text
-        # TODO: Replace with jinja template
         MODULE_TEMPLATE = load_plugin_template("module.jinja")
         module_text = MODULE_TEMPLATE.render(
             indentation_block=indentation_block,
