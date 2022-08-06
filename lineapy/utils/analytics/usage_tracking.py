@@ -2,9 +2,11 @@
 
 try:
     import importlib.metadata as importlib_metadata
+    from importlib.metadata import PackageNotFoundError
 except ModuleNotFoundError:
     # this is for python 3.7
     import importlib_metadata  # type: ignore
+    from importlib_metadata import PackageNotFoundError  # type: ignore
 
 import json
 import logging
@@ -18,11 +20,14 @@ from IPython import get_ipython
 
 from lineapy.utils.analytics.event_schemas import AllEvents
 from lineapy.utils.config import options
+from lineapy.utils.version import __version__
 
 logger = logging.getLogger(__name__)
 
-
-LINEAPY_VERSION: str = importlib_metadata.version("lineapy")
+try:
+    LINEAPY_VERSION: str = importlib_metadata.version("lineapy")
+except PackageNotFoundError:
+    LINEAPY_VERSION = __version__
 
 
 @lru_cache(maxsize=1)
