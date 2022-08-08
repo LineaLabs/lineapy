@@ -1,4 +1,5 @@
 import logging
+import tempfile
 from dataclasses import dataclass
 from itertools import chain
 from pathlib import Path
@@ -7,7 +8,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
 
-from lineapy.api.api import get
+# from lineapy.api.api import get
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID, PipelineType
 from lineapy.graph_reader.node_collection import NodeCollectionType
@@ -38,7 +39,13 @@ class ArtifactCollection:
     Instead, it is intended to be used by/in/for other user-facing APIs.
     """
 
-    def __init__(self, artifacts=List[Union[str, Tuple[str, int]]]) -> None:
+    def __init__(
+        self,
+        artifacts: List[Union[str, Tuple[str, int]]],
+        input_parameters: List[str] = [],
+    ) -> None:
+        from lineapy.api.api import get
+
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
         self.art_name_to_node_id: Dict[str, LineaID] = {}
         self.node_id_to_session_id: Dict[LineaID, LineaID] = {}
@@ -86,7 +93,7 @@ class ArtifactCollection:
         # For each session, construct SessionArtifacts object
         for session_id, session_artifacts in artifacts_by_session.items():
             self.session_artifacts[session_id] = SessionArtifacts(
-                session_artifacts
+                session_artifacts, input_parameters=input_parameters
             )
 
     def _sort_session_artifacts(
@@ -230,21 +237,28 @@ class ArtifactCollection:
             ]
         )
 
+        session_input_parameters_body = session_artifacts.input_parameters_nodecollection.get_input_parameters_block(
+            indentation=indentation
+        )
+
         SESSION_FUNCTION_TEMPLATE = load_plugin_template(
             "session_function.jinja"
         )
         session_function = SESSION_FUNCTION_TEMPLATE.render(
+            session_input_parameters_body=session_input_parameters_body,
             indentation_block=indentation_block,
             session_function_name=session_function_name,
             session_function_body=session_function_body,
             return_dict_name=return_dict_name,
         )
 
+        session_input_parameters = ", ".join(
+            session_artifacts.input_parameters_node.keys()
+        )
+
         # Generate calculation code block for the session
         # This is to be used in multi-session module
-        session_calculation = (
-            f"{indentation_block}artifacts.update({session_function_name}())"
-        )
+        session_calculation = f"{indentation_block}artifacts.update({session_function_name}({session_input_parameters}))"
 
         return {
             "session_imports": session_imports,
@@ -252,6 +266,7 @@ class ArtifactCollection:
             "session_function": session_function,
             "session_function_return": session_function_return,
             "session_calculation": session_calculation,
+            "session_input_parameters_body": session_input_parameters_body,
         }
 
     def _compose_module(
@@ -291,6 +306,22 @@ class ArtifactCollection:
             [module["session_function_return"] for module in session_modules]
         )
 
+        input_parameters_body = []
+        for module in session_modules:
+            input_parameters_body += [
+                line.lstrip(" ").rstrip(",")
+                for line in module["session_input_parameters_body"].split("\n")
+                if len(line.lstrip(" ").rstrip(",")) > 0
+            ]
+
+        module_input_parameters = (
+            ",".join(input_parameters_body)
+            if len(input_parameters_body) <= 1
+            else "\n"
+            + f",\n{indentation_block}".join(input_parameters_body)
+            + ",\n"
+        )
+
         # Put all together to generate module text
         MODULE_TEMPLATE = load_plugin_template("module.jinja")
         module_text = MODULE_TEMPLATE.render(
@@ -300,6 +331,7 @@ class ArtifactCollection:
             session_functions=session_functions,
             module_function_body=module_function_body,
             module_function_return=module_function_return,
+            module_input_parameters=module_input_parameters,
         )
 
         return module_text
@@ -330,16 +362,17 @@ class ArtifactCollection:
 
         return prettify(module_text)
 
-    def get_session_module(self, dependencies: TaskGraphEdge = {}):
+    def get_module(self, dependencies: TaskGraphEdge = {}):
         import importlib.util
         import sys
         from importlib.abc import Loader
 
         module_name = f"session_{'_'.join(self.session_artifacts.keys())}"
-        with open(f"/tmp/{module_name}.py", "w") as f:
+        temp_folder = tempfile.mkdtemp()
+        with open(f"{temp_folder}/{module_name}.py", "w") as f:
             f.writelines(self.generate_module(dependencies=dependencies))
         spec = importlib.util.spec_from_file_location(
-            module_name, f"/tmp/{module_name}.py"
+            module_name, f"{temp_folder}/{module_name}.py"
         )
         if spec is not None:
             session_module = importlib.util.module_from_spec(spec)
