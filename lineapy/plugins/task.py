@@ -70,6 +70,15 @@ class TaskGraph(object):
         )
 
 
+class AirflowDagFlavor(Enum):
+    PythonOperatorPerSession = 1
+    # To be implemented for different flavor of airflow dags
+    # PythonOperatorPerArtifact = 2
+    # BashOperator = 3
+    # DockerOperator = 4
+    # KubernetesPodOperator = 5
+
+
 AirflowDagConfig = TypedDict(
     "AirflowDagConfig",
     {
@@ -79,15 +88,7 @@ AirflowDagConfig = TypedDict(
         "schedule_interval": str,
         "max_active_runs": int,
         "catchup": str,
+        "dag_flavor": AirflowDagFlavor,
     },
     total=False,
 )
-
-
-class AirflowDagFlavor(Enum):
-    PythonOperatorPerSession = 1
-    # To be implemented for different flavor of airflow dags
-    # PythonOperatorPerArtifact = 2
-    # BashOperator = 3
-    # DockerOperator = 4
-    # KubernetesPodOperator = 5

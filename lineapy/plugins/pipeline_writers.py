@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from lineapy.api.api_utils import de_lineate_code
 from lineapy.graph_reader.node_collection import NodeCollectionType
@@ -37,7 +37,7 @@ class BasePipelineWriter:
         # We assume there is at least one SessionArtifacts object
         self.db = self.session_artifacts_sorted[0].db
 
-    def _write_dag(self) -> None:
+    def _write_dag(self, dag_config: Optional[Any] = {}) -> None:
         # Initiate store for DAG script components
         main_module_dict: Dict[str, List[str]] = {
             "import_lines": [],
@@ -79,17 +79,10 @@ class BasePipelineWriter:
         returns = ", ".join(main_module_dict["return_varnames"])
 
         # Put all together to DAG script text
-        # TODO: Replace with jinja template
-        script_dag_text = f"""\
-{imports}
-
-def pipeline():
-{calculations}
-    return {returns}
-
-if __name__ == "__main__":
-    pipeline()
-"""
+        DAG_TEMPLATE = load_plugin_template("script_dag_default.jinja")
+        script_dag_text = DAG_TEMPLATE.render(
+            imports=imports, calculations=calculations, returns=returns
+        )
 
         # Write out file
         file = self.output_dir / f"{self.pipeline_name}_dag.py"
@@ -97,9 +90,9 @@ if __name__ == "__main__":
 
         logger.info("Generated DAG file")
 
-    def _write_docker(self):
+    def _write_docker(self, template_name: str):
         # Generate Dockerfile text
-        DOCKERFILE_TEMPLATE = load_plugin_template("script_dockerfile.jinja")
+        DOCKERFILE_TEMPLATE = load_plugin_template(template_name)
         dockerfile_text = DOCKERFILE_TEMPLATE.render(
             pipeline_name=self.pipeline_name
         )
@@ -112,7 +105,7 @@ if __name__ == "__main__":
 
     def write_pipeline_files(self) -> None:
         self._write_dag()
-        self._write_docker()
+        self._write_docker(template_name="script_dockerfile.jinja")
 
 
 class AirflowPipelineWriter(BasePipelineWriter):
@@ -120,35 +113,17 @@ class AirflowPipelineWriter(BasePipelineWriter):
     Class for pipeline file writer. Corresponds to "AIRFLOW" framework.
     """
 
-    def __init__(
-        self,
-        session_artifacts_sorted: List[SessionArtifacts],
-        keep_lineapy_save: bool,
-        pipeline_name: str,
-        output_dir: str,
-    ) -> None:
-        self.session_artifacts_sorted = session_artifacts_sorted
-        self.keep_lineapy_save = keep_lineapy_save
-        self.pipeline_name = pipeline_name
-        self.output_dir = Path(output_dir, pipeline_name)
-
-        # Create output directory folder(s) if nonexistent
-        self.output_dir.mkdir(exist_ok=True, parents=True)
-
-        # We assume there is at least one SessionArtifacts object
-        self.db = self.session_artifacts_sorted[0].db
-
     def _write_dag(
         self,
-        airflow_dag_config: Optional[AirflowDagConfig] = {},
-        airflow_dag_flavor: str = "PythonOperatorPerSession",
+        dag_config: Optional[AirflowDagConfig] = {},
     ) -> None:
-        airflow_dag_config = airflow_dag_config or {}
-        if (
-            AirflowDagFlavor[airflow_dag_flavor]
-            == AirflowDagFlavor.PythonOperatorPerSession
-        ):
-            AIRFLOW_DAG_TEMPLATE = load_plugin_template(
+        dag_config = dag_config or {}
+        dag_flavor = dag_config.get(
+            "dag_flavor", AirflowDagFlavor.PythonOperatorPerSession
+        )
+
+        if dag_flavor == AirflowDagFlavor.PythonOperatorPerSession:
+            DAG_TEMPLATE = load_plugin_template(
                 "airflow_dag_PythonOperatorPerSession.jinja"
             )
             session_functions = [
@@ -164,17 +139,17 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 mapping={f: f for f in session_functions},
                 edges=dependencies,
             )
-            full_code = AIRFLOW_DAG_TEMPLATE.render(
+            full_code = DAG_TEMPLATE.render(
                 DAG_NAME=self.pipeline_name,
                 MODULE_NAME=self.pipeline_name + "_module",
-                OWNER=airflow_dag_config.get("owner", "airflow"),
-                RETRIES=airflow_dag_config.get("retries", 2),
-                START_DATE=airflow_dag_config.get("start_date", "days_ago(1)"),
-                SCHEDULE_INTERVAL=airflow_dag_config.get(
+                OWNER=dag_config.get("owner", "airflow"),
+                RETRIES=dag_config.get("retries", 2),
+                START_DATE=dag_config.get("start_date", "days_ago(1)"),
+                SCHEDULE_INTERVAL=dag_config.get(
                     "schedule_interval", "*/15 * * * *"
                 ),
-                MAX_ACTIVE_RUNS=airflow_dag_config.get("max_active_runs", 1),
-                CATCHUP=airflow_dag_config.get("catchup", "False"),
+                MAX_ACTIVE_RUNS=dag_config.get("max_active_runs", 1),
+                CATCHUP=dag_config.get("catchup", "False"),
                 tasks=session_functions,
                 task_dependencies=task_graph.get_airflow_dependency(),
             )
@@ -186,21 +161,9 @@ class AirflowPipelineWriter(BasePipelineWriter):
             logger.info("Generated DAG file %s", file)
         else:
             raise ValueError(
-                f'"{airflow_dag_flavor}" is an invalid airflow dag flavor.'
+                f'"{dag_flavor}" is an invalid airflow dag flavor.'
             )
-
-    def _write_docker(self):
-        # Generate Dockerfile text
-        DOCKERFILE_TEMPLATE = load_plugin_template("dockerfile.jinja")
-        dockerfile_text = DOCKERFILE_TEMPLATE.render(
-            pipeline_name=self.pipeline_name
-        )
-
-        # Write out file
-        file = self.output_dir / f"{self.pipeline_name}_Dockerfile"
-        file.write_text(dockerfile_text)
-        logger.info("Generated Docker file %s", file)
 
     def write_pipeline_files(self) -> None:
         self._write_dag()
-        self._write_docker()
+        self._write_docker(template_name="dockerfile.jinja")
