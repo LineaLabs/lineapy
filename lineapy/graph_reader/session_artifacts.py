@@ -137,7 +137,6 @@ class SessionArtifacts:
         for node_id, variable_name in self.db.get_variables_for_session(
             self.session_id
         ):
-            # node = self.graph.get_node(node_id)
             if _is_import_node(self.graph, node_id):
                 import_dict[node_id] = (
                     set([variable_name])
@@ -185,6 +184,14 @@ class SessionArtifacts:
             self._update_tracked_variables(nodeinfo, node_id)
 
             self.node_context[node_id] = nodeinfo
+
+        for var, node_id in self.input_parameters_node.items():
+            if len(self.node_context[node_id].dependent_variables) > 0:
+                # Duplicated variable name existing
+                logger.error(
+                    "LineaPy only suppor literal value as input parameters for now."
+                )
+                raise Exception
 
     def _get_subgraph_from_node_list(self, node_list: List[LineaID]) -> Graph:
         """

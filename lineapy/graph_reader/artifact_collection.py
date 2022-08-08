@@ -310,7 +310,6 @@ class ArtifactCollection:
         )
 
         # Put all together to generate module text
-        # TODO: Replace with jinja template
         MODULE_TEMPLATE = load_plugin_template("module.jinja")
         module_text = MODULE_TEMPLATE.render(
             indentation_block=indentation_block,
