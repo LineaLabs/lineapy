@@ -175,7 +175,7 @@ def check_requirements_txt(t1: str, t2: str):
             "complex",
             ["a0", "b0"],
             "SCRIPT",
-            "pipeline_a0_b0",
+            "script_pipeline_a0_b0",
             {},
             {},
             id="script_pipeline_a0_b0",
@@ -185,7 +185,7 @@ def check_requirements_txt(t1: str, t2: str):
             "complex",
             ["a0", "b0"],
             "AIRFLOW",
-            "pipeline_a0_b0",
+            "airflow_pipeline_a0_b0",
             {},
             {},
             id="airflow_pipeline_a0_b0",
@@ -195,7 +195,7 @@ def check_requirements_txt(t1: str, t2: str):
             "complex",
             ["a0", "b0"],
             "SCRIPT",
-            "pipeline_a0_b0_dependencies",
+            "script_pipeline_a0_b0_dependencies",
             {"a0": {"b0"}},
             {},
             id="script_pipeline_a0_b0_dependencies",
@@ -205,7 +205,7 @@ def check_requirements_txt(t1: str, t2: str):
             "complex",
             ["a0", "b0"],
             "AIRFLOW",
-            "pipeline_a0_b0_dependencies",
+            "airflow_pipeline_a0_b0_dependencies",
             {"a0": {"b0"}},
             {},
             id="airflow_pipeline_a0_b0_dependencies",
@@ -265,7 +265,7 @@ def test_pipeline_generation(
         )
         generated = path.read_text()
         path_expected = pathlib.Path(
-            f"tests/unit/graph_reader/expected/{pipeline_name}/{framework}/{pipeline_name}{file_endings}"
+            f"tests/unit/graph_reader/expected/{pipeline_name}/{pipeline_name}{file_endings}"
         )
         if file_endings != "_requirements.txt":
             to_compare = path_expected.read_text()
