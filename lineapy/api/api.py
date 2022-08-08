@@ -389,17 +389,58 @@ def create_pipeline(
     return pipeline
 
 
-def get_module_definition(artifact_list, input_parameters=[]) -> str:
-    art_collection = ArtifactCollection(
-        artifact_list,
-        input_parameters=input_parameters,
-    )
-    return art_collection.generate_module()
-
-
 def get_function(artifact_list, input_parameters=[]) -> Callable:
+    """
+    Create a python function
+
+    Parameters
+    ----------
+    artifact_list: List[str]
+        List of artifact names to be included in the function return.
+
+    input_parameters: List[str]
+        List of variable names to be used in the function arguments. Currently,
+        only accept variable from literal assignment; such as a='123'.
+        There should be only one literal assignment for each variable within all
+        artifact calculation code. For instance, if both a='123' and a='abc' are
+        existing in the code, we cannot specify a as input variables since it is
+        confusing to specify which literal assignment we want to replace.
+
+    Returns
+    -------
+    Callable
+        A python function that takes input_parameters as args and returns a
+        dictionary with each artifact name as the dictionary key and artifact
+        value as the value.
+
+    """
     art_collection = ArtifactCollection(
         artifact_list,
         input_parameters=input_parameters,
     )
     return art_collection.get_module().run_all_sessions
+
+
+def get_module_definition(artifact_list, input_parameters=[]) -> str:
+    """
+    Create a python module that includes the definition of :func::`get_function`.
+
+    Parameters
+    ----------
+    artifact_list: List[str]
+        same as :func:`get_function`
+
+    input_parameters: List[str]
+        same as :func:`get_function`
+
+    Returns
+    -------
+    str
+        A python module that includes the definition of :func::`get_function`
+        as `run_all_sessions`.
+    """
+    art_collection = ArtifactCollection(
+        artifact_list,
+        input_parameters=input_parameters,
+    )
+    return art_collection.generate_module()
