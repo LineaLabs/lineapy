@@ -1,3 +1,4 @@
+import os
 import pathlib
 import shutil
 import tempfile
@@ -168,25 +169,47 @@ def check_requirements_txt(t1: str, t2: str):
 
 
 @pytest.mark.parametrize(
-    "input_script1, input_script2, artifact_list, pipeline_name, dependencies, airflow_dag_config",
+    "input_script1, input_script2, artifact_list, framework, pipeline_name, dependencies, airflow_dag_config",
     [
         pytest.param(
             "simple",
             "complex",
             ["a0", "b0"],
+            "SCRIPT",
             "pipeline_a0_b0",
             {},
             {},
-            id="pipeline_a0_b0",
+            id="script_pipeline_a0_b0",
         ),
         pytest.param(
             "simple",
             "complex",
             ["a0", "b0"],
+            "AIRFLOW",
+            "pipeline_a0_b0",
+            {},
+            {},
+            id="airflow_pipeline_a0_b0",
+        ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "SCRIPT",
             "pipeline_a0_b0_dependencies",
             {"a0": {"b0"}},
             {},
-            id="pipeline_a0_b0_dependencies",
+            id="script_pipeline_a0_b0_dependencies",
+        ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "AIRFLOW",
+            "pipeline_a0_b0_dependencies",
+            {"a0": {"b0"}},
+            {},
+            id="airflow_pipeline_a0_b0_dependencies",
         ),
     ],
 )
@@ -195,6 +218,7 @@ def test_pipeline_generation(
     input_script1,
     input_script2,
     artifact_list,
+    framework,
     pipeline_name,
     dependencies,
     airflow_dag_config,
@@ -223,7 +247,7 @@ def test_pipeline_generation(
     ac = res.values["ac"]
     tempfolder = tempfile.mkdtemp()
     ac.generate_pipeline_files(
-        framework="AIRFLOW",
+        framework=framework,
         dependencies=dependencies,
         pipeline_name=pipeline_name,
         output_dir=tempfolder,
@@ -242,7 +266,7 @@ def test_pipeline_generation(
         )
         generated = path.read_text()
         path_expected = pathlib.Path(
-            f"tests/unit/graph_reader/expected/{pipeline_name}/{pipeline_name}{file_endings}"
+            f"tests/unit/graph_reader/expected/{pipeline_name}/{framework}/{pipeline_name}{file_endings}"
         )
         if file_endings != "_requirements.txt":
             to_compare = path_expected.read_text()
