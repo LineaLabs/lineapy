@@ -92,7 +92,7 @@ if __name__ == "__main__":
 """
 
         # Write out file
-        file = self.output_dir / f"{self.pipeline_name}_script_dag.py"
+        file = self.output_dir / f"{self.pipeline_name}_dag.py"
         file.write_text(prettify(de_lineate_code(script_dag_text, self.db)))
 
         logger.info("Generated DAG file")
