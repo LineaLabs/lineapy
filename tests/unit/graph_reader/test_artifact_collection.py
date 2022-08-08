@@ -210,6 +210,16 @@ def check_requirements_txt(t1: str, t2: str):
             {},
             id="airflow_pipeline_a0_b0_dependencies",
         ),
+        pytest.param(
+            "housing",
+            "",
+            ["y", "p value"],
+            "SCRIPT",
+            "script_pipeline_housing_w_dependencies",
+            {"p value": {"y"}},
+            {},
+            id="script_pipeline_housing_w_dependencies",
+        ),
     ],
 )
 def test_pipeline_generation(
