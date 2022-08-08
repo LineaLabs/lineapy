@@ -4,10 +4,10 @@ RUN mkdir /tmp/installers
 WORKDIR /tmp/installers
 
 # Copy all the requirements to run current DAG
-COPY ./pipeline_a0_b0_dependencies/pipeline_a0_b0_dependencies_requirements.txt ./
+COPY ./script_pipeline_a0_b0/script_pipeline_a0_b0_requirements.txt ./
 
 # Install required libs
-RUN pip install -r ./pipeline_a0_b0_dependencies_requirements.txt
+RUN pip install -r ./script_pipeline_a0_b0_requirements.txt
 
 WORKDIR /home
 COPY . .

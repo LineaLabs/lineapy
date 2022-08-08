@@ -1,4 +1,4 @@
-import pipeline_a0_b0_module
+import airflow_pipeline_a0_b0_module
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
@@ -10,7 +10,7 @@ default_dag_args = {
 }
 
 dag = DAG(
-    dag_id="pipeline_a0_b0_dag",
+    dag_id="airflow_pipeline_a0_b0_dag",
     schedule_interval="*/15 * * * *",
     max_active_runs=1,
     catchup=False,
@@ -21,13 +21,13 @@ dag = DAG(
 run_session_including_a0 = PythonOperator(
     dag=dag,
     task_id="run_session_including_a0_task",
-    python_callable=pipeline_a0_b0_module.run_session_including_a0,
+    python_callable=airflow_pipeline_a0_b0_module.run_session_including_a0,
 )
 
 run_session_including_b0 = PythonOperator(
     dag=dag,
     task_id="run_session_including_b0_task",
-    python_callable=pipeline_a0_b0_module.run_session_including_b0,
+    python_callable=airflow_pipeline_a0_b0_module.run_session_including_b0,
 )
 
 

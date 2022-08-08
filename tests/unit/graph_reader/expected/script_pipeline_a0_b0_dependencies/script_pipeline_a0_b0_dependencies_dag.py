@@ -1,4 +1,4 @@
-from pipeline_a0_b0_dependencies_module import get_a0, get_b0
+from script_pipeline_a0_b0_dependencies_module import get_a0, get_b0
 
 
 def pipeline():
