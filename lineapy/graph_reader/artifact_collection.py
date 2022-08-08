@@ -151,11 +151,13 @@ class ArtifactCollection:
         session_id_nodes = list(self.session_artifacts.keys())
         session_id_edges = []
         for node_id, to_node_id in dependency_edges_by_id:
-            assert node_id is not None
-            assert to_node_id is not None
             from_session_id = self.node_id_to_session_id.get(node_id, None)
             to_session_id = self.node_id_to_session_id.get(to_node_id, None)
-            if from_session_id is not None and to_session_id is not None:
+            if (
+                from_session_id is not None
+                and to_session_id is not None
+                and from_session_id != to_session_id
+            ):
                 session_id_edges.append((from_session_id, to_session_id))
         inter_session_graph = nx.DiGraph()
         inter_session_graph.add_nodes_from(session_id_nodes)
