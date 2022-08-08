@@ -151,6 +151,8 @@ class ArtifactCollection:
         session_id_nodes = list(self.session_artifacts.keys())
         session_id_edges = []
         for node_id, to_node_id in dependency_edges_by_id:
+            assert node_id is not None
+            assert to_node_id is not None
             from_session_id = self.node_id_to_session_id.get(node_id, None)
             to_session_id = self.node_id_to_session_id.get(to_node_id, None)
             if (
