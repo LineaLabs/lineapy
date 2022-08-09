@@ -1,4 +1,4 @@
-FROM apache/airflow:latest
+FROM apache/airflow:latest-python{python_version}
 
 RUN mkdir /tmp/installers
 WORKDIR /tmp/installers
