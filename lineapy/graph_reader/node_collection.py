@@ -193,6 +193,8 @@ class NodeCollection:
         indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
         args_string = ", ".join(sorted([v for v in self.input_variables]))
+        if self.use_cache:
+            args_string = ""
 
         codeblock = f"{indentation_block}{return_string} = get_{self.safename}({args_string})"
         if (
@@ -228,7 +230,7 @@ class NodeCollection:
         """
         Return a code block for input parameters of the graph segment
         """
-        if self.is_empty:
+        if self.is_empty or self.use_cache is not None:
             return ""
 
         indentation_block = " " * indentation
