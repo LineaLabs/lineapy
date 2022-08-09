@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
@@ -93,6 +93,7 @@ class NodeCollection:
     sliced_nodes: Set[LineaID] = field(default_factory=set)
     raw_codeblock: str = field(default="")
     is_empty: bool = field(default=True)
+    use_cache: Union[None, Tuple[str, int]] = field(default=None)
 
     def __post_init__(self):
         self.safename = self.name.replace(" ", "")
@@ -144,16 +145,24 @@ class NodeCollection:
         """
 
         indentation_block = " " * indentation
-        artifact_codeblock = "\n".join(
-            [
-                f"{indentation_block}{line}"
-                for line in self.raw_codeblock.split("\n")
-                if len(line.strip(" ")) > 0
-            ]
-        )
         name = self.safename
-        args_string = ", ".join(sorted([v for v in self.input_variables]))
         return_string = ", ".join([v for v in self.return_variables])
+        if self.use_cache is None:
+            artifact_codeblock = "\n".join(
+                [
+                    f"{indentation_block}{line}"
+                    for line in self.raw_codeblock.split("\n")
+                    if len(line.strip(" ")) > 0
+                ]
+            )
+            args_string = ", ".join(sorted([v for v in self.input_variables]))
+        else:
+            artifact_codeblock = (
+                f"{indentation_block}import lineapy\n{indentation_block}"
+            )
+            artifact_codeblock += f'{return_string}=lineapy.get("{self.use_cache[0]}", {self.use_cache[1]}).get_value()'
+            args_string = ""
+
         return f"def get_{name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
 
     def get_function_call_block(
@@ -192,7 +201,6 @@ class NodeCollection:
         ):
             codeblock += f"""\n{indentation_block}lineapy.save({self.return_variables[0]}, "{self.name}")"""
         if result_placeholder is not None:
-            # codeblock += f"""\n{indentation_block}{result_placeholder}.append(copy.deepcopy({self.return_variables[0]}))"""
             codeblock += f"""\n{indentation_block}{result_placeholder}["{self.name}"]=copy.deepcopy({self.return_variables[0]})"""
 
         return codeblock

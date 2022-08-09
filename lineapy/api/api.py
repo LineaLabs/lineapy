@@ -389,7 +389,7 @@ def create_pipeline(
     return pipeline
 
 
-def get_function(artifact_list, input_parameters=[]) -> Callable:
+def get_function(artifact_list, input_parameters=[], use_cache=[]) -> Callable:
     """
     Create a python function
 
@@ -415,13 +415,14 @@ def get_function(artifact_list, input_parameters=[]) -> Callable:
 
     """
     art_collection = ArtifactCollection(
-        artifact_list,
-        input_parameters=input_parameters,
+        artifact_list, input_parameters=input_parameters, use_cache=use_cache
     )
     return art_collection.get_module().run_all_sessions
 
 
-def get_module_definition(artifact_list, input_parameters=[]) -> str:
+def get_module_definition(
+    artifact_list, input_parameters=[], use_cache=[]
+) -> str:
     """
     Create a python module that includes the definition of :func::`get_function`.
 
@@ -440,7 +441,6 @@ def get_module_definition(artifact_list, input_parameters=[]) -> str:
         as `run_all_sessions`.
     """
     art_collection = ArtifactCollection(
-        artifact_list,
-        input_parameters=input_parameters,
+        artifact_list, input_parameters=input_parameters, use_cache=use_cache
     )
     return art_collection.generate_module()
