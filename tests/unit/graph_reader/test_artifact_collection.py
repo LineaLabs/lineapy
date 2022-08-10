@@ -4,7 +4,7 @@ import tempfile
 
 import pytest
 
-from lineapy.utils.utils import prettify
+from lineapy.utils.utils import get_system_python_version, prettify
 
 
 @pytest.mark.parametrize(
@@ -275,15 +275,18 @@ def test_pipeline_generation(
         path_expected = pathlib.Path(
             f"tests/unit/graph_reader/expected/{pipeline_name}/{pipeline_name}{file_suffix}"
         )
-        if file_suffix != "_requirements.txt":
-            to_compare = path_expected.read_text()
-            if file_suffix.endswith(".py"):
-                to_compare = prettify(to_compare)
-                generated = prettify(generated)
-            assert generated == to_compare
-        else:
+        if file_suffix == "_requirements.txt":
             assert check_requirements_txt(
                 path.read_text(), path_expected.read_text()
             )
+        else:
+            to_compare = path_expected.read_text()
+            if file_suffix == "_Dockerfile":
+                to_compare = to_compare.format(
+                    python_version=get_system_python_version()
+                )
+            if file_suffix.endswith(".py"):
+                to_compare = prettify(to_compare)
+            assert path.read_text() == to_compare
 
     shutil.rmtree(tempfolder)

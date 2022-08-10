@@ -1,12 +1,12 @@
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import AirflowDagConfig, AirflowDagFlavor, TaskGraph
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
-from lineapy.utils.utils import prettify
+from lineapy.utils.utils import get_system_python_version, prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
@@ -35,12 +35,12 @@ class BasePipelineWriter:
         # We assume there is at least one SessionArtifacts object
         self.db = self.session_artifacts_sorted[0].db
 
-    def _write_docker(self, template_name: str):
+    def _write_docker(
+        self, template_name: str, template_params: Dict[str, str]
+    ) -> None:
         # Generate Dockerfile text
         DOCKERFILE_TEMPLATE = load_plugin_template(template_name)
-        dockerfile_text = DOCKERFILE_TEMPLATE.render(
-            pipeline_name=self.pipeline_name
-        )
+        dockerfile_text = DOCKERFILE_TEMPLATE.render(**template_params)
 
         # Write out file
         file = self.output_dir / f"{self.pipeline_name}_Dockerfile"
@@ -49,7 +49,10 @@ class BasePipelineWriter:
         logger.info("Generated Docker file")
 
     def write_pipeline_files(self) -> None:
-        self._write_docker(template_name="script_dockerfile.jinja")
+        self._write_docker(
+            template_name="script_dockerfile.jinja",
+            template_params={"pipeline_name": self.pipeline_name},
+        )
 
 
 class AirflowPipelineWriter(BasePipelineWriter):
@@ -112,4 +115,10 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
     def write_pipeline_files(self) -> None:
         self._write_dag()
-        self._write_docker(template_name="dockerfile.jinja")
+        self._write_docker(
+            template_name="dockerfile.jinja",
+            template_params={
+                "pipeline_name": self.pipeline_name,
+                "python_version": get_system_python_version(),
+            },
+        )
