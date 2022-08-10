@@ -1,9 +1,7 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-from lineapy.api.api_utils import de_lineate_code
-from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import AirflowDagConfig, AirflowDagFlavor, TaskGraph
 from lineapy.plugins.utils import load_plugin_template
