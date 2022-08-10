@@ -43,6 +43,7 @@ while idx < len(x):
     assert res.artifacts["result"] == SAMPLE_WHILE
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_should_slice_within_if(execute):
     # TODO: We only slice within a block if we can execute it. Later, we need
     # to be able to ensure we can perform slicing among unvisited blocks as
@@ -65,6 +66,7 @@ if a > 5:
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 @pytest.mark.xfail(
     reason="Variable overwritten in visited branch results in declaration outside slice being removed"
 )
@@ -90,6 +92,7 @@ if a > 5:
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_should_slice_within_else(execute):
     # TODO: We only slice within a block if we can execute it. Later, we need
     # to be able to ensure we can perform slicing among unvisited blocks as
@@ -128,6 +131,7 @@ else:
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_should_not_slice_whole_block_out_if_unexecuted_block_present(
     execute,
 ):
@@ -151,6 +155,7 @@ else:
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_nested_should_slice_within_inner_if(execute):
     CODE = """a = 10
 b = 20
@@ -188,6 +193,7 @@ else:
     # When static analysis is introduced, this test should be fixed.
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_nested_should_slice_within_inner_else(execute):
     CODE = """a = 10
 b = 20
@@ -221,6 +227,7 @@ else:
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_nested_should_slice_within_elif(execute):
     CODE = """a = 10
 b = 20
@@ -252,6 +259,7 @@ else:
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_all_lines_sliced_out_within_if(execute):
     CODE = """a = 10
 if a < 20:
@@ -271,6 +279,7 @@ else:
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_all_lines_sliced_out_within_else(execute):
     CODE = """a = 10
 if a >= 20:
@@ -290,6 +299,7 @@ else:
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_slice_out_whole_block_if_no_unexecuted_branch(execute):
     CODE = """a = 10
 if a < 20:
@@ -303,6 +313,7 @@ if a < 20:
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 def test_if_do_not_slice_out_whole_block_if_no_unexecuted_branch_but_side_effects_in_conditions(
     execute,
 ):
@@ -320,6 +331,7 @@ if a.pop():
     )
 
 
+@pytest.mark.skip(reason="Unhide after LIN-532")
 @pytest.mark.skipif("sys.version_info < (3, 8)")
 def test_if_side_effect_in_condition(execute):
     CODE = """a = [1, 2, 3]
