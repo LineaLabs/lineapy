@@ -20,6 +20,7 @@ from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.airflow import AirflowDagConfig
+from lineapy.plugins.mlflow import log_model
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
@@ -100,6 +101,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         # pickles value of artifact and saves to filesystem
         pickle_name = _pickle_name(value_node_id, execution_id)
         _try_write_to_pickle(reference, pickle_name)
+        log_model(reference, name.replace(" ", "_"))
 
         # adds reference to pickled file inside database
         db.write_node_value(

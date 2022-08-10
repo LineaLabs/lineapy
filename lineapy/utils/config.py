@@ -65,6 +65,7 @@ class lineapy_config:
         logging_file=None,
         storage_options=None,
         is_demo=False,
+        mlflow_tracking_uri=None,
     ):
         if logging_level.isdigit():
             logging_level = logging._levelToName[int(logging_level)]
@@ -78,6 +79,7 @@ class lineapy_config:
         self.logging_file = logging_file
         self.storage_options = storage_options
         self.is_demo = is_demo
+        self.mlflow_tracking_uri = mlflow_tracking_uri
 
         # config file
         config_file_path = Path(
@@ -113,6 +115,14 @@ class lineapy_config:
                 self.set(key, config_value, verbose=False)
             elif default_value is not None:
                 self.set(key, default_value, verbose=False)
+
+        if (
+            self.mlflow_tracking_uri is None
+            and os.environ.get("MLFLOW_TRACKING_URI") is not None
+        ):
+            self.set(
+                "mlflow_tracking_uri", os.environ.get("MLFLOW_TRACKING_URI")
+            )
 
         self._set_defaults()
 
