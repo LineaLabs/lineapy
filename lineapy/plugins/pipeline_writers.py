@@ -51,7 +51,10 @@ class BasePipelineWriter:
     def write_pipeline_files(self) -> None:
         self._write_docker(
             template_name="script_dockerfile.jinja",
-            template_params={"pipeline_name": self.pipeline_name},
+            template_params={
+                "pipeline_name": self.pipeline_name,
+                "python_version": get_system_python_version(),
+            },
         )
 
 
