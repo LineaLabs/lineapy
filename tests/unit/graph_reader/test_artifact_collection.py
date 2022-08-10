@@ -264,22 +264,21 @@ def test_pipeline_generation(
         airflow_dag_flavor="PythonOperatorPerSession",
     )
 
-    for file_endings in [
-        "_module.py",
-        "_dag.py",
-        "_Dockerfile",
-        "_requirements.txt",
-    ]:
+    file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
+    if framework != "SCRIPT":
+        file_endings.append("_dag.py")
+
+    for file_suffix in file_endings:
         path = pathlib.Path(
-            f"{tempfolder}/{pipeline_name}/{pipeline_name}{file_endings}"
+            f"{tempfolder}/{pipeline_name}/{pipeline_name}{file_suffix}"
         )
         generated = path.read_text()
         path_expected = pathlib.Path(
-            f"tests/unit/graph_reader/expected/{pipeline_name}/{pipeline_name}{file_endings}"
+            f"tests/unit/graph_reader/expected/{pipeline_name}/{pipeline_name}{file_suffix}"
         )
-        if file_endings != "_requirements.txt":
+        if file_suffix != "_requirements.txt":
             to_compare = path_expected.read_text()
-            if file_endings.endswith(".py"):
+            if file_suffix.endswith(".py"):
                 to_compare = prettify(to_compare)
                 generated = prettify(generated)
             assert generated == to_compare

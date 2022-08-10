@@ -37,59 +37,6 @@ class BasePipelineWriter:
         # We assume there is at least one SessionArtifacts object
         self.db = self.session_artifacts_sorted[0].db
 
-    def _write_dag(self, dag_config: Optional[Any] = {}) -> None:
-        # Initiate store for DAG script components
-        main_module_dict: Dict[str, List[str]] = {
-            "import_lines": [],
-            "calculation_lines": [],
-            "return_varnames": [],
-        }
-
-        # Extract script components by session
-        for session_artifacts in self.session_artifacts_sorted:
-            # Generate import statements
-            func_names = [
-                f"get_{coll.safename}"
-                for coll in session_artifacts.artifact_nodecollections
-            ]
-            main_module_dict["import_lines"].append(
-                f"from {self.pipeline_name}_module import {', '.join(func_names)}"
-            )
-
-            # Generate calculation lines
-            calc_lines = [
-                coll.get_function_call_block(
-                    indentation=4, keep_lineapy_save=self.keep_lineapy_save
-                )
-                for coll in session_artifacts.artifact_nodecollections
-            ]
-            main_module_dict["calculation_lines"].extend(calc_lines)
-
-            # Generate return variables
-            ret_varnames = [
-                coll.return_variables[0]
-                for coll in session_artifacts.artifact_nodecollections
-                if coll.collection_type == NodeCollectionType.ARTIFACT
-            ]
-            main_module_dict["return_varnames"].extend(ret_varnames)
-
-        # Combine components by "type"
-        imports = "\n".join(main_module_dict["import_lines"])
-        calculations = "\n".join(main_module_dict["calculation_lines"])
-        returns = ", ".join(main_module_dict["return_varnames"])
-
-        # Put all together to DAG script text
-        DAG_TEMPLATE = load_plugin_template("script_dag_default.jinja")
-        script_dag_text = DAG_TEMPLATE.render(
-            imports=imports, calculations=calculations, returns=returns
-        )
-
-        # Write out file
-        file = self.output_dir / f"{self.pipeline_name}_dag.py"
-        file.write_text(prettify(de_lineate_code(script_dag_text, self.db)))
-
-        logger.info("Generated DAG file")
-
     def _write_docker(self, template_name: str):
         # Generate Dockerfile text
         DOCKERFILE_TEMPLATE = load_plugin_template(template_name)
@@ -104,7 +51,6 @@ class BasePipelineWriter:
         logger.info("Generated Docker file")
 
     def write_pipeline_files(self) -> None:
-        self._write_dag()
         self._write_docker(template_name="script_dockerfile.jinja")
 
 
