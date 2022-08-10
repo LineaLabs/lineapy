@@ -57,12 +57,14 @@ class AirflowPipelineWriter(BasePipelineWriter):
     Class for pipeline file writer. Corresponds to "AIRFLOW" framework.
     """
 
-    def _write_dag(
-        self,
-        dag_config: Optional[AirflowDagConfig] = {},
+    def __init__(
+        self, dag_config: Optional[AirflowDagConfig] = {}, *args, **kwargs
     ) -> None:
-        dag_config = dag_config or {}
-        dag_flavor = dag_config.get(
+        super().__init__(*args, **kwargs)
+        self.dag_config = dag_config or {}
+
+    def _write_dag(self) -> None:
+        dag_flavor = self.dag_config.get(
             "dag_flavor", AirflowDagFlavor.PythonOperatorPerSession
         )
 
@@ -86,14 +88,14 @@ class AirflowPipelineWriter(BasePipelineWriter):
             full_code = DAG_TEMPLATE.render(
                 DAG_NAME=self.pipeline_name,
                 MODULE_NAME=self.pipeline_name + "_module",
-                OWNER=dag_config.get("owner", "airflow"),
-                RETRIES=dag_config.get("retries", 2),
-                START_DATE=dag_config.get("start_date", "days_ago(1)"),
-                SCHEDULE_INTERVAL=dag_config.get(
+                OWNER=self.dag_config.get("owner", "airflow"),
+                RETRIES=self.dag_config.get("retries", 2),
+                START_DATE=self.dag_config.get("start_date", "days_ago(1)"),
+                SCHEDULE_INTERVAL=self.dag_config.get(
                     "schedule_interval", "*/15 * * * *"
                 ),
-                MAX_ACTIVE_RUNS=dag_config.get("max_active_runs", 1),
-                CATCHUP=dag_config.get("catchup", "False"),
+                MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
+                CATCHUP=self.dag_config.get("catchup", "False"),
                 tasks=session_functions,
                 task_dependencies=task_graph.get_airflow_dependency(),
             )

@@ -168,7 +168,7 @@ def check_requirements_txt(t1: str, t2: str):
 
 
 @pytest.mark.parametrize(
-    "input_script1, input_script2, artifact_list, framework, pipeline_name, dependencies, airflow_dag_config",
+    "input_script1, input_script2, artifact_list, framework, pipeline_name, dependencies, dag_config",
     [
         pytest.param(
             "simple",
@@ -230,7 +230,7 @@ def test_pipeline_generation(
     framework,
     pipeline_name,
     dependencies,
-    airflow_dag_config,
+    dag_config,
 ):
     """
     Test two sessions
@@ -260,8 +260,7 @@ def test_pipeline_generation(
         dependencies=dependencies,
         pipeline_name=pipeline_name,
         output_dir=tempfolder,
-        airflow_dag_config=airflow_dag_config,
-        airflow_dag_flavor="PythonOperatorPerSession",
+        dag_config=dag_config,
     )
 
     file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]

@@ -361,8 +361,7 @@ class ArtifactCollection:
         keep_lineapy_save: bool = False,
         pipeline_name: str = "pipeline",
         output_dir: str = ".",
-        airflow_dag_config: Optional[AirflowDagConfig] = {},
-        airflow_dag_flavor: str = "PythonOperatorPerSession",
+        dag_config: Optional[AirflowDagConfig] = {},
     ):
         """
         Use modularized artifact code to generate standard pipeline files,
@@ -411,6 +410,7 @@ class ArtifactCollection:
                     keep_lineapy_save=keep_lineapy_save,
                     pipeline_name=pipeline_name,
                     output_dir=output_dir,
+                    dag_config=dag_config,
                 )
             else:
                 pipeline_writer = BasePipelineWriter(
