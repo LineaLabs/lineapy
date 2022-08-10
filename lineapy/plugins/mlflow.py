@@ -6,7 +6,7 @@ from lineapy.utils.config import options
 
 def log_model(model, artifact_path, **kwargs) -> None:
     if options.get("mlflow_tracking_uri") is not None:
-        mlflow.set_tracking_uri("sqlite:///mlruns.db")
+        mlflow.set_tracking_uri(options.get("mlflow_tracking_uri"))
         if isinstance(model, BaseEstimator):
             mlflow.sklearn.log_model(
                 model,
