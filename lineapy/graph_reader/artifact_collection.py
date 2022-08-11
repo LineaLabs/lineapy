@@ -49,6 +49,11 @@ class ArtifactCollection:
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
         self.art_name_to_node_id: Dict[str, LineaID] = {}
         self.node_id_to_session_id: Dict[LineaID, LineaID] = {}
+        self.input_parameters = input_parameters
+        if len(input_parameters) != len(set(input_parameters)):
+            raise ValueError(
+                f"Duplicated input parameters detected in {input_parameters}"
+            )
 
         artifacts_by_session: Dict[LineaID, List[LineaArtifact]] = {}
 
@@ -317,13 +322,27 @@ class ArtifactCollection:
                 if len(line.lstrip(" ").rstrip(",")) > 0
             ]
 
-        module_input_parameters = (
+        module_input_parameters_body = (
             ",".join(input_parameters_body)
             if len(input_parameters_body) <= 1
             else "\n"
             + f",\n{indentation_block}".join(input_parameters_body)
             + ",\n"
         )
+
+        module_input_parameters_list = [
+            x.split("=")[0].strip(" ") for x in input_parameters_body
+        ]
+        if len(module_input_parameters_list) != len(
+            set(module_input_parameters_list)
+        ):
+            raise ValueError(
+                f"Duplicated input parameters {module_input_parameters_list} across multiple sessions"
+            )
+        elif set(module_input_parameters_list) != set(self.input_parameters):
+            raise ValueError(
+                f"Detected input parameters {module_input_parameters_list} do not agree with user input {self.input_parameters}"
+            )
 
         # Put all together to generate module text
         MODULE_TEMPLATE = load_plugin_template("module.jinja")
@@ -334,7 +353,7 @@ class ArtifactCollection:
             session_functions=session_functions,
             module_function_body=module_function_body,
             module_function_return=module_function_return,
-            module_input_parameters=module_input_parameters,
+            module_input_parameters=module_input_parameters_body,
         )
 
         return module_text
