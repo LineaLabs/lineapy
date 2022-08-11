@@ -4,7 +4,7 @@ import subprocess
 import pytest
 
 from lineapy.api.api_utils import extract_taskgraph
-from lineapy.utils.utils import prettify
+from lineapy.utils.utils import get_system_python_version, prettify
 
 
 def check_requirements_txt(t1: str, t2: str):
@@ -50,15 +50,20 @@ def test_slice_airflow(artifact_names, dag_name, deps, airflow_plugin):
         path_expected = pathlib.Path(
             "outputs/expected/" + dag_name + file_endings
         )
-        if file_endings != "_requirements.txt":
-            to_compare = path_expected.read_text()
-            if file_endings.endswith(".py"):
-                to_compare = prettify(to_compare)
-            assert path.read_text() == to_compare
-        else:
+        if file_endings == "_requirements.txt":
             assert check_requirements_txt(
                 path.read_text(), path_expected.read_text()
             )
+        else:
+            to_compare = path_expected.read_text()
+            if file_endings == "_Dockerfile":
+                system_python_version = get_system_python_version()
+                to_compare = to_compare.format(
+                    python_version=system_python_version
+                )
+            if file_endings.endswith(".py"):
+                to_compare = prettify(to_compare)
+            assert path.read_text() == to_compare
 
 
 @pytest.mark.airflow
