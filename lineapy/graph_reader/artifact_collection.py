@@ -389,13 +389,16 @@ class ArtifactCollection:
         # Write out requirements file
         # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
         db = session_artifacts_sorted[0].db
-        lib_names_text = ""
+        libraries = dict()
         for session_artifacts in session_artifacts_sorted:
             session_libs = db.get_libraries_for_session(
                 session_artifacts.session_id
             )
             for lib in session_libs:
-                lib_names_text += f"{lib.package_name}=={lib.version}\n"
+                libraries[lib.package_name] = lib.version
+        lib_names_text = "\n".join(
+            [f"{lib}=={ver}" for lib, ver in libraries.items()]
+        )
         requirements_file = output_path / f"{pipeline_name}_requirements.txt"
         requirements_file.write_text(lib_names_text)
         logger.info("Generated requirements file")
