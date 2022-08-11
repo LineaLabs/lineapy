@@ -2,21 +2,16 @@ import logging
 import tempfile
 from dataclasses import dataclass
 from itertools import chain
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
+from typing_extensions import NotRequired, TypedDict
 
-# from lineapy.api.api import get
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
-
-# from lineapy.plugins.pipeline_writers import (
-#     AirflowPipelineWriter,
-#     BasePipelineWriter,
-# )
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -24,6 +19,11 @@ from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
+
+
+class ArtifactDef(TypedDict):
+    artifact_name: str
+    version: NotRequired[Optional[int]]
 
 
 @dataclass
@@ -55,12 +55,11 @@ class ArtifactCollection:
         # Retrieve artifact objects and group them by session ID
         for art_entry in artifacts:
             # Construct args for artifact retrieval
-            args = {}
+            args: ArtifactDef
             if isinstance(art_entry, str):
-                args["artifact_name"] = art_entry
+                args = {"artifact_name": art_entry}
             elif isinstance(art_entry, tuple):
-                args["artifact_name"] = art_entry[0]
-                args["version"] = art_entry[1]
+                args = {"artifact_name": art_entry[0], "version": art_entry[1]}
             else:
                 raise ValueError(
                     "An artifact should be passed in as a string or (string, integer) tuple."
