@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
+from lineapy.graph_reader.node_collection import NodeCollection
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import (
     AirflowDagConfig,
@@ -192,6 +193,53 @@ class AirflowPipelineWriter(BasePipelineWriter):
             file = self.output_dir / f"{self.pipeline_name}_dag.py"
             file.write_text(prettify(full_code))
             logger.info("Generated DAG file %s", file)
+        elif dag_flavor == AirflowDagFlavor.PythonOperatorPerArtifact:
+            DAG_TEMPLATE = load_plugin_template(
+                "airflow_dag_PythonOperatorPerArtifact.jinja"
+            )
+            task_functions = []
+            task_definitions = []
+            for session_artifacts in self.session_artifacts_sorted:
+                task_functions += [
+                    nc.safename
+                    for nc in session_artifacts.artifact_nodecollections
+                ]
+                task_definitions += [
+                    get_task(nc, self.pipeline_name)
+                    for nc in session_artifacts.artifact_nodecollections
+                ]
+            for callblock in task_definitions:
+                print(callblock)
+            dependencies = {
+                task_functions[i + 1]: {task_functions[i]}
+                for i in range(len(task_functions) - 1)
+            }
+            task_graph = TaskGraph(
+                nodes=[f[0] for f in task_functions],
+                mapping={f[0]: f[0] for f in task_functions},
+                edges=dependencies,
+            )
+            full_code = DAG_TEMPLATE.render(
+                DAG_NAME=self.pipeline_name,
+                MODULE_NAME=self.pipeline_name + "_module",
+                OWNER=self.dag_config.get("owner", "airflow"),
+                RETRIES=self.dag_config.get("retries", 2),
+                START_DATE=self.dag_config.get("start_date", "days_ago(1)"),
+                SCHEDULE_INTERVAL=self.dag_config.get(
+                    "schedule_interval", "*/15 * * * *"
+                ),
+                MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
+                CATCHUP=self.dag_config.get("catchup", "False"),
+                task_definitions=task_definitions,
+                tasks=task_functions,
+                task_dependencies=task_graph.get_airflow_dependency(),
+            )
+            full_code = prettify(full_code)
+
+            # Write out file
+            file = self.output_dir / f"{self.pipeline_name}_dag.py"
+            file.write_text(prettify(full_code))
+            logger.info("Generated DAG file %s", file)
         else:
             raise ValueError(
                 f'"{dag_flavor}" is an invalid airflow dag flavor.'
@@ -206,3 +254,24 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 "python_version": get_system_python_version(),
             },
         )
+
+
+def get_task(nc: NodeCollection, pipeline_name: str, indentation=4) -> str:
+    input_var_loading_block = [
+        f"{var} = pickle.load(open('/tmp/{pipeline_name}/variable_{var}.pickle','rb'))"
+        for var in nc.input_variables
+    ]
+    function_call_block = f"{nc.get_function_call_block(indentation=0)}"
+    return_var_saving_block = [
+        f"pickle.dump({var},open('/tmp/{pipeline_name}/variable_{var}.pickle','wb'))"
+        for var in nc.input_variables
+    ]
+
+    TASK_FUNCITON_TEMPLATE = load_plugin_template("task_function.jinja")
+    return TASK_FUNCITON_TEMPLATE.render(
+        artifact_name=nc.safename,
+        loading_blocks=input_var_loading_block,
+        call_block=function_call_block,
+        dumping_block=return_var_saving_block,
+        indentation_block=" " * indentation,
+    )

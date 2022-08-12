@@ -72,8 +72,8 @@ class TaskGraph(object):
 
 class AirflowDagFlavor(Enum):
     PythonOperatorPerSession = 1
+    PythonOperatorPerArtifact = 2
     # To be implemented for different flavor of airflow dags
-    # PythonOperatorPerArtifact = 2
     # BashOperator = 3
     # DockerOperator = 4
     # KubernetesPodOperator = 5
