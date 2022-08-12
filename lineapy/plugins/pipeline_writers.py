@@ -185,7 +185,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
                 CATCHUP=self.dag_config.get("catchup", "False"),
                 tasks=session_functions,
-                task_dependencies=task_graph.get_airflow_dependency(),
+                task_dependencies=task_graph.get_airflow_dependencies(),
             )
             full_code = prettify(full_code)
 
@@ -208,15 +208,15 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     get_task(nc, self.pipeline_name)
                     for nc in session_artifacts.artifact_nodecollections
                 ]
-            for callblock in task_definitions:
-                print(callblock)
+            print(task_functions)
             dependencies = {
                 task_functions[i + 1]: {task_functions[i]}
                 for i in range(len(task_functions) - 1)
             }
+            print(dependencies)
             task_graph = TaskGraph(
-                nodes=[f[0] for f in task_functions],
-                mapping={f[0]: f[0] for f in task_functions},
+                nodes=task_functions,
+                mapping={f: f for f in task_functions},
                 edges=dependencies,
             )
             full_code = DAG_TEMPLATE.render(
@@ -232,7 +232,9 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 CATCHUP=self.dag_config.get("catchup", "False"),
                 task_definitions=task_definitions,
                 tasks=task_functions,
-                task_dependencies=task_graph.get_airflow_dependency(),
+                task_dependencies=task_graph.get_airflow_dependencies(
+                    setup_task="setup", teardown_task="teardown"
+                ),
             )
             full_code = prettify(full_code)
 
@@ -261,10 +263,10 @@ def get_task(nc: NodeCollection, pipeline_name: str, indentation=4) -> str:
         f"{var} = pickle.load(open('/tmp/{pipeline_name}/variable_{var}.pickle','rb'))"
         for var in nc.input_variables
     ]
-    function_call_block = f"{nc.get_function_call_block(indentation=0)}"
+    function_call_block = f"{nc.get_function_call_block(indentation=0, source_module=f'{pipeline_name}_module')}"
     return_var_saving_block = [
         f"pickle.dump({var},open('/tmp/{pipeline_name}/variable_{var}.pickle','wb'))"
-        for var in nc.input_variables
+        for var in nc.return_variables
     ]
 
     TASK_FUNCITON_TEMPLATE = load_plugin_template("task_function.jinja")
@@ -272,6 +274,6 @@ def get_task(nc: NodeCollection, pipeline_name: str, indentation=4) -> str:
         artifact_name=nc.safename,
         loading_blocks=input_var_loading_block,
         call_block=function_call_block,
-        dumping_block=return_var_saving_block,
+        dumping_blocks=return_var_saving_block,
         indentation_block=" " * indentation,
     )

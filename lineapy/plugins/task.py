@@ -1,6 +1,6 @@
 from enum import Enum
 from itertools import chain
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 import networkx as nx
 from typing_extensions import TypedDict
@@ -60,6 +60,7 @@ class TaskGraph(object):
     def get_taskorder(self) -> List[str]:
         return list(nx.topological_sort(self.graph))
 
+    # Depreciate after new to_pipeline is implemented
     def get_airflow_dependency(self):
         return (
             "\n".join(
@@ -68,6 +69,28 @@ class TaskGraph(object):
             if len(list(self.graph.edges)) > 0
             else ""
         )
+
+    def get_airflow_dependencies(
+        self,
+        setup_task: Optional[str] = None,
+        teardown_task: Optional[str] = None,
+    ):
+        taskorder = [
+            task for task in self.get_taskorder() if task in self.graph.nodes
+        ]
+        dependencies = [
+            f"{task0}>> {task1}" for task0, task1 in self.graph.edges
+        ]
+        print(taskorder, taskorder[0], taskorder[-1])
+        print(list(self.graph.nodes))
+        print(list(self.graph.edges))
+
+        print(dependencies)
+        if setup_task is not None:
+            dependencies.append(f"{setup_task} >> {taskorder[0]}")
+        if teardown_task is not None:
+            dependencies.append(f"{taskorder[-1]} >> {teardown_task}")
+        return dependencies
 
 
 class AirflowDagFlavor(Enum):
