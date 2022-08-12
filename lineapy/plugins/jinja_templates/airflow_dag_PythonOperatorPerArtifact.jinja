@@ -11,12 +11,12 @@ from airflow.operators.python_operator import PythonOperator
 
 {% block plugin_dag_block %}
 def task_setup():
-    pickle_folder = Pathlib.path('/tmp').joinpath('{{ MODULE_NAME }}')
-    if not pickle_folder.is_exists():
+    pickle_folder = pathlib.Path('/tmp').joinpath('{{ DAG_NAME }}')
+    if not pickle_folder.exists():
         pickle_folder.mkdir()
 
 def task_teardown():
-    pickle_files = Pathlib.path('/tmp').joinpath('{{ MODULE_NAME }}').glob('*.pickle')
+    pickle_files = pathlib.Path('/tmp').joinpath('{{ DAG_NAME }}').glob('*.pickle')
     for f in pickle_files:
         f.unlink()
 {% for TASK_DEF in task_definitions %}
