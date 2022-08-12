@@ -257,7 +257,6 @@ class NodeTransformer(ast.NodeTransformer):
                 else_id,
                 self.get_source(node.test),
                 test_call_node.id,
-                None,
             ):
                 for stmt in node.body:
                     self.visit(stmt)
@@ -274,10 +273,8 @@ class NodeTransformer(ast.NodeTransformer):
                     else_id,
                     node_id,
                     self.get_else_source(node),
-                    None,
-                    self.get_black_box_without_executing(node.orelse).id,
                 ):
-                    pass
+                    self.get_black_box_without_executing(node.orelse)
         else:
             # In this case, the test condition is falsy, so we reverse the
             # analysis above: the statements in the body of the If node are not
@@ -290,9 +287,8 @@ class NodeTransformer(ast.NodeTransformer):
                 else_id,
                 self.get_source(node.test),
                 test_call_node.id,
-                self.get_black_box_without_executing(node.body).id,
             ):
-                pass
+                self.get_black_box_without_executing(node.body)
             if else_id is not None:
                 with self.tracer.get_control_node(
                     NodeType.ElseNode,
@@ -789,7 +785,7 @@ class NodeTransformer(ast.NodeTransformer):
 
     def get_black_box_without_executing(
         self, nodes: List[ast.stmt]
-    ) -> LiteralNode:
+    ) -> CallNode:
         # We simply create a LiteralNode with the code within the block
         # Processing a LiteralNode does not actually execute the statement
         assert (
@@ -809,4 +805,12 @@ class NodeTransformer(ast.NodeTransformer):
             end_lineno=nodes[-1].end_lineno,  # type: ignore
             end_col_offset=nodes[-1].end_col_offset,  # type: ignore
         )
-        return self.tracer.literal(code, source_location=source_location)
+        with self.tracer.get_control_node(
+            NodeType.UnexecNode, get_new_id(), None, source_location
+        ):
+            ret = self.tracer.call(
+                self.tracer.lookup_node(l_exec_statement.__name__),
+                source_location,
+                self.tracer.literal(code, source_location=source_location),
+            )
+        return ret

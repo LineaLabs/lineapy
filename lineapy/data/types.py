@@ -67,6 +67,7 @@ class NodeType(Enum):
     LookupNode = auto()
     MutateNode = auto()
     GlobalNode = auto()
+    UnexecNode = auto()
     IfNode = auto()
     ElseNode = auto()
 
@@ -431,15 +432,10 @@ class ControlFlowNode(BaseNode):
     # For `if` node, it will be an `else` node, for an `else` node it could be an `if` node, `while` node etc.
     companion_id: Optional[LineaID]
 
-    # LiteralNode containing the code, if the block is not executed
-    unexec_id: Optional[LineaID]
-
     def parents(self) -> Iterable[LineaID]:
         yield from super().parents()
         if self.companion_id:
             yield self.companion_id
-        if self.unexec_id:
-            yield self.unexec_id
 
 
 class IfNode(ControlFlowNode):
@@ -471,7 +467,17 @@ class ElseNode(ControlFlowNode):
     companion_id: LineaID
 
 
-ControlNode = Union[IfNode, ElseNode]
+class UnexecNode(BaseNode):
+    """
+    Represents a node which was not executed during the creation of the graph.
+    Example could be the true branch of an IfNode, where the test condition was
+    false and the true branch was not visited.
+    """
+
+    node_type = Field(NodeType.UnexecNode, repr=False)
+
+
+ControlNode = Union[IfNode, ElseNode, UnexecNode]
 
 
 # We can use this for more precise type definitions, to make sure we hit

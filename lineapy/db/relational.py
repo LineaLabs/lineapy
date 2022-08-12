@@ -404,13 +404,23 @@ class GlobalNodeORM(BaseNodeORM):
     }
 
 
+class UnexecNodeORM(BaseNodeORM):
+    __tablename__ = "unexec_node"
+
+    id = Column(String, ForeignKey("node.id"), primary_key=True)
+
+    __mapper_args__ = {
+        "polymorphic_identity": NodeType.UnexecNode,
+        "inherit_condition": id == BaseNodeORM.id,
+    }
+
+
 class IfNodeORM(BaseNodeORM):
     __tablename__ = "if_node"
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
     test_id = Column(String, ForeignKey("node.id"))
     companion_id = Column(String, ForeignKey("node.id"))
-    unexec_id = Column(String, ForeignKey("literal_assign_node.id"))
 
     __mapper_args__ = {
         "polymorphic_identity": NodeType.IfNode,
@@ -423,7 +433,6 @@ class ElseNodeORM(BaseNodeORM):
 
     id = Column(String, ForeignKey("node.id"), primary_key=True)
     companion_id = Column(String, ForeignKey("node.id"))
-    unexec_id = Column(String, ForeignKey("literal_assign_node.id"))
 
     __mapper_args__ = {
         "polymorphic_identity": NodeType.ElseNode,
@@ -440,6 +449,7 @@ NodeORM = Union[
     LiteralNodeORM,
     MutateNodeORM,
     GlobalNodeORM,
+    UnexecNodeORM,
     IfNodeORM,
     ElseNodeORM,
 ]

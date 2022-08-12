@@ -1,7 +1,12 @@
-from dataclasses import dataclass, field
-from typing import List, Optional
+from __future__ import annotations
 
-from lineapy.data.types import ControlNode, LineaID
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, List, Optional
+
+from lineapy.data.types import ControlNode, LineaID, UnexecNode
+
+if TYPE_CHECKING:
+    from lineapy.instrumentation.tracer import Tracer
 
 
 @dataclass
@@ -59,10 +64,15 @@ class ControlFlowContext:
 
     control_node: ControlNode
     control_flow_tracker: ControlFlowTracker
+    tracer: Tracer
 
     def __enter__(self) -> ControlNode:
         self.control_flow_tracker.push_node(self.control_node.id)
+        if isinstance(self.control_node, UnexecNode):
+            self.tracer.execute_call_nodes = False
         return self.control_node
 
     def __exit__(self, exc_type, exc_value, exc_tb) -> None:
         self.control_flow_tracker.pop_node()
+        if isinstance(self.control_node, UnexecNode):
+            self.tracer.execute_call_nodes = True

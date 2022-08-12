@@ -98,7 +98,54 @@ global_1 = GlobalNode(
         global_reads={"a": literal_3.id},
     ).id,
 )
-call_5 = CallNode(
+else_1 = ElseNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=0,
+        end_lineno=6,
+        end_col_offset=4,
+        source_code=source_1.id,
+    ),
+    companion_id=if_1.id,
+)
+unexec_1 = UnexecNode(
+    source_location=SourceLocation(
+        lineno=7,
+        col_offset=4,
+        end_lineno=7,
+        end_col_offset=10,
+        source_code=source_1.id,
+    ),
+    control_dependency=else_1.id,
+)
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=7,
+        col_offset=4,
+        end_lineno=7,
+        end_col_offset=10,
+        source_code=source_1.id,
+    ),
+    control_dependency=unexec_1.id,
+    function_id=LookupNode(
+        control_dependency=unexec_1.id,
+        name="l_exec_statement",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=7,
+                col_offset=4,
+                end_lineno=7,
+                end_col_offset=10,
+                source_code=source_1.id,
+            ),
+            control_dependency=unexec_1.id,
+            value="a -= 1",
+        ).id
+    ],
+)
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=9,
         col_offset=0,

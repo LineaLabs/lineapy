@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, Dict, Iterable, cast
 from pydantic import BaseModel
 from pydantic.fields import SHAPE_DICT, SHAPE_LIST
 
+from lineapy.data.graph_visitor import GraphVisitor
+
 if TYPE_CHECKING:
     from lineapy.data.graph import Graph
 
@@ -87,7 +89,8 @@ class GraphPrinter:
             yield from self.pretty_print_model(self.graph.session_context)
             yield ")"
 
-        for node in self.graph.visit_order():
+        visitor = GraphVisitor(self.graph, None)
+        for node in visitor.visit_order():
             node_id = node.id
             attr_name = self.get_cached_node_type_name(node)
 

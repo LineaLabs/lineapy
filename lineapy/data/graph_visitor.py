@@ -1,15 +1,80 @@
-from queue import PriorityQueue, Queue
-from typing import Callable, Dict, Iterator, Set, TypeVar
+from __future__ import annotations
 
-from lineapy.data.graph import Graph
+from dataclasses import dataclass
+from queue import PriorityQueue, Queue
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Set,
+    TypeVar,
+)
+
 from lineapy.data.types import IfNode, LineaID, Node
-from lineapy.execution.executor import Executor
 from lineapy.utils.utils import listify
 
+if TYPE_CHECKING:
+    from lineapy.data.graph import Graph
+    from lineapy.execution.executor import Executor
 
+
+@dataclass
 class GraphVisitor:
+
+    graph: Graph
+    executor: Optional[Executor]
+
+    def _populate_queue(
+        self,
+        filtered_nodes: List[Node],
+        seen: Set[LineaID],
+        queue: PriorityQueue[Node],
+        remaining_parents: Dict[str, int],
+    ) -> None:
+        """
+        This method populates a priority queue which contains the nodes which
+        are yet to be visited for execution or for printing
+        """
+        already_seen = set(seen)
+        for node in filtered_nodes:
+            n_remaining_parents = len(
+                [
+                    parent_id
+                    for parent_id in self.graph.nx_graph.pred[node.id]
+                    if (
+                        parent_id in self.graph.ids
+                        and parent_id not in already_seen
+                    )
+                ]
+            )
+
+            # Removing certain edges to ensure the graph for execution is
+            # acyclic, to generate a proper order for execution of nodes
+
+            # Simply by reducing the counter `n_remaining_counter` by the
+            # appropriate amount is sufficient as we check whether n_remaining_
+            # parents for a particular node is zero for deciding whether it can
+            # be executed next, rather than modifying the edges in the graph.
+
+            # There is a cyclic dependency amongst and IfNode and ElseNode,
+            # both being connected to each other. To break the cycle, we do not
+            # consider the connection from the IfNode to the ElseNode (ElseNode
+            # is not a dependency for IfNode to run)
+            if isinstance(node, IfNode):
+                if node.companion_id is not None:
+                    n_remaining_parents -= 1
+
+            # First we add all the nodes to the queue which have no parents.
+            if n_remaining_parents == 0:
+                seen.add(node.id)
+                queue.put(node)
+            remaining_parents[node.id] = n_remaining_parents
+
     @listify
-    def visit_order(self, graph: Graph) -> Iterator[Node]:
+    def visit_order(self) -> Iterator[Node]:
         """
         Just using the line number as the tie-breaker for now since we don't
         have a good way to track dependencies.
@@ -72,36 +137,7 @@ class GraphVisitor:
         # in the execution graph.
         remaining_parents: Dict[str, int] = {}
 
-        for node in graph.nodes:
-            n_remaining_parents = len(
-                [
-                    parent_id
-                    for parent_id in graph.nx_graph.pred[node.id]
-                    if parent_id in graph.ids
-                ]
-            )
-
-            # Removing certain edges to ensure the graph for execution is
-            # acyclic, to generate a proper order for execution of nodes
-
-            # Simply by reducing the counter `n_remaining_counter` by the
-            # appropriate amount is sufficient as we check whether n_remaining_
-            # parents for a particular node is zero for deciding whether it can
-            # be executed next, rather than modifying the edges in the graph.
-
-            # There is a cyclic dependency amongst and IfNode and ElseNode,
-            # both being connected to each other. To break the cycle, we do not
-            # consider the connection from the IfNode to the ElseNode (ElseNode
-            # is not a dependency for IfNode to run)
-            if isinstance(node, IfNode):
-                if node.companion_id is not None:
-                    n_remaining_parents -= 1
-
-            # First we add all the nodes to the queue which have no parents.
-            if n_remaining_parents == 0:
-                seen.add(node.id)
-                queue.put(node)
-            remaining_parents[node.id] = n_remaining_parents
+        self._populate_queue(self.graph.nodes, seen, queue, remaining_parents)
 
         while queue.qsize():
             # Find the first node in the queue which has all its parents removed
@@ -112,38 +148,29 @@ class GraphVisitor:
             # Then, we add all of its children to the queue, making sure to mark
             # for each that we have seen one of its parents
             yield node
-            for child_id in graph.get_children(node.id):
+            for child_id in self.graph.get_children(node.id):
                 remaining_parents[child_id] -= 1
                 if child_id in seen:
                     continue
-                child_node = graph.ids[child_id]
+                child_node = self.graph.ids[child_id]
                 queue.put(child_node)
                 seen.add(child_id)
 
-    def execute_order(
-        self, graph: Graph, executor: Executor
-    ) -> Iterator[Node]:
+    def execute_order(self) -> Iterator[Node]:
+        assert (
+            self.executor is not None
+        ), "Executor object must be provided to generate execution order for nodes"
         queue: PriorityQueue[Node] = PriorityQueue()
         seen: Set[LineaID] = set()
         remaining_parents: Dict[str, int] = {}
 
-        for node in graph.nodes:
-            n_remaining_parents = len(
-                [
-                    parent_id
-                    for parent_id in graph.nx_graph.pred[node.id]
-                    if parent_id in graph.ids
-                ]
-            )
+        initial_nodes = [
+            node
+            for node in self.graph.nodes
+            if node.control_dependency is None
+        ]
 
-            if isinstance(node, IfNode):
-                if node.companion_id is not None:
-                    n_remaining_parents -= 1
-
-            if n_remaining_parents == 0:
-                seen.add(node.id)
-                queue.put(node)
-            remaining_parents[node.id] = n_remaining_parents
+        self._populate_queue(initial_nodes, seen, queue, remaining_parents)
 
         while queue.qsize():
             # Find the first node in the queue which has all its parents removed
@@ -153,12 +180,26 @@ class GraphVisitor:
 
             # Then, we add all of its children to the queue, making sure to mark
             # for each that we have seen one of its parents
+            if isinstance(node, IfNode):
+                if self.executor._id_to_value[node.test_id]:
+                    new_nodes = [
+                        n
+                        for n in self.graph.nodes
+                        if n.control_dependency == node.id
+                    ]
+                else:
+                    new_nodes = [
+                        n
+                        for n in self.graph.nodes
+                        if n.control_dependency == node.companion_id
+                    ]
+                self._populate_queue(new_nodes, seen, queue, remaining_parents)
             yield node
-            for child_id in graph.get_children(node.id):
+            for child_id in self.graph.get_children(node.id):
                 remaining_parents[child_id] -= 1
                 if child_id in seen:
                     continue
-                child_node = graph.ids[child_id]
+                child_node = self.graph.ids[child_id]
                 queue.put(child_node)
                 seen.add(child_id)
 

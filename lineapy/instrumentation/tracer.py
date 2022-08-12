@@ -23,6 +23,7 @@ from lineapy.data.types import (
     SessionContext,
     SessionType,
     SourceLocation,
+    UnexecNode,
 )
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ArtifactORM
@@ -71,6 +72,7 @@ class Tracer:
     control_flow_tracker: ControlFlowTracker = field(
         default_factory=ControlFlowTracker
     )
+    execute_call_nodes: bool = True
 
     def __post_init__(
         self,
@@ -132,55 +134,58 @@ class Tracer:
         # If an artifact could not be created, quietly return without saving
         # the node to the DB.
         ##
-        logger.debug("Executing node %s", node)
-        try:
-            side_effects = self.executor.execute_node(
-                node,
-                {k: v.id for k, v in self.variable_name_to_node.items()},
-            )
-        except ArtifactSaveException as exc_info:
-            logger.error("Artifact could not be saved.")
-            logger.debug(exc_info)
-            return
-        logger.debug("Processing side effects")
-
-        # Iterate through each side effect and process it, depending on its type
-        for e in side_effects:
-            if isinstance(e, ImplicitDependencyNode):
-                self._process_implicit_dependency(
-                    node, self._resolve_pointer(e.pointer)
+        if self.execute_call_nodes:
+            logger.debug("Executing node %s", node)
+            try:
+                side_effects = self.executor.execute_node(
+                    node,
+                    {k: v.id for k, v in self.variable_name_to_node.items()},
                 )
-            elif isinstance(e, ViewOfNodes):
-                if len(e.pointers) > 0:  # skip if empty
-                    self.mutation_tracker.set_as_viewers_of_each_other(
-                        *map(self._resolve_pointer, e.pointers)
-                    )
-            elif isinstance(e, AccessedGlobals):
-                self._process_accessed_globals(
-                    node.session_id, node, e.retrieved, e.added_or_updated
-                )
-            # Mutate case
-            else:
-                mutated_node_id = self._resolve_pointer(e.pointer)
-                for (
-                    mutate_node_id,
-                    source_id,
-                ) in self.mutation_tracker.set_as_mutated(mutated_node_id):
-                    mutate_node = MutateNode(
-                        id=mutate_node_id,
-                        session_id=node.session_id,
-                        source_id=source_id,
-                        call_id=node.id,
-                        control_dependency=self.control_flow_tracker.current_control_dependency(),
-                    )
-                    self.process_node(mutate_node)
+            except ArtifactSaveException as exc_info:
+                logger.error("Artifact could not be saved.")
+                logger.debug(exc_info)
+                return
+            logger.debug("Processing side effects")
 
-        # also special case for import node
-        if isinstance(node, ImportNode):
-            # must process after the call has been executed
-            package_name, version = get_lib_package_version(node.name)
-            node.version = version
-            node.package_name = package_name
+            # Iterate through each side effect and process it, depending on its type
+            for e in side_effects:
+                if isinstance(e, ImplicitDependencyNode):
+                    self._process_implicit_dependency(
+                        node, self._resolve_pointer(e.pointer)
+                    )
+                elif isinstance(e, ViewOfNodes):
+                    if len(e.pointers) > 0:  # skip if empty
+                        self.mutation_tracker.set_as_viewers_of_each_other(
+                            *map(self._resolve_pointer, e.pointers)
+                        )
+                elif isinstance(e, AccessedGlobals):
+                    self._process_accessed_globals(
+                        node.session_id, node, e.retrieved, e.added_or_updated
+                    )
+                # Mutate case
+                else:
+                    mutated_node_id = self._resolve_pointer(e.pointer)
+                    for (
+                        mutate_node_id,
+                        source_id,
+                    ) in self.mutation_tracker.set_as_mutated(mutated_node_id):
+                        mutate_node = MutateNode(
+                            id=mutate_node_id,
+                            session_id=node.session_id,
+                            source_id=source_id,
+                            call_id=node.id,
+                            control_dependency=self.control_flow_tracker.current_control_dependency(),
+                        )
+                        self.process_node(mutate_node)
+
+            # also special case for import node
+            if isinstance(node, ImportNode):
+                # must process after the call has been executed
+                package_name, version = get_lib_package_version(node.name)
+                node.version = version
+                node.package_name = package_name
+        else:
+            logger.debug("Not Executing node %s", node)
 
         self.db.write_node(node)
 
@@ -481,7 +486,6 @@ class Tracer:
         companion_id: Optional[LineaID],
         source_location: Optional[SourceLocation] = None,
         test_id: Optional[LineaID] = None,
-        unexec_id: Optional[LineaID] = None,
     ) -> ControlFlowContext:
         node: ControlNode
         if type == NodeType.IfNode:
@@ -490,7 +494,6 @@ class Tracer:
                 session_id=self.get_session_id(),
                 source_location=source_location,
                 control_dependency=self.control_flow_tracker.current_control_dependency(),
-                unexec_id=unexec_id,
                 test_id=test_id,
                 companion_id=companion_id,
             )
@@ -501,7 +504,13 @@ class Tracer:
                 source_location=source_location,
                 control_dependency=self.control_flow_tracker.current_control_dependency(),
                 companion_id=companion_id,
-                unexec_id=unexec_id,
+            )
+        elif type == NodeType.UnexecNode:
+            node = UnexecNode(
+                id=node_id,
+                session_id=self.get_session_id(),
+                source_location=source_location,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
             )
         else:
             raise NotImplementedError(
@@ -509,7 +518,7 @@ class Tracer:
                 type,
             )
         self.process_node(node)
-        return ControlFlowContext(node, self.control_flow_tracker)
+        return ControlFlowContext(node, self.control_flow_tracker, self)
 
     def assign(
         self, variable_name: str, value_node: Node, from_import: bool = False

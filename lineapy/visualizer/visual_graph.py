@@ -35,6 +35,7 @@ from lineapy.data.types import (
     MutateNode,
     Node,
     NodeType,
+    UnexecNode,
 )
 from lineapy.instrumentation.tracer import Tracer
 
@@ -316,14 +317,6 @@ def process_node(
                 VisualEdgeType.CONTROL_DEPENDENCY,
             )
         )
-        if node.unexec_id:
-            vg.edge(
-                VisualEdge(
-                    VisualEdgeID(node.unexec_id),
-                    VisualEdgeID(n_id),
-                    VisualEdgeType.UNEXEC_CODE_BLOCK,
-                ),
-            )
         if node.companion_id:
             vg.edge(
                 VisualEdge(
@@ -341,15 +334,9 @@ def process_node(
                 VisualEdgeType.LINKED_CONTROL_BLOCK,
             ),
         )
-        if node.unexec_id:
-            vg.edge(
-                VisualEdge(
-                    VisualEdgeID(node.unexec_id),
-                    VisualEdgeID(n_id),
-                    VisualEdgeType.UNEXEC_CODE_BLOCK,
-                ),
-            )
         return "else"
+    if isinstance(node, UnexecNode):
+        return "unexec"
 
 
 @dataclass

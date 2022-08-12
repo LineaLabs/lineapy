@@ -83,7 +83,54 @@ literal_5 = LiteralNode(
     control_dependency=if_1.id,
     value=10,
 )
-call_4 = CallNode(
+else_1 = ElseNode(
+    source_location=SourceLocation(
+        lineno=5,
+        col_offset=0,
+        end_lineno=5,
+        end_col_offset=4,
+        source_code=source_1.id,
+    ),
+    companion_id=if_1.id,
+)
+unexec_1 = UnexecNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=4,
+        end_lineno=6,
+        end_col_offset=11,
+        source_code=source_1.id,
+    ),
+    control_dependency=else_1.id,
+)
+call_3 = CallNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=4,
+        end_lineno=6,
+        end_col_offset=11,
+        source_code=source_1.id,
+    ),
+    control_dependency=unexec_1.id,
+    function_id=LookupNode(
+        control_dependency=unexec_1.id,
+        name="l_exec_statement",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=6,
+                col_offset=4,
+                end_lineno=6,
+                end_col_offset=11,
+                source_code=source_1.id,
+            ),
+            control_dependency=unexec_1.id,
+            value="a += 20",
+        ).id
+    ],
+)
+call_5 = CallNode(
     source_location=SourceLocation(
         lineno=8,
         col_offset=0,

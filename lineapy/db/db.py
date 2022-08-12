@@ -28,6 +28,7 @@ from lineapy.data.types import (
     SessionContext,
     SourceCode,
     SourceLocation,
+    UnexecNode,
 )
 from lineapy.db.relational import (
     ArtifactDependencyORM,
@@ -52,6 +53,7 @@ from lineapy.db.relational import (
     PositionalArgORM,
     SessionContextORM,
     SourceCodeORM,
+    UnexecNodeORM,
     VariableNodeORM,
 )
 from lineapy.db.utils import create_lineadb_engine
@@ -283,15 +285,15 @@ class RelationalLineaDB:
             node_orm = IfNodeORM(
                 **args,
                 test_id=node.test_id,
-                unexec_id=node.unexec_id,
                 companion_id=node.companion_id,
             )
         elif isinstance(node, ElseNode):
             node_orm = ElseNodeORM(
                 **args,
                 companion_id=node.companion_id,
-                unexec_id=node.unexec_id,
             )
+        elif isinstance(node, UnexecNode):
+            node_orm = UnexecNodeORM(**args)
         else:
             node_orm = LookupNodeORM(**args, name=node.name)
 
@@ -484,17 +486,17 @@ class RelationalLineaDB:
             )
         if isinstance(node, IfNodeORM):
             return IfNode(
-                unexec_id=node.unexec_id,
                 test_id=node.test_id,
                 companion_id=node.companion_id,
                 **args,
             )
         if isinstance(node, ElseNodeORM):
             return ElseNode(
-                unexec_id=node.unexec_id,
                 companion_id=node.companion_id,
                 **args,
             )
+        if isinstance(node, UnexecNodeORM):
+            return UnexecNode(**args)
         return LookupNode(name=node.name, **args)
 
     def get_node_by_id(self, linea_id: LineaID) -> Node:

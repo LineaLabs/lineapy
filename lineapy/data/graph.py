@@ -1,4 +1,4 @@
-from typing import Dict, Iterator, List, Optional
+from typing import Dict, List, Optional
 
 import networkx as nx
 
@@ -107,6 +107,3 @@ class Graph(object):
 
     def __repr__(self):
         return prettify(self.print())
-
-    def visit_order(self) -> Iterator[Node]:
-        return iter(self.nodes)

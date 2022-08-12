@@ -30,6 +30,7 @@ from lineapy.data.types import (
     LookupNode,
     MutateNode,
     Node,
+    UnexecNode,
 )
 from lineapy.db.db import RelationalLineaDB
 from lineapy.editors.ipython_cell_storage import get_location_path
@@ -66,6 +67,8 @@ from lineapy.instrumentation.annotation_spec import (
 )
 from lineapy.utils.lineabuiltins import LINEA_BUILTINS
 from lineapy.utils.utils import get_new_id
+
+from ..data.graph_visitor import GraphVisitor
 
 try:
     from functools import singledispatchmethod  # type: ignore
@@ -451,6 +454,15 @@ class Executor:
             [ViewOfNodes([ID(node.id), ID(node.source_id)])],
         )
 
+    @_execute.register
+    def _execute_unexec(
+        self,
+        node: UnexecNode,
+        changes: Iterable[TracebackChange],
+        variables: Optional[Dict[str, LineaID]],
+    ) -> PrivateExecuteResult:
+        return PrivateExecuteResult(None, datetime.now(), datetime.now(), [])
+
     def execute_graph(self, graph: Graph) -> None:
         """
         Executes a graph in visit order making sure to setup the working directory first.
@@ -461,7 +473,8 @@ class Executor:
         logger.debug("Executing graph %s", graph)
         prev_working_dir = getcwd()
         chdir(graph.session_context.working_directory)
-        for node in graph.visit_order():
+        visitor = GraphVisitor(graph, self)
+        for node in visitor.execute_order():
             self.execute_node(node, variables=None)
         chdir(prev_working_dir)
         # Add executed nodes to DB

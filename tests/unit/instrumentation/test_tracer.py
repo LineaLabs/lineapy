@@ -95,7 +95,6 @@ def test_control_node_if(tracer: Tracer):
         get_new_id(),
         None,
         test.id,
-        get_new_id(),
     )
     assert isinstance(context.control_node, IfNode)
 
@@ -110,7 +109,6 @@ def test_control_node_else(tracer: Tracer):
         else_id,
         None,
         test.id,
-        get_new_id(),
     )
     context = tracer.get_control_node(
         NodeType.ElseNode,
@@ -118,6 +116,5 @@ def test_control_node_else(tracer: Tracer):
         if_id,
         None,
         test.id,
-        get_new_id(),
     )
     assert isinstance(context.control_node, ElseNode)

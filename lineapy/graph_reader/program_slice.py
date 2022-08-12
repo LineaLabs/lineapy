@@ -9,6 +9,7 @@ from lineapy.data.types import (
     ImportNode,
     LineaID,
     SourceCode,
+    UnexecNode,
 )
 from lineapy.db.db import RelationalLineaDB
 from lineapy.utils.utils import prettify
@@ -58,9 +59,8 @@ def _get_preliminary_slice(
         # include all of the lines present in the unexecuted code block so that
         # in case the branch is visited during production, we do not alter the
         # user's intended behavior
-        if isinstance(node, ControlFlowNode):
-            if node.unexec_id is not None:
-                sinks.append(node.id)
+        if isinstance(node, UnexecNode):
+            sinks.append(node.id)
 
     if keep_lineapy_save:
         # Children of an artifact sink include .save() statement.
@@ -241,7 +241,7 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
                 child_id
                 for child_id in program.get_children(node.id)
                 if not child_id == node.companion_id
-            ] + ([node.unexec_id] if node.unexec_id is not None else [])
+            ]
             if len(control_dependencies) == 0:
                 incomplete_block_locations[
                     node.source_location.source_code

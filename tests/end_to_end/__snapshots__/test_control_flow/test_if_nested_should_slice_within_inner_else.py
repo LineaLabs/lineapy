@@ -89,6 +89,83 @@ if_1 = IfNode(
         ],
     ).id,
 )
+if_2 = IfNode(
+    source_location=SourceLocation(
+        lineno=5,
+        col_offset=7,
+        end_lineno=5,
+        end_col_offset=13,
+        source_code=source_1.id,
+    ),
+    control_dependency=if_1.id,
+    companion_id=else_2.id,
+    test_id=CallNode(
+        source_location=SourceLocation(
+            lineno=5,
+            col_offset=7,
+            end_lineno=5,
+            end_col_offset=13,
+            source_code=source_1.id,
+        ),
+        control_dependency=if_1.id,
+        function_id=LookupNode(
+            control_dependency=if_1.id,
+            name="le",
+        ).id,
+        positional_args=[
+            literal_3.id,
+            LiteralNode(
+                source_location=SourceLocation(
+                    lineno=5,
+                    col_offset=12,
+                    end_lineno=5,
+                    end_col_offset=13,
+                    source_code=source_1.id,
+                ),
+                control_dependency=if_1.id,
+                value=2,
+            ).id,
+        ],
+    ).id,
+)
+unexec_1 = UnexecNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=8,
+        end_lineno=7,
+        end_col_offset=13,
+        source_code=source_1.id,
+    ),
+    control_dependency=if_2.id,
+)
+call_4 = CallNode(
+    source_location=SourceLocation(
+        lineno=6,
+        col_offset=8,
+        end_lineno=7,
+        end_col_offset=13,
+        source_code=source_1.id,
+    ),
+    control_dependency=unexec_1.id,
+    function_id=LookupNode(
+        control_dependency=unexec_1.id,
+        name="l_exec_statement",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=6,
+                col_offset=8,
+                end_lineno=7,
+                end_col_offset=13,
+                source_code=source_1.id,
+            ),
+            control_dependency=unexec_1.id,
+            value="""a = 1
+b = 2""",
+        ).id
+    ],
+)
 else_2 = ElseNode(
     source_location=SourceLocation(
         lineno=8,
@@ -98,57 +175,7 @@ else_2 = ElseNode(
         source_code=source_1.id,
     ),
     control_dependency=if_1.id,
-    companion_id=IfNode(
-        source_location=SourceLocation(
-            lineno=5,
-            col_offset=7,
-            end_lineno=5,
-            end_col_offset=13,
-            source_code=source_1.id,
-        ),
-        control_dependency=if_1.id,
-        companion_id=else_2.id,
-        unexec_id=LiteralNode(
-            source_location=SourceLocation(
-                lineno=6,
-                col_offset=8,
-                end_lineno=7,
-                end_col_offset=13,
-                source_code=source_1.id,
-            ),
-            control_dependency=if_1.id,
-            value="""a = 1
-b = 2""",
-        ).id,
-        test_id=CallNode(
-            source_location=SourceLocation(
-                lineno=5,
-                col_offset=7,
-                end_lineno=5,
-                end_col_offset=13,
-                source_code=source_1.id,
-            ),
-            control_dependency=if_1.id,
-            function_id=LookupNode(
-                control_dependency=if_1.id,
-                name="le",
-            ).id,
-            positional_args=[
-                literal_3.id,
-                LiteralNode(
-                    source_location=SourceLocation(
-                        lineno=5,
-                        col_offset=12,
-                        end_lineno=5,
-                        end_col_offset=13,
-                        source_code=source_1.id,
-                    ),
-                    control_dependency=if_1.id,
-                    value=2,
-                ).id,
-            ],
-        ).id,
-    ).id,
+    companion_id=if_2.id,
 )
 literal_9 = LiteralNode(
     source_location=SourceLocation(
@@ -161,7 +188,55 @@ literal_9 = LiteralNode(
     control_dependency=else_2.id,
     value=4,
 )
+else_1 = ElseNode(
+    source_location=SourceLocation(
+        lineno=11,
+        col_offset=0,
+        end_lineno=11,
+        end_col_offset=4,
+        source_code=source_1.id,
+    ),
+    companion_id=if_1.id,
+)
+unexec_2 = UnexecNode(
+    source_location=SourceLocation(
+        lineno=12,
+        col_offset=4,
+        end_lineno=13,
+        end_col_offset=9,
+        source_code=source_1.id,
+    ),
+    control_dependency=else_1.id,
+)
 call_5 = CallNode(
+    source_location=SourceLocation(
+        lineno=12,
+        col_offset=4,
+        end_lineno=13,
+        end_col_offset=9,
+        source_code=source_1.id,
+    ),
+    control_dependency=unexec_2.id,
+    function_id=LookupNode(
+        control_dependency=unexec_2.id,
+        name="l_exec_statement",
+    ).id,
+    positional_args=[
+        LiteralNode(
+            source_location=SourceLocation(
+                lineno=12,
+                col_offset=4,
+                end_lineno=13,
+                end_col_offset=9,
+                source_code=source_1.id,
+            ),
+            control_dependency=unexec_2.id,
+            value="""a = 5
+b = 6""",
+        ).id
+    ],
+)
+call_7 = CallNode(
     source_location=SourceLocation(
         lineno=15,
         col_offset=0,
