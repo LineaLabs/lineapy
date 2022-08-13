@@ -152,9 +152,10 @@ class AirflowPipelineWriter(BasePipelineWriter):
         self.dag_config = dag_config or {}
 
     def _write_dag(self) -> None:
-        dag_flavor = self.dag_config.get(
-            "dag_flavor", AirflowDagFlavor.PythonOperatorPerSession
+        dag_flavor_option: str = self.dag_config.get(
+            "dag_flavor", "PythonOperatorPerSession"
         )
+        dag_flavor = AirflowDagFlavor[dag_flavor_option]
 
         if dag_flavor == AirflowDagFlavor.PythonOperatorPerSession:
             DAG_TEMPLATE = load_plugin_template(
@@ -205,15 +206,13 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     for nc in session_artifacts.artifact_nodecollections
                 ]
                 task_definitions += [
-                    get_task(nc, self.pipeline_name)
+                    get_task_definition(nc, self.pipeline_name)
                     for nc in session_artifacts.artifact_nodecollections
                 ]
-            print(task_functions)
             dependencies = {
                 task_functions[i + 1]: {task_functions[i]}
                 for i in range(len(task_functions) - 1)
             }
-            print(dependencies)
             task_graph = TaskGraph(
                 nodes=task_functions,
                 mapping={f: f for f in task_functions},
@@ -258,12 +257,21 @@ class AirflowPipelineWriter(BasePipelineWriter):
         )
 
 
-def get_task(nc: NodeCollection, pipeline_name: str, indentation=4) -> str:
+def get_task_definition(
+    nc: NodeCollection, pipeline_name: str, indentation=4
+) -> str:
+    """
+    Add deserialization of input variables and serialization of output
+    variables logic of the call_block and wrap them into a new function
+    definition.
+    """
     input_var_loading_block = [
         f"{var} = pickle.load(open('/tmp/{pipeline_name}/variable_{var}.pickle','rb'))"
         for var in nc.input_variables
     ]
-    function_call_block = f"{nc.get_function_call_block(indentation=0, source_module=f'{pipeline_name}_module')}"
+    function_call_block = nc.get_function_call_block(
+        indentation=0, source_module=f"{pipeline_name}_module"
+    )
     return_var_saving_block = [
         f"pickle.dump({var},open('/tmp/{pipeline_name}/variable_{var}.pickle','wb'))"
         for var in nc.return_variables

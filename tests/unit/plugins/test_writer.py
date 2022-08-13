@@ -65,6 +65,16 @@ def check_requirements_txt(t1: str, t2: str):
             {},
             id="script_pipeline_housing_w_dependencies",
         ),
+        pytest.param(
+            "complex",
+            "",
+            ["f", "h"],
+            "AIRFLOW",
+            "airflow_pipeline_complex_h_perartifact",
+            {},
+            {"dag_flavor": "PythonOperatorPerArtifact"},
+            id="airflow_pipeline_complex_h_perartifact",
+        ),
     ],
 )
 def test_pipeline_generation(

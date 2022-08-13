@@ -111,7 +111,7 @@ AirflowDagConfig = TypedDict(
         "schedule_interval": str,
         "max_active_runs": int,
         "catchup": str,
-        "dag_flavor": AirflowDagFlavor,  # Not native to Airflow config
+        "dag_flavor": str,  # Not native to Airflow config
     },
     total=False,
 )
