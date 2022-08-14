@@ -267,7 +267,7 @@ def get_task_definition(
     """
     input_var_loading_block = [
         f"{var} = pickle.load(open('/tmp/{pipeline_name}/variable_{var}.pickle','rb'))"
-        for var in nc.input_variables
+        for var in sorted(list(nc.input_variables))
     ]
     function_call_block = nc.get_function_call_block(
         indentation=0, source_module=f"{pipeline_name}_module"

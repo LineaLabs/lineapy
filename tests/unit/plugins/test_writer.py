@@ -70,10 +70,10 @@ def check_requirements_txt(t1: str, t2: str):
             "",
             ["f", "h"],
             "AIRFLOW",
-            "airflow_pipeline_complex_h_perartifact",
+            "airflow_complex_h_perart",
             {},
             {"dag_flavor": "PythonOperatorPerArtifact"},
-            id="airflow_pipeline_complex_h_perartifact",
+            id="airflow_complex_h_perartifact",
         ),
     ],
 )
@@ -131,9 +131,10 @@ def test_pipeline_generation(
         path_expected = pathlib.Path(
             f"tests/unit/plugins/expected/{pipeline_name}/{pipeline_name}{file_suffix}"
         )
+        output_result = path.read_text()
         if file_suffix == "_requirements.txt":
             assert check_requirements_txt(
-                path.read_text(), path_expected.read_text()
+                output_result, path_expected.read_text()
             )
         else:
             to_compare = path_expected.read_text()
@@ -143,6 +144,7 @@ def test_pipeline_generation(
                 )
             if file_suffix.endswith(".py"):
                 to_compare = prettify(to_compare)
-            assert path.read_text() == to_compare
+                output_result = prettify(output_result)
+            assert output_result == to_compare
 
     shutil.rmtree(tempfolder)

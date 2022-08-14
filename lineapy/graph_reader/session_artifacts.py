@@ -252,7 +252,7 @@ class SessionArtifacts:
 
     def _get_common_variables(
         self, curr_nc: NodeCollection, pred_nc: NodeCollection
-    ) -> Tuple[Set[str], Set[LineaID]]:
+    ) -> Tuple[List[str], Set[LineaID]]:
         assert isinstance(pred_nc.name, str)
         common_inner_variables = (
             pred_nc.all_variables - set(pred_nc.return_variables)
@@ -275,7 +275,7 @@ class SessionArtifacts:
         else:
             common_nodes = set()
 
-        return common_inner_variables, common_nodes
+        return sorted(list(common_inner_variables)), common_nodes
 
     def _slice_session_artifacts(self) -> None:
         self.used_nodes: Set[LineaID] = set()  # Track nodes that get ever used
@@ -348,7 +348,7 @@ class SessionArtifacts:
                         common_nodecollectioninfo = NodeCollection(
                             collection_type=NodeCollectionType.COMMON_VARIABLE,
                             name=f"{'_'.join(common_inner_variables)}_for_artifact_{source_info.name}_and_downstream",
-                            return_variables=list(common_inner_variables),
+                            return_variables=common_inner_variables,
                             node_list=common_nodes,
                         )
                         common_nodecollectioninfo._update_variable_info(
