@@ -43,6 +43,7 @@ class ArtifactCollection:
         self,
         artifacts: List[Union[str, Tuple[str, int]]],
         input_parameters: List[str] = [],
+        use_cache: List[Union[str, Tuple[str, int]]] = [],
     ) -> None:
         from lineapy.api.api import get
 
@@ -57,8 +58,19 @@ class ArtifactCollection:
 
         artifacts_by_session: Dict[LineaID, List[LineaArtifact]] = {}
 
+        artifact_names = [
+            art if isinstance(art, str) else art[0] for art in artifacts
+        ]
+        artifacts_and_caches = artifacts + [
+            art
+            for art in use_cache
+            if (isinstance(art, str) and art not in artifact_names)
+            or (isinstance(art, tuple) and art[0] not in artifact_names)
+        ]
+
         # Retrieve artifact objects and group them by session ID
-        for art_entry in artifacts:
+        # for art_entry in artifacts + use_cache:
+        for art_entry in artifacts_and_caches:
             # Construct args for artifact retrieval
             args: ArtifactDef
             if isinstance(art_entry, str):
@@ -97,7 +109,9 @@ class ArtifactCollection:
         # For each session, construct SessionArtifacts object
         for session_id, session_artifacts in artifacts_by_session.items():
             self.session_artifacts[session_id] = SessionArtifacts(
-                session_artifacts, input_parameters=input_parameters
+                session_artifacts,
+                input_parameters=input_parameters,
+                use_cache=use_cache,
             )
 
     def _sort_session_artifacts(

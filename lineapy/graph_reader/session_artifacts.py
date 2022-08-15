@@ -1,7 +1,7 @@
 import logging
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import networkx as nx
 
@@ -16,6 +16,7 @@ from lineapy.graph_reader.node_collection import (
 )
 from lineapy.graph_reader.program_slice import get_slice_graph
 from lineapy.graph_reader.utils import _is_import_node
+from lineapy.plugins.task import TaskGraph  # , TaskGraphEdge
 from lineapy.utils.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -38,9 +39,14 @@ class SessionArtifacts:
     node_context: Dict[LineaID, NodeInfo]
     input_parameters: List[str]
     input_parameters_node: Dict[str, LineaID]
+    nodecollection_dependencies: TaskGraph
+    use_cache: Dict[str, Optional[int]]
 
     def __init__(
-        self, artifacts: List[LineaArtifact], input_parameters: List[str] = []
+        self,
+        artifacts: List[LineaArtifact],
+        input_parameters: List[str] = [],
+        use_cache: List[Union[str, Tuple[str, int]]] = [],
     ) -> None:
         self.artifact_list = artifacts
         self.session_id = artifacts[0]._session_id
@@ -50,9 +56,16 @@ class SessionArtifacts:
         self.artifact_nodecollections = []
         self.node_context = OrderedDict()
         self.input_parameters = input_parameters
+        self.use_cache = dict()
+        for cache_art in use_cache:
+            if isinstance(cache_art, str):
+                self.use_cache[cache_art] = None
+            else:
+                self.use_cache[cache_art[0]] = int(cache_art[1])
 
         self._update_node_context()
         self._slice_session_artifacts()
+        self._update_nodecollection_dependencies()
 
     def _update_dependent_variables(
         self, nodeinfo: NodeInfo, variable_dict: Dict[LineaID, Set[str]]
@@ -307,6 +320,11 @@ class SessionArtifacts:
                     pred_nodes
                 )
 
+                use_cache = (
+                    (n.assigned_artifact, self.use_cache[n.assigned_artifact])
+                    if n.assigned_artifact in self.use_cache.keys()
+                    else None
+                )
                 nodecollectioninfo = NodeCollection(
                     collection_type=NodeCollectionType.ARTIFACT,
                     artifact_node_id=node_id,
@@ -318,6 +336,7 @@ class SessionArtifacts:
                     predecessor_artifact=pred_artifact,
                     input_variable_sources=input_variable_sources,
                     sliced_nodes=sliced_nodes,
+                    use_cache=use_cache,
                 )
 
                 # Update node context to label the node is assigned to this artifact
@@ -369,6 +388,7 @@ class SessionArtifacts:
                             name=source_info.name,
                             return_variables=source_info.return_variables,
                             node_list=remaining_nodes,
+                            use_cache=source_info.use_cache,
                         )
                         remaining_nodecollectioninfo._update_variable_info(
                             self.node_context, self.input_parameters_node
@@ -412,7 +432,61 @@ class SessionArtifacts:
         )
         self.input_parameters_nodecollection._update_graph(self.graph)
 
+    def _update_nodecollection_dependencies(self):
+        last_appearrance_nc: Dict[str, str] = dict()
+        dependencies: Dict[str, Set[str]] = dict()
+        cache_nodes = [
+            nc.name
+            for nc in self.artifact_nodecollections
+            if nc.use_cache is not None
+        ]
+        for nc in self.artifact_nodecollections:
+            dependencies[nc.name] = set()
+            for var in nc.input_variables:
+                if var in last_appearrance_nc.keys():
+                    dependencies[nc.name].add(last_appearrance_nc[var])
+            for var in nc.return_variables:
+                last_appearrance_nc[var] = nc.name
+
+        self.nodecollection_dependencies = TaskGraph(
+            nodes=[nc.name for nc in self.artifact_nodecollections],
+            mapping={
+                nc.name: nc.safename for nc in self.artifact_nodecollections
+            },
+            edges=dependencies,
+        )
+
+        nc_graph = self.nodecollection_dependencies.graph
+        cache_nodes_edges = [
+            (from_node, to_node)
+            for from_node, to_node in nc_graph.edges
+            if from_node in cache_nodes
+        ]
+        nc_graph.remove_nodes_from(cache_nodes)
+        if nc_graph is not None and len(cache_nodes) > 0:
+            artifact_names = set([art.name for art in self.artifact_list])
+
+            nc_graph = nx.union_all(
+                [
+                    nc_graph.subgraph(c).copy()
+                    for c in nx.connected_components(nc_graph.to_undirected())
+                    if len(set(c).intersection(artifact_names)) > 0
+                ]
+            )
+            nc_graph.add_nodes_from(cache_nodes)
+            nc_graph.add_edges_from(
+                [edge for edge in cache_nodes_edges if edge[1] in nc_graph]
+            )
+            self.artifact_nodecollections = [
+                art
+                for art in self.artifact_nodecollections
+                if art.name in nc_graph.nodes
+            ]
+
     def _get_first_artifact_name(self) -> Optional[str]:
+        """
+        Return the name of first artifact(topologically sorted)
+        """
         for coll in self.artifact_nodecollections:
             if coll.collection_type == NodeCollectionType.ARTIFACT:
                 return coll.safename
