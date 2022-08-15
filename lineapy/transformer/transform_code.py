@@ -45,24 +45,27 @@ def transform(
         ASTTokens(code, parse=False, tree=tree)
         SourceGiver().transform(tree)
 
-    for stmt in tree.body:
-        res = None
-        for trans in transformers:
-            # print(ast.dump(stmt))
-            res = trans.visit(stmt)
-            # or some other statement to figure out whether the node is properly processed or not
-            if res is not None:
-                stmt = res  # swap the node with the output of previous transformer and use that for further calls
-        # if no transformers can process it - we'll change node transformer to not throw not implemented exception
-        # so that it can be extended and move it here.
-        if isinstance(res, ast.AST):
-            raise NotImplementedError(
-                f"Don't know how to transform {type(stmt).__name__}"
-            )
-        # FIXME - this is needed for jupyter, will revisit this after prototype phase.
-        last_statement_result = res  # type: ignore
-    # replaced by the for loop above
-    # node_transformer.visit(tree)
+    if len(tree.body) > 0:
+        for stmt in tree.body:
+            res = None
+            for trans in transformers:
+                # print(ast.dump(stmt))
+                res = trans.visit(stmt)
+                # or some other statement to figure out whether the node is properly processed or not
+                if res is not None:
+                    stmt = res  # swap the node with the output of previous transformer and use that for further calls
+            # if no transformers can process it - we'll change node transformer to not throw not implemented exception
+            # so that it can be extended and move it here.
+            if isinstance(res, ast.AST):
+                raise NotImplementedError(
+                    f"Don't know how to transform {type(stmt).__name__}"
+                )
+            # FIXME - this is needed for jupyter, will revisit this after prototype phase.
+            last_statement_result = res  # type: ignore
+        # replaced by the for loop above
+        # node_transformer.visit(tree)
 
-    tracer.db.commit()
-    return last_statement_result  # type: ignore
+        tracer.db.commit()
+        return last_statement_result  # type: ignore
+
+    return None

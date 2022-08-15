@@ -51,26 +51,7 @@ call_3 = CallNode(
         name="l_list",
     ).id,
 )
-if_1 = IfNode(
-    source_location=SourceLocation(
-        lineno=4,
-        col_offset=3,
-        end_lineno=4,
-        end_col_offset=7,
-        source_code=source_1.id,
-    ),
-    test_id=LiteralNode(
-        source_location=SourceLocation(
-            lineno=4,
-            col_offset=3,
-            end_lineno=4,
-            end_col_offset=7,
-            source_code=source_1.id,
-        ),
-        value=True,
-    ).id,
-)
-call_7 = CallNode(
+call_6 = CallNode(
     source_location=SourceLocation(
         lineno=6,
         col_offset=0,
@@ -111,9 +92,9 @@ call_7 = CallNode(
 )
 mutate_2 = MutateNode(
     source_id=call_3.id,
-    call_id=call_7.id,
+    call_id=call_6.id,
 )
-call_9 = CallNode(
+call_8 = CallNode(
     source_location=SourceLocation(
         lineno=8,
         col_offset=0,
@@ -158,42 +139,28 @@ call_9 = CallNode(
     positional_args=[
         MutateNode(
             source_id=MutateNode(
-                control_dependency=if_1.id,
                 source_id=call_2.id,
                 call_id=CallNode(
                     source_location=SourceLocation(
-                        lineno=5,
-                        col_offset=4,
+                        lineno=4,
+                        col_offset=0,
                         end_lineno=5,
                         end_col_offset=15,
                         source_code=source_1.id,
                     ),
-                    control_dependency=if_1.id,
-                    function_id=CallNode(
-                        source_location=SourceLocation(
-                            lineno=5,
-                            col_offset=4,
-                            end_lineno=5,
-                            end_col_offset=12,
-                            source_code=source_1.id,
-                        ),
-                        control_dependency=if_1.id,
-                        function_id=LookupNode(
-                            control_dependency=if_1.id,
-                            name="getattr",
-                        ).id,
-                        positional_args=[
-                            call_2.id,
-                            LiteralNode(
-                                control_dependency=if_1.id,
-                                value="append",
-                            ).id,
-                        ],
+                    function_id=LookupNode(
+                        name="l_exec_statement",
                     ).id,
-                    positional_args=[call_3.id],
+                    positional_args=[
+                        LiteralNode(
+                            value="""if True:
+    x.append(y)""",
+                        ).id
+                    ],
+                    global_reads={"x": call_2.id, "y": call_3.id},
                 ).id,
             ).id,
-            call_id=call_7.id,
+            call_id=call_6.id,
         ).id,
         LiteralNode(
             source_location=SourceLocation(

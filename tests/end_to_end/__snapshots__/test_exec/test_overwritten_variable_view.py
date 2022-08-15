@@ -58,39 +58,27 @@ call_2 = CallNode(
         name="l_list",
     ).id,
 )
-if_1 = IfNode(
-    source_location=SourceLocation(
-        lineno=4,
-        col_offset=3,
-        end_lineno=4,
-        end_col_offset=7,
-        source_code=source_1.id,
-    ),
-    test_id=LiteralNode(
+global_1 = GlobalNode(
+    name="x",
+    call_id=CallNode(
         source_location=SourceLocation(
             lineno=4,
-            col_offset=3,
-            end_lineno=4,
-            end_col_offset=7,
+            col_offset=0,
+            end_lineno=5,
+            end_col_offset=11,
             source_code=source_1.id,
         ),
-        value=True,
+        function_id=LookupNode(
+            name="l_exec_statement",
+        ).id,
+        positional_args=[
+            LiteralNode(
+                value="""if True:
+    x = [x]""",
+            ).id
+        ],
+        global_reads={"x": call_2.id},
     ).id,
-)
-call_4 = CallNode(
-    source_location=SourceLocation(
-        lineno=5,
-        col_offset=8,
-        end_lineno=5,
-        end_col_offset=11,
-        source_code=source_1.id,
-    ),
-    control_dependency=if_1.id,
-    function_id=LookupNode(
-        control_dependency=if_1.id,
-        name="l_list",
-    ).id,
-    positional_args=[call_2.id],
 )
 call_6 = CallNode(
     source_location=SourceLocation(
@@ -112,7 +100,7 @@ call_6 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            call_4.id,
+            global_1.id,
             LiteralNode(
                 value="append",
             ).id,
@@ -131,7 +119,7 @@ call_6 = CallNode(
         ).id
     ],
 )
-mutate_1 = MutateNode(
+mutate_2 = MutateNode(
     source_id=CallNode(
         source_location=SourceLocation(
             lineno=3,
@@ -167,7 +155,7 @@ call_8 = CallNode(
             name="getattr",
         ).id,
         positional_args=[
-            mutate_1.id,
+            mutate_2.id,
             LiteralNode(
                 value="append",
             ).id,
@@ -186,7 +174,7 @@ call_8 = CallNode(
         ).id
     ],
 )
-mutate_5 = MutateNode(
+mutate_4 = MutateNode(
     source_id=MutateNode(
         source_id=call_2.id,
         call_id=call_6.id,
@@ -222,7 +210,7 @@ call_10 = CallNode(
     positional_args=[
         MutateNode(
             source_id=MutateNode(
-                source_id=call_4.id,
+                source_id=global_1.id,
                 call_id=call_6.id,
             ).id,
             call_id=call_8.id,
@@ -267,7 +255,7 @@ call_12 = CallNode(
     ).id,
     positional_args=[
         MutateNode(
-            source_id=mutate_1.id,
+            source_id=mutate_2.id,
             call_id=call_8.id,
         ).id,
         LiteralNode(

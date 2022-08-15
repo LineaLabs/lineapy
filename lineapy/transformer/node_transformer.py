@@ -240,7 +240,7 @@ class NodeTransformer(ast.NodeTransformer):
             attributes=create_lib_attributes(node.names),
         )
 
-    def visit_If(self, node: ast.If) -> Any:
+    def visit_If_hidden(self, node: ast.If) -> Any:
         test_call_node = self.visit(node.test)
 
         node_id = get_new_id()
