@@ -391,12 +391,15 @@ def create_pipeline(
 
 def get_function(artifact_list, input_parameters=[], use_cache=[]) -> Callable:
     """
-    Create a python function
+    Create a python function that perform the process to compute list of
+    artifacts with option to specify inuut variables and reuse pre-computed
+    value stored in the artifact store.
 
     Parameters
     ----------
-    artifact_list: List[str]
-        List of artifact names to be included in the function return.
+    artifact_list: List[Union[str, Tuple[str, int]]]
+        List of artifact names(with optional version) to be included in the
+        function return.
 
     input_parameters: List[str]
         List of variable names to be used in the function arguments. Currently,
@@ -406,6 +409,10 @@ def get_function(artifact_list, input_parameters=[], use_cache=[]) -> Callable:
         existing in the code, we cannot specify a as input variables since it is
         confusing to specify which literal assignment we want to replace.
 
+    use_cache: List[Union[str, Tuple[str, int]]]
+        List of artifacts(name with optional version) used pre-computed value
+        from the artifact store during the calculation process.
+
     Returns
     -------
     Callable
@@ -413,6 +420,15 @@ def get_function(artifact_list, input_parameters=[], use_cache=[]) -> Callable:
         dictionary with each artifact name as the dictionary key and artifact
         value as the value.
 
+    Note that,
+    1. If an input parameter is only used to calculate artifacts in the
+        `use_cache` list, that inat input parameter will be passed around as a
+        dummy variable.
+    2. If an artifact name has been saved multiple times within a session,
+        multiple sessions or mutated. You might want to specify version number
+        in `artifact_list` or `use_cache`. The best practice to avoid searching
+        artifact version is don't reuse artifact name in different notebooks
+        and don't save same artifact multiple times within the same session.
     """
     art_collection = ArtifactCollection(
         artifact_list, input_parameters=input_parameters, use_cache=use_cache
@@ -432,6 +448,9 @@ def get_module_definition(
         same as :func:`get_function`
 
     input_parameters: List[str]
+        same as :func:`get_function`
+
+    use_cache: List[str]
         same as :func:`get_function`
 
     Returns
