@@ -106,6 +106,13 @@ class ArtifactCollection:
                 art._session_id, []
             ) + [art]
 
+        # Check we use cache in an isolated session, which is meaningless
+        for session, arts in artifacts_by_session.items():
+            if all([art.name not in artifact_names for art in arts]):
+                raise ValueError(
+                    f"{art.name} is not in any sessions that contain {', '.join(artifact_names)}"
+                )
+
         # For each session, construct SessionArtifacts object
         for session_id, session_artifacts in artifacts_by_session.items():
             self.session_artifacts[session_id] = SessionArtifacts(
@@ -351,11 +358,11 @@ class ArtifactCollection:
             set(module_input_parameters_list)
         ):
             raise ValueError(
-                f"Duplicated input parameters {module_input_parameters_list} across multiple sessions"
+                f"Duplicated input parameters {module_input_parameters_list} across multiple sessions."
             )
-        elif set(module_input_parameters_list) != set(self.input_parameters):
+        if set(module_input_parameters_list) != set(self.input_parameters):
             raise ValueError(
-                f"Detected input parameters {module_input_parameters_list} do not agree with user input {self.input_parameters}"
+                f"Detected input parameters {module_input_parameters_list} do not agree with user input {self.input_parameters}."
             )
 
         # Put all together to generate module text

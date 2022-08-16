@@ -93,7 +93,7 @@ class NodeCollection:
     sliced_nodes: Set[LineaID] = field(default_factory=set)
     raw_codeblock: str = field(default="")
     is_empty: bool = field(default=True)
-    use_cache: Union[None, Tuple[str, int]] = field(default=None)
+    use_cache: Union[None, Tuple[str, Optional[int]]] = field(default=None)
 
     def __post_init__(self):
         self.safename = self.name.replace(" ", "")
@@ -230,7 +230,7 @@ class NodeCollection:
         """
         Return a code block for input parameters of the graph segment
         """
-        if self.is_empty or self.use_cache is not None:
+        if self.is_empty:
             return ""
 
         indentation_block = " " * indentation
@@ -247,5 +247,13 @@ class NodeCollection:
             input_parameters_codeblock = input_parameters_lines[0]
         else:
             input_parameters_codeblock = ""
+
+        if self.use_cache is not None:
+            logger.warning(
+                "Variables "
+                + ", ".join(self.input_variables)
+                + " are dummy variables due to use_cache option."
+            )
+            return ""
 
         return input_parameters_codeblock

@@ -12,6 +12,7 @@ def test_get_function(execute):
 import lineapy
 a = 1
 p = 2
+lineapy.save(p, 'multiplier')
 b = a*p
 lineapy.save(b,'prod_p')
 """
@@ -41,6 +42,19 @@ lineapy.save(b,'prod_p')
     assert (
         ft(a=5, p=3)["prod_p"] == 15
     )  # New value for a, new value for p;  i.e., 5x3
+
+    # use cache
+    code = """\n
+import lineapy
+ft = lineapy.get_function(['prod_p'], input_parameters=['a', 'p'], use_cache=['multiplier'])
+module_def = lineapy.get_module_definition(['prod_p'], input_parameters=['a', 'p'], use_cache=['multiplier'])
+assert ft()['prod_p'] == 2
+assert ft(a=5)['prod_p'] == 10
+assert ft(a=5, p=3)['prod_p'] == 10  # New value for a, cache value for p;  i.e., 5x2
+"""
+    res = execute(code, snapshot=False)
+    module_def = res.values["module_def"]
+    assert 'p = lineapy.get("multiplier", None).get_value()' in module_def
 
 
 def test_get_function_sanity(execute):
@@ -87,6 +101,11 @@ lineapy.save(c,'c')
         res = execute(code, snapshot=False)
 
     # Duplicated literal assignment shoud raise an error
-    code = "import lineapy\nft = lineapy.get_function(['b'], input_parameters=['b'])"
+    code = "import lineapy\nft = lineapy.get_function(['c'], input_parameters=['c'])"
+    with pytest.raises(UserException) as e_info:
+        res = execute(code, snapshot=False)
+
+    # Unused cache should raise an error
+    code = "import lineapy\nft = lineapy.get_function(['b'], use_cache=['x'])"
     with pytest.raises(UserException) as e_info:
         res = execute(code, snapshot=False)
