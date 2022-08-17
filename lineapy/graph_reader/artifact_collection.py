@@ -207,7 +207,7 @@ class ArtifactCollection:
 
         # Generate session function name
         first_art_name = session_artifacts._get_first_artifact_name()
-        assert isinstance(first_art_name, str)
+        assert first_art_name is not None
         session_function_name = f"run_session_including_{first_art_name}"
 
         # Generate session function body
