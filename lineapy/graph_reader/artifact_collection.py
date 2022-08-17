@@ -11,11 +11,6 @@ from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
-
-# from lineapy.plugins.pipeline_writers import (
-#     AirflowPipelineWriter,
-#     BasePipelineWriter,
-# )
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
