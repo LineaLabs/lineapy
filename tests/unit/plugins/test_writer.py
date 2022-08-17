@@ -4,8 +4,16 @@ import tempfile
 
 import pytest
 
-from lineapy.plugins.pipeline_writers import generate_pipeline_files
+from lineapy.plugins.pipeline_writers import (
+    AirflowPipelineWriter,
+    BasePipelineWriter,
+)
 from lineapy.utils.utils import get_system_python_version, prettify
+
+pipeline_writer_classes = {
+    "SCRIPT": BasePipelineWriter,
+    "AIRFLOW": AirflowPipelineWriter,
+}
 
 
 def check_requirements_txt(t1: str, t2: str):
@@ -100,14 +108,15 @@ def test_pipeline_generation(
     res = execute(code, snapshot=False)
     artifact_collection = res.values["ac"]
     tempfolder = tempfile.mkdtemp()
-    generate_pipeline_files(
+
+    pipeline_writer = pipeline_writer_classes[framework](
         artifact_collection,
-        framework=framework,
         dependencies=dependencies,
         pipeline_name=pipeline_name,
         output_dir=tempfolder,
         dag_config=dag_config,
     )
+    pipeline_writer.write_pipeline_files()
 
     file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
     if framework != "SCRIPT":
