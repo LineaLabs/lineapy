@@ -11,6 +11,11 @@ from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
+
+# from lineapy.plugins.pipeline_writers import (
+#     AirflowPipelineWriter,
+#     BasePipelineWriter,
+# )
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -150,7 +155,11 @@ class ArtifactCollection:
             assert to_node_id is not None
             from_session_id = self.node_id_to_session_id.get(node_id, None)
             to_session_id = self.node_id_to_session_id.get(to_node_id, None)
-            if from_session_id is not None and to_session_id is not None:
+            if (
+                from_session_id is not None
+                and to_session_id is not None
+                and from_session_id != to_session_id
+            ):
                 session_id_edges.append((from_session_id, to_session_id))
         inter_session_graph = nx.DiGraph()
         inter_session_graph.add_nodes_from(session_id_nodes)
@@ -197,10 +206,8 @@ class ArtifactCollection:
         )
 
         # Generate session function name
-        for coll in session_artifacts.artifact_nodecollections:
-            if coll.collection_type == NodeCollectionType.ARTIFACT:
-                first_art_name = coll.safename
-                break
+        first_art_name = session_artifacts._get_first_artifact_name()
+        assert first_art_name is not None
         session_function_name = f"run_session_including_{first_art_name}"
 
         # Generate session function body
