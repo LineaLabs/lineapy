@@ -275,6 +275,7 @@ class SessionArtifacts:
         else:
             common_nodes = set()
 
+        # Want the return variales in consistent ordering
         return sorted(list(common_inner_variables)), common_nodes
 
     def _slice_session_artifacts(self) -> None:

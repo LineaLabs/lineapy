@@ -190,6 +190,7 @@ class NodeCollection:
         return_string = ", ".join(self.return_variables)
         args_string = ", ".join(sorted([v for v in self.input_variables]))
 
+        # handle calling the function from a module
         if source_module != "":
             source_module = f"{source_module}."
         codeblock = f"{indentation_block}{return_string} = {source_module}get_{self.safename}({args_string})"
@@ -199,7 +200,6 @@ class NodeCollection:
         ):
             codeblock += f"""\n{indentation_block}lineapy.save({self.return_variables[0]}, "{self.name}")"""
         if result_placeholder is not None:
-            # codeblock += f"""\n{indentation_block}{result_placeholder}.append(copy.deepcopy({self.return_variables[0]}))"""
             codeblock += f"""\n{indentation_block}{result_placeholder}["{self.name}"]=copy.deepcopy({self.return_variables[0]})"""
 
         return codeblock
