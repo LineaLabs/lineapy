@@ -65,31 +65,26 @@ with DAG(
 ) as dag:
 
     setup = PythonOperator(
-        dag=dag,
         task_id="task_setup",
         python_callable=task_setup,
     )
 
     teardown = PythonOperator(
-        dag=dag,
         task_id="task_teardown",
         python_callable=task_teardown,
     )
 
     a_c_for_artifact_f_and_downstream = PythonOperator(
-        dag=dag,
         task_id="a_c_for_artifact_f_and_downstream_task",
         python_callable=task_a_c_for_artifact_f_and_downstream,
     )
 
     f = PythonOperator(
-        dag=dag,
         task_id="f_task",
         python_callable=task_f,
     )
 
     h = PythonOperator(
-        dag=dag,
         task_id="h_task",
         python_callable=task_h,
     )

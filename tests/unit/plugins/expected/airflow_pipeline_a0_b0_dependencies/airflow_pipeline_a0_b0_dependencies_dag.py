@@ -18,13 +18,11 @@ with DAG(
 ) as dag:
 
     run_session_including_b0 = PythonOperator(
-        dag=dag,
         task_id="run_session_including_b0_task",
         python_callable=airflow_pipeline_a0_b0_dependencies_module.run_session_including_b0,
     )
 
     run_session_including_a0 = PythonOperator(
-        dag=dag,
         task_id="run_session_including_a0_task",
         python_callable=airflow_pipeline_a0_b0_dependencies_module.run_session_including_a0,
     )

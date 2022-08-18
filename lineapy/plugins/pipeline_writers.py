@@ -141,91 +141,96 @@ class AirflowPipelineWriter(BasePipelineWriter):
         return "dockerfile.jinja"
 
     def _write_dag(self) -> None:
-        dag_flavor = AirflowDagFlavor[
-            self.dag_config.get("dag_flavor", "PythonOperatorPerSession")
-        ]
+        dag_flavor = self.dag_config.get(
+            "dag_flavor", "PythonOperatorPerSession"
+        )
+        if dag_flavor in AirflowDagFlavor.__members__:
+            if (
+                AirflowDagFlavor[dag_flavor]
+                == AirflowDagFlavor.PythonOperatorPerSession
+            ):
+                DAG_TEMPLATE = load_plugin_template(
+                    "airflow_dag_PythonOperatorPerSession.jinja"
+                )
+                session_functions = [
+                    f"run_session_including_{session_artifacts._get_first_artifact_name()}"
+                    for session_artifacts in self.session_artifacts_sorted
+                ]
+                dependencies = {
+                    session_functions[i + 1]: {session_functions[i]}
+                    for i in range(len(session_functions) - 1)
+                }
+                task_graph = TaskGraph(
+                    nodes=session_functions,
+                    mapping={f: f for f in session_functions},
+                    edges=dependencies,
+                )
+                full_code = DAG_TEMPLATE.render(
+                    DAG_NAME=self.pipeline_name,
+                    MODULE_NAME=self.pipeline_name + "_module",
+                    OWNER=self.dag_config.get("owner", "airflow"),
+                    RETRIES=self.dag_config.get("retries", 2),
+                    START_DATE=self.dag_config.get(
+                        "start_date", "days_ago(1)"
+                    ),
+                    SCHEDULE_INTERVAL=self.dag_config.get(
+                        "schedule_interval", "*/15 * * * *"
+                    ),
+                    MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
+                    CATCHUP=self.dag_config.get("catchup", "False"),
+                    tasks=session_functions,
+                    task_dependencies=task_graph.get_airflow_dependencies(),
+                )
 
-        if dag_flavor == AirflowDagFlavor.PythonOperatorPerSession:
-            DAG_TEMPLATE = load_plugin_template(
-                "airflow_dag_PythonOperatorPerSession.jinja"
-            )
-            session_functions = [
-                f"run_session_including_{session_artifacts._get_first_artifact_name()}"
-                for session_artifacts in self.session_artifacts_sorted
-            ]
-            dependencies = {
-                session_functions[i + 1]: {session_functions[i]}
-                for i in range(len(session_functions) - 1)
-            }
-            task_graph = TaskGraph(
-                nodes=session_functions,
-                mapping={f: f for f in session_functions},
-                edges=dependencies,
-            )
-            full_code = DAG_TEMPLATE.render(
-                DAG_NAME=self.pipeline_name,
-                MODULE_NAME=self.pipeline_name + "_module",
-                OWNER=self.dag_config.get("owner", "airflow"),
-                RETRIES=self.dag_config.get("retries", 2),
-                START_DATE=self.dag_config.get("start_date", "days_ago(1)"),
-                SCHEDULE_INTERVAL=self.dag_config.get(
-                    "schedule_interval", "*/15 * * * *"
-                ),
-                MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
-                CATCHUP=self.dag_config.get("catchup", "False"),
-                tasks=session_functions,
-                task_dependencies=task_graph.get_airflow_dependencies(),
-            )
-            full_code = prettify(full_code)
+            elif (
+                AirflowDagFlavor[dag_flavor]
+                == AirflowDagFlavor.PythonOperatorPerArtifact
+            ):
+                DAG_TEMPLATE = load_plugin_template(
+                    "airflow_dag_PythonOperatorPerArtifact.jinja"
+                )
+                task_functions = []
+                task_definitions = []
+                for session_artifacts in self.session_artifacts_sorted:
+                    task_functions += [
+                        nc.safename
+                        for nc in session_artifacts.artifact_nodecollections
+                    ]
+                    task_definitions += [
+                        get_task_definition(nc, self.pipeline_name)
+                        for nc in session_artifacts.artifact_nodecollections
+                    ]
+                dependencies = {
+                    task_functions[i + 1]: {task_functions[i]}
+                    for i in range(len(task_functions) - 1)
+                }
+                task_graph = TaskGraph(
+                    nodes=task_functions,
+                    mapping={f: f for f in task_functions},
+                    edges=dependencies,
+                )
+                full_code = DAG_TEMPLATE.render(
+                    DAG_NAME=self.pipeline_name,
+                    MODULE_NAME=self.pipeline_name + "_module",
+                    OWNER=self.dag_config.get("owner", "airflow"),
+                    RETRIES=self.dag_config.get("retries", 2),
+                    START_DATE=self.dag_config.get(
+                        "start_date", "days_ago(1)"
+                    ),
+                    SCHEDULE_INTERVAL=self.dag_config.get(
+                        "schedule_interval", "*/15 * * * *"
+                    ),
+                    MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
+                    CATCHUP=self.dag_config.get("catchup", "False"),
+                    task_definitions=task_definitions,
+                    tasks=task_functions,
+                    task_dependencies=task_graph.get_airflow_dependencies(
+                        setup_task="setup", teardown_task="teardown"
+                    ),
+                )
 
             # Write out file
-            file = self.output_dir / f"{self.pipeline_name}_dag.py"
-            file.write_text(prettify(full_code))
-            logger.info("Generated DAG file %s", file)
-        elif dag_flavor == AirflowDagFlavor.PythonOperatorPerArtifact:
-            DAG_TEMPLATE = load_plugin_template(
-                "airflow_dag_PythonOperatorPerArtifact.jinja"
-            )
-            task_functions = []
-            task_definitions = []
-            for session_artifacts in self.session_artifacts_sorted:
-                task_functions += [
-                    nc.safename
-                    for nc in session_artifacts.artifact_nodecollections
-                ]
-                task_definitions += [
-                    get_task_definition(nc, self.pipeline_name)
-                    for nc in session_artifacts.artifact_nodecollections
-                ]
-            dependencies = {
-                task_functions[i + 1]: {task_functions[i]}
-                for i in range(len(task_functions) - 1)
-            }
-            task_graph = TaskGraph(
-                nodes=task_functions,
-                mapping={f: f for f in task_functions},
-                edges=dependencies,
-            )
-            full_code = DAG_TEMPLATE.render(
-                DAG_NAME=self.pipeline_name,
-                MODULE_NAME=self.pipeline_name + "_module",
-                OWNER=self.dag_config.get("owner", "airflow"),
-                RETRIES=self.dag_config.get("retries", 2),
-                START_DATE=self.dag_config.get("start_date", "days_ago(1)"),
-                SCHEDULE_INTERVAL=self.dag_config.get(
-                    "schedule_interval", "*/15 * * * *"
-                ),
-                MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
-                CATCHUP=self.dag_config.get("catchup", "False"),
-                task_definitions=task_definitions,
-                tasks=task_functions,
-                task_dependencies=task_graph.get_airflow_dependencies(
-                    setup_task="setup", teardown_task="teardown"
-                ),
-            )
             full_code = prettify(full_code)
-
-            # Write out file
             file = self.output_dir / f"{self.pipeline_name}_dag.py"
             file.write_text(prettify(full_code))
             logger.info("Generated DAG file %s", file)

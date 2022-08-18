@@ -41,20 +41,18 @@ with DAG(
 ) as dag:
 
     setup = PythonOperator(
-        dag=dag,
         task_id="task_setup",
         python_callable=task_setup,
     )
 
     teardown = PythonOperator(
-        dag=dag,
         task_id="task_teardown",
         python_callable=task_teardown,
     )
 
 {% for TASK_NAME in tasks %}
     {{ TASK_NAME }} = PythonOperator(
-        dag=dag, task_id="{{ TASK_NAME }}_task", python_callable=task_{{ TASK_NAME }},
+        task_id="{{ TASK_NAME }}_task", python_callable=task_{{ TASK_NAME }},
     )
 {% endfor %}
 {% if task_dependencies is not none %}
