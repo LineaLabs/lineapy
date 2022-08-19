@@ -1,7 +1,11 @@
+import importlib.util
 import logging
+import sys
 import tempfile
 from dataclasses import dataclass
+from importlib.abc import Loader
 from itertools import chain
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import networkx as nx
@@ -385,16 +389,19 @@ class ArtifactCollection:
         return prettify(module_text)
 
     def get_module(self, dependencies: TaskGraphEdge = {}):
-        import importlib.util
-        import sys
-        from importlib.abc import Loader
+        """
+        Writing module text to a temp file and load module with names of
+        session_art1_art2_...
+        """
 
         module_name = f"session_{'_'.join(self.session_artifacts.keys())}"
         temp_folder = tempfile.mkdtemp()
-        with open(f"{temp_folder}/{module_name}.py", "w") as f:
+        temp_module_path = Path(temp_folder, f"{module_name}.py")
+        with open(temp_module_path, "w") as f:
             f.writelines(self.generate_module(dependencies=dependencies))
+
         spec = importlib.util.spec_from_file_location(
-            module_name, f"{temp_folder}/{module_name}.py"
+            module_name, temp_module_path
         )
         if spec is not None:
             session_module = importlib.util.module_from_spec(spec)
@@ -402,5 +409,5 @@ class ArtifactCollection:
             sys.modules["module.name"] = session_module
             spec.loader.exec_module(session_module)
             return session_module
-
-        return
+        else:
+            raise Exception("LineaPy cannot retrive a module.")
