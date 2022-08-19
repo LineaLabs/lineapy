@@ -12,8 +12,9 @@ import networkx as nx
 from networkx.exception import NetworkXUnfeasible
 from typing_extensions import NotRequired, TypedDict
 
-from lineapy.api.api_classes import LineaArtifact
+from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.data.types import LineaID
+from lineapy.execution.context import get_context
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import TaskGraphEdge
@@ -48,8 +49,6 @@ class ArtifactCollection:
         artifacts: List[Union[str, Tuple[str, int]]],
         input_parameters: List[str] = [],
     ) -> None:
-        from lineapy.api.api import get
-
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
         self.art_name_to_node_id: Dict[str, LineaID] = {}
         self.node_id_to_session_id: Dict[LineaID, LineaID] = {}
@@ -58,6 +57,7 @@ class ArtifactCollection:
             raise ValueError(
                 f"Duplicated input parameters detected in {input_parameters}"
             )
+        self.db = get_context().executor.db
 
         artifacts_by_session: Dict[LineaID, List[LineaArtifact]] = {}
 
@@ -75,18 +75,20 @@ class ArtifactCollection:
                 )
 
             # Retrieve artifact
+            if args["artifact_name"] in self.art_name_to_node_id.keys():
+                logger.error("%s is duplicated", args["artifact_name"])
+                raise KeyError("%s is duplicated", args["artifact_name"])
             try:
-                version = args.get("version", None)
-                if version is None:
-                    art = get(artifact_name=args["artifact_name"])
-                else:
-                    art = get(
-                        artifact_name=args["artifact_name"],
-                        version=int(version),
-                    )
-                if args["artifact_name"] in self.art_name_to_node_id.keys():
-                    logger.error("%s is duplicated", args["artifact_name"])
-                    raise KeyError("%s is duplicated", args["artifact_name"])
+                art_orm = self.db.get_artifact_by_name(**args)
+                art = LineaArtifact(
+                    db=self.db,
+                    _execution_id=art_orm.execution_id,
+                    _node_id=art_orm.node_id,
+                    _session_id=art_orm.node.session_id,
+                    _version=art_orm.version,  # type: ignore
+                    name=args["artifact_name"],
+                    date_created=art_orm.date_created,  # type: ignore
+                )
                 self.art_name_to_node_id[args["artifact_name"]] = art._node_id
                 self.node_id_to_session_id[art._node_id] = art._session_id
             except Exception as e:

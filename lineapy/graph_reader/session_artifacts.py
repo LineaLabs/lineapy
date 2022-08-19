@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 
-from lineapy.api.api_classes import LineaArtifact
+from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.data.graph import Graph
 from lineapy.data.types import CallNode, GlobalNode, LineaID, MutateNode, Node
 from lineapy.db.db import RelationalLineaDB

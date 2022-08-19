@@ -12,7 +12,9 @@ from typing import Callable, List, Optional, Union
 import fsspec
 from pandas.io.pickle import to_pickle
 
-from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore, Pipeline
+from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.api.models.linea_artifact_store import LineaArtifactStore
+from lineapy.api.models.pipeline import Pipeline
 from lineapy.data.types import Artifact, LineaID, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
