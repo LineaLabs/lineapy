@@ -139,6 +139,40 @@ class BasePipelineWriter:
         )
 
 
+class RayWorkflowPipelineWriter(BasePipelineWriter):
+    def _write_dag(self):
+        task_functions = []
+        task_definitions = []
+        indentation = 4
+        function_definitions = []
+        for session_artifacts in self.session_artifacts_sorted:
+            task_functions += [
+                nc.safename
+                for nc in session_artifacts.artifact_nodecollections
+            ]
+            function_definitions.append("\n\n".join(
+                [
+                    nodecollection.get_function_definition(indentation=indentation)
+                    for nodecollection in session_artifacts.artifact_nodecollections
+                ]
+            ))
+        session_functions = [
+            f"run_session_including_{session_artifacts._get_first_artifact_name()}"
+            for session_artifacts in self.session_artifacts_sorted
+        ]
+
+        dependencies = {
+            task_functions[i + 1]: {task_functions[i]}
+            for i in range(len(task_functions) - 1)
+        }
+
+        print('\n'.join(function_definitions))
+        print(session_functions)
+        print(dependencies)
+
+
+
+
 class AirflowPipelineWriter(BasePipelineWriter):
     """
     Class for pipeline file writer. Corresponds to "AIRFLOW" framework.
