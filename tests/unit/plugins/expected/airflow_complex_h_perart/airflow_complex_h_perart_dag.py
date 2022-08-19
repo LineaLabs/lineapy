@@ -7,13 +7,13 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 
 
-def task_setup():
+def dag_setup():
     pickle_folder = pathlib.Path("/tmp").joinpath("airflow_complex_h_perart")
     if not pickle_folder.exists():
         pickle_folder.mkdir()
 
 
-def task_teardown():
+def dag_teardown():
     pickle_files = (
         pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").glob("*.pickle")
     )
@@ -65,13 +65,13 @@ with DAG(
 ) as dag:
 
     setup = PythonOperator(
-        task_id="task_setup",
-        python_callable=task_setup,
+        task_id="dag_setup",
+        python_callable=dag_setup,
     )
 
     teardown = PythonOperator(
-        task_id="task_teardown",
-        python_callable=task_teardown,
+        task_id="dag_teardown",
+        python_callable=dag_teardown,
     )
 
     a_c_for_artifact_f_and_downstream = PythonOperator(
