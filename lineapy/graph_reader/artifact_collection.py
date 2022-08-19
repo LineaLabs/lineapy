@@ -362,7 +362,7 @@ class ArtifactCollection:
 
         return module_text
 
-    def generate_module(
+    def generate_module_text(
         self,
         dependencies: TaskGraphEdge = {},
         indentation: int = 4,
@@ -398,7 +398,7 @@ class ArtifactCollection:
         temp_folder = tempfile.mkdtemp()
         temp_module_path = Path(temp_folder, f"{module_name}.py")
         with open(temp_module_path, "w") as f:
-            f.writelines(self.generate_module(dependencies=dependencies))
+            f.writelines(self.generate_module_text(dependencies=dependencies))
 
         spec = importlib.util.spec_from_file_location(
             module_name, temp_module_path

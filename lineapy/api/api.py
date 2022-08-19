@@ -443,4 +443,4 @@ def get_module_definition(artifact_list, input_parameters=[]) -> str:
         artifact_list,
         input_parameters=input_parameters,
     )
-    return art_collection.generate_module()
+    return art_collection.generate_module_text()
