@@ -24,11 +24,16 @@ from lineapy.db.relational import (
 )
 from lineapy.execution.context import get_context
 from lineapy.execution.executor import Executor
+from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
+from lineapy.plugins.pipeline_writers import (
+    AirflowPipelineWriter,
+    BasePipelineWriter,
+)
 from lineapy.plugins.script import ScriptPlugin
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
@@ -294,8 +299,9 @@ class Pipeline:
     ):
         if len(artifacts) == 0:
             raise ValueError(
-                "Pipelines must contain atleast one artifact\nEmpty Pipelines are invalid"
+                "Pipelines must contain at least one artifact\nEmpty Pipelines are invalid"
             )
+        self.artifact_collection = ArtifactCollection(artifacts)
         self.dependencies = dependencies
         self.artifact_safe_names, self.task_graph = extract_taskgraph(
             artifacts, dependencies
@@ -353,6 +359,53 @@ class Pipeline:
 
         else:
             raise Exception(f"No PipelineType for {framework}")
+
+    def export2(
+        self,
+        framework: str = "SCRIPT",
+        output_dir: Optional[str] = None,
+        pipeline_dag_config: Optional[AirflowDagConfig] = {},
+    ) -> None:
+        """
+        This method uses objects implementing new style of graph refactor.
+        It is meant to eventually replace existing `export()` method above.
+        TODO: Replace existing `export()` method with this one.
+        """
+        # Check if the specified framework is a supported/valid one
+        if framework not in PipelineType.__members__:
+            raise Exception(f"No PipelineType for {framework}")
+
+        # Construct pipeline writer
+        if PipelineType[framework] == PipelineType.AIRFLOW:
+            pipeline_writer = AirflowPipelineWriter(
+                artifact_collection=self.artifact_collection,
+                dependencies=self.dependencies,
+                pipeline_name=self.name,
+                output_dir=output_dir,
+                dag_config=pipeline_dag_config,
+            )
+        else:
+            pipeline_writer = BasePipelineWriter(
+                artifact_collection=self.artifact_collection,
+                dependencies=self.dependencies,
+                pipeline_name=self.name,
+                output_dir=output_dir,
+                dag_config=pipeline_dag_config,
+            )
+
+        # Write out pipeline files
+        pipeline_writer.write_pipeline_files()
+
+        # # Track the event
+        # # TODO: Uncomment once this replaces old `export()` method
+        # track(
+        #     ToPipelineEvent(
+        #         framework,
+        #         len(self.artifact_names),
+        #         self.task_graph.get_airflow_dependency() != "",
+        #         pipeline_dag_config is not None,
+        #     )
+        # )
 
     def save(self):
         # TODO save this pipeline to the db using PipelineORM
