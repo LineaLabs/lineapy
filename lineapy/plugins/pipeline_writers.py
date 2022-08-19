@@ -141,35 +141,74 @@ class BasePipelineWriter:
 
 class RayWorkflowPipelineWriter(BasePipelineWriter):
     def _write_dag(self):
-        task_functions = []
-        task_definitions = []
         indentation = 4
+        graphs = []
+        artifacts = []
         function_definitions = []
+        name_to_output = {}
+        name_to_input = {}
         for session_artifacts in self.session_artifacts_sorted:
-            task_functions += [
-                nc.safename
-                for nc in session_artifacts.artifact_nodecollections
-            ]
             function_definitions.append("\n\n".join(
                 [
                     nodecollection.get_function_definition(indentation=indentation)
                     for nodecollection in session_artifacts.artifact_nodecollections
                 ]
             ))
-        session_functions = [
-            f"run_session_including_{session_artifacts._get_first_artifact_name()}"
-            for session_artifacts in self.session_artifacts_sorted
-        ]
+            artifacts += session_artifacts.artifact_list
+            graphs.append(session_artifacts.nodecollection_dependencies)
+            name_to_output.update(
+                {nc.name: nc.return_variables for nc in session_artifacts.artifact_nodecollections}
+            )
+            name_to_input.update(
+                {nc.name: nc.input_variables for nc in session_artifacts.artifact_nodecollections}
+            )
 
-        dependencies = {
-            task_functions[i + 1]: {task_functions[i]}
-            for i in range(len(task_functions) - 1)
-        }
+        with open(self.output_dir / f"{self.pipeline_name}_ray_dag.py", mode="w") as w:
+            w.write("""
+import ray
+import ray.workflow as workflow
+import os
+assert os.environ.get("RAY_ADDRESS") is not None
+ray.init(address=os.environ["RAY_ADDRESS"])
+workflow.init()\n""")
+            w.write("\n".join(function_definitions))
+            w.write("\n")
+            # assume only one graph for now
+            assert len(graphs) == 1
+            task_order = graphs[0].get_taskorder()
+            for task in task_order:
+                ray_func = f"""
+@ray.remote
+def _ray_{task}(*args):
+    inputs = {{k: v for d in args for k, v in d.items()}}
+    rets = get_{task}(**inputs)
+    outputs = {name_to_output[task]}
+    if not isinstance(rets, (list, tuple)): rets = [rets]
+    return dict(zip(outputs, rets))
+"""
+                w.write(ray_func)
+                pred = list(graphs[0].graph.predecessors(task))
+                pred_inputs = ', '.join([f"_ray_{p}_node" for p in pred])
+                w.write(f"_ray_{task}_node = _ray_{task}.bind({pred_inputs})\n")
 
-        print('\n'.join(function_definitions))
-        print(session_functions)
-        print(dependencies)
+            print(artifacts)
+            results = ','.join([f"_ray_{a.name}_node" for a in artifacts])
+            # names = ','.join([f"'{a.name}'" for a in artifacts])
+            w.write(f"""
+@ray.remote(**workflow.options(checkpoint=False))
+def gather(*args):
+    return {{k: v for d in args for k, v in d.items()}}
 
+_dag = gather.bind({results})
+workflow_id = os.environ.get("WORKFLOD_ID")
+# if not set, random id will be generated.
+# we might want:
+# 1. pass workflow id with cli.
+# 2. choose to resume or just start a new one.
+print(ray.workflow.run(_dag, workflow_id))
+""")
+            # w.write(str(name_to_output) + "\n")
+            # w.write(str(name_to_input) + "\n")
 
 
 
