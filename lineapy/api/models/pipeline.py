@@ -19,6 +19,7 @@ from lineapy.plugins.pipeline_writers import (
     BasePipelineWriter,
 )
 from lineapy.plugins.script import ScriptPlugin
+from lineapy.plugins.task import AirflowDagConfig as AirflowDagConfig2
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
@@ -104,8 +105,8 @@ class Pipeline:
     def export2(
         self,
         framework: str = "SCRIPT",
-        output_dir: Optional[str] = None,
-        pipeline_dag_config: Optional[AirflowDagConfig] = {},
+        output_dir: str = ".",
+        pipeline_dag_config: Optional[AirflowDagConfig2] = {},
     ) -> None:
         """
         This method uses objects implementing new style of graph refactor.
@@ -116,23 +117,20 @@ class Pipeline:
         if framework not in PipelineType.__members__:
             raise Exception(f"No PipelineType for {framework}")
 
+        # Determine writer class to use
+        pipeline_writer_class = {
+            PipelineType.SCRIPT: BasePipelineWriter,
+            PipelineType.AIRFLOW: AirflowPipelineWriter,
+        }[PipelineType[framework]]
+
         # Construct pipeline writer
-        if PipelineType[framework] == PipelineType.AIRFLOW:
-            pipeline_writer = AirflowPipelineWriter(
-                artifact_collection=self.artifact_collection,
-                dependencies=self.dependencies,
-                pipeline_name=self.name,
-                output_dir=output_dir,
-                dag_config=pipeline_dag_config,
-            )
-        else:
-            pipeline_writer = BasePipelineWriter(
-                artifact_collection=self.artifact_collection,
-                dependencies=self.dependencies,
-                pipeline_name=self.name,
-                output_dir=output_dir,
-                dag_config=pipeline_dag_config,
-            )
+        pipeline_writer = pipeline_writer_class(
+            artifact_collection=self.artifact_collection,
+            dependencies=self.dependencies,
+            pipeline_name=self.name,
+            output_dir=output_dir,
+            dag_config=pipeline_dag_config,
+        )
 
         # Write out pipeline files
         pipeline_writer.write_pipeline_files()

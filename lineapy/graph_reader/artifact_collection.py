@@ -46,7 +46,9 @@ class ArtifactCollection:
 
     def __init__(
         self,
-        artifacts: List[Union[str, Tuple[str, int]]],
+        artifacts: Union[
+            List[str], List[Tuple[str, int]], List[Union[str, Tuple[str, int]]]
+        ],
         input_parameters: List[str] = [],
     ) -> None:
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
@@ -79,21 +81,32 @@ class ArtifactCollection:
                 logger.error("%s is duplicated", args["artifact_name"])
                 raise KeyError("%s is duplicated", args["artifact_name"])
             try:
-                art_orm = self.db.get_artifact_by_name(**args)
-                art = LineaArtifact(
-                    db=self.db,
-                    _execution_id=art_orm.execution_id,
-                    _node_id=art_orm.node_id,
-                    _session_id=art_orm.node.session_id,
-                    _version=art_orm.version,  # type: ignore
-                    name=args["artifact_name"],
-                    date_created=art_orm.date_created,  # type: ignore
-                )
-                self.art_name_to_node_id[args["artifact_name"]] = art._node_id
-                self.node_id_to_session_id[art._node_id] = art._session_id
+                version = args.get("version", None)
+                if version is None:
+                    art_orm = self.db.get_artifact_by_name(
+                        artifact_name=args["artifact_name"]
+                    )
+                else:
+                    art_orm = self.db.get_artifact_by_name(
+                        artifact_name=args["artifact_name"],
+                        version=int(version),
+                    )
             except Exception as e:
                 logger.error("Cannot retrive artifact %s", art_entry)
                 raise Exception(e)
+
+            # Construct LineaArtifact object and store its info
+            art = LineaArtifact(
+                db=self.db,
+                _execution_id=art_orm.execution_id,
+                _node_id=art_orm.node_id,
+                _session_id=art_orm.node.session_id,
+                _version=art_orm.version,  # type: ignore
+                name=args["artifact_name"],
+                date_created=art_orm.date_created,  # type: ignore
+            )
+            self.art_name_to_node_id[args["artifact_name"]] = art._node_id
+            self.node_id_to_session_id[art._node_id] = art._session_id
 
             # Put artifact in the right session group
             artifacts_by_session[art._session_id] = artifacts_by_session.get(
