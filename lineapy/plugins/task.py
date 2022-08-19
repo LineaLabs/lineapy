@@ -1,6 +1,6 @@
 from enum import Enum
 from itertools import chain
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 import networkx as nx
 from typing_extensions import TypedDict
@@ -60,6 +60,7 @@ class TaskGraph(object):
     def get_taskorder(self) -> List[str]:
         return list(nx.topological_sort(self.graph))
 
+    # Depreciate after new to_pipeline is implemented
     def get_airflow_dependency(self):
         return (
             "\n".join(
@@ -69,11 +70,28 @@ class TaskGraph(object):
             else ""
         )
 
+    def get_airflow_dependencies(
+        self,
+        setup_task: Optional[str] = None,
+        teardown_task: Optional[str] = None,
+    ):
+        taskorder = [
+            task for task in self.get_taskorder() if task in self.graph.nodes
+        ]
+        dependencies = [
+            f"{task0}>> {task1}" for task0, task1 in self.graph.edges
+        ]
+        if setup_task is not None:
+            dependencies.append(f"{setup_task} >> {taskorder[0]}")
+        if teardown_task is not None:
+            dependencies.append(f"{taskorder[-1]} >> {teardown_task}")
+        return dependencies
+
 
 class AirflowDagFlavor(Enum):
     PythonOperatorPerSession = 1
+    PythonOperatorPerArtifact = 2
     # To be implemented for different flavor of airflow dags
-    # PythonOperatorPerArtifact = 2
     # BashOperator = 3
     # DockerOperator = 4
     # KubernetesPodOperator = 5
@@ -88,7 +106,7 @@ AirflowDagConfig = TypedDict(
         "schedule_interval": str,
         "max_active_runs": int,
         "catchup": str,
-        "dag_flavor": AirflowDagFlavor,  # Not native to Airflow config
+        "dag_flavor": str,  # Not native to Airflow config
     },
     total=False,
 )

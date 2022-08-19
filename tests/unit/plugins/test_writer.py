@@ -1,11 +1,18 @@
-import pathlib
-import shutil
 import tempfile
+from pathlib import Path
 
 import pytest
 
-from lineapy.plugins.pipeline_writers import generate_pipeline_files
+from lineapy.plugins.pipeline_writers import (
+    AirflowPipelineWriter,
+    BasePipelineWriter,
+)
 from lineapy.utils.utils import get_system_python_version, prettify
+
+pipeline_writer_classes = {
+    "SCRIPT": BasePipelineWriter,
+    "AIRFLOW": AirflowPipelineWriter,
+}
 
 
 def check_requirements_txt(t1: str, t2: str):
@@ -65,6 +72,16 @@ def check_requirements_txt(t1: str, t2: str):
             {},
             id="script_pipeline_housing_w_dependencies",
         ),
+        pytest.param(
+            "complex",
+            "",
+            ["f", "h"],
+            "AIRFLOW",
+            "airflow_complex_h_perart",
+            {},
+            {"dag_flavor": "PythonOperatorPerArtifact"},
+            id="airflow_complex_h_perartifact",
+        ),
     ],
 )
 def test_pipeline_generation(
@@ -81,14 +98,14 @@ def test_pipeline_generation(
     Test two sessions
     """
 
-    code1 = pathlib.Path(
-        "tests/unit/graph_reader/inputs/" + input_script1
+    code1 = Path(
+        "tests", "unit", "graph_reader", "inputs", input_script1
     ).read_text()
     res = execute(code1, snapshot=False)
 
     if input_script2 != "":
-        code2 = pathlib.Path(
-            "tests/unit/graph_reader/inputs/" + input_script2
+        code2 = Path(
+            "tests", "unit", "graph_reader", "inputs", input_script2
         ).read_text()
         res = execute(code2, snapshot=False)
 
@@ -99,40 +116,41 @@ def test_pipeline_generation(
     )
     res = execute(code, snapshot=False)
     artifact_collection = res.values["ac"]
-    tempfolder = tempfile.mkdtemp()
-    generate_pipeline_files(
-        artifact_collection,
-        framework=framework,
-        dependencies=dependencies,
-        pipeline_name=pipeline_name,
-        output_dir=tempfolder,
-        dag_config=dag_config,
-    )
-
-    file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
-    if framework != "SCRIPT":
-        file_endings.append("_dag.py")
-
-    for file_suffix in file_endings:
-        path = pathlib.Path(
-            f"{tempfolder}/{pipeline_name}/{pipeline_name}{file_suffix}"
+    with tempfile.TemporaryDirectory() as tempfolder:
+        pipeline_writer = pipeline_writer_classes[framework](
+            artifact_collection,
+            dependencies=dependencies,
+            pipeline_name=pipeline_name,
+            output_dir=tempfolder,
+            dag_config=dag_config,
         )
-        generated = path.read_text()
-        path_expected = pathlib.Path(
-            f"tests/unit/plugins/expected/{pipeline_name}/{pipeline_name}{file_suffix}"
-        )
-        if file_suffix == "_requirements.txt":
-            assert check_requirements_txt(
-                path.read_text(), path_expected.read_text()
+        pipeline_writer.write_pipeline_files()
+
+        file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
+        if framework != "SCRIPT":
+            file_endings.append("_dag.py")
+
+        for file_suffix in file_endings:
+            path = Path(tempfolder, pipeline_name, pipeline_name + file_suffix)
+            generated = path.read_text()
+            path_expected = Path(
+                "tests",
+                "unit",
+                "plugins",
+                "expected",
+                pipeline_name,
+                pipeline_name + file_suffix,
             )
-        else:
-            to_compare = path_expected.read_text()
-            if file_suffix == "_Dockerfile":
-                to_compare = to_compare.format(
-                    python_version=get_system_python_version()
+            if file_suffix == "_requirements.txt":
+                assert check_requirements_txt(
+                    generated, path_expected.read_text()
                 )
-            if file_suffix.endswith(".py"):
-                to_compare = prettify(to_compare)
-            assert path.read_text() == to_compare
-
-    shutil.rmtree(tempfolder)
+            else:
+                to_compare = path_expected.read_text()
+                if file_suffix == "_Dockerfile":
+                    to_compare = to_compare.format(
+                        python_version=get_system_python_version()
+                    )
+                if file_suffix.endswith(".py"):
+                    to_compare = prettify(to_compare)
+                assert generated == to_compare
