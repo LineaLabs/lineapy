@@ -462,4 +462,4 @@ def get_module_definition(
     art_collection = ArtifactCollection(
         artifact_list, input_parameters=input_parameters, use_cache=use_cache
     )
-    return art_collection.generate_module()
+    return art_collection.generate_module_text()

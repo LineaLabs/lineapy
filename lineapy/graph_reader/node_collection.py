@@ -166,7 +166,11 @@ class NodeCollection:
         return f"def get_{name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
 
     def get_function_call_block(
-        self, indentation=0, keep_lineapy_save=False, result_placeholder=None
+        self,
+        indentation=0,
+        keep_lineapy_save=False,
+        result_placeholder=None,
+        source_module="",
     ) -> str:
         """
         Return a codeblock to call the function with return variables of the graph segment
@@ -174,6 +178,7 @@ class NodeCollection:
         :param int indentation: indentation size
         :param bool keep_lineapy_save: whether do lineapy.save() after execution
         :param Optional[str] result_placeholder: if not null, append the return result to the result_placeholder
+        :param str source_module: which module the function is coming from
 
         The result_placeholder is a list to capture the artifact variables right
         after calculation. Considering following code,
@@ -196,7 +201,10 @@ class NodeCollection:
         if self.use_cache:
             args_string = ""
 
-        codeblock = f"{indentation_block}{return_string} = get_{self.safename}({args_string})"
+        # handle calling the function from a module
+        if source_module != "":
+            source_module = f"{source_module}."
+        codeblock = f"{indentation_block}{return_string} = {source_module}get_{self.safename}({args_string})"
         if (
             keep_lineapy_save
             and self.collection_type == NodeCollectionType.ARTIFACT

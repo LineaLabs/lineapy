@@ -1,0 +1,9 @@
+def task_{{artifact_name}}():
+{% for loading_block in loading_blocks %}
+{{indentation_block}}{{loading_block}}
+{% endfor %}
+{{indentation_block}}{{ call_block }}
+{% for dumping_block in dumping_blocks %}
+{{indentation_block}}{{dumping_block}}
+{% endfor %}
+

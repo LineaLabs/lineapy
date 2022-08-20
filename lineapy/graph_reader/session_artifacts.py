@@ -202,7 +202,7 @@ class SessionArtifacts:
             if len(self.node_context[node_id].dependent_variables) > 0:
                 # Duplicated variable name existing
                 logger.error(
-                    "LineaPy only suppor literal value as input parameters for now."
+                    "LineaPy only support literal value as input parameters for now."
                 )
                 raise Exception
 
@@ -272,7 +272,7 @@ class SessionArtifacts:
 
     def _get_common_variables(
         self, curr_nc: NodeCollection, pred_nc: NodeCollection
-    ) -> Tuple[Set[str], Set[LineaID]]:
+    ) -> Tuple[List[str], Set[LineaID]]:
         assert isinstance(pred_nc.name, str)
         common_inner_variables = (
             pred_nc.all_variables - set(pred_nc.return_variables)
@@ -295,7 +295,8 @@ class SessionArtifacts:
         else:
             common_nodes = set()
 
-        return common_inner_variables, common_nodes
+        # Want the return variales in consistent ordering
+        return sorted(list(common_inner_variables)), common_nodes
 
     def _slice_session_artifacts(self) -> None:
         self.used_nodes: Set[LineaID] = set()  # Track nodes that get ever used
@@ -374,7 +375,7 @@ class SessionArtifacts:
                         common_nodecollectioninfo = NodeCollection(
                             collection_type=NodeCollectionType.COMMON_VARIABLE,
                             name=f"{'_'.join(common_inner_variables)}_for_artifact_{source_info.name}_and_downstream",
-                            return_variables=list(common_inner_variables),
+                            return_variables=common_inner_variables,
                             node_list=common_nodes,
                         )
                         common_nodecollectioninfo._update_variable_info(
@@ -433,13 +434,20 @@ class SessionArtifacts:
         self.input_parameters_nodecollection._update_graph(self.graph)
 
     def _update_nodecollection_dependencies(self):
+        """
+        Update nodecollection dependencies when we replace the cached artifact
+        nodecollection with `lineapy.get`.
+        """
         last_appearrance_nc: Dict[str, str] = dict()
         dependencies: Dict[str, Set[str]] = dict()
+        # Artifact nodes that are going to be replaced by cached value
         cache_nodes = [
             nc.name
             for nc in self.artifact_nodecollections
             if nc.use_cache is not None
         ]
+        # Determine input variables of a nodecollection are coming from output
+        # variables of nodecollections
         for nc in self.artifact_nodecollections:
             dependencies[nc.name] = set()
             for var in nc.input_variables:
@@ -447,7 +455,7 @@ class SessionArtifacts:
                     dependencies[nc.name].add(last_appearrance_nc[var])
             for var in nc.return_variables:
                 last_appearrance_nc[var] = nc.name
-
+        # Nodecollection dependencies
         self.nodecollection_dependencies = TaskGraph(
             nodes=[nc.name for nc in self.artifact_nodecollections],
             mapping={
@@ -455,13 +463,16 @@ class SessionArtifacts:
             },
             edges=dependencies,
         )
-
+        # Graph with each nodecollection as node
         nc_graph = self.nodecollection_dependencies.graph
+        # Edges point to cached nodes
         cache_nodes_edges = [
             (from_node, to_node)
             for from_node, to_node in nc_graph.edges
             if from_node in cache_nodes
         ]
+        # Remove these edges and the nodecollection graph might split into
+        # multiple components, only keep components with user required artifact
         nc_graph.remove_nodes_from(cache_nodes)
         if nc_graph is not None and len(cache_nodes) > 0:
             artifact_names = set([art.name for art in self.artifact_list])

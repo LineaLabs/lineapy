@@ -81,7 +81,7 @@ def test_one_session(execute, input_script, artifact_list, expected_output):
     )
     res = execute(code, snapshot=False)
     ac = res.values["ac"]
-    refactor_result = ac.generate_module()
+    refactor_result = ac.generate_module_text()
     expected_result = pathlib.Path(
         "tests/unit/graph_reader/expected/" + expected_output
     ).read_text()
@@ -154,7 +154,7 @@ def test_two_session(
     )
     res = execute(code, snapshot=False)
     ac = res.values["ac"]
-    refactor_result = ac.generate_module(dependencies)
+    refactor_result = ac.generate_module_text(dependencies)
     expected_result = pathlib.Path(
         "tests/unit/graph_reader/expected/" + expected_output
     ).read_text()
