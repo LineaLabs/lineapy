@@ -2,7 +2,7 @@ import ast
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Iterable, List, Optional, cast
+from typing import Any, List, Optional, cast
 
 from lineapy.data.types import (
     CallNode,
