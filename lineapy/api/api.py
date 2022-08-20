@@ -422,8 +422,8 @@ def get_function(artifact_list, input_parameters=[], use_cache=[]) -> Callable:
 
     Note that,
     1. If an input parameter is only used to calculate artifacts in the
-        `use_cache` list, that inat input parameter will be passed around as a
-        dummy variable.
+        `use_cache` list, that input parameter will be passed around as a dummy
+        variable.
     2. If an artifact name has been saved multiple times within a session,
         multiple sessions or mutated. You might want to specify version number
         in `artifact_list` or `use_cache`. The best practice to avoid searching
