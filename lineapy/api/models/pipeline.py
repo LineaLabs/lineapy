@@ -14,10 +14,7 @@ from lineapy.db.relational import (
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
-from lineapy.plugins.pipeline_writers import (
-    AirflowPipelineWriter,
-    BasePipelineWriter,
-)
+from lineapy.plugins.pipeline_writers import PipelineWriterFactory
 from lineapy.plugins.script import ScriptPlugin
 from lineapy.plugins.task import AirflowDagConfig as AirflowDagConfig2
 from lineapy.plugins.task import TaskGraphEdge
@@ -101,7 +98,7 @@ class Pipeline:
         else:
             raise Exception(f"No PipelineType for {framework}")
 
-    def export2(
+    def _export(
         self,
         framework: str = "SCRIPT",
         output_dir: str = ".",
@@ -110,7 +107,7 @@ class Pipeline:
         """
         This method uses objects implementing new style of graph refactor.
         It is meant to eventually replace existing `export()` method above.
-        TODO: Replace existing `export()` method with this one.
+        TODO [LIN-469]: Replace existing `export()` method with this one.
         """
         # Create artifact collection
         execution_context = get_context()
@@ -122,14 +119,10 @@ class Pipeline:
         if framework not in PipelineType.__members__:
             raise Exception(f"No PipelineType for {framework}")
 
-        # Determine writer class to use
-        pipeline_writer_class = {
-            PipelineType.SCRIPT: BasePipelineWriter,
-            PipelineType.AIRFLOW: AirflowPipelineWriter,
-        }[PipelineType[framework]]
-
         # Construct pipeline writer
-        pipeline_writer = pipeline_writer_class(
+        pipeline_writer_factory = PipelineWriterFactory()
+        pipeline_writer = pipeline_writer_factory.get_pipeline_writer(
+            pipeline_type=PipelineType[framework],
             artifact_collection=artifact_collection,
             dependencies=self.dependencies,
             pipeline_name=self.name,
@@ -140,16 +133,15 @@ class Pipeline:
         # Write out pipeline files
         pipeline_writer.write_pipeline_files()
 
-        # # Track the event
-        # # TODO: Uncomment once this replaces old `export()` method
-        # track(
-        #     ToPipelineEvent(
-        #         framework,
-        #         len(self.artifact_names),
-        #         self.task_graph.get_airflow_dependency() != "",
-        #         pipeline_dag_config is not None,
-        #     )
-        # )
+        # Track the event
+        track(
+            ToPipelineEvent(
+                framework,
+                len(self.artifact_names),
+                self.task_graph.get_airflow_dependency() != "",
+                pipeline_dag_config is not None,
+            )
+        )
 
     def save(self):
         # TODO save this pipeline to the db using PipelineORM
