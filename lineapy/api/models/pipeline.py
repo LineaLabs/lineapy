@@ -43,7 +43,6 @@ class Pipeline:
             raise ValueError(
                 "Pipelines must contain at least one artifact\nEmpty Pipelines are invalid"
             )
-        self.artifact_collection = ArtifactCollection(artifacts)
         self.dependencies = dependencies
         self.artifact_safe_names, self.task_graph = extract_taskgraph(
             artifacts, dependencies
@@ -113,6 +112,12 @@ class Pipeline:
         It is meant to eventually replace existing `export()` method above.
         TODO: Replace existing `export()` method with this one.
         """
+        # Create artifact collection
+        execution_context = get_context()
+        artifact_collection = ArtifactCollection(
+            execution_context.executor.db, self.artifact_names
+        )
+
         # Check if the specified framework is a supported/valid one
         if framework not in PipelineType.__members__:
             raise Exception(f"No PipelineType for {framework}")
@@ -125,7 +130,7 @@ class Pipeline:
 
         # Construct pipeline writer
         pipeline_writer = pipeline_writer_class(
-            artifact_collection=self.artifact_collection,
+            artifact_collection=artifact_collection,
             dependencies=self.dependencies,
             pipeline_name=self.name,
             output_dir=output_dir,

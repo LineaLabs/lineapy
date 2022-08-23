@@ -416,7 +416,9 @@ def get_function(artifact_list, input_parameters=[]) -> Callable:
         value as the value.
 
     """
+    execution_context = get_context()
     art_collection = ArtifactCollection(
+        execution_context.executor.db,
         artifact_list,
         input_parameters=input_parameters,
     )
@@ -441,7 +443,9 @@ def get_module_definition(artifact_list, input_parameters=[]) -> str:
         A python module that includes the definition of :func::`get_function`
         as `run_all_sessions`.
     """
+    execution_context = get_context()
     art_collection = ArtifactCollection(
+        execution_context.executor.db,
         artifact_list,
         input_parameters=input_parameters,
     )
