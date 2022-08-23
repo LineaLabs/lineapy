@@ -130,6 +130,21 @@ We use [GitHub flow](https://docs.github.com/en/get-started/quickstart/github-fl
 
 ### 1.4. Contribute
 
+LineaPy is open source software that is maintained by the development team
+at Linea Labs. Your contributions are welcome and encouraged. Our goal is to
+build a diverse community of users and developers. Contributions can take many
+forms, including pull requests, bug reports, participation in the community
+forums, and any other activities that help to build a collaborative and
+supportive community. This section is primarily foused on how to contribute
+through pull requests.
+
+To help maintain the quality and usability of the code, we follow the GitHub
+flow as described above, with contributors working from forks as described in
+the [Fork a Repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo) guide.
+
+External contributors can make pull requests and suggest changes, but only the
+LineaPy maintainers can approve or request changes.
+
 To contribute, please follow these steps:
 
 A. Create a new branch and set its upstream
