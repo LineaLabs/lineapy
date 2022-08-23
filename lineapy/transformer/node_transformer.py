@@ -2,7 +2,7 @@ import ast
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Iterable, List, Optional, cast
+from typing import Any, List, Optional, cast
 
 from lineapy.data.types import (
     CallNode,
@@ -187,19 +187,6 @@ class NodeTransformer(ast.NodeTransformer):
         else:
             return self.tracer.literal(node.value, self.get_source(node))
 
-    # FIXME - this is deprecated
-    def visit_Starred(self, node: ast.Starred) -> Iterable[LiteralNode]:
-        elemlist: Iterable = []
-        if isinstance(node.value, ast.Constant):
-            elemlist = cast(Iterable, node.value.value)
-        elif isinstance(node.value, ast.Name):
-            elemlist = cast(Iterable, self.tracer.values[node.value.id])
-        elif isinstance(node.value, ast.Str):
-            elemlist = cast(Iterable, node.value.s)
-
-        elem_nodes = [self.visit(ast.Constant(ele)) for ele in iter(elemlist)]
-        yield from elem_nodes
-
     def visit_Raise(self, node: ast.Raise) -> None:
         return super().visit_Raise(node)
 
@@ -347,10 +334,8 @@ class NodeTransformer(ast.NodeTransformer):
         # this is the normal case, non-publish
         argument_nodes = []
         for arg in node.args:
-            # special case for starred, we need to unpack shit
+            # special case for starred, we need to indicate that unpacking is required
             if isinstance(arg, ast.Starred):
-                # for n in self.visit(arg):
-                #    argument_nodes.append(n)
                 argument_nodes.append((True, self.visit(arg.value)))
             else:
                 argument_nodes.append(self.visit(arg))
