@@ -93,7 +93,9 @@ class NodeCollection:
     sliced_nodes: Set[LineaID] = field(default_factory=set)
     raw_codeblock: str = field(default="")
     is_empty: bool = field(default=True)
-    use_cache: Union[None, Tuple[str, Optional[int]]] = field(default=None)
+    pre_computed_artifact: Union[None, Tuple[str, Optional[int]]] = field(
+        default=None
+    )
 
     def __post_init__(self):
         self.safename = self.name.replace(" ", "")
@@ -147,7 +149,7 @@ class NodeCollection:
         indentation_block = " " * indentation
         name = self.safename
         return_string = ", ".join([v for v in self.return_variables])
-        if self.use_cache is None:
+        if self.pre_computed_artifact is None:
             artifact_codeblock = "\n".join(
                 [
                     f"{indentation_block}{line}"
@@ -160,7 +162,7 @@ class NodeCollection:
             artifact_codeblock = (
                 f"{indentation_block}import lineapy\n{indentation_block}"
             )
-            artifact_codeblock += f'{return_string}=lineapy.get("{self.use_cache[0]}", {self.use_cache[1]}).get_value()'
+            artifact_codeblock += f'{return_string}=lineapy.get("{self.pre_computed_artifact[0]}", {self.pre_computed_artifact[1]}).get_value()'
             args_string = ""
 
         return f"def get_{name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
@@ -198,7 +200,7 @@ class NodeCollection:
         indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
         args_string = ", ".join(sorted([v for v in self.input_variables]))
-        if self.use_cache:
+        if self.pre_computed_artifact:
             args_string = ""
 
         # handle calling the function from a module
@@ -256,11 +258,11 @@ class NodeCollection:
         else:
             input_parameters_codeblock = ""
 
-        if self.use_cache is not None:
+        if self.pre_computed_artifact is not None:
             logger.warning(
                 "Variables "
                 + ", ".join(self.input_variables)
-                + " are dummy variables due to use_cache option."
+                + " are dummy variables due to pre_computed_artifact option."
             )
             return ""
 

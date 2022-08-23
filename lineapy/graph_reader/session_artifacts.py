@@ -40,13 +40,13 @@ class SessionArtifacts:
     input_parameters: List[str]
     input_parameters_node: Dict[str, LineaID]
     nodecollection_dependencies: TaskGraph
-    use_cache: Dict[str, Optional[int]]
+    pre_computed_artifacts: Dict[str, Optional[int]]
 
     def __init__(
         self,
         artifacts: List[LineaArtifact],
         input_parameters: List[str] = [],
-        use_cache: List[Union[str, Tuple[str, int]]] = [],
+        reuse_pre_computed: List[Union[str, Tuple[str, int]]] = [],
     ) -> None:
         self.artifact_list = artifacts
         self.session_id = artifacts[0]._session_id
@@ -56,15 +56,20 @@ class SessionArtifacts:
         self.artifact_nodecollections = []
         self.node_context = OrderedDict()
         self.input_parameters = input_parameters
-        self.use_cache = dict()
-        for cache_art in use_cache:
+        self.pre_computed_artifacts = dict()
+        # Only keep
+        for cache_art in reuse_pre_computed:
             if isinstance(cache_art, str):
-                self.use_cache[cache_art] = None
+                self.pre_computed_artifacts[cache_art] = None
             else:
-                self.use_cache[cache_art[0]] = int(cache_art[1])
+                self.pre_computed_artifacts[cache_art[0]] = int(cache_art[1])
 
+        # Add extra attributes(from predecessors) at session Liena nodes
         self._update_node_context()
+        # Divide session graph into a set of non-overlapping NodeCollection
         self._slice_session_artifacts()
+        # Determine dependencies of NodeCollections and check whether to
+        # replace it with pre-calculated value from artifact store
         self._update_nodecollection_dependencies()
 
     def _update_dependent_variables(
@@ -130,16 +135,22 @@ class SessionArtifacts:
 
     def _update_node_context(self):
         """
-         Traverse every node within the session in topologically sorted order and update
-         node_context with following informations
+        Traverse every node within the session in topologically sorted order
+        and update node_context with following informations
 
         assigned_variables : variables assigned at this node
-         assigned_artifact : this node is pointing to some artifact
-         predecessors : predecessors of the node
-         dependent_variables : union of if any variable is assigned at predecessor node,
-             use the assigned variables; otherwise, use the dependent_variables
-         tracked_variables : variables that this node is point to
-         module_import : module name/alias that this node is point to
+        assigned_artifact : this node is pointing to some artifact
+        predecessors : predecessors of the node
+        dependent_variables : union of if any variable is assigned at
+            predecessor node, use the assigned variables; otherwise, use the
+            dependent_variables
+        tracked_variables : variables that this node is point to
+        module_import : module name/alias that this node is point to
+
+        Note that, it is possible to add all these new attributes during the
+        Linea graph creating phase. However, this might scrifice the runtime
+        performance since some of the information need to query the attributes
+        from predecessors.
         """
 
         # Map each variable node ID to the corresponding variable name(when variable assigned)
@@ -222,8 +233,12 @@ class SessionArtifacts:
     def _get_sliced_nodes(
         self, node_id: LineaID
     ) -> Tuple[Set[LineaID], Set[LineaID]]:
+        """
+        Get sliced nodes from session graph and separate nodes for import
+        and main calculation.
+        """
         nodes = set(get_slice_graph(self.graph, [node_id]).nx_graph.nodes)
-
+        # Identify import nodes
         importnodes = set(
             [
                 _node
@@ -243,7 +258,10 @@ class SessionArtifacts:
         return nodes, importnodes
 
     def _get_predecessor_info(self, nodes, importnodes):
-        # Figure out where each predecessor is coming from which artifact
+        """
+        Figure out where each predecessor is coming from which artifact in
+        both artifact name and nodeid
+        """
         predecessor_nodes = set().union(
             *[self.node_context[n_id].predecessors for n_id in nodes]
         )
@@ -273,6 +291,9 @@ class SessionArtifacts:
     def _get_common_variables(
         self, curr_nc: NodeCollection, pred_nc: NodeCollection
     ) -> Tuple[List[str], Set[LineaID]]:
+        """
+        Identify common variables for two NodeCollections.
+        """
         assert isinstance(pred_nc.name, str)
         common_inner_variables = (
             pred_nc.all_variables - set(pred_nc.return_variables)
@@ -299,6 +320,12 @@ class SessionArtifacts:
         return sorted(list(common_inner_variables)), common_nodes
 
     def _slice_session_artifacts(self) -> None:
+        """
+        Divide all session nodes into a set of non-overlapping nodes. Each set
+        responds to one artifact or common variables calculation. All the import
+        nodes will belong to one set and all input variable nodes will belong to
+        another set.
+        """
         self.used_nodes: Set[LineaID] = set()  # Track nodes that get ever used
         self.import_nodes: Set[LineaID] = set()
         self.artifact_nodecollections = list()
@@ -306,24 +333,35 @@ class SessionArtifacts:
             if n.assigned_artifact is not None and node_id in [
                 art._node_id for art in self.artifact_list
             ]:
+                # Identify nodes to calculate the artifact from sliced graphs
                 sliced_nodes, sliced_import_nodes = self._get_sliced_nodes(
                     node_id
                 )
+                # Attach import nodes to import NodeCollection
                 self.import_nodes.update(sliced_import_nodes - self.used_nodes)
+                # New nodes to calculate this specifict artifact
                 art_nodes = sliced_nodes - self.used_nodes - self.import_nodes
+                # Update used nodes
                 self.used_nodes = self.used_nodes.union(art_nodes).union(
                     self.import_nodes
                 )
+                # Identify precedent artifacts(id and name)
                 pred_nodes, pred_artifact = self._get_predecessor_info(
                     art_nodes, self.import_nodes
                 )
+                # Identify input variables are coming from which artifacts
                 input_variable_sources = self._get_input_variable_sources(
                     pred_nodes
                 )
-
-                use_cache = (
-                    (n.assigned_artifact, self.use_cache[n.assigned_artifact])
-                    if n.assigned_artifact in self.use_cache.keys()
+                # Check whether this artifact should be replaced by
+                # pre-computed value, None if no and (name, version) if yes
+                matched_pre_computed = (
+                    (
+                        n.assigned_artifact,
+                        self.pre_computed_artifacts[n.assigned_artifact],
+                    )
+                    if n.assigned_artifact
+                    in self.pre_computed_artifacts.keys()
                     else None
                 )
                 nodecollectioninfo = NodeCollection(
@@ -337,7 +375,7 @@ class SessionArtifacts:
                     predecessor_artifact=pred_artifact,
                     input_variable_sources=input_variable_sources,
                     sliced_nodes=sliced_nodes,
-                    use_cache=use_cache,
+                    pre_computed_artifact=matched_pre_computed,
                 )
 
                 # Update node context to label the node is assigned to this artifact
@@ -370,6 +408,10 @@ class SessionArtifacts:
                         nodecollectioninfo, source_info
                     )
 
+                    # If commont inner variables detected, split the precedent
+                    # NodeCollection into two parts. One for calculation of
+                    # common variables and the other for rest of artifact
+                    # calculation.
                     if len(common_inner_variables) > 0 and len(common_nodes):
 
                         common_nodecollectioninfo = NodeCollection(
@@ -389,7 +431,7 @@ class SessionArtifacts:
                             name=source_info.name,
                             return_variables=source_info.return_variables,
                             node_list=remaining_nodes,
-                            use_cache=source_info.use_cache,
+                            pre_computed_artifact=source_info.pre_computed_artifact,
                         )
                         remaining_nodecollectioninfo._update_variable_info(
                             self.node_context, self.input_parameters_node
@@ -435,7 +477,8 @@ class SessionArtifacts:
 
     def _update_nodecollection_dependencies(self):
         """
-        Update nodecollection dependencies when we replace the cached artifact
+        Identify the dependencies graph
+        when we replace the cached artifact
         nodecollection with `lineapy.get`.
         """
         last_appearrance_nc: Dict[str, str] = dict()
@@ -444,7 +487,7 @@ class SessionArtifacts:
         cache_nodes = [
             nc.name
             for nc in self.artifact_nodecollections
-            if nc.use_cache is not None
+            if nc.pre_computed_artifact is not None
         ]
         # Determine input variables of a nodecollection are coming from output
         # variables of nodecollections
