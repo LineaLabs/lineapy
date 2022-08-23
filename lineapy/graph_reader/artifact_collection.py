@@ -12,9 +12,9 @@ import networkx as nx
 from networkx.exception import NetworkXUnfeasible
 from typing_extensions import NotRequired, TypedDict
 
-from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.data.types import LineaID
-from lineapy.execution.context import get_context
+from lineapy.db.db import RelationalLineaDB
+from lineapy.db.relational import ArtifactORM
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import TaskGraphEdge
@@ -46,11 +46,13 @@ class ArtifactCollection:
 
     def __init__(
         self,
+        db: RelationalLineaDB,
         artifacts: Union[
             List[str], List[Tuple[str, int]], List[Union[str, Tuple[str, int]]]
         ],
         input_parameters: List[str] = [],
     ) -> None:
+        self.db: RelationalLineaDB = db
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
         self.art_name_to_node_id: Dict[str, LineaID] = {}
         self.node_id_to_session_id: Dict[LineaID, LineaID] = {}
@@ -59,9 +61,8 @@ class ArtifactCollection:
             raise ValueError(
                 f"Duplicated input parameters detected in {input_parameters}"
             )
-        self.db = get_context().executor.db
 
-        artifacts_by_session: Dict[LineaID, List[LineaArtifact]] = {}
+        artifacts_by_session: Dict[LineaID, List[ArtifactORM]] = {}
 
         # Retrieve artifact objects and group them by session ID
         for art_entry in artifacts:
@@ -83,11 +84,11 @@ class ArtifactCollection:
             try:
                 version = args.get("version", None)
                 if version is None:
-                    art_orm = self.db.get_artifact_by_name(
+                    art = self.db.get_artifact_by_name(
                         artifact_name=args["artifact_name"]
                     )
                 else:
-                    art_orm = self.db.get_artifact_by_name(
+                    art = self.db.get_artifact_by_name(
                         artifact_name=args["artifact_name"],
                         version=int(version),
                     )
@@ -95,28 +96,18 @@ class ArtifactCollection:
                 logger.error("Cannot retrive artifact %s", art_entry)
                 raise Exception(e)
 
-            # Construct LineaArtifact object and store its info
-            art = LineaArtifact(
-                db=self.db,
-                _execution_id=art_orm.execution_id,
-                _node_id=art_orm.node_id,
-                _session_id=art_orm.node.session_id,
-                _version=art_orm.version,  # type: ignore
-                name=args["artifact_name"],
-                date_created=art_orm.date_created,  # type: ignore
-            )
-            self.art_name_to_node_id[args["artifact_name"]] = art._node_id
-            self.node_id_to_session_id[art._node_id] = art._session_id
+            self.art_name_to_node_id[args["artifact_name"]] = art.node_id
+            self.node_id_to_session_id[art.node_id] = art.node.session_id
 
             # Put artifact in the right session group
-            artifacts_by_session[art._session_id] = artifacts_by_session.get(
-                art._session_id, []
-            ) + [art]
+            artifacts_by_session[
+                art.node.session_id
+            ] = artifacts_by_session.get(art.node.session_id, []) + [art]
 
         # For each session, construct SessionArtifacts object
         for session_id, session_artifacts in artifacts_by_session.items():
             self.session_artifacts[session_id] = SessionArtifacts(
-                session_artifacts, input_parameters=input_parameters
+                self.db, session_artifacts, input_parameters=input_parameters
             )
 
     def _sort_session_artifacts(

@@ -5,10 +5,10 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 
-from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.data.graph import Graph
 from lineapy.data.types import CallNode, GlobalNode, LineaID, MutateNode, Node
 from lineapy.db.db import RelationalLineaDB
+from lineapy.db.relational import ArtifactORM
 from lineapy.graph_reader.node_collection import (
     NodeCollection,
     NodeCollectionType,
@@ -34,18 +34,26 @@ class SessionArtifacts:
     nx_graph: nx.DiGraph
     artifact_nodecollections: List[NodeCollection]
     import_nodecollection: NodeCollection
-    artifact_list: List[LineaArtifact]
+    artifact_list: List[ArtifactORM]
     node_context: Dict[LineaID, NodeInfo]
     input_parameters: List[str]
     input_parameters_node: Dict[str, LineaID]
 
     def __init__(
-        self, artifacts: List[LineaArtifact], input_parameters: List[str] = []
+        self,
+        db: RelationalLineaDB,
+        artifacts: List[ArtifactORM],
+        input_parameters: List[str] = [],
     ) -> None:
+        self.db = db
         self.artifact_list = artifacts
-        self.session_id = artifacts[0]._session_id
-        self.db = artifacts[0].db
-        self.graph = artifacts[0]._get_graph()
+        self.session_id = artifacts[0].node.session_id
+
+        # Construct session graph
+        session_context = self.db.get_session_context(self.session_id)
+        nodes = self.db.get_nodes_for_session(self.session_id)
+        self.graph = Graph(nodes, session_context)
+
         self.nx_graph = self.graph.nx_graph
         self.artifact_nodecollections = []
         self.node_context = OrderedDict()
@@ -118,7 +126,7 @@ class SessionArtifacts:
     def _update_node_context(self):
         """
          Traverse every node within the session in topologically sorted order and update
-         node_context with following informations
+         node_context with following information
 
         assigned_variables : variables assigned at this node
          assigned_artifact : this node is pointing to some artifact
@@ -189,7 +197,7 @@ class SessionArtifacts:
             if len(self.node_context[node_id].dependent_variables) > 0:
                 # Duplicated variable name existing
                 logger.error(
-                    "LineaPy only suppor literal value as input parameters for now."
+                    "LineaPy only supports literal value as input parameters for now."
                 )
                 raise Exception
 
@@ -291,7 +299,7 @@ class SessionArtifacts:
         self.artifact_nodecollections = list()
         for node_id, n in self.node_context.items():
             if n.assigned_artifact is not None and node_id in [
-                art._node_id for art in self.artifact_list
+                art.node_id for art in self.artifact_list
             ]:
                 sliced_nodes, sliced_import_nodes = self._get_sliced_nodes(
                     node_id
