@@ -272,8 +272,9 @@ def get_task_definition(
 
 
 class PipelineWriterFactory:
-    def get_pipeline_writer(
-        self,
+    @classmethod
+    def get(
+        cls,
         pipeline_type: PipelineType = PipelineType.SCRIPT,
         *args,
         **kwargs,

@@ -120,8 +120,7 @@ class Pipeline:
             raise Exception(f"No PipelineType for {framework}")
 
         # Construct pipeline writer
-        pipeline_writer_factory = PipelineWriterFactory()
-        pipeline_writer = pipeline_writer_factory.get_pipeline_writer(
+        pipeline_writer = PipelineWriterFactory.get(
             pipeline_type=PipelineType[framework],
             artifact_collection=artifact_collection,
             dependencies=self.dependencies,
