@@ -83,16 +83,6 @@ class ArtifactCollection:
                 raise KeyError("%s is duplicated", args["artifact_name"])
             try:
                 art = self.db.get_artifact_by_name(**args)
-                # version = args.get("version", None)
-                # if version is None:
-                #     art = self.db.get_artifact_by_name(
-                #         artifact_name=args["artifact_name"]
-                #     )
-                # else:
-                #     art = self.db.get_artifact_by_name(
-                #         artifact_name=args["artifact_name"],
-                #         version=int(version),
-                #     )
             except Exception as e:
                 logger.error("Cannot retrive artifact %s", art_entry)
                 raise Exception(e)
