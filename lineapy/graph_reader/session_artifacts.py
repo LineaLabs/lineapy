@@ -48,12 +48,7 @@ class SessionArtifacts:
         self.db = db
         self.artifact_list = artifacts
         self.session_id = artifacts[0].node.session_id
-
-        # Construct session graph
-        session_context = self.db.get_session_context(self.session_id)
-        nodes = self.db.get_nodes_for_session(self.session_id)
-        self.graph = Graph(nodes, session_context)
-
+        self.graph = Graph.create_session_graph(self.db, self.session_id)
         self.nx_graph = self.graph.nx_graph
         self.artifact_nodecollections = []
         self.node_context = OrderedDict()

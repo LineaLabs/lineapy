@@ -109,8 +109,9 @@ class LineaArtifact:
                 Defaults to ``False``.
 
         """
+        session_graph = Graph.create_session_graph(self.db, self._session_id)
         return get_slice_graph(
-            self._get_graph(), [self._node_id], keep_lineapy_save
+            session_graph, [self._node_id], keep_lineapy_save
         )
 
     @lru_cache(maxsize=None)
@@ -171,13 +172,6 @@ class LineaArtifact:
         # the user wrote originally, without processing
         return code
 
-    @lru_cache(maxsize=None)
-    def _get_graph(self) -> Graph:
-        session_context = self.db.get_session_context(self._session_id)
-        # FIXME: copied cover from tracer, we might want to refactor
-        nodes = self.db.get_nodes_for_session(self._session_id)
-        return Graph(nodes, session_context)
-
     def visualize(self, path: Optional[str] = None) -> None:
         """
         Displays the graph for this artifact.
@@ -188,9 +182,8 @@ class LineaArtifact:
         # This way we can import lineapy without having graphviz installed.
         from lineapy.visualizer import Visualizer
 
-        visualizer = Visualizer.for_public_node(
-            self._get_graph(), self._node_id
-        )
+        session_graph = Graph.create_session_graph(self.db, self._session_id)
+        visualizer = Visualizer.for_public_node(session_graph, self._node_id)
         if path:
             visualizer.render_pdf_file(path)
         else:
