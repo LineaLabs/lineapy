@@ -2,6 +2,7 @@ import importlib.util
 import logging
 import sys
 import tempfile
+from collections import defaultdict
 from dataclasses import dataclass
 from importlib.abc import Loader
 from itertools import chain
@@ -62,7 +63,9 @@ class ArtifactCollection:
                 f"Duplicated input parameters detected in {input_parameters}"
             )
 
-        artifacts_by_session: Dict[LineaID, List[ArtifactORM]] = {}
+        artifacts_by_session: Dict[LineaID, List[ArtifactORM]] = defaultdict(
+            list
+        )
 
         # Retrieve artifact objects and group them by session ID
         for art_entry in artifacts:
@@ -91,9 +94,7 @@ class ArtifactCollection:
             self.node_id_to_session_id[art.node_id] = art.node.session_id
 
             # Put artifact in the right session group
-            artifacts_by_session[
-                art.node.session_id
-            ] = artifacts_by_session.get(art.node.session_id, []) + [art]
+            artifacts_by_session[art.node.session_id].append(art)
 
         # For each session, construct SessionArtifacts object
         for session_id, session_artifacts in artifacts_by_session.items():
