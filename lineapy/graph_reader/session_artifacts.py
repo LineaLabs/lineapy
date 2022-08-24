@@ -40,13 +40,13 @@ class SessionArtifacts:
     input_parameters: List[str]
     input_parameters_node: Dict[str, LineaID]
     nodecollection_dependencies: TaskGraph
-    pre_computed_artifacts: Dict[str, Optional[int]]
+    reuse_pre_computed_artifacts: Dict[str, Optional[int]]
 
     def __init__(
         self,
         artifacts: List[LineaArtifact],
         input_parameters: List[str] = [],
-        reuse_pre_computed: List[Union[str, Tuple[str, int]]] = [],
+        reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
     ) -> None:
         self.artifact_list = artifacts
         self.session_id = artifacts[0]._session_id
@@ -56,13 +56,15 @@ class SessionArtifacts:
         self.artifact_nodecollections = []
         self.node_context = OrderedDict()
         self.input_parameters = input_parameters
-        self.pre_computed_artifacts = dict()
-        # Only keep
-        for cache_art in reuse_pre_computed:
+        self.reuse_pre_computed_artifacts = dict()
+        #
+        for cache_art in reuse_pre_computed_artifacts:
             if isinstance(cache_art, str):
-                self.pre_computed_artifacts[cache_art] = None
+                self.reuse_pre_computed_artifacts[cache_art] = None
             else:
-                self.pre_computed_artifacts[cache_art[0]] = int(cache_art[1])
+                self.reuse_pre_computed_artifacts[cache_art[0]] = int(
+                    cache_art[1]
+                )
 
         # Add extra attributes(from predecessors) at session Liena nodes
         self._update_node_context()
@@ -158,9 +160,12 @@ class SessionArtifacts:
         variable_dict: Dict[LineaID, Set[str]] = OrderedDict()
         import_dict: Dict[LineaID, Set[str]] = OrderedDict()
         self.input_parameters_node = dict()
+
+        input_parameters_assignment_nodes: Dict[str, List[LineaID]] = dict()
         for node_id, variable_name in self.db.get_variables_for_session(
             self.session_id
         ):
+            print(node_id, variable_name)
             if _is_import_node(self.graph, node_id):
                 import_dict[node_id] = (
                     set([variable_name])
@@ -358,10 +363,10 @@ class SessionArtifacts:
                 matched_pre_computed = (
                     (
                         n.assigned_artifact,
-                        self.pre_computed_artifacts[n.assigned_artifact],
+                        self.reuse_pre_computed_artifacts[n.assigned_artifact],
                     )
                     if n.assigned_artifact
-                    in self.pre_computed_artifacts.keys()
+                    in self.reuse_pre_computed_artifacts.keys()
                     else None
                 )
                 nodecollectioninfo = NodeCollection(
@@ -477,11 +482,12 @@ class SessionArtifacts:
 
     def _update_nodecollection_dependencies(self):
         """
-        Identify the dependencies graph
-        when we replace the cached artifact
-        nodecollection with `lineapy.get`.
+        Identify the dependencies graph of each NodeCollections that compute
+        an artifact or common variables for multiple artifacts. Remove useless
+        NodeCollections that only use to calculate artifacts in
+        reuse_pre_computed_artifacts list.
         """
-        last_appearrance_nc: Dict[str, str] = dict()
+        last_appearance_nc: Dict[str, str] = dict()
         dependencies: Dict[str, Set[str]] = dict()
         # Artifact nodes that are going to be replaced by cached value
         cache_nodes = [
@@ -490,14 +496,14 @@ class SessionArtifacts:
             if nc.pre_computed_artifact is not None
         ]
         # Determine input variables of a nodecollection are coming from output
-        # variables of nodecollections
+        # variables of nodecollections to build the NodeCollection dependencies
         for nc in self.artifact_nodecollections:
             dependencies[nc.name] = set()
             for var in nc.input_variables:
-                if var in last_appearrance_nc.keys():
-                    dependencies[nc.name].add(last_appearrance_nc[var])
+                if var in last_appearance_nc.keys():
+                    dependencies[nc.name].add(last_appearance_nc[var])
             for var in nc.return_variables:
-                last_appearrance_nc[var] = nc.name
+                last_appearance_nc[var] = nc.name
         # Nodecollection dependencies
         self.nodecollection_dependencies = TaskGraph(
             nodes=[nc.name for nc in self.artifact_nodecollections],

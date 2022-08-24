@@ -47,7 +47,7 @@ class ArtifactCollection:
         self,
         artifacts: List[Union[str, Tuple[str, int]]],
         input_parameters: List[str] = [],
-        reuse_pre_computed: List[Union[str, Tuple[str, int]]] = [],
+        reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
     ) -> None:
         from lineapy.api.api import get
 
@@ -67,7 +67,7 @@ class ArtifactCollection:
         ]
         artifacts_and_caches = artifacts + [
             art
-            for art in reuse_pre_computed
+            for art in reuse_pre_computed_artifacts
             if (isinstance(art, str) and art not in artifact_names)
             or (isinstance(art, tuple) and art[0] not in artifact_names)
         ]
@@ -113,7 +113,8 @@ class ArtifactCollection:
         for session, arts in artifacts_by_session.items():
             if all([art.name not in artifact_names for art in arts]):
                 raise ValueError(
-                    f"{art.name} is not in any sessions that contain {', '.join(artifact_names)}"
+                    f"{art.name} is not in any sessions that contain {', '.join(artifact_names)}."
+                    + "Try to remove it from the reuse_pre_computed_artifacts."
                 )
 
         # For each session, construct SessionArtifacts object
@@ -121,7 +122,7 @@ class ArtifactCollection:
             self.session_artifacts[session_id] = SessionArtifacts(
                 session_artifacts,
                 input_parameters=input_parameters,
-                reuse_pre_computed=reuse_pre_computed,
+                reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
             )
 
     def _sort_session_artifacts(

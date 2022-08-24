@@ -96,9 +96,11 @@ class NodeCollection:
     pre_computed_artifact: Union[None, Tuple[str, Optional[int]]] = field(
         default=None
     )
+    is_pre_computed_artifact: bool = field(default=False)
 
     def __post_init__(self):
         self.safename = self.name.replace(" ", "")
+        self.is_pre_computed_artifact = self.pre_computed_artifact is not None
 
     def _update_variable_info(self, node_context, input_parameters_node):
         """
@@ -132,8 +134,8 @@ class NodeCollection:
         """
         Update graph_segment class member based on node_list
 
-        Need to manually run this function at least once if you need the graph object
-        for code generation
+        Need to manually run this function at least once if you need the graph
+        object for code generation.
         """
         self.graph_segment = graph.get_subgraph_from_id(list(self.node_list))
         self.raw_codeblock = get_source_code_from_graph(
@@ -143,13 +145,15 @@ class NodeCollection:
 
     def get_function_definition(self, indentation=4) -> str:
         """
-        Return a codeblock to define the function of the graph segment
+        Return a codeblock to define the function of the graph segment. If
+        self.is_pre_computed_artifact is True, will replace the calculation
+        block with lineapy.get().get_value()
         """
 
         indentation_block = " " * indentation
         name = self.safename
         return_string = ", ".join([v for v in self.return_variables])
-        if self.pre_computed_artifact is None:
+        if not self.is_pre_computed_artifact:
             artifact_codeblock = "\n".join(
                 [
                     f"{indentation_block}{line}"
@@ -159,6 +163,7 @@ class NodeCollection:
             )
             args_string = ", ".join(sorted([v for v in self.input_variables]))
         else:
+            assert self.pre_computed_artifact is not None
             artifact_codeblock = (
                 f"{indentation_block}import lineapy\n{indentation_block}"
             )
@@ -200,7 +205,7 @@ class NodeCollection:
         indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
         args_string = ", ".join(sorted([v for v in self.input_variables]))
-        if self.pre_computed_artifact:
+        if self.is_pre_computed_artifact:
             args_string = ""
 
         # handle calling the function from a module
@@ -262,7 +267,8 @@ class NodeCollection:
             logger.warning(
                 "Variables "
                 + ", ".join(self.input_variables)
-                + " are dummy variables due to pre_computed_artifact option."
+                + f" are dummy variables since they are only used in the calculation of artifacts {self.name}."
+                + "You can either edit the input_parameters or reuse_pre_computed parameters to remove this warning."
             )
             return ""
 
