@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 from typing import Dict, Optional
 
+from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.graph_reader.node_collection import NodeCollection
 from lineapy.plugins.task import (
@@ -260,11 +261,25 @@ def get_task_definition(
         for var in nc.return_variables
     ]
 
-    TASK_FUNCITON_TEMPLATE = load_plugin_template("task_function.jinja")
-    return TASK_FUNCITON_TEMPLATE.render(
+    TASK_FUNCTION_TEMPLATE = load_plugin_template("task_function.jinja")
+    return TASK_FUNCTION_TEMPLATE.render(
         artifact_name=nc.safename,
         loading_blocks=input_var_loading_block,
         call_block=function_call_block,
         dumping_blocks=return_var_saving_block,
         indentation_block=" " * indentation,
     )
+
+
+class PipelineWriterFactory:
+    @classmethod
+    def get(
+        cls,
+        pipeline_type: PipelineType = PipelineType.SCRIPT,
+        *args,
+        **kwargs,
+    ):
+        if pipeline_type == PipelineType.AIRFLOW:
+            return AirflowPipelineWriter(*args, **kwargs)
+        else:
+            return BasePipelineWriter(*args, **kwargs)

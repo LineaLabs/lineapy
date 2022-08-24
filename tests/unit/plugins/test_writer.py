@@ -112,7 +112,9 @@ def test_pipeline_generation(
     artifact_string = ", ".join([f'"{x}"' for x in artifact_list])
     code = (
         "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
-        + f"ac = ArtifactCollection([{artifact_string}])"
+        + "from lineapy.execution.context import get_context\n"
+        + "db = get_context().executor.db\n"
+        + f"ac = ArtifactCollection(db, [{artifact_string}])"
     )
     res = execute(code, snapshot=False)
     artifact_collection = res.values["ac"]

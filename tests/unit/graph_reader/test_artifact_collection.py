@@ -77,7 +77,9 @@ def test_one_session(execute, input_script, artifact_list, expected_output):
     artifact_string = ", ".join([f'"{x}"' for x in artifact_list])
     code = (
         "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
-        + f"ac = ArtifactCollection([{artifact_string}])"
+        + "from lineapy.execution.context import get_context\n"
+        + "db = get_context().executor.db\n"
+        + f"ac = ArtifactCollection(db, [{artifact_string}])"
     )
     res = execute(code, snapshot=False)
     ac = res.values["ac"]
@@ -150,7 +152,9 @@ def test_two_session(
     artifact_string = ", ".join([f'"{x}"' for x in artifact_list])
     code = (
         "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
-        + f"ac = ArtifactCollection([{artifact_string}])"
+        + "from lineapy.execution.context import get_context\n"
+        + "db = get_context().executor.db\n"
+        + f"ac = ArtifactCollection(db, [{artifact_string}])"
     )
     res = execute(code, snapshot=False)
     ac = res.values["ac"]

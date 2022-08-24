@@ -12,7 +12,9 @@ from typing import Callable, List, Optional, Union
 import fsspec
 from pandas.io.pickle import to_pickle
 
-from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore, Pipeline
+from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.api.models.linea_artifact_store import LineaArtifactStore
+from lineapy.api.models.pipeline import Pipeline
 from lineapy.data.types import Artifact, LineaID, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -414,7 +416,9 @@ def get_function(artifact_list, input_parameters=[]) -> Callable:
         value as the value.
 
     """
+    execution_context = get_context()
     art_collection = ArtifactCollection(
+        execution_context.executor.db,
         artifact_list,
         input_parameters=input_parameters,
     )
@@ -439,7 +443,9 @@ def get_module_definition(artifact_list, input_parameters=[]) -> str:
         A python module that includes the definition of :func::`get_function`
         as `run_all_sessions`.
     """
+    execution_context = get_context()
     art_collection = ArtifactCollection(
+        execution_context.executor.db,
         artifact_list,
         input_parameters=input_parameters,
     )
