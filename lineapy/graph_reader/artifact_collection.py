@@ -2,6 +2,7 @@ import importlib.util
 import logging
 import sys
 import tempfile
+from collections import Counter
 from dataclasses import dataclass
 from importlib.abc import Loader
 from itertools import chain
@@ -14,6 +15,7 @@ from typing_extensions import NotRequired, TypedDict
 
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID
+from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import TaskGraphEdge
@@ -59,21 +61,14 @@ class ArtifactCollection:
             raise ValueError(
                 f"Duplicated input parameters detected in {input_parameters}"
             )
-
         artifacts_by_session: Dict[LineaID, List[LineaArtifact]] = {}
 
         artifact_names = [
             art if isinstance(art, str) else art[0] for art in artifacts
         ]
-        artifacts_and_caches = artifacts + [
-            art
-            for art in reuse_pre_computed_artifacts
-            if (isinstance(art, str) and art not in artifact_names)
-            or (isinstance(art, tuple) and art[0] not in artifact_names)
-        ]
 
         # Retrieve artifact objects and group them by session ID
-        for art_entry in artifacts_and_caches:
+        for art_entry in artifacts:
             # Construct args for artifact retrieval
             args: ArtifactDef
             if isinstance(art_entry, str):
@@ -109,13 +104,38 @@ class ArtifactCollection:
                 art._session_id, []
             ) + [art]
 
-        # Check we use cache in an isolated session, which is meaningless
-        for session, arts in artifacts_by_session.items():
-            if all([art.name not in artifact_names for art in arts]):
-                raise ValueError(
-                    f"{art.name} is not in any sessions that contain {', '.join(artifact_names)}."
-                    + "Try to remove it from the reuse_pre_computed_artifacts."
-                )
+        # Check reuse_pre_computed_artifacts name is unique
+        reuse_pre_computed_names = [
+            art if isinstance(art, str) else art[0]
+            for art in reuse_pre_computed_artifacts
+        ]
+        if len(reuse_pre_computed_names) != len(set(reuse_pre_computed_names)):
+            raise ValueError(
+                f"Duplicated reuse_pre_computed_artifacts names detected in {reuse_pre_computed_names}"
+            )
+
+        # For each name in reuse_pre_calculated_artifacts, check there is
+        # exactly one artifact across all interested sessions has the same name
+        # db = list(artifacts_by_session.values())[0].db
+        # assert isinstance(db, RelationalLineaDB)
+        # all_session_artifact_name_count = Counter(
+        #     *[
+        #         [art.name for art in db.get_artifacts_for_session(session_id)]
+        #         for session_id in artifacts_by_session.keys()
+        #     ]
+        # )
+        # for art_name in reuse_pre_computed_names:
+        #     name_count = all_session_artifact_name_count.get(art_name, 0)
+        #     if name_count == 0:
+        #         raise ValueError(
+        #             f"{art_name} is not in any sessions that contain {', '.join(artifact_names)}."
+        #             + "Try to remove it from the reuse_pre_computed_artifacts."
+        #         )
+        #     elif name_count > 1:
+        #         raise ValueError(
+        #             f"{art_name} shows up more than once in sessions that contain {', '.join(artifact_names)}."
+        #             + "Try to remove it from the reuse_pre_computed_artifacts."
+        #         )
 
         # For each session, construct SessionArtifacts object
         for session_id, session_artifacts in artifacts_by_session.items():

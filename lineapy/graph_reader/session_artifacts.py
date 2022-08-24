@@ -1,5 +1,5 @@
 import logging
-from collections import OrderedDict
+from collections import Counter, OrderedDict
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple, Union
 
@@ -36,6 +36,7 @@ class SessionArtifacts:
     artifact_nodecollections: List[NodeCollection]
     import_nodecollection: NodeCollection
     artifact_list: List[LineaArtifact]
+    artifact_and_pre_computed_list: List[LineaArtifact]
     node_context: Dict[LineaID, NodeInfo]
     input_parameters: List[str]
     input_parameters_node: Dict[str, LineaID]
@@ -48,16 +49,27 @@ class SessionArtifacts:
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
     ) -> None:
+
         self.artifact_list = artifacts
         self.session_id = artifacts[0]._session_id
         self.db = artifacts[0].db
-        self.graph = artifacts[0]._get_graph()
+        self.session_graph = artifacts[0]._get_graph()
+        # Only interested union of sliced graph of each artifacts
+        self.graph = self._get_subgraph_from_node_list(
+            list(
+                set.union(
+                    *[
+                        set(art._get_subgraph().nx_graph.nodes)
+                        for art in artifacts
+                    ]
+                )
+            )
+        )
         self.nx_graph = self.graph.nx_graph
         self.artifact_nodecollections = []
         self.node_context = OrderedDict()
         self.input_parameters = input_parameters
         self.reuse_pre_computed_artifacts = dict()
-        #
         for cache_art in reuse_pre_computed_artifacts:
             if isinstance(cache_art, str):
                 self.reuse_pre_computed_artifacts[cache_art] = None
@@ -154,6 +166,7 @@ class SessionArtifacts:
         performance since some of the information need to query the attributes
         from predecessors.
         """
+        from lineapy.api.api import get
 
         # Map each variable node ID to the corresponding variable name(when variable assigned)
         # Need to treat import different from regular variable assignment
@@ -165,7 +178,6 @@ class SessionArtifacts:
         for node_id, variable_name in self.db.get_variables_for_session(
             self.session_id
         ):
-            print(node_id, variable_name)
             if _is_import_node(self.graph, node_id):
                 import_dict[node_id] = (
                     set([variable_name])
@@ -178,31 +190,55 @@ class SessionArtifacts:
                     if node_id not in variable_dict.keys()
                     else variable_dict[node_id].union(set([variable_name]))
                 )
-
                 for var in set([variable_name]).intersection(
                     set(self.input_parameters)
                 ):
-                    if self.input_parameters_node.get(var, None) is not None:
-                        # Duplicated variable name existing
-                        logger.error(
-                            "Variable %s, is defined more than once", var
-                        )
-                        raise Exception
-                    else:
-                        self.input_parameters_node[var] = node_id
+                    input_parameters_assignment_nodes[
+                        var
+                    ] = input_parameters_assignment_nodes.get(var, []) + [
+                        node_id
+                    ]
 
         # Map node id to artifact assignment
         artifact_dict = {
-            artifact.node_id: artifact.name
+            artifact.node_id: {
+                "name": artifact.name,
+                "version": artifact.version,
+            }
             for artifact in self.db.get_artifacts_for_session(self.session_id)
+            if artifact.name in [art.name for art in self.artifact_list]
+            or artifact.name in self.reuse_pre_computed_artifacts.keys()
         }
+
+        self.pre_computed_artifact_list = [
+            get(art_def["name"], art_def["version"])
+            for art_def in artifact_dict.values()
+            if art_def["name"] in self.reuse_pre_computed_artifacts.keys()
+        ]
+
+        pre_computed_artifacts_name_count = Counter(
+            [art.name for art in self.pre_computed_artifact_list]
+        )
+        for art_name, ct in pre_computed_artifacts_name_count.items():
+            if ct > 1:
+                raise ValueError(
+                    f"More than one artifacts with the same name {art_name}."
+                    + "Please remove it from reuse_pre_computed_artifacts."
+                )
+
+        # Expand the self.artifact_list with self.pre_computed_artifact_list
+        for pre_art in self.pre_computed_artifact_list:
+            if pre_art.name not in [art.name for art in self.artifact_list]:
+                self.artifact_list.append(pre_art)
 
         # Identify variable dependencies of each node in topological order
         for node_id in nx.topological_sort(self.nx_graph):
 
             nodeinfo = NodeInfo(
                 assigned_variables=variable_dict.get(node_id, set()),
-                assigned_artifact=artifact_dict.get(node_id, None),
+                assigned_artifact=artifact_dict.get(node_id, {}).get(
+                    "name", None
+                ),
                 dependent_variables=set(),
                 predecessors=set(self.nx_graph.predecessors(node_id)),
                 tracked_variables=set(),
@@ -213,6 +249,26 @@ class SessionArtifacts:
             self._update_tracked_variables(nodeinfo, node_id)
 
             self.node_context[node_id] = nodeinfo
+
+        # If a variable is declared as an input parameters, we only support
+        # the literal assignment only happen once in the entire session at this
+        # moment. If there is a way to specify which literal assignment to use
+        # as an input parameter. We can relax this restriction.
+        for var, node_ids in input_parameters_assignment_nodes.items():
+            for node_id in node_ids:
+                is_literal_assignment = (
+                    len(self.node_context[node_id].dependent_variables) == 0
+                )
+                has_assigned_before = (
+                    self.input_parameters_node.get(var, None) is not None
+                )
+                if is_literal_assignment:
+                    if has_assigned_before:
+                        raise ValueError(
+                            "Variable %s, is defined more than once", var
+                        )
+                    else:
+                        self.input_parameters_node[var] = node_id
 
         for var, node_id in self.input_parameters_node.items():
             if len(self.node_context[node_id].dependent_variables) > 0:
@@ -226,14 +282,13 @@ class SessionArtifacts:
         """
         Return the subgraph as LineaPy Graph from list of node id
         """
-        # Fix me, ugly code to satisfy type checking
         nodes: List[Node] = []
         for node_id in node_list:
-            node = self.graph.get_node(node_id)
+            node = self.session_graph.get_node(node_id)
             if node is not None:
                 nodes.append(node)
 
-        return self.graph.get_subgraph(nodes)
+        return self.session_graph.get_subgraph(nodes)
 
     def _get_sliced_nodes(
         self, node_id: LineaID
