@@ -1,13 +1,16 @@
 import ast
 import logging
 import sys
-from typing import Optional
+from pathlib import Path
+from typing import List, Optional
 
-from lineapy.data.types import Node, SourceCodeLocation
+from lineapy.data.types import Node, SourceCode, SourceCodeLocation
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.exceptions.user_exception import RemoveFrames, UserException
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.transformer.node_transformer import NodeTransformer
+from lineapy.transformer.py37_transformer import Py37Transformer
+from lineapy.utils.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +25,27 @@ def transform(
     if it exists.
     """
 
-    transformers = [
-        NodeTransformer(code, location, tracer),
-    ]
+    # create sourcecode object and register source code to db
+    src = SourceCode(id=get_new_id(), code=code, location=location)
+    tracer.db.write_source_code(src)
+
+    # defaults for executor that were set inside node transformer
+    # Set __file__ to the pathname of the file
+    if isinstance(location, Path):
+        tracer.executor.module_file = str(location)
+
+    # initialize the transformer IN ORDER of preference
+    transformers: List[ast.NodeTransformer] = []
+    # python 3.7 handler
+    if sys.version_info < (3, 8):
+        transformers.append(Py37Transformer(src, tracer))
+
+    # main transformation handler
+    transformers.append(NodeTransformer(src, tracer))
+
+    # TODO control flow handler
+
+    # parse the usercode in preparation for visits
     try:
         tree = ast.parse(
             code,
@@ -45,15 +66,19 @@ def transform(
         ASTTokens(code, parse=False, tree=tree)
         SourceGiver().transform(tree)
 
+    # walk the parsed tree through every transformer in the list
     if len(tree.body) > 0:
         for stmt in tree.body:
             res = None
             for trans in transformers:
-                # print(ast.dump(stmt))
+
+                # print(f"before {trans.__class__.__name__}: {ast.dump(stmt)}")
                 res = trans.visit(stmt)
+                # print(f"after {trans.__class__.__name__}: {ast.dump(stmt)}")
+                # swap the node with the output of previous transformer and use that for further calls
                 # or some other statement to figure out whether the node is properly processed or not
                 if res is not None:
-                    stmt = res  # swap the node with the output of previous transformer and use that for further calls
+                    stmt = res
             # if no transformers can process it - we'll change node transformer to not throw not implemented exception
             # so that it can be extended and move it here.
             if isinstance(res, ast.AST):

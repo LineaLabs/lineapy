@@ -9,8 +9,11 @@ import asttokens
 import pytest
 from mock import MagicMock
 
+from lineapy.data.types import SourceCode
 from lineapy.transformer.node_transformer import NodeTransformer
+from lineapy.transformer.py37_transformer import Py37Transformer
 from lineapy.transformer.source_giver import SourceGiver
+from lineapy.utils.utils import get_new_id
 
 
 def _get_ast_node(code):
@@ -107,8 +110,9 @@ class TestNodeTransformer:
 
     @pytest.fixture(autouse=True)
     def before_everything(self):
+        src = SourceCode(id=get_new_id(), code="", location=MagicMock())
         nt = NodeTransformer(
-            "", MagicMock(), MagicMock()  # SourceCodeLocation(0, 0, 0, 0)
+            src, MagicMock()  # SourceCodeLocation(0, 0, 0, 0)
         )
         assert nt is not None
         self.nt = nt
@@ -134,6 +138,10 @@ class TestNodeTransformer:
         self.nt.get_source = MagicMock()
         test_node = _get_ast_node("a = 10")
         tracer = self.nt.tracer
+        if sys.version_info < (3, 8):
+            py37 = Py37Transformer(self.nt.source_code, tracer)
+            py37.visit(test_node.body[0])
+            self.nt.visit_MagicMock = tracer.literal
         self.nt.visit(test_node.body[0])
         tracer.assign.assert_called_once_with("a", tracer.literal.return_value)
 
@@ -146,6 +154,10 @@ class TestNodeTransformer:
         self.nt.get_source = MagicMock()
         test_node = _get_ast_node(code)
         tracer = self.nt.tracer
+        if sys.version_info < (3, 8):
+            py37 = Py37Transformer(self.nt.source_code, tracer)
+            py37.visit(test_node.body[0])
+            self.nt.visit_MagicMock = tracer.literal
         self.nt.visit(test_node.body[0])
         tracer.call.assert_called_once_with(
             tracer.lookup_node.return_value,
@@ -193,6 +205,10 @@ class TestNodeTransformer:
         self.nt.get_source = MagicMock()
         test_node = _get_ast_node(code)
         tracer = self.nt.tracer
+        if sys.version_info < (3, 8):
+            py37 = Py37Transformer(self.nt.source_code, tracer)
+            py37.visit(test_node.body[0])
+            self.nt.visit_MagicMock = tracer.literal
         self.nt.visit(test_node.body[0])
         tracer.call.assert_called_once_with(
             tracer.lookup_node.return_value,
@@ -209,6 +225,11 @@ class TestNodeTransformer:
     ):
         self.nt._get_code_from_node = MagicMock()
         test_node = _get_ast_node(code)
+        if sys.version_info < (3, 8):
+            tracer = self.nt.tracer
+            py37 = Py37Transformer(self.nt.source_code, tracer)
+            py37.visit(test_node.body[0])
+            self.nt.visit_MagicMock = tracer.literal
         self.nt.visit(test_node)
         # doing this so that we can select which function in tracer gets called.
         # might be overkill though so leaving it at this
@@ -222,5 +243,10 @@ class TestNodeTransformer:
         test_node = _get_ast_node(code)
         self.nt.__setattr__("visit_" + visitor, MagicMock())
         nt_visitor = self.nt.__getattribute__("visit_" + visitor)
+        if sys.version_info < (3, 8):
+            tracer = self.nt.tracer
+            py37 = Py37Transformer(self.nt.source_code, tracer)
+            py37.visit(test_node.body[0])
+            self.nt.visit_MagicMock = tracer.literal
         self.nt.visit(test_node)
         nt_visitor.call_count == visitor_count

@@ -1,7 +1,6 @@
 import ast
 import logging
 import sys
-from pathlib import Path
 from typing import Any, List, Optional, cast
 
 from lineapy.data.types import (
@@ -10,7 +9,6 @@ from lineapy.data.types import (
     Node,
     NodeType,
     SourceCode,
-    SourceCodeLocation,
     SourceLocation,
 )
 from lineapy.instrumentation.tracer import Tracer
@@ -76,18 +74,11 @@ class NodeTransformer(ast.NodeTransformer):
 
     def __init__(
         self,
-        code: str,
-        location: SourceCodeLocation,
+        source_code: SourceCode,
         tracer: Tracer,
     ):
-        self.source_code = SourceCode(
-            id=get_new_id(), code=code, location=location
-        )
-        tracer.db.write_source_code(self.source_code)
+        self.source_code = source_code
         self.tracer = tracer
-        # Set __file__ to the pathname of the file
-        if isinstance(location, Path):
-            tracer.executor.module_file = str(location)
         # The result of the last line, a node if it was an expression,
         # None if it was a statement. Used by ipython to grab the last value
         self.last_statement_result: Optional[Node] = None
@@ -126,66 +117,10 @@ class NodeTransformer(ast.NodeTransformer):
             return self._exec_statement(node)
         elif isinstance(node, ast.expr):
             return self._exec_expression(node)
-        else:
-            raise NotImplementedError(
-                f"Don't know how to transform {type(node).__name__}"
-            )
-
-    def visit_Ellipsis(self, node: ast.Ellipsis) -> LiteralNode:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.8
-        """
-        if sys.version_info >= (3, 8):
-            raise NotImplementedError(
-                "Ellipsis nodes are deprecated since Python 3.8"
-            )
-        else:
-            return self.tracer.literal(..., self.get_source(node))
-
-    def visit_Str(self, node: ast.Str) -> LiteralNode:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.8
-        """
-        if sys.version_info >= (3, 8):
-            raise NotImplementedError(
-                "Str nodes are deprecated since Python 3.8"
-            )
-        else:
-            return self.tracer.literal(node.s, self.get_source(node))
-
-    def visit_Num(self, node: ast.Num) -> LiteralNode:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.8
-        """
-        if sys.version_info >= (3, 8):
-            raise NotImplementedError(
-                "Num nodes are deprecated since Python 3.8"
-            )
-        else:
-            return self.tracer.literal(node.n, self.get_source(node))
-
-    def visit_NameConstant(self, node: ast.NameConstant) -> LiteralNode:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.8
-        """
-        if sys.version_info >= (3, 8):
-            raise NotImplementedError(
-                "Num nodes are deprecated since Python 3.8"
-            )
-        else:
-            return self.tracer.literal(node.value, self.get_source(node))
+        # else:
+        #     raise NotImplementedError(
+        #         f"Don't know how to transform {type(node).__name__}"
+        #     )
 
     def visit_Raise(self, node: ast.Raise) -> None:
         return super().visit_Raise(node)
@@ -385,6 +320,11 @@ class NodeTransformer(ast.NodeTransformer):
             node.value,
             self.get_source(node),
         )
+
+    def visit_LiteralNode(self, node: LiteralNode) -> LiteralNode:
+        # This is to capture nodes processes by python 3.7 transformer
+        # They have already been added to the db and do not need to be processed any further
+        return node
 
     def visit_Assign(self, node: ast.Assign) -> None:
         """
