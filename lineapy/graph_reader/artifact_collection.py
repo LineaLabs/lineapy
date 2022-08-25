@@ -2,7 +2,6 @@ import importlib.util
 import logging
 import sys
 import tempfile
-from collections import Counter
 from dataclasses import dataclass
 from importlib.abc import Loader
 from itertools import chain
@@ -15,7 +14,6 @@ from typing_extensions import NotRequired, TypedDict
 
 from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID
-from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import TaskGraphEdge
