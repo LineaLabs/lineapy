@@ -75,9 +75,9 @@ class BasePipelineWriter:
             session_artifacts_sorted=self.session_artifacts_sorted,
             indentation=4,
         )
-        module_file = self.output_dir / f"{self.pipeline_name}_module.py"
-        module_file.write_text(prettify(module_text))
-        logger.info("Generated module file")
+        file = self.output_dir / f"{self.pipeline_name}_module.py"
+        file.write_text(prettify(module_text))
+        logger.info(f"Generated module file: {file}")
 
     def _write_requirements(self) -> None:
         """
@@ -97,11 +97,9 @@ class BasePipelineWriter:
                 for lib, ver in libraries.items()
             ]
         )
-        requirements_file = (
-            self.output_dir / f"{self.pipeline_name}_requirements.txt"
-        )
-        requirements_file.write_text(lib_names_text)
-        logger.info("Generated requirements file")
+        file = self.output_dir / f"{self.pipeline_name}_requirements.txt"
+        file.write_text(lib_names_text)
+        logger.info(f"Generated requirements file: {file}")
 
     def _write_dag(self) -> None:
         """
@@ -113,17 +111,13 @@ class BasePipelineWriter:
         """
         Write out Docker file.
         """
-        # Generate Dockerfile text
         DOCKERFILE_TEMPLATE = load_plugin_template(self.docker_template_name)
         dockerfile_text = DOCKERFILE_TEMPLATE.render(
             **self.docker_template_params
         )
-
-        # Write out file
         file = self.output_dir / f"{self.pipeline_name}_Dockerfile"
         file.write_text(dockerfile_text)
-
-        logger.info("Generated Docker file")
+        logger.info(f"Generated Docker file: {file}")
 
     def write_pipeline_files(self) -> None:
         """
@@ -237,7 +231,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
             full_code = prettify(full_code)
             file = self.output_dir / f"{self.pipeline_name}_dag.py"
             file.write_text(prettify(full_code))
-            logger.info("Generated DAG file %s", file)
+            logger.info(f"Generated DAG file: {file}")
         else:
             raise ValueError(
                 f'"{dag_flavor}" is an invalid airflow dag flavor.'
