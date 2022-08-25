@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import List, Optional
 
 from lineapy.api.api_utils import extract_taskgraph
@@ -13,8 +14,7 @@ from lineapy.db.relational import (
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.pipeline_writers import PipelineWriterFactory
-from lineapy.plugins.task import AirflowDagConfig as AirflowDagConfig2
-from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -49,8 +49,8 @@ class Pipeline:
         self,
         framework: str = "SCRIPT",
         output_dir: str = ".",
-        pipeline_dag_config: Optional[AirflowDagConfig2] = {},
-    ) -> None:
+        pipeline_dag_config: Optional[AirflowDagConfig] = {},
+    ) -> Path:
         # Create artifact collection
         execution_context = get_context()
         artifact_collection = ArtifactCollection(
@@ -83,6 +83,8 @@ class Pipeline:
                 pipeline_dag_config is not None,
             )
         )
+
+        return pipeline_writer.output_dir
 
     def save(self):
         # TODO save this pipeline to the db using PipelineORM

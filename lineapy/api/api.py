@@ -22,8 +22,7 @@ from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.airflow import AirflowDagConfig
-from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
@@ -361,7 +360,7 @@ def to_pipeline(
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
-    output_dir: Optional[str] = None,
+    output_dir: str = ".",
 ) -> Path:
     """
     Writes the pipeline job to a path on disk.
