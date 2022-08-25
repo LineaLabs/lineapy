@@ -119,6 +119,7 @@ def test_config_order():
     assert generated_config["logging_level"] == "NOTSET"
 
     # Reset to original env variables
+    clean_lineapy_env_var()
     for k, v in existing_lineapy_env.items():
         os.environ[k] = v
 

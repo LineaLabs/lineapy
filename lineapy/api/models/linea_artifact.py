@@ -1,48 +1,34 @@
-"""
-User exposed objects through the :mod:`lineapy.apis`.
-"""
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, cast
+from typing import Optional
 
 from IPython.display import display
 from pandas.io.pickle import read_pickle
 
-from lineapy.api.api_utils import de_lineate_code, extract_taskgraph
+from lineapy.api.api_utils import de_lineate_code
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID, PipelineType
-from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import (
-    ArtifactDependencyORM,
-    ArtifactORM,
-    PipelineORM,
-    SessionContextORM,
-)
-from lineapy.execution.context import get_context
+from lineapy.data.types import LineaID
+from lineapy.db.db import ArtifactORM, RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
 )
-from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
-from lineapy.plugins.script import ScriptPlugin
-from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,
-    ToPipelineEvent,
 )
 from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.config import options
 from lineapy.utils.deprecation_utils import lru_cache
-from lineapy.utils.utils import get_new_id, prettify
+from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 
@@ -123,8 +109,9 @@ class LineaArtifact:
                 Defaults to ``False``.
 
         """
+        session_graph = Graph.create_session_graph(self.db, self._session_id)
         return get_slice_graph(
-            self._get_graph(), [self._node_id], keep_lineapy_save
+            session_graph, [self._node_id], keep_lineapy_save
         )
 
     @lru_cache(maxsize=None)
@@ -185,13 +172,6 @@ class LineaArtifact:
         # the user wrote originally, without processing
         return code
 
-    @lru_cache(maxsize=None)
-    def _get_graph(self) -> Graph:
-        session_context = self.db.get_session_context(self._session_id)
-        # FIXME: copied cover from tracer, we might want to refactor
-        nodes = self.db.get_nodes_for_session(self._session_id)
-        return Graph(nodes, session_context)
-
     def visualize(self, path: Optional[str] = None) -> None:
         """
         Displays the graph for this artifact.
@@ -202,9 +182,8 @@ class LineaArtifact:
         # This way we can import lineapy without having graphviz installed.
         from lineapy.visualizer import Visualizer
 
-        visualizer = Visualizer.for_public_node(
-            self._get_graph(), self._node_id
-        )
+        session_graph = Graph.create_session_graph(self.db, self._session_id)
+        visualizer = Visualizer.for_public_node(session_graph, self._node_id)
         if path:
             visualizer.render_pdf_file(path)
         else:
@@ -219,172 +198,32 @@ class LineaArtifact:
         slice_exec.execute_graph(self._get_subgraph())
         return slice_exec.get_value(self._node_id)
 
-
-class LineaArtifactStore:
-    """LineaArtifactStore
-
-    A simple way to access meta data about artifacts in Linea.
-    """
-
-    """
-    .. note::
-
-        - The export is pretty limited right now and we should expand later.
-
-    """
-
-    def __init__(self, db):
-        db_artifacts: List[ArtifactORM] = db.get_all_artifacts()
-        self.artifacts: List[LineaArtifact] = [
-            LineaArtifact(
-                db=db,
-                _execution_id=db_artifact.execution_id,
-                _node_id=db_artifact.node_id,
-                _session_id=db_artifact.node.session_id,
-                _version=db_artifact.version,  # type: ignore
-                name=cast(str, db_artifact.name),
-                date_created=db_artifact.date_created,  # type: ignore
-            )
-            for db_artifact in db_artifacts
-        ]
-
-    @property
-    def len(self) -> int:
-        return len(self.artifacts)
-
-    @property
-    def print(self) -> str:
-        # Can't really cache this since the values might change
-        return "\n".join(
-            [
-                f"{a.name}:{a.version} created on {a.date_created}"
-                for a in self.artifacts
-            ]
-        )
-
-    def __str__(self) -> str:
-        return self.print
-
-    def __repr__(self) -> str:
-        return self.print
-
-    @property
-    def export(self):
+    @staticmethod
+    def get_artifact_from_db_and_artifactorm(
+        db: RelationalLineaDB, artifactorm: ArtifactORM
+    ) -> LineaArtifact:
         """
-        :return: a dictionary of artifact information, which the user can then
-            manipulate with their favorite dataframe tools, such as pandas,
-            e.g., `cat_df = pd.DataFrame(artifact_store.export())`.
+        Return LineaArtifact from artifactorm
         """
-        return [
-            {
-                "artifact_name": a.name,
-                "artifact_version": a.version,
-                "date_created": a.date_created,
-            }
-            for a in self.artifacts
-        ]
-
-
-class Pipeline:
-    def __init__(
-        self,
-        artifacts: List[str],
-        name: Optional[str] = None,
-        dependencies: TaskGraphEdge = {},
-    ):
-        if len(artifacts) == 0:
-            raise ValueError(
-                "Pipelines must contain atleast one artifact\nEmpty Pipelines are invalid"
-            )
-        self.dependencies = dependencies
-        self.artifact_safe_names, self.task_graph = extract_taskgraph(
-            artifacts, dependencies
+        return LineaArtifact(
+            db=db,
+            _execution_id=artifactorm.execution_id,
+            _node_id=artifactorm.node_id,
+            _session_id=artifactorm.node.session_id,
+            _version=artifactorm.version,  # type: ignore
+            name=artifactorm.name,
+            date_created=artifactorm.date_created,  # type: ignore
         )
-        self.name = name or "_".join(self.artifact_safe_names)
-        self.artifact_names: List[str] = artifacts
-        self.id = get_new_id()
 
-    def export(
-        self,
-        framework: str = "SCRIPT",
-        output_dir: Optional[str] = None,
-        pipeline_dag_config: Optional[AirflowDagConfig] = {},
-    ) -> Path:
-        execution_context = get_context()
-        db = execution_context.executor.db
-        session_orm = (
-            db.session.query(SessionContextORM)
-            .order_by(SessionContextORM.creation_time.desc())
-            .all()
+    @staticmethod
+    def get_artifact_from_db_name_and_version(
+        db: RelationalLineaDB,
+        artifact_name: str,
+        version: Optional[int] = None,
+    ) -> LineaArtifact:
+        """
+        Return LineaArtifact from artifact name and version
+        """
+        return LineaArtifact.get_artifact_from_db_and_artifactorm(
+            db, db.get_artifactorm_by_name(artifact_name, version)
         )
-        if len(session_orm) == 0:
-            track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
-            raise Exception("No sessions found in the database.")
-        last_session = session_orm[0]
-
-        if framework in PipelineType.__members__:
-            if PipelineType[framework] == PipelineType.AIRFLOW:
-
-                ret = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
-                    self.name,
-                    self.task_graph,
-                    output_dir=output_dir,
-                    airflow_dag_config=pipeline_dag_config,
-                )
-
-            else:
-
-                ret = ScriptPlugin(db, last_session.id).sliced_pipeline_dag(
-                    self.name,
-                    self.task_graph,
-                    output_dir=output_dir,
-                )
-
-            # send the info
-            track(
-                ToPipelineEvent(
-                    framework,
-                    len(self.artifact_names),
-                    self.task_graph.get_airflow_dependency() != "",
-                    pipeline_dag_config is not None,
-                )
-            )
-            return ret
-
-        else:
-            raise Exception(f"No PipelineType for {framework}")
-
-    def save(self):
-        # TODO save this pipeline to the db using PipelineORM
-        execution_context = get_context()
-        db = execution_context.executor.db
-        session_orm = (
-            db.session.query(SessionContextORM)
-            .order_by(SessionContextORM.creation_time.desc())
-            .all()
-        )
-        if len(session_orm) == 0:
-            track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
-            raise Exception("No sessions found in the database.")
-
-        artifacts_to_save = {
-            artifact_name: db.get_artifact_by_name(artifact_name)
-            for artifact_name in self.artifact_names
-        }
-
-        art_deps_to_save = []
-        for post_artifact, pre_artifacts in self.dependencies.items():
-            post_to_save = artifacts_to_save[post_artifact]
-            pre_to_save = [artifacts_to_save[a] for a in pre_artifacts]
-            art_dep_to_save = ArtifactDependencyORM(
-                post_artifact=post_to_save,
-                pre_artifacts=set(pre_to_save),
-            )
-            art_deps_to_save.append(art_dep_to_save)
-
-        pipeline_to_write = PipelineORM(
-            name=self.name,
-            artifacts=set(artifacts_to_save.values()),
-            dependencies=art_deps_to_save,
-        )
-        db.write_pipeline(art_deps_to_save, pipeline_to_write)

@@ -2,7 +2,7 @@ import pickle
 from pathlib import Path
 
 from lineapy.api.api import _try_write_to_pickle
-from lineapy.api.api_classes import LineaArtifact
+from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.utils.config import options
 
 
@@ -16,7 +16,7 @@ if True:
     x.append(1)
 """
     res = execute(c, artifacts=["x"], snapshot=False)
-    artifact = res.db.get_artifact_by_name("x")
+    artifact = res.db.get_artifactorm_by_name("x")
     full_graph_artifact = LineaArtifact(
         db=res.db,
         _execution_id=artifact.execution_id,

@@ -2,6 +2,7 @@ import importlib.util
 import logging
 import sys
 import tempfile
+from collections import defaultdict
 from dataclasses import dataclass
 from importlib.abc import Loader
 from itertools import chain
@@ -12,8 +13,9 @@ import networkx as nx
 from networkx.exception import NetworkXUnfeasible
 from typing_extensions import NotRequired, TypedDict
 
-from lineapy.api.api_classes import LineaArtifact
 from lineapy.data.types import LineaID
+from lineapy.db.db import RelationalLineaDB
+from lineapy.db.relational import ArtifactORM
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import TaskGraphEdge
@@ -45,12 +47,14 @@ class ArtifactCollection:
 
     def __init__(
         self,
-        artifacts: List[Union[str, Tuple[str, int]]],
+        db: RelationalLineaDB,
+        artifacts: Union[
+            List[str], List[Tuple[str, int]], List[Union[str, Tuple[str, int]]]
+        ],
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
     ) -> None:
-        from lineapy.api.api import get
-
+        self.db: RelationalLineaDB = db
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
         self.art_name_to_node_id: Dict[str, LineaID] = {}
         self.node_id_to_session_id: Dict[LineaID, LineaID] = {}
@@ -59,7 +63,9 @@ class ArtifactCollection:
             raise ValueError(
                 f"Duplicated input parameters detected in {input_parameters}"
             )
-        artifacts_by_session: Dict[LineaID, List[LineaArtifact]] = {}
+        artifacts_by_session: Dict[LineaID, List[ArtifactORM]] = defaultdict(
+            list
+        )
 
         artifact_names = [
             art if isinstance(art, str) else art[0] for art in artifacts
@@ -79,28 +85,20 @@ class ArtifactCollection:
                 )
 
             # Retrieve artifact
+            if args["artifact_name"] in self.art_name_to_node_id.keys():
+                logger.error("%s is duplicated", args["artifact_name"])
+                raise KeyError("%s is duplicated", args["artifact_name"])
             try:
-                version = args.get("version", None)
-                if version is None:
-                    art = get(artifact_name=args["artifact_name"])
-                else:
-                    art = get(
-                        artifact_name=args["artifact_name"],
-                        version=int(version),
-                    )
-                if args["artifact_name"] in self.art_name_to_node_id.keys():
-                    logger.error("%s is duplicated", args["artifact_name"])
-                    raise KeyError("%s is duplicated", args["artifact_name"])
-                self.art_name_to_node_id[args["artifact_name"]] = art._node_id
-                self.node_id_to_session_id[art._node_id] = art._session_id
+                art = self.db.get_artifactorm_by_name(**args)
             except Exception as e:
                 logger.error("Cannot retrive artifact %s", art_entry)
                 raise Exception(e)
 
+            self.art_name_to_node_id[args["artifact_name"]] = art.node_id
+            self.node_id_to_session_id[art.node_id] = art.node.session_id
+
             # Put artifact in the right session group
-            artifacts_by_session[art._session_id] = artifacts_by_session.get(
-                art._session_id, []
-            ) + [art]
+            artifacts_by_session[art.node.session_id].append(art)
 
         # Check reuse_pre_computed_artifacts name is unique
         reuse_pre_computed_names = [
@@ -138,6 +136,7 @@ class ArtifactCollection:
         # For each session, construct SessionArtifacts object
         for session_id, session_artifacts in artifacts_by_session.items():
             self.session_artifacts[session_id] = SessionArtifacts(
+                self.db,
                 session_artifacts,
                 input_parameters=input_parameters,
                 reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,

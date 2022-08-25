@@ -12,7 +12,9 @@ from typing import Callable, List, Optional, Tuple, Union
 import fsspec
 from pandas.io.pickle import to_pickle
 
-from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore, Pipeline
+from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.api.models.linea_artifact_store import LineaArtifactStore
+from lineapy.api.models.pipeline import Pipeline
 from lineapy.data.types import Artifact, LineaID, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -166,7 +168,7 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     get_version = None if isinstance(version, str) else version
 
     try:
-        artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+        artifact = db.get_artifactorm_by_name(artifact_name, version=get_version)
     except UserException:
         raise NameError(
             f"{artifact_name}:{version} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
@@ -265,7 +267,7 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
 
     execution_context = get_context()
     db = execution_context.executor.db
-    artifact = db.get_artifact_by_name(artifact_name, final_version)
+    artifact = db.get_artifactorm_by_name(artifact_name, final_version)
     linea_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
@@ -434,7 +436,9 @@ def get_function(
         name in different notebooks and don't save same artifact multiple times
         within the same session.
     """
+    execution_context = get_context()
     art_collection = ArtifactCollection(
+        execution_context.executor.db,
         artifacts,
         input_parameters=input_parameters,
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
@@ -467,7 +471,9 @@ def get_module_definition(
         A python module that includes the definition of :func::`get_function`
         as `run_all_sessions`.
     """
+    execution_context = get_context()
     art_collection = ArtifactCollection(
+        execution_context.executor.db,
         artifacts,
         input_parameters=input_parameters,
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,

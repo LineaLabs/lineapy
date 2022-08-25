@@ -310,7 +310,7 @@ def get_program_slice(
 def get_program_slice_by_artifact_name(
     db: RelationalLineaDB, name: str, keep_lineapy_save: bool = False
 ) -> CodeSlice:
-    artifact = db.get_artifact_by_name(name)
+    artifact = db.get_artifactorm_by_name(name)
     nodes = db.get_nodes_for_session(artifact.node.session_id)
     graph = Graph(nodes, db.get_session_context(artifact.node.session_id))
     return get_program_slice(graph, [artifact.node_id], keep_lineapy_save)

@@ -25,8 +25,8 @@ from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
 
-from lineapy.api.api_classes import LineaArtifact
 from lineapy.api.api_utils import extract_taskgraph
+from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
@@ -207,7 +207,7 @@ def notebook(
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
     db = RelationalLineaDB.from_config(options)
-    artifact = db.get_artifact_by_name(artifact_name)
+    artifact = db.get_artifactorm_by_name(artifact_name)
     # FIXME: mypy issue with SQLAlchemy, see https://github.com/python/typeshed/issues/974
     api_artifact = LineaArtifact(
         db=db,
@@ -258,7 +258,7 @@ def file(
 
     # Print the slice:
     # FIXME: weird indirection
-    artifact = db.get_artifact_by_name(artifact_name)
+    artifact = db.get_artifactorm_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
