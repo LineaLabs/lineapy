@@ -92,7 +92,10 @@ class BasePipelineWriter:
             for lib in session_libs:
                 libraries[lib.package_name] = lib.version
         lib_names_text = "\n".join(
-            [f"{lib}=={ver}" for lib, ver in libraries.items()]
+            [
+                lib if lib == "lineapy" else f"{lib}=={ver}"
+                for lib, ver in libraries.items()
+            ]
         )
         requirements_file = (
             self.output_dir / f"{self.pipeline_name}_requirements.txt"
