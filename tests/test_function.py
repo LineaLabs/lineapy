@@ -50,7 +50,7 @@ assert ft(a=5, p=3)['prod_p'] == 10  # New value for a, cache value for p;  i.e.
     )
 
 
-def test_use_old_cache(execute):
+def test_reuse_pre_computed_artifacts_with_version(execute):
     """
     Test reuse_pre_computed_artifacts specified version
     """

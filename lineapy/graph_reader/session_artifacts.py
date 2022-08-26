@@ -473,7 +473,7 @@ class SessionArtifacts:
                         nodecollectioninfo, source_info
                     )
 
-                    # If commont inner variables detected, split the precedent
+                    # If common inner variables detected, split the precedent
                     # NodeCollection into two parts. One for calculation of
                     # common variables and the other for rest of artifact
                     # calculation.

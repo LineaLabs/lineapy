@@ -159,11 +159,19 @@ class ArtifactCollection:
             )
         )
         task_dependency_nodes = set(chain(*task_dependency_edges))
-        for artname in task_dependency_nodes:
-            if artname not in list(combined_taskgraph.nodes):
-                raise KeyError(
-                    f"Dependency graph includes artifact {artname}, which is not in this artifact collection: {list(combined_taskgraph.nodes)}"
-                )
+        unused_artname = [
+            artname
+            for artname in task_dependency_nodes
+            if artname not in list(combined_taskgraph.nodes)
+        ]
+        if len(unused_artname) > 0:
+            msg = (
+                "Dependency graph includes artifacts"
+                + ", ".join(unused_artname)
+                + ", which are not in this artifact collection: "
+                + ", ".join(list(combined_taskgraph.nodes))
+            )
+            raise KeyError(msg)
         combined_taskgraph.add_edges_from(task_dependency_edges)
         # Check if the graph is acyclic
         if nx.is_directed_acyclic_graph(combined_taskgraph) is False:
