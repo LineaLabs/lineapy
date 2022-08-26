@@ -20,7 +20,6 @@ def test_run_script_dag(virtualenv, tmp_path):
         [
             "cp",
             "-f",
-            "tests/unit/plugins/expected/script_pipeline_housing_simple/script_pipeline_housing_simple_dag.py",
             "tests/unit/plugins/expected/script_pipeline_housing_simple/script_pipeline_housing_simple_module.py",
             str(tmp_path),
         ]
@@ -28,4 +27,6 @@ def test_run_script_dag(virtualenv, tmp_path):
 
     os.chdir(str(tmp_path))
 
-    subprocess.check_call(["python", "script_pipeline_housing_simple_dag.py"])
+    subprocess.check_call(
+        ["python", "script_pipeline_housing_simple_module.py"]
+    )

@@ -1,7 +1,25 @@
-import pickle
-
-
-def a():
-
+def get_a():
     a = [1, 2, 3]
-    res = pickle.dump(a, open("pickle-sample.pkl", "wb"))
+    return a
+
+
+def run_session_including_a():
+    # Given multiple artifacts, we need to save each right after
+    # its calculation to protect from any irrelevant downstream
+    # mutations (e.g., inside other artifact calculations)
+    import copy
+
+    artifacts = dict()
+    a = get_a()
+    artifacts["a"] = copy.deepcopy(a)
+    return artifacts
+
+
+def run_all_sessions():
+    artifacts = dict()
+    artifacts.update(run_session_including_a())
+    return artifacts
+
+
+if __name__ == "__main__":
+    run_all_sessions()
