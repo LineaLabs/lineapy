@@ -59,18 +59,17 @@ def test_one_session(execute, input_script, artifact_list):
     generated module.
     """
 
-    code = pathlib.Path(
-        "tests/unit/graph_reader/inputs/" + input_script
-    ).read_text()
-    res = execute(code, snapshot=False)
-
     artifact_string = ", ".join([f'"{x}"' for x in artifact_list])
     code = (
-        "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
+        pathlib.Path(
+            "tests/unit/graph_reader/inputs/" + input_script
+        ).read_text()
+        + "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
         + "from lineapy.execution.context import get_context\n"
         + "db = get_context().executor.db\n"
         + f"ac = ArtifactCollection(db, [{artifact_string}])"
     )
+
     res = execute(code, snapshot=False)
     ac = res.values["ac"]
     module = ac.get_module()
@@ -130,19 +129,19 @@ def test_two_session(
     run_all_sessions block.
     """
 
-    code1 = pathlib.Path(
+    session1_code = pathlib.Path(
         "tests/unit/graph_reader/inputs/" + input_script1
     ).read_text()
-    res = execute(code1, snapshot=False)
+    res = execute(session1_code, snapshot=False)
 
-    code2 = pathlib.Path(
+    session2_code = pathlib.Path(
         "tests/unit/graph_reader/inputs/" + input_script2
     ).read_text()
-    res = execute(code2, snapshot=False)
 
     artifact_string = ", ".join([f'"{x}"' for x in artifact_list])
     code = (
-        "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
+        session2_code
+        + "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
         + "from lineapy.execution.context import get_context\n"
         + "db = get_context().executor.db\n"
         + f"ac = ArtifactCollection(db, [{artifact_string}])"

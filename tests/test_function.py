@@ -14,10 +14,8 @@ a = 1
 p = 2
 b = a*p
 lineapy.save(b,'prod_p')
+ft = lineapy.get_function(['prod_p'], input_parameters=['a', 'p'])
 """
-    res = execute(code, snapshot=False)
-
-    code = "import lineapy\nft = lineapy.get_function(['prod_p'], input_parameters=['a', 'p'])"
     res = execute(code, snapshot=False)
     ft = res.values["ft"]
     assert ft()["prod_p"] == 2  # Default value for a and p
@@ -30,18 +28,14 @@ def test_use_cache(execute):
     Test use_cache
     """
 
-    art_code = """\n
+    code = """\n
 import lineapy
 a = 1
 p = 2
 lineapy.save(p, 'multiplier')
 b = a*p
 lineapy.save(b,'prod_p')
-"""
-    execute(art_code, snapshot=False)
 
-    code = """\n
-import lineapy
 ft = lineapy.get_function(['prod_p'], input_parameters=['a', 'p'], reuse_pre_computed_artifacts=['multiplier'])
 module_def = lineapy.get_module_definition(['prod_p'], input_parameters=['a', 'p'], reuse_pre_computed_artifacts=['multiplier'])
 assert ft()['prod_p'] == 2
@@ -50,7 +44,10 @@ assert ft(a=5, p=3)['prod_p'] == 10  # New value for a, cache value for p;  i.e.
 """
     res = execute(code, snapshot=False)
     module_def = res.values["module_def"]
-    assert 'p = lineapy.get("multiplier", None).get_value()' in module_def
+    assert (
+        'p = lineapy.get("multiplier",' in module_def
+        and ").get_value()" in module_def
+    )
 
 
 def test_use_old_cache(execute):
@@ -67,18 +64,14 @@ art_version = art._version
     res = execute(art_code, snapshot=False)
     art_version = res.values["art_version"]
 
-    art_code = """\n
+    code = f"""\n
 import lineapy
 a = 1
 p = 2
 lineapy.save(p, 'multiplier')
 b = a*p
 lineapy.save(b,'prod_p')
-"""
-    execute(art_code, snapshot=False)
 
-    code = f"""\n
-import lineapy
 ft = lineapy.get_function(['prod_p'], input_parameters=['a', 'p'], reuse_pre_computed_artifacts=[('multiplier', {art_version})])
 ft_with_old_multiplier = ft(a=5)["prod_p"]
 """
