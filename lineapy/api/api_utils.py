@@ -35,9 +35,9 @@ def de_lineate_code(code: str, db: RelationalLineaDB) -> str:
         if match.group(2).startswith("save"):
             # FIXME - there is a potential issue here because we are looking up the artifact by name
             # This does not ensure that the same version of current artifact is being looked up.
-            # We support passing a version number to the get_artifact_by_name but it needs to be parsed
+            # We support passing a version number to the get_artifactorm_by_name but it needs to be parsed
             # out in the regex somehow. This would be simpler when we support named versions when saving.
-            dep_artifact = db.get_artifact_by_name(match.group(4))
+            dep_artifact = db.get_artifactorm_by_name(match.group(4))
             path_to_use = db.get_node_value_path(
                 dep_artifact.node_id, dep_artifact.execution_id
             )
@@ -45,7 +45,7 @@ def de_lineate_code(code: str, db: RelationalLineaDB) -> str:
 
         elif match.group(2).startswith("get"):
             # this typically will be a different artifact.
-            dep_artifact = db.get_artifact_by_name(match.group(5))
+            dep_artifact = db.get_artifactorm_by_name(match.group(5))
             path_to_use = db.get_node_value_path(
                 dep_artifact.node_id, dep_artifact.execution_id
             )

@@ -7,15 +7,17 @@ from dataclasses import dataclass
 from importlib.abc import Loader
 from itertools import chain
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
-from typing_extensions import NotRequired, TypedDict
 
+from lineapy.api.models.linea_artifact import (
+    LineaArtifact,
+    get_lineaartifactdef,
+)
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import ArtifactORM
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import TaskGraphEdge
@@ -25,11 +27,6 @@ from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
-
-
-class ArtifactDef(TypedDict):
-    artifact_name: str
-    version: NotRequired[Optional[int]]
 
 
 @dataclass
@@ -48,13 +45,15 @@ class ArtifactCollection:
     def __init__(
         self,
         db: RelationalLineaDB,
-        artifacts: Union[
+        target_artifacts: Union[
             List[str], List[Tuple[str, int]], List[Union[str, Tuple[str, int]]]
         ],
         input_parameters: List[str] = [],
+        reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
     ) -> None:
         self.db: RelationalLineaDB = db
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
+        self.artifact_session: Dict[str, LineaID] = {}
         self.art_name_to_node_id: Dict[str, LineaID] = {}
         self.node_id_to_session_id: Dict[LineaID, LineaID] = {}
         self.input_parameters = input_parameters
@@ -62,45 +61,68 @@ class ArtifactCollection:
             raise ValueError(
                 f"Duplicated input parameters detected in {input_parameters}"
             )
-
-        artifacts_by_session: Dict[LineaID, List[ArtifactORM]] = defaultdict(
+        artifacts_by_session: Dict[LineaID, List[LineaArtifact]] = defaultdict(
             list
         )
-
         # Retrieve artifact objects and group them by session ID
-        for art_entry in artifacts:
-            # Construct args for artifact retrieval
-            args: ArtifactDef
-            if isinstance(art_entry, str):
-                args = {"artifact_name": art_entry}
-            elif isinstance(art_entry, tuple):
-                args = {"artifact_name": art_entry[0], "version": art_entry[1]}
-            else:
-                raise ValueError(
-                    "An artifact should be passed in as a string or (string, integer) tuple."
-                )
-
+        for art_entry in target_artifacts:
+            art_def = get_lineaartifactdef(art_entry=art_entry)
+            # Check no two target artifacts could have the same name
+            # Otherwise will have name collision.
+            if art_def["artifact_name"] in self.art_name_to_node_id.keys():
+                logger.error("%s is duplicated in ", art_def["artifact_name"])
+                raise KeyError("%s is duplicated", art_def["artifact_name"])
             # Retrieve artifact
-            if args["artifact_name"] in self.art_name_to_node_id.keys():
-                logger.error("%s is duplicated", args["artifact_name"])
-                raise KeyError("%s is duplicated", args["artifact_name"])
-            try:
-                art = self.db.get_artifact_by_name(**args)
-            except Exception as e:
-                logger.error("Cannot retrive artifact %s", art_entry)
-                raise Exception(e)
-
-            self.art_name_to_node_id[args["artifact_name"]] = art.node_id
-            self.node_id_to_session_id[art.node_id] = art.node.session_id
-
+            art = LineaArtifact.get_artifact_from_def(self.db, art_def)
+            self.art_name_to_node_id[art_def["artifact_name"]] = art._node_id
+            self.node_id_to_session_id[art._node_id] = art._session_id
             # Put artifact in the right session group
-            artifacts_by_session[art.node.session_id].append(art)
+            artifacts_by_session[art._session_id].append(art)
+            # Record session_id of an artifact
+            self.artifact_session[art.name] = art._session_id
+            self.artifact_session[art.name.replace(" ", "_")] = art._session_id
+
+        pre_calculated_artifacts: Dict[str, LineaArtifact] = {}
+        for art_entry in reuse_pre_computed_artifacts:
+            art_def = get_lineaartifactdef(art_entry=art_entry)
+            # Check no two reuse pre-computed artifacts could have the same name
+            # Otherwise will confuse which one to use
+            if art_def["artifact_name"] in pre_calculated_artifacts.keys():
+                msg = (
+                    "Duplicated reuse_pre_computed_artifacts names detected in "
+                    + f"{list(pre_calculated_artifacts.keys())}"
+                )
+                logger.error(msg)
+                raise KeyError(msg)
+            # Retrieve artifact
+            art = LineaArtifact.get_artifact_from_def(self.db, art_def)
+            pre_calculated_artifacts[art.name] = art
 
         # For each session, construct SessionArtifacts object
         for session_id, session_artifacts in artifacts_by_session.items():
             self.session_artifacts[session_id] = SessionArtifacts(
-                self.db, session_artifacts, input_parameters=input_parameters
+                self.db,
+                session_artifacts,
+                input_parameters=input_parameters,
+                reuse_pre_computed_artifacts=pre_calculated_artifacts,
             )
+
+        # Check all reuse_pre_computed artifacts is used
+        all_sessions_artifacts = []
+        for sa in self.session_artifacts.values():
+            all_sessions_artifacts += [
+                art.name for art in sa.all_session_artifacts.values()
+            ]
+        for reuse_art in pre_calculated_artifacts.values():
+            reuse_name = reuse_art.name
+            if reuse_name not in all_sessions_artifacts:
+                msg = (
+                    f"Artifact {reuse_name} cannot be reused since it is not "
+                    + "used to calulate artifacts "
+                    + f"{', '.join(self.artifact_session.keys())}. "
+                    + "Try to remove it from the reuse list."
+                )
+                raise KeyError(msg)
 
     def _sort_session_artifacts(
         self, dependencies: TaskGraphEdge = {}
@@ -118,65 +140,57 @@ class ArtifactCollection:
         support such circular dependencies between sessions,
         which is a future project.
         """
-        # Construct a combined graph across multiple sessions
-        combined_graph = nx.DiGraph()
-        for session_artifacts in self.session_artifacts.values():
-            session_graph = session_artifacts.graph.nx_graph
-            combined_graph.add_nodes_from(session_graph.nodes)
-            combined_graph.add_edges_from(session_graph.edges)
 
-        # Check if user-specified dependency includes artifacts not in the current collection
-        dependency_edges = list(
+        # Merge task graph from all sessions
+        combined_taskgraph = nx.union_all(
+            [
+                sa.nodecollection_dependencies.graph
+                for session_id, sa in self.session_artifacts.items()
+            ]
+        )
+        # Add edge for user specified dependencies
+        task_dependency_edges = list(
             chain.from_iterable(
-                ((artname, to_artname) for artname in from_artname)
+                (
+                    (artname.replace(" ", "_"), to_artname.replace(" ", "_"))
+                    for artname in from_artname
+                )
                 for to_artname, from_artname in dependencies.items()
             )
         )
-        dependency_nodes = set(chain(*dependency_edges))
-        missing_artifacts = [
+        task_dependency_nodes = set(chain(*task_dependency_edges))
+        unused_artname = [
             artname
-            for artname in dependency_nodes
-            if self.art_name_to_node_id.get(artname, None) is None
+            for artname in task_dependency_nodes
+            if artname not in list(combined_taskgraph.nodes)
         ]
-        if len(missing_artifacts) > 0:
-            raise KeyError(
-                f"Dependency graph includes artifact(s) not in this artifact collection: {missing_artifacts}"
+        if len(unused_artname) > 0:
+            msg = (
+                "Dependency graph includes artifacts"
+                + ", ".join(unused_artname)
+                + ", which are not in this artifact collection: "
+                + ", ".join(list(combined_taskgraph.nodes))
             )
-
-        # Augment the graph with user-specified edges
-        dependency_edges_by_id = [
-            (
-                self.art_name_to_node_id.get(edge_tuple[0]),
-                self.art_name_to_node_id.get(edge_tuple[1]),
-            )
-            for edge_tuple in dependency_edges
-        ]
-        combined_graph.add_edges_from(dependency_edges_by_id)
-
+            raise KeyError(msg)
+        combined_taskgraph.add_edges_from(task_dependency_edges)
         # Check if the graph is acyclic
-        if nx.is_directed_acyclic_graph(combined_graph) is False:
+        if nx.is_directed_acyclic_graph(combined_taskgraph) is False:
             raise Exception(
                 "LineaPy detected conflict with the provided dependencies. "
                 "Please check if the provided dependencies include circular relationships."
             )
 
-        # Identify topological ordering between sessions
+        # Construct inter session dependency graph
         session_id_nodes = list(self.session_artifacts.keys())
-        session_id_edges = []
-        for node_id, to_node_id in dependency_edges_by_id:
-            assert node_id is not None
-            assert to_node_id is not None
-            from_session_id = self.node_id_to_session_id.get(node_id, None)
-            to_session_id = self.node_id_to_session_id.get(to_node_id, None)
-            if (
-                from_session_id is not None
-                and to_session_id is not None
-                and from_session_id != to_session_id
-            ):
-                session_id_edges.append((from_session_id, to_session_id))
+        session_id_edges = [
+            (self.artifact_session[n1], self.artifact_session[n2])
+            for n1, n2 in task_dependency_edges
+            if self.artifact_session[n1] != self.artifact_session[n2]
+        ]
         inter_session_graph = nx.DiGraph()
         inter_session_graph.add_nodes_from(session_id_nodes)
         inter_session_graph.add_edges_from(session_id_edges)
+        # Sort the session_id
         try:
             session_id_sorted = list(nx.topological_sort(inter_session_graph))
         except NetworkXUnfeasible:

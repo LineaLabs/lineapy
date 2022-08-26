@@ -156,7 +156,7 @@ class Pipeline:
             raise Exception("No sessions found in the database.")
 
         artifacts_to_save = {
-            artifact_name: db.get_artifact_by_name(artifact_name)
+            artifact_name: db.get_artifactorm_by_name(artifact_name)
             for artifact_name in self.artifact_names
         }
 

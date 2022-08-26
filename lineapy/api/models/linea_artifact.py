@@ -4,15 +4,16 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple, Union
 
 from IPython.display import display
 from pandas.io.pickle import read_pickle
+from typing_extensions import NotRequired, TypedDict
 
 from lineapy.api.api_utils import de_lineate_code
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
-from lineapy.db.db import RelationalLineaDB
+from lineapy.db.db import ArtifactORM, RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
@@ -31,6 +32,34 @@ from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
+
+
+class LineaArtifactDef(TypedDict):
+    """
+    Definition of an artifact, can extend new keys(user, project, ...)
+    in the future.
+    """
+
+    artifact_name: str
+    version: NotRequired[Optional[int]]
+
+
+def get_lineaartifactdef(
+    art_entry: Union[str, Tuple[str, Optional[int]]]
+) -> LineaArtifactDef:
+    """
+    Convert artifact entry (string) or (string, integer) to LineaArtifactDef
+    """
+    args: LineaArtifactDef
+    if isinstance(art_entry, str):
+        args = {"artifact_name": art_entry}
+    elif isinstance(art_entry, tuple):
+        args = {"artifact_name": art_entry[0], "version": art_entry[1]}
+    else:
+        raise ValueError(
+            "An artifact should be passed in as a string or (string, integer) tuple."
+        )
+    return args
 
 
 @dataclass
@@ -61,6 +90,14 @@ class LineaArtifact:
     def version(self) -> int:
         track(GetVersionEvent(""))
         return self._version
+
+    @property
+    def node_id(self) -> LineaID:
+        return self._node_id
+
+    @property
+    def session_id(self) -> LineaID:
+        return self._session_id
 
     @lru_cache(maxsize=None)
     def get_value(self) -> object:
@@ -197,3 +234,45 @@ class LineaArtifact:
         slice_exec = Executor(self.db, globals())
         slice_exec.execute_graph(self._get_subgraph())
         return slice_exec.get_value(self._node_id)
+
+    @staticmethod
+    def get_artifact_from_orm(
+        db: RelationalLineaDB, artifactorm: ArtifactORM
+    ) -> LineaArtifact:
+        """
+        Return LineaArtifact from artifactorm
+        """
+        assert isinstance(artifactorm.name, str)
+        return LineaArtifact(
+            db=db,
+            _execution_id=artifactorm.execution_id,
+            _node_id=artifactorm.node_id,
+            _session_id=artifactorm.node.session_id,
+            _version=artifactorm.version,  # type: ignore
+            name=artifactorm.name,
+            date_created=artifactorm.date_created,  # type: ignore
+        )
+
+    @staticmethod
+    def get_artifact_from_name_and_version(
+        db: RelationalLineaDB,
+        artifact_name: str,
+        version: Optional[int] = None,
+    ) -> LineaArtifact:
+        """
+        Return LineaArtifact from artifact name and version
+        """
+        return LineaArtifact.get_artifact_from_orm(
+            db, db.get_artifactorm_by_name(artifact_name, version)
+        )
+
+    @staticmethod
+    def get_artifact_from_def(
+        db: RelationalLineaDB, artifactdef: LineaArtifactDef
+    ) -> LineaArtifact:
+        """
+        Return LineaArtifact from LineaArtifactDef
+        """
+        return LineaArtifact.get_artifact_from_name_and_version(
+            db, **artifactdef
+        )

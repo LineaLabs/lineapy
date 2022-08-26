@@ -16,7 +16,7 @@ if True:
     x.append(1)
 """
     res = execute(c, artifacts=["x"], snapshot=False)
-    artifact = res.db.get_artifact_by_name("x")
+    artifact = res.db.get_artifactorm_by_name("x")
     full_graph_artifact = LineaArtifact(
         db=res.db,
         _execution_id=artifact.execution_id,

@@ -19,7 +19,7 @@ def get_y(assets):
     return y
 
 
-def get_pvalue(assets, y):
+def get_p_value(assets, y):
     clf = RandomForestClassifier(random_state=0)
     x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
     clf.fit(x, y)
@@ -37,7 +37,7 @@ def run_session_including_y():
     assets = get_assets_for_artifact_y_and_downstream()
     y = get_y(assets)
     artifacts["y"] = copy.deepcopy(y)
-    p = get_pvalue(assets, y)
+    p = get_p_value(assets, y)
     artifacts["p value"] = copy.deepcopy(p)
     return artifacts
 

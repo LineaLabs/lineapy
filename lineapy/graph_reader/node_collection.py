@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
@@ -93,9 +93,14 @@ class NodeCollection:
     sliced_nodes: Set[LineaID] = field(default_factory=set)
     raw_codeblock: str = field(default="")
     is_empty: bool = field(default=True)
+    pre_computed_artifact: Union[None, Tuple[str, Optional[int]]] = field(
+        default=None
+    )
+    is_pre_computed_artifact: bool = field(default=False)
 
     def __post_init__(self):
-        self.safename = self.name.replace(" ", "")
+        self.safename = self.name.replace(" ", "_")
+        self.is_pre_computed_artifact = self.pre_computed_artifact is not None
 
     def _update_variable_info(self, node_context, input_parameters_node):
         """
@@ -129,8 +134,8 @@ class NodeCollection:
         """
         Update graph_segment class member based on node_list
 
-        Need to manually run this function at least once if you need the graph object
-        for code generation
+        Need to manually run this function at least once if you need the graph
+        object for code generation.
         """
         self.graph_segment = graph.get_subgraph_from_id(list(self.node_list))
         self.raw_codeblock = get_source_code_from_graph(
@@ -140,20 +145,31 @@ class NodeCollection:
 
     def get_function_definition(self, indentation=4) -> str:
         """
-        Return a codeblock to define the function of the graph segment
+        Return a codeblock to define the function of the graph segment. If
+        self.is_pre_computed_artifact is True, will replace the calculation
+        block with lineapy.get().get_value()
         """
 
         indentation_block = " " * indentation
-        artifact_codeblock = "\n".join(
-            [
-                f"{indentation_block}{line}"
-                for line in self.raw_codeblock.split("\n")
-                if len(line.strip(" ")) > 0
-            ]
-        )
         name = self.safename
-        args_string = ", ".join(sorted([v for v in self.input_variables]))
         return_string = ", ".join([v for v in self.return_variables])
+        if not self.is_pre_computed_artifact:
+            artifact_codeblock = "\n".join(
+                [
+                    f"{indentation_block}{line}"
+                    for line in self.raw_codeblock.split("\n")
+                    if len(line.strip(" ")) > 0
+                ]
+            )
+            args_string = ", ".join(sorted([v for v in self.input_variables]))
+        else:
+            assert self.pre_computed_artifact is not None
+            artifact_codeblock = (
+                f"{indentation_block}import lineapy\n{indentation_block}"
+            )
+            artifact_codeblock += f'{return_string}=lineapy.get("{self.pre_computed_artifact[0]}", {self.pre_computed_artifact[1]}).get_value()'
+            args_string = ""
+
         return f"def get_{name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
 
     def get_function_call_block(
@@ -189,6 +205,8 @@ class NodeCollection:
         indentation_block = " " * indentation
         return_string = ", ".join(self.return_variables)
         args_string = ", ".join(sorted([v for v in self.input_variables]))
+        if self.is_pre_computed_artifact:
+            args_string = ""
 
         # handle calling the function from a module
         if source_module != "":
@@ -244,5 +262,14 @@ class NodeCollection:
             input_parameters_codeblock = input_parameters_lines[0]
         else:
             input_parameters_codeblock = ""
+
+        if self.pre_computed_artifact is not None:
+            logger.warning(
+                "Variables "
+                + ", ".join(self.input_variables)
+                + f" are dummy variables since they are only used in the calculation of artifacts {self.name}."
+                + "You can either edit the input_parameters or reuse_pre_computed parameters to remove this warning."
+            )
+            return ""
 
         return input_parameters_codeblock

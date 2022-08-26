@@ -54,5 +54,5 @@ class TracerContext:
         }
 
     def slice(self, name: str) -> str:
-        artifact = self.db.get_artifact_by_name(name)
+        artifact = self.db.get_artifactorm_by_name(name)
         return str(get_program_slice(self.graph, [artifact.node_id]))
