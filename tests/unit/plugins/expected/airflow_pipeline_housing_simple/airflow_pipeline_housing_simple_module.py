@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
 
-def get_pvalue():
+def get_p_value():
     assets = pd.read_csv(
         "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
     )
@@ -26,7 +26,7 @@ def run_session_including_pvalue():
     import copy
 
     artifacts = dict()
-    p = get_pvalue()
+    p = get_p_value()
     artifacts["p value"] = copy.deepcopy(p)
     return artifacts
 
