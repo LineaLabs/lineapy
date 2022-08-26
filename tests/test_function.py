@@ -23,9 +23,9 @@ ft = lineapy.get_function(['prod_p'], input_parameters=['a', 'p'])
     assert ft(a=5, p=3)["prod_p"] == 15  # New value for a, new value for p
 
 
-def test_use_cache(execute):
+def test_reuse_pre_computed_artifacts(execute):
     """
-    Test use_cache
+    Test reuse_pre_computed_artifacts option
     """
 
     code = """\n
@@ -52,7 +52,7 @@ assert ft(a=5, p=3)['prod_p'] == 10  # New value for a, cache value for p;  i.e.
 
 def test_use_old_cache(execute):
     """
-    Test use_cache
+    Test reuse_pre_computed_artifacts specified version
     """
 
     art_code = """\n
