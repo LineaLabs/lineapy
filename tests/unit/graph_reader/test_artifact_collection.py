@@ -2,6 +2,8 @@ import pathlib
 
 import pytest
 
+from lineapy.graph_reader.artifact_collection import ArtifactCollection
+
 
 @pytest.mark.parametrize(
     "input_script, artifact_list",
@@ -53,25 +55,19 @@ import pytest
         ),
     ],
 )
-def test_one_session(execute, input_script, artifact_list):
+def test_one_session(linea_db, execute, input_script, artifact_list):
     """
     Test code refactor, make sure each artifact has a dedicated function in the
     generated module.
     """
 
     artifact_string = ", ".join([f'"{x}"' for x in artifact_list])
-    code = (
-        pathlib.Path(
-            "tests/unit/graph_reader/inputs/" + input_script
-        ).read_text()
-        + "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
-        + "from lineapy.execution.context import get_context\n"
-        + "db = get_context().executor.db\n"
-        + f"ac = ArtifactCollection(db, [{artifact_string}])"
-    )
+    code = pathlib.Path(
+        "tests/unit/graph_reader/inputs/" + input_script
+    ).read_text()
 
-    res = execute(code, snapshot=False)
-    ac = res.values["ac"]
+    execute(code, snapshot=False)
+    ac = ArtifactCollection(linea_db, artifact_list)
     module = ac.get_module()
     # Check there is a get_{artifact} function in the module for all artifacts
     assert all(
@@ -115,7 +111,8 @@ def test_one_session(execute, input_script, artifact_list):
         ),
     ],
 )
-def test_two_session(
+def test_two_sessions(
+    linea_db,
     execute,
     input_script1,
     input_script2,
@@ -132,22 +129,15 @@ def test_two_session(
     session1_code = pathlib.Path(
         "tests/unit/graph_reader/inputs/" + input_script1
     ).read_text()
-    res = execute(session1_code, snapshot=False)
+    execute(session1_code, snapshot=False)
 
     session2_code = pathlib.Path(
         "tests/unit/graph_reader/inputs/" + input_script2
     ).read_text()
 
-    artifact_string = ", ".join([f'"{x}"' for x in artifact_list])
-    code = (
-        session2_code
-        + "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
-        + "from lineapy.execution.context import get_context\n"
-        + "db = get_context().executor.db\n"
-        + f"ac = ArtifactCollection(db, [{artifact_string}])"
-    )
-    res = execute(code, snapshot=False)
-    ac = res.values["ac"]
+    code = session2_code
+    execute(code, snapshot=False)
+    ac = ArtifactCollection(linea_db, artifact_list)
     module = ac.get_module()
     # Check there is a get_{artifact} function in the module for all artifacts
     assert all(
