@@ -52,7 +52,7 @@ def test_to_airflow_pymodule(
     py_module_path = run_cell(
         "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/')"
     )
-    assert python_snapshot == (py_module_path / "a.py").read_text()
+    assert python_snapshot == (py_module_path / "a_module.py").read_text()
 
 
 @pytest.mark.slow
@@ -77,7 +77,7 @@ def test_to_airflow_with_config_pymodule(
     py_module_path = run_cell(
         "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags', pipeline_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
     )
-    assert python_snapshot == (py_module_path / "a.py").read_text()
+    assert python_snapshot == (py_module_path / "a_module.py").read_text()
 
 
 @pytest.mark.slow
