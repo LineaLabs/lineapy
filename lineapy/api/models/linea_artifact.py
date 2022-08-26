@@ -35,6 +35,11 @@ logger = logging.getLogger(__name__)
 
 
 class LineaArtifactDef(TypedDict):
+    """
+    Definition of an artifact, can extend new keys(user, project, ...)
+    in the future.
+    """
+
     artifact_name: str
     version: NotRequired[Optional[int]]
 
@@ -42,6 +47,9 @@ class LineaArtifactDef(TypedDict):
 def get_lineaartifactdef(
     art_entry: Union[str, Tuple[str, Optional[int]]]
 ) -> LineaArtifactDef:
+    """
+    Convert artifact entry (string) or (string, integer) to LineaArtifactDef
+    """
     args: LineaArtifactDef
     if isinstance(art_entry, str):
         args = {"artifact_name": art_entry}

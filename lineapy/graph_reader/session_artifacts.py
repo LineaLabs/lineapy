@@ -34,26 +34,23 @@ class SessionArtifacts:
     db: RelationalLineaDB
     artifact_nodecollections: List[NodeCollection]
     import_nodecollection: NodeCollection
-    target_artifacts: List[LineaArtifact]
-    # target_artifacts_name: List[str]
-    # precomputed_artifact_list: List[LineaArtifact]
-    # artifact_and_pre_computed_list: List[LineaArtifact]
-    node_context: Dict[LineaID, NodeInfo]
-    input_parameters: List[str]
     input_parameters_node: Dict[str, LineaID]
-    nodecollection_dependencies: TaskGraph
+    node_context: Dict[LineaID, NodeInfo]
+    target_artifacts: List[LineaArtifact]
     reuse_pre_computed_artifacts: Dict[str, LineaArtifact]
     all_session_artifacts: Dict[LineaID, LineaArtifact]
+    input_parameters: List[str]
+    nodecollection_dependencies: TaskGraph
 
     def __init__(
         self,
         db: RelationalLineaDB,
-        artifacts: List[LineaArtifact],
+        target_artifacts: List[LineaArtifact],
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: Dict[str, LineaArtifact] = {},
     ) -> None:
         self.db = db
-        self.target_artifacts = artifacts
+        self.target_artifacts = target_artifacts
         self.target_artifacts_name = [
             art.name for art in self.target_artifacts
         ]
@@ -67,7 +64,7 @@ class SessionArtifacts:
                 set.union(
                     *[
                         set(art._get_subgraph().nx_graph.nodes)
-                        for art in artifacts
+                        for art in target_artifacts
                     ]
                 )
             )
@@ -153,6 +150,13 @@ class SessionArtifacts:
             nodeinfo.tracked_variables = set()
 
     def _retrive_all_session_artifacts(self):
+        """
+        Retrive all artifacts(targeted, reused) within the session.
+        Note that, the version of reused artifacts within the session does not
+        need to be the same as in `reuse_pre_computed_artifacts`; thus, we need
+        to retrive the correct version in the session with the correct node id
+        to enable graph manipulation.
+        """
         # Map node id to artifact assignment within the session
         self.all_session_artifacts = {}
         for artifact in self.db.get_artifacts_for_session(self._session_id):
