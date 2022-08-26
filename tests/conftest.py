@@ -21,8 +21,6 @@ from lineapy.db.utils import create_lineadb_engine
 from lineapy.execution.executor import Executor
 from lineapy.execution.inspect_function import FunctionInspector
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.plugins.airflow import AirflowPlugin
-from lineapy.plugins.script import ScriptPlugin
 from lineapy.transformer.transform_code import transform
 from lineapy.utils.config import DB_FILE_NAME, options
 from lineapy.utils.constants import DB_SQLITE_PREFIX
@@ -350,22 +348,6 @@ def housing_tracer(_pickle_name, try_write_to_pickle, execute):
 
     code = (tests_dir / "housing.py").read_text()
     return execute(code, snapshot=False)
-
-
-@pytest.fixture
-def airflow_plugin(housing_tracer):
-    return AirflowPlugin(
-        housing_tracer.tracer_context.db,
-        housing_tracer.tracer_context.get_session_id(),
-    )
-
-
-@pytest.fixture
-def script_plugin(housing_tracer):
-    return ScriptPlugin(
-        housing_tracer.tracer_context.db,
-        housing_tracer.tracer_context.get_session_id(),
-    )
 
 
 @pytest.fixture(scope="session")

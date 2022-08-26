@@ -136,7 +136,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
     @property
     def docker_template_name(self) -> str:
-        return "dockerfile.jinja"
+        return "airflow_dockerfile.jinja"
 
     def _write_dag(self) -> None:
         dag_flavor = self.dag_config.get(
