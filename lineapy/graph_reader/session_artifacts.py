@@ -1,7 +1,7 @@
 import logging
 from collections import Counter, OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple
 
 import networkx as nx
 
@@ -9,7 +9,6 @@ from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.data.graph import Graph
 from lineapy.data.types import CallNode, GlobalNode, LineaID, MutateNode, Node
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import ArtifactORM
 from lineapy.graph_reader.node_collection import (
     NodeCollection,
     NodeCollectionType,
@@ -35,28 +34,30 @@ class SessionArtifacts:
     db: RelationalLineaDB
     artifact_nodecollections: List[NodeCollection]
     import_nodecollection: NodeCollection
-    target_artifact_list: List[LineaArtifact]
-    precomputed_artifact_list: List[LineaArtifact]
-    artifact_and_pre_computed_list: List[LineaArtifact]
+    target_artifacts: List[LineaArtifact]
+    # target_artifacts_name: List[str]
+    # precomputed_artifact_list: List[LineaArtifact]
+    # artifact_and_pre_computed_list: List[LineaArtifact]
     node_context: Dict[LineaID, NodeInfo]
     input_parameters: List[str]
     input_parameters_node: Dict[str, LineaID]
     nodecollection_dependencies: TaskGraph
-    reuse_pre_computed_artifacts: Dict[str, Optional[int]]
+    reuse_pre_computed_artifacts: Dict[str, LineaArtifact]
+    all_session_artifacts: Dict[LineaID, LineaArtifact]
 
     def __init__(
         self,
         db: RelationalLineaDB,
-        artifacts: List[ArtifactORM],
+        artifacts: List[LineaArtifact],
         input_parameters: List[str] = [],
-        reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+        reuse_pre_computed_artifacts: Dict[str, LineaArtifact] = {},
     ) -> None:
         self.db = db
-        self.target_artifact_list = [
-            LineaArtifact.get_artifact_from_db_and_artifactorm(self.db, orm)
-            for orm in artifacts
+        self.target_artifacts = artifacts
+        self.target_artifacts_name = [
+            art.name for art in self.target_artifacts
         ]
-        self._session_id = artifacts[0].node.session_id
+        self._session_id = self.target_artifacts[0]._session_id
         self._session_graph = Graph.create_session_graph(
             self.db, self._session_id
         )
@@ -74,15 +75,10 @@ class SessionArtifacts:
         self.artifact_nodecollections = []
         self.node_context = OrderedDict()
         self.input_parameters = input_parameters
-        self.reuse_pre_computed_artifacts = dict()
-        for cache_art in reuse_pre_computed_artifacts:
-            if isinstance(cache_art, str):
-                self.reuse_pre_computed_artifacts[cache_art] = None
-            else:
-                self.reuse_pre_computed_artifacts[cache_art[0]] = int(
-                    cache_art[1]
-                )
+        self.reuse_pre_computed_artifacts = reuse_pre_computed_artifacts
 
+        # Retrive all artifacts within the subgraph of target artifacts
+        self._retrive_all_session_artifacts()
         # Add extra attributes(from predecessors) at session Liena nodes
         self._update_node_context()
         # Divide session graph into a set of non-overlapping NodeCollection
@@ -90,6 +86,10 @@ class SessionArtifacts:
         # Determine dependencies of NodeCollections and check whether to
         # replace it with pre-calculated value from artifact store
         self._update_nodecollection_dependencies()
+
+    @property
+    def session_id(self) -> LineaID:
+        return self._session_id
 
     def _update_dependent_variables(
         self, nodeinfo: NodeInfo, variable_dict: Dict[LineaID, Set[str]]
@@ -152,6 +152,32 @@ class SessionArtifacts:
         else:
             nodeinfo.tracked_variables = set()
 
+    def _retrive_all_session_artifacts(self):
+        # Map node id to artifact assignment within the session
+        self.all_session_artifacts = {}
+        for artifact in self.db.get_artifacts_for_session(self._session_id):
+            if (
+                artifact.name in self.target_artifacts_name
+                or artifact.name in self.reuse_pre_computed_artifacts.keys()
+            ):
+                assert isinstance(artifact.name, str)
+                self.all_session_artifacts[
+                    artifact.node_id
+                ] = LineaArtifact.get_artifact_from_name_and_version(
+                    self.db, artifact.name, artifact.version
+                )
+
+        # Check only one artifact in the session with the name within reuse_pre_computed_artifacts
+        pre_computed_artifacts_name_count = Counter(
+            [art.name for nodeid, art in self.all_session_artifacts.items()]
+        )
+        for art_name, ct in pre_computed_artifacts_name_count.items():
+            if ct > 1:
+                raise ValueError(
+                    f"More than one artifacts with the same name {art_name} in the session."
+                    + "Please remove it from reuse_pre_computed_artifacts."
+                )
+
     def _update_node_context(self):
         """
         Traverse every node within the session in topologically sorted order
@@ -171,8 +197,6 @@ class SessionArtifacts:
         performance since some of the information need to query the attributes
         from predecessors.
         """
-        from lineapy.api.api import get
-
         # Map each variable node ID to the corresponding variable name(when variable assigned)
         # Need to treat import different from regular variable assignment
         variable_dict: Dict[LineaID, Set[str]] = OrderedDict()
@@ -204,48 +228,14 @@ class SessionArtifacts:
                         node_id
                     ]
 
-        # Map node id to artifact assignment
-        artifact_dict = {
-            artifact.node_id: {
-                "name": artifact.name,
-                "version": artifact.version,
-            }
-            for artifact in self.db.get_artifacts_for_session(self._session_id)
-            if artifact.name in [art.name for art in self.target_artifact_list]
-            or artifact.name in self.reuse_pre_computed_artifacts.keys()
-        }
-
-        self.pre_computed_target_artifact_list = [
-            get(art_def["name"], art_def["version"])
-            for art_def in artifact_dict.values()
-            if art_def["name"] in self.reuse_pre_computed_artifacts.keys()
-        ]
-
-        pre_computed_artifacts_name_count = Counter(
-            [art.name for art in self.pre_computed_target_artifact_list]
-        )
-        for art_name, ct in pre_computed_artifacts_name_count.items():
-            if ct > 1:
-                raise ValueError(
-                    f"More than one artifacts with the same name {art_name}."
-                    + "Please remove it from reuse_pre_computed_artifacts."
-                )
-
-        # Expand the self.target_artifact_list with self.pre_computed_target_artifact_list
-        for pre_art in self.pre_computed_target_artifact_list:
-            if pre_art.name not in [
-                art.name for art in self.target_artifact_list
-            ]:
-                self.target_artifact_list.append(pre_art)
-
         # Identify variable dependencies of each node in topological order
         for node_id in nx.topological_sort(self.graph.nx_graph):
 
             nodeinfo = NodeInfo(
                 assigned_variables=variable_dict.get(node_id, set()),
-                assigned_artifact=artifact_dict.get(node_id, {}).get(
-                    "name", None
-                ),
+                assigned_artifact=self.all_session_artifacts[node_id].name
+                if node_id in self.all_session_artifacts.keys()
+                else None,
                 dependent_variables=set(),
                 predecessors=set(self.graph.nx_graph.predecessors(node_id)),
                 tracked_variables=set(),
@@ -397,9 +387,11 @@ class SessionArtifacts:
         self.import_nodes: Set[LineaID] = set()
         self.artifact_nodecollections = list()
         for node_id, n in self.node_context.items():
-            if n.assigned_artifact is not None and node_id in [
-                art.node_id for art in self.target_artifact_list
-            ]:
+            if (
+                n.assigned_artifact is not None
+                and node_id in self.all_session_artifacts.keys()
+            ):
+                art = self.all_session_artifacts[node_id]
                 # Identify nodes to calculate the artifact from sliced graphs
                 sliced_nodes, sliced_import_nodes = self._get_sliced_nodes(
                     node_id
@@ -425,7 +417,9 @@ class SessionArtifacts:
                 matched_pre_computed = (
                     (
                         n.assigned_artifact,
-                        self.reuse_pre_computed_artifacts[n.assigned_artifact],
+                        self.reuse_pre_computed_artifacts[
+                            n.assigned_artifact
+                        ].version,
                     )
                     if n.assigned_artifact
                     in self.reuse_pre_computed_artifacts.keys()
@@ -586,9 +580,7 @@ class SessionArtifacts:
         # multiple components, only keep components with user required artifact
         nc_graph.remove_nodes_from(cache_nodes)
         if nc_graph is not None and len(cache_nodes) > 0:
-            artifact_names = set(
-                [art.name for art in self.target_artifact_list]
-            )
+            artifact_names = set([art.name for art in self.target_artifacts])
 
             nc_graph = nx.union_all(
                 [

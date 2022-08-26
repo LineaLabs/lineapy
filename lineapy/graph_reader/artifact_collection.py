@@ -7,15 +7,17 @@ from dataclasses import dataclass
 from importlib.abc import Loader
 from itertools import chain
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
-from typing_extensions import NotRequired, TypedDict
 
+from lineapy.api.models.linea_artifact import (
+    LineaArtifact,
+    get_lineaartifactdef,
+)
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
-from lineapy.db.relational import ArtifactORM
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.plugins.task import TaskGraphEdge
@@ -25,11 +27,6 @@ from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
-
-
-class ArtifactDef(TypedDict):
-    artifact_name: str
-    version: NotRequired[Optional[int]]
 
 
 @dataclass
@@ -63,51 +60,42 @@ class ArtifactCollection:
             raise ValueError(
                 f"Duplicated input parameters detected in {input_parameters}"
             )
-        artifacts_by_session: Dict[LineaID, List[ArtifactORM]] = defaultdict(
+        artifacts_by_session: Dict[LineaID, List[LineaArtifact]] = defaultdict(
             list
         )
-
-        artifact_names = [
-            art if isinstance(art, str) else art[0] for art in artifacts
-        ]
-
         # Retrieve artifact objects and group them by session ID
         for art_entry in artifacts:
-            # Construct args for artifact retrieval
-            args: ArtifactDef
-            if isinstance(art_entry, str):
-                args = {"artifact_name": art_entry}
-            elif isinstance(art_entry, tuple):
-                args = {"artifact_name": art_entry[0], "version": art_entry[1]}
-            else:
-                raise ValueError(
-                    "An artifact should be passed in as a string or (string, integer) tuple."
-                )
-
+            art_def = get_lineaartifactdef(art_entry=art_entry)
+            # Check duplicated name
+            if art_def["artifact_name"] in self.art_name_to_node_id.keys():
+                logger.error("%s is duplicated in ", art_def["artifact_name"])
+                raise KeyError("%s is duplicated", art_def["artifact_name"])
             # Retrieve artifact
-            if args["artifact_name"] in self.art_name_to_node_id.keys():
-                logger.error("%s is duplicated", args["artifact_name"])
-                raise KeyError("%s is duplicated", args["artifact_name"])
-            try:
-                art = self.db.get_artifactorm_by_name(**args)
-            except Exception as e:
-                logger.error("Cannot retrive artifact %s", art_entry)
-                raise Exception(e)
-
-            self.art_name_to_node_id[args["artifact_name"]] = art.node_id
-            self.node_id_to_session_id[art.node_id] = art.node.session_id
-
+            art = LineaArtifact.get_artifact_from_def(self.db, art_def)
+            self.art_name_to_node_id[art_def["artifact_name"]] = art._node_id
+            self.node_id_to_session_id[art._node_id] = art._session_id
             # Put artifact in the right session group
-            artifacts_by_session[art.node.session_id].append(art)
+            artifacts_by_session[art._session_id].append(art)
 
-        # Check reuse_pre_computed_artifacts name is unique
-        reuse_pre_computed_names = [
-            art if isinstance(art, str) else art[0]
-            for art in reuse_pre_computed_artifacts
-        ]
-        if len(reuse_pre_computed_names) != len(set(reuse_pre_computed_names)):
-            raise ValueError(
-                f"Duplicated reuse_pre_computed_artifacts names detected in {reuse_pre_computed_names}"
+        pre_calculated_artifacts: Dict[str, LineaArtifact] = {}
+        for art_entry in reuse_pre_computed_artifacts:
+            art_def = get_lineaartifactdef(art_entry=art_entry)
+            # Check duplicated name
+            if art_def["artifact_name"] in pre_calculated_artifacts.keys():
+                msg = f"Duplicated reuse_pre_computed_artifacts names detected in {list(pre_calculated_artifacts.keys())}"
+                logger.error(msg)
+                raise KeyError(msg)
+            # Retrieve artifact
+            art = LineaArtifact.get_artifact_from_def(self.db, art_def)
+            pre_calculated_artifacts[art.name] = art
+
+        # For each session, construct SessionArtifacts object
+        for session_id, session_artifacts in artifacts_by_session.items():
+            self.session_artifacts[session_id] = SessionArtifacts(
+                self.db,
+                session_artifacts,
+                input_parameters=input_parameters,
+                reuse_pre_computed_artifacts=pre_calculated_artifacts,
             )
 
         # For each name in reuse_pre_calculated_artifacts, check there is
@@ -133,15 +121,6 @@ class ArtifactCollection:
         #             + "Try to remove it from the reuse_pre_computed_artifacts."
         #         )
 
-        # For each session, construct SessionArtifacts object
-        for session_id, session_artifacts in artifacts_by_session.items():
-            self.session_artifacts[session_id] = SessionArtifacts(
-                self.db,
-                session_artifacts,
-                input_parameters=input_parameters,
-                reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
-            )
-
     def _sort_session_artifacts(
         self, dependencies: TaskGraphEdge = {}
     ) -> List[SessionArtifacts]:
@@ -158,6 +137,13 @@ class ArtifactCollection:
         support such circular dependencies between sessions,
         which is a future project.
         """
+
+        # combined_graph = nx.union_all(
+        #     [
+        #         sa.nodecollection_dependencies.graph
+        #         for session_id, sa in self.session_artifacts
+        #     ]
+        # )
         # Construct a combined graph across multiple sessions
         combined_graph = nx.DiGraph()
         for session_artifacts in self.session_artifacts.values():
