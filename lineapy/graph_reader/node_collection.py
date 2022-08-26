@@ -99,7 +99,7 @@ class NodeCollection:
     is_pre_computed_artifact: bool = field(default=False)
 
     def __post_init__(self):
-        self.safename = self.name.replace(" ", "")
+        self.safename = self.name.replace(" ", "_")
         self.is_pre_computed_artifact = self.pre_computed_artifact is not None
 
     def _update_variable_info(self, node_context, input_parameters_node):

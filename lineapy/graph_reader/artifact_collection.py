@@ -80,6 +80,7 @@ class ArtifactCollection:
             artifacts_by_session[art._session_id].append(art)
             # Record session_id of an artifact
             self.artifact_session[art.name] = art._session_id
+            self.artifact_session[art.name.replace(" ", "_")] = art._session_id
 
         pre_calculated_artifacts: Dict[str, LineaArtifact] = {}
         for art_entry in reuse_pre_computed_artifacts:
@@ -150,7 +151,10 @@ class ArtifactCollection:
         # Add edge for user specified dependencies
         task_dependency_edges = list(
             chain.from_iterable(
-                ((artname, to_artname) for artname in from_artname)
+                (
+                    (artname.replace(" ", "_"), to_artname.replace(" ", "_"))
+                    for artname in from_artname
+                )
                 for to_artname, from_artname in dependencies.items()
             )
         )
@@ -158,9 +162,9 @@ class ArtifactCollection:
         for artname in task_dependency_nodes:
             if artname not in list(combined_taskgraph.nodes):
                 raise KeyError(
-                    f"Dependency graph includes artifact(s) not in this artifact collection: {artname}"
+                    f"Dependency graph includes artifact {artname}, which is not in this artifact collection: {list(combined_taskgraph.nodes)}"
                 )
-        combined_taskgraph.add_edges_from(task_dependency_nodes)
+        combined_taskgraph.add_edges_from(task_dependency_edges)
         # Check if the graph is acyclic
         if nx.is_directed_acyclic_graph(combined_taskgraph) is False:
             raise Exception(
@@ -173,6 +177,7 @@ class ArtifactCollection:
         session_id_edges = [
             (self.artifact_session[n1], self.artifact_session[n2])
             for n1, n2 in task_dependency_edges
+            if self.artifact_session[n1] != self.artifact_session[n2]
         ]
         inter_session_graph = nx.DiGraph()
         inter_session_graph.add_nodes_from(session_id_nodes)
