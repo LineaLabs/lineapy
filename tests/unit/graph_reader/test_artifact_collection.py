@@ -154,8 +154,10 @@ def test_two_sessions(
         first_artifact_in_session = {}
         for sa in ac.session_artifacts.values():
             for nodecollection in sa.artifact_nodecollections:
+                art_name = sa._get_first_artifact_name()
+                assert isinstance(art_name, str)
                 first_artifact_in_session[nodecollection.name] = (
-                    "run_session_including_" + sa._get_first_artifact_name()
+                    "run_session_including_" + art_name
                 )
 
         for art, art_predecessors in dependencies.items():

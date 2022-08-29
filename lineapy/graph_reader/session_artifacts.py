@@ -603,11 +603,11 @@ class SessionArtifacts:
                 if art.name in nc_graph.nodes
             ]
 
-    def _get_first_artifact_name(self) -> str:
+    def _get_first_artifact_name(self) -> Optional[str]:
         """
         Return the name of first artifact(topologically sorted)
         """
         for coll in self.artifact_nodecollections:
             if coll.collection_type == NodeCollectionType.ARTIFACT:
                 return coll.safename
-        return ""
+        return None
