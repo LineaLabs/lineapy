@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 from lineapy.data.graph import Graph
 from lineapy.data.types import LineaID
 from lineapy.graph_reader.program_slice import get_source_code_from_graph
+from lineapy.plugins.utils import slugify
 from lineapy.utils.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -99,12 +100,12 @@ class NodeCollection:
     is_pre_computed_artifact: bool = field(default=False)
 
     def __post_init__(self):
-        self.safename = self.name.replace(" ", "_")
+        self.safename = slugify(self.name)
         self.is_pre_computed_artifact = self.pre_computed_artifact is not None
 
     def _update_variable_info(self, node_context, input_parameters_node):
         """
-        Update variable informations based on node_list
+        Update variable information based on node_list
         """
         self.dependent_variables = self.dependent_variables.union(
             *[node_context[nid].dependent_variables for nid in self.node_list]
