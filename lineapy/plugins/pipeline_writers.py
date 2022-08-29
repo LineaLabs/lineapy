@@ -40,7 +40,7 @@ class BasePipelineWriter:
         self.artifact_collection = artifact_collection
         self.keep_lineapy_save = keep_lineapy_save
         self.pipeline_name = pipeline_name
-        self.output_dir = Path(output_dir, pipeline_name)
+        self.output_dir = Path(output_dir)
         self.dag_config = dag_config or {}
 
         # Sort sessions topologically (applicable if artifacts come from multiple sessions)

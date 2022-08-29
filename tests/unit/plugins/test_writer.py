@@ -177,7 +177,7 @@ def test_pipeline_generation(
             file_endings.append("_dag.py")
 
         for file_suffix in file_endings:
-            path = Path(tempfolder, pipeline_name, pipeline_name + file_suffix)
+            path = Path(tempfolder, pipeline_name + file_suffix)
             generated = path.read_text()
             path_expected = Path(
                 "tests",
