@@ -1,7 +1,45 @@
+import pathlib
+import pickle
+
 import airflow_pipeline_a0_b0_dependencies_module
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
+
+
+def dag_setup():
+    pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0_dependencies")
+    if not pickle_folder.exists():
+        pickle_folder.mkdir()
+
+
+def dag_teardown():
+    pickle_files = (
+        pathlib.Path("/tmp")
+        .joinpath("airflow_pipeline_a0_b0_dependencies")
+        .glob("*.pickle")
+    )
+    for f in pickle_files:
+        f.unlink()
+
+
+def task_b0():
+
+    b0 = airflow_pipeline_a0_b0_dependencies_module.get_b0()
+
+    pickle.dump(
+        b0, open("/tmp/airflow_pipeline_a0_b0_dependencies/variable_b0.pickle", "wb")
+    )
+
+
+def task_a0():
+
+    a0 = airflow_pipeline_a0_b0_dependencies_module.get_a0()
+
+    pickle.dump(
+        a0, open("/tmp/airflow_pipeline_a0_b0_dependencies/variable_a0.pickle", "wb")
+    )
+
 
 default_dag_args = {
     "owner": "airflow",
@@ -17,14 +55,28 @@ with DAG(
     default_args=default_dag_args,
 ) as dag:
 
-    run_session_including_b0 = PythonOperator(
-        task_id="run_session_including_b0_task",
-        python_callable=airflow_pipeline_a0_b0_dependencies_module.run_session_including_b0,
+    setup = PythonOperator(
+        task_id="dag_setup",
+        python_callable=dag_setup,
     )
 
-    run_session_including_a0 = PythonOperator(
-        task_id="run_session_including_a0_task",
-        python_callable=airflow_pipeline_a0_b0_dependencies_module.run_session_including_a0,
+    teardown = PythonOperator(
+        task_id="dag_teardown",
+        python_callable=dag_teardown,
     )
 
-    run_session_including_b0 >> run_session_including_a0
+    b0 = PythonOperator(
+        task_id="b0_task",
+        python_callable=task_b0,
+    )
+
+    a0 = PythonOperator(
+        task_id="a0_task",
+        python_callable=task_a0,
+    )
+
+    b0 >> a0
+
+    setup >> b0
+
+    a0 >> teardown

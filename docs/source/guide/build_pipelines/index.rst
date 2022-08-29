@@ -143,10 +143,44 @@ And we see ``demo_airflow_pipeline_dag.py`` automatically composing an Airflow D
 
 .. code:: python
 
+   import pathlib
+   import pickle
+
    import demo_airflow_pipeline_module
    from airflow import DAG
    from airflow.operators.python_operator import PythonOperator
    from airflow.utils.dates import days_ago
+
+
+   def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath("demo_airflow_pipeline")
+      if not pickle_folder.exists():
+         pickle_folder.mkdir()
+
+
+   def dag_teardown():
+      pickle_files = (
+         pathlib.Path("/tmp").joinpath("demo_airflow_pipeline").glob("*.pickle")
+      )
+      for f in pickle_files:
+         f.unlink()
+
+
+   def task_iris_preprocessed():
+
+      df = demo_airflow_pipeline_module.get_iris_preprocessed()
+
+      pickle.dump(df, open("/tmp/demo_airflow_pipeline/variable_df.pickle", "wb"))
+
+
+   def task_iris_model():
+
+      df = pickle.load(open("/tmp/demo_airflow_pipeline/variable_df.pickle", "rb"))
+
+      mod = demo_airflow_pipeline_module.get_iris_model(df)
+
+      pickle.dump(mod, open("/tmp/demo_airflow_pipeline/variable_mod.pickle", "wb"))
+
 
    default_dag_args = {
       "owner": "airflow",
@@ -162,10 +196,31 @@ And we see ``demo_airflow_pipeline_dag.py`` automatically composing an Airflow D
       default_args=default_dag_args,
    ) as dag:
 
-      run_session_including_iris_preprocessed = PythonOperator(
-         task_id="run_session_including_iris_preprocessed_task",
-         python_callable=demo_airflow_pipeline_module.run_session_including_iris_preprocessed,
+      setup = PythonOperator(
+         task_id="dag_setup",
+         python_callable=dag_setup,
       )
+
+      teardown = PythonOperator(
+         task_id="dag_teardown",
+         python_callable=dag_teardown,
+      )
+
+      iris_preprocessed = PythonOperator(
+         task_id="iris_preprocessed_task",
+         python_callable=task_iris_preprocessed,
+      )
+
+      iris_model = PythonOperator(
+         task_id="iris_model_task",
+         python_callable=task_iris_model,
+      )
+
+      iris_preprocessed >> iris_model
+
+      setup >> iris_preprocessed
+
+      iris_model >> teardown
 
 Next, we see ``demo_airflow_pipeline_requirements.txt`` listing dependencies for running the pipeline:
 

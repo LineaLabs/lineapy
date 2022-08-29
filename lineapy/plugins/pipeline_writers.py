@@ -140,7 +140,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
     def _write_dag(self) -> None:
         dag_flavor = self.dag_config.get(
-            "dag_flavor", "PythonOperatorPerSession"
+            "dag_flavor", "PythonOperatorPerArtifact"
         )
 
         # Check if the given DAG flavor is a supported/valid one
@@ -162,7 +162,6 @@ class AirflowPipelineWriter(BasePipelineWriter):
             full_code = self._write_operator_per_artifact()
 
         # Write out file
-        full_code = prettify(full_code)
         file = self.output_dir / f"{self.pipeline_name}_dag.py"
         file.write_text(prettify(full_code))
         logger.info(f"Generated DAG file: {file}")
