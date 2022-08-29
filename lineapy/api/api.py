@@ -22,8 +22,7 @@ from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.airflow import AirflowDagConfig
-from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
@@ -361,19 +360,18 @@ def to_pipeline(
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
-    output_dir: Optional[str] = None,
+    output_dir: str = ".",
 ) -> Path:
     """
     Writes the pipeline job to a path on disk.
 
-    :param artifacts: list of artifact names to be included in the DAG.
-    :param framework: 'AIRFLOW' or 'SCRIPT'
-    :param pipeline_name: name of the pipeline
-    :param dependencies: tasks dependencies in graphlib format {'B':{'A','C'}},
-        this means task A and C are prerequisites for task B.
-    :param output_dir_path: Directory of the DAG and the python file it is
-        saved in; only use for PipelineType.AIRFLOW
-    :return: string containing the path of the DAG file that was exported.
+    :param artifacts: List of artifact names to be included in the pipeline.
+    :param framework: 'AIRFLOW' or 'SCRIPT'. Defaults to 'SCRIPT' if not specified.
+    :param pipeline_name: Name of the pipeline.
+    :param dependencies: Task dependencies in graphlib format, e.g., {'B':{'A','C'}}
+        means task A and C are prerequisites for task B.
+    :param output_dir: Directory path to save DAG and other pipeline files.
+    :return: Directory path where DAG and other pipeline files are saved.
     """
     pipeline = Pipeline(artifacts, pipeline_name, dependencies)
     pipeline.save()

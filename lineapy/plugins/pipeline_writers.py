@@ -40,7 +40,7 @@ class BasePipelineWriter:
         self.artifact_collection = artifact_collection
         self.keep_lineapy_save = keep_lineapy_save
         self.pipeline_name = pipeline_name
-        self.output_dir = Path(output_dir, pipeline_name)
+        self.output_dir = Path(output_dir)
         self.dag_config = dag_config or {}
 
         # Sort sessions topologically (applicable if artifacts come from multiple sessions)
@@ -75,9 +75,9 @@ class BasePipelineWriter:
             session_artifacts_sorted=self.session_artifacts_sorted,
             indentation=4,
         )
-        module_file = self.output_dir / f"{self.pipeline_name}_module.py"
-        module_file.write_text(prettify(module_text))
-        logger.info("Generated module file")
+        file = self.output_dir / f"{self.pipeline_name}_module.py"
+        file.write_text(prettify(module_text))
+        logger.info(f"Generated module file: {file}")
 
     def _write_requirements(self) -> None:
         """
@@ -92,13 +92,14 @@ class BasePipelineWriter:
             for lib in session_libs:
                 libraries[lib.package_name] = lib.version
         lib_names_text = "\n".join(
-            [f"{lib}=={ver}" for lib, ver in libraries.items()]
+            [
+                lib if lib == "lineapy" else f"{lib}=={ver}"
+                for lib, ver in libraries.items()
+            ]
         )
-        requirements_file = (
-            self.output_dir / f"{self.pipeline_name}_requirements.txt"
-        )
-        requirements_file.write_text(lib_names_text)
-        logger.info("Generated requirements file")
+        file = self.output_dir / f"{self.pipeline_name}_requirements.txt"
+        file.write_text(lib_names_text)
+        logger.info(f"Generated requirements file: {file}")
 
     def _write_dag(self) -> None:
         """
@@ -110,17 +111,13 @@ class BasePipelineWriter:
         """
         Write out Docker file.
         """
-        # Generate Dockerfile text
         DOCKERFILE_TEMPLATE = load_plugin_template(self.docker_template_name)
         dockerfile_text = DOCKERFILE_TEMPLATE.render(
             **self.docker_template_params
         )
-
-        # Write out file
         file = self.output_dir / f"{self.pipeline_name}_Dockerfile"
         file.write_text(dockerfile_text)
-
-        logger.info("Generated Docker file")
+        logger.info(f"Generated Docker file: {file}")
 
     def write_pipeline_files(self) -> None:
         """
@@ -139,106 +136,178 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
     @property
     def docker_template_name(self) -> str:
-        return "dockerfile.jinja"
+        return "airflow_dockerfile.jinja"
 
     def _write_dag(self) -> None:
         dag_flavor = self.dag_config.get(
-            "dag_flavor", "PythonOperatorPerSession"
+            "dag_flavor", "PythonOperatorPerArtifact"
         )
-        if dag_flavor in AirflowDagFlavor.__members__:
-            if (
-                AirflowDagFlavor[dag_flavor]
-                == AirflowDagFlavor.PythonOperatorPerSession
-            ):
-                DAG_TEMPLATE = load_plugin_template(
-                    "airflow_dag_PythonOperatorPerSession.jinja"
-                )
-                session_functions = [
-                    f"run_session_including_{session_artifacts._get_first_artifact_name()}"
-                    for session_artifacts in self.session_artifacts_sorted
-                ]
-                dependencies = {
-                    session_functions[i + 1]: {session_functions[i]}
-                    for i in range(len(session_functions) - 1)
-                }
-                task_graph = TaskGraph(
-                    nodes=session_functions,
-                    mapping={f: f for f in session_functions},
-                    edges=dependencies,
-                )
-                full_code = DAG_TEMPLATE.render(
-                    DAG_NAME=self.pipeline_name,
-                    MODULE_NAME=self.pipeline_name + "_module",
-                    OWNER=self.dag_config.get("owner", "airflow"),
-                    RETRIES=self.dag_config.get("retries", 2),
-                    START_DATE=self.dag_config.get(
-                        "start_date", "days_ago(1)"
-                    ),
-                    SCHEDULE_INTERVAL=self.dag_config.get(
-                        "schedule_interval", "*/15 * * * *"
-                    ),
-                    MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
-                    CATCHUP=self.dag_config.get("catchup", "False"),
-                    tasks=session_functions,
-                    task_dependencies=task_graph.get_airflow_dependencies(),
-                )
 
-            elif (
-                AirflowDagFlavor[dag_flavor]
-                == AirflowDagFlavor.PythonOperatorPerArtifact
-            ):
-                DAG_TEMPLATE = load_plugin_template(
-                    "airflow_dag_PythonOperatorPerArtifact.jinja"
-                )
-                task_functions = []
-                task_definitions = []
-                for session_artifacts in self.session_artifacts_sorted:
-                    task_functions += [
-                        nc.safename
-                        for nc in session_artifacts.artifact_nodecollections
-                    ]
-                    task_definitions += [
-                        get_task_definition(nc, self.pipeline_name)
-                        for nc in session_artifacts.artifact_nodecollections
-                    ]
-                dependencies = {
-                    task_functions[i + 1]: {task_functions[i]}
-                    for i in range(len(task_functions) - 1)
-                }
-                task_graph = TaskGraph(
-                    nodes=task_functions,
-                    mapping={f: f for f in task_functions},
-                    edges=dependencies,
-                )
-                full_code = DAG_TEMPLATE.render(
-                    DAG_NAME=self.pipeline_name,
-                    MODULE_NAME=self.pipeline_name + "_module",
-                    OWNER=self.dag_config.get("owner", "airflow"),
-                    RETRIES=self.dag_config.get("retries", 2),
-                    START_DATE=self.dag_config.get(
-                        "start_date", "days_ago(1)"
-                    ),
-                    SCHEDULE_INTERVAL=self.dag_config.get(
-                        "schedule_interval", "*/15 * * * *"
-                    ),
-                    MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
-                    CATCHUP=self.dag_config.get("catchup", "False"),
-                    task_definitions=task_definitions,
-                    tasks=task_functions,
-                    task_dependencies=task_graph.get_airflow_dependencies(
-                        setup_task="setup", teardown_task="teardown"
-                    ),
-                )
-
-            # Write out file
-            full_code = prettify(full_code)
-            file = self.output_dir / f"{self.pipeline_name}_dag.py"
-            file.write_text(prettify(full_code))
-            logger.info("Generated DAG file %s", file)
-        else:
+        # Check if the given DAG flavor is a supported/valid one
+        if dag_flavor not in AirflowDagFlavor.__members__:
             raise ValueError(
                 f'"{dag_flavor}" is an invalid airflow dag flavor.'
             )
+
+        # Construct DAG text for the given flavor
+        if (
+            AirflowDagFlavor[dag_flavor]
+            == AirflowDagFlavor.PythonOperatorPerSession
+        ):
+            full_code = self._write_operator_per_session()
+        elif (
+            AirflowDagFlavor[dag_flavor]
+            == AirflowDagFlavor.PythonOperatorPerArtifact
+        ):
+            full_code = self._write_operator_per_artifact()
+
+        # Write out file
+        file = self.output_dir / f"{self.pipeline_name}_dag.py"
+        file.write_text(prettify(full_code))
+        logger.info(f"Generated DAG file: {file}")
+
+    def _write_operator_per_session(self) -> str:
+        """
+        This hidden method implements Airflow DAG code generation
+        corresponding to the `PythonOperatorPerSession` flavor,
+        where each entire session gets one Python operator. For instance,
+        if the two artifacts in our pipeline (e.g., model and prediction)
+        were created in the same session, we would get an Airflow DAG file
+        looking as the following:
+
+        .. code-block:: python
+            import iris_module
+
+            ...
+
+            with DAG(...) as dag:
+                run_session_including_iris_model = PythonOperator(
+                    task_id="run_session_including_iris_model_task",
+                    python_callable=iris_module.run_session_including_iris_model,
+                )
+
+        This makes the Airflow DAG file more compact but lack transparency
+        and fuller control over each artifact-level task. Check the
+        `PythonOperatorPerArtifact` flavor to address this limitation.
+        """
+        DAG_TEMPLATE = load_plugin_template(
+            "airflow_dag_PythonOperatorPerSession.jinja"
+        )
+        session_functions = [
+            f"run_session_including_{session_artifacts._get_first_artifact_name()}"
+            for session_artifacts in self.session_artifacts_sorted
+        ]
+        dependencies = {
+            session_functions[i + 1]: {session_functions[i]}
+            for i in range(len(session_functions) - 1)
+        }
+        task_graph = TaskGraph(
+            nodes=session_functions,
+            mapping={f: f for f in session_functions},
+            edges=dependencies,
+        )
+        full_code = DAG_TEMPLATE.render(
+            DAG_NAME=self.pipeline_name,
+            MODULE_NAME=self.pipeline_name + "_module",
+            OWNER=self.dag_config.get("owner", "airflow"),
+            RETRIES=self.dag_config.get("retries", 2),
+            START_DATE=self.dag_config.get("start_date", "days_ago(1)"),
+            SCHEDULE_INTERVAL=self.dag_config.get(
+                "schedule_interval", "*/15 * * * *"
+            ),
+            MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
+            CATCHUP=self.dag_config.get("catchup", "False"),
+            tasks=session_functions,
+            task_dependencies=task_graph.get_airflow_dependencies(),
+        )
+
+        return full_code
+
+    def _write_operator_per_artifact(self) -> str:
+        """
+        This hidden method implements Airflow DAG code generation
+        corresponding to the `PythonOperatorPerArtifact` flavor,
+        where each artifact gets its own Python operator. For instance,
+        if the two artifacts in our pipeline (e.g., model and prediction)
+        were created in the same session, we would get an Airflow DAG file
+        looking as the following:
+
+        .. code-block:: python
+            import pickle
+            import iris_module
+
+            ...
+
+            def task_iris_model():
+                mod = iris_module.get_iris_model()
+                pickle.dump(mod, open("/tmp/iris/variable_mod.pickle", "wb"))
+
+            def task_iris_pred():
+                mod = pickle.load(open("/tmp/iris/variable_mod.pickle", "rb"))
+                pred = iris_module.get_iris_pred(mod)
+                pickle.dump(
+                    pred, open("/tmp/iris/variable_pred.pickle", "wb")
+                )
+
+            with DAG(...) as dag:
+                iris_model = PythonOperator(
+                    task_id="iris_model_task",
+                    python_callable=task_iris_model,
+                )
+
+                iris_pred = PythonOperator(
+                    task_id="iris_pred_task",
+                    python_callable=task_iris_pred,
+                )
+
+            iris_model >> iris_pred
+
+        This way, the generated Airflow DAG file opens room for engineers
+        to peak and control pipeline runs at a finer level and allows
+        for further customization.
+        """
+        DAG_TEMPLATE = load_plugin_template(
+            "airflow_dag_PythonOperatorPerArtifact.jinja"
+        )
+        task_functions = []
+        task_definitions = []
+        for session_artifacts in self.session_artifacts_sorted:
+            task_functions += [
+                nc.safename
+                for nc in session_artifacts.artifact_nodecollections
+            ]
+            task_definitions += [
+                get_task_definition(nc, self.pipeline_name)
+                for nc in session_artifacts.artifact_nodecollections
+            ]
+        dependencies = {
+            task_functions[i + 1]: {task_functions[i]}
+            for i in range(len(task_functions) - 1)
+        }
+        task_graph = TaskGraph(
+            nodes=task_functions,
+            mapping={f: f for f in task_functions},
+            edges=dependencies,
+        )
+        full_code = DAG_TEMPLATE.render(
+            DAG_NAME=self.pipeline_name,
+            MODULE_NAME=self.pipeline_name + "_module",
+            OWNER=self.dag_config.get("owner", "airflow"),
+            RETRIES=self.dag_config.get("retries", 2),
+            START_DATE=self.dag_config.get("start_date", "days_ago(1)"),
+            SCHEDULE_INTERVAL=self.dag_config.get(
+                "schedule_interval", "*/15 * * * *"
+            ),
+            MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
+            CATCHUP=self.dag_config.get("catchup", "False"),
+            task_definitions=task_definitions,
+            tasks=task_functions,
+            task_dependencies=task_graph.get_airflow_dependencies(
+                setup_task="setup", teardown_task="teardown"
+            ),
+        )
+
+        return full_code
 
 
 def get_task_definition(

@@ -13,11 +13,8 @@ from lineapy.db.relational import (
 )
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
 from lineapy.plugins.pipeline_writers import PipelineWriterFactory
-from lineapy.plugins.script import ScriptPlugin
-from lineapy.plugins.task import AirflowDagConfig as AirflowDagConfig2
-from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -51,64 +48,9 @@ class Pipeline:
     def export(
         self,
         framework: str = "SCRIPT",
-        output_dir: Optional[str] = None,
+        output_dir: str = ".",
         pipeline_dag_config: Optional[AirflowDagConfig] = {},
     ) -> Path:
-        execution_context = get_context()
-        db = execution_context.executor.db
-        session_orm = (
-            db.session.query(SessionContextORM)
-            .order_by(SessionContextORM.creation_time.desc())
-            .all()
-        )
-        if len(session_orm) == 0:
-            track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
-            raise Exception("No sessions found in the database.")
-        last_session = session_orm[0]
-
-        if framework in PipelineType.__members__:
-            if PipelineType[framework] == PipelineType.AIRFLOW:
-
-                ret = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
-                    self.name,
-                    self.task_graph,
-                    output_dir=output_dir,
-                    airflow_dag_config=pipeline_dag_config,
-                )
-
-            else:
-
-                ret = ScriptPlugin(db, last_session.id).sliced_pipeline_dag(
-                    self.name,
-                    self.task_graph,
-                    output_dir=output_dir,
-                )
-
-            # send the info
-            track(
-                ToPipelineEvent(
-                    framework,
-                    len(self.artifact_names),
-                    self.task_graph.get_airflow_dependency() != "",
-                    pipeline_dag_config is not None,
-                )
-            )
-            return ret
-
-        else:
-            raise Exception(f"No PipelineType for {framework}")
-
-    def _export(
-        self,
-        framework: str = "SCRIPT",
-        output_dir: str = ".",
-        pipeline_dag_config: Optional[AirflowDagConfig2] = {},
-    ) -> None:
-        """
-        This method uses objects implementing new style of graph refactor.
-        It is meant to eventually replace existing `export()` method above.
-        TODO [LIN-469]: Replace existing `export()` method with this one.
-        """
         # Create artifact collection
         execution_context = get_context()
         artifact_collection = ArtifactCollection(
@@ -141,6 +83,8 @@ class Pipeline:
                 pipeline_dag_config is not None,
             )
         )
+
+        return pipeline_writer.output_dir
 
     def save(self):
         # TODO save this pipeline to the db using PipelineORM

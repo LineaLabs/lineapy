@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.pipeline_writers import (
     AirflowPipelineWriter,
     BasePipelineWriter,
@@ -65,12 +66,62 @@ def check_requirements_txt(t1: str, t2: str):
         pytest.param(
             "housing",
             "",
+            ["p value"],
+            "SCRIPT",
+            "script_pipeline_housing_simple",
+            {},
+            {},
+            id="script_pipeline_housing_simple",
+        ),
+        pytest.param(
+            "housing",
+            "",
+            ["p value"],
+            "AIRFLOW",
+            "airflow_pipeline_housing_simple",
+            {},
+            {},
+            id="airflow_pipeline_housing_simple",
+        ),
+        pytest.param(
+            "housing",
+            "",
+            ["y", "p value"],
+            "SCRIPT",
+            "script_pipeline_housing_multiple",
+            {},
+            {},
+            id="script_pipeline_housing_multiple",
+        ),
+        pytest.param(
+            "housing",
+            "",
+            ["y", "p value"],
+            "AIRFLOW",
+            "airflow_pipeline_housing_multiple",
+            {},
+            {},
+            id="airflow_pipeline_housing_multiple",
+        ),
+        pytest.param(
+            "housing",
+            "",
             ["y", "p value"],
             "SCRIPT",
             "script_pipeline_housing_w_dependencies",
             {"p value": {"y"}},
             {},
             id="script_pipeline_housing_w_dependencies",
+        ),
+        pytest.param(
+            "housing",
+            "",
+            ["y", "p value"],
+            "AIRFLOW",
+            "airflow_pipeline_housing_w_dependencies",
+            {"p value": {"y"}},
+            {},
+            id="airflow_pipeline_housing_w_dependencies",
         ),
         pytest.param(
             "complex",
@@ -85,6 +136,7 @@ def check_requirements_txt(t1: str, t2: str):
     ],
 )
 def test_pipeline_generation(
+    linea_db,
     execute,
     input_script1,
     input_script2,
@@ -101,23 +153,15 @@ def test_pipeline_generation(
     code1 = Path(
         "tests", "unit", "graph_reader", "inputs", input_script1
     ).read_text()
-    res = execute(code1, snapshot=False)
+    execute(code1, snapshot=False)
 
     if input_script2 != "":
         code2 = Path(
             "tests", "unit", "graph_reader", "inputs", input_script2
         ).read_text()
-        res = execute(code2, snapshot=False)
+        execute(code2, snapshot=False)
 
-    artifact_string = ", ".join([f'"{x}"' for x in artifact_list])
-    code = (
-        "from lineapy.graph_reader.artifact_collection import ArtifactCollection\n"
-        + "from lineapy.execution.context import get_context\n"
-        + "db = get_context().executor.db\n"
-        + f"ac = ArtifactCollection(db, [{artifact_string}])"
-    )
-    res = execute(code, snapshot=False)
-    artifact_collection = res.values["ac"]
+    artifact_collection = ArtifactCollection(linea_db, artifact_list)
     with tempfile.TemporaryDirectory() as tempfolder:
         pipeline_writer = pipeline_writer_classes[framework](
             artifact_collection,
@@ -133,7 +177,7 @@ def test_pipeline_generation(
             file_endings.append("_dag.py")
 
         for file_suffix in file_endings:
-            path = Path(tempfolder, pipeline_name, pipeline_name + file_suffix)
+            path = Path(tempfolder, pipeline_name + file_suffix)
             generated = path.read_text()
             path_expected = Path(
                 "tests",
