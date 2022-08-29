@@ -428,6 +428,9 @@ def python_cli(
             )
             exit(1)
 
+        # TODO: Use `Pipeline` object as an entry point (LIN-319 needs
+        # to be tackled first to define/refine expected behavior for CLI).
+
         artifact_collection = ArtifactCollection(db, slice)
         task_dependencies = ast.literal_eval(airflow_task_dependencies or "{}")
 

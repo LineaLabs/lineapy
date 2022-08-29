@@ -242,11 +242,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 mod = iris_module.get_iris_model()
                 pickle.dump(mod, open("/tmp/iris/variable_mod.pickle", "wb"))
 
-            def task_iris_petal_length_pred():
+            def task_iris_pred():
                 mod = pickle.load(open("/tmp/iris/variable_mod.pickle", "rb"))
-                petal_length_pred = iris_module.get_iris_petal_length_pred(mod)
+                pred = iris_module.get_iris_pred(mod)
                 pickle.dump(
-                    petal_length_pred, open("/tmp/iris/variable_petal_length_pred.pickle", "wb")
+                    pred, open("/tmp/iris/variable_pred.pickle", "wb")
                 )
 
             with DAG(...) as dag:
