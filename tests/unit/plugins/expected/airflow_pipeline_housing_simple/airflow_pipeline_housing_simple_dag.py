@@ -17,7 +17,7 @@ with DAG(
     default_args=default_dag_args,
 ) as dag:
 
-    run_session_including_pvalue = PythonOperator(
-        task_id="run_session_including_pvalue_task",
-        python_callable=airflow_pipeline_housing_simple_module.run_session_including_pvalue,
+    run_session_including_p_value = PythonOperator(
+        task_id="run_session_including_p_value_task",
+        python_callable=airflow_pipeline_housing_simple_module.run_session_including_p_value,
     )

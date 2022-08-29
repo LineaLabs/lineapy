@@ -19,7 +19,7 @@ def get_p_value():
     return p
 
 
-def run_session_including_pvalue():
+def run_session_including_p_value():
     # Given multiple artifacts, we need to save each right after
     # its calculation to protect from any irrelevant downstream
     # mutations (e.g., inside other artifact calculations)
@@ -33,7 +33,7 @@ def run_session_including_pvalue():
 
 def run_all_sessions():
     artifacts = dict()
-    artifacts.update(run_session_including_pvalue())
+    artifacts.update(run_session_including_p_value())
     return artifacts
 
 
