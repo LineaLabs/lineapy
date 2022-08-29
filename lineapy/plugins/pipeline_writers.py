@@ -167,6 +167,29 @@ class AirflowPipelineWriter(BasePipelineWriter):
         logger.info(f"Generated DAG file: {file}")
 
     def _write_operator_per_session(self) -> str:
+        """
+        This hidden method implements Airflow DAG code generation
+        corresponding to the `PythonOperatorPerSession` flavor,
+        where each entire session gets one Python operator. For instance,
+        if the two artifacts in our pipeline (e.g., model and prediction)
+        were created in the same session, we would get an Airflow DAG file
+        looking as the following:
+
+        .. code-block:: python
+            import iris_module
+
+            ...
+
+            with DAG(...) as dag:
+                run_session_including_iris_model = PythonOperator(
+                    task_id="run_session_including_iris_model_task",
+                    python_callable=iris_module.run_session_including_iris_model,
+                )
+
+        This makes the Airflow DAG file more compact but lack transparency
+        and fuller control over each artifact-level task. Check the
+        `PythonOperatorPerArtifact` flavor to address this limitation.
+        """
         DAG_TEMPLATE = load_plugin_template(
             "airflow_dag_PythonOperatorPerSession.jinja"
         )
@@ -201,6 +224,48 @@ class AirflowPipelineWriter(BasePipelineWriter):
         return full_code
 
     def _write_operator_per_artifact(self) -> str:
+        """
+        This hidden method implements Airflow DAG code generation
+        corresponding to the `PythonOperatorPerArtifact` flavor,
+        where each artifact gets its own Python operator. For instance,
+        if the two artifacts in our pipeline (e.g., model and prediction)
+        were created in the same session, we would get an Airflow DAG file
+        looking as the following:
+
+        .. code-block:: python
+            import pickle
+            import iris_module
+
+            ...
+
+            def task_iris_model():
+                mod = iris_module.get_iris_model()
+                pickle.dump(mod, open("/tmp/iris/variable_mod.pickle", "wb"))
+
+            def task_iris_petal_length_pred():
+                mod = pickle.load(open("/tmp/iris/variable_mod.pickle", "rb"))
+                petal_length_pred = iris_module.get_iris_petal_length_pred(mod)
+                pickle.dump(
+                    petal_length_pred, open("/tmp/iris/variable_petal_length_pred.pickle", "wb")
+                )
+
+            with DAG(...) as dag:
+                iris_model = PythonOperator(
+                    task_id="iris_model_task",
+                    python_callable=task_iris_model,
+                )
+
+                iris_pred = PythonOperator(
+                    task_id="iris_pred_task",
+                    python_callable=task_iris_pred,
+                )
+
+            iris_model >> iris_pred
+
+        This way, the generated Airflow DAG file opens room for engineers
+        to peak and control pipeline runs at a finer level and allows
+        for further customization.
+        """
         DAG_TEMPLATE = load_plugin_template(
             "airflow_dag_PythonOperatorPerArtifact.jinja"
         )
