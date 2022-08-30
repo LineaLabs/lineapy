@@ -8,8 +8,10 @@ from lineapy.data.types import Node, SourceCode, SourceCodeLocation
 from lineapy.editors.ipython_cell_storage import get_location_path
 from lineapy.exceptions.user_exception import RemoveFrames, UserException
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.transformer.base_transformer import BaseTransformer
 from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.transformer.py37_transformer import Py37Transformer
+from lineapy.transformer.py38_transformer import Py38Transformer
 from lineapy.utils.utils import get_new_id
 
 logger = logging.getLogger(__name__)
@@ -35,10 +37,13 @@ def transform(
         tracer.executor.module_file = str(location)
 
     # initialize the transformer IN ORDER of preference
-    transformers: List[ast.NodeTransformer] = []
+    transformers: List[BaseTransformer] = []
     # python 3.7 handler
     if sys.version_info < (3, 8):
         transformers.append(Py37Transformer(src, tracer))
+    # python 3.8 handler
+    if sys.version_info < (3, 9):
+        transformers.append(Py38Transformer(src, tracer))
 
     # main transformation handler
     transformers.append(NodeTransformer(src, tracer))
