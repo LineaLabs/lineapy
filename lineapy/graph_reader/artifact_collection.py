@@ -30,6 +30,25 @@ configure_logging()
 
 
 @dataclass
+class InputVariable:
+    """
+    Class to generate code related input variable and it's default value
+
+    default_args: a = 1
+    parser_body: parser.add_arguemnt('--a', default=1)
+    parser_args: a = args.a
+
+    """
+
+    def __init__(self, variable_name, value) -> None:
+        self.variable_name = variable_name
+        self.value = value
+        self.default_args = f"{self.variable_name} = {self.value}"
+        self.parser_body = f"parser.add_argument('--{self.variable_name}', default={self.value})"
+        self.parser_args = f"{self.variable_name} = args.{self.variable_name}"
+
+
+@dataclass
 class ArtifactCollection:
     """
     `ArtifactCollection` can be thought of as a box where the inserted group of artifacts and
@@ -338,16 +357,40 @@ class ArtifactCollection:
                 if len(line.lstrip(" ").rstrip(",")) > 0
             ]
 
+        module_input_parameters = [
+            InputVariable(
+                variable_name=x.split("=")[0].strip(" "),
+                value=x.split("=")[1].strip(" "),
+            )
+            for x in input_parameters_body
+        ]
+
         module_input_parameters_body = (
-            ",".join(input_parameters_body)
-            if len(input_parameters_body) <= 1
-            else "\n"
-            + f",\n{indentation_block}".join(input_parameters_body)
+            ""
+            if len(module_input_parameters) == 0
+            else module_input_parameters[0].default_args
+            if len(module_input_parameters) == 1
+            else f"\n{indentation_block}"
+            + f",\n{indentation_block}".join(
+                [param.default_args for param in module_input_parameters]
+            )
+            + ",\n"
+        )
+
+        parser_input_parameters = (
+            ""
+            if len(module_input_parameters) == 0
+            else module_input_parameters[0].parser_args
+            if len(module_input_parameters) == 1
+            else f"\n{indentation_block}"
+            + f",\n{indentation_block}".join(
+                [param.parser_args for param in module_input_parameters]
+            )
             + ",\n"
         )
 
         module_input_parameters_list = [
-            x.split("=")[0].strip(" ") for x in input_parameters_body
+            param.variable_name for param in module_input_parameters
         ]
         if len(module_input_parameters_list) != len(
             set(module_input_parameters_list)
@@ -370,6 +413,10 @@ class ArtifactCollection:
             module_function_body=module_function_body,
             module_function_return=module_function_return,
             module_input_parameters=module_input_parameters_body,
+            parser_blocks=[
+                param.parser_body for param in module_input_parameters
+            ],
+            parser_input_parameters=parser_input_parameters,
         )
 
         return module_text
