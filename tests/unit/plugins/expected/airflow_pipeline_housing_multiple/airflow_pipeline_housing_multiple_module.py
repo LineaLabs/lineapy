@@ -49,4 +49,5 @@ def run_all_sessions():
 
 
 if __name__ == "__main__":
-    run_all_sessions()
+    # Edit this section to customize the behavior of artifacts
+    artifacts = run_all_sessions()

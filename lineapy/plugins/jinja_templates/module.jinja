@@ -14,7 +14,8 @@ def run_all_sessions({{module_input_parameters}}):
 {{indentation_block}}return artifacts
 
 if __name__ == "__main__":
-{% if module_input_parameters != '' -%}
+{{indentation_block}}# Edit this section to customize the behavior of artifacts
+{%- if module_input_parameters != '' -%}
 {{indentation_block}}parser = argparse.ArgumentParser()
 {% for parser_block in parser_blocks -%}
 {{indentation_block}}{{parser_block}}
@@ -24,5 +25,3 @@ if __name__ == "__main__":
 {% else %}
 {{indentation_block}}artifacts = run_all_sessions()
 {% endif %}
-{{indentation_block}}print(artifacts)
-
