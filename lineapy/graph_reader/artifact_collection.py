@@ -403,7 +403,7 @@ class ArtifactCollection:
     def get_module(self, dependencies: TaskGraphEdge = {}):
         """
         Writing module text to a temp file and load module with names of
-        session_art1_art2_...
+        ``session_art1_art2_...```
         """
 
         module_name = f"session_{'_'.join(self.session_artifacts.keys())}"
