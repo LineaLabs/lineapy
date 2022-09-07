@@ -24,8 +24,9 @@ def read(path, encoding="utf-8"):
 
 
 def version(path):
-    """Obtain the package version from a python file e.g. pkg/__init__.py
-    See <https://packaging.python.org/en/latest/single_source_version.html>.
+    """Obtain the package version from a python file
+    See <https://packaging.python.org/en/latest/guides/single-sourcing-package-version/>.
+    Option 3: "Set the value to a __version__ global variable in a dedicated module in your project"
     """
     version_file = read(path)
     version_match = re.search(
@@ -38,7 +39,7 @@ def version(path):
 
 DOWNLOAD_URL = "https://github.com/LineaLabs/lineapy/"
 LICENSE = "Apache License 2.0"
-VERSION = version("lineapy/__init__.py")
+VERSION = version("lineapy/utils/version.py")
 
 minimal_requirement = [
     "click>=8.0.0",

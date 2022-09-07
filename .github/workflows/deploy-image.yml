@@ -7,7 +7,7 @@ on:
     branches: ["main"]
     paths:
       - "setup.py"
-      - "lineapy/__init__.py"
+      - "lineapy/utils/version.py"
       - "airflow-requirements.txt"
       - "Dockerfile"
       - "Makefile"
