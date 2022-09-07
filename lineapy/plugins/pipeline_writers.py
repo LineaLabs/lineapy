@@ -90,10 +90,11 @@ class BasePipelineWriter:
                 session_artifacts.session_id
             )
             for lib in session_libs:
-                lib_name = PIP_PACKAGE_NAMES.get(
-                    lib.package_name, lib.package_name
-                )
-                libraries[lib_name] = lib.version
+                if isinstance(lib.package_name, str):
+                    lib_name = PIP_PACKAGE_NAMES.get(
+                        lib.package_name, lib.package_name
+                    )
+                    libraries[lib_name] = lib.version
         lib_names_text = "\n".join(
             [
                 lib if lib == "lineapy" else f"{lib}=={ver}"
