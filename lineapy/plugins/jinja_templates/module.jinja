@@ -24,4 +24,5 @@ if __name__ == "__main__":
 {{indentation_block}}artifacts = run_all_sessions({{parser_input_parameters}})
 {% else %}
 {{indentation_block}}artifacts = run_all_sessions()
-{% endif %}
+{% endif -%}
+{{indentation_block}}print(artifacts)
