@@ -604,6 +604,7 @@ class RelationalLineaDB:
             .filter(
                 and_(
                     ImportNodeORM.session_id == session_id,
+                    ImportNodeORM.package_name != "None",
                     ImportNodeORM.version != "None",
                 )
             )

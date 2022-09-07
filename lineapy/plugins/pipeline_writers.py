@@ -11,7 +11,7 @@ from lineapy.plugins.task import (
     TaskGraph,
     TaskGraphEdge,
 )
-from lineapy.plugins.utils import load_plugin_template
+from lineapy.plugins.utils import PIP_PACKAGE_NAMES, load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_system_python_version, prettify
 
@@ -90,7 +90,11 @@ class BasePipelineWriter:
                 session_artifacts.session_id
             )
             for lib in session_libs:
-                libraries[lib.package_name] = lib.version
+                if isinstance(lib.package_name, str):
+                    lib_name = PIP_PACKAGE_NAMES.get(
+                        lib.package_name, lib.package_name
+                    )
+                    libraries[lib_name] = lib.version
         lib_names_text = "\n".join(
             [
                 lib if lib == "lineapy" else f"{lib}=={ver}"
