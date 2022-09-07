@@ -1,34 +1,53 @@
-<p align="center">
-<img src="https://user-images.githubusercontent.com/724072/165418570-7338c65b-0fd1-489c-b76a-f03f074f42ca.png" width="500">
-</p>
+<div align="center" style="display:flex;flex-direction:column;">
+  <a href="https://lineapy.org/">
+    <img src="https://user-images.githubusercontent.com/724072/165418570-7338c65b-0fd1-489c-b76a-f03f074f42ca.png" alt="LineaPy" width="500">
+  </a>
+  <h3>Capture, analyze, and transform messy notebooks into production-ready pipelines
+  <br />
+  with just two lines of code.</h3>
+  <p>
+    <a href="https://twitter.com/lineapy_oss">
+      <img alt="Follow LineaPy on Twitter!" src="https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter">
+    </a>
+    <a href="https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q">
+      <img alt="Join the LineaPy Slack!" src="https://img.shields.io/badge/slack-@lineapy--community-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40">
+    </a>
+  </p>
+  <p>
+  Ask questions or learn about our workshops on our <a target="_blank" href="https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q">Slack!</a></p>
+</div>
+
+<div align="center" style="display:flex;flex-direction:column;">
+    <h3>👇 Try It Out! 👇</h3>
+    <div>
+        <a href="https://bit.ly/3N9WvDB">
+            <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/>
+        </a>
+        <a href="https://bit.ly/3MyW8RW">
+            <img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/>
+        </a>
+    </div>
+</div>
+
+<https://user-images.githubusercontent.com/13392380/169427654-487d8d4b-3eda-462a-a96c-51c151f39ab9.mp4>
 
 ![Python Versions](https://img.shields.io/badge/Python--versions-3.7%20%7C%203.8%20%7C%203.9-brightgreen)
 [![Build](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml/badge.svg)](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml)
 [![Documentation Status](https://readthedocs.com/projects/lineapy-org-lineapy/badge/?version=latest&token=925cd1d5eaedb7cc60508c9cce377574da748a7d6c050bb2c3de2a360a9f4f20)](https://docs.lineapy.org/en/latest/?badge=latest)
-[![Slack](https://img.shields.io/badge/slack-@lineapy--community-CF0E5B.svg?logo=slack&logoColor=white&labelColor=3F0E40)](https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?logo=apache)](https://github.com/LineaLabs/lineapy/blob/main/LICENSE.txt)
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
-[![Twitter](https://img.shields.io/twitter/follow/lineapy_oss?labelColor=00ACEE&logo=twitter)](https://twitter.com/lineapy_oss)
-
-LineaPy is a Python package for capturing, analyzing, and automating data science workflows.
-At a high level, LineaPy traces the sequence of code execution to form a comprehensive understanding
-of the code and its context. This understanding allows LineaPy to provide a set of tools that help
-data scientists bring their work to production more quickly and easily, with just *two lines* of code.
-
-<p align="center">
-    <b style="font-size:48px;">👇 Try It Out! 👇</b>
-    <br>
-    <a href="https://bit.ly/3N9WvDB"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
-    <a href="https://bit.ly/3MyW8RW"><img src="https://mybinder.org/badge_logo.svg" alt="Open in Binder"/></a>    
-</p>
-
-<https://user-images.githubusercontent.com/13392380/169427654-487d8d4b-3eda-462a-a96c-51c151f39ab9.mp4>
 
 - [What Problems Can LineaPy Solve?](#what-problems-can-lineapy-solve)
-  - [Cleaning Messy Notebooks](#use-case-1-cleaning-messy-notebooks)
-  - [Revisiting Previous Work](#use-case-2-revisiting-previous-work)
-  - [Building Pipelines](#use-case-3-building-pipelines)
+  - [Use Case 1: Cleaning Messy Notebooks](#use-case-1-cleaning-messy-notebooks)
+  - [Use Case 2: Revisiting Previous Work](#use-case-2-revisiting-previous-work)
+  - [Use Case 3: Building Pipelines](#use-case-3-building-pipelines)
 - [Getting Started](#getting-started)
+  - [Installation](#installation)
+  - [Quick Start](#quick-start)
+  - [Interfaces](#interfaces)
+    - [Jupyter and IPython](#jupyter-and-ipython)
+    - [Hosted Jupyter Environment](#hosted-jupyter-environment)
+    - [CLI](#cli)
 - [Usage Reporting](#usage-reporting)
 - [What Next?](#what-next)
 
@@ -97,13 +116,13 @@ pip install git+https://github.com/LineaLabs/lineapy.git --upgrade
 
 LineaPy offers several extras to extend its core capabilities:
 
-| Version  | Installation Command            | Enables                                                  |
-|----------|---------------------------------|----------------------------------------------------------|
-| minimal  | `pip install lineapy[minimal]`  | Minimal dependencies for LineaPy                         |
-| dev      | `pip install lineapy[dev]`      | All LineaPy dependencies for testing and development     |
-| s3       | `pip install lineapy[s3]`       | Dependencies to use S3 to save artifact                  |
-| graph    | `pip install lineapy[graph]`    | Dependencies to visualize LineaPy node graph             |
-| postgres | `pip install lineapy[postgres]` | Dependencies to use PostgreSQL backend                   |
+| Version  | Installation Command            | Enables                                              |
+| -------- | ------------------------------- | ---------------------------------------------------- |
+| minimal  | `pip install lineapy[minimal]`  | Minimal dependencies for LineaPy                     |
+| dev      | `pip install lineapy[dev]`      | All LineaPy dependencies for testing and development |
+| s3       | `pip install lineapy[s3]`       | Dependencies to use S3 to save artifact              |
+| graph    | `pip install lineapy[graph]`    | Dependencies to visualize LineaPy node graph         |
+| postgres | `pip install lineapy[postgres]` | Dependencies to use PostgreSQL backend               |
 
 The `minimal` version of LineaPy does not include `black` or `isort`,
 which may result in less organized output code and scripts.
@@ -244,7 +263,7 @@ to different sessions; you will need to repeat it for each new session.
 
 #### Hosted Jupyter Environment
 
-In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle or other environments that you do not start your notebook from CLI (such as Jupyter extension within VS Code), you need to install `lineapy` directly within your notebook first via:
+In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle, Databricks or in any other environments that are not started using CLI (such as Jupyter extension within VS Code), you need to install `lineapy` directly within your notebook first via:
 
 ```ipython
 !pip install lineapy
@@ -298,15 +317,15 @@ export LINEAPY_DO_NOT_TRACK=true
 To learn more about LineaPy, please check out the project [documentation](https://docs.lineapy.org/en/latest/index.html)
 which contains many examples you can follow with. Some key resources include:
 
-| Resource | Description |
-| ------------- | - |
-| **[Docs]** | This is our knowledge hub &mdash; when in doubt, start here! |
-| **[Concepts]** | Learn about key concepts underlying LineaPy! |
-| **[Tutorials]** | These notebook tutorials will help you better understand core functionalities of LineaPy |
-| **[Use Cases]** | These domain examples illustrate how LineaPy can help in real-world applications |
-| **[API Reference]** | Need more technical details? This reference may help! |
-| **[Contribute]** | Want to contribute? These instructions will help you get set up! |
-| **[Slack]** | Have questions or issues unresolved? Join our community and ask away! |
+| Resource            | Description                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| **[Docs]**          | This is our knowledge hub &mdash; when in doubt, start here!                             |
+| **[Concepts]**      | Learn about key concepts underlying LineaPy!                                             |
+| **[Tutorials]**     | These notebook tutorials will help you better understand core functionalities of LineaPy |
+| **[Use Cases]**     | These domain examples illustrate how LineaPy can help in real-world applications         |
+| **[API Reference]** | Need more technical details? This reference may help!                                    |
+| **[Contribute]**    | Want to contribute? These instructions will help you get set up!                         |
+| **[Slack]**         | Have questions or issues unresolved? Join our community and ask away!                    |
 
 [Docs]: https://docs.lineapy.org/en/latest/index.html
 [Concepts]: https://docs.lineapy.org/en/latest/fundamentals/concepts.html

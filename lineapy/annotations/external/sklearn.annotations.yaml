@@ -9,3 +9,12 @@
         - views:
             - self_ref: SELF_REF
             - result: RESULT
+    - criteria:
+        class_instance: BaseEstimator
+        class_method_name: fit_transform
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT

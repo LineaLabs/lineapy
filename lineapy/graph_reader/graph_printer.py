@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 from lineapy.data.types import (
     KeywordArgument,
     LineaID,
+    Node,
     NodeType,
     PositionalArgument,
     SourceCode,
@@ -67,6 +68,14 @@ class GraphPrinter:
     def get_node_type_name(self, node_type: NodeType) -> str:
         return f"{pretty_print_node_type(node_type)}_{self.get_node_type_count(node_type)}"
 
+    def get_cached_node_type_name(self, node: Node) -> str:
+        if node.id not in self.id_to_attribute_name:
+            attr_name = self.get_node_type_name(node.node_type)
+            self.id_to_attribute_name[node.id] = attr_name
+            return attr_name
+        else:
+            return self.id_to_attribute_name[node.id]
+
     def lines(self) -> Iterable[str]:
         if self.include_imports:
             yield "import datetime"
@@ -80,7 +89,7 @@ class GraphPrinter:
 
         for node in self.graph.visit_order():
             node_id = node.id
-            attr_name = self.get_node_type_name(node.node_type)
+            attr_name = self.get_cached_node_type_name(node)
 
             # If the node has source code, and we haven't printed it before
             # print that first so it will just reference
@@ -216,7 +225,14 @@ class GraphPrinter:
                 yield ","
             yield "]"
         elif isinstance(v, str):
-            yield pretty_print_str(v)
+            v_lid = LineaID(v)
+            node = self.graph.get_node(v_lid)
+            if node is not None:
+                attr_name = self.get_cached_node_type_name(node)
+                self.id_to_attribute_name[v_lid] = attr_name
+                yield self.lookup_id(v_lid)
+            else:
+                yield pretty_print_str(v)
         else:
             value = repr(v)
             # Try parsing as Python code, if we can't, then wrap in string.

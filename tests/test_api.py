@@ -1,4 +1,9 @@
-from lineapy.api.api_classes import LineaArtifact
+import pickle
+from pathlib import Path
+
+from lineapy.api.api import _try_write_to_pickle
+from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.utils.config import options
 
 
 def test_execute_slice(execute):
@@ -11,7 +16,7 @@ if True:
     x.append(1)
 """
     res = execute(c, artifacts=["x"], snapshot=False)
-    artifact = res.db.get_artifact_by_name("x")
+    artifact = res.db.get_artifactorm_by_name("x")
     full_graph_artifact = LineaArtifact(
         db=res.db,
         _execution_id=artifact.execution_id,
@@ -32,3 +37,14 @@ if True:
 """
     )
     assert res.values["x"] == [1]
+
+
+def test_write_to_pickle():
+    _try_write_to_pickle(42, "test_pickle")
+    pickle_path = (
+        Path(options.safe_get("artifact_storage_dir")) / "test_pickle"
+    )
+    assert pickle_path.exists()
+
+    with pickle_path.open("rb") as f:
+        assert pickle.load(f) == 42

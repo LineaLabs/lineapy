@@ -162,8 +162,7 @@ but I have given them names for readability):
       positional_args=['added'],
    )
 
-
-TODO: add visual of this in markdown with:
+This can also be seen by visualizing the artifact.
 
 .. code-block:: python
 
@@ -171,6 +170,10 @@ TODO: add visual of this in markdown with:
 
    artifact = lineapy.save(res, "res")
    artifact.visualize()
+
+.. image:: ../_static/images/example_graph.png
+  :width: 800
+  :alt: Visualization of graph generated from example code.
 
 
 Creating Graphs
@@ -361,7 +364,7 @@ Outputting to airflow
 
 On top of just slicing the code, we also support creating an Airflow DAG out
 of the resulting code. This is currently implemented through string templating
-in :mod:`lineapy.plugins.airflow` to create a file that airflow can understand.
+in :class:`lineapy.plugins.pipeline_writers.AirflowPipelineWriter` to create a file that airflow can understand.
 
 All of the code is currently saved in one `PythonOperator`.
 

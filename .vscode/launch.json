@@ -11,6 +11,7 @@
             "module": "lineapy.cli.cli",
             "args": [
                 "python",
+                "--print-graph",
                 "--slice",
                 "p value",
                 "tests/housing.py",
@@ -62,7 +63,7 @@
                 "--airflow",
                 "sliced_housing_dag",
                 "--airflow-task-dependencies",
-                "'p value' >> 'y'",
+                "{'p value': {'y'}}",
                 "tests/housing.py",
             ],
         },

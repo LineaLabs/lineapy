@@ -1,0 +1,2 @@
+This directory contains database migration scripts, which can be found in the `versions` directory.
+For more information, see `https://alembic.sqlalchemy.org/en/latest/`.

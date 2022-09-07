@@ -1,0 +1,15 @@
+FROM python:{python_version}
+
+RUN mkdir /tmp/installers
+WORKDIR /tmp/installers
+
+# Copy all the requirements to run current DAG
+COPY ./script_pipeline_housing_w_dependencies/script_pipeline_housing_w_dependencies_requirements.txt ./
+
+# Install required libs
+RUN pip install -r ./script_pipeline_housing_w_dependencies_requirements.txt
+
+WORKDIR /home
+COPY . .
+
+CMD [ "standalone" ]

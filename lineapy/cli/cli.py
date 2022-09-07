@@ -25,14 +25,15 @@ from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
 
-from lineapy.api.api_classes import LineaArtifact
+from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
+from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.plugins.airflow import AirflowPlugin
+from lineapy.plugins.pipeline_writers import AirflowPipelineWriter
 from lineapy.plugins.utils import slugify
-from lineapy.transformer.node_transformer import transform
+from lineapy.transformer.transform_code import transform
 from lineapy.utils.analytics.utils import send_lib_info_from_db
 from lineapy.utils.benchmarks import distribution_change
 from lineapy.utils.config import (
@@ -57,6 +58,13 @@ logger = logging.getLogger(__name__)
     "--verbose",
     help="Print out logging for graph creation and execution.",
     is_flag=True,
+)
+@click.version_option(
+    None,
+    "--version",
+    "-v",
+    message="%(package)s %(version)s",
+    help="Print the Lineapy version number and exit.",
 )
 @click.option(
     "--home-dir",
@@ -86,11 +94,10 @@ logger = logging.getLogger(__name__)
 @click.option(
     "--logging-level",
     type=click.Choice(
-        list(logging._nameToLevel.keys())
-        + sorted([str(x) for x in set(logging._levelToName.keys())]),
+        list(logging._nameToLevel.keys()),
         case_sensitive=False,
     ),
-    help="Logging level for LineaPy.",
+    help="Logging level for LineaPy, overrides the --verbose flag if set.",
 )
 @click.option(
     "--logging-file",
@@ -114,15 +121,15 @@ def linea_cli(
 
     # Set the logging env variable so its passed to subprocesses, like creating a jupyter kernel
     if verbose:
-        options.set("LINEAPY_LOG_LEVEL", "DEBUG")
+        options.set("logging_level", "DEBUG")
+    if logging_level:
+        options.set("logging_level", logging_level)
 
     configure_logging()
 
     for arg in args:
         if arg in options.__dict__.keys() and locals().get(arg) is not None:
             options.set(arg, locals().get(arg))
-
-    options._set_defaults()
 
 
 @linea_cli.command()
@@ -200,7 +207,7 @@ def notebook(
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
     db = RelationalLineaDB.from_config(options)
-    artifact = db.get_artifact_by_name(artifact_name)
+    artifact = db.get_artifactorm_by_name(artifact_name)
     # FIXME: mypy issue with SQLAlchemy, see https://github.com/python/typeshed/issues/974
     api_artifact = LineaArtifact(
         db=db,
@@ -251,7 +258,7 @@ def file(
 
     # Print the slice:
     # FIXME: weird indirection
-    artifact = db.get_artifact_by_name(artifact_name)
+    artifact = db.get_artifactorm_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
@@ -341,6 +348,30 @@ def python(
     visualize: bool,
     arg: Iterable[str],
 ):
+    python_cli(
+        file_name,
+        slice,
+        export_slice,
+        export_slice_to_airflow_dag,
+        airflow_task_dependencies,
+        print_source,
+        print_graph,
+        visualize,
+        arg,
+    )
+
+
+def python_cli(
+    file_name: pathlib.Path,
+    slice: List[str] = None,  # cast tuple into list
+    export_slice: List[str] = None,  # cast tuple into list
+    export_slice_to_airflow_dag: str = None,
+    airflow_task_dependencies: str = None,
+    print_source: bool = False,
+    print_graph: bool = False,
+    visualize: bool = False,
+    arg: Iterable[str] = [],
+):
     set_custom_excepthook()
     check_python_version()
     tree = rich.tree.Tree(f"📄 {file_name}")
@@ -397,12 +428,20 @@ def python(
             )
             exit(1)
 
-        ap = AirflowPlugin(db, tracer.tracer_context.get_session_id())
-        ap.sliced_airflow_dag(
-            slice,
-            export_slice_to_airflow_dag,
-            ast.literal_eval(airflow_task_dependencies),
+        # TODO: Use `Pipeline` object as an entry point (LIN-319 needs
+        # to be tackled first to define/refine expected behavior for CLI).
+
+        artifact_collection = ArtifactCollection(db, slice)
+        task_dependencies = ast.literal_eval(airflow_task_dependencies or "{}")
+
+        # Construct pipeline writer
+        pipeline_writer = AirflowPipelineWriter(
+            artifact_collection=artifact_collection,
+            dependencies=task_dependencies,
         )
+
+        # Write out pipeline files
+        pipeline_writer.write_pipeline_files()
 
     db.close()
     if print_graph:
@@ -546,6 +585,11 @@ def add(path: pathlib.Path, name: str):
     This command copies the yaml file whose path is provided by the user into the user's .lineapy directory to allow Lineapy to manage it.
     """
 
+    annotations_add(path, name)
+
+
+def annotations_add(path: pathlib.Path, orig_name: Optional[str] = None):
+
     # validate that source is in correct format before importing
     try:
         invalid_specs = validate_spec(path)
@@ -558,7 +602,7 @@ def add(path: pathlib.Path, name: str):
         exit(1)
 
     # calculate name of new annotation source
-    name = name or path.stem
+    name = orig_name or path.stem
     name = remove_annotations_file_extension(name)
     name = slugify(name)
 
@@ -586,6 +630,10 @@ def list():
     """
     Lists full paths to all imported annotation sources.
     """
+    annotations_list()
+
+
+def annotations_list():
     wildcard_path = os.path.join(
         pathlib.Path(
             options.safe_get("customized_annotation_folder")
@@ -612,7 +660,12 @@ def delete(name: str):
     """
     Deletes imported annotation source.
     """
-    name = remove_annotations_file_extension(name)
+
+    annotations_delete(name)
+
+
+def annotations_delete(custom_name: str):
+    name = remove_annotations_file_extension(custom_name)
     name += CUSTOM_ANNOTATIONS_EXTENSION_NAME
 
     delete_path = pathlib.Path(
@@ -620,6 +673,9 @@ def delete(name: str):
     ).joinpath(name)
     try:
         os.remove(delete_path)
+        logger.info(
+            f"Deleted annotation source {custom_name} at {delete_path}"
+        )
     except IsADirectoryError as e:
         logger.error(
             f"{delete_path} must be the path to a file, not a directory\n{e}"

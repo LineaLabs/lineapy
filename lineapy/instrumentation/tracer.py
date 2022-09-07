@@ -7,7 +7,10 @@ from typing import Dict, List, Optional, Tuple, Union
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
+    ControlNode,
+    ElseNode,
     GlobalNode,
+    IfNode,
     ImportNode,
     KeywordArgument,
     LineaID,
@@ -15,6 +18,7 @@ from lineapy.data.types import (
     LookupNode,
     MutateNode,
     Node,
+    NodeType,
     PositionalArgument,
     SessionContext,
     SessionType,
@@ -33,11 +37,19 @@ from lineapy.execution.side_effects import (
     ViewOfNodes,
 )
 from lineapy.instrumentation.annotation_spec import ExternalState
+from lineapy.instrumentation.control_flow_tracker import (
+    ControlFlowContext,
+    ControlFlowTracker,
+)
 from lineapy.instrumentation.mutation_tracker import MutationTracker
 from lineapy.instrumentation.tracer_context import TracerContext
 from lineapy.utils.constants import GETATTR, IMPORT_STAR
 from lineapy.utils.lineabuiltins import l_import, l_tuple
-from lineapy.utils.utils import get_lib_package_version, get_new_id
+from lineapy.utils.utils import (
+    get_lib_package_version,
+    get_new_id,
+    get_system_python_version,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +63,14 @@ class Tracer:
     globals_: InitVar[Optional[Dict[str, object]]] = None
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
+    module_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
     tracer_context: TracerContext = field(init=False)
     executor: Executor = field(init=False)
     mutation_tracker: MutationTracker = field(default_factory=MutationTracker)
+    control_flow_tracker: ControlFlowTracker = field(
+        default_factory=ControlFlowTracker
+    )
 
     def __post_init__(
         self,
@@ -84,6 +100,7 @@ class Tracer:
         session_context = SessionContext(
             id=get_new_id(),
             environment_type=session_type,
+            python_version=get_system_python_version(),  # up to minor version
             creation_time=datetime.now(),
             working_directory=getcwd(),
             session_name=session_name,
@@ -154,6 +171,7 @@ class Tracer:
                         session_id=node.session_id,
                         source_id=source_id,
                         call_id=node.id,
+                        control_dependency=self.control_flow_tracker.current_control_dependency(),
                     )
                     self.process_node(mutate_node)
 
@@ -225,6 +243,7 @@ class Tracer:
                 session_id=session_id,
                 name=var,
                 call_id=node.id,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
             )
             self.process_node(global_node)
             self.variable_name_to_node[var] = global_node
@@ -248,12 +267,15 @@ class Tracer:
         if variable_name in self.variable_name_to_node:
             # user define var and fun def
             return self.variable_name_to_node[variable_name]
+        elif variable_name in self.module_name_to_node:
+            return self.module_name_to_node[variable_name]
         else:
             new_node = LookupNode(
                 id=get_new_id(),
                 session_id=self.get_session_id(),
                 name=variable_name,
                 source_location=source_location,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
             )
             self.process_node(new_node)
             return new_node
@@ -267,8 +289,8 @@ class Tracer:
         Import a module. If we have already imported it, just return its ID.
         Otherwise, create new module nodes for each submodule in its parents and return it.
         """
-        if name in self.variable_name_to_node:
-            return self.variable_name_to_node[name]
+        if name in self.module_name_to_node:
+            return self.module_name_to_node[name]
         # Recursively go up the tree, to try to get parents, and if we don't have them, import them
         *parents, module_name = name.split(".")
         if parents:
@@ -288,7 +310,7 @@ class Tracer:
                 source_location,
                 self.literal(module_name),
             )
-        self.variable_name_to_node[name] = node
+        self.module_name_to_node[name] = node
         return node
 
     def trace_import(
@@ -313,10 +335,7 @@ class Tracer:
         """
         module_node = self.import_module(name, source_location)
         if alias:
-            self.assign(
-                alias,
-                module_node,
-            )
+            self.assign(alias, module_node, from_import=True)
         elif attributes:
             module_value = self.executor.get_value(module_node.id)
             if IMPORT_STAR in attributes:
@@ -348,22 +367,24 @@ class Tracer:
                             module_node,
                             self.literal(attr_or_module),
                         ),
+                        from_import=True,
                     )
                 else:
                     full_name = f"{name}.{attr_or_module}"
                     sub_module_node = self.import_module(
                         full_name, source_location
                     )
-                    self.assign(alias, sub_module_node)
+                    self.assign(alias, sub_module_node, from_import=True)
 
         else:
-            self.assign(name, module_node)
+            self.assign(name, module_node, from_import=True)
 
         node = ImportNode(
             id=get_new_id(),
             name=name,
             session_id=self.get_session_id(),
             source_location=source_location,
+            control_dependency=self.control_flow_tracker.current_control_dependency(),
         )
         self.process_node(node)
 
@@ -378,6 +399,7 @@ class Tracer:
             session_id=self.get_session_id(),
             value=value,
             source_location=source_location,
+            control_dependency=self.control_flow_tracker.current_control_dependency(),
         )
         self.process_node(node)
         return node
@@ -447,24 +469,65 @@ class Tracer:
             source_location=source_location,
             global_reads={},
             implicit_dependencies=[],
+            control_dependency=self.control_flow_tracker.current_control_dependency(),
         )
         self.process_node(node)
         return node
 
-    def assign(
+    def get_control_node(
         self,
-        variable_name: str,
-        value_node: Node,
+        type: NodeType,
+        node_id: LineaID,
+        companion_id: Optional[LineaID],
+        source_location: Optional[SourceLocation] = None,
+        test_id: Optional[LineaID] = None,
+        unexec_id: Optional[LineaID] = None,
+    ) -> ControlFlowContext:
+        node: ControlNode
+        if type == NodeType.IfNode:
+            node = IfNode(
+                id=node_id,
+                session_id=self.get_session_id(),
+                source_location=source_location,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
+                unexec_id=unexec_id,
+                test_id=test_id,
+                companion_id=companion_id,
+            )
+        elif type == NodeType.ElseNode:
+            node = ElseNode(
+                id=node_id,
+                session_id=self.get_session_id(),
+                source_location=source_location,
+                control_dependency=self.control_flow_tracker.current_control_dependency(),
+                companion_id=companion_id,
+                unexec_id=unexec_id,
+            )
+        else:
+            raise NotImplementedError(
+                "Requested node type is not implemented as a control flow node type: ",
+                type,
+            )
+        self.process_node(node)
+        return ControlFlowContext(node, self.control_flow_tracker)
+
+    def assign(
+        self, variable_name: str, value_node: Node, from_import: bool = False
     ) -> None:
         """
         Assign updates a local mapping of variable nodes.
-
-        It doesn't save this to the graph, and currently the source
-        location for the assignment is discarded. In the future, if we need
-        to trace where in some code a node is assigned, we can record that again.
         """
         logger.debug("assigning %s = %s", variable_name, value_node)
-        self.variable_name_to_node[variable_name] = value_node
+        existing_value_node = self.variable_name_to_node.get(
+            variable_name, None
+        )
+        if (
+            existing_value_node is None
+            or existing_value_node.id != value_node.id
+            or not from_import
+        ):
+            self.variable_name_to_node[variable_name] = value_node
+            self.db.write_assigned_variable(value_node.id, variable_name)
         return
 
     def tuple(

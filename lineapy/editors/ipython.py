@@ -18,7 +18,7 @@ from lineapy.exceptions.excepthook import transform_except_hook_args
 from lineapy.exceptions.flag import REWRITE_EXCEPTIONS
 from lineapy.exceptions.user_exception import AddFrame
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.transformer.node_transformer import transform
+from lineapy.transformer.transform_code import transform
 from lineapy.utils.analytics.utils import send_lib_info_from_db
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
@@ -102,6 +102,7 @@ def input_transformer_post(
             "input_transformer_post shouldn't be called when we don't have an active tracer"
         )
     code = "".join(lines)
+
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
         configure_logging()
@@ -113,6 +114,11 @@ def input_transformer_post(
         tracer = Tracer(
             db, SessionType.JUPYTER, STATE.session_name, ipython_globals
         )
+
+        # add statement so it is
+        # included in artifact.get_code()
+        if not "import lineapy\n" in lines:
+            code = "import lineapy\n" + code
 
         STATE = CellsExecutedState(STATE.ipython, tracer, code=code)
     else:

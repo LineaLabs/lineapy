@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
 from sqlalchemy.sql.expression import and_
@@ -10,8 +10,10 @@ from sqlalchemy.sql.expression import and_
 from lineapy.data.types import (
     Artifact,
     CallNode,
+    ElseNode,
     Execution,
     GlobalNode,
+    IfNode,
     ImportNode,
     JupyterCell,
     KeywordArgument,
@@ -28,13 +30,16 @@ from lineapy.data.types import (
     SourceLocation,
 )
 from lineapy.db.relational import (
+    ArtifactDependencyORM,
     ArtifactORM,
     Base,
     BaseNodeORM,
     CallNodeORM,
+    ElseNodeORM,
     ExecutionORM,
     GlobalNodeORM,
     GlobalReferenceORM,
+    IfNodeORM,
     ImplicitDependencyORM,
     ImportNodeORM,
     KeywordArgORM,
@@ -43,9 +48,11 @@ from lineapy.db.relational import (
     MutateNodeORM,
     NodeORM,
     NodeValueORM,
+    PipelineORM,
     PositionalArgORM,
     SessionContextORM,
     SourceCodeORM,
+    VariableNodeORM,
 )
 from lineapy.db.utils import create_lineadb_engine
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
@@ -82,7 +89,26 @@ class RelationalLineaDB:
         self.engine = create_lineadb_engine(self.url)
         self.session = scoped_session(sessionmaker())
         self.session.configure(bind=self.engine)
-        Base.metadata.create_all(self.engine)
+        from alembic import command
+        from alembic.config import Config
+        from sqlalchemy import inspect
+
+        lp_install_dir = Path(__file__).resolve().parent.parent
+
+        alembic_cfg = Config((lp_install_dir / "alembic.ini").as_posix())
+        alembic_cfg.set_main_option(
+            "script_location", (lp_install_dir / "_alembic").as_posix()
+        )
+        alembic_cfg.set_main_option("sqlalchemy.url", self.url)
+        if not inspect(self.engine).get_table_names():
+            # No tables in the database, so create them
+            Base.metadata.create_all(self.engine)
+            # stamp the database with the latest alembic db version for migration
+            # https://alembic.sqlalchemy.org/en/latest/cookbook.html#building-an-up-to-date-database-from-scratch
+            command.stamp(alembic_cfg, "head")
+        else:
+            # Tables exist, so upgrade the database
+            command.upgrade(alembic_cfg, "head")
 
     def renew_session(self):
         if self.url.startswith(DB_SQLITE_PREFIX):
@@ -142,6 +168,7 @@ class RelationalLineaDB:
             self.session.commit()
         except Exception as e:
             self.session.rollback()
+            logger.debug(e)
             track(ExceptionEvent(ErrorType.DATABASE, "Failed commit"))
             raise ArtifactSaveException() from e
 
@@ -180,7 +207,10 @@ class RelationalLineaDB:
         self.renew_session()
 
     def write_node(self, node: Node) -> None:
-        args = node.dict(include={"id", "session_id", "node_type"})
+        args = node.dict(
+            include={"id", "session_id", "node_type", "control_dependency"}
+        )
+        # Converting list into string, for storage in the DB. Note there can only be one or zero control dependencies
         s = node.source_location
         if s:
             args["lineno"] = s.lineno
@@ -249,6 +279,19 @@ class RelationalLineaDB:
             node_orm = GlobalNodeORM(
                 **args, call_id=node.call_id, name=node.name
             )
+        elif isinstance(node, IfNode):
+            node_orm = IfNodeORM(
+                **args,
+                test_id=node.test_id,
+                unexec_id=node.unexec_id,
+                companion_id=node.companion_id,
+            )
+        elif isinstance(node, ElseNode):
+            node_orm = ElseNodeORM(
+                **args,
+                companion_id=node.companion_id,
+                unexec_id=node.unexec_id,
+            )
         else:
             node_orm = LookupNodeORM(**args, name=node.name)
 
@@ -262,6 +305,23 @@ class RelationalLineaDB:
         self.session.add(NodeValueORM(**node_value.dict()))
         self.renew_session()
 
+    def write_assigned_variable(
+        self,
+        node_id: LineaID,
+        variable_name: str,
+    ) -> None:
+        try:
+            self.session.add(
+                VariableNodeORM(id=node_id, variable_name=variable_name)
+            )
+            self.renew_session()
+        except Exception as e:
+            logger.info(
+                "%s has been defined at node %s before; most likely you have imported the library before.",
+                variable_name,
+                node_id,
+            )
+
     def write_artifact(self, artifact: Artifact) -> None:
         artifact_orm = ArtifactORM(
             node_id=artifact.node_id,
@@ -272,6 +332,27 @@ class RelationalLineaDB:
         )
         self.session.add(artifact_orm)
         self.renew_session()
+
+    def write_pipeline(
+        self, dependencies: List[ArtifactDependencyORM], pipeline: PipelineORM
+    ) -> None:
+        for dep in dependencies:
+            self.session.add(dep)
+        self.session.add(pipeline)
+        self.renew_session()
+
+    def get_pipeline_by_name(self, name: str) -> PipelineORM:
+
+        res = (
+            self.session.query(PipelineORM)
+            .filter(PipelineORM.name == name)
+            .first()
+        )
+        if res is None:
+            msg = f"Pipeline {name} not found."
+            track(ExceptionEvent(ErrorType.USER, "Pipeline not found"))
+            raise UserException(NameError(msg))
+        return res
 
     def artifact_in_db(
         self, node_id: LineaID, execution_id: LineaID, name: str, version: int
@@ -312,6 +393,7 @@ class RelationalLineaDB:
             "id": node.id,
             "session_id": node.session_id,
             "node_type": node.node_type,
+            "control_dependency": node.control_dependency,
         }
         if node.source_code:
             source_code = SourceCode(
@@ -398,6 +480,19 @@ class RelationalLineaDB:
             return GlobalNode(
                 call_id=node.call_id,
                 name=node.name,
+                **args,
+            )
+        if isinstance(node, IfNodeORM):
+            return IfNode(
+                unexec_id=node.unexec_id,
+                test_id=node.test_id,
+                companion_id=node.companion_id,
+                **args,
+            )
+        if isinstance(node, ElseNodeORM):
+            return ElseNode(
+                unexec_id=node.unexec_id,
+                companion_id=node.companion_id,
                 **args,
             )
         return LookupNode(name=node.name, **args)
@@ -536,7 +631,7 @@ class RelationalLineaDB:
             .all()
         )
 
-    def get_artifact_by_name(
+    def get_artifactorm_by_name(
         self, artifact_name: str, version: Optional[int] = None
     ) -> ArtifactORM:
         """
@@ -682,3 +777,39 @@ class RelationalLineaDB:
 
         self.session.delete(value_orm)
         self.renew_session()
+
+    def get_variable_by_id(self, linea_id: LineaID) -> List[str]:
+        """
+        Returns the variable names(as a list) for a node with a certain ID
+        """
+
+        variable_node_orm = (
+            self.session.query(VariableNodeORM)
+            .filter(VariableNodeORM.id == linea_id)
+            .all()
+        )
+        return [n.variable_name for n in variable_node_orm]
+
+    def get_variables_for_session(
+        self, session_id: LineaID
+    ) -> List[Tuple[LineaID, str]]:
+        """
+        Returns the variable names for a session, as (LineaID, variable_name)
+        """
+
+        results = (
+            self.session.query(BaseNodeORM, VariableNodeORM)
+            .join(
+                VariableNodeORM,
+                VariableNodeORM.id == BaseNodeORM.id,
+                # isouter=None,
+            )
+            .filter(
+                and_(
+                    BaseNodeORM.id == VariableNodeORM.id,
+                    BaseNodeORM.session_id == session_id,
+                )
+            )
+            .all()
+        )
+        return [(n[0].id, n[1].variable_name) for n in results]

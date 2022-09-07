@@ -7,9 +7,9 @@ import sys
 
 import asttokens
 import pytest
-from mock import MagicMock, patch
+from mock import MagicMock
 
-from lineapy.transformer.node_transformer import NodeTransformer, transform
+from lineapy.transformer.node_transformer import NodeTransformer
 from lineapy.transformer.source_giver import SourceGiver
 
 
@@ -20,21 +20,6 @@ def _get_ast_node(code):
         SourceGiver().transform(node)
 
     return node
-
-
-@patch(
-    "lineapy.transformer.node_transformer.NodeTransformer",
-)
-def test_transform_fn(nt_mock: MagicMock):
-    """
-    Test that the transform function calls the NodeTransformer
-    """
-    mocked_tracer = MagicMock()
-    source_location = MagicMock()
-    transform("x = 1", source_location, mocked_tracer)
-    nt_mock.assert_called_once_with("x = 1", source_location, mocked_tracer)
-    mocked_tracer.db.commit.assert_called_once()
-    # TODO - test that source giver is called only for 3.7 and below
 
 
 class TestNodeTransformer:
@@ -178,6 +163,28 @@ class TestNodeTransformer:
         self.nt.visit_Delete = MagicMock()
         self.nt.visit(test_node.body[0])
         self.nt.visit_Delete.assert_called_once_with(test_node.body[0])
+
+    def test_get_else_source_space_after_if_block(self):
+        CODE = """if a:\n\tb\n\n\nelse:\n\tc"""
+        test_node = _get_ast_node(CODE).body[0]
+        source_location = self.nt.get_else_source(test_node)
+        # Checking whether all cases to set end_lineno for returned
+        # SourceLocation are hit
+        assert test_node.orelse[0].lineno - 1 == source_location.end_lineno
+        lines = slice(source_location.lineno, source_location.end_lineno + 1)
+        # Ensuring that the line including "else:" in code above gets included
+        assert 5 in range(lines.start, lines.stop)
+
+    def test_get_else_source_no_newline_after_else_keyword(self):
+        CODE = """if a:\n\tb\nelse: c"""
+        test_node = _get_ast_node(CODE).body[0]
+        source_location = self.nt.get_else_source(test_node)
+        # Checking whether all cases to set end_lineno for returned
+        # SourceLocation are hit
+        assert test_node.body[-1].end_lineno + 1 == source_location.end_lineno
+        lines = slice(source_location.lineno, source_location.end_lineno + 1)
+        # Ensuring that the line including "else:" in code above gets included
+        assert 3 in range(lines.start, lines.stop)
 
     @pytest.mark.parametrize(
         "code", ["del a[3]", "del a.x"], ids=["delitem", "delattr"]

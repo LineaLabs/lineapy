@@ -1,13 +1,23 @@
+import io
 import json
 import os
-import shutil
+import pathlib
 import subprocess
 import tempfile
+from contextlib import redirect_stdout
 from pathlib import Path
 
 import pytest
+from click import BadParameter
 
-from lineapy.cli.cli import remove_annotations_file_extension
+from lineapy.cli.cli import (
+    annotations_add,
+    annotations_delete,
+    annotations_list,
+    python_cli,
+    remove_annotations_file_extension,
+    validate_annotations_path,
+)
 from lineapy.plugins.utils import slugify
 from lineapy.utils.config import options
 
@@ -109,6 +119,7 @@ def test_config_order():
     assert generated_config["logging_level"] == "NOTSET"
 
     # Reset to original env variables
+    clean_lineapy_env_var()
     for k, v in existing_lineapy_env.items():
         os.environ[k] = v
 
@@ -124,16 +135,8 @@ lineapy.save(sys.argv[1], "first_arg")"""
     with tempfile.NamedTemporaryFile() as f:
         f.write(code.encode())
         f.flush()
-        subprocess.check_call(
-            [
-                "lineapy",
-                "python",
-                f.name,
-                "--slice",
-                "first_arg",
-                "--arg",
-                "an arg",
-            ]
+        python_cli(
+            file_name=pathlib.Path(f.name), slice=["first_arg"], arg=["an arg"]
         )
 
 
@@ -142,9 +145,7 @@ def test_slice_housing():
     """
     Verifies that the "--slice" CLI command is aliased to the `lineapy` executable
     """
-    subprocess.check_call(
-        ["lineapy", "python", "tests/housing.py", "--slice", "p value"]
-    )
+    python_cli(file_name=pathlib.Path("tests/housing.py"), slice=["p value"])
 
 
 @pytest.mark.slow
@@ -152,16 +153,20 @@ def test_slice_housing_multiple():
     """
     Verifies that we can run "--slice" CLI command multiple times
     """
-    subprocess.check_call(
-        [
-            "lineapy",
-            "python",
-            "tests/housing.py",
-            "--slice",
-            "p value",
-            "--slice",
-            "y",
-        ]
+    python_cli(
+        file_name=pathlib.Path("tests/housing.py"), slice=["p value", "y"]
+    )
+
+
+def test_slice_housing_airflow():
+    """
+    Verifies that the "--airflow" CLI command is aliased to the `lineapy` executable
+    """
+    python_cli(
+        file_name=pathlib.Path("tests/housing.py"),
+        slice=["p value", "y"],
+        export_slice_to_airflow_dag="sliced_housing_dag",
+        airflow_task_dependencies="{'p value': {'y'}}",
     )
 
 
@@ -170,16 +175,10 @@ def test_export_slice_housing():
     """
     Verifies that the "--export-slice" CLI command is aliased to the `lineapy` executable
     """
-    subprocess.check_call(
-        [
-            "lineapy",
-            "python",
-            "tests/housing.py",
-            "--slice",
-            "p value",
-            "--export-slice",
-            "sliced_housing",
-        ]
+    python_cli(
+        file_name=pathlib.Path("tests/housing.py"),
+        slice=["p value"],
+        export_slice=["sliced_housing"],
     )
 
 
@@ -188,80 +187,44 @@ def test_export_slice_housing_multiple():
     """
     Verifies that we can run "--export-slice" CLI command multiple times
     """
-    subprocess.check_call(
-        [
-            "lineapy",
-            "python",
-            "tests/housing.py",
-            "--slice",
-            "p value",
-            "--export-slice",
-            "p_value_housing",
-            "--slice",
-            "y",
-            "--export-slice",
-            "y_housing",
-        ]
+    python_cli(
+        file_name=pathlib.Path("tests/housing.py"),
+        slice=["p value", "y"],
+        export_slice=["p_value_housing", "y_housing"],
     )
 
 
-@pytest.fixture
-def annotations_folder():
-    """
-    Fixture for annotate commands. It moves user's
-    '.lineapy/custom-annotations'dir and
-    replaces it with a temp for testing.
-    """
-    current_path = Path(options.safe_get("customized_annotation_folder"))
-    current_path_str = str(current_path.resolve())
-    old_path = current_path.parent.joinpath(current_path.name + ".old")
-    old_path_str = str(old_path.resolve())
-
-    # If 'custom-annotations.old exists already, the test was canceled
-    # early previously. Clean up 'custom-annotations' folder from
-    # previous run.
-    if old_path.exists():
-        shutil.rmtree(current_path_str, ignore_errors=True)
+def assert_annotations_count(n=0):
+    f = io.StringIO()
+    with redirect_stdout(f):
+        annotations_list()
+    out = f.getvalue()
+    if n > 0:
+        assert len(str(out.strip()).split("\n")) == n
     else:
-        shutil.move(current_path_str, old_path_str)
-
-    yield
-
-    # clean up test-generated directories
-    if current_path.exists():
-        shutil.rmtree(current_path_str)
-    if old_path.exists():
-        shutil.move(old_path_str, current_path_str)
+        assert len(out) == n
 
 
-@pytest.mark.slow
-def test_annotate_list(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_list(move_folder):
     """Verifies existence of 'lineapy annotate list'"""
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    assert_annotations_count()
 
 
-@pytest.mark.slow
-def test_annotate_add_invalid_path(tmp_path, annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_add_invalid_path(tmp_path, move_folder):
     """
     Verifies failure of adding non-existent path.
     """
     invalid_path = tmp_path / "nonexistent.yaml"
-    with pytest.raises(subprocess.CalledProcessError):
-        subprocess.check_call(
-            ["lineapy", "annotate", "add", str(invalid_path)]
-        )
+    with pytest.raises(FileNotFoundError):
+        annotations_add(pathlib.Path(str(invalid_path)))
 
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    assert_annotations_count()
 
 
-@pytest.mark.slow
-def test_annotate_add_non_yaml_file(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_add_non_yaml_file(move_folder):
     """
     Verifies failure of adding file that does not end in '.yaml'.
     """
@@ -279,17 +242,16 @@ def test_annotate_add_non_yaml_file(annotations_folder):
     with tempfile.NamedTemporaryFile(suffix=".not-yaml") as f:
         f.write(valid_yaml.encode())
         f.flush()
-        with pytest.raises(subprocess.CalledProcessError):
-            subprocess.check_call(["lineapy", "annotate", "add", f.name])
+        with pytest.raises(BadParameter):
+            # this is called as a callback in click argument
+            validate_annotations_path(None, None, pathlib.Path(f.name))
+            annotations_add(pathlib.Path(f.name))
 
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    assert_annotations_count()
 
 
-@pytest.mark.slow
-def test_annotate_add_invalid_yaml(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_add_invalid_yaml(move_folder):
     """
     Verifies failure of adding invalid spec.
     """
@@ -308,17 +270,18 @@ def test_annotate_add_invalid_yaml(annotations_folder):
     with tempfile.NamedTemporaryFile(suffix=".yaml") as f:
         f.write(invalid_yaml.encode())
         f.flush()
-        with pytest.raises(subprocess.CalledProcessError):
-            subprocess.check_call(["lineapy", "annotate", "add", f.name])
+        with pytest.raises(SystemExit) as pytest_wrapped_e:
+            validate_annotations_path(None, None, pathlib.Path(f.name))
+            annotations_add(pathlib.Path(f.name))
 
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    assert pytest_wrapped_e.type == SystemExit
+    assert pytest_wrapped_e.value.code == 1
+
+    assert_annotations_count()
 
 
-@pytest.mark.slow
-def test_annotate_add_valid_yaml(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_add_valid_yaml(move_folder):
     """
     Verifies success of adding valid spec.
     """
@@ -336,28 +299,26 @@ def test_annotate_add_valid_yaml(annotations_folder):
     with tempfile.NamedTemporaryFile(suffix=".yaml") as f:
         f.write(valid_yaml.encode())
         f.flush()
-        subprocess.check_call(["lineapy", "annotate", "add", f.name])
+        annotations_add(pathlib.Path(f.name))
 
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(str(proc.stdout).split("\n")) == 1
+    assert_annotations_count(1)
 
 
-@pytest.mark.slow
-def test_annotate_delete_invalid_path(tmp_path, annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_annotate_delete_invalid_path(tmp_path, move_folder):
     """
     Verifies failure of deleting non-existent source.
     """
     invalid_path = tmp_path / "nonexistent.yaml"
-    with pytest.raises(subprocess.CalledProcessError):
-        subprocess.check_call(
-            ["lineapy", "annotate", "delete", "-n", str(invalid_path)]
-        )
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        annotations_delete(str(invalid_path))
+
+    assert pytest_wrapped_e.type == SystemExit
+    assert pytest_wrapped_e.value.code == 1
 
 
-@pytest.mark.slow
-def test_delete_existing_source(annotations_folder):
+@pytest.mark.folder(options.safe_get("customized_annotation_folder"))
+def test_delete_existing_source(move_folder):
     """
     Verifies success of deleting source.
     """
@@ -375,24 +336,13 @@ def test_delete_existing_source(annotations_folder):
     with tempfile.NamedTemporaryFile(suffix=".yaml") as f:
         f.write(valid_yaml.encode())
         f.flush()
-        subprocess.check_call(["lineapy", "annotate", "add", f.name])
+        annotations_add(pathlib.Path(f.name))
 
     source_name = os.path.basename(f.name)
     source_name = remove_annotations_file_extension(source_name)
     source_name = slugify(source_name)
-    subprocess.check_call(
-        [
-            "lineapy",
-            "annotate",
-            "delete",
-            "--name",
-            os.path.basename(source_name),
-        ]
-    )
-    proc = subprocess.run(
-        ["lineapy", "annotate", "list"], check=True, capture_output=True
-    )
-    assert len(proc.stdout) == 0
+    annotations_delete(os.path.basename(source_name))
+    assert_annotations_count()
 
 
 @pytest.mark.parametrize(

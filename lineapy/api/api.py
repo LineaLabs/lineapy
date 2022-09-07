@@ -3,40 +3,39 @@ User facing APIs.
 """
 
 import logging
-import random
-import string
 import types
+import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import fsspec
 from pandas.io.pickle import to_pickle
 
-from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore
-from lineapy.data.types import Artifact, NodeValue, PipelineType
-from lineapy.db.relational import SessionContextORM
+from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.api.models.linea_artifact_store import LineaArtifactStore
+from lineapy.api.models.pipeline import Pipeline
+from lineapy.data.types import Artifact, LineaID, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
+from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.airflow import AirflowDagConfig, AirflowPlugin
-from lineapy.plugins.script import ScriptPlugin
-from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
+from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ErrorType,
     ExceptionEvent,
     GetEvent,
     SaveEvent,
-    ToPipelineEvent,
 )
 from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.analytics.utils import side_effect_to_str
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
-from lineapy.utils.utils import get_value_type
+from lineapy.utils.utils import get_system_python_version, get_value_type
 
 logger = logging.getLogger(__name__)
 # TODO: figure out if we need to configure it all the time
@@ -98,15 +97,17 @@ def save(reference: object, name: str) -> LineaArtifact:
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
-        # can raise ArtifactSaveException
 
+        # TODO add version or timestamp to allow saving of multiple pickle files for the same node id
         # pickles value of artifact and saves to filesystem
-        pickled_path = _try_write_to_db(reference)
+        pickle_name = _pickle_name(value_node_id, execution_id)
+        _try_write_to_pickle(reference, pickle_name)
+
         # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=str(pickled_path),
+                value=str(pickle_name),
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -166,7 +167,9 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     get_version = None if isinstance(version, str) else version
 
     try:
-        artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+        artifact = db.get_artifactorm_by_name(
+            artifact_name, version=get_version
+        )
     except UserException:
         raise NameError(
             f"{artifact_name}:{version} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
@@ -199,33 +202,32 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
         logging.debug(f"No valid pickle path found for {node_id}")
 
 
-def _try_write_to_db(value: object) -> str:
+def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
     """
-    Saves the value to a random file inside linea folder. The file name is returned and eventually saved to the db.
+    Pickle file for a value to be named with the following scheme.
+    <node_id-hash>-<exec_id-hash>-pickle
+    """
+    return f"pre-{slugify(hash(node_id + execution_id))}-post.pkl"
 
+
+def _try_write_to_pickle(value: object, filename: str) -> None:
+    """
+    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
+
+    :param value: data to pickle
+    :param filename: name of pickle file
     """
     if isinstance(value, types.ModuleType):
         track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))
-        raise ArtifactSaveException()
-    # i think there's pretty low chance of clashes with 7 random chars but if it becomes one, just up the chars
-    artifact_filename = (
-        "".join(
-            random.choices(
-                string.ascii_uppercase
-                + string.ascii_lowercase
-                + string.digits,
-                k=7,
-            )
+        raise ArtifactSaveException(
+            "Lineapy does not support saving Python Module Objects as pickles"
         )
-        + ".pkl"
-    )
 
     artifact_storage_dir = options.safe_get("artifact_storage_dir")
-
     filepath = (
-        artifact_storage_dir.joinpath(artifact_filename)
+        artifact_storage_dir.joinpath(filename)
         if isinstance(artifact_storage_dir, Path)
-        else f'{artifact_storage_dir.rstrip("/")}/{artifact_filename}'
+        else f'{artifact_storage_dir.rstrip("/")}/{filename}'
     )
     try:
         logger.debug(f"Saving file to {filepath} ")
@@ -237,7 +239,6 @@ def _try_write_to_db(value: object) -> str:
         logger.error(e)
         track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
         raise e
-    return artifact_filename
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
@@ -267,7 +268,7 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
 
     execution_context = get_context()
     db = execution_context.executor.db
-    artifact = db.get_artifact_by_name(artifact_name, final_version)
+    artifact = db.get_artifactorm_by_name(artifact_name, final_version)
     linea_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
@@ -278,8 +279,51 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         date_created=artifact.date_created,  # type: ignore
     )
 
+    # Check version compatibility
+    system_python_version = get_system_python_version()  # up to minor version
+    artifact_python_version = db.get_session_context(
+        linea_artifact._session_id
+    ).python_version
+    if system_python_version != artifact_python_version:
+        warnings.warn(
+            f"Current session runs on Python {system_python_version}, but the retrieved artifact was created on Python {artifact_python_version}. This may result in incompatibility issues."
+        )
+
     track(GetEvent(version_specified=version is not None))
     return linea_artifact
+
+
+def get_pipeline(name: str) -> Pipeline:
+
+    execution_context = get_context()
+    db = execution_context.executor.db
+
+    pipeline_orm = db.get_pipeline_by_name(name)
+
+    artifact_names = [
+        artifact.name
+        for artifact in pipeline_orm.artifacts
+        if artifact.name is not None
+    ]
+
+    dependencies = dict()
+    for dep_orm in pipeline_orm.dependencies:
+        post_artifact = dep_orm.post_artifact
+        if post_artifact is None:
+            continue
+        post_name = post_artifact.name
+        if post_name is None:
+            continue
+
+        pre_names = set(
+            [
+                pre_art.name
+                for pre_art in dep_orm.pre_artifacts
+                if pre_art.name is not None
+            ]
+        )
+        dependencies[post_name] = pre_names
+    return Pipeline(artifact_names, name, dependencies=dependencies)
 
 
 def reload() -> None:
@@ -316,62 +360,122 @@ def to_pipeline(
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
-    output_dir: Optional[str] = None,
+    output_dir: str = ".",
 ) -> Path:
     """
     Writes the pipeline job to a path on disk.
 
-    :param artifacts: list of artifact names to be included in the DAG.
-    :param framework: 'AIRFLOW' or 'SCRIPT'
-    :param pipeline_name: name of the pipeline
-    :param dependencies: tasks dependencies in graphlib format {'B':{'A','C'}},
-        this means task A and C are prerequisites for task B.
-    :param output_dir_path: Directory of the DAG and the python file it is
-        saved in; only use for PipelineType.AIRFLOW
-    :return: string containing the path of the DAG file that was exported.
+    :param artifacts: List of artifact names to be included in the pipeline.
+    :param framework: 'AIRFLOW' or 'SCRIPT'. Defaults to 'SCRIPT' if not specified.
+    :param pipeline_name: Name of the pipeline.
+    :param dependencies: Task dependencies in graphlib format, e.g., {'B':{'A','C'}}
+        means task A and C are prerequisites for task B.
+    :param output_dir: Directory path to save DAG and other pipeline files.
+    :return: Directory path where DAG and other pipeline files are saved.
+    """
+    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    pipeline.save()
+    return pipeline.export(framework, output_dir, pipeline_dag_config)
+
+
+def create_pipeline(
+    artifacts: List[str],
+    pipeline_name: Optional[str] = None,
+    dependencies: TaskGraphEdge = {},
+    persist: bool = False,
+) -> Pipeline:
+    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    if persist:
+        pipeline.save()
+
+    return pipeline
+
+
+def get_function(
+    artifacts: List[Union[str, Tuple[str, int]]],
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+) -> Callable:
+    """
+    Extract the process that creates selected artifacts as a python function
+
+    Parameters
+    ----------
+    artifacts: List[Union[str, Tuple[str, int]]]
+        List of artifact names(with optional version) to be included in the
+        function return.
+
+    input_parameters: List[str]
+        List of variable names to be used in the function arguments. Currently,
+        only accept variable from literal assignment; such as a='123'. There
+        should be only one literal assignment for each variable within all
+        artifact calculation code. For instance, if both a='123' and a='abc'
+        are existing in the code, we cannot specify a as input variables since
+        it is confusing to specify which literal assignment we want to replace.
+
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
+        List of artifacts(name with optional version) for which we will use
+        pre-computed values from the artifact store instead of recomputing from
+        original code.
+
+    Returns
+    -------
+    Callable
+        A python function that takes input_parameters as args and returns a
+        dictionary with each artifact name as the dictionary key and artifact
+        value as the value.
+
+    Note that,
+    1. If an input parameter is only used to calculate artifacts in the
+        `reuse_pre_computed_artifacts` list, that input parameter will be
+        passed around as a dummy variable. LineaPy will create a warning.
+    2. If an artifact name has been saved multiple times within a session,
+        multiple sessions or mutated. You might want to specify version
+        number in `artifacts` or `reuse_pre_computed_artifacts`. The best
+        practice to avoid searching artifact version is don't reuse artifact
+        name in different notebooks and don't save same artifact multiple times
+        within the same session.
     """
     execution_context = get_context()
-    db = execution_context.executor.db
-    session_orm = (
-        db.session.query(SessionContextORM)
-        .order_by(SessionContextORM.creation_time.desc())
-        .all()
+    art_collection = ArtifactCollection(
+        execution_context.executor.db,
+        artifacts,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
     )
-    if len(session_orm) == 0:
-        track(ExceptionEvent(ErrorType.PIPELINE, "No session found in DB"))
-        raise Exception("No sessions found in the database.")
-    last_session = session_orm[0]
+    return art_collection.get_module().run_all_sessions
 
-    if framework in PipelineType.__members__:
-        if PipelineType[framework] == PipelineType.AIRFLOW:
 
-            ret = AirflowPlugin(db, last_session.id).sliced_airflow_dag(
-                artifacts,
-                pipeline_name,
-                dependencies,
-                output_dir=output_dir,
-                airflow_dag_config=pipeline_dag_config,
-            )
+def get_module_definition(
+    artifacts: List[Union[str, Tuple[str, int]]],
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+) -> str:
+    """
+    Create a python module that includes the definition of :func::`get_function`.
 
-        else:
+    Parameters
+    ----------
+    artifacts: List[Union[str, Tuple[str, int]]]
+        same as :func:`get_function`
 
-            ret = ScriptPlugin(db, last_session.id).sliced_pipeline_dag(
-                artifacts,
-                pipeline_name,
-                dependencies,
-                output_dir=output_dir,
-            )
+    input_parameters: List[str]
+        same as :func:`get_function`
 
-        # send the info
-        track(
-            ToPipelineEvent(
-                framework,
-                len(artifacts),
-                dependencies != "",
-                pipeline_dag_config is not None,
-            )
-        )
-        return ret
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
+        same as :func:`get_function`
 
-    else:
-        raise Exception(f"No PipelineType for {framework}")
+    Returns
+    -------
+    str
+        A python module that includes the definition of :func::`get_function`
+        as `run_all_sessions`.
+    """
+    execution_context = get_context()
+    art_collection = ArtifactCollection(
+        execution_context.executor.db,
+        artifacts,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+    )
+    return art_collection.generate_module_text()

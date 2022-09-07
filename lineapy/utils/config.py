@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 import fsspec
+from fsspec.implementations.local import LocalFileSystem
 
 from lineapy.data.types import FilePath
 from lineapy.db.utils import create_lineadb_engine
@@ -69,13 +70,13 @@ class lineapy_config:
             logging_level = logging._levelToName[int(logging_level)]
 
         self.home_dir = Path(home_dir).expanduser()
+        self.storage_options = storage_options
         self.database_url = database_url
         self.artifact_storage_dir = artifact_storage_dir
         self.customized_annotation_folder = customized_annotation_folder
         self.do_not_track = do_not_track
         self.logging_level = logging_level
         self.logging_file = logging_file
-        self.storage_options = storage_options
         self.is_demo = is_demo
 
         # config file
@@ -107,11 +108,16 @@ class lineapy_config:
             config_value = _read_config.get(key, None)
             # set config value based on environ -> config  -> default
             if env_var_value is not None:
+                # special logic to handle serialization of storage options
+                if key == "storage_options":
+                    env_var_value = json.loads(env_var_value)
                 self.set(key, env_var_value, verbose=False)
             elif config_value is not None:
                 self.set(key, config_value, verbose=False)
             elif default_value is not None:
                 self.set(key, default_value, verbose=False)
+
+        self._set_defaults()
 
     def get(self, key: str) -> Any:
         """Get LineaPy config field"""
@@ -142,14 +148,24 @@ class lineapy_config:
                     )
             else:
                 self.__dict__[key] = value
-                os.environ[f"LINEAPY_{key.upper()}"] = str(value)
+                # special logic to handle serialization of storage options
+                if key == "storage_options":
+                    os.environ[f"LINEAPY_{key.upper()}"] = json.dumps(value)
+                else:
+                    os.environ[f"LINEAPY_{key.upper()}"] = str(value)
 
             # Send a heartbeat to artifact_storage_dir
             if key == "artifact_storage_dir":
+                storage_options = (
+                    {}
+                    if self.storage_options is None
+                    else self.storage_options
+                )
                 with fsspec.open(
                     str(self.safe_get("artifact_storage_dir")).rstrip("/")
                     + "/heartbeat",
                     "w",
+                    **storage_options,
                 ) as f:
                     f.write(
                         datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
@@ -169,7 +185,7 @@ class lineapy_config:
 
             if isinstance(self.__dict__[name], Path) or isinstance(
                 fsspec.core.url_to_fs(self.__dict__[name])[0],
-                fsspec.implementations.local.LocalFileSystem,
+                LocalFileSystem,
             ):
                 local_path = Path(self.__dict__[name]).resolve()
                 if not local_path.exists():

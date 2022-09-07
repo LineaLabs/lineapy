@@ -149,3 +149,10 @@ def get_lib_package_version(name: str) -> Tuple[str, str]:
         if hasattr(parent_package, "__version__"):
             mod_version = parent_package.__version__
     return package_name if package_name else name, str(mod_version)
+
+
+def get_system_python_version(include_patch_version: bool = False) -> str:
+    ver = sys.version_info
+    if include_patch_version:
+        return f"{ver.major}.{ver.minor}.{ver.micro}"
+    return f"{ver.major}.{ver.minor}"
