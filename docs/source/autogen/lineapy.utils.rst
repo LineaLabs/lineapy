@@ -48,6 +48,12 @@ lineapy.utils.logging\_config module
 .. automodule:: lineapy.utils.logging_config
    :members:
 
+lineapy.utils.migration module
+------------------------------
+
+.. automodule:: lineapy.utils.migration
+   :members:
+
 lineapy.utils.tree\_logger module
 ---------------------------------
 

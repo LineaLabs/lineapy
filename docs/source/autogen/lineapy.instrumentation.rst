@@ -10,6 +10,12 @@ lineapy.instrumentation.annotation\_spec module
 .. automodule:: lineapy.instrumentation.annotation_spec
    :members:
 
+lineapy.instrumentation.control\_flow\_tracker module
+-----------------------------------------------------
+
+.. automodule:: lineapy.instrumentation.control_flow_tracker
+   :members:
+
 lineapy.instrumentation.mutation\_tracker module
 ------------------------------------------------
 

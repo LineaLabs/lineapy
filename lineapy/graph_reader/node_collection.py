@@ -16,10 +16,11 @@ configure_logging()
 class NodeCollectionType(Enum):
     """
     NodeCollection type to identify the purpose of the node collection
-    - ARTIFACT : node collection for artifact calculation
-    - COMMON_VARIABLE : node collection for calculating variables used in multiple artifacts
-    - IMPORT : node collection for module import
-    - INPUT_VARIABLE : node collection for input variables
+
+    :ARTIFACT: node collection for artifact calculation
+    :COMMON_VARIABLE: node collection for calculating variables used in multiple artifacts
+    :IMPORT: node collection for module import
+    :INPUT_VARIABLE: node collection for input variables
     """
 
     ARTIFACT = 1
@@ -31,14 +32,14 @@ class NodeCollectionType(Enum):
 @dataclass
 class NodeInfo:
     """
-    assigned_variables : variables assigned at this node
-    assigned_artifact : this node is pointing to some artifact
-    dependent_variables : union of if any variable is assigned at predecessor node,
-        use the assigned variables; otherwise, use the dependent_variables
-    tracked_variables : variables that this node is point to
-    predecessors : predecessors of the node
-    module_import : module name/alias that this node is point to
-    artifact_name : this node belong to which artifact calculating block
+    :assigned_variables: variables assigned at this node
+    :assigned_artifact: this node is pointing to some artifact
+    :dependent_variables: union of if any variable is assigned at predecessor node,
+     use the assigned variables. otherwise, use the dependent_variables
+    :tracked_variables: variables that this node is point to
+    :predecessors: predecessors of the node
+    :module_import: module name/alias that this node is point to
+    :artifact_name: this node belong to which artifact calculating block
     """
 
     assigned_variables: Set[str] = field(default_factory=set)
@@ -55,18 +56,18 @@ class NodeCollection:
     """
     This class is used for holding a set of node(as a subgraph) with same purpose;
     for instance, calculating some variables, module import, variable assignments.
-    It is initiated with list of nodes.
+    It is initiated with list of nodes::
 
-    seg = NodeCollection(node_list)
+        seg = NodeCollection(node_list)
 
     For variable calculation calculation purpose, it can identify all variables
-    related to these by running:
+    related to these by running::
 
-    seg._update_variable_info()
+        seg._update_variable_info()
 
-    For all code generating purpose, it need to initiate a real graph objects by:
+    For all code generating purpose, it need to initiate a real graph objects by::
 
-    seg._update_graph()
+        seg._update_graph()
 
     Then, it provide following method to generat different codeblock for different
     purpose.
@@ -189,15 +190,16 @@ class NodeCollection:
         :param str source_module: which module the function is coming from
 
         The result_placeholder is a list to capture the artifact variables right
-        after calculation. Considering following code,
+        after calculation. Considering following code::
 
-        a = 1
-        lineapy.save(a,'a')
-        a+=1
-        b = a+1
-        lineapy.save(b,'b')
-        c = a+1
-        lineapy.save(c,'c')
+            a = 1
+            lineapy.save(a,'a')
+            a+=1
+            b = a+1
+            lineapy.save(b,'b')
+            c = a+1
+            lineapy.save(c,'c')
+
 
         we need to record the artifact a before it is mutated.
 

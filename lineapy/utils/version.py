@@ -2,4 +2,4 @@
 # all other references to the package version should read
 # from this file.
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
