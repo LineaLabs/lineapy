@@ -4,7 +4,7 @@ RUN mkdir /tmp/installers
 WORKDIR /tmp/installers
 
 # Copy all the requirements to run current DAG
-COPY ./script_pipeline_housing_multiple/script_pipeline_housing_multiple_requirements.txt ./
+COPY ./script_pipeline_housing_multiple_requirements.txt ./
 
 # Install required libs
 RUN pip install -r ./script_pipeline_housing_multiple_requirements.txt
@@ -12,4 +12,4 @@ RUN pip install -r ./script_pipeline_housing_multiple_requirements.txt
 WORKDIR /home
 COPY . .
 
-CMD [ "standalone" ]
+CMD [ "python", "/home/script_pipeline_housing_multiple_module.py" ]
