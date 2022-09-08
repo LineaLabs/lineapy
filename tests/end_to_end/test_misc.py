@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from lineapy.api.api import save
+from lineapy.exceptions.user_exception import UserException
 from tests.util import CSV_CODE, IMAGE_CODE
 
 publish_name = "testing artifact publish"
@@ -124,12 +125,9 @@ class TestEndToEnd:
         assert captured.out == "10\n10\n"
 
     def test_raise(self, execute, capsys):
-        RAISE_CODE = "raise Exception()"
-        execute(RAISE_CODE)
-        captured = capsys.readouterr()
-        last_line = "\n".split(captured)[-1].strip()
-
-        assert last_line == "Exception:"
+        with pytest.raises(UserException):
+            RAISE_CODE = "raise OSError()"
+            execute(RAISE_CODE)
 
     def test_chained_attributes(self, execute):
         """
