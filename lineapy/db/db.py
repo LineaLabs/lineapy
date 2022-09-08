@@ -604,6 +604,7 @@ class RelationalLineaDB:
             .filter(
                 and_(
                     ImportNodeORM.session_id == session_id,
+                    ImportNodeORM.package_name != "None",
                     ImportNodeORM.version != "None",
                 )
             )
@@ -631,7 +632,7 @@ class RelationalLineaDB:
             .all()
         )
 
-    def get_artifact_by_name(
+    def get_artifactorm_by_name(
         self, artifact_name: str, version: Optional[int] = None
     ) -> ArtifactORM:
         """

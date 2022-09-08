@@ -4,6 +4,7 @@ from typing import Callable, Dict, Iterator, List, Optional, Set, TypeVar
 import networkx as nx
 
 from lineapy.data.types import IfNode, LineaID, Node, SessionContext
+from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.graph_printer import GraphPrinter
 from lineapy.utils.analytics.event_schemas import CyclicGraphEvent
 from lineapy.utils.analytics.usage_tracking import track
@@ -208,6 +209,12 @@ class Graph(object):
             if node is not None:
                 nodes.append(node)
         return self.get_subgraph(nodes)
+
+    @classmethod
+    def create_session_graph(cls, db: RelationalLineaDB, session_id: LineaID):
+        session_context = db.get_session_context(session_id)
+        session_nodes = db.get_nodes_for_session(session_id)
+        return cls(session_nodes, session_context)
 
     def __str__(self):
         return prettify(

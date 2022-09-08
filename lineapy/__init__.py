@@ -5,6 +5,8 @@ from lineapy.api.api import (
     create_pipeline,
     delete,
     get,
+    get_function,
+    get_module_definition,
     get_pipeline,
     reload,
     save,
@@ -17,6 +19,7 @@ from lineapy.execution.context import get_context
 from lineapy.instrumentation.tracer import Tracer
 from lineapy.utils.config import options
 from lineapy.utils.lineabuiltins import db, file_system
+from lineapy.utils.version import __version__
 
 __all__ = [
     "Graph",
@@ -24,6 +27,8 @@ __all__ = [
     "save",
     "get",
     "get_pipeline",
+    "get_function",
+    "get_module_definition",
     "artifact_store",
     "delete",
     "reload",
@@ -38,8 +43,6 @@ __all__ = [
     "options",
     "__version__",
 ]
-
-__version__ = "0.1.4"
 
 # Create an ipython extension that starts and stops tracing
 # https://ipython.readthedocs.io/en/stable/config/extensions/index.html#writing-extensions

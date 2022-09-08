@@ -79,3 +79,15 @@ We can also use LineaPy as a CLI command. Run:
     $ lineapy python --help
 
 to see available options.
+
+
+Python Module
+-------------
+
+Lineapy is also a runnable python module. 
+
+.. code:: bash
+
+    $ python -m lineapy --help
+
+and works the same as using the CLI.

@@ -25,13 +25,13 @@ from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
 
-from lineapy.api.api_classes import LineaArtifact
-from lineapy.api.api_utils import extract_taskgraph
+from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
+from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.plugins.airflow import AirflowPlugin
+from lineapy.plugins.pipeline_writers import AirflowPipelineWriter
 from lineapy.plugins.utils import slugify
 from lineapy.transformer.transform_code import transform
 from lineapy.utils.analytics.utils import send_lib_info_from_db
@@ -207,7 +207,7 @@ def notebook(
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
     db = RelationalLineaDB.from_config(options)
-    artifact = db.get_artifact_by_name(artifact_name)
+    artifact = db.get_artifactorm_by_name(artifact_name)
     # FIXME: mypy issue with SQLAlchemy, see https://github.com/python/typeshed/issues/974
     api_artifact = LineaArtifact(
         db=db,
@@ -258,7 +258,7 @@ def file(
 
     # Print the slice:
     # FIXME: weird indirection
-    artifact = db.get_artifact_by_name(artifact_name)
+    artifact = db.get_artifactorm_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
@@ -428,10 +428,20 @@ def python_cli(
             )
             exit(1)
 
-        ap = AirflowPlugin(db, tracer.tracer_context.get_session_id())
+        # TODO: Use `Pipeline` object as an entry point (LIN-319 needs
+        # to be tackled first to define/refine expected behavior for CLI).
+
+        artifact_collection = ArtifactCollection(db, slice)
         task_dependencies = ast.literal_eval(airflow_task_dependencies or "{}")
-        _, task_graph = extract_taskgraph(slice, task_dependencies)
-        ap.sliced_airflow_dag(export_slice_to_airflow_dag, task_graph)
+
+        # Construct pipeline writer
+        pipeline_writer = AirflowPipelineWriter(
+            artifact_collection=artifact_collection,
+            dependencies=task_dependencies,
+        )
+
+        # Write out pipeline files
+        pipeline_writer.write_pipeline_files()
 
     db.close()
     if print_graph:

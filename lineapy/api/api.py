@@ -7,21 +7,25 @@ import types
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import fsspec
 from pandas.io.pickle import to_pickle
 
-from lineapy.api.api_classes import LineaArtifact, LineaArtifactStore, Pipeline
+from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.api.models.linea_artifact_store import LineaArtifactStore
+from lineapy.api.models.pipeline import Pipeline
 from lineapy.data.types import Artifact, LineaID, NodeValue
 from lineapy.db.utils import parse_artifact_version
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
+from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.airflow import AirflowDagConfig
+
+# from lineapy.plugins.airflow import AirflowDagConfig
 from lineapy.plugins.mlflow import log_model
-from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
@@ -167,7 +171,9 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     get_version = None if isinstance(version, str) else version
 
     try:
-        artifact = db.get_artifact_by_name(artifact_name, version=get_version)
+        artifact = db.get_artifactorm_by_name(
+            artifact_name, version=get_version
+        )
     except UserException:
         raise NameError(
             f"{artifact_name}:{version} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
@@ -266,7 +272,7 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
 
     execution_context = get_context()
     db = execution_context.executor.db
-    artifact = db.get_artifact_by_name(artifact_name, final_version)
+    artifact = db.get_artifactorm_by_name(artifact_name, final_version)
     linea_artifact = LineaArtifact(
         db=db,
         _execution_id=artifact.execution_id,
@@ -358,19 +364,18 @@ def to_pipeline(
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
-    output_dir: Optional[str] = None,
+    output_dir: str = ".",
 ) -> Path:
     """
     Writes the pipeline job to a path on disk.
 
-    :param artifacts: list of artifact names to be included in the DAG.
-    :param framework: 'AIRFLOW' or 'SCRIPT'
-    :param pipeline_name: name of the pipeline
-    :param dependencies: tasks dependencies in graphlib format {'B':{'A','C'}},
-        this means task A and C are prerequisites for task B.
-    :param output_dir_path: Directory of the DAG and the python file it is
-        saved in; only use for PipelineType.AIRFLOW
-    :return: string containing the path of the DAG file that was exported.
+    :param artifacts: List of artifact names to be included in the pipeline.
+    :param framework: 'AIRFLOW' or 'SCRIPT'. Defaults to 'SCRIPT' if not specified.
+    :param pipeline_name: Name of the pipeline.
+    :param dependencies: Task dependencies in graphlib format, e.g., {'B':{'A','C'}}
+        means task A and C are prerequisites for task B.
+    :param output_dir: Directory path to save DAG and other pipeline files.
+    :return: Directory path where DAG and other pipeline files are saved.
     """
     pipeline = Pipeline(artifacts, pipeline_name, dependencies)
     pipeline.save()
@@ -388,3 +393,93 @@ def create_pipeline(
         pipeline.save()
 
     return pipeline
+
+
+def get_function(
+    artifacts: List[Union[str, Tuple[str, int]]],
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+) -> Callable:
+    """
+    Extract the process that creates selected artifacts as a python function
+
+    Parameters
+    ----------
+    artifacts: List[Union[str, Tuple[str, int]]]
+        List of artifact names(with optional version) to be included in the
+        function return.
+
+    input_parameters: List[str]
+        List of variable names to be used in the function arguments. Currently,
+        only accept variable from literal assignment; such as a='123'. There
+        should be only one literal assignment for each variable within all
+        artifact calculation code. For instance, if both a='123' and a='abc'
+        are existing in the code, we cannot specify a as input variables since
+        it is confusing to specify which literal assignment we want to replace.
+
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
+        List of artifacts(name with optional version) for which we will use
+        pre-computed values from the artifact store instead of recomputing from
+        original code.
+
+    Returns
+    -------
+    Callable
+        A python function that takes input_parameters as args and returns a
+        dictionary with each artifact name as the dictionary key and artifact
+        value as the value.
+
+    Note that,
+    1. If an input parameter is only used to calculate artifacts in the
+        `reuse_pre_computed_artifacts` list, that input parameter will be
+        passed around as a dummy variable. LineaPy will create a warning.
+    2. If an artifact name has been saved multiple times within a session,
+        multiple sessions or mutated. You might want to specify version
+        number in `artifacts` or `reuse_pre_computed_artifacts`. The best
+        practice to avoid searching artifact version is don't reuse artifact
+        name in different notebooks and don't save same artifact multiple times
+        within the same session.
+    """
+    execution_context = get_context()
+    art_collection = ArtifactCollection(
+        execution_context.executor.db,
+        artifacts,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+    )
+    return art_collection.get_module().run_all_sessions
+
+
+def get_module_definition(
+    artifacts: List[Union[str, Tuple[str, int]]],
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+) -> str:
+    """
+    Create a python module that includes the definition of :func::`get_function`.
+
+    Parameters
+    ----------
+    artifacts: List[Union[str, Tuple[str, int]]]
+        same as :func:`get_function`
+
+    input_parameters: List[str]
+        same as :func:`get_function`
+
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
+        same as :func:`get_function`
+
+    Returns
+    -------
+    str
+        A python module that includes the definition of :func::`get_function`
+        as `run_all_sessions`.
+    """
+    execution_context = get_context()
+    art_collection = ArtifactCollection(
+        execution_context.executor.db,
+        artifacts,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+    )
+    return art_collection.generate_module_text()

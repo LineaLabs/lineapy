@@ -57,7 +57,7 @@ if True:
     x.append(1)
 """
     res = execute(c, artifacts=["x"])
-    artifact_id = res.db.get_artifact_by_name("x").node_id
+    artifact_id = res.db.get_artifactorm_by_name("x").node_id
     # slice_nodes = res.graph.get_ancestors(artifact_id)
     # slice_graph = res.graph.get_subgraph(slice_nodes)
     slice_graph = ps.get_slice_graph(res.tracer_context.graph, [artifact_id])
