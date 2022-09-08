@@ -188,9 +188,10 @@ class NodeTransformer(ast.NodeTransformer):
             return self.tracer.literal(node.value, self.get_source(node))
 
     def visit_Raise(self, node: ast.Raise) -> None:
-        try:
+        if sys.version_info >= (3, 9):
+            print(super().visit_Raise)
             return super().visit_Raise(node)
-        except AttributeError:
+        else:
             self._exec_statement(node)
 
     def visit_Module(self, node: ast.Module) -> Any:
