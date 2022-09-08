@@ -123,6 +123,14 @@ class TestEndToEnd:
         # Shows up twice due to re-exeuction
         assert captured.out == "10\n10\n"
 
+    def test_raise(self, execute, capsys):
+        RAISE_CODE = "raise Exception()"
+        execute(RAISE_CODE)
+        captured = capsys.readouterr()
+        last_line = "\n".split(captured)[-1].strip()
+
+        assert last_line == "Exception:"
+
     def test_chained_attributes(self, execute):
         """
         https://github.com/LineaLabs/lineapy/issues/161
