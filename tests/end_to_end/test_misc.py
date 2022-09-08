@@ -124,8 +124,8 @@ class TestEndToEnd:
         # Shows up twice due to re-exeuction
         assert captured.out == "10\n10\n"
 
-    def test_raise(self, execute, capsys):
-        with pytest.raises(UserException):
+    def test_raise(self, execute):
+        with pytest.raises(UserException, match="OSError"):
             RAISE_CODE = "raise OSError()"
             execute(RAISE_CODE)
 
