@@ -187,9 +187,6 @@ class NodeTransformer(ast.NodeTransformer):
         else:
             return self.tracer.literal(node.value, self.get_source(node))
 
-    def visit_Raise(self, node: ast.Raise) -> None:
-        self._exec_statement(node)
-
     def visit_Module(self, node: ast.Module) -> Any:
         for stmt in node.body:
             self.last_statement_result = self.visit(stmt)
