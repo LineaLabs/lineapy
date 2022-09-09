@@ -1,6 +1,5 @@
 import pathlib
 import subprocess
-import tempfile
 
 import pytest
 
@@ -192,7 +191,12 @@ def test_two_sessions(
     ],
 )
 def test_module_run(
-    linea_db, execute, input_parameters, input_values, expected_values
+    tmpdir,
+    linea_db,
+    execute,
+    input_parameters,
+    input_values,
+    expected_values,
 ):
     """
     Test the module generated from ArtifactCollection can run with/without
@@ -211,10 +215,7 @@ lineapy.save(b,'add_p')
     ac = ArtifactCollection(
         linea_db, artifact_list, input_parameters=input_parameters
     )
-    temp_folder = tempfile.mkdtemp()
-    temp_module_path = pathlib.Path(
-        temp_folder, "artifactcollection_module.py"
-    )
+    temp_module_path = pathlib.Path(tmpdir, "artifactcollection_module.py")
     with open(temp_module_path, "w") as f:
         f.writelines(ac.generate_module_text())
 
