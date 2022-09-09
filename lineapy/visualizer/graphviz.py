@@ -28,6 +28,7 @@ from lineapy.visualizer.visual_graph import (
     VisualGraphOptions,
     VisualNode,
     VisualNodeType,
+    to_cell_graph,
     to_visual_graph,
 )
 
@@ -196,7 +197,10 @@ def to_graphviz(options: VisualGraphOptions) -> graphviz.Digraph:
 
     add_legend(dot, options)
 
-    vg = to_visual_graph(options)
+    if options.cells:
+        vg = to_cell_graph(options)
+    else:
+        vg = to_visual_graph(options)
 
     for node in vg.nodes:
         render_node(dot, node)

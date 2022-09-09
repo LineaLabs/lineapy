@@ -127,7 +127,9 @@ class Visualizer:
         return cls(options)
 
     @classmethod
-    def for_public_node(cls, graph: Graph, node_id: str) -> Visualizer:
+    def for_public_node(
+        cls, graph: Graph, node_id: str, cells: bool
+    ) -> Visualizer:
         """
         Create a graph for our public API, when showing a single node.
 
@@ -142,6 +144,7 @@ class Visualizer:
             show_views=False,
             show_artifacts=False,
             show_variables=False,
+            cells=cells,
         )
 
         return cls(options)

@@ -1,9 +1,16 @@
 import logging
 from dataclasses import dataclass
-from typing import DefaultDict, List, Set
+from typing import DefaultDict, Dict, List, Set, cast
 
 from lineapy.data.graph import Graph
-from lineapy.data.types import CallNode, ImportNode, LineaID, SourceCode
+from lineapy.data.types import (
+    CallNode,
+    ImportNode,
+    JupyterCell,
+    LineaID,
+    SourceCode,
+    SourceLocation,
+)
 from lineapy.db.db import RelationalLineaDB
 from lineapy.utils.utils import prettify
 
@@ -67,6 +74,20 @@ class CodeSlice:
         return str(self)
 
 
+@dataclass
+class CodeSliceCells:
+    cells: List[str]
+
+    def __str__(self):
+        # return "\n".join(
+        #     [prettify("\n".join(cell) + "\n") for cell in self.cells]
+        # )
+        return str(self)
+
+    def __repr__(self):
+        return str(self)
+
+
 def get_source_code_from_graph(program: Graph) -> CodeSlice:
     """
     Returns the code from some subgraph, by including all lines that
@@ -123,6 +144,166 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
             import_code.append(import_code_lines[line - 1])
 
     return CodeSlice(import_code, body_code)
+
+
+def get_cells_from_graph(program: Graph) -> CodeSliceCells:
+    """
+    Returns the code from some subgraph, by including all lines that
+    are included in the graphs source.
+
+    .. todo:: We need better analysis than just looking at the source code.
+        For example, what if we just need one expression from a line that defines
+        multiple expressions?
+
+        We should probably instead regenerate the source from our graph
+        representation.
+
+
+    """
+    cell_to_code = DefaultDict[int, List[SourceLocation]](list)
+
+    added_source_ids: Set[str] = set()
+    for node in program.nodes:
+        source_location = node.source_location
+        if not source_location or not isinstance(
+            source_location.source_code.location, JupyterCell
+        ):
+            continue
+
+        id_ = f"{source_location.source_code.id}-{source_location.lineno}-{source_location.end_lineno}"
+        if id_ in added_source_ids:
+            continue
+
+        loc = source_location
+
+        if id_ not in added_source_ids:
+            added_source_ids.add(id_)
+            if isinstance(node, (ImportNode)):
+                cell_to_code[-1].append(source_location)
+            else:
+                cell_to_code[
+                    source_location.source_code.location.execution_count
+                ].append(source_location)
+
+    cells: Dict[int, str] = {}
+    for cell_id, source_locs in cell_to_code.items():
+        cell = f"# [{cell_id}]\n"
+        source_locs.sort()
+        for loc in source_locs:
+            print(loc.source_code.code)
+            cell += (
+                "\n".join(
+                    loc.source_code.code.splitlines()[
+                        loc.lineno - 1 : loc.end_lineno
+                    ]
+                )
+                + "\n"
+            )
+
+        cells[cell_id] = cell
+
+    return CodeSliceCells([code for _, code in sorted(cells.items())])
+
+
+def get_cells_from_graph2(
+    program: Graph, preserve_surround_code=True
+) -> CodeSliceCells:
+    """
+    Returns the code from some subgraph, by including all lines that
+    are included in the graphs source.
+
+    .. todo:: We need better analysis than just looking at the source code.
+        For example, what if we just need one expression from a line that defines
+        multiple expressions?
+
+        We should probably instead regenerate the source from our graph
+        representation.
+
+
+    """
+    # map of source code to set of included line numbers
+    cell_to_lines = DefaultDict[SourceCode, Set[int]](set)
+    imports = DefaultDict[SourceCode, Set[int]](set)
+
+    for node in program.nodes:
+        if not node.source_location:
+            continue
+        # if isinstance(node, CallNode):
+        #     print(node.function_id)
+        # print(
+        #     "span",
+        #     type(node),
+        #     r"\l".join(
+        #         node.source_location.source_code.code.splitlines()[
+        #             node.source_location.lineno
+        #             - 1 : node.source_location.end_lineno
+        #         ]
+        #     )
+        #     + r"\l",
+        # )
+        # if isinstance(node, (ImportNode)):
+        if False:
+            imports[node.source_location.source_code] |= set(
+                range(
+                    node.source_location.lineno,
+                    node.source_location.end_lineno + 1,
+                )
+            )
+        else:
+            cell_to_lines[node.source_location.source_code] |= set(
+                range(
+                    node.source_location.lineno,
+                    node.source_location.end_lineno + 1,
+                )
+            )
+
+    # Sort cells, and extract sliced lines
+    cell_to_code: Dict[int, str] = {}
+    for cell, lines in sorted(cell_to_lines.items(), key=lambda x: x[0]):
+        cell_location = cast(JupyterCell, cell.location)
+        cell_id = cell_location.execution_count
+
+        cell_lines = cell.code.rstrip().split("\n")
+
+        cell_to_code[cell_id] = f"# [{cell_id}]\n\n"
+        # only print sliced lines
+        # for line in sorted(lines):
+        #     cell_to_code[cell_id] += cell_lines[line - 1] + "\n"
+
+        # print all lines, with unsliced lines in the same cell commented out
+        for i, line in enumerate(cell_lines):
+            if i + 1 in lines:
+                cell_to_code[cell_id] += line + "\n"
+            else:
+                if preserve_surround_code:
+                    if not line.startswith("#"):
+                        cell_to_code[cell_id] += "# " + line + "\n"
+                    else:
+                        cell_to_code[cell_id] += line + "\n"
+
+    # Sort imports, and extract sliced lines
+    # print("imports:", imports)
+    import_to_code: Dict[int, str] = {}
+    for import_, lines in sorted(imports.items(), key=lambda x: x[0]):
+        import_location = cast(JupyterCell, import_.location)
+        import_id = import_location.execution_count
+
+        import_lines = import_.code.rstrip().split("\n")
+
+        import_to_code[import_id] = ""
+        # only print sliced lines
+        for line in sorted(lines):
+            import_to_code[import_id] += import_lines[line - 1] + "\n"
+
+    # sort imports by key and join them
+    import_code = "\n".join(
+        import_to_code[i] for i in sorted(import_to_code.keys())
+    )
+
+    # return CodeSliceCells(
+    #     [import_code] + [code for _, code in sorted(cell_to_code.items())]
+    # )
+    return CodeSliceCells([code for _, code in sorted(cell_to_code.items())])
 
 
 def get_program_slice(

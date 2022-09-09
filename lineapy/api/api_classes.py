@@ -25,6 +25,8 @@ from lineapy.db.relational import (
 from lineapy.execution.context import get_context
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
+    get_cells_from_graph,
+    get_cells_from_graph2,
     get_slice_graph,
     get_source_code_from_graph,
 )
@@ -128,11 +130,29 @@ class LineaArtifact:
         )
 
     @lru_cache(maxsize=None)
+    def notebook(
+        self,
+        use_lineapy_serialization: bool = True,
+        keep_lineapy_save: bool = False,
+        preserve_surround_code: bool = False,
+    ) -> str:
+        self.get_code(
+            use_lineapy_serialization=use_lineapy_serialization,
+            keep_lineapy_save=keep_lineapy_save,
+            preserve_surround_code=preserve_surround_code,
+            new_notebook=True,
+        )
+        print(f"Saved notebook as ./{self.name}_{self.version}.ipynb")
+        return f"./{self.name}_{self.version}.ipynb"
+
+    @lru_cache(maxsize=None)
     def get_code(
         self,
         use_lineapy_serialization: bool = True,
         keep_lineapy_save: bool = False,
         new_cell: bool = False,
+        new_notebook: bool = False,
+        preserve_surround_code: bool = False,
     ) -> str | None:
         """
         Return the slices code for the artifact
@@ -160,10 +180,39 @@ class LineaArtifact:
             code = de_lineate_code(code, self.db)
 
         pretty_code = prettify(code)
+        # if new_cell:
+        #     # remove trailing newline
+        #     pretty_code = pretty_code.rstrip()
+        #     create_new_cell(pretty_code)
+        #     return None
         if new_cell:
-            # remove trailing newline
-            pretty_code = pretty_code.rstrip()
-            create_new_cell(pretty_code)
+            cells = get_cells_from_graph2(
+                self._get_subgraph(keep_lineapy_save)
+            ).cells
+            pretty_cells = [prettify(cell).rstrip() for cell in cells]
+            pretty_cells.reverse()
+            for cell in pretty_cells:
+                create_new_cell(cell)
+            return None
+        elif new_notebook:
+
+            cells = get_cells_from_graph2(
+                self._get_subgraph(keep_lineapy_save),
+                preserve_surround_code=preserve_surround_code,
+            ).cells
+            pretty_cells = [prettify(cell).rstrip() for cell in cells]
+
+            import nbformat as nbf
+
+            nb = nbf.v4.new_notebook()
+            nb["cells"] = [nbf.v4.new_code_cell(cell) for cell in pretty_cells]
+            nb["cells"].insert(
+                0, nbf.v4.new_code_cell("%load_ext lineapy\nimport lineapy")
+            )
+            # TODO: set other metadata? copilot seems to think I want to set the kernel...
+            fname = f"./{self.name}_{self.version}.ipynb"
+            with open(fname, "w") as f:
+                nbf.write(nb, f)
             return None
         else:
             return pretty_code
@@ -202,7 +251,9 @@ class LineaArtifact:
         nodes = self.db.get_nodes_for_session(self._session_id)
         return Graph(nodes, session_context)
 
-    def visualize(self, path: Optional[str] = None) -> None:
+    def visualize(
+        self, path: Optional[str] = None, cells: bool = False
+    ) -> None:
         """
         Displays the graph for this artifact.
 
@@ -212,9 +263,14 @@ class LineaArtifact:
         # This way we can import lineapy without having graphviz installed.
         from lineapy.visualizer import Visualizer
 
-        visualizer = Visualizer.for_public_node(
-            self._get_graph(), self._node_id
-        )
+        if cells:
+            visualizer = Visualizer.for_public_node(
+                self._get_subgraph(), self._node_id, cells
+            )
+        else:
+            visualizer = Visualizer.for_public_node(
+                self._get_graph(), self._node_id, cells
+            )
         if path:
             visualizer.render_pdf_file(path)
         else:

@@ -173,4 +173,4 @@ def create_new_cell(contents: str):
         text=contents,
         replace=False,
     )
-    shell.payload_manager.write_payload(payload)
+    shell.payload_manager.write_payload(payload, single=False)

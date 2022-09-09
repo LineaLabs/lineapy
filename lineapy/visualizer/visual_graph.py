@@ -20,19 +20,22 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Dict, FrozenSet, Iterable, List, Optional, Set, Union
+from typing import Dict, FrozenSet, Iterable, List, Optional, Set, Tuple, Union
 
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
     GlobalNode,
     ImportNode,
+    JupyterCell,
     LineaID,
     LiteralNode,
     LookupNode,
     MutateNode,
     Node,
     NodeType,
+    SourceCodeLocation,
+    SourceLocation,
 )
 from lineapy.instrumentation.tracer import Tracer
 
@@ -61,6 +64,8 @@ class VisualGraphOptions:
     show_artifacts: bool
     # Whether to show variables (requires tracer)
     show_variables: bool
+    # Whether to use cells (requires tracer)
+    cells: bool
 
 
 def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
@@ -127,12 +132,16 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
             added_source_ids.add(id_)
             # Use \l instead of \n for left aligned code
             contents = (
-                r"\l".join(
-                    source_location.source_code.code.splitlines()[
-                        source_location.lineno - 1 : source_location.end_lineno
-                    ]
+                f"cell {source_location.source_code.location.execution_count}\n"
+                + (
+                    r"\l".join(
+                        source_location.source_code.code.splitlines()[
+                            source_location.lineno
+                            - 1 : source_location.end_lineno
+                        ]
+                    )
+                    + r"\l"
                 )
-                + r"\l"
             )
             vg.node(VisualNode(id_, SourceLineType(), contents, []))
 
@@ -187,6 +196,168 @@ def to_visual_graph(options: VisualGraphOptions) -> VisualGraph:
             )
     if options.highlight_node:
         vg.highlight_ancestors(options.highlight_node)
+    return vg
+
+
+def to_cell_graph(options: VisualGraphOptions) -> VisualGraph:
+    """
+    Returns a visual graph based on the options using notebook cells
+    """
+    tracer = options.tracer
+    graph = options.graph
+    vg = VisualGraph()
+
+    # We will create some mappings to start, so that we can add the
+    # variables and artifacts to each node
+
+    # First create a mapping of each node ID to all of its artifact names
+    id_to_artifacts: Dict[str, List[Optional[str]]] = defaultdict(list)
+    if options.show_artifacts:
+        if not tracer:
+            raise RuntimeError("Cannot show artifacts without tracer")
+        for a in tracer.session_artifacts():
+            id_to_artifacts[a.node_id].append(a.name)
+
+    # Then create a mapping of each node to the variables which point to it
+    id_to_variables: Dict[str, List[str]] = defaultdict(list)
+    if options.show_variables:
+        if not tracer:
+            raise RuntimeError("Cannot show implied mutations without tracer")
+        for name, node in tracer.variable_name_to_node.items():
+            id_to_variables[node.id].append(name)
+
+    cell_to_code: Dict[int, List[Tuple[str, SourceLocation]]] = defaultdict(
+        list
+    )
+
+    # # First add all the nodes from the session
+    # for node in graph.nodes:
+    #     extra_labels = [
+    #         ExtraLabel(a or "Unnamed Artifact", ExtraLabelType.ARTIFACT)
+    #         for a in id_to_artifacts[node.id]
+    #     ] + [
+    #         ExtraLabel(v, ExtraLabelType.VARIABLE)
+    #         for v in id_to_variables[node.id]
+    #     ]
+    #     contents = process_node(vg, node, options)
+    #     vg.node(VisualNode(node.id, node.node_type, contents, extra_labels))
+
+    # For now, our algorithm for making nodes based on source locations is:
+    # 1. Whenever we encounter a node, if we haven't made a source code node
+    #    for that pair of start and end lines, make one and add an edge
+    #    from the previous to it.
+    # 2. We add an edge from that source node to the node.
+
+    # This assumes that we iterate through nodes in line order, and that
+    #  we skip printing any lines that don't appear in nodes.
+    # It also assumes that we have no overlapping line number ranges,
+    # i.e. a node that is from lines 1-3 and another node just on line 3
+    # If this does occur, we will end up print line 3's source code twice.
+
+    added_source_ids: Set[str] = set()
+    last_added_source_id: Optional[str] = None
+
+    # Then add the source code nodes
+    for n in graph.nodes:
+        source_location = n.source_location
+        if not source_location:
+            continue
+        id_ = f"{source_location.source_code.id}-{source_location.lineno}-{source_location.end_lineno}"
+        if id_ not in added_source_ids:
+            added_source_ids.add(id_)
+            # Use \l instead of \n for left aligned code
+            contents = (
+                r"\l".join(
+                    source_location.source_code.code.splitlines()[
+                        source_location.lineno - 1 : source_location.end_lineno
+                    ]
+                )
+                + r"\l"
+            )
+            cell_to_code[
+                source_location.source_code.location.execution_count
+            ].append([contents, source_location])
+
+            # if last_added_source_id:
+            #     vg.edge(
+            #         VisualEdge(
+            #             VisualEdgeID(last_added_source_id),
+            #             VisualEdgeID(id_),
+            #             VisualEdgeType.NEXT_LINE,
+            #         )
+            #     )
+            last_added_source_id = id_
+        # vg.edge(
+        #     VisualEdge(
+        #         VisualEdgeID(id_),
+        #         VisualEdgeID(n.id),
+        #         VisualEdgeType.SOURCE_CODE,
+        #     )
+        # )
+
+    cell_to_code_str: Dict[int, str] = {}
+    # for each list in cell_to_code, sort its values by the second element of the tuple
+    for cell_id, code_list in cell_to_code.items():
+        # modify this code to remove the first element of the tuple after sorting
+        code_list.sort(key=lambda x: x[1])
+        code_list = [x[0] for x in code_list]
+        cell_to_code_str[cell_id] = rf"cell {cell_id}\l" + r"".join(code_list)
+
+    prev_cell_id = None
+    for cell_id, code in sorted(cell_to_code_str.items()):
+        cell_id = str(cell_id)
+        vg.node(
+            VisualNode(
+                cell_id,
+                SourceLineType(),
+                code,
+                [],
+            )
+        )
+        if prev_cell_id is not None:
+            vg.edge(
+                VisualEdge(
+                    VisualEdgeID(prev_cell_id),
+                    VisualEdgeID(cell_id),
+                    VisualEdgeType.NEXT_LINE,
+                )
+            )
+        prev_cell_id = cell_id
+    # Then we can add all the additional information from the tracer
+    if options.show_implied_mutations:
+        if not tracer:
+            raise RuntimeError("Cannot show implied mutations without tracer")
+        # the mutate nodes
+        # for source, mutate in tracer.mutation_tracker.source_to_mutate.items():
+        #     vg.edge(
+        #         VisualEdge(
+        #             VisualEdgeID(source),
+        #             VisualEdgeID(mutate),
+        #             VisualEdgeType.LATEST_MUTATE_SOURCE,
+        #         )
+        #     )
+
+    if options.show_views:
+        if not tracer:
+            raise RuntimeError("Cannot show views without tracer")
+
+        # Create a set of unique pairs of viewers, where order doesn't matter
+        # Since they aren't directed
+        viewer_pairs: Set[FrozenSet[LineaID]] = {
+            frozenset([source, viewer])
+            for source, viewers in tracer.mutation_tracker.viewers.items()
+            for viewer in viewers
+        }
+        # for source, target in viewer_pairs:
+        #     vg.edge(
+        #         VisualEdge(
+        #             VisualEdgeID(source),
+        #             VisualEdgeID(target),
+        #             VisualEdgeType.VIEW,
+        #         )
+        #     )
+    # if options.highlight_node:
+    #     vg.highlight_ancestors(options.highlight_node)
     return vg
 
 
@@ -267,6 +438,9 @@ def process_node(
                     )
                 )
 
+        source_location = node.source_location.source_code.location
+        if isinstance(source_location, JupyterCell):
+            contents += f"| cell {source_location.execution_count}"
         return contents
     if isinstance(node, LiteralNode):
         return repr(node.value)
