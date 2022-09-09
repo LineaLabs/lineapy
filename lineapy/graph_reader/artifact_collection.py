@@ -365,29 +365,29 @@ class ArtifactCollection:
             for x in input_parameters_body
         ]
 
-        module_input_parameters_body = (
-            ""
-            if len(module_input_parameters) == 0
-            else module_input_parameters[0].default_args
-            if len(module_input_parameters) == 1
-            else f"\n{indentation_block}"
-            + f",\n{indentation_block}".join(
-                [param.default_args for param in module_input_parameters]
+        if len(module_input_parameters) == 0:
+            module_input_parameters_body = ""
+            parser_input_parameters = ""
+        elif len(module_input_parameters) == 1:
+            module_input_parameters_body = module_input_parameters[
+                0
+            ].default_args
+            parser_input_parameters = module_input_parameters[0].parser_args
+        else:
+            module_input_parameters_body = (
+                f"\n{indentation_block}"
+                + f",\n{indentation_block}".join(
+                    [param.default_args for param in module_input_parameters]
+                )
+                + ",\n"
             )
-            + ",\n"
-        )
-
-        parser_input_parameters = (
-            ""
-            if len(module_input_parameters) == 0
-            else module_input_parameters[0].parser_args
-            if len(module_input_parameters) == 1
-            else f"\n{indentation_block}"
-            + f",\n{indentation_block}".join(
-                [param.parser_args for param in module_input_parameters]
+            parser_input_parameters = (
+                f"\n{indentation_block}"
+                + f",\n{indentation_block}".join(
+                    [param.parser_args for param in module_input_parameters]
+                )
+                + ",\n"
             )
-            + ",\n"
-        )
 
         module_input_parameters_list = [
             param.variable_name for param in module_input_parameters
