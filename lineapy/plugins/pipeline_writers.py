@@ -3,7 +3,10 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from lineapy.data.types import PipelineType
-from lineapy.graph_reader.artifact_collection import ArtifactCollection
+from lineapy.graph_reader.artifact_collection import (
+    ArtifactCollection,
+    SessionArtifacts,
+)
 from lineapy.graph_reader.node_collection import NodeCollection
 from lineapy.plugins.task import (
     AirflowDagConfig,
@@ -281,7 +284,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 for nc in session_artifacts.artifact_nodecollections
             ]
             task_definitions += [
-                get_task_definition(nc, self.pipeline_name)
+                get_artifact_task_definition(nc, self.pipeline_name)
                 for nc in session_artifacts.artifact_nodecollections
             ]
         dependencies = {
@@ -314,7 +317,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
         return full_code
 
 
-def get_task_definition(
+def get_artifact_task_definition(
     nc: NodeCollection, pipeline_name: str, indentation=4
 ) -> str:
     """
@@ -336,12 +339,18 @@ def get_task_definition(
 
     TASK_FUNCTION_TEMPLATE = load_plugin_template("task_function.jinja")
     return TASK_FUNCTION_TEMPLATE.render(
-        artifact_name=nc.safename,
+        function_name=nc.safename,
         loading_blocks=input_var_loading_block,
         call_block=function_call_block,
         dumping_blocks=return_var_saving_block,
         indentation_block=" " * indentation,
     )
+
+
+def get_session_task_definition(sa: SessionArtifacts):
+    sa.input_parameters
+    function_call_block = f"run_session_including_{sa._get_first_artifact_name()}"
+    pass
 
 
 class PipelineWriterFactory:

@@ -20,6 +20,7 @@ from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
+from lineapy.graph_reader.types import InputVariable
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -27,25 +28,6 @@ from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
-
-
-@dataclass
-class InputVariable:
-    """
-    Class to generate code related input variable and it's default value
-
-    default_args: a = 1
-    parser_body: parser.add_arguemnt('--a', default=1)
-    parser_args: a = args.a
-
-    """
-
-    def __init__(self, variable_name, value) -> None:
-        self.variable_name = variable_name
-        self.value = value
-        self.default_args = f"{self.variable_name} = {self.value}"
-        self.parser_body = f"parser.add_argument('--{self.variable_name}', default={self.value})"
-        self.parser_args = f"{self.variable_name} = args.{self.variable_name}"
 
 
 @dataclass
@@ -271,15 +253,6 @@ class ArtifactCollection:
             ]
         )
 
-        # Generate session function return value string
-        session_function_return = ", ".join(
-            [
-                coll.return_variables[0]
-                for coll in session_artifacts.artifact_nodecollections
-                if coll.collection_type == NodeCollectionType.ARTIFACT
-            ]
-        )
-
         session_input_parameters_body = session_artifacts.input_parameters_nodecollection.get_input_parameters_block(
             indentation=indentation
         )
@@ -307,7 +280,6 @@ class ArtifactCollection:
             "session_imports": session_imports,
             "artifact_functions": artifact_functions,
             "session_function": session_function,
-            "session_function_return": session_function_return,
             "session_calculation": session_calculation,
             "session_input_parameters_body": session_input_parameters_body,
         }
@@ -344,9 +316,6 @@ class ArtifactCollection:
         )
         module_function_body = "\n".join(
             [module["session_calculation"] for module in session_modules]
-        )
-        module_function_return = ", ".join(
-            [module["session_function_return"] for module in session_modules]
         )
 
         input_parameters_body = []
@@ -411,7 +380,6 @@ class ArtifactCollection:
             artifact_functions=artifact_functions,
             session_functions=session_functions,
             module_function_body=module_function_body,
-            module_function_return=module_function_return,
             module_input_parameters=module_input_parameters_body,
             parser_blocks=[
                 param.parser_body for param in module_input_parameters

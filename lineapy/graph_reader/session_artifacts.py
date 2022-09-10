@@ -15,6 +15,7 @@ from lineapy.graph_reader.node_collection import (
     NodeInfo,
 )
 from lineapy.graph_reader.program_slice import get_slice_graph
+from lineapy.graph_reader.types import InputVariable
 from lineapy.graph_reader.utils import _is_import_node
 from lineapy.plugins.task import TaskGraph
 from lineapy.utils.logging_config import configure_logging
@@ -611,3 +612,79 @@ class SessionArtifacts:
             if coll.collection_type == NodeCollectionType.ARTIFACT:
                 return coll.safename
         return None
+
+    def get_session_imports(self, indentation=0) -> str:
+        """
+        Return all the import statement for the session
+        """
+        return self.import_nodecollection.get_import_block(
+            indentation=indentation
+        )
+
+    def get_session_function_name(self) -> Optional[str]:
+        """
+        Return the session function name: run_session_including_{first_artifact_name}
+        """
+        first_artifact_name = self._get_first_artifact_name()
+        if first_artifact_name is not None:
+            return f"run_session_including_{first_artifact_name}"
+        return None
+
+    def get_session_function_body(self, indentation, return_dict_name="artifacts") -> str:
+        return "\n".join(
+            [
+                coll.get_function_call_block(
+                    indentation=indentation,
+                    keep_lineapy_save=False,
+                    result_placeholder=None
+                    if coll.collection_type != NodeCollectionType.ARTIFACT
+                    else return_dict_name,
+                )
+                for coll in self.artifact_nodecollections
+            ]
+        )
+
+    def get_session_function_return(self) -> str:
+        return ", ".join(
+            [
+                coll.return_variables[0]
+                for coll in self.artifact_nodecollections
+                if coll.collection_type == NodeCollectionType.ARTIFACT
+            ]
+        )
+
+    def get_session_input_parameters_lines(self) -> str:
+        return (
+            self.input_parameters_nodecollection.get_input_parameters_block()
+        )
+
+    def get_session_input_parameters_spec(self) -> List[InputVariable]:
+        session_input_variables: List[InputVariable] = list()
+        for line in self.get_session_input_parameters_lines():
+            variable_def = line.lstrip(" ").rstrip(",")
+            if len(variable_def) > 0:
+                variable_name = variable_def.split("=")[0].strip(" ")
+                value = variable_def.split("=")[1].strip(" ")
+                if ":" in variable_name:
+                    variable_name = variable_def.split(":")[0]
+                    typing_info = variable_def.split(":")[1]
+                    session_input_variables.append(
+                        InputVariable(
+                            variable_name=variable_name,
+                            value=value,
+                            typing_info=typing_info,
+                        )
+                    )
+                else:
+                    session_input_variables.append(
+                        InputVariable(variable_name=variable_name, value=value)
+                    )
+
+    def get_session_function_callblock(self, indentation=4) -> Optional[str]:
+        session_function_name = self.get_session_function_name()
+        if session_function_name is not None:
+            session_input_parameters_spec = (
+                self.get_session_input_parameters_spec()
+            )
+
+            return
