@@ -349,7 +349,9 @@ def get_artifact_task_definition(
 
 def get_session_task_definition(sa: SessionArtifacts):
     sa.input_parameters
-    function_call_block = f"run_session_including_{sa._get_first_artifact_name()}"
+    function_call_block = (
+        f"run_session_including_{sa._get_first_artifact_name()}"
+    )
     pass
 
 
