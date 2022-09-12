@@ -622,18 +622,21 @@ class SessionArtifacts:
             indentation=indentation
         )
 
-    def get_session_function_name(self) -> Optional[str]:
+    def get_session_function_name(self) -> str:
         """
         Return the session function name: run_session_including_{first_artifact_name}
         """
         first_artifact_name = self._get_first_artifact_name()
         if first_artifact_name is not None:
             return f"run_session_including_{first_artifact_name}"
-        return None
+        return ""
 
     def get_session_function_body(
         self, indentation, return_dict_name="artifacts"
     ) -> str:
+        """
+        Return the args for the session function
+        """
         return "\n".join(
             [
                 coll.get_function_call_block(
@@ -648,11 +651,17 @@ class SessionArtifacts:
         )
 
     def get_session_input_parameters_lines(self, indentation=4) -> str:
+        """
+        Return lines of session code that are replaced by user selected input
+        parameters. These lines also serve as the default values of these
+        variables.
+        """
         return self.input_parameters_nodecollection.get_input_parameters_block(
             indentation=indentation
         )
 
     def get_session_input_parameters_spec(self) -> List[InputVariable]:
+        """ """
         session_input_variables: List[InputVariable] = list()
         for line in self.get_session_input_parameters_lines().split("\n"):
             variable_def = line.strip(" ").rstrip(",")
@@ -675,9 +684,13 @@ class SessionArtifacts:
                     )
         return session_input_variables
 
-    def get_session_function_callblock(self) -> Optional[str]:
+    def get_session_function_callblock(self) -> str:
+        """
+        Return the code to make the call to the session function as
+        `session_function_name(input_parameters)`
+        """
         session_function_name = self.get_session_function_name()
-        if session_function_name is not None:
+        if session_function_name != "":
             session_input_parameters = ", ".join(
                 [
                     spec.variable_name
@@ -686,11 +699,16 @@ class SessionArtifacts:
             )
 
             return f"{session_function_name}({session_input_parameters})"
-        return None
+        else:
+            return ""
 
     def get_session_artifact_function_definitions(
         self, indentation=4
     ) -> List[str]:
+        """
+        Return the definition of each targeted artifacts calculation
+        functions
+        """
         return [
             coll.get_function_definition(indentation=indentation)
             for coll in self.artifact_nodecollections
@@ -699,6 +717,10 @@ class SessionArtifacts:
     def get_session_function(
         self, indentation=4, return_dict_name="artifacts"
     ) -> str:
+        """
+        Return the definition of the session function that executes the
+        calculation of all targeted artifacts.
+        """
         indentation_block = " " * indentation
         SESSION_FUNCTION_TEMPLATE = load_plugin_template(
             "session_function.jinja"
@@ -713,5 +735,3 @@ class SessionArtifacts:
             return_dict_name=return_dict_name,
         )
         return session_function
-
-    # def extract_session_module(self, indentation=4, return_dict_name='artifacts'):
