@@ -1,4 +1,5 @@
 import logging
+import warnings
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -142,6 +143,12 @@ class BasePipelineWriter:
         file = self.output_dir / f"test_{self.pipeline_name}.py"
         file.write_text(prettify(module_test_text))
         logger.info(f"Generated test scaffolding file: {file}")
+        warnings.warn(
+            "Generated tests are provided as template/scaffolding to start with only; "
+            "please modify them to suit your testing needs. "
+            "Also, tests may involve long compute and/or large storage, "
+            "so please take care in running them."
+        )
 
     def _write_dag(self) -> None:
         """
