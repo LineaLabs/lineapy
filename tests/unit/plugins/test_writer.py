@@ -3,17 +3,10 @@ from pathlib import Path
 
 import pytest
 
+from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.plugins.pipeline_writers import (
-    AirflowPipelineWriter,
-    BasePipelineWriter,
-)
+from lineapy.plugins.pipeline_writers import PipelineWriterFactory
 from lineapy.utils.utils import get_system_python_version, prettify
-
-pipeline_writer_classes = {
-    "SCRIPT": BasePipelineWriter,
-    "AIRFLOW": AirflowPipelineWriter,
-}
 
 
 def check_requirements_txt(t1: str, t2: str):
@@ -210,19 +203,23 @@ def test_pipeline_generation(
         linea_db, artifact_list, input_parameters=input_parameters
     )
     with tempfile.TemporaryDirectory() as tempfolder:
-        pipeline_writer = pipeline_writer_classes[framework](
-            artifact_collection,
+        # Construct pipeline writer
+        pipeline_writer = PipelineWriterFactory.get(
+            pipeline_type=PipelineType[framework],
+            artifact_collection=artifact_collection,
             dependencies=dependencies,
             pipeline_name=pipeline_name,
             output_dir=tempfolder,
             dag_config=dag_config,
         )
+
+        # Write out pipeline files
         pipeline_writer.write_pipeline_files()
 
+        # Compare generated vs. expected
         file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
         if framework != "SCRIPT":
             file_endings.append("_dag.py")
-
         for file_suffix in file_endings:
             path = Path(tempfolder, pipeline_name + file_suffix)
             generated = path.read_text()
@@ -292,12 +289,16 @@ def test_pipeline_test_generation(
 
     artifact_collection = ArtifactCollection(linea_db, artifact_list)
     with tempfile.TemporaryDirectory() as tempfolder:
-        pipeline_writer = pipeline_writer_classes["SCRIPT"](
-            artifact_collection,
+        # Construct pipeline writer
+        pipeline_writer = PipelineWriterFactory.get(
+            pipeline_type=PipelineType["SCRIPT"],
+            artifact_collection=artifact_collection,
             dependencies=dependencies,
             pipeline_name=pipeline_name,
             output_dir=tempfolder,
         )
+
+        # Write out pipeline files
         pipeline_writer.write_pipeline_files()
 
         # Compare generated vs. expected
