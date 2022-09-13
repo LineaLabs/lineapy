@@ -117,26 +117,24 @@ class BasePipelineWriter:
         """
         Write out test scaffolding for refactored code in module file.
         """
-        # Get elements necessary for test writing
-        node_collection_names = [
-            node_collection.safename
-            for session_artifacts in self.session_artifacts_sorted
-            for node_collection in session_artifacts.artifact_nodecollections
-        ]
-
         # Format components to be passed into file template
         module_name = f"{self.pipeline_name}_module"
         test_class_name = f"Test{self.pipeline_name.title().replace('_', '')}"
-        function_names = [f"get_{name}" for name in node_collection_names]
-        test_case_names = [f"test_{name}" for name in node_collection_names]
+        function_metadata_list = [
+            {
+                "function_name": f"get_{node_collection.safename}",
+                "test_case_name": f"test_{node_collection.safename}",
+            }
+            for session_artifacts in self.session_artifacts_sorted
+            for node_collection in session_artifacts.artifact_nodecollections
+        ]
 
         # Fill in file template and write it out
         MODULE_TEST_TEMPLATE = load_plugin_template("module_test.jinja")
         module_test_text = MODULE_TEST_TEMPLATE.render(
             MODULE_NAME=module_name,
-            FUNCTION_NAMES=function_names,
             TEST_CLASS_NAME=test_class_name,
-            TEST_CASE_NAMES=test_case_names,
+            FUNCTION_METADATA_LIST=function_metadata_list,
         )
         file = self.output_dir / f"test_{self.pipeline_name}.py"
         file.write_text(prettify(module_test_text))

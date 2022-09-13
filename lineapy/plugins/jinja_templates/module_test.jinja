@@ -1,13 +1,8 @@
-import os
-import pickle
 import unittest
-import warnings
-from pathlib import Path
-from typing import Callable
 
 from {{ MODULE_NAME }} import (
-{% for FUNC_NAME in FUNCTION_NAMES %}
-    {{ FUNC_NAME }},
+{% for func_data in FUNCTION_METADATA_LIST %}
+    {{ func_data.function_name }},
 {% endfor %}
 )
 
@@ -22,8 +17,11 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
         # Adjust as needed
         pass
 
-{% for TEST_NAME in TEST_CASE_NAMES %}
-    def {{ TEST_NAME }}(self) -> None:
-        # Add test logic
-        pass
+{% for func_data in FUNCTION_METADATA_LIST %}
+    def {{ func_data.test_case_name }}(self) -> None:
+        # Adjust as needed
+        try:
+            {{ func_data.function_name }}()
+        except Exception:
+            pass
 {% endfor %}
