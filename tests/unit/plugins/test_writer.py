@@ -47,6 +47,17 @@ def check_requirements_txt(t1: str, t2: str):
         ),
         pytest.param(
             "simple",
+            "",
+            ["a", "b0"],
+            "AIRFLOW",
+            "airflow_pipeline_a0_b0",
+            {},
+            {},
+            ["b0"],
+            id="airflow_pipeline_a0_b0_inputpar",
+        ),
+        pytest.param(
+            "simple",
             "complex",
             ["a0", "b0"],
             "SCRIPT",
@@ -173,7 +184,9 @@ def test_pipeline_generation(
         ).read_text()
         execute(code2, snapshot=False)
 
-    artifact_collection = ArtifactCollection(linea_db, artifact_list)
+    artifact_collection = ArtifactCollection(
+        linea_db, artifact_list, input_parameters=input_parameters
+    )
     with tempfile.TemporaryDirectory() as tempfolder:
         pipeline_writer = pipeline_writer_classes[framework](
             artifact_collection,
