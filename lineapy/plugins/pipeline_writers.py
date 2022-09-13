@@ -171,6 +171,8 @@ class AirflowPipelineWriter(BasePipelineWriter):
         ):
             full_code = self._write_operator_per_artifact()
 
+        print(full_code)
+
         # Write out file
         file = self.output_dir / f"{self.pipeline_name}_dag.py"
         file.write_text(prettify(full_code))
@@ -226,6 +228,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
         to peak and control pipeline runs at a finer level and allows
         for further customization.
         """
+        codegenerator = AirflowCodeGenerator(self.artifact_collection)
         DAG_TEMPLATE = load_plugin_template("airflow_dag_PythonOperator.jinja")
         task_functions = []
         task_definitions = []
@@ -243,6 +246,13 @@ class AirflowPipelineWriter(BasePipelineWriter):
             mapping={f: f for f in task_functions},
             edges=dependencies,
         )
+        session_function_params = (
+            codegenerator.get_session_function_params_args()
+        )
+        tasks = [
+            (ft, session_function_params.get(ft, None))
+            for ft in task_functions
+        ]
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
             MODULE_NAME=self.pipeline_name + "_module",
@@ -254,8 +264,9 @@ class AirflowPipelineWriter(BasePipelineWriter):
             ),
             MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
             CATCHUP=self.dag_config.get("catchup", "False"),
+            dag_params=codegenerator.get_params_args(),
             task_definitions=task_definitions,
-            tasks=task_functions,
+            tasks=tasks,
             task_dependencies=task_graph.get_airflow_dependencies(
                 setup_task="setup", teardown_task="teardown"
             ),
@@ -305,6 +316,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
         to peak and control pipeline runs at a finer level and allows
         for further customization.
         """
+        codegenerator = AirflowCodeGenerator(self.artifact_collection)
         DAG_TEMPLATE = load_plugin_template("airflow_dag_PythonOperator.jinja")
         task_functions = []
         task_definitions = []
@@ -326,6 +338,13 @@ class AirflowPipelineWriter(BasePipelineWriter):
             mapping={f: f for f in task_functions},
             edges=dependencies,
         )
+        artifact_function_params = (
+            codegenerator.get_artifact_function_params_args()
+        )
+        tasks = [
+            (ft, artifact_function_params.get(ft, None))
+            for ft in task_functions
+        ]
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
             MODULE_NAME=self.pipeline_name + "_module",
@@ -335,10 +354,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
             SCHEDULE_INTERVAL=self.dag_config.get(
                 "schedule_interval", "*/15 * * * *"
             ),
+            dag_params=codegenerator.get_params_args(),
             MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
             CATCHUP=self.dag_config.get("catchup", "False"),
             task_definitions=task_definitions,
-            tasks=task_functions,
+            tasks=tasks,
             task_dependencies=task_graph.get_airflow_dependencies(
                 setup_task="setup", teardown_task="teardown"
             ),
@@ -400,6 +420,56 @@ def get_session_task_definition(
         dumping_blocks=return_artifacts_saving_block,
         indentation_block=" " * indentation,
     )
+
+
+class AirflowCodeGenerator:
+    def __init__(self, ac: ArtifactCollection) -> None:
+        self.artifact_collection = ac
+
+    def get_params_args(self) -> str:
+        input_parameters_dict = dict()
+        for sa in self.artifact_collection._sort_session_artifacts():
+            for input_spec in sa.get_session_input_parameters_spec():
+                input_parameters_dict[
+                    input_spec.variable_name
+                ] = input_spec.value
+        return '"params":' + str(input_parameters_dict)
+
+    def get_session_function_params_args(self) -> Dict[str, str]:
+        session_function_input_parameters = dict()
+        for sa in self.artifact_collection._sort_session_artifacts():
+            session_input_parameters = list(sa.input_parameters_node.keys())
+            if len(session_input_parameters) > 0:
+                session_function_input_parameters[
+                    sa.get_session_function_name()
+                ] = "op_kwargs=" + str(
+                    {
+                        var: "{{ params." + var + " }}"
+                        for var in session_input_parameters
+                    }
+                )
+        print(session_function_input_parameters)
+        return session_function_input_parameters
+
+    def get_artifact_function_params_args(self) -> Dict[str, str]:
+        artifact_function_input_parameters = dict()
+        for sa in self.artifact_collection._sort_session_artifacts():
+            session_input_parameters = set(sa.input_parameters_node.keys())
+            for nc in sa.artifact_nodecollections:
+                parameterized_variables = nc.input_variables.intersection(
+                    session_input_parameters
+                )
+                if len(parameterized_variables) > 0:
+                    artifact_function_input_parameters[
+                        nc.safename
+                    ] = "op_kwargs=" + str(
+                        {
+                            var: "{{ params." + var + " }}"
+                            for var in parameterized_variables
+                        }
+                    )
+        print(artifact_function_input_parameters)
+        return artifact_function_input_parameters
 
 
 class PipelineWriterFactory:
