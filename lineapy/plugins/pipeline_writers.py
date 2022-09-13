@@ -15,7 +15,11 @@ from lineapy.plugins.task import (
     TaskGraph,
     TaskGraphEdge,
 )
-from lineapy.plugins.utils import PIP_PACKAGE_NAMES, load_plugin_template
+from lineapy.plugins.utils import (
+    PIP_PACKAGE_NAMES,
+    load_plugin_template,
+    slugify,
+)
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_system_python_version, prettify
 
@@ -43,7 +47,7 @@ class BasePipelineWriter:
     ) -> None:
         self.artifact_collection = artifact_collection
         self.keep_lineapy_save = keep_lineapy_save
-        self.pipeline_name = pipeline_name
+        self.pipeline_name = slugify(pipeline_name)
         self.output_dir = Path(output_dir)
         self.dag_config = dag_config or {}
 
