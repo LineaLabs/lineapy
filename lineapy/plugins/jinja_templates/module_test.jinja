@@ -10,3 +10,20 @@ from {{ MODULE_NAME }} import (
     {{ FUNC_NAME }},
 {% endfor %}
 )
+
+class {{ TEST_CLASS_NAME }}(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        # Adjust as needed
+        pass
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        # Adjust as needed
+        pass
+
+{% for TEST_NAME in TEST_CASE_NAMES %}
+    def {{ TEST_NAME }}(self) -> None:
+        # Add test logic
+        pass
+{% endfor %}
