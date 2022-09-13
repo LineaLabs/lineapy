@@ -113,6 +113,19 @@ class BasePipelineWriter:
         file.write_text(lib_names_text)
         logger.info(f"Generated requirements file: {file}")
 
+    def _write_module_test(self) -> None:
+        """
+        Write out test scaffolding for refactored code in module file.
+        """
+        MODULE_TEST_TEMPLATE = load_plugin_template("module_test.jinja")
+        module_test_text = MODULE_TEST_TEMPLATE.render(
+            MODULE_NAME=self.pipeline_name + "_module",
+            FUNCTION_NAMES=["a", "b", "c"],
+        )
+        file = self.output_dir / f"test_{self.pipeline_name}.py"
+        file.write_text(prettify(module_test_text))
+        logger.info(f"Generated test scaffolding file: {file}")
+
     def _write_dag(self) -> None:
         """
         Write out framework-specific DAG file
@@ -137,6 +150,7 @@ class BasePipelineWriter:
         """
         self._write_module()
         self._write_requirements()
+        self._write_module_test()
         self._write_dag()
         self._write_docker()
 
