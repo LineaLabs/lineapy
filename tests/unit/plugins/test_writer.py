@@ -247,3 +247,69 @@ def test_pipeline_generation(
                 if file_suffix.endswith(".py"):
                     to_compare = prettify(to_compare)
                 assert generated == to_compare
+
+
+@pytest.mark.parametrize(
+    "input_script1, input_script2, artifact_list, pipeline_name, dependencies",
+    [
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "script_pipeline_a0_b0_dependencies",
+            {"a0": {"b0"}},
+            id="script_pipeline_a0_b0_dependencies",
+        ),
+        pytest.param(
+            "housing",
+            "",
+            ["y", "p value"],
+            "script_pipeline_housing_w_dependencies",
+            {"p value": {"y"}},
+            id="script_pipeline_housing_w_dependencies",
+        ),
+    ],
+)
+def test_pipeline_test_generation(
+    linea_db,
+    execute,
+    input_script1,
+    input_script2,
+    artifact_list,
+    pipeline_name,
+    dependencies,
+):
+    code1 = Path(
+        "tests", "unit", "graph_reader", "inputs", input_script1
+    ).read_text()
+    execute(code1, snapshot=False)
+
+    if input_script2 != "":
+        code2 = Path(
+            "tests", "unit", "graph_reader", "inputs", input_script2
+        ).read_text()
+        execute(code2, snapshot=False)
+
+    artifact_collection = ArtifactCollection(linea_db, artifact_list)
+    with tempfile.TemporaryDirectory() as tempfolder:
+        pipeline_writer = pipeline_writer_classes["SCRIPT"](
+            artifact_collection,
+            dependencies=dependencies,
+            pipeline_name=pipeline_name,
+            output_dir=tempfolder,
+        )
+        pipeline_writer.write_pipeline_files()
+
+        # Compare generated vs. expected
+        path_generated = Path(tempfolder, f"test_{pipeline_name}.py")
+        content_generated = path_generated.read_text()
+        path_expected = Path(
+            "tests",
+            "unit",
+            "plugins",
+            "expected",
+            pipeline_name,
+            f"test_{pipeline_name}.py",
+        )
+        content_expected = prettify(path_expected.read_text())
+        assert content_generated == content_expected
