@@ -1,9 +1,11 @@
 import unittest
+import warnings
+from typing import Any, Dict
 
 from {{ MODULE_NAME }} import (
-{% for func_data in FUNCTION_METADATA_LIST %}
+{%- for func_data in FUNCTION_METADATA_LIST %}
     {{ func_data.function_name }},
-{% endfor %}
+{%- endfor %}
 )
 
 class {{ TEST_CLASS_NAME }}(unittest.TestCase):
@@ -17,11 +19,18 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
         # Adjust as needed
         pass
 
-{% for func_data in FUNCTION_METADATA_LIST %}
+{%- for func_data in FUNCTION_METADATA_LIST %}
     def {{ func_data.test_case_name }}(self) -> None:
         # Adjust as needed
+        sample_input: Dict[str, Any] = {}
+    {%- for arg_name in func_data.function_arg_names %}
+        sample_input["{{ arg_name }}"] = None
+    {%- endfor %}
         try:
-            {{ func_data.function_name }}()
+            {{ func_data.function_name }}(**sample_input)
         except Exception:
-            pass
-{% endfor %}
+            warnings.warn(
+                "Test failed, but this may be due to our limited templating. "
+                "Please adapt the test as needed."
+            )
+{%- endfor %}

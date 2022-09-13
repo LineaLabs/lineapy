@@ -123,6 +123,9 @@ class BasePipelineWriter:
         function_metadata_list = [
             {
                 "function_name": f"get_{node_collection.safename}",
+                "function_arg_names": sorted(
+                    [v for v in node_collection.input_variables]
+                ),
                 "test_case_name": f"test_{node_collection.safename}",
             }
             for session_artifacts in self.session_artifacts_sorted
