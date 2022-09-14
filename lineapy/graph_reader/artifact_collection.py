@@ -300,7 +300,6 @@ class ArtifactCollection:
         module_text = MODULE_TEMPLATE.render(
             indentation_block=indentation_block,
             module_imports=module_imports,
-            # artifact_functions=artifact_functions,
             artifact_functions=artifact_function_definition,
             session_functions=session_functions,
             module_function_body=module_function_body,

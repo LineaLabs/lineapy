@@ -607,7 +607,7 @@ class SessionArtifacts:
 
     def _get_first_artifact_name(self) -> Optional[str]:
         """
-        Return the name of first artifact(topologically sorted)
+        Return the name of first artifact(topologically sorted).
         """
         for coll in self.artifact_nodecollections:
             if coll.collection_type == NodeCollectionType.ARTIFACT:
@@ -616,7 +616,7 @@ class SessionArtifacts:
 
     def get_session_module_imports(self, indentation=0) -> str:
         """
-        Return all the import statement for the session
+        Return all the import statement for the session.
         """
         return self.import_nodecollection.get_import_block(
             indentation=indentation
@@ -635,7 +635,7 @@ class SessionArtifacts:
         self, indentation, return_dict_name="artifacts"
     ) -> str:
         """
-        Return the args for the session function
+        Return the args for the session function.
         """
         return "\n".join(
             [
@@ -661,7 +661,10 @@ class SessionArtifacts:
         )
 
     def get_session_input_parameters_spec(self) -> Dict[str, InputVariable]:
-        """ """
+        """
+        Return a dictionary with input parameters as key and InputVariable
+        class as value to generate code related to user input variables.
+        """
         session_input_variables: Dict[str, InputVariable] = dict()
         for line in self.get_session_input_parameters_lines().split("\n"):
             variable_def = line.strip(" ").rstrip(",")
@@ -689,7 +692,7 @@ class SessionArtifacts:
     def get_session_function_callblock(self) -> str:
         """
         Return the code to make the call to the session function as
-        `session_function_name(input_parameters)`
+        `session_function_name(input_parameters)`.
         """
         session_function_name = self.get_session_function_name()
         if session_function_name != "":
@@ -705,7 +708,7 @@ class SessionArtifacts:
     ) -> List[str]:
         """
         Return the definition of each targeted artifacts calculation
-        functions
+        functions.
         """
         return [
             coll.get_function_definition(indentation=indentation)
