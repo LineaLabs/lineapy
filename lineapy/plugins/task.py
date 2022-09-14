@@ -110,3 +110,13 @@ AirflowDagConfig = TypedDict(
     },
     total=False,
 )
+
+
+class TaskDefinition(TypedDict):
+    """
+    Definition of an artifact, can extend new keys(user, project, ...)
+    in the future.
+    """
+
+    definition: str
+    user_input_variables: List[str]

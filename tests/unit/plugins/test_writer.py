@@ -50,11 +50,11 @@ def check_requirements_txt(t1: str, t2: str):
             "",
             ["a", "b0"],
             "AIRFLOW",
-            "airflow_pipeline_a0_b0_inputpar",
+            "airflow_pipeline_a_b0_inputpar",
             {},
             {},
             ["b0"],
-            id="airflow_pipeline_a0_b0_inputpar",
+            id="airflow_pipeline_a_b0_inputpar",
         ),
         pytest.param(
             "simple",

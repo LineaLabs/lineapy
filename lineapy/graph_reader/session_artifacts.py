@@ -660,9 +660,9 @@ class SessionArtifacts:
             indentation=indentation
         )
 
-    def get_session_input_parameters_spec(self) -> List[InputVariable]:
+    def get_session_input_parameters_spec(self) -> Dict[str, InputVariable]:
         """ """
-        session_input_variables: List[InputVariable] = list()
+        session_input_variables: Dict[str, InputVariable] = dict()
         for line in self.get_session_input_parameters_lines().split("\n"):
             variable_def = line.strip(" ").rstrip(",")
             if len(variable_def) > 0:
@@ -672,19 +672,18 @@ class SessionArtifacts:
                 if ":" in variable_name:
                     variable_name = variable_def.split(":")[0]
                     typing_info = variable_def.split(":")[1]
-                    session_input_variables.append(
-                        InputVariable(
-                            variable_name=variable_name,
-                            value=value,
-                            typing_info=typing_info,
-                            value_type=value_type,
-                        )
+                    session_input_variables[variable_name] = InputVariable(
+                        variable_name=variable_name,
+                        value=value,
+                        typing_info=typing_info,
+                        value_type=value_type,
                     )
                 else:
-                    session_input_variables.append(
-                        InputVariable(variable_name=variable_name, value=value, value_type=value_type)
+                    session_input_variables[variable_name] = InputVariable(
+                        variable_name=variable_name,
+                        value=value,
+                        value_type=value_type,
                     )
-                print(variable_name, value, type(value))
         return session_input_variables
 
     def get_session_function_callblock(self) -> str:
@@ -695,12 +694,8 @@ class SessionArtifacts:
         session_function_name = self.get_session_function_name()
         if session_function_name != "":
             session_input_parameters = ", ".join(
-                [
-                    spec.variable_name
-                    for spec in self.get_session_input_parameters_spec()
-                ]
+                self.get_session_input_parameters_spec().keys()
             )
-
             return f"{session_function_name}({session_input_parameters})"
         else:
             return ""

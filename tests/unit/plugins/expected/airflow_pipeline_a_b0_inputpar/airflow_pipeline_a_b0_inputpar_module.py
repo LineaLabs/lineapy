@@ -34,7 +34,7 @@ def run_all_sessions(b0=0):
 if __name__ == "__main__":
     # Edit this section to customize the behavior of artifacts
     parser = argparse.ArgumentParser()
-    parser.add_argument("--b0", default=0)
+    parser.add_argument("--b0", type=int, default=0)
     args = parser.parse_args()
     artifacts = run_all_sessions(b0=args.b0)
     print(artifacts)

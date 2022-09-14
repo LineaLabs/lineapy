@@ -252,15 +252,11 @@ class ArtifactCollection:
             ]
         )
 
-        module_input_parameters = list(
-            itertools.chain.from_iterable(
-                [
-                    sa.get_session_input_parameters_spec()
-                    for sa in session_artifacts_sorted
-                ]
+        module_input_parameters = []
+        for sa in session_artifacts_sorted:
+            module_input_parameters += list(
+                sa.get_session_input_parameters_spec().values()
             )
-        )
-
         if len(module_input_parameters) == 0:
             module_input_parameters_body = ""
             parser_input_parameters = ""
@@ -340,7 +336,7 @@ class ArtifactCollection:
             session_artifacts_sorted=session_artifacts_sorted,
             indentation=indentation,
         )
-
+        print(prettify(module_text))
         return prettify(module_text)
 
     def get_module(self, dependencies: TaskGraphEdge = {}):

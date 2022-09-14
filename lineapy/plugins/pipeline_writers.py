@@ -1,19 +1,17 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import (
     ArtifactCollection,
     SessionArtifacts,
 )
-from lineapy.graph_reader.node_collection import (
-    NodeCollection,
-    NodeCollectionType,
-)
+from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.plugins.task import (
     AirflowDagConfig,
     AirflowDagFlavor,
+    TaskDefinition,
     TaskGraph,
     TaskGraphEdge,
 )
@@ -360,23 +358,30 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
     def get_artifact_task_definitions(
         self, indentation=4
-    ) -> Dict[str, Dict[str, Any]]:
+    ) -> Dict[str, TaskDefinition]:
         """
         Add deserialization of input variables and serialization of output
         variables logic of the artifact fucntion call_block and wrap them into a
         new function definition.
         """
-        task_definitions: Dict[str, str] = dict()
+        task_definitions: Dict[str, TaskDefinition] = dict()
         unused_input_parameters = set(
             self.artifact_collection.input_parameters
         )
         for session_artifacts in self.session_artifacts_sorted:
+            session_input_parameters_spec = (
+                session_artifacts.get_session_input_parameters_spec()
+            )
             for nc in session_artifacts.artifact_nodecollections:
                 all_input_variables = sorted(list(nc.input_variables))
                 artifact_user_input_variables = [
                     var
                     for var in all_input_variables
                     if var in unused_input_parameters
+                ]
+                user_input_var_typing_block = [
+                    f"{var} = {session_input_parameters_spec[var].value_type}({var})"
+                    for var in artifact_user_input_variables
                 ]
                 unused_input_parameters.difference_update(
                     set(artifact_user_input_variables)
@@ -401,15 +406,17 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     user_input_variables=", ".join(
                         artifact_user_input_variables
                     ),
+                    typing_blocks=user_input_var_typing_block,
                     loading_blocks=input_var_loading_block,
                     call_block=function_call_block,
                     dumping_blocks=return_var_saving_block,
                     indentation_block=" " * indentation,
                 )
-                task_definitions[nc.safename] = {
+                task_def: TaskDefinition = {
                     "definition": function_definition,
                     "user_input_variables": artifact_user_input_variables,
                 }
+                task_definitions[nc.safename] = task_def
 
         return task_definitions
 
@@ -423,10 +430,9 @@ def get_session_task_definition(
     Add serialization of output artifacts logic of the session function
     call_block and wrap them into a new function definition.
     """
-    session_input_variables = [
-        parspec.variable_name
-        for parspec in sa.get_session_input_parameters_spec()
-    ]
+    session_input_variables = list(
+        sa.get_session_input_parameters_spec().keys()
+    )
     input_var_loading_block: List[str] = []
     function_call_block = f"artifacts = {pipeline_name}_module.{sa.get_session_function_callblock()}"
     return_artifacts_saving_block = [
@@ -453,12 +459,7 @@ class AirflowCodeGenerator:
     def get_params_args(self) -> str:
         input_parameters_dict = dict()
         for sa in self.artifact_collection._sort_session_artifacts():
-            for input_spec in sa.get_session_input_parameters_spec():
-                print(
-                    input_spec.variable_name,
-                    input_spec.value,
-                    input_spec.value,
-                )
+            for input_spec in sa.get_session_input_parameters_spec().values():
                 input_parameters_dict[
                     input_spec.variable_name
                 ] = input_spec.value
@@ -480,7 +481,7 @@ class AirflowCodeGenerator:
         return session_function_input_parameters
 
     def get_artifact_function_params_args(
-        self, artifact_function_definitions: Dict[str, Dict[str, Any]]
+        self, artifact_function_definitions: Dict[str, TaskDefinition]
     ) -> Dict[str, str]:
         artifact_function_input_parameters = dict()
         for sa in self.artifact_collection._sort_session_artifacts():
