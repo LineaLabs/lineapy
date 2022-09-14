@@ -180,12 +180,12 @@ def test_two_sessions(
 @pytest.mark.parametrize(
     "input_parameters, input_values, expected_values",
     [
-        pytest.param([], dict(), {"add_p": "ap"}, id="no_input"),
-        pytest.param(["a", "p"], dict(), {"add_p": "ap"}, id="default_value"),
+        pytest.param([], dict(), {"prod_p": "pp"}, id="no_input"),
+        pytest.param(["a", "p"], dict(), {"prod_p": "pp"}, id="default_value"),
         pytest.param(
             ["a", "p"],
-            {"a": "A", "p": "P"},
-            {"add_p": "AP"},
+            {"a": 5, "p": "P"},
+            {"prod_p": "PPPPP"},
             id="overriding_value",
         ),
     ],
@@ -205,13 +205,13 @@ def test_module_run(
 
     code = """\n
 import lineapy
-a = "a"
+a = 2
 p = "p"
-b = a+p
-lineapy.save(b,'add_p')
+b = p*a
+lineapy.save(b,'prod_p')
 """
     execute(code, snapshot=False)
-    artifact_list = ["add_p"]
+    artifact_list = ["prod_p"]
     ac = ArtifactCollection(
         linea_db, artifact_list, input_parameters=input_parameters
     )
@@ -222,7 +222,7 @@ lineapy.save(b,'add_p')
     cmds = ["python", str(temp_module_path)]
     # Add input parameter values if specified in cmds
     for par, val in input_values.items():
-        cmds += [f"--{par}", val]
+        cmds += [f"--{par}", str(val)]
 
     p = subprocess.run(cmds, capture_output=True, text=True)
     assert p.returncode == 0
