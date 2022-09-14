@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import (
@@ -318,17 +318,9 @@ class AirflowPipelineWriter(BasePipelineWriter):
         """
         codegenerator = AirflowCodeGenerator(self.artifact_collection)
         DAG_TEMPLATE = load_plugin_template("airflow_dag_PythonOperator.jinja")
-        task_functions = []
-        task_definitions = []
-        for session_artifacts in self.session_artifacts_sorted:
-            task_functions += [
-                nc.safename
-                for nc in session_artifacts.artifact_nodecollections
-            ]
-            task_definitions += [
-                get_artifact_task_definition(nc, self.pipeline_name)
-                for nc in session_artifacts.artifact_nodecollections
-            ]
+        task_def = self.get_artifact_task_definitions()
+        task_functions = list(task_def.keys())
+        task_definitions = [task["definition"] for task in task_def.values()]
         dependencies = {
             task_functions[i + 1]: {task_functions[i]}
             for i in range(len(task_functions) - 1)
@@ -339,7 +331,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
             edges=dependencies,
         )
         artifact_function_params = (
-            codegenerator.get_artifact_function_params_args()
+            codegenerator.get_artifact_function_params_args(task_def)
         )
         tasks = [
             (ft, artifact_function_params.get(ft, None))
@@ -366,44 +358,75 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
         return full_code
 
+    def get_artifact_task_definitions(
+        self, indentation=4
+    ) -> Dict[str, Dict[str, Any]]:
+        """
+        Add deserialization of input variables and serialization of output
+        variables logic of the artifact fucntion call_block and wrap them into a
+        new function definition.
+        """
+        task_definitions: Dict[str, str] = dict()
+        unused_input_parameters = set(
+            self.artifact_collection.input_parameters
+        )
+        for session_artifacts in self.session_artifacts_sorted:
+            for nc in session_artifacts.artifact_nodecollections:
+                all_input_variables = sorted(list(nc.input_variables))
+                artifact_user_input_variables = [
+                    var
+                    for var in all_input_variables
+                    if var in unused_input_parameters
+                ]
+                unused_input_parameters.difference_update(
+                    set(artifact_user_input_variables)
+                )
+                input_var_loading_block = [
+                    f"{var} = pickle.load(open('/tmp/{self.pipeline_name}/variable_{var}.pickle','rb'))"
+                    for var in all_input_variables
+                    if var not in artifact_user_input_variables
+                ]
+                function_call_block = nc.get_function_call_block(
+                    indentation=0, source_module=f"{self.pipeline_name}_module"
+                )
+                return_var_saving_block = [
+                    f"pickle.dump({var},open('/tmp/{self.pipeline_name}/variable_{var}.pickle','wb'))"
+                    for var in nc.return_variables
+                ]
+                TASK_FUNCTION_TEMPLATE = load_plugin_template(
+                    "task_function.jinja"
+                )
+                function_definition = TASK_FUNCTION_TEMPLATE.render(
+                    function_name=nc.safename,
+                    user_input_variables=", ".join(
+                        artifact_user_input_variables
+                    ),
+                    loading_blocks=input_var_loading_block,
+                    call_block=function_call_block,
+                    dumping_blocks=return_var_saving_block,
+                    indentation_block=" " * indentation,
+                )
+                task_definitions[nc.safename] = {
+                    "definition": function_definition,
+                    "user_input_variables": artifact_user_input_variables,
+                }
 
-def get_artifact_task_definition(
-    nc: NodeCollection, pipeline_name: str, indentation=4
-) -> str:
-    """
-    Add deserialization of input variables and serialization of output
-    variables logic of the artifact fucntion call_block and wrap them into a
-    new function definition.
-    """
-    input_var_loading_block = [
-        f"{var} = pickle.load(open('/tmp/{pipeline_name}/variable_{var}.pickle','rb'))"
-        for var in sorted(list(nc.input_variables))
-    ]
-    function_call_block = nc.get_function_call_block(
-        indentation=0, source_module=f"{pipeline_name}_module"
-    )
-    return_var_saving_block = [
-        f"pickle.dump({var},open('/tmp/{pipeline_name}/variable_{var}.pickle','wb'))"
-        for var in nc.return_variables
-    ]
-
-    TASK_FUNCTION_TEMPLATE = load_plugin_template("task_function.jinja")
-    return TASK_FUNCTION_TEMPLATE.render(
-        function_name=nc.safename,
-        loading_blocks=input_var_loading_block,
-        call_block=function_call_block,
-        dumping_blocks=return_var_saving_block,
-        indentation_block=" " * indentation,
-    )
+        return task_definitions
 
 
 def get_session_task_definition(
-    sa: SessionArtifacts, pipeline_name: str, indentation=4
+    sa: SessionArtifacts,
+    pipeline_name: str,
+    indentation=4,
 ) -> str:
     """
     Add serialization of output artifacts logic of the session function
     call_block and wrap them into a new function definition.
     """
+    session_input_variables = [
+        parspec.variable_name
+        for parspec in sa.get_session_input_parameters_spec()
+    ]
     input_var_loading_block: List[str] = []
     function_call_block = f"artifacts = {pipeline_name}_module.{sa.get_session_function_callblock()}"
     return_artifacts_saving_block = [
@@ -415,6 +438,7 @@ def get_session_task_definition(
     TASK_FUNCTION_TEMPLATE = load_plugin_template("task_function.jinja")
     return TASK_FUNCTION_TEMPLATE.render(
         function_name=sa.get_session_function_name(),
+        user_input_variables=", ".join(session_input_variables),
         loading_blocks=input_var_loading_block,
         call_block=function_call_block,
         dumping_blocks=return_artifacts_saving_block,
@@ -430,6 +454,11 @@ class AirflowCodeGenerator:
         input_parameters_dict = dict()
         for sa in self.artifact_collection._sort_session_artifacts():
             for input_spec in sa.get_session_input_parameters_spec():
+                print(
+                    input_spec.variable_name,
+                    input_spec.value,
+                    input_spec.value,
+                )
                 input_parameters_dict[
                     input_spec.variable_name
                 ] = input_spec.value
@@ -448,17 +477,21 @@ class AirflowCodeGenerator:
                         for var in session_input_parameters
                     }
                 )
-        print(session_function_input_parameters)
         return session_function_input_parameters
 
-    def get_artifact_function_params_args(self) -> Dict[str, str]:
+    def get_artifact_function_params_args(
+        self, artifact_function_definitions: Dict[str, Dict[str, Any]]
+    ) -> Dict[str, str]:
         artifact_function_input_parameters = dict()
         for sa in self.artifact_collection._sort_session_artifacts():
             session_input_parameters = set(sa.input_parameters_node.keys())
             for nc in sa.artifact_nodecollections:
+                user_input_variables = artifact_function_definitions[
+                    nc.safename
+                ]["user_input_variables"]
                 parameterized_variables = nc.input_variables.intersection(
                     session_input_parameters
-                )
+                ).intersection(set(user_input_variables))
                 if len(parameterized_variables) > 0:
                     artifact_function_input_parameters[
                         nc.safename
@@ -468,7 +501,6 @@ class AirflowCodeGenerator:
                             for var in parameterized_variables
                         }
                     )
-        print(artifact_function_input_parameters)
         return artifact_function_input_parameters
 
 

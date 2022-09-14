@@ -4,9 +4,9 @@ RUN mkdir /tmp/installers
 WORKDIR /tmp/installers
 
 # copy all the requirements to run the current dag
-COPY ./_requirements.txt ./
+COPY ./airflow_pipeline_a0_b0_inputpar_requirements.txt ./
 # install the required libs
-RUN pip install -r ./_requirements.txt
+RUN pip install -r ./airflow_pipeline_a0_b0_inputpar_requirements.txt
 
 WORKDIR /opt/airflow/dags
 COPY . .

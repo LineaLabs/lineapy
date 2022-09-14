@@ -667,7 +667,8 @@ class SessionArtifacts:
             variable_def = line.strip(" ").rstrip(",")
             if len(variable_def) > 0:
                 variable_name = variable_def.split("=")[0].strip(" ")
-                value = variable_def.split("=")[1].strip(" ")
+                value = eval(variable_def.split("=")[1].strip(" "))
+                value_type = type(value)
                 if ":" in variable_name:
                     variable_name = variable_def.split(":")[0]
                     typing_info = variable_def.split(":")[1]
@@ -676,12 +677,14 @@ class SessionArtifacts:
                             variable_name=variable_name,
                             value=value,
                             typing_info=typing_info,
+                            value_type=value_type,
                         )
                     )
                 else:
                     session_input_variables.append(
-                        InputVariable(variable_name=variable_name, value=value)
+                        InputVariable(variable_name=variable_name, value=value, value_type=value_type)
                     )
+                print(variable_name, value, type(value))
         return session_input_variables
 
     def get_session_function_callblock(self) -> str:
