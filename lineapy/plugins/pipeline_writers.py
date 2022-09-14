@@ -169,8 +169,6 @@ class AirflowPipelineWriter(BasePipelineWriter):
         ):
             full_code = self._write_operator_per_artifact()
 
-        print(full_code)
-
         # Write out file
         file = self.output_dir / f"{self.pipeline_name}_dag.py"
         file.write_text(prettify(full_code))
@@ -430,9 +428,13 @@ def get_session_task_definition(
     Add serialization of output artifacts logic of the session function
     call_block and wrap them into a new function definition.
     """
-    session_input_variables = list(
-        sa.get_session_input_parameters_spec().keys()
-    )
+    session_input_parameters_spec = sa.get_session_input_parameters_spec()
+    session_input_variables = list(session_input_parameters_spec.keys())
+    user_input_var_typing_block = [
+        f"{var} = {session_input_parameters_spec[var].value_type}({var})"
+        for var in session_input_variables
+    ]
+
     input_var_loading_block: List[str] = []
     function_call_block = f"artifacts = {pipeline_name}_module.{sa.get_session_function_callblock()}"
     return_artifacts_saving_block = [
@@ -445,6 +447,7 @@ def get_session_task_definition(
     return TASK_FUNCTION_TEMPLATE.render(
         function_name=sa.get_session_function_name(),
         user_input_variables=", ".join(session_input_variables),
+        typing_blocks=user_input_var_typing_block,
         loading_blocks=input_var_loading_block,
         call_block=function_call_block,
         dumping_blocks=return_artifacts_saving_block,

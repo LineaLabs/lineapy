@@ -336,7 +336,6 @@ class ArtifactCollection:
             session_artifacts_sorted=session_artifacts_sorted,
             indentation=indentation,
         )
-        print(prettify(module_text))
         return prettify(module_text)
 
     def get_module(self, dependencies: TaskGraphEdge = {}):
