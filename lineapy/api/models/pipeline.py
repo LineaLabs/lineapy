@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple, Union
 
 from lineapy.api.api_utils import extract_taskgraph
 from lineapy.data.types import PipelineType
@@ -30,6 +30,8 @@ class Pipeline:
     def __init__(
         self,
         artifacts: List[str],
+        input_parameters: List[str] = [],
+        reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
         name: Optional[str] = None,
         dependencies: TaskGraphEdge = {},
     ):
@@ -43,6 +45,8 @@ class Pipeline:
         )
         self.name = name or "_".join(self.artifact_safe_names)
         self.artifact_names: List[str] = artifacts
+        self.input_parameters = input_parameters
+        self.reuse_pre_computed_artifacts = reuse_pre_computed_artifacts
         self.id = get_new_id()
 
     def export(
@@ -54,7 +58,10 @@ class Pipeline:
         # Create artifact collection
         execution_context = get_context()
         artifact_collection = ArtifactCollection(
-            execution_context.executor.db, self.artifact_names
+            db=execution_context.executor.db,
+            target_artifacts=self.artifact_names,
+            input_parameters=self.input_parameters,
+            reuse_pre_computed_artifacts=self.reuse_pre_computed_artifacts,
         )
 
         # Check if the specified framework is a supported/valid one

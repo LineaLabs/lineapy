@@ -356,6 +356,8 @@ def artifact_store() -> LineaArtifactStore:
 # we need to ensure all the required files (python module and the dag file) get written to the right place.
 def to_pipeline(
     artifacts: List[str],
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
     framework: str = "SCRIPT",
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
@@ -365,15 +367,57 @@ def to_pipeline(
     """
     Writes the pipeline job to a path on disk.
 
-    :param artifacts: List of artifact names to be included in the pipeline.
-    :param framework: 'AIRFLOW' or 'SCRIPT'. Defaults to 'SCRIPT' if not specified.
-    :param pipeline_name: Name of the pipeline.
-    :param dependencies: Task dependencies in graphlib format, e.g., {'B':{'A','C'}}
+    Parameters
+    ----------
+    artifacts: List[str]
+        Names of artifacts to be included in the pipeline.
+
+    input_parameters: List[str]
+        Names of variables to be used as parameters in the pipeline.
+        Currently, it only accepts variables from literal assignment
+        such as ``a = '123'``. For each variable to be parametrized,
+        there should be only one literal assignment across all
+        artifact code for the pipeline. For instance, if both ``a = '123'``
+        and ``a = 'abc'`` exist in the pipeline's artifact code,
+        we cannot make ``a`` an input parameter since its reference is
+        ambiguous, i.e., we are not sure which literal assignment ``a``
+        refers to.
+
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
+        Names of artifacts in the pipeline for which pre-computed value
+        is to be used (rather than recomputing the value).
+
+    framework: str
+        "AIRFLOW" or "SCRIPT". Defaults to "SCRIPT" if not specified.
+
+    pipeline_name: Optional[str]
+        Name of the pipeline.
+
+    dependencies: TaskGraphEdge
+        Task dependencies in graphlib format, e.g., ``{"B": {"A", "C"}}``
         means task A and C are prerequisites for task B.
-    :param output_dir: Directory path to save DAG and other pipeline files.
-    :return: Directory path where DAG and other pipeline files are saved.
+
+    pipeline_dag_config: Optional[AirflowDagConfig]
+        A dictionary of parameters to configure DAG file to be generated.
+        Not applicable for "SCRIPT" framework as it does not generate a separate
+        DAG file. For "AIRFLOW" framework, Airflow-native config params such as
+        "retries" and "schedule_interval" can be passed in.
+
+    output_dir: str
+        Directory path to save DAG and other pipeline files.
+
+    Returns
+    -------
+    Path
+        Directory path where DAG and other pipeline files are saved.
     """
-    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    pipeline = Pipeline(
+        artifacts,
+        input_parameters,
+        reuse_pre_computed_artifacts,
+        pipeline_name,
+        dependencies,
+    )
     pipeline.save()
     return pipeline.export(framework, output_dir, pipeline_dag_config)
 
