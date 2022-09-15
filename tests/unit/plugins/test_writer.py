@@ -21,7 +21,7 @@ def check_requirements_txt(t1: str, t2: str):
 
 
 @pytest.mark.parametrize(
-    "input_script1, input_script2, artifact_list, framework, pipeline_name, dependencies, dag_config",
+    "input_script1, input_script2, artifact_list, framework, pipeline_name, dependencies, dag_config, input_parameters",
     [
         pytest.param(
             "simple",
@@ -31,6 +31,7 @@ def check_requirements_txt(t1: str, t2: str):
             "script_pipeline_a0_b0",
             {},
             {},
+            [],
             id="script_pipeline_a0_b0",
         ),
         pytest.param(
@@ -41,7 +42,30 @@ def check_requirements_txt(t1: str, t2: str):
             "airflow_pipeline_a0_b0",
             {},
             {},
+            [],
             id="airflow_pipeline_a0_b0",
+        ),
+        pytest.param(
+            "simple",
+            "",
+            ["a", "b0"],
+            "AIRFLOW",
+            "airflow_pipeline_a_b0_inputpar",
+            {},
+            {"dag_flavor": "PythonOperatorPerArtifact"},
+            ["b0"],
+            id="airflow_pipeline_a_b0_input_parameter_per_artifact",
+        ),
+        pytest.param(
+            "simple",
+            "",
+            ["a", "b0"],
+            "AIRFLOW",
+            "airflow_pipeline_a_b0_inputpar_session",
+            {},
+            {"dag_flavor": "PythonOperatorPerSession"},
+            ["b0"],
+            id="airflow_pipeline_a_b0_input_parameter_per_session",
         ),
         pytest.param(
             "simple",
@@ -51,6 +75,7 @@ def check_requirements_txt(t1: str, t2: str):
             "script_pipeline_a0_b0_dependencies",
             {"a0": {"b0"}},
             {},
+            [],
             id="script_pipeline_a0_b0_dependencies",
         ),
         pytest.param(
@@ -61,6 +86,7 @@ def check_requirements_txt(t1: str, t2: str):
             "airflow_pipeline_a0_b0_dependencies",
             {"a0": {"b0"}},
             {},
+            [],
             id="airflow_pipeline_a0_b0_dependencies",
         ),
         pytest.param(
@@ -71,6 +97,7 @@ def check_requirements_txt(t1: str, t2: str):
             "script_pipeline_housing_simple",
             {},
             {},
+            [],
             id="script_pipeline_housing_simple",
         ),
         pytest.param(
@@ -81,6 +108,7 @@ def check_requirements_txt(t1: str, t2: str):
             "airflow_pipeline_housing_simple",
             {},
             {},
+            [],
             id="airflow_pipeline_housing_simple",
         ),
         pytest.param(
@@ -91,6 +119,7 @@ def check_requirements_txt(t1: str, t2: str):
             "script_pipeline_housing_multiple",
             {},
             {},
+            [],
             id="script_pipeline_housing_multiple",
         ),
         pytest.param(
@@ -101,6 +130,7 @@ def check_requirements_txt(t1: str, t2: str):
             "airflow_pipeline_housing_multiple",
             {},
             {},
+            [],
             id="airflow_pipeline_housing_multiple",
         ),
         pytest.param(
@@ -111,6 +141,7 @@ def check_requirements_txt(t1: str, t2: str):
             "script_pipeline_housing_w_dependencies",
             {"p value": {"y"}},
             {},
+            [],
             id="script_pipeline_housing_w_dependencies",
         ),
         pytest.param(
@@ -121,6 +152,7 @@ def check_requirements_txt(t1: str, t2: str):
             "airflow_pipeline_housing_w_dependencies",
             {"p value": {"y"}},
             {},
+            [],
             id="airflow_pipeline_housing_w_dependencies",
         ),
         pytest.param(
@@ -131,6 +163,7 @@ def check_requirements_txt(t1: str, t2: str):
             "airflow_complex_h_perart",
             {},
             {"dag_flavor": "PythonOperatorPerArtifact"},
+            [],
             id="airflow_complex_h_perartifact",
         ),
     ],
@@ -145,6 +178,7 @@ def test_pipeline_generation(
     pipeline_name,
     dependencies,
     dag_config,
+    input_parameters,
 ):
     """
     Test two sessions
@@ -161,7 +195,9 @@ def test_pipeline_generation(
         ).read_text()
         execute(code2, snapshot=False)
 
-    artifact_collection = ArtifactCollection(linea_db, artifact_list)
+    artifact_collection = ArtifactCollection(
+        linea_db, artifact_list, input_parameters=input_parameters
+    )
     with tempfile.TemporaryDirectory() as tempfolder:
         pipeline_writer = pipeline_writer_classes[framework](
             artifact_collection,
