@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional
 
 from lineapy.api.api_utils import extract_taskgraph
 from lineapy.data.types import PipelineType
 from lineapy.db.relational import (
     ArtifactDependencyORM,
+    InputParameterORM,
     PipelineORM,
     SessionContextORM,
 )
@@ -31,7 +32,7 @@ class Pipeline:
         self,
         artifacts: List[str],
         input_parameters: List[str] = [],
-        reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+        reuse_pre_computed_artifacts: List[str] = [],
         name: Optional[str] = None,
         dependencies: TaskGraphEdge = {},
     ):
@@ -94,7 +95,9 @@ class Pipeline:
         return pipeline_writer.output_dir
 
     def save(self):
-        # TODO save this pipeline to the db using PipelineORM
+        """
+        Save this pipeline to the db using PipelineORM.
+        """
         execution_context = get_context()
         db = execution_context.executor.db
         session_orm = (
@@ -111,6 +114,16 @@ class Pipeline:
             for artifact_name in self.artifact_names
         }
 
+        precomputed_artifacts_to_save = [
+            db.get_artifactorm_by_name(artifact_name)
+            for artifact_name in self.reuse_pre_computed_artifacts
+        ]
+
+        input_params_to_save = [
+            InputParameterORM(variable_name=varname)
+            for varname in self.input_parameters
+        ]
+
         art_deps_to_save = []
         for post_artifact, pre_artifacts in self.dependencies.items():
             post_to_save = artifacts_to_save[post_artifact]
@@ -124,6 +137,8 @@ class Pipeline:
         pipeline_to_write = PipelineORM(
             name=self.name,
             artifacts=set(artifacts_to_save.values()),
+            input_parameters=input_params_to_save,
+            precomputed_artifacts=set(precomputed_artifacts_to_save),
             dependencies=art_deps_to_save,
         )
         db.write_pipeline(art_deps_to_save, pipeline_to_write)

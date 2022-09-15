@@ -75,6 +75,13 @@ artifact_to_pipeline_table = Table(
     Column("artifact_id", ForeignKey("artifact.id")),
 )
 
+precomputed_artifact_to_pipeline_table = Table(
+    "precomputed_artifact_to_pipeline",
+    Base.metadata,
+    Column("pipeline_id", ForeignKey("pipeline.id")),
+    Column("artifact_id", ForeignKey("artifact.id")),
+)
+
 dependency_to_artifact_table = Table(
     "dependency_to_artifact_table",
     Base.metadata,
@@ -131,10 +138,29 @@ class PipelineORM(Base):
     artifacts = relationship(
         ArtifactORM, secondary=artifact_to_pipeline_table, collection_class=set
     )
+    input_parameters: List[InputParameterORM] = relationship(
+        "InputParameterORM",
+        back_populates="pipeline",
+    )
+    precomputed_artifacts = relationship(
+        ArtifactORM,
+        secondary=precomputed_artifact_to_pipeline_table,
+        collection_class=set,
+    )
     dependencies: List[ArtifactDependencyORM] = relationship(
         "ArtifactDependencyORM",
         back_populates="pipeline",
     )
+
+
+class InputParameterORM(Base):
+    __tablename__ = "parameter"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    pipeline_id = Column(Integer, ForeignKey("pipeline.id"), nullable=False)
+    pipeline = relationship(
+        PipelineORM, back_populates="input_parameters", uselist=False
+    )
+    variable_name = Column(String, nullable=True)
 
 
 class ArtifactDependencyORM(Base):

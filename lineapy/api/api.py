@@ -306,6 +306,18 @@ def get_pipeline(name: str) -> Pipeline:
         if artifact.name is not None
     ]
 
+    input_parameters = [
+        input_param_orm.variable_name
+        for input_param_orm in pipeline_orm.input_parameters
+        if input_param_orm.variable_name is not None
+    ]
+
+    precomputed_artifact_names = [
+        artifact.name
+        for artifact in pipeline_orm.precomputed_artifacts
+        if artifact.name is not None
+    ]
+
     dependencies = dict()
     for dep_orm in pipeline_orm.dependencies:
         post_artifact = dep_orm.post_artifact
@@ -323,7 +335,13 @@ def get_pipeline(name: str) -> Pipeline:
             ]
         )
         dependencies[post_name] = pre_names
-    return Pipeline(artifact_names, name, dependencies=dependencies)
+    return Pipeline(
+        artifacts=artifact_names,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=precomputed_artifact_names,
+        name=name,
+        dependencies=dependencies,
+    )
 
 
 def reload() -> None:
@@ -357,7 +375,7 @@ def artifact_store() -> LineaArtifactStore:
 def to_pipeline(
     artifacts: List[str],
     input_parameters: List[str] = [],
-    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+    reuse_pre_computed_artifacts: List[str] = [],
     framework: str = "SCRIPT",
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
@@ -383,7 +401,7 @@ def to_pipeline(
         ambiguous, i.e., we are not sure which literal assignment ``a``
         refers to.
 
-    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
+    reuse_pre_computed_artifacts: List[str]
         Names of artifacts in the pipeline for which pre-computed value
         is to be used (rather than recomputing the value).
 
@@ -424,11 +442,19 @@ def to_pipeline(
 
 def create_pipeline(
     artifacts: List[str],
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[str] = [],
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
     persist: bool = False,
 ) -> Pipeline:
-    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    pipeline = Pipeline(
+        artifacts=artifacts,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+        name=pipeline_name,
+        dependencies=dependencies,
+    )
     if persist:
         pipeline.save()
 
