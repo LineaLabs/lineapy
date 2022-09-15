@@ -33,14 +33,6 @@ class TestLineaTransformer:
     def before_everything(self):
         db = RelationalLineaDB.from_config(options)
         tracer = Tracer(db, SessionType.SCRIPT)
-        # tracermock = MagicMock()
-        # imports_dict = {"lineapy": lineapy}
-        # tracermock.module_name_to_node.__getitem__.side_effect = (
-        #     imports_dict.__getitem__
-        # )
-        # tracermock.module_name_to_node.__contains__.side_effect = (
-        #     imports_dict.__contains__
-        # )
         nt = NodeTransformer("", MagicMock(), tracer)
         lt = LineaTransformer("", MagicMock(), tracer)
         assert lt is not None
@@ -100,7 +92,7 @@ sv(x,"x")
         ret_node: LineaCallNode = self.lt.visit(test_node.body[0].value)
         assert ret_node.artifact_name == "x"
         assert ret_node.function_name == "save"
-        assert ret_node.module_name == "lineapy"
+        assert ret_node.module_name == "lineapy.api.api"
 
     def test_other_call_fn_not_modified(self):
         import_node = _get_ast_node(
@@ -115,6 +107,7 @@ a = math.sqrt(4)
         )
         pprint(test_node.body[0].value)
         ret_node: LineaCallNode = self.lt.visit(test_node.body[0].value)
-        assert ret_node.artifact_name == "x"
-        assert ret_node.function_name == "save"
-        assert ret_node.module_name == "lineapy"
+        # check that we skipped converting this call node into linea node
+        assert ret_node.__class__.__name__ == "Call"
+        assert isinstance(ret_node, ast.Call)
+        
