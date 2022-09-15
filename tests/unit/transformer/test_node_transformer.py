@@ -24,7 +24,7 @@ def _get_ast_node(code):
 
 
 @patch(
-    "lineapy.transformer.node_transformer.NodeTransformer",
+    "lineapy.transformer.transform_code.NodeTransformer",
 )
 def test_transform_fn(nt_mock: MagicMock):
     """

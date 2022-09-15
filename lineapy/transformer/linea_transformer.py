@@ -6,7 +6,6 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, List, Optional, Union
 
-from lineapy.api.api import _artifact_store, _get, _save, healthcheck
 from lineapy.data.types import (
     LineaCallNode,
     Node,
@@ -17,6 +16,7 @@ from lineapy.data.types import (
 )
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.internal.api import _artifact_store, _get, _save, healthcheck
 from lineapy.utils.utils import get_new_id
 
 logger = logging.getLogger(__name__)
@@ -226,7 +226,9 @@ class LineaTransformer(ast.NodeTransformer):
                 self.tracer.variable_name_to_node[value].id
             )
 
-        if module_imported is not None:
+        if module_imported is not None and hasattr(
+            module_imported, "__name__"
+        ):
             # module_name = module_imported.__name__
             attribute = getattr(module_imported, node.attr)
             # attribute_name = attribute.__name__
@@ -238,6 +240,8 @@ class LineaTransformer(ast.NodeTransformer):
 
     def lvisit_Name(self, node: ast.Name) -> Optional[FunctionObj]:
         # return node.id
+        if node.id not in self.tracer.variable_name_to_node:
+            return None
         function_or_module = self.tracer.executor.get_value(
             self.tracer.variable_name_to_node[node.id].id
         )
@@ -249,7 +253,13 @@ class LineaTransformer(ast.NodeTransformer):
         return None
 
     def argvisit_Attribute(self, node: ast.Attribute) -> Optional[FunctionObj]:
-        return self.lvisit_Attribute(node)
+        if node.value not in self.tracer.variable_name_to_node:
+            return self.lvisit_Attribute(node)
+        val = self.tracer.executor.get_value(  # type: ignore
+            self.tracer.variable_name_to_node[node.value].id
+        )
+        return getattr(val, node.attr)
+        # return self.lvisit_Attribute(node)
 
     def argvisit_Name(self, node):
         return node.id

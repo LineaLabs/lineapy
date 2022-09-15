@@ -42,8 +42,8 @@ def test_slice_artifact_inline(run_cell):
 
 
 @pytest.mark.slow
-@patch("lineapy.api.api.try_write_to_pickle", return_value=None)
-@patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
+@patch("lineapy.internal.api.try_write_to_pickle", return_value=None)
+@patch("lineapy.internal.api._pickle_name", return_value="pickle-sample.pkl")
 def test_to_airflow_pymodule(
     _pickle_name, try_write_to_pickle, python_snapshot, run_cell
 ):
@@ -67,8 +67,8 @@ def test_to_airflow_dagmodule(python_snapshot, run_cell):
 
 
 @pytest.mark.slow
-@patch("lineapy.api.api.try_write_to_pickle", return_value=None)
-@patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
+@patch("lineapy.internal.api.try_write_to_pickle", return_value=None)
+@patch("lineapy.internal.api._pickle_name", return_value="pickle-sample.pkl")
 def test_to_airflow_with_config_pymodule(
     _pickle_name, try_write_to_pickle, python_snapshot, run_cell
 ):

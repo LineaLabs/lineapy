@@ -310,8 +310,8 @@ def move_folder(request):
 
 
 @pytest.fixture
-@patch("lineapy.api.api.try_write_to_pickle", return_value=None)
-@patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
+@patch("lineapy.internal.api.try_write_to_pickle", return_value=None)
+@patch("lineapy.internal.api._pickle_name", return_value="pickle-sample.pkl")
 def housing_tracer(_pickle_name, try_write_to_pickle, execute):
     tests_dir = Path(__file__).parent
 
