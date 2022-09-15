@@ -254,7 +254,20 @@ class LineaTransformer(ast.NodeTransformer):
 
     def argvisit_Attribute(self, node: ast.Attribute) -> Optional[FunctionObj]:
         if node.value not in self.tracer.variable_name_to_node:
-            return self.lvisit_Attribute(node)
+            # return lvisit only if functionobj module is linea-ish
+            ret_attr = self.lvisit_Attribute(node)
+            # only return functionobj if its lineapy module else skip
+            if ret_attr is not None:
+                return_module_name = ret_attr.get_module_name()
+                if (
+                    return_module_name is not None
+                    and return_module_name.startswith(
+                        LINEA_ENDPOINTS.LINEAPY.value
+                    )
+                ):
+                    return ret_attr
+            return None
+
         val = self.tracer.executor.get_value(  # type: ignore
             self.tracer.variable_name_to_node[node.value].id
         )
