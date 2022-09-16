@@ -3,7 +3,7 @@ Parametrization
 
 Oftentimes, data scientists/engineers need to run the same pipeline with different parameters.
 For instance, they may want to use a different data set for model training and/or prediction.
-To produce a parametrized pipeline, we can use pipeline API's (optional) `input_parameters` argument.
+To produce a parametrized pipeline, we can use pipeline API's (optional) ``input_parameters`` argument.
 
 As a concrete example, consider the following development code:
 
@@ -56,6 +56,7 @@ Now, if we simply run
 we get an "inflexible" pipeline where data sources are fixed rather than tunable:
 
 .. code-block:: python
+   :emphasize-lines: 8, 19
 
     # ./iris_pipeline/iris_module.py
 
@@ -115,7 +116,7 @@ Instead, we can run
         artifacts=["iris_model", "iris_petal_length_pred"],
         framework="SCRIPT",
         dependencies={"iris_petal_length_pred": {"iris_model"}},
-        input_parameters=["url1", "url2"],
+        input_parameters=["url1", "url2"],  # Specify variables to parametrize
         pipeline_name="iris",
         output_dir="./iris_pipeline_parametrized/",
     )
@@ -123,6 +124,7 @@ Instead, we can run
 to get a parametrized pipline, like so:
 
 .. code-block:: python
+   :emphasize-lines: 9, 19, 26, 27, 43, 44
 
     # ./iris_pipeline_parametrized/iris_module.py
 
@@ -194,6 +196,15 @@ to get a parametrized pipline, like so:
         )
         print(artifacts)
 
+As shown, we now have ``url1`` and ``url2`` factored out as easily tunable parameters of the pipeline,
+which allows us to run it with various data sources beyond those we started with (hence increasing the
+pipeline's utility).
 
+.. warning::
 
-
+    Currently, ``input_parameters`` only accepts variables from literal assignment
+    such as ``a = "123"``. For each variable to be parametrized, there should be only one
+    literal assignment across all artifact code for the pipeline. For instance, if both
+    ``a = "123"`` and ``a = "abc"`` exist in the pipeline's artifact code, we cannot make
+    ``a`` an input parameter since its reference is ambiguous, i.e., we are not sure which
+    literal assignment ``a`` refers to.
