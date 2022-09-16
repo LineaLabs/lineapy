@@ -306,6 +306,18 @@ def get_pipeline(name: str) -> Pipeline:
         if artifact.name is not None
     ]
 
+    input_parameters = [
+        input_param_orm.variable_name
+        for input_param_orm in pipeline_orm.input_parameters
+        if input_param_orm.variable_name is not None
+    ]
+
+    precomputed_artifact_names = [
+        artifact.name
+        for artifact in pipeline_orm.precomputed_artifacts
+        if artifact.name is not None
+    ]
+
     dependencies = dict()
     for dep_orm in pipeline_orm.dependencies:
         post_artifact = dep_orm.post_artifact
@@ -323,7 +335,13 @@ def get_pipeline(name: str) -> Pipeline:
             ]
         )
         dependencies[post_name] = pre_names
-    return Pipeline(artifact_names, name, dependencies=dependencies)
+    return Pipeline(
+        artifacts=artifact_names,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=precomputed_artifact_names,
+        name=name,
+        dependencies=dependencies,
+    )
 
 
 def reload() -> None:
@@ -359,32 +377,92 @@ def to_pipeline(
     framework: str = "SCRIPT",
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
-    pipeline_dag_config: Optional[AirflowDagConfig] = {},
     output_dir: str = ".",
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[str] = [],
+    pipeline_dag_config: Optional[AirflowDagConfig] = {},
 ) -> Path:
     """
     Writes the pipeline job to a path on disk.
 
-    :param artifacts: List of artifact names to be included in the pipeline.
-    :param framework: 'AIRFLOW' or 'SCRIPT'. Defaults to 'SCRIPT' if not specified.
-    :param pipeline_name: Name of the pipeline.
-    :param dependencies: Task dependencies in graphlib format, e.g., {'B':{'A','C'}}
+    Parameters
+    ----------
+    artifacts: List[str]
+        Names of artifacts to be included in the pipeline.
+
+    framework: str
+        "AIRFLOW" or "SCRIPT". Defaults to "SCRIPT" if not specified.
+
+    pipeline_name: Optional[str]
+        Name of the pipeline.
+
+    dependencies: TaskGraphEdge
+        Task dependencies in graphlib format, e.g., ``{"B": {"A", "C"}}``
         means task A and C are prerequisites for task B.
-    :param output_dir: Directory path to save DAG and other pipeline files.
-    :return: Directory path where DAG and other pipeline files are saved.
+        LineaPy is smart enough to figure out dependency relations *within*
+        the same session, so there is no need to specify this type of dependency
+        information; instead, the user is expected to provide dependency information
+        among artifacts across different sessions.
+
+    output_dir: str
+        Directory path to save DAG and other pipeline files.
+
+    input_parameters: List[str]
+        Names of variables to be used as parameters in the pipeline.
+        Currently, it only accepts variables from literal assignment
+        such as ``a = '123'``. For each variable to be parametrized,
+        there should be only one literal assignment across all
+        artifact code for the pipeline. For instance, if both ``a = '123'``
+        and ``a = 'abc'`` exist in the pipeline's artifact code,
+        we cannot make ``a`` an input parameter since its reference is
+        ambiguous, i.e., we are not sure which literal assignment ``a``
+        refers to.
+
+    reuse_pre_computed_artifacts: List[str]
+        Names of artifacts in the pipeline for which pre-computed value
+        is to be used (rather than recomputing the value).
+
+    pipeline_dag_config: Optional[AirflowDagConfig]
+        A dictionary of parameters to configure DAG file to be generated.
+        Not applicable for "SCRIPT" framework as it does not generate a separate
+        DAG file. For "AIRFLOW" framework, Airflow-native config params such as
+        "retries" and "schedule_interval" can be passed in.
+
+    Returns
+    -------
+    Path
+        Directory path where DAG and other pipeline files are saved.
     """
-    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    pipeline = Pipeline(
+        artifacts=artifacts,
+        name=pipeline_name,
+        dependencies=dependencies,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+    )
     pipeline.save()
-    return pipeline.export(framework, output_dir, pipeline_dag_config)
+    return pipeline.export(
+        framework=framework,
+        output_dir=output_dir,
+        pipeline_dag_config=pipeline_dag_config,
+    )
 
 
 def create_pipeline(
     artifacts: List[str],
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[str] = [],
     persist: bool = False,
 ) -> Pipeline:
-    pipeline = Pipeline(artifacts, pipeline_name, dependencies)
+    pipeline = Pipeline(
+        artifacts=artifacts,
+        name=pipeline_name,
+        dependencies=dependencies,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+    )
     if persist:
         pipeline.save()
 
