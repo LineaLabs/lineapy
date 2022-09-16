@@ -32,10 +32,10 @@ class Pipeline:
     def __init__(
         self,
         artifacts: List[str],
-        input_parameters: List[str] = [],
-        reuse_pre_computed_artifacts: List[str] = [],
         name: Optional[str] = None,
         dependencies: TaskGraphEdge = {},
+        input_parameters: List[str] = [],
+        reuse_pre_computed_artifacts: List[str] = [],
     ):
         if len(artifacts) == 0:
             raise ValueError(
@@ -149,8 +149,8 @@ class Pipeline:
         pipeline_to_write = PipelineORM(
             name=self.name,
             artifacts=set(artifacts_to_save.values()),
+            dependencies=art_deps_to_save,
             input_parameters=input_params_to_save,
             precomputed_artifacts=set(precomputed_artifacts_to_save),
-            dependencies=art_deps_to_save,
         )
         db.write_pipeline(art_deps_to_save, pipeline_to_write)
