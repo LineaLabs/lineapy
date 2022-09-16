@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from pathlib import Path
 from typing import List, Optional
 
@@ -81,6 +82,17 @@ class Pipeline:
 
         # Write out pipeline files
         pipeline_writer.write_pipeline_files()
+
+        # Provide user warning about currently unsupported functionality
+        if (
+            len(self.reuse_pre_computed_artifacts) > 0
+            and framework == "AIRFLOW"
+        ):
+            warnings.warn(
+                "Reuse of pre-computed artifacts is currently NOT supported "
+                "for Airflow DAGs. Hence, the generated Airflow DAG file would "
+                "recompute all artifacts in the pipeline."
+            )
 
         # Track the event
         track(
