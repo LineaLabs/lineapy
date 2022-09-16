@@ -51,7 +51,7 @@ class ArtifactCollection:
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: Union[
             List[str], List[Tuple[str, int]], List[Union[str, Tuple[str, int]]]
-        ] = [],
+        ] = [],  # type: ignore
     ) -> None:
         self.db: RelationalLineaDB = db
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
