@@ -399,6 +399,10 @@ def to_pipeline(
     dependencies: TaskGraphEdge
         Task dependencies in graphlib format, e.g., ``{"B": {"A", "C"}}``
         means task A and C are prerequisites for task B.
+        LineaPy is smart enough to figure out dependency relations *within*
+        the same session, so there is no need to specify this type of dependency
+        information; instead, the user is expected to provide dependency information
+        among artifacts across different sessions.
 
     output_dir: str
         Directory path to save DAG and other pipeline files.
