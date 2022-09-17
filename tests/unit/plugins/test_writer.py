@@ -74,7 +74,7 @@ def check_requirements_txt(t1: str, t2: str):
             "AIRFLOW",
             "airflow_pipeline_two_input_parameter",
             {},
-            {"dag_flavor": "PythonOperatorPerSession"},
+            {"dag_flavor": "PythonOperatorPerArtifact"},
             ["p", "n"],
             id="airflow_pipeline_two_input_parameter",
         ),
