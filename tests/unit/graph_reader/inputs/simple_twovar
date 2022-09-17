@@ -1,0 +1,7 @@
+import lineapy
+
+art = dict()
+p = "p"
+n = 5
+pn = p * n
+art["pn"] = lineapy.save(pn, "pn")
