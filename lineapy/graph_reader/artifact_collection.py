@@ -20,6 +20,7 @@ from lineapy.api.models.linea_artifact import (
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
+from lineapy.graph_reader.types import InputVariable
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -254,33 +255,10 @@ class ArtifactCollection:
             ]
         )
 
-        module_input_parameters = []
+        module_input_parameters: List[InputVariable] = []
         for sa in session_artifacts_sorted:
             module_input_parameters += list(
                 sa.get_session_input_parameters_spec().values()
-            )
-        if len(module_input_parameters) == 0:
-            module_input_parameters_body = ""
-            parser_input_parameters = ""
-        elif len(module_input_parameters) == 1:
-            module_input_parameters_body = module_input_parameters[
-                0
-            ].default_args
-            parser_input_parameters = module_input_parameters[0].parser_args
-        else:
-            module_input_parameters_body = (
-                f"\n{indentation_block}"
-                + f",\n{indentation_block}".join(
-                    [param.default_args for param in module_input_parameters]
-                )
-                + ",\n"
-            )
-            parser_input_parameters = (
-                f"\n{indentation_block}"
-                + f",\n{indentation_block}".join(
-                    [param.parser_args for param in module_input_parameters]
-                )
-                + ",\n"
             )
 
         module_input_parameters_list = [
@@ -305,11 +283,15 @@ class ArtifactCollection:
             artifact_functions=artifact_function_definition,
             session_functions=session_functions,
             module_function_body=module_function_body,
-            module_input_parameters=module_input_parameters_body,
+            default_input_parameters=[
+                param.default_args for param in module_input_parameters
+            ],
+            parser_input_parameters=[
+                param.parser_args for param in module_input_parameters
+            ],
             parser_blocks=[
                 param.parser_body for param in module_input_parameters
             ],
-            parser_input_parameters=parser_input_parameters,
         )
 
         return module_text

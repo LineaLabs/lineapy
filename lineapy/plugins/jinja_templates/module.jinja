@@ -1,4 +1,4 @@
-{% if module_input_parameters != '' %}
+{% if default_input_parameters|length>0 %}
 import argparse
 {% endif %}
 
@@ -8,20 +8,24 @@ import argparse
 
 {{session_functions}}
 
-def run_all_sessions({{module_input_parameters}}):
+def run_all_sessions({%- for input_parameter in default_input_parameters %}
+{{indentation_block}}{{input_parameter}},
+{%- endfor -%}):
 {{indentation_block}}artifacts = dict()
 {{module_function_body}}
 {{indentation_block}}return artifacts
 
 if __name__ == "__main__":
 {{indentation_block}}# Edit this section to customize the behavior of artifacts
-{% if module_input_parameters != '' -%}
+{% if default_input_parameters|length>0 -%}
 {{indentation_block}}parser = argparse.ArgumentParser()
 {% for parser_block in parser_blocks -%}
 {{indentation_block}}{{parser_block}}
 {% endfor -%}
 {{indentation_block}}args = parser.parse_args()
-{{indentation_block}}artifacts = run_all_sessions({{parser_input_parameters}})
+{{indentation_block}}artifacts = run_all_sessions({%- for parser_input_parameter in parser_input_parameters %}
+{{indentation_block}}{{indentation_block}}{{parser_input_parameter}},
+{%- endfor -%})
 {% else -%}
 {{indentation_block}}artifacts = run_all_sessions()
 {% endif -%}

@@ -246,7 +246,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
             codegenerator.get_session_function_params_args()
         )
         tasks = [
-            (ft, session_function_params.get(ft, None))
+            {"name": ft, "op_kwargs": session_function_params.get(ft, None)}
             for ft in task_functions
         ]
         full_code = DAG_TEMPLATE.render(
@@ -330,7 +330,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
             codegenerator.get_artifact_function_params_args(task_def)
         )
         tasks = [
-            (ft, artifact_function_params.get(ft, None))
+            {"name": ft, "op_kwargs": artifact_function_params.get(ft, None)}
             for ft in task_functions
         ]
         full_code = DAG_TEMPLATE.render(

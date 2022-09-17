@@ -25,7 +25,9 @@ def run_session_including_b0(b0=0):
     return artifacts
 
 
-def run_all_sessions(b0=0):
+def run_all_sessions(
+    b0=0,
+):
     artifacts = dict()
     artifacts.update(run_session_including_b0(b0))
     return artifacts
@@ -36,5 +38,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--b0", type=int, default=0)
     args = parser.parse_args()
-    artifacts = run_all_sessions(b0=args.b0)
+    artifacts = run_all_sessions(
+        b0=args.b0,
+    )
     print(artifacts)

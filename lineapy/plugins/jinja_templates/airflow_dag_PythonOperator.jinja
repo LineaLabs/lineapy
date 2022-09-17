@@ -29,7 +29,10 @@ def dag_teardown():
 default_dag_args = {
     "owner": "{{ OWNER }}",
     "retries": {{ RETRIES }},
-    "start_date": {{ START_DATE }},{%- if (dag_params != '"params":{}') %}    {{dag_params}},{%- endif -%}
+    "start_date": {{ START_DATE }},
+{%- if (dag_params != '"params":{}') %}
+    {{ dag_params }},
+{%- endif %}
 }
 
 with DAG(
@@ -50,14 +53,14 @@ with DAG(
         python_callable=dag_teardown,
     )
 
-{% for TASKDESCRIPTION in tasks %}
-{% if TASKDESCRIPTION[1] is none %}
-    {{ TASKDESCRIPTION[0] }} = PythonOperator(
-        task_id="{{ TASKDESCRIPTION[0] }}_task", python_callable=task_{{ TASKDESCRIPTION[0] }},
+{% for task in tasks %}
+{% if task['op_kwargs'] is none %}
+    {{ task['name'] }} = PythonOperator(
+        task_id="{{ task['name'] }}_task", python_callable=task_{{ task['name'] }},
     )
 {% else %}
-    {{ TASKDESCRIPTION[0] }} = PythonOperator(
-        task_id="{{ TASKDESCRIPTION[0] }}_task", python_callable=task_{{ TASKDESCRIPTION[0] }}, {{TASKDESCRIPTION[1]}},
+    {{ task['name'] }} = PythonOperator(
+        task_id="{{ task['name'] }}_task", python_callable=task_{{ task['name'] }}, {{task['op_kwargs']}},
     )
 {% endif %}
 {% endfor %}
