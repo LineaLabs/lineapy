@@ -75,7 +75,7 @@ def check_requirements_txt(t1: str, t2: str):
             "airflow_pipeline_two_input_parameter",
             {},
             {"dag_flavor": "PythonOperatorPerArtifact"},
-            ["p", "n"],
+            ["n", "p"],
             id="airflow_pipeline_two_input_parameter",
         ),
         pytest.param(
