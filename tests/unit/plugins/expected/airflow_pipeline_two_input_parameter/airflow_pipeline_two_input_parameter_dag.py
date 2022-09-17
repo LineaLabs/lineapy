@@ -66,7 +66,7 @@ with DAG(
     pn = PythonOperator(
         task_id="pn_task",
         python_callable=task_pn,
-        op_kwargs={"p": "{{ params.p }}", "n": "{{ params.n }}"},
+        op_kwargs={"n": "{{ params.n }}", "p": "{{ params.p }}"},
     )
 
     setup >> pn

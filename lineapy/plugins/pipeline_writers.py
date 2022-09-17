@@ -502,7 +502,7 @@ class AirflowCodeGenerator:
                     ] = "op_kwargs=" + str(
                         {
                             var: "{{ params." + var + " }}"
-                            for var in parameterized_variables
+                            for var in sorted(list(parameterized_variables))
                         }
                     )
         return artifact_function_input_parameters
