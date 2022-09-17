@@ -68,6 +68,17 @@ def check_requirements_txt(t1: str, t2: str):
             id="airflow_pipeline_a_b0_input_parameter_per_session",
         ),
         pytest.param(
+            "simple_twovar",
+            "",
+            ["pn"],
+            "AIRFLOW",
+            "airflow_pipeline_two_input_parameter",
+            {},
+            {"dag_flavor": "PythonOperatorPerSession"},
+            ["p", "n"],
+            id="airflow_pipeline_two_input_parameter",
+        ),
+        pytest.param(
             "simple",
             "complex",
             ["a0", "b0"],
