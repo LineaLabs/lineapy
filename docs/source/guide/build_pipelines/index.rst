@@ -6,4 +6,4 @@ Building Pipelines
 
    pipeline_basics
    pipeline_parametrization
-   pipeline_reusing_precomputed
+   .. pipeline_reusing_precomputed

@@ -1,7 +1,7 @@
 Reusing Pre-Computed Artifact Values
 ====================================
 
-A Pipeline often consists of components that require different execution frequencies.
+A pipeline often consists of components that require different execution frequencies.
 For a pipeline that includes model training and prediction, for instance, we can expect
 that model training would demand less frequent execution than prediction since a trained model
 can be used to make multiple rounds of predictions (with different data sets). Hence, we want
