@@ -15,8 +15,10 @@ from lineapy.graph_reader.node_collection import (
     NodeInfo,
 )
 from lineapy.graph_reader.program_slice import get_slice_graph
+from lineapy.graph_reader.types import InputVariable
 from lineapy.graph_reader.utils import _is_import_node
 from lineapy.plugins.task import TaskGraph
+from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -605,9 +607,132 @@ class SessionArtifacts:
 
     def _get_first_artifact_name(self) -> Optional[str]:
         """
-        Return the name of first artifact(topologically sorted)
+        Return the name of first artifact(topologically sorted).
         """
         for coll in self.artifact_nodecollections:
             if coll.collection_type == NodeCollectionType.ARTIFACT:
                 return coll.safename
         return None
+
+    def get_session_module_imports(self, indentation=0) -> str:
+        """
+        Return all the import statement for the session.
+        """
+        return self.import_nodecollection.get_import_block(
+            indentation=indentation
+        )
+
+    def get_session_function_name(self) -> str:
+        """
+        Return the session function name: run_session_including_{first_artifact_name}
+        """
+        first_artifact_name = self._get_first_artifact_name()
+        if first_artifact_name is not None:
+            return f"run_session_including_{first_artifact_name}"
+        return ""
+
+    def get_session_function_body(
+        self, indentation, return_dict_name="artifacts"
+    ) -> str:
+        """
+        Return the args for the session function.
+        """
+        return "\n".join(
+            [
+                coll.get_function_call_block(
+                    indentation=indentation,
+                    keep_lineapy_save=False,
+                    result_placeholder=None
+                    if coll.collection_type != NodeCollectionType.ARTIFACT
+                    else return_dict_name,
+                )
+                for coll in self.artifact_nodecollections
+            ]
+        )
+
+    def get_session_input_parameters_lines(self, indentation=4) -> str:
+        """
+        Return lines of session code that are replaced by user selected input
+        parameters. These lines also serve as the default values of these
+        variables.
+        """
+        return self.input_parameters_nodecollection.get_input_parameters_block(
+            indentation=indentation
+        )
+
+    def get_session_input_parameters_spec(self) -> Dict[str, InputVariable]:
+        """
+        Return a dictionary with input parameters as key and InputVariable
+        class as value to generate code related to user input variables.
+        """
+        session_input_variables: Dict[str, InputVariable] = dict()
+        for line in self.get_session_input_parameters_lines().split("\n"):
+            variable_def = line.strip(" ").rstrip(",")
+            if len(variable_def) > 0:
+                variable_name = variable_def.split("=")[0].strip(" ")
+                value = eval(variable_def.split("=")[1].strip(" "))
+                value_type = type(value)
+                if ":" in variable_name:
+                    variable_name = variable_def.split(":")[0]
+                    typing_info = variable_def.split(":")[1]
+                    session_input_variables[variable_name] = InputVariable(
+                        variable_name=variable_name,
+                        value=value,
+                        typing_info=typing_info,
+                        value_type=value_type,
+                    )
+                else:
+                    session_input_variables[variable_name] = InputVariable(
+                        variable_name=variable_name,
+                        value=value,
+                        value_type=value_type,
+                    )
+        return session_input_variables
+
+    def get_session_function_callblock(self) -> str:
+        """
+        Return the code to make the call to the session function as
+        `session_function_name(input_parameters)`.
+        """
+        session_function_name = self.get_session_function_name()
+        if session_function_name != "":
+            session_input_parameters = ", ".join(
+                self.get_session_input_parameters_spec().keys()
+            )
+            return f"{session_function_name}({session_input_parameters})"
+        else:
+            return ""
+
+    def get_session_artifact_function_definitions(
+        self, indentation=4
+    ) -> List[str]:
+        """
+        Return the definition of each targeted artifacts calculation
+        functions.
+        """
+        return [
+            coll.get_function_definition(indentation=indentation)
+            for coll in self.artifact_nodecollections
+        ]
+
+    def get_session_function(
+        self, indentation=4, return_dict_name="artifacts"
+    ) -> str:
+        """
+        Return the definition of the session function that executes the
+        calculation of all targeted artifacts.
+        """
+        indentation_block = " " * indentation
+        SESSION_FUNCTION_TEMPLATE = load_plugin_template(
+            "session_function.jinja"
+        )
+        session_function = SESSION_FUNCTION_TEMPLATE.render(
+            session_input_parameters_body=self.get_session_input_parameters_lines(),
+            indentation_block=indentation_block,
+            session_function_name=self.get_session_function_name(),
+            session_function_body=self.get_session_function_body(
+                indentation=indentation
+            ),
+            return_dict_name=return_dict_name,
+        )
+        return session_function

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from pathlib import Path
 from typing import List, Optional
 
@@ -8,6 +9,7 @@ from lineapy.api.api_utils import extract_taskgraph
 from lineapy.data.types import PipelineType
 from lineapy.db.relational import (
     ArtifactDependencyORM,
+    InputParameterORM,
     PipelineORM,
     SessionContextORM,
 )
@@ -32,6 +34,8 @@ class Pipeline:
         artifacts: List[str],
         name: Optional[str] = None,
         dependencies: TaskGraphEdge = {},
+        input_parameters: List[str] = [],
+        reuse_pre_computed_artifacts: List[str] = [],
     ):
         if len(artifacts) == 0:
             raise ValueError(
@@ -43,6 +47,8 @@ class Pipeline:
         )
         self.name = name or "_".join(self.artifact_safe_names)
         self.artifact_names: List[str] = artifacts
+        self.input_parameters = input_parameters
+        self.reuse_pre_computed_artifacts = reuse_pre_computed_artifacts
         self.id = get_new_id()
 
     def export(
@@ -54,7 +60,10 @@ class Pipeline:
         # Create artifact collection
         execution_context = get_context()
         artifact_collection = ArtifactCollection(
-            execution_context.executor.db, self.artifact_names
+            db=execution_context.executor.db,
+            target_artifacts=self.artifact_names,
+            input_parameters=self.input_parameters,
+            reuse_pre_computed_artifacts=self.reuse_pre_computed_artifacts,
         )
 
         # Check if the specified framework is a supported/valid one
@@ -74,6 +83,17 @@ class Pipeline:
         # Write out pipeline files
         pipeline_writer.write_pipeline_files()
 
+        # Provide user warning about currently unsupported functionality
+        if (
+            len(self.reuse_pre_computed_artifacts) > 0
+            and framework == "AIRFLOW"
+        ):
+            warnings.warn(
+                "Reuse of pre-computed artifacts is currently NOT supported "
+                "for Airflow DAGs. Hence, the generated Airflow DAG file would "
+                "recompute all artifacts in the pipeline."
+            )
+
         # Track the event
         track(
             ToPipelineEvent(
@@ -87,7 +107,9 @@ class Pipeline:
         return pipeline_writer.output_dir
 
     def save(self):
-        # TODO save this pipeline to the db using PipelineORM
+        """
+        Save this pipeline to the db using PipelineORM.
+        """
         execution_context = get_context()
         db = execution_context.executor.db
         session_orm = (
@@ -104,6 +126,16 @@ class Pipeline:
             for artifact_name in self.artifact_names
         }
 
+        precomputed_artifacts_to_save = [
+            db.get_artifactorm_by_name(artifact_name)
+            for artifact_name in self.reuse_pre_computed_artifacts
+        ]
+
+        input_params_to_save = [
+            InputParameterORM(variable_name=varname)
+            for varname in self.input_parameters
+        ]
+
         art_deps_to_save = []
         for post_artifact, pre_artifacts in self.dependencies.items():
             post_to_save = artifacts_to_save[post_artifact]
@@ -118,5 +150,7 @@ class Pipeline:
             name=self.name,
             artifacts=set(artifacts_to_save.values()),
             dependencies=art_deps_to_save,
+            input_parameters=input_params_to_save,
+            precomputed_artifacts=set(precomputed_artifacts_to_save),
         )
         db.write_pipeline(art_deps_to_save, pipeline_to_write)

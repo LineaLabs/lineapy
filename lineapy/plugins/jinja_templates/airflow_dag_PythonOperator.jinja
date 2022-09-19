@@ -30,6 +30,9 @@ default_dag_args = {
     "owner": "{{ OWNER }}",
     "retries": {{ RETRIES }},
     "start_date": {{ START_DATE }},
+{%- if (dag_params != '"params":{}') %}
+    {{ dag_params }},
+{%- endif %}
 }
 
 with DAG(
@@ -50,10 +53,16 @@ with DAG(
         python_callable=dag_teardown,
     )
 
-{% for TASK_NAME in tasks %}
-    {{ TASK_NAME }} = PythonOperator(
-        task_id="{{ TASK_NAME }}_task", python_callable=task_{{ TASK_NAME }},
+{% for task in tasks %}
+{% if task['op_kwargs'] is none %}
+    {{ task['name'] }} = PythonOperator(
+        task_id="{{ task['name'] }}_task", python_callable=task_{{ task['name'] }},
     )
+{% else %}
+    {{ task['name'] }} = PythonOperator(
+        task_id="{{ task['name'] }}_task", python_callable=task_{{ task['name'] }}, {{task['op_kwargs']}},
+    )
+{% endif %}
 {% endfor %}
 {% if task_dependencies is not none %}
 {% for TASK_DEPENDENCIES in task_dependencies %}

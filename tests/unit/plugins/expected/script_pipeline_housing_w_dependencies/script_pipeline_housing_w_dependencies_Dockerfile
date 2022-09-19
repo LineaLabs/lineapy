@@ -12,4 +12,4 @@ RUN pip install -r ./script_pipeline_housing_w_dependencies_requirements.txt
 WORKDIR /home
 COPY . .
 
-CMD [ "python", "/home/script_pipeline_housing_w_dependencies_module.py" ]
+ENTRYPOINT [ "python", "/home/script_pipeline_housing_w_dependencies_module.py" ]
