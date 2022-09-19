@@ -1,13 +1,17 @@
 import logging
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from lineapy.data.types import PipelineType
-from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.graph_reader.node_collection import NodeCollection
+from lineapy.graph_reader.artifact_collection import (
+    ArtifactCollection,
+    SessionArtifacts,
+)
+from lineapy.graph_reader.node_collection import NodeCollectionType
 from lineapy.plugins.task import (
     AirflowDagConfig,
     AirflowDagFlavor,
+    TaskDefinition,
     TaskGraph,
     TaskGraphEdge,
 )
@@ -172,44 +176,79 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
     def _write_operator_per_session(self) -> str:
         """
-        This hidden method implements Airflow DAG code generation
-        corresponding to the `PythonOperatorPerSession` flavor,
-        where each entire session gets one Python operator. For instance,
-        if the two artifacts in our pipeline (e.g., model and prediction)
-        were created in the same session, we would get an Airflow DAG file
-        looking as the following:
+        This hidden method implements Airflow DAG code generation corresponding
+        to the `PythonOperatorPerSession` flavor, where each session gets its
+        own Python operator. For instance, if the two artifacts in our pipeline
+        (e.g., model and prediction) were created in the same session, we would
+        get an Airflow DAG file looking as the following:
 
         .. code-block:: python
-            import iris_module
+        def dag_setup():
+            pickle_folder = pathlib.Path("/tmp").joinpath("g2_z")
+            if not pickle_folder.exists():
+                pickle_folder.mkdir()
 
-            ...
+
+        def dag_teardown():
+            pickle_files = pathlib.Path("/tmp").joinpath("g2_z").glob("*.pickle")
+            for f in pickle_files:
+                f.unlink()
+
+            def task_run_session_including_g2():
+                artifacts = g2_z_module.run_session_including_g2()
+                pickle.dump(artifacts["g2"], open("/tmp/g2_z/artifact_g2.pickle", "wb"))
+                pickle.dump(artifacts["z"], open("/tmp/g2_z/artifact_z.pickle", "wb"))
 
             with DAG(...) as dag:
-                run_session_including_iris_model = PythonOperator(
-                    task_id="run_session_including_iris_model_task",
-                    python_callable=iris_module.run_session_including_iris_model,
+                setup = PythonOperator(
+                    task_id="dag_setup",
+                    python_callable=dag_setup,
                 )
 
-        This makes the Airflow DAG file more compact but lack transparency
-        and fuller control over each artifact-level task. Check the
-        `PythonOperatorPerArtifact` flavor to address this limitation.
+                teardown = PythonOperator(
+                    task_id="dag_teardown",
+                    python_callable=dag_teardown,
+                )
+
+                run_session_including_g2 = PythonOperator(
+                    task_id="run_session_including_g2_task",
+                    python_callable=task_run_session_including_g2,
+                )
+
+                setup >> run_session_including_g2
+                run_session_including_g2 >> teardown
+
+            run_session_including_g2
+
+        This way, the generated Airflow DAG file opens room for engineers
+        to peak and control pipeline runs at a finer level and allows
+        for further customization.
         """
-        DAG_TEMPLATE = load_plugin_template(
-            "airflow_dag_PythonOperatorPerSession.jinja"
-        )
-        session_functions = [
-            f"run_session_including_{session_artifacts._get_first_artifact_name()}"
-            for session_artifacts in self.session_artifacts_sorted
-        ]
+        codegenerator = AirflowCodeGenerator(self.artifact_collection)
+        DAG_TEMPLATE = load_plugin_template("airflow_dag_PythonOperator.jinja")
+        task_functions = []
+        task_definitions = []
+        for sa in self.session_artifacts_sorted:
+            task_functions.append(sa.get_session_function_name())
+            task_definitions.append(
+                get_session_task_definition(sa, self.pipeline_name)
+            )
         dependencies = {
-            session_functions[i + 1]: {session_functions[i]}
-            for i in range(len(session_functions) - 1)
+            task_functions[i + 1]: {task_functions[i]}
+            for i in range(len(task_functions) - 1)
         }
         task_graph = TaskGraph(
-            nodes=session_functions,
-            mapping={f: f for f in session_functions},
+            nodes=task_functions,
+            mapping={f: f for f in task_functions},
             edges=dependencies,
         )
+        session_function_params = (
+            codegenerator.get_session_function_params_args()
+        )
+        tasks = [
+            {"name": ft, "op_kwargs": session_function_params.get(ft, None)}
+            for ft in task_functions
+        ]
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
             MODULE_NAME=self.pipeline_name + "_module",
@@ -221,20 +260,23 @@ class AirflowPipelineWriter(BasePipelineWriter):
             ),
             MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
             CATCHUP=self.dag_config.get("catchup", "False"),
-            tasks=session_functions,
-            task_dependencies=task_graph.get_airflow_dependencies(),
+            dag_params=codegenerator.get_params_args(),
+            task_definitions=task_definitions,
+            tasks=tasks,
+            task_dependencies=task_graph.get_airflow_dependencies(
+                setup_task="setup", teardown_task="teardown"
+            ),
         )
 
         return full_code
 
     def _write_operator_per_artifact(self) -> str:
         """
-        This hidden method implements Airflow DAG code generation
-        corresponding to the `PythonOperatorPerArtifact` flavor,
-        where each artifact gets its own Python operator. For instance,
-        if the two artifacts in our pipeline (e.g., model and prediction)
-        were created in the same session, we would get an Airflow DAG file
-        looking as the following:
+        This method implements Airflow DAG code generation corresponding to the
+        `PythonOperatorPerArtifact` flavor, where each artifact gets its own
+        Python operator. For instance, if the two artifacts in our pipeline
+        (e.g., model and prediction) were created in the same session, we would
+        get an Airflow DAG file looking as the following:
 
         .. code-block:: python
             import pickle
@@ -270,20 +312,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
         to peak and control pipeline runs at a finer level and allows
         for further customization.
         """
-        DAG_TEMPLATE = load_plugin_template(
-            "airflow_dag_PythonOperatorPerArtifact.jinja"
-        )
-        task_functions = []
-        task_definitions = []
-        for session_artifacts in self.session_artifacts_sorted:
-            task_functions += [
-                nc.safename
-                for nc in session_artifacts.artifact_nodecollections
-            ]
-            task_definitions += [
-                get_task_definition(nc, self.pipeline_name)
-                for nc in session_artifacts.artifact_nodecollections
-            ]
+        codegenerator = AirflowCodeGenerator(self.artifact_collection)
+        DAG_TEMPLATE = load_plugin_template("airflow_dag_PythonOperator.jinja")
+        task_def = self.get_artifact_task_definitions()
+        task_functions = list(task_def.keys())
+        task_definitions = [task["definition"] for task in task_def.values()]
         dependencies = {
             task_functions[i + 1]: {task_functions[i]}
             for i in range(len(task_functions) - 1)
@@ -293,6 +326,13 @@ class AirflowPipelineWriter(BasePipelineWriter):
             mapping={f: f for f in task_functions},
             edges=dependencies,
         )
+        artifact_function_params = (
+            codegenerator.get_artifact_function_params_args(task_def)
+        )
+        tasks = [
+            {"name": ft, "op_kwargs": artifact_function_params.get(ft, None)}
+            for ft in task_functions
+        ]
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
             MODULE_NAME=self.pipeline_name + "_module",
@@ -302,10 +342,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
             SCHEDULE_INTERVAL=self.dag_config.get(
                 "schedule_interval", "*/15 * * * *"
             ),
+            dag_params=codegenerator.get_params_args(),
             MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
             CATCHUP=self.dag_config.get("catchup", "False"),
             task_definitions=task_definitions,
-            tasks=task_functions,
+            tasks=tasks,
             task_dependencies=task_graph.get_airflow_dependencies(
                 setup_task="setup", teardown_task="teardown"
             ),
@@ -313,35 +354,158 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
         return full_code
 
+    def get_artifact_task_definitions(
+        self, indentation=4
+    ) -> Dict[str, TaskDefinition]:
+        """
+        Add deserialization of input variables and serialization of output
+        variables logic of the artifact fucntion call_block and wrap them into a
+        new function definition.
+        """
+        task_definitions: Dict[str, TaskDefinition] = dict()
+        unused_input_parameters = set(
+            self.artifact_collection.input_parameters
+        )
+        for session_artifacts in self.session_artifacts_sorted:
+            session_input_parameters_spec = (
+                session_artifacts.get_session_input_parameters_spec()
+            )
+            for nc in session_artifacts.artifact_nodecollections:
+                all_input_variables = sorted(list(nc.input_variables))
+                artifact_user_input_variables = [
+                    var
+                    for var in all_input_variables
+                    if var in unused_input_parameters
+                ]
+                user_input_var_typing_block = [
+                    f"{var} = {session_input_parameters_spec[var].value_type}({var})"
+                    for var in artifact_user_input_variables
+                ]
+                unused_input_parameters.difference_update(
+                    set(artifact_user_input_variables)
+                )
+                input_var_loading_block = [
+                    f"{var} = pickle.load(open('/tmp/{self.pipeline_name}/variable_{var}.pickle','rb'))"
+                    for var in all_input_variables
+                    if var not in artifact_user_input_variables
+                ]
+                function_call_block = nc.get_function_call_block(
+                    indentation=0, source_module=f"{self.pipeline_name}_module"
+                )
+                return_var_saving_block = [
+                    f"pickle.dump({var},open('/tmp/{self.pipeline_name}/variable_{var}.pickle','wb'))"
+                    for var in nc.return_variables
+                ]
+                TASK_FUNCTION_TEMPLATE = load_plugin_template(
+                    "task_function.jinja"
+                )
+                function_definition = TASK_FUNCTION_TEMPLATE.render(
+                    function_name=nc.safename,
+                    user_input_variables=", ".join(
+                        artifact_user_input_variables
+                    ),
+                    typing_blocks=user_input_var_typing_block,
+                    loading_blocks=input_var_loading_block,
+                    call_block=function_call_block,
+                    dumping_blocks=return_var_saving_block,
+                    indentation_block=" " * indentation,
+                )
+                task_def: TaskDefinition = {
+                    "definition": function_definition,
+                    "user_input_variables": artifact_user_input_variables,
+                }
+                task_definitions[nc.safename] = task_def
 
-def get_task_definition(
-    nc: NodeCollection, pipeline_name: str, indentation=4
+        return task_definitions
+
+
+def get_session_task_definition(
+    sa: SessionArtifacts,
+    pipeline_name: str,
+    indentation=4,
 ) -> str:
     """
-    Add deserialization of input variables and serialization of output
-    variables logic of the call_block and wrap them into a new function
-    definition.
+    Add serialization of output artifacts logic of the session function
+    call_block and wrap them into a new function definition.
     """
-    input_var_loading_block = [
-        f"{var} = pickle.load(open('/tmp/{pipeline_name}/variable_{var}.pickle','rb'))"
-        for var in sorted(list(nc.input_variables))
+    session_input_parameters_spec = sa.get_session_input_parameters_spec()
+    session_input_variables = list(session_input_parameters_spec.keys())
+    user_input_var_typing_block = [
+        f"{var} = {session_input_parameters_spec[var].value_type}({var})"
+        for var in session_input_variables
     ]
-    function_call_block = nc.get_function_call_block(
-        indentation=0, source_module=f"{pipeline_name}_module"
-    )
-    return_var_saving_block = [
-        f"pickle.dump({var},open('/tmp/{pipeline_name}/variable_{var}.pickle','wb'))"
-        for var in nc.return_variables
+
+    input_var_loading_block: List[str] = []
+    function_call_block = f"artifacts = {pipeline_name}_module.{sa.get_session_function_callblock()}"
+    return_artifacts_saving_block = [
+        f"pickle.dump(artifacts['{nc.name}'],open('/tmp/{pipeline_name}/artifact_{nc.safename}.pickle','wb'))"
+        for nc in sa.artifact_nodecollections
+        if nc.collection_type == NodeCollectionType.ARTIFACT
     ]
 
     TASK_FUNCTION_TEMPLATE = load_plugin_template("task_function.jinja")
     return TASK_FUNCTION_TEMPLATE.render(
-        artifact_name=nc.safename,
+        function_name=sa.get_session_function_name(),
+        user_input_variables=", ".join(session_input_variables),
+        typing_blocks=user_input_var_typing_block,
         loading_blocks=input_var_loading_block,
         call_block=function_call_block,
-        dumping_blocks=return_var_saving_block,
+        dumping_blocks=return_artifacts_saving_block,
         indentation_block=" " * indentation,
     )
+
+
+class AirflowCodeGenerator:
+    def __init__(self, ac: ArtifactCollection) -> None:
+        self.artifact_collection = ac
+
+    def get_params_args(self) -> str:
+        input_parameters_dict = dict()
+        for sa in self.artifact_collection._sort_session_artifacts():
+            for input_spec in sa.get_session_input_parameters_spec().values():
+                input_parameters_dict[
+                    input_spec.variable_name
+                ] = input_spec.value
+        return '"params":' + str(input_parameters_dict)
+
+    def get_session_function_params_args(self) -> Dict[str, str]:
+        session_function_input_parameters = dict()
+        for sa in self.artifact_collection._sort_session_artifacts():
+            session_input_parameters = list(sa.input_parameters_node.keys())
+            if len(session_input_parameters) > 0:
+                session_function_input_parameters[
+                    sa.get_session_function_name()
+                ] = "op_kwargs=" + str(
+                    {
+                        var: "{{ params." + var + " }}"
+                        for var in session_input_parameters
+                    }
+                )
+        return session_function_input_parameters
+
+    def get_artifact_function_params_args(
+        self, artifact_function_definitions: Dict[str, TaskDefinition]
+    ) -> Dict[str, str]:
+        artifact_function_input_parameters = dict()
+        for sa in self.artifact_collection._sort_session_artifacts():
+            session_input_parameters = set(sa.input_parameters_node.keys())
+            for nc in sa.artifact_nodecollections:
+                user_input_variables = artifact_function_definitions[
+                    nc.safename
+                ]["user_input_variables"]
+                parameterized_variables = nc.input_variables.intersection(
+                    session_input_parameters
+                ).intersection(set(user_input_variables))
+                if len(parameterized_variables) > 0:
+                    artifact_function_input_parameters[
+                        nc.safename
+                    ] = "op_kwargs=" + str(
+                        {
+                            var: "{{ params." + var + " }}"
+                            for var in sorted(list(parameterized_variables))
+                        }
+                    )
+        return artifact_function_input_parameters
 
 
 class PipelineWriterFactory:

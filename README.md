@@ -299,6 +299,16 @@ lineapy python --help
 
 to see available options.
 
+#### Python Module
+
+Lineapy is also a runnable python module. 
+
+```bash
+python -m lineapy --help
+```
+
+and works the same as using the CLI.
+
 ## Usage Reporting
 
 LineaPy collects anonymous usage data that helps our team to improve the product.

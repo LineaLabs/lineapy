@@ -1,4 +1,5 @@
 import pathlib
+import subprocess
 
 import pytest
 
@@ -174,3 +175,57 @@ def test_two_sessions(
                 assert art_pred_session_line_index >= 0
                 # required art session is in from of art session
                 assert art_pred_session_line_index < art_session_line_index
+
+
+@pytest.mark.parametrize(
+    "input_parameters, input_values, expected_values",
+    [
+        pytest.param([], dict(), {"prod_p": "pp"}, id="no_input"),
+        pytest.param(["a", "p"], dict(), {"prod_p": "pp"}, id="default_value"),
+        pytest.param(
+            ["a", "p"],
+            {"a": 5, "p": "P"},
+            {"prod_p": "PPPPP"},
+            id="overriding_value",
+        ),
+    ],
+)
+def test_module_run(
+    tmpdir,
+    linea_db,
+    execute,
+    input_parameters,
+    input_values,
+    expected_values,
+):
+    """
+    Test the module generated from ArtifactCollection can run with/without
+    input parameters
+    """
+
+    code = """\n
+import lineapy
+a = 2
+p = "p"
+b = p*a
+lineapy.save(b,'prod_p')
+"""
+    execute(code, snapshot=False)
+    artifact_list = ["prod_p"]
+    ac = ArtifactCollection(
+        linea_db, artifact_list, input_parameters=input_parameters
+    )
+    temp_module_path = pathlib.Path(tmpdir, "artifactcollection_module.py")
+    with open(temp_module_path, "w") as f:
+        f.writelines(ac.generate_module_text())
+
+    cmds = ["python", str(temp_module_path)]
+    # Add input parameter values if specified in cmds
+    for par, val in input_values.items():
+        cmds += [f"--{par}", str(val)]
+
+    p = subprocess.run(cmds, capture_output=True, text=True)
+    assert p.returncode == 0
+    module_run_result = eval(p.stdout)
+    assert all([art in module_run_result.keys() for art in artifact_list])
+    assert all([module_run_result[k] == v for k, v in expected_values.items()])

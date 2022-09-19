@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from lineapy.api.api import save
+from lineapy.exceptions.user_exception import UserException
 from tests.util import CSV_CODE, IMAGE_CODE
 
 publish_name = "testing artifact publish"
@@ -122,6 +123,11 @@ class TestEndToEnd:
         captured = capsys.readouterr()
         # Shows up twice due to re-exeuction
         assert captured.out == "10\n10\n"
+
+    def test_raise(self, execute):
+        with pytest.raises(UserException, match="OSError"):
+            RAISE_CODE = "raise OSError()"
+            execute(RAISE_CODE)
 
     def test_chained_attributes(self, execute):
         """
