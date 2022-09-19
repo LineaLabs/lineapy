@@ -97,7 +97,8 @@ ft_with_old_multiplier = ft(a=5)["prod_p"]
             id="non_literal_assignment",
         ),
         pytest.param(
-            "import lineapy\nft = lineapy.get_function(['c'], input_parameters=['c'])",
+            # Variable c will affect both artifact b and c
+            "import lineapy\nft = lineapy.get_function(['b','c'], input_parameters=['c'])",
             id="duplicated_literal_assignment",
         ),
     ],
@@ -110,7 +111,8 @@ def test_get_function_error(execute, code):
 import lineapy
 a = 1
 lineapy.save(a,'a')
-b = a
+c = 1
+b = c+a
 lineapy.save(b,'b')
 c = 2
 c = 3

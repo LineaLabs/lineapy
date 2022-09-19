@@ -174,11 +174,11 @@ class SessionArtifacts:
                 )
 
         # Check only one artifact in the session with the name within reuse_pre_computed_artifacts
-        pre_computed_artifacts_name_count = Counter(
+        session_artifacts_name_count = Counter(
             [art.name for nodeid, art in self.all_session_artifacts.items()]
         )
-        for art_name, ct in pre_computed_artifacts_name_count.items():
-            if ct > 1:
+        for art_name in self.reuse_pre_computed_artifacts.keys():
+            if session_artifacts_name_count[art_name] > 1:
                 raise ValueError(
                     f"More than one artifacts with the same name {art_name} in the session."
                     + "Please remove it from reuse_pre_computed_artifacts."
@@ -259,19 +259,21 @@ class SessionArtifacts:
         # as an input parameter. We can relax this restriction.
         for var, node_ids in input_parameters_assignment_nodes.items():
             for node_id in node_ids:
-                is_literal_assignment = (
-                    len(self.node_context[node_id].dependent_variables) == 0
-                )
-                has_assigned_before = (
-                    self.input_parameters_node.get(var, None) is not None
-                )
-                if is_literal_assignment:
-                    if has_assigned_before:
-                        raise ValueError(
-                            "Variable %s, is defined more than once", var
-                        )
-                    else:
-                        self.input_parameters_node[var] = node_id
+                if node_id in self.node_context.keys():
+                    is_literal_assignment = (
+                        len(self.node_context[node_id].dependent_variables)
+                        == 0
+                    )
+                    has_assigned_before = (
+                        self.input_parameters_node.get(var, None) is not None
+                    )
+                    if is_literal_assignment:
+                        if has_assigned_before:
+                            raise ValueError(
+                                "Variable %s, is defined more than once", var
+                            )
+                        else:
+                            self.input_parameters_node[var] = node_id
 
         for var, node_id in self.input_parameters_node.items():
             if len(self.node_context[node_id].dependent_variables) > 0:
