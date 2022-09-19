@@ -306,18 +306,6 @@ def get_pipeline(name: str) -> Pipeline:
         if artifact.name is not None
     ]
 
-    input_parameters = [
-        input_param_orm.variable_name
-        for input_param_orm in pipeline_orm.input_parameters
-        if input_param_orm.variable_name is not None
-    ]
-
-    precomputed_artifact_names = [
-        artifact.name
-        for artifact in pipeline_orm.precomputed_artifacts
-        if artifact.name is not None
-    ]
-
     dependencies = dict()
     for dep_orm in pipeline_orm.dependencies:
         post_artifact = dep_orm.post_artifact
@@ -337,8 +325,6 @@ def get_pipeline(name: str) -> Pipeline:
         dependencies[post_name] = pre_names
     return Pipeline(
         artifacts=artifact_names,
-        input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=precomputed_artifact_names,
         name=name,
         dependencies=dependencies,
     )
@@ -437,13 +423,13 @@ def to_pipeline(
         artifacts=artifacts,
         name=pipeline_name,
         dependencies=dependencies,
-        input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
     )
     pipeline.save()
     return pipeline.export(
         framework=framework,
         output_dir=output_dir,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
         pipeline_dag_config=pipeline_dag_config,
     )
 
@@ -452,16 +438,12 @@ def create_pipeline(
     artifacts: List[str],
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
-    input_parameters: List[str] = [],
-    reuse_pre_computed_artifacts: List[str] = [],
     persist: bool = False,
 ) -> Pipeline:
     pipeline = Pipeline(
         artifacts=artifacts,
         name=pipeline_name,
         dependencies=dependencies,
-        input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
     )
     if persist:
         pipeline.save()
