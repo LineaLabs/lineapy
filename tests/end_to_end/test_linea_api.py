@@ -283,35 +283,3 @@ x = lineapy.get_pipeline("x")"""
     assert len(dep_x["b"]) == 2
     assert "c" in dep_x["b"]
     assert "a" in dep_x["b"]
-
-
-def test_pipeline_input_params_pre_overlap(execute):
-    c = """import lineapy
-a = 10
-b = 20
-lineapy.save(a, "a")
-lineapy.save(b, "b")
-input_params_x = {"b"}
-lineapy.create_pipeline(["a", "b"], "x", persist=True, input_parameters=input_params_x)
-x = lineapy.get_pipeline("x")"""
-    res = execute(c, snapshot=False)
-    x = res.values["x"]
-    assert x.name == "x"
-    assert len(x.input_parameters) == 1
-    assert "b" in x.input_parameters
-
-
-def test_pipeline_precomputed_arts_pre_overlap(execute):
-    c = """import lineapy
-a = 10
-b = 20
-lineapy.save(a, "a")
-lineapy.save(b, "b")
-precomputed_arts_x = {"b"}
-lineapy.create_pipeline(["a", "b"], "x", persist=True, reuse_pre_computed_artifacts=precomputed_arts_x)
-x = lineapy.get_pipeline("x")"""
-    res = execute(c, snapshot=False)
-    x = res.values["x"]
-    assert x.name == "x"
-    assert len(x.reuse_pre_computed_artifacts) == 1
-    assert "b" in x.reuse_pre_computed_artifacts
