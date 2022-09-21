@@ -5,128 +5,74 @@ Oftentimes, data scientists/engineers need to run the same pipeline with differe
 For instance, they may want to use a different data set for model training and/or prediction.
 To produce a parametrized pipeline, we can use pipeline API's (optional) ``input_parameters`` argument.
 
-As a concrete example, consider the following development code:
+As a concrete example, consider the :ref:`pipeline created in the Basics section <iris_pipeline_module>`,
+where we got an "inflexible" pipeline that has the data source (``url``) as a fixed value rather than a tunable parameter:
 
 .. code-block:: python
+    :emphasize-lines: 8, 19
 
-    import pandas as pd
-    from sklearn.linear_model import LinearRegression
-
-    import lineapy
-
-
-    # Load train data
-    url1 = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-    train_df = pd.read_csv(url1)
-
-    # Initiate the model
-    mod = LinearRegression()
-
-    # Fit the model
-    mod.fit(
-        X=train_df[["petal.width"]],
-        y=train_df["petal.length"],
-    )
-
-    # Save the fitted model as an artifact
-    lineapy.save(mod, "iris_model")
-
-    # Load data to predict
-    url2 = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-    pred_df = pd.read_csv(url2)
-
-    # Make predictions
-    petal_length_pred = mod.predict(X=pred_df[["petal.width"]])
-
-    # Save the predictions
-    lineapy.save(petal_length_pred, "iris_petal_length_pred")
-
-Now, if we simply run
-
-.. code-block:: python
-
-    lineapy.to_pipeline(
-        artifacts=["iris_model", "iris_petal_length_pred"],
-        framework="SCRIPT",
-        dependencies={"iris_petal_length_pred": {"iris_model"}},
-        pipeline_name="iris",
-        output_dir="./iris_pipeline/",
-    )
-
-we get an "inflexible" pipeline where data sources are fixed rather than tunable:
-
-.. code-block:: python
-   :emphasize-lines: 8, 19
-
-    # ./iris_pipeline/iris_module.py
+    # ./output/pipeline_basics/iris_pipeline_module.py
 
     import pandas as pd
     from sklearn.linear_model import LinearRegression
 
 
-    def get_iris_model():
-        url1 = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-        train_df = pd.read_csv(url1)
-        mod = LinearRegression()
-        mod.fit(
-            X=train_df[["petal.width"]],
-            y=train_df["petal.length"],
-        )
-        return mod
+    def get_iris_preprocessed():
+        url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+        df = pd.read_csv(url)
+        color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
+        df["variety_color"] = df["variety"].map(color_map)
+        df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
+        df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
+        return df
 
+    [...]
 
-    def get_iris_petal_length_pred(mod):
-        url2 = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-        pred_df = pd.read_csv(url2)
-        petal_length_pred = mod.predict(X=pred_df[["petal.width"]])
-        return petal_length_pred
-
-
-    def run_session_including_iris_model():
+    def run_session_including_iris_preprocessed():
         # Given multiple artifacts, we need to save each right after
         # its calculation to protect from any irrelevant downstream
         # mutations (e.g., inside other artifact calculations)
         import copy
 
         artifacts = dict()
-        mod = get_iris_model()
+        df = get_iris_preprocessed()
+        artifacts["iris_preprocessed"] = copy.deepcopy(df)
+        mod = get_iris_model(df)
         artifacts["iris_model"] = copy.deepcopy(mod)
-        petal_length_pred = get_iris_petal_length_pred(mod)
-        artifacts["iris_petal_length_pred"] = copy.deepcopy(petal_length_pred)
         return artifacts
 
-
-    def run_all_sessions():
-        artifacts = dict()
-        artifacts.update(run_session_including_iris_model())
-        return artifacts
-
+    [...]
 
     if __name__ == "__main__":
         # Edit this section to customize the behavior of artifacts
         artifacts = run_all_sessions()
         print(artifacts)
 
-Instead, we can run
+Instead, we could have run
 
 .. code-block:: python
-   :emphasize-lines: 5
+   :emphasize-lines: 10
 
+    # Load artifacts to use in pipeline building
+    preprocessing_art = lineapy.get("iris_preprocessed")
+    modeling_art = lineapy.get("iris_model")
+
+    # Build an Airflow pipeline using artifacts
     lineapy.to_pipeline(
-        artifacts=["iris_model", "iris_petal_length_pred"],
-        framework="SCRIPT",
-        dependencies={"iris_petal_length_pred": {"iris_model"}},
-        input_parameters=["url1", "url2"],  # Specify variables to parametrize
-        pipeline_name="iris",
-        output_dir="./iris_pipeline_parametrized/",
+        pipeline_name="iris_pipeline_parametrized",
+        artifacts=[preprocessing_art.name, modeling_art.name],
+        dependencies={modeling_art.name: {preprocessing_art.name}},
+        input_parameters=["url"],  # Specify variable(s) to parametrize
+        output_dir="./output/pipeline_parametrization/",
+        framework="AIRFLOW",
     )
 
 to get a parametrized pipline, like so:
 
 .. code-block:: python
-   :emphasize-lines: 9, 19, 26, 27, 43, 44
+   :emphasize-lines: 9, 20, 42
 
-    # ./iris_pipeline_parametrized/iris_module.py
+    # ./output/pipeline_parametrization/iris_pipeline_parametrized_module.py
 
     import argparse
 
@@ -134,25 +80,18 @@ to get a parametrized pipline, like so:
     from sklearn.linear_model import LinearRegression
 
 
-    def get_iris_model(url1):
-        train_df = pd.read_csv(url1)
-        mod = LinearRegression()
-        mod.fit(
-            X=train_df[["petal.width"]],
-            y=train_df["petal.length"],
-        )
-        return mod
+    def get_iris_preprocessed(url):
+        df = pd.read_csv(url)
+        color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
+        df["variety_color"] = df["variety"].map(color_map)
+        df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
+        df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
+        return df
 
+    [...]
 
-    def get_iris_petal_length_pred(mod, url2):
-        pred_df = pd.read_csv(url2)
-        petal_length_pred = mod.predict(X=pred_df[["petal.width"]])
-        return petal_length_pred
-
-
-    def run_session_including_iris_model(
-        url1="https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv",
-        url2="https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv",
+    def run_session_including_iris_preprocessed(
+        url="https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv",
     ):
         # Given multiple artifacts, we need to save each right after
         # its calculation to protect from any irrelevant downstream
@@ -160,43 +99,29 @@ to get a parametrized pipline, like so:
         import copy
 
         artifacts = dict()
-        mod = get_iris_model(url1)
+        df = get_iris_preprocessed(url)
+        artifacts["iris_preprocessed"] = copy.deepcopy(df)
+        mod = get_iris_model(df)
         artifacts["iris_model"] = copy.deepcopy(mod)
-        petal_length_pred = get_iris_petal_length_pred(mod, url2)
-        artifacts["iris_petal_length_pred"] = copy.deepcopy(petal_length_pred)
         return artifacts
 
-
-    def run_all_sessions(
-        url1="https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv",
-        url2="https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv",
-    ):
-        artifacts = dict()
-        artifacts.update(run_session_including_iris_model(url1, url2))
-        return artifacts
-
+    [...]
 
     if __name__ == "__main__":
         # Edit this section to customize the behavior of artifacts
         parser = argparse.ArgumentParser()
         parser.add_argument(
-            "--url1",
-            type=str,
-            default="https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv",
-        )
-        parser.add_argument(
-            "--url2",
+            "--url",
             type=str,
             default="https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv",
         )
         args = parser.parse_args()
         artifacts = run_all_sessions(
-            url1=args.url1,
-            url2=args.url2,
+            url=args.url,
         )
         print(artifacts)
 
-As shown, we now have ``url1`` and ``url2`` factored out as easily tunable parameters of the pipeline,
+As shown, we now have ``url`` factored out as an easily tunable parameter for the pipeline,
 which allows us to run it with various data sources beyond those we started with (hence increasing the
 pipeline's utility).
 

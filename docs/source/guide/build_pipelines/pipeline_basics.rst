@@ -1,3 +1,5 @@
+.. _pipeline_basics:
+
 Basics
 ======
 
@@ -32,10 +34,10 @@ building a pipeline reduces to “stitching” these artifacts, like so:
 
    # Build an Airflow pipeline using artifacts
    lineapy.to_pipeline(
-      pipeline_name="demo_airflow_pipeline",
+      pipeline_name="iris_pipeline",
       artifacts=[preprocessing_art.name, modeling_art.name],
       dependencies={modeling_art.name: {preprocessing_art.name}},
-      output_dir="output/02_build_pipelines/demo_airflow_pipeline/",
+      output_dir="./output/pipeline_basics/",
       framework="AIRFLOW",
    )
 
@@ -53,180 +55,184 @@ Running this creates several files that can be used to execute the pipeline as a
 
 * ``<pipeline_name>_Dockerfile``: Contains commands to set up the environment to run the pipeline
 
-where ``<pipeline_name>`` is ``demo_airflow_pipeline`` in the current example.
+where ``<pipeline_name>`` is ``iris_pipeline`` in the current example.
 
 .. note::
 
    If you want hands-on practice,
-   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02_build_pipelines.ipynb>`_ tutorial notebook.
+   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/pipeline_basics.ipynb>`_ tutorial notebook.
 
 Output Files
 ------------
 
-Let's take a closer look at these files. First, we have ``demo_airflow_pipeline_module.py`` looking as follows:
+.. _iris_pipeline_module:
+
+Let's take a closer look at these files. First, we have ``iris_pipeline_module.py`` looking as follows:
 
 .. code:: python
 
-   import pandas as pd
-   from sklearn.linear_model import LinearRegression
+    import pandas as pd
+    from sklearn.linear_model import LinearRegression
 
 
-   def get_iris_preprocessed():
-      df = pd.read_csv(
-         "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-      )
-      color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
-      df["variety_color"] = df["variety"].map(color_map)
-      df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
-      df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
-      return df
+    def get_iris_preprocessed():
+        url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+        df = pd.read_csv(url)
+        color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
+        df["variety_color"] = df["variety"].map(color_map)
+        df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
+        df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
+        return df
 
 
-   def get_iris_model(df):
-      mod = LinearRegression()
-      mod.fit(
-         X=df[["petal.width", "d_versicolor", "d_virginica"]],
-         y=df["sepal.width"],
-      )
-      return mod
+    def get_iris_model(df):
+        mod = LinearRegression()
+        mod.fit(
+            X=df[["petal.width", "d_versicolor", "d_virginica"]],
+            y=df["sepal.width"],
+        )
+        return mod
 
 
-   def run_session_including_iris_preprocessed():
-      # Given multiple artifacts, we need to save each right after
-      # its calculation to protect from any irrelevant downstream
-      # mutations (e.g., inside other artifact calculations)
-      import copy
+    def run_session_including_iris_preprocessed():
+        # Given multiple artifacts, we need to save each right after
+        # its calculation to protect from any irrelevant downstream
+        # mutations (e.g., inside other artifact calculations)
+        import copy
 
-      artifacts = dict()
-      df = get_iris_preprocessed()
-      artifacts["iris_preprocessed"] = copy.deepcopy(df)
-      mod = get_iris_model(df)
-      artifacts["iris_model"] = copy.deepcopy(mod)
-      return artifacts
-
-
-   def run_all_sessions():
-      artifacts = dict()
-      artifacts.update(run_session_including_iris_preprocessed())
-      return artifacts
+        artifacts = dict()
+        df = get_iris_preprocessed()
+        artifacts["iris_preprocessed"] = copy.deepcopy(df)
+        mod = get_iris_model(df)
+        artifacts["iris_model"] = copy.deepcopy(mod)
+        return artifacts
 
 
-   if __name__ == "__main__":
-      run_all_sessions()
+    def run_all_sessions():
+        artifacts = dict()
+        artifacts.update(run_session_including_iris_preprocessed())
+        return artifacts
+
+
+    if __name__ == "__main__":
+        # Edit this section to customize the behavior of artifacts
+        artifacts = run_all_sessions()
+        print(artifacts)
 
 We can see that LineaPy used artifacts to automatically 1) clean up their code to retain only essential operations and 2) package the cleaned-up code into importable functions.
 
-And we see ``demo_airflow_pipeline_dag.py`` automatically composing an Airflow DAG with these functions:
+And we see ``iris_pipeline_dag.py`` automatically composing an Airflow DAG with these functions:
 
 .. code:: python
 
-   import pathlib
-   import pickle
+    import pathlib
+    import pickle
 
-   import demo_airflow_pipeline_module
-   from airflow import DAG
-   from airflow.operators.python_operator import PythonOperator
-   from airflow.utils.dates import days_ago
-
-
-   def dag_setup():
-      pickle_folder = pathlib.Path("/tmp").joinpath("demo_airflow_pipeline")
-      if not pickle_folder.exists():
-         pickle_folder.mkdir()
+    import iris_pipeline_module
+    from airflow import DAG
+    from airflow.operators.python_operator import PythonOperator
+    from airflow.utils.dates import days_ago
 
 
-   def dag_teardown():
-      pickle_files = (
-         pathlib.Path("/tmp").joinpath("demo_airflow_pipeline").glob("*.pickle")
-      )
-      for f in pickle_files:
-         f.unlink()
+    def dag_setup():
+        pickle_folder = pathlib.Path("/tmp").joinpath("iris_pipeline")
+        if not pickle_folder.exists():
+            pickle_folder.mkdir()
 
 
-   def task_iris_preprocessed():
-
-      df = demo_airflow_pipeline_module.get_iris_preprocessed()
-
-      pickle.dump(df, open("/tmp/demo_airflow_pipeline/variable_df.pickle", "wb"))
-
-
-   def task_iris_model():
-
-      df = pickle.load(open("/tmp/demo_airflow_pipeline/variable_df.pickle", "rb"))
-
-      mod = demo_airflow_pipeline_module.get_iris_model(df)
-
-      pickle.dump(mod, open("/tmp/demo_airflow_pipeline/variable_mod.pickle", "wb"))
+    def dag_teardown():
+        pickle_files = (
+            pathlib.Path("/tmp").joinpath("iris_pipeline").glob("*.pickle")
+        )
+        for f in pickle_files:
+            f.unlink()
 
 
-   default_dag_args = {
-      "owner": "airflow",
-      "retries": 2,
-      "start_date": days_ago(1),
-   }
+    def task_iris_preprocessed():
 
-   with DAG(
-      dag_id="demo_airflow_pipeline_dag",
-      schedule_interval="*/15 * * * *",
-      max_active_runs=1,
-      catchup=False,
-      default_args=default_dag_args,
-   ) as dag:
+        df = iris_pipeline_module.get_iris_preprocessed()
 
-      setup = PythonOperator(
-         task_id="dag_setup",
-         python_callable=dag_setup,
-      )
+        pickle.dump(df, open("/tmp/iris_pipeline/variable_df.pickle", "wb"))
 
-      teardown = PythonOperator(
-         task_id="dag_teardown",
-         python_callable=dag_teardown,
-      )
 
-      iris_preprocessed = PythonOperator(
-         task_id="iris_preprocessed_task",
-         python_callable=task_iris_preprocessed,
-      )
+    def task_iris_model():
 
-      iris_model = PythonOperator(
-         task_id="iris_model_task",
-         python_callable=task_iris_model,
-      )
+        df = pickle.load(open("/tmp/iris_pipeline/variable_df.pickle", "rb"))
 
-      iris_preprocessed >> iris_model
+        mod = iris_pipeline_module.get_iris_model(df)
 
-      setup >> iris_preprocessed
+        pickle.dump(mod, open("/tmp/iris_pipeline/variable_mod.pickle", "wb"))
 
-      iris_model >> teardown
 
-Next, we see ``demo_airflow_pipeline_requirements.txt`` listing dependencies for running the pipeline:
+    default_dag_args = {
+        "owner": "airflow",
+        "retries": 2,
+        "start_date": days_ago(1),
+    }
+
+    with DAG(
+        dag_id="iris_pipeline_dag",
+        schedule_interval="*/15 * * * *",
+        max_active_runs=1,
+        catchup=False,
+        default_args=default_dag_args,
+    ) as dag:
+
+        setup = PythonOperator(
+            task_id="dag_setup",
+            python_callable=dag_setup,
+        )
+
+        teardown = PythonOperator(
+            task_id="dag_teardown",
+            python_callable=dag_teardown,
+        )
+
+        iris_preprocessed = PythonOperator(
+            task_id="iris_preprocessed_task",
+            python_callable=task_iris_preprocessed,
+        )
+
+        iris_model = PythonOperator(
+            task_id="iris_model_task",
+            python_callable=task_iris_model,
+        )
+
+        iris_preprocessed >> iris_model
+
+        setup >> iris_preprocessed
+
+        iris_model >> teardown
+
+Next, we see ``iris_pipeline_requirements.txt`` listing dependencies for running the pipeline:
 
 .. code:: none
 
-   pandas==1.3.5
-   sklearn==1.0.2
-   lineapy
+    lineapy
+    pandas==1.3.5
+    matplotlib==3.5.1
+    scikit-learn==1.0.2
 
-Finally, we have the automatically generated Dockerfile (``demo_airflow_pipeline_Dockerfile``), which facilitates pipeline execution:
+Finally, we have the automatically generated Dockerfile (``iris_pipeline_Dockerfile``), which facilitates pipeline execution:
 
 .. code:: docker
 
-   FROM apache/airflow:latest-python3.10
+    FROM apache/airflow:latest-python3.10
 
-   RUN mkdir /tmp/installers
-   WORKDIR /tmp/installers
+    RUN mkdir /tmp/installers
+    WORKDIR /tmp/installers
 
-   # copy all the requirements to run the current dag
-   COPY ./_requirements.txt ./
-   # install the required libs
-   RUN pip install -r ./_requirements.txt
+    # copy all the requirements to run the current dag
+    COPY ./iris_pipeline_requirements.txt ./
+    # install the required libs
+    RUN pip install -r ./iris_pipeline_requirements.txt
 
-   WORKDIR /opt/airflow/dags
-   COPY . .
+    WORKDIR /opt/airflow/dags
+    COPY . .
 
-   WORKDIR /opt/airflow
+    WORKDIR /opt/airflow
 
-   CMD [ "standalone" ]
+    CMD [ "standalone" ]
 
 .. _testingairflow:
 
