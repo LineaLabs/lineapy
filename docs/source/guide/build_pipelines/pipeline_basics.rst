@@ -16,8 +16,8 @@ For example, consider a simple pipeline that 1) pre-processes raw data and 2) tr
   :align: center
   :alt: Pipeline Example
 
-API
----
+Pipeline Creation
+-----------------
 
 Once we have the pre-processed data and the trained model stored as LineaPy artifacts (which can be done during development sessions),
 building a pipeline reduces to “stitching” these artifacts, like so:
@@ -32,45 +32,22 @@ building a pipeline reduces to “stitching” these artifacts, like so:
 
    # Build an Airflow pipeline using artifacts
    lineapy.to_pipeline(
-      artifacts=[
-         preprocessing_art.name,
-         modeling_art.name,
-      ],
       pipeline_name="demo_airflow_pipeline",
-      dependencies={
-         modeling_art.name: { preprocessing_art.name},
-      },
+      artifacts=[preprocessing_art.name, modeling_art.name],
+      dependencies={modeling_art.name: {preprocessing_art.name}},
       output_dir="output/02_build_pipelines/demo_airflow_pipeline/",
       framework="AIRFLOW",
    )
 
-where
+where ``{modeling_art.name: {preprocessing_art.name}}`` is a way to indicate that
+the trained model depends on the pre-processed data (check :func:`lineapy.to_pipeline`
+for more detailed API information).
 
-* ``artifacts`` is the list of artifact names to be used for the pipeline
+Running this creates several files that can be used to execute the pipeline as an Airflow DAG, including:
 
-* ``pipeline_name`` is the name of the pipeline
+* ``<pipeline_name>_module.py``: Contains the artifact code refactored and packaged as function(s)
 
-* ``dependencies`` is the dependency graph among artifacts
-
-  * If artifact A depends on artifacts B and C, then the graph is specified as ``{ A: { B, C } }``
-
-  * If A depends on B and B depends on C, then the graph is specified as ``{ A: { B }, B: { C } }``
-
-* ``output_dir`` is the location to put the files for running the pipeline
-
-* ``framework`` is the name of orchestration framework to use
-
-  * LineaPy currently supports ``"AIRFLOW"`` and ``"SCRIPT"``
-
-  * If ``"AIRFLOW"``, it will generate files that can run Airflow DAGs
-
-  * If ``"SCRIPT"``, it will generate files that can run the pipeline as a Python script
-
-Running :func:`lineapy.to_pipeline` generates several files that can be used to execute the pipeline from the UI or CLI, including:
-
-* ``<pipeline_name>_module.py``: Contains the artifact code packaged as a function module
-
-* ``<pipeline_name>_dag.py``: Uses the packaged function(s) to define the pipeline
+* ``<pipeline_name>_dag.py``: Uses the packaged function(s) to define the framework-specific pipeline
 
 * ``<pipeline_name>_requirements.txt``: Lists any package dependencies for running the pipeline
 

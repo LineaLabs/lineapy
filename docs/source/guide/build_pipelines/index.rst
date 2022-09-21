@@ -1,5 +1,5 @@
-Building Pipelines
-==================
+Pipelines
+=========
 
 .. toctree::
    :maxdepth: 1
