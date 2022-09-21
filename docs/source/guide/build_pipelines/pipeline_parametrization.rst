@@ -3,7 +3,7 @@ Parametrization
 
 Oftentimes, data scientists/engineers need to run the same pipeline with different parameters.
 For instance, they may want to use a different data set for model training and/or prediction.
-To parametrize a pipeline, we can use pipeline API's (optional) ``input_parameters`` argument.
+To produce a parametrized pipeline, we can use pipeline API's (optional) ``input_parameters`` argument.
 
 As a concrete example, consider the following development code:
 
@@ -41,27 +41,19 @@ As a concrete example, consider the following development code:
     # Save the predictions
     lineapy.save(petal_length_pred, "iris_petal_length_pred")
 
-Say we want to build a pipeline out of these two artifacts (i.e., ``iris_model``
-and ``iris_petal_length_pred``), like so:
-
-.. code-block:: python
-
-    pipeline = lineapy.create_pipeline(
-        pipeline_name="iris",
-        artifacts=["iris_model", "iris_petal_length_pred"],
-        dependencies={"iris_petal_length_pred": {"iris_model"}},
-    )
-
 Now, if we simply run
 
 .. code-block:: python
 
-    pipeline.export(
-        output_dir="./iris_pipeline/",
+    lineapy.to_pipeline(
+        artifacts=["iris_model", "iris_petal_length_pred"],
         framework="SCRIPT",
+        dependencies={"iris_petal_length_pred": {"iris_model"}},
+        pipeline_name="iris",
+        output_dir="./iris_pipeline/",
     )
 
-we get an inflexible "view" of the pipeline where data sources are fixed rather than tunable:
+we get an "inflexible" pipeline where data sources are fixed rather than tunable:
 
 .. code-block:: python
    :emphasize-lines: 8, 19
@@ -118,15 +110,18 @@ we get an inflexible "view" of the pipeline where data sources are fixed rather 
 Instead, we can run
 
 .. code-block:: python
-   :emphasize-lines: 4
+   :emphasize-lines: 5
 
-    pipeline.export(
-        output_dir="./iris_pipeline_parametrized/",
+    lineapy.to_pipeline(
+        artifacts=["iris_model", "iris_petal_length_pred"],
         framework="SCRIPT",
+        dependencies={"iris_petal_length_pred": {"iris_model"}},
         input_parameters=["url1", "url2"],  # Specify variables to parametrize
+        pipeline_name="iris",
+        output_dir="./iris_pipeline_parametrized/",
     )
 
-to get a parametrized "view" of the pipline, like so:
+to get a parametrized pipline, like so:
 
 .. code-block:: python
    :emphasize-lines: 9, 19, 26, 27, 43, 44

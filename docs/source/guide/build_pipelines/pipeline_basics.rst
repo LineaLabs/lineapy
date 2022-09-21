@@ -9,15 +9,15 @@ into deployable scripts for the target system (e.g., Airflow).
 
 Having the complete development process stored in artifacts, LineaPy can automate such code transformation, accelerating transition from development to production.
 
-API
----
-
 For example, consider a simple pipeline that 1) pre-processes raw data and 2) trains a model with the pre-processed data.
 
 .. image:: pipeline.png
   :width: 600
   :align: center
   :alt: Pipeline Example
+
+API
+---
 
 Once we have the pre-processed data and the trained model stored as LineaPy artifacts (which can be done during development sessions),
 building a pipeline reduces to “stitching” these artifacts, like so:
@@ -30,38 +30,31 @@ building a pipeline reduces to “stitching” these artifacts, like so:
    preprocessing_art = lineapy.get("iris_preprocessed")
    modeling_art = lineapy.get("iris_model")
 
-   # Build a LineaPy pipeline using artifacts
-   pipeline = lineapy.create_pipeline(
+   # Build an Airflow pipeline using artifacts
+   lineapy.to_pipeline(
+      artifacts=[
+         preprocessing_art.name,
+         modeling_art.name,
+      ],
       pipeline_name="demo_airflow_pipeline",
-      artifacts=[preprocessing_art.name, modeling_art.name],
-      dependencies={modeling_art.name: {preprocessing_art.name}},
+      dependencies={
+         modeling_art.name: { preprocessing_art.name},
+      },
+      output_dir="output/02_build_pipelines/demo_airflow_pipeline/",
+      framework="AIRFLOW",
    )
 
 where
 
-* ``pipeline_name`` is the name of the pipeline
-
 * ``artifacts`` is the list of artifact names to be used for the pipeline
+
+* ``pipeline_name`` is the name of the pipeline
 
 * ``dependencies`` is the dependency graph among artifacts
 
   * If artifact A depends on artifacts B and C, then the graph is specified as ``{ A: { B, C } }``
 
   * If A depends on B and B depends on C, then the graph is specified as ``{ A: { B }, B: { C } }``
-
-With this ``pipeline`` object created, we can produce different "views" for it.
-For instance, say we want to deploy this pipeline in Airflow. We can then generate
-an Airflow "view" of the pipeline as the following:
-
-.. code:: python
-
-   # Generate an Airflow "view" of the pipeline
-   pipeline.export(
-      output_dir="output/02_build_pipelines/demo_airflow_pipeline/",
-      framework="AIRFLOW",
-   )
-
-where
 
 * ``output_dir`` is the location to put the files for running the pipeline
 
@@ -73,52 +66,17 @@ where
 
   * If ``"SCRIPT"``, it will generate files that can run the pipeline as a Python script
 
-Running this creates several files that can be used to execute the pipeline as an Airflow DAG, including:
+Running :func:`lineapy.to_pipeline` generates several files that can be used to execute the pipeline from the UI or CLI, including:
 
-* ``<pipeline_name>_module.py``: Contains the artifact code refactored and packaged as function(s)
+* ``<pipeline_name>_module.py``: Contains the artifact code packaged as a function module
 
-* ``<pipeline_name>_dag.py``: Uses the packaged function(s) to define the framework-specific pipeline
+* ``<pipeline_name>_dag.py``: Uses the packaged function(s) to define the pipeline
 
 * ``<pipeline_name>_requirements.txt``: Lists any package dependencies for running the pipeline
 
 * ``<pipeline_name>_Dockerfile``: Contains commands to set up the environment to run the pipeline
 
 where ``<pipeline_name>`` is ``demo_airflow_pipeline`` in the current example.
-
-.. note::
-
-   LineaPy's ``to_pipeline()`` API provides a handy shortcut for the above operations. That is, 
-
-   .. code:: python
-
-      # Build a LineaPy pipeline using artifacts
-      pipeline = lineapy.create_pipeline(
-         pipeline_name="demo_airflow_pipeline",
-         artifacts=[preprocessing_art.name, modeling_art.name],
-         dependencies={modeling_art.name: {preprocessing_art.name}},
-      )
-
-      # Generate an Airflow "view" of the pipeline
-      pipeline.export(
-         output_dir="output/02_build_pipelines/demo_airflow_pipeline/",
-         framework="AIRFLOW",
-      )
-
-   could have been combined into
-
-   .. code:: python
-
-      # Build a pipeline and generate an Airflow "view"
-      lineapy.to_pipeline(
-         pipeline_name="demo_airflow_pipeline",
-         artifacts=[preprocessing_art.name, modeling_art.name],
-         dependencies={modeling_art.name: {preprocessing_art.name}},
-         output_dir="output/02_build_pipelines/demo_airflow_pipeline/",
-         framework="AIRFLOW",
-      )
-
-   Note that ``to_pipeline()`` does not return the pipeline object; instead,
-   it stores the object into the database so we can retrieve it later.
 
 .. note::
 
