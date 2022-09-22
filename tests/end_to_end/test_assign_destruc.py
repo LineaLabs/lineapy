@@ -1,6 +1,5 @@
 import sys
 import traceback
-from tracemalloc import Snapshot
 from typing import cast
 
 import pytest
