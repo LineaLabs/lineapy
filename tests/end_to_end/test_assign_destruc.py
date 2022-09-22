@@ -1,10 +1,12 @@
 import sys
 import traceback
+from tracemalloc import Snapshot
 from typing import cast
 
 import pytest
 
 from lineapy.exceptions.user_exception import UserException
+from lineapy.utils.utils import prettify
 
 
 def test_type_error_exception(execute):
@@ -235,3 +237,13 @@ lineapy.save(c, "c")
     assert res.slice("a") == "c = [1, 2, 3]\na, *b = c\n"
     assert res.slice("b") == "c = [1, 2, 3]\na, *b = c\n"
     assert res.slice("c") == "c = [1, 2, 3]\n"
+
+
+def test_assign_multiline(execute):
+    code = """a=1
+b=2
+c=(
+    a+b
+)"""
+    res = execute(code, artifacts=["c"], snapshot=False)
+    assert res.artifacts["c"] == prettify(code)
