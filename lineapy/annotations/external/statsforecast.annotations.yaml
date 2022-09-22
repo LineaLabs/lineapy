@@ -1,0 +1,11 @@
+- module: statsforecast.models
+  annotations:
+    - criteria:
+        class_instance: _TS
+        class_method_name: fit
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF 
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT
