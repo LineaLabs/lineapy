@@ -5,10 +5,10 @@ https://ipython.readthedocs.io/en/stable/config/inputtransforms.html
 """
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
+import black
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.display import DisplayHandle, DisplayObject, display
 
@@ -102,15 +102,29 @@ def input_transformer_post(
         raise RuntimeError(
             "input_transformer_post shouldn't be called when we don't have an active tracer"
         )
-    code = "".join(lines)
-
+    rawcode = "".join(lines)
     # This is a dirty fix for our code slicing mechanism within multiple line
-    # parentheses code block. This might break if the closing parenthesis is
-    # moved behind a comment
-    while re.search(r"\([ \t]*\n", code) is not None:
-        code = re.sub(r"\([ \t]*\n", "(", code)
-    while re.search(r"\n[ \t]*\)", code) is not None:
-        code = re.sub(r"\n[ \t]*\)", ")", code)
+    # parentheses code block, 9999 is a arbitrary number here.
+    # Append non top layer comments to the end of next non comment line
+    code = ""
+    comment = ""
+    for line in lines:
+        if line.strip() != "":
+            if (not line.startswith("#")) and line.lstrip().startswith("#"):
+                comment += line.rstrip("\n")
+            else:
+                code += line.rstrip("\n") + comment + "\n"
+                comment = ""
+    code = code.rstrip("\n") + comment + "\n"
+    # Use black to fold statement into oneline (so no more slicing at the wrong
+    #  line). We will rerun black later on with shorter line_length to make the
+    # generated code look nicer.
+    code = black.format_str(
+        code, mode=black.Mode(line_length=9999, magic_trailing_comma=False)
+    )
+    # Black will remove semicolon at the end, so need to add it back if any
+    if rawcode.rstrip().endswith(";"):
+        code = code.rstrip("\n") + ";\n"
 
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
