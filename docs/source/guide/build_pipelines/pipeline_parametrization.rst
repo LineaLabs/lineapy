@@ -6,7 +6,7 @@ For instance, they may want to use a different data set for model training and/o
 To produce a parametrized pipeline, we can use pipeline API's (optional) ``input_parameters`` argument.
 
 As a concrete example, consider the :ref:`pipeline created in the Basics section <iris_pipeline_module>`,
-where we got an "inflexible" pipeline that has the data source (``url``) as a fixed value rather than a tunable parameter:
+where we got an "inflexible" pipeline that has the data source (``url``) as a fixed value:
 
 .. code-block:: python
     :emphasize-lines: 8, 19
@@ -48,20 +48,16 @@ where we got an "inflexible" pipeline that has the data source (``url``) as a fi
         artifacts = run_all_sessions()
         print(artifacts)
 
-Instead, we could have run
+Instead, we can run
 
 .. code-block:: python
-   :emphasize-lines: 10
-
-    # Load artifacts to use in pipeline building
-    preprocessing_art = lineapy.get("iris_preprocessed")
-    modeling_art = lineapy.get("iris_model")
+   :emphasize-lines: 6
 
     # Build an Airflow pipeline using artifacts
     lineapy.to_pipeline(
         pipeline_name="iris_pipeline_parametrized",
-        artifacts=[preprocessing_art.name, modeling_art.name],
-        dependencies={modeling_art.name: {preprocessing_art.name}},
+        artifacts=["iris_preprocessed", "iris_model"],
+        dependencies={"iris_model": {"iris_preprocessed"}},
         input_parameters=["url"],  # Specify variable(s) to parametrize
         output_dir="./output/pipeline_parametrization/",
         framework="AIRFLOW",
@@ -124,6 +120,63 @@ to get a parametrized pipline, like so:
 As shown, we now have ``url`` factored out as an easily tunable parameter for the pipeline,
 which allows us to run it with various data sources beyond those we started with (hence increasing the
 pipeline's utility).
+
+.. note::
+
+    We get parametrization reflected in the framework-specific DAG file as well
+    (compare with the :ref:`un-parametrized counterpart in the Basics section <iris_pipeline_dag>`):
+
+    .. code-block:: python
+        :emphasize-lines: 13, 28, 45
+
+        # ./output/pipeline_parametrization/iris_pipeline_parametrized_dag.py
+
+        import pathlib
+        import pickle
+
+        import iris_pipeline_parametrized_module
+        from airflow import DAG
+        from airflow.operators.python_operator import PythonOperator
+        from airflow.utils.dates import days_ago
+
+        [...]
+
+        def task_iris_preprocessed(url):
+
+            url = str(url)
+
+            df = iris_pipeline_parametrized_module.get_iris_preprocessed(url)
+
+            pickle.dump(df, open("/tmp/iris_pipeline_parametrized/variable_df.pickle", "wb"))
+
+        [...]
+
+        default_dag_args = {
+            "owner": "airflow",
+            "retries": 2,
+            "start_date": days_ago(1),
+            "params": {
+                "url": "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+            },
+        }
+
+        with DAG(
+            dag_id="iris_pipeline_parametrized_dag",
+            schedule_interval="*/15 * * * *",
+            max_active_runs=1,
+            catchup=False,
+            default_args=default_dag_args,
+        ) as dag:
+
+            [...]
+
+            iris_preprocessed = PythonOperator(
+                task_id="iris_preprocessed_task",
+                python_callable=task_iris_preprocessed,
+                op_kwargs={"url": "{{ params.url }}"},
+            )
+
+            [...]
 
 .. warning::
 

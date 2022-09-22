@@ -28,24 +28,19 @@ building a pipeline reduces to “stitching” these artifacts, like so:
 
    import lineapy
 
-   # Load artifacts to use in pipeline building
-   preprocessing_art = lineapy.get("iris_preprocessed")
-   modeling_art = lineapy.get("iris_model")
-
    # Build an Airflow pipeline using artifacts
    lineapy.to_pipeline(
       pipeline_name="iris_pipeline",
-      artifacts=[preprocessing_art.name, modeling_art.name],
-      dependencies={modeling_art.name: {preprocessing_art.name}},
+      artifacts=["iris_preprocessed", "iris_model"],
+      dependencies={"iris_model": {"iris_preprocessed"}},
       output_dir="./output/pipeline_basics/",
       framework="AIRFLOW",
    )
 
-where ``{modeling_art.name: {preprocessing_art.name}}`` is a way to indicate that
-the trained model depends on the pre-processed data (check :func:`lineapy.to_pipeline`
-for more detailed API information).
+where ``{"iris_model": {"iris_preprocessed"}}`` is a way to indicate that the ``"iris_model"`` artifact
+depends on the ``"iris_preprocessed"`` artifact (check :func:`lineapy.to_pipeline` for more detailed API information).
 
-Running this creates several files that can be used to execute the pipeline as an Airflow DAG, including:
+Running this creates files that can be used to execute the pipeline as an Airflow DAG, including:
 
 * ``<pipeline_name>_module.py``: Contains the artifact code refactored and packaged as function(s)
 
@@ -120,6 +115,8 @@ Let's take a closer look at these files. First, we have ``iris_pipeline_module.p
         print(artifacts)
 
 We can see that LineaPy used artifacts to automatically 1) clean up their code to retain only essential operations and 2) package the cleaned-up code into importable functions.
+
+.. _iris_pipeline_dag:
 
 And we see ``iris_pipeline_dag.py`` automatically composing an Airflow DAG with these functions:
 
