@@ -5,6 +5,7 @@ https://ipython.readthedocs.io/en/stable/config/inputtransforms.html
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
@@ -102,6 +103,14 @@ def input_transformer_post(
             "input_transformer_post shouldn't be called when we don't have an active tracer"
         )
     code = "".join(lines)
+
+    # This is a dirty fix for our code slicing mechanism within multiple line
+    # parentheses code block. This might break if the closing parenthesis is
+    # moved behind a comment
+    while re.search(r"\([ \t]*\n", code) is not None:
+        code = re.sub(r"\([ \t]*\n", "(", code)
+    while re.search(r"\n[ \t]*\)", code) is not None:
+        code = re.sub(r"\n[ \t]*\)", ")", code)
 
     # If we have just started, first start everything up
     if isinstance(STATE, StartedState):
