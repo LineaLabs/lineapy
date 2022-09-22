@@ -246,3 +246,19 @@ c=(
 )"""
     res = execute(code, artifacts=["c"], snapshot=False)
     assert res.artifacts["c"] == prettify(code)
+
+
+def test_assign_multiline_complex(execute):
+    code = """import pandas as pd
+df = (
+    # Comment between parentheses
+    pd.DataFrame({"a":[1,2,3,1],"b":[1,2,3,4] })
+    .groupby(
+        # Group by a column
+        ["a"] # a aomment
+    )
+    # Take a sum
+    .sum()
+)"""
+    res = execute(code, artifacts=["df"], snapshot=False)
+    assert res.artifacts["df"] == prettify(code)
