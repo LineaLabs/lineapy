@@ -81,7 +81,6 @@ def get_value_type(val: Any) -> Optional[ValueType]:
 
 
 def prettify(code: str) -> str:
-
     # Sort imports and move them to the top
     if "isort" in sys.modules:
         code = isort.code(code, float_to_top=True, profile="black")

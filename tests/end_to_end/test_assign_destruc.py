@@ -5,6 +5,7 @@ from typing import cast
 import pytest
 
 from lineapy.exceptions.user_exception import UserException
+from lineapy.utils.utils import prettify
 
 
 def test_type_error_exception(execute):
@@ -235,3 +236,29 @@ lineapy.save(c, "c")
     assert res.slice("a") == "c = [1, 2, 3]\na, *b = c\n"
     assert res.slice("b") == "c = [1, 2, 3]\na, *b = c\n"
     assert res.slice("c") == "c = [1, 2, 3]\n"
+
+
+def test_assign_multiline(execute):
+    code = """a=1
+b=2
+c=(
+    a+b
+)"""
+    res = execute(code, artifacts=["c"], snapshot=False)
+    assert res.artifacts["c"] == prettify(code)
+
+
+def test_assign_multiline_complex(execute):
+    code = """import pandas as pd
+df = (
+    # Comment between parentheses
+    pd.DataFrame({"a":[1,2,3,1],"b":[1,2,3,4] })
+    .groupby(
+        # Group by a column
+        ["a"] # a aomment
+    )
+    # Take a sum
+    .sum()
+)"""
+    res = execute(code, artifacts=["df"], snapshot=False)
+    assert res.artifacts["df"] == prettify(code)

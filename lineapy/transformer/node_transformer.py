@@ -192,7 +192,12 @@ class NodeTransformer(ast.NodeTransformer):
             self.last_statement_result = self.visit(stmt)
 
     def visit_Expr(self, node: ast.Expr) -> Node:
-        return self.visit(node.value)
+        value_node = node.value
+        value_node.lineno = min(node.lineno, value_node.lineno)
+        value_node.end_lineno = max(  # type:ignore
+            node.end_lineno, value_node.end_lineno
+        )
+        return self.visit(value_node)
 
     def visit_Assert(self, node: ast.Assert) -> None:
 
@@ -408,9 +413,15 @@ class NodeTransformer(ast.NodeTransformer):
                     new_node,
                 )
             else:
+                value_node = node.value
+                value_node.lineno = min(node.lineno, value_node.lineno)
+                # ignoring type because end_lineno will always be there for lineapy
+                value_node.end_lineno = max(  # type:ignore
+                    node.end_lineno, value_node.end_lineno
+                )
                 self.visit_assign_value(
                     target,
-                    self.visit(node.value),
+                    self.visit(value_node),
                     self.get_source(node),
                 )
 
