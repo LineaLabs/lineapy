@@ -194,7 +194,9 @@ class NodeTransformer(ast.NodeTransformer):
     def visit_Expr(self, node: ast.Expr) -> Node:
         value_node = node.value
         value_node.lineno = min(node.lineno, value_node.lineno)
-        value_node.end_lineno = max(node.end_lineno, value_node.end_lineno)
+        value_node.end_lineno = max(  # type:ignore
+            node.end_lineno, value_node.end_lineno
+        )
         return self.visit(value_node)
 
     def visit_Assert(self, node: ast.Assert) -> None:
