@@ -9,7 +9,7 @@ As a concrete example, consider the :ref:`pipeline created in the Basics section
 where we got an "inflexible" pipeline that has the data source (``url``) as a fixed value:
 
 .. code-block:: python
-    :emphasize-lines: 8, 19
+    :emphasize-lines: 8
 
     # ./output/pipeline_basics/iris_pipeline_module.py
 
