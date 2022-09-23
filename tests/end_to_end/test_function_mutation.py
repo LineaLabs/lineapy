@@ -78,6 +78,21 @@ del x[1]
     assert res.artifacts["x"] == source
 
 
+def test_multiline_mutate(execute):
+    """
+    Veriyf that mutating within a parenthesis
+    """
+    source = """x = []
+(
+    # comment
+    x.append(1) #1
+)
+"""
+    res = execute(source, artifacts=["x"])
+
+    assert res.artifacts["x"] == prettify(source)
+
+
 @pytest.mark.slow
 def test_self_return_loop(execute):
     """
