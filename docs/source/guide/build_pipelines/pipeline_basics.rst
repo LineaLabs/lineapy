@@ -55,7 +55,7 @@ where ``<pipeline_name>`` is ``iris_pipeline`` in the current example.
 .. note::
 
    If you want hands-on practice,
-   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/pipeline_basics.ipynb>`_ tutorial notebook.
+   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02_build_pipelines.ipynb>`_ tutorial notebook.
 
 Output Files
 ------------
