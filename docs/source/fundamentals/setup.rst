@@ -3,7 +3,7 @@
 Installation
 ============
 
-.. include:: ../snippets/slack_support.rstinc
+.. include:: ../snippets/_slack_support
 
 Basics
 ------

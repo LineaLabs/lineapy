@@ -1,7 +1,7 @@
 Parametrization
 ===============
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: ../../snippets/_slack_support
 
 Oftentimes, data scientists/engineers need to run the same pipeline with different parameters.
 For instance, they may want to use a different data set for model training and/or prediction.
