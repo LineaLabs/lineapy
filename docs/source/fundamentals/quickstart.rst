@@ -8,6 +8,12 @@ Quick Start
     Make sure that you have LineaPy installed. You can find relevant instructions 
     in the :ref:`Installation <setup>` section.
 
+.. note::
+
+    If you encounter issues you cannot resolve, simply ask in our
+    `Slack community <https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q>`_'s
+    ``#support`` channel. We are always happy and ready to help you!
+
 Once LineaPy is installed, we are ready to start using the package. We start with a simple
 example using the `Iris dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_ to demonstrate how to use LineaPy to 1) store a variable's history, 2) get its cleaned-up code,
 and 3) build an executable pipeline for the variable.

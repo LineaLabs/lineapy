@@ -1,6 +1,12 @@
 Refactoring Code
 ================
 
+.. note::
+
+    If you encounter issues you cannot resolve, simply ask in our
+    `Slack community <https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q>`_'s
+    ``#support`` channel. We are always happy and ready to help you!
+
 Data science development is characterized by nimble, iterative experimentation and exploratory data analysis.
 Data scientists explore many possibilities before reaching the final result. The rapid exploration process often
 leads to long, messy code, the majority of which has no impact on the final result.

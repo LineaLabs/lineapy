@@ -3,6 +3,12 @@
 PostgreSQL
 ==========
 
+.. note::
+
+    If you encounter issues you cannot resolve, simply ask in our
+    `Slack community <https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q>`_'s
+    ``#support`` channel. We are always happy and ready to help you!
+
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
 Given the limitations of SQLite (e.g., single write access to a database at a time), however,
 we may want to use a more advanced database such as PostgreSQL.
