@@ -3,6 +3,8 @@
 Basics
 ======
 
+.. include:: ../../snippets/slack_support.rstinc
+
 Data science workflows revolve around building and refining pipelines, i.e., a series of processes that transform data into useful information/product
 (read more about pipelines :ref:`here <concepts>`).
 
@@ -55,7 +57,7 @@ where ``<pipeline_name>`` is ``iris_pipeline`` in the current example.
 .. note::
 
    If you want hands-on practice,
-   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/pipeline_basics.ipynb>`_ tutorial notebook.
+   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02_build_pipelines.ipynb>`_ tutorial notebook.
 
 Output Files
 ------------

@@ -1,6 +1,8 @@
 Parametrization
 ===============
 
+.. include:: ../../snippets/slack_support.rstinc
+
 Oftentimes, data scientists/engineers need to run the same pipeline with different parameters.
 For instance, they may want to use a different data set for model training and/or prediction.
 To produce a parametrized pipeline, we can use pipeline API's (optional) ``input_parameters`` argument.
@@ -9,7 +11,7 @@ As a concrete example, consider the :ref:`pipeline created in the Basics section
 where we got an "inflexible" pipeline that has the data source (``url``) as a fixed value:
 
 .. code-block:: python
-    :emphasize-lines: 8, 19
+    :emphasize-lines: 8
 
     # ./output/pipeline_basics/iris_pipeline_module.py
 
@@ -178,6 +180,8 @@ pipeline's utility).
 
             [...]
 
+    Hence, we can easily modify pipeline runs in the target system (Airflow in this case).
+
 .. warning::
 
     Currently, ``input_parameters`` only accepts variables from literal assignment
@@ -186,3 +190,8 @@ pipeline's utility).
     ``a = "123"`` and ``a = "abc"`` exist in the pipeline's artifact code, we cannot make
     ``a`` an input parameter since its reference is ambiguous, i.e., we are not sure which
     literal assignment ``a`` refers to.
+
+.. note::
+
+   If you want hands-on practice,
+   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/03_parametrize_pipelines.ipynb>`_ tutorial notebook.

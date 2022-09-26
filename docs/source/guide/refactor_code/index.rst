@@ -1,6 +1,8 @@
 Refactoring Code
 ================
 
+.. include:: ../../snippets/slack_support.rstinc
+
 Data science development is characterized by nimble, iterative experimentation and exploratory data analysis.
 Data scientists explore many possibilities before reaching the final result. The rapid exploration process often
 leads to long, messy code, the majority of which has no impact on the final result.

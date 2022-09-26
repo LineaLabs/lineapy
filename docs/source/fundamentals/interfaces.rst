@@ -3,6 +3,8 @@
 Interfaces
 ==========
 
+.. include:: ../snippets/slack_support.rstinc
+
 Jupyter and IPython
 -------------------
 

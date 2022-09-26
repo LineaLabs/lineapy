@@ -8,6 +8,8 @@ Quick Start
     Make sure that you have LineaPy installed. You can find relevant instructions 
     in the :ref:`Installation <setup>` section.
 
+.. include:: ../snippets/slack_support.rstinc
+
 Once LineaPy is installed, we are ready to start using the package. We start with a simple
 example using the `Iris dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_ to demonstrate how to use LineaPy to 1) store a variable's history, 2) get its cleaned-up code,
 and 3) build an executable pipeline for the variable.
@@ -19,7 +21,8 @@ and 3) build an executable pipeline for the variable.
     from sklearn.linear_model import LinearRegression, ElasticNet
 
     # Load data
-    df = pd.read_csv("https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv")
+    url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+    df = pd.read_csv(url)
 
     # Some very basic feature engineering
     color_map = {"Setosa": 0, "Versicolor": 1, "Virginica": 2}
@@ -89,7 +92,8 @@ We need to set up a pipeline to train the model, and LineaPy make it as simple a
 .. code:: python
 
     lineapy.to_pipeline(
-        artifacts=[artifact.name],
+        artifacts=["iris_elasticnet_model"],
+        input_parameters=["url"],  # Specify variable(s) to parametrize
         pipeline_name="iris_model_pipeline",
         output_dir="output/",
         framework="AIRFLOW",
