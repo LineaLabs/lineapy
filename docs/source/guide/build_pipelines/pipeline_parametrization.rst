@@ -1,11 +1,7 @@
 Parametrization
 ===============
 
-.. note::
-
-    If you encounter issues you cannot resolve, simply ask in our
-    `Slack community <https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q>`_'s
-    ``#support`` channel. We are always happy and ready to help you!
+.. include:: ../../snippets/slack_support.rstinc
 
 Oftentimes, data scientists/engineers need to run the same pipeline with different parameters.
 For instance, they may want to use a different data set for model training and/or prediction.

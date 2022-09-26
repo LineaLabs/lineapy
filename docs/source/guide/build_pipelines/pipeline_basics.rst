@@ -3,11 +3,7 @@
 Basics
 ======
 
-.. note::
-
-    If you encounter issues you cannot resolve, simply ask in our
-    `Slack community <https://join.slack.com/t/lineacommunity/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q>`_'s
-    ``#support`` channel. We are always happy and ready to help you!
+.. include:: ../../snippets/slack_support.rstinc
 
 Data science workflows revolve around building and refining pipelines, i.e., a series of processes that transform data into useful information/product
 (read more about pipelines :ref:`here <concepts>`).
