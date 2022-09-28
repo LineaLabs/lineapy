@@ -2,7 +2,7 @@
 name: Bug report
 about: Report a bug in Linea
 title: ''
-labels: alpha-user, bug
+labels: bug
 assignees: ''
 
 ---
