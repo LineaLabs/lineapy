@@ -275,6 +275,15 @@ class ArtifactCollection:
                 f"Detected input parameters {module_input_parameters_list} do not agree with user input {self.input_parameters}"
             )
 
+        # Sort input parameter for the run_all in the module as the same order
+        # of user's input parameter
+        user_input_parameters_ordering = {
+            var: i for i, var in enumerate(self.input_parameters)
+        }
+        module_input_parameters.sort(
+            key=lambda x: user_input_parameters_ordering[x.variable_name]
+        )
+
         # Put all together to generate module text
         MODULE_TEMPLATE = load_plugin_template("module.jinja")
         module_text = MODULE_TEMPLATE.render(

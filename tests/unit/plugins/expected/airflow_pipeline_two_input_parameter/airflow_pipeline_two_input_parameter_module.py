@@ -22,8 +22,8 @@ def run_session_including_pn(
 
 
 def run_all_sessions(
-    p="p",
     n=5,
+    p="p",
 ):
     artifacts = dict()
     artifacts.update(run_session_including_pn(p, n))
@@ -33,11 +33,11 @@ def run_all_sessions(
 if __name__ == "__main__":
     # Edit this section to customize the behavior of artifacts
     parser = argparse.ArgumentParser()
-    parser.add_argument("--p", type=str, default="p")
     parser.add_argument("--n", type=int, default=5)
+    parser.add_argument("--p", type=str, default="p")
     args = parser.parse_args()
     artifacts = run_all_sessions(
-        p=args.p,
         n=args.n,
+        p=args.p,
     )
     print(artifacts)
