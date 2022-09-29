@@ -74,7 +74,12 @@ class CyclicGraphEvent:
     dummy_entry: str  # dummy entry, may populate with extra information later
 
 
-AllEvents = Union[
+@dataclass
+class TagEvent:
+    tag: str  # dummy entry, may populate with extra information later
+
+
+TrackingEvent = Union[
     CatalogEvent,
     LibImportEvent,
     ExceptionEvent,
@@ -85,4 +90,5 @@ AllEvents = Union[
     GetValueEvent,
     GetVersionEvent,
     CyclicGraphEvent,
+    TagEvent,
 ]
