@@ -34,6 +34,12 @@ lineapy.graph\_reader.session\_artifacts module
 .. automodule:: lineapy.graph_reader.session_artifacts
    :members:
 
+lineapy.graph\_reader.types module
+----------------------------------
+
+.. automodule:: lineapy.graph_reader.types
+   :members:
+
 lineapy.graph\_reader.utils module
 ----------------------------------
 

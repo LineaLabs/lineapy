@@ -39,10 +39,9 @@ LineaID = NewType("LineaID", str)
 class SessionContext(BaseModel):
     """
     Each trace of a script/notebook is a "Session".
+
     :param working_directory: captures where the code ran by the user
 
-    - we should remove the dependency on the working_directory because
-      its brittle
     """
 
     id: LineaID  # populated on creation by uuid.uuid4()
@@ -87,11 +86,12 @@ class ValueType(Enum):
 
     TODO
     ----
-    FIXME
 
-    - rename (need coordination with linea-server):
+    rename (need coordination with linea-server)
+
         - really `dataset` is a table
         - `value` means its a literal  (e.g., int/str)
+
     """
 
     chart = 1
@@ -312,8 +312,11 @@ class ImportNode(BaseNode):
 
     These are optional because the info is acquired at runtime.
 
-    Note that this node is not actually used for execution (using `l_import` CallNodes),
-      but more a decoration for metadata retrieval.
+    .. note::
+
+        This node is not actually used for execution (using `l_import` CallNodes),
+        but more a decoration for metadata retrieval.
+
     """
 
     node_type: NodeType = NodeType.ImportNode

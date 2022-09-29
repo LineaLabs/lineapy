@@ -72,6 +72,12 @@ lineapy.utils.validate\_annotation\_spec module
 .. automodule:: lineapy.utils.validate_annotation_spec
    :members:
 
+lineapy.utils.version module
+----------------------------
+
+.. automodule:: lineapy.utils.version
+   :members:
+
 Module contents
 ---------------
 
