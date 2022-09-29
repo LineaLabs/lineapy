@@ -1,0 +1,136 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+version: '3'
+
+volumes:
+    postgres-lineapy-db-volume:
+    shared-airflow-dags-volume:
+    shared-airflow-plugins-volume:
+    minio-s3-volume:
+
+services:
+    # SQL Database Service and Management Interface for lineapy artifact store
+    postgres-lineapy:
+        container_name: postgres-lineapy
+        image: postgres:latest
+        environment:
+            - POSTGRES_USER=lineapy
+            - POSTGRES_PASSWORD=lineapypassword
+            - POSTGRES_DB=lineapy_artifact_store
+        expose:
+            - 5432
+        restart: always
+        volumes:
+            - postgres-lineapy-db-volume:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "lineapy", "-d", "lineapy_artifact_store", "-p", "5432"]
+            interval: 5s
+            timeout: 60s
+            retries: 10
+
+    # Airflow for execution of generated Lineapy pipelines
+    airflow:
+        container_name: airflow
+        image: ghcr.io/linealabs/lineapy-demo:latest-lineapy-airflow
+        ports:
+            - ${AIRFLOW_PORT}:8080
+        volumes:
+            - shared-airflow-dags-volume:/opt/airflow/dags
+            - shared-airflow-plugins-volume:/opt/airflow/plugins
+            # Copy lineapy config to default jovyan user directory
+            # so lineapy will pick up on it
+            - ./airflow/lineapy_config.json:/home/airflow/.lineapy/lineapy_config.json
+            # copy requirements.txt which will be installed by airflow-start.sh
+            - ./airflow/requirements.txt:/requirements.txt
+            - ./airflow/airflow.cfg:/opt/airflow/airflow.cfg
+            - ./airflow/webserver_config.py:/opt/airflow/webserver_config.py
+        healthcheck:
+            test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+            interval: 5s
+            timeout: 60s
+            retries: 10
+            start_period: 60s
+
+    # Minio to simulate remote s3 storage
+    minio:
+        image: minio/minio
+        command: server --address ":9000" --console-address ":9001" /data
+        ports:
+            - ${MINIO_CONSOLE_PORT}:9001
+        environment:
+            - MINIO_ROOT_USER=lineapy
+            - MINIO_ROOT_PASSWORD=lineapypassword
+            - MINIO_SECRET_KEY=lineapysecretkey
+            - MINIO_PROMETHEUS_AUTH_TYPE="public"
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+            interval: 5s
+            timeout: 60s
+            retries: 10
+        volumes:
+            - minio-s3-volume:/data
+
+    # Create two buckets for Minio storage, one for Lineapy artifact storage and the other for development data
+    createbuckets:
+        image: minio/mc
+        depends_on:
+            minio:
+                condition: service_healthy
+        entrypoint: >
+            /bin/sh -c "
+            /usr/bin/mc config host add myminio http://minio:9000 lineapy lineapypassword;
+            /usr/bin/mc mb -p myminio/lineapy-artifact-store;
+            /usr/bin/mc policy set public myminio/lineapy-artifact-store;
+            /usr/bin/mc mb -p myminio/data;
+            /usr/bin/mc policy set public myminio/data;
+            /usr/bin/mc cp --recursive /tmp/examples/data myminio/data;
+            sleep 15s;
+            exit 0;
+            "
+        volumes:
+            - ./examples/data:/tmp/examples/data
+            - minio-s3-volume:/data
+
+
+    # Lineapy notebook environment
+    notebook:
+        container_name: notebook
+        image: ghcr.io/linealabs/lineapy-demo:latest-lineapy-jupyter
+        ports:
+            - ${JUPYTER_PORT}:8888
+        volumes:
+            - shared-airflow-dags-volume:/home/jovyan/work/airflow/dags
+            - shared-airflow-plugins-volume:/home/jovyan/work/airflow/plugins
+            - ./examples:/home/jovyan/work/examples
+            # Copy lineapy config to default jovyan user directory
+            # so lineapy will pick up on it
+            - ./lineapy-notebook/lineapy_config.json:/home/jovyan/.lineapy/lineapy_config.json
+            # copy requirements.txt which will be installed by notebook-start.sh
+            - ./lineapy-notebook/requirements.txt:/requirements.txt
+            # copy verify_notebook script which will be run on startup to verify linea is configured correctly
+            - ./lineapy-notebook/verify_environment.py:/verify_environment.py
+        depends_on:
+            postgres-lineapy:
+                condition: service_healthy
+            minio:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8888/api"]
+            interval: 5s
+            timeout: 60s
+            retries: 10
+            start_period: 30s
