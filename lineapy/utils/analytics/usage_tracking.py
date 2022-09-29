@@ -18,7 +18,7 @@ from functools import lru_cache
 import requests
 from IPython import get_ipython
 
-from lineapy.utils.analytics.event_schemas import AllEvents
+from lineapy.utils.analytics.event_schemas import TagEvent, TrackingEvent
 from lineapy.utils.config import options
 from lineapy.utils.version import __version__
 
@@ -116,7 +116,7 @@ def _send_amplitude_event(event_type: str, event_properties: dict):
         logger.debug(f"Tracking Error: {str(err)}")
 
 
-def track(event: AllEvents):
+def track(event: TrackingEvent):
     """ """
     if do_not_track():
         return
@@ -128,3 +128,14 @@ def track(event: AllEvents):
     event_properties["runtime"] = _runtime()
 
     return _send_amplitude_event(event.__class__.__name__, event_properties)
+
+
+def tag(tag_name: str):
+    # This can be used by adding `lineapy.tag('tag_name')` before do_not_track
+    # conditions are triggered, e.g., by `lineapy.options.set("is_demo", True)`
+    #
+    # Put these two lines at the top of demo notebooks:
+    # lineapy.tag("demo_name") # change "demo_name" with actual demo name.
+    # lineapy.options.set("is_demo", True)
+
+    track(TagEvent(tag_name))
