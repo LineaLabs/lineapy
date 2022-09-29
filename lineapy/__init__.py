@@ -17,6 +17,7 @@ from lineapy.data.types import SessionType, ValueType
 from lineapy.editors.ipython import start, stop, visualize
 from lineapy.execution.context import get_context
 from lineapy.instrumentation.tracer import Tracer
+from lineapy.utils.analytics.usage_tracking import tag
 from lineapy.utils.config import options
 from lineapy.utils.lineabuiltins import db, file_system
 from lineapy.utils.version import __version__
@@ -41,8 +42,10 @@ __all__ = [
     "db",
     "file_system",
     "options",
+    "tag",
     "__version__",
 ]
+
 
 # Create an ipython extension that starts and stops tracing
 # https://ipython.readthedocs.io/en/stable/config/extensions/index.html#writing-extensions
