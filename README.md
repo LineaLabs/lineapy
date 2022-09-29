@@ -2,7 +2,7 @@
   <a href="https://lineapy.org/">
     <img src="https://user-images.githubusercontent.com/724072/165418570-7338c65b-0fd1-489c-b76a-f03f074f42ca.png" alt="LineaPy" width="500">
   </a>
-  <h3>Capture, analyze, and transform messy notebooks into production-ready pipelines
+  <h3>Capture, analyze, and transform messy notebooks into data pipelines
   <br />
   with just two lines of code.</h3>
   <p>
