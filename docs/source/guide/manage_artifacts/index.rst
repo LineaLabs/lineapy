@@ -43,4 +43,5 @@ issues by having all in one framework: artifact store.
 .. toctree::
    :maxdepth: 1
 
+   artifact_reuse
    storage_location/index
