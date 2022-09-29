@@ -49,52 +49,46 @@ To start the demo
 
 2. Run `docker compose up --wait`, which will start and wait for all containers to be healthy. Once all containers are started they will be run in the background.
 
-3. Services will be reachable at the following address (unless you modify the default ports above):
+3. Services will be reachable at the following address (unless you modify the default ports in the `.env` file):
    - Jupyter - `http://localhost:8888`
    - Airflow - `http://localhost:8080`
-   - Postgres - port 5432
-   - Minio s3 storage - port 9000
+   - Postgres - Docker port 5432
+   - Minio s3 storage - Docker port 9000
    - Minio web console - `http://localhost:9001` username `lineapy` and password `lineapypassword`
 
-4. In the Jupyter environment, navigate to `work/examples` directory.
+4. In the Jupyter environment, navigate to the `work/examples` directory.
 
-5. Walk through `housing_example.ipynb`. Note how the data is loaded from minio s3. After the to_pipeline call,
-6. Switch over to Airflow and you should see the LineaPy generated DAG has been automatically picked up.
+5. Walk through and run all the cells in the `housing_example.ipynb` notebook. Note how the data is loaded from minio s3.
 
-7. Execute the DAG, and see the resulting output file in Minio S3 storage under `s3://data/outputs/cleaned_data_housing.csv`
+6. After the to_pipeline call, switch over to Airflow and you should see the LineaPy generated DAG has been automatically picked up (you may have to refresh the Airflow browser page if it was already loaded).
 
-8. To stop the demo, run `docker compose down`. Alternatively, run `docker compose down -v` to stop the services and delete share storage and database state.
+7. Run the DAG in Airflow and see the resulting output file in Minio S3 storage under `s3://data/outputs/cleaned_data_housing.csv`
 
-Note: This example can also be run in the foreground using `docker compose up` (without the wait flag). If so, logs (including warnings and errors) will be visible in the terminal. Make sure to wait for all containers to be healthy before proceeding with the demo (by running `docker ps`). Pressing `Ctrl+C` will not fully stop the demo environment, please refer to instructions above to fully stop the services and cleanup state.
+8. To stop the demo, run `docker compose down`. Alternatively, run `docker compose down -v` to stop the services and delete the shared storage and database.
 
-Provided Notebook
-------------------
-Two notebooks are provided for convenience in the shared `work` directory.
+Note: This example can also be run in the foreground using `docker compose up` (i.e., without the wait flag). If so, logs (including warnings and errors) will be visible in the terminal. Make sure to wait for all containers to be healthy before proceeding with the demo (e.g., by running `docker ps`). Pressing `Ctrl+C` will not fully stop the demo environment, please refer to the instructions above to fully stop the services and cleanup state.
 
-`housing_example` is a modified version of the LineaPy housing demo notebook. Upon successfully running,
-the created pipeline should be automatically picked up by the Airflow UI in less than 30 seconds.
 
 Managing Python Dependencies
 -----------------------
-The file `requirements.txt` will be
-dynamically run at container startup and restart by both the Jupyter and
+A `requirements.txt` file is dynamically installed during container startup for both the Jupyter and
 Airflow containers to manage user dependencies respectively.
 
-These two requirements are kept separate because LineaPy will prune out unused packages and return only needed dependencies for pipeline execution when generating pipelines. This means not every dependency in the Jupyter dev environment will be needed in the Airflow environment.
+These two requirements files are kept separate because LineaPy can prune out unused packages and return only needed dependencies for pipeline execution when generating pipelines. This means not every dependency in the Jupyter environment will be needed in the Airflow environment.
 
-For example, say a user is running a notebook in their development environemnt, and realize that they require
-`seaborn` in their environment. They can add it to the `lineapy-notebook/requirements.txt` file,
+For example, say a user is running a notebook in their Jupyter environemnt, and realize that they require
+`seaborn`. They can add it to the `lineapy-notebook/requirements.txt` file,
 then issue the command `docker compose restart notebook` to restart
 the development environment notebook, which will install the dependency and reload the
 service states.
 
-After creating a pipeline, the requirements LineaPy generates in the pipeline's `requirements.txt` should be manually copied/appended to the requirements for `airflow/requirements.txt` since these are the requirements needed for pipeline execution. Issuing the command `docker compose restart airflow` to restart the Airflow environment will install the dependency there.
+After creating a pipeline in the notebook, LineaPy will generate the pipeline's `requirements.txt` file, which should be manually copied/appended to the requirements for `airflow/requirements.txt` since these are the requirements needed for pipeline execution. Issuing the command `docker compose restart airflow` to restart the Airflow environment will install the new dependency there.
 
 
 Lineapy Configuration
 ---------------------
 
-This demo configures Lineapy with non-default options to demonstrate how to connect the `notebook` dev environment to the services hosting Lineapy. Documentation on Lineapy configuration can be found [here](https://docs.lineapy.org/en/latest/references/configurations.html). Specifically, this demo configures Lineapy using a configuration file, which can be found under `lineapy-notebook/lineapy_config.json` and is mounted in the `notebook` container under `~/.lineapy/lineapy_config.json`.
+This demo configures Lineapy with non-default options to demonstrate how to connect the `notebook` environment to the services hosting Lineapy. Documentation on Lineapy configuration can be found [here](https://docs.lineapy.org/en/latest/references/configurations.html). Specifically, this demo configures Lineapy using a configuration file, which can be found under `lineapy-notebook/lineapy_config.json` and is mounted in the `notebook` container under `~/.lineapy/lineapy_config.json`.
 
 Important to this demo are `storage_options`, `artifact_storage_dir`, and `database_url` options.
 `database_url` points to the DB hosting the artifact store.
@@ -102,19 +96,19 @@ Important to this demo are `storage_options`, `artifact_storage_dir`, and `datab
 `storage_options` helps lineapy connect to the s3 storage.
 
 
-Demo Environment Additional Details
+Additional Details About this Demo
 ----------------------
 
 This demo creates 4 services to demonstrate how LineaPy would likely be hosted in non-local environments.
 
-`notebook` container is built in the `lineapy-notebook` directory and based on the `jupyter/minimal-notebook` image. LineaPy and dependencies are pip installed in the Dockerfile and notably, the entrypoint for the Dockerfile is changed to a custom `notebook-start.sh` script.
+The `notebook` container is built in the `lineapy-notebook` directory and based on the `jupyter/minimal-notebook` image. LineaPy and dependencies are pip installed in the Dockerfile and notably, the entrypoint for the Dockerfile is changed to a custom `notebook-start.sh` script.
 This script installs additional `requirements.txt` dependencies on container start which is more convenient than rebuilding the image when new dependencies are needed by data scientists. The jupyter launch command is also changed to use `lineapy jupyter`. Finally, `lineapy_config.json` is bind mounted to the `${HOME}/.lineapy` directory of the jupyter user where it is automatically picked up on when LineaPy starts. Key configurations here are, pointing `artifact_storage_dir` to the remote s3 bucket, setting `storage_options` to use correct credentials that are passed to fsspec library, and pointing `database_url` to the remote postgres instance.
 
-`airflow` container is built in the `airflow` directory and based off of the `apache/airflow` image. The startup is done by `airflow-start.sh` which calls a `airflow standalone` command (this should not be used for production environments since standalone is _very_ limited in configurability and is designed for local testing only). A key addition here is that the Airflow worker environment for pipelines must install the dependencies specified by the `pipeline_requirements` file LineaPy generates. This is made easier by having the Airflow environment also install from a `requirements.txt` file on container start. `airflow.cfg` is also specified and bind mounted, and `min_file_process_interval` and ` dag_dir_list_interval` are lowered so that Airflow detects DAGs more quickly.
+The `airflow` container is built in the `airflow` directory and is based off of the `apache/airflow` image. The startup is done by `airflow-start.sh` which calls a `airflow standalone` command (this should not be used for production environments since standalone is _very_ limited in configurability and is designed for local testing only). A key addition here is that the Airflow worker environment for pipelines must install the dependencies specified by the `pipeline_requirements` file that LineaPy generates. This is made easier by having the Airflow environment also install from a `requirements.txt` file on container start. `airflow.cfg` is also specified and bind mounted, and `min_file_process_interval` and ` dag_dir_list_interval` are lowered so that Airflow detects DAGs more quickly.
 
-`notebook` and `airflow` communicate through a pair of shared mounted volumes named `shared-airflow-dags-volume` and
-`shared-airflow-plugins-volume` which are mounted as the `dags/` and `plugins/` directory respectively in the Airflow environment. This allows the data scientist in the dev notebook environment to save their DAGs and have them conveniently show up in Airflow automatically without copying files.
+The `notebook` and `airflow` containers communicate through a pair of shared mounted volumes named `shared-airflow-dags-volume` and
+`shared-airflow-plugins-volume`. These volumes are mounted as the `dags/` and `plugins/` directory respectively in the Airflow environment. This allows the data scientist in the dev notebook environment to save their DAGs and have them conveniently show up in Airflow automatically without copying files manually.
 
-`postgres-lineapy` hosts a PostgreSQL instance. This is preferred over the sqlite default to handle potential concurrent requests. This can and should be hosted non-locally.
+The `postgres-lineapy` container hosts a PostgreSQL instance. This is preferred over the sqlite default to handle potential concurrent requests. This can and should be hosted non-locally.
 
-`minio` is used to host a remote s3 environment. For the purposes of this demo two buckets are created by `createbuckets` container. `lineapy-artifact-store` is used to host the LineaPy artifact directory, and `data` is used to simulate user data that data scientists may need access to during their development process. In this demo environment the `data` bucket is pre populated with data from `./examples/data/` directory by bind mounting the directory to the container under `/tmp/examples/data` and then using a `mc cp` command to copy it into the bucket.
+The `minio` container is used to host a remote s3 environment. For the purposes of this demo two buckets are created by an ephemeral `createbuckets` container. `lineapy-artifact-store` is used to host the LineaPy artifact directory, and `data` is used to simulate user data that data scientists may need access to during their development process. In this demo environment the `data` bucket is pre populated with data from `./examples/data/` directory by bind mounting the directory to the container under `/tmp/examples/data` and then using a `mc cp` command to copy it into the bucket.
