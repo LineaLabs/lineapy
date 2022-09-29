@@ -59,22 +59,21 @@ The configuration file shall look like this:
     
 
 
-Interactive Mode
-----------------
+.. note::
 
-During an interactive session, you can see current configuration items by typing ``lineapy.options``.
+    During an interactive session, you can see current configuration items by typing ``lineapy.options``.
 
-You can also change the lineapy configuration items listed above with ``lineapy.options.set(key, value)``.
-However, it only makes sense to reset the session when the backend database is changed since you cannot retrieve previous information from the new database.
-Thus, the only place to change the LineaPy database is at the beginning of the notebook.
+    You can also change the lineapy configuration items listed above with ``lineapy.options.set(key, value)``.
+    However, it only makes sense to reset the session when the backend database is changed since you cannot retrieve previous information from the new database.
+    Thus, the only place to change the LineaPy database is at the beginning of the notebook.
 
-Note that, you need to make sure whenever you are setting `LINEAPY_DATABASE_URL`, you point to the  `LINEAPY_ARTIFACT_STORAGE_DIR`.
-If not, ``Artifact.get_value`` might return an error that is related cannot find underlying pickle object.
+    Note that, you need to make sure whenever you are setting `LINEAPY_DATABASE_URL`, you point to the  `LINEAPY_ARTIFACT_STORAGE_DIR`.
+    If not, ``Artifact.get_value`` might return an error that is related cannot find underlying pickle object.
 
 
 
 Artifact Storage Location
-=========================
+-------------------------
 
 You can change the artifact storage location by setting the `LINEAPY_ARTIFACT_STORAGE_DIR` environmental variable, 
 or other ways mentioned in the above section.
@@ -109,8 +108,8 @@ Instead, if you want ot use environmental variables, you should configure it thr
 Note that, which ``storage_options`` items you can set are depends on the filesystem you are using.
 In the following section, we will discuss how to set the storage options for S3.
 
-Using S3 as an artifact storage location
-----------------------------------------
+Using S3 for artifact storage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To use S3 as LineaPy artifact storage location, you can run the following command in your notebook to change your storage backend(both artifact locations and LineaPy database)
 
