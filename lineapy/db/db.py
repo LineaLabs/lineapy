@@ -594,8 +594,6 @@ class RelationalLineaDB:
         Gets all dependencies for a session, assuming all the libs in a
         particular session will be required to set up a new env.
 
-        TODO: I think this distinct is still broken, because we want to
-        make it distinct on a subset of columns: session_id, name, and version.
         """
         return (
             self.session.query(
@@ -682,7 +680,7 @@ class RelationalLineaDB:
     def get_nodes_for_session(self, session_id: LineaID) -> List[Node]:
         """
         Get all the nodes associated with the session, which does
-         NOT include things like SessionContext
+        NOT include things like SessionContext
         """
         node_orms = (
             self.session.query(BaseNodeORM)
