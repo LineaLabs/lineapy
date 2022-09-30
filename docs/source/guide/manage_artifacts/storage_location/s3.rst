@@ -22,7 +22,7 @@ If you want to use other profiles available in your AWS configuration, you can s
 
 which is equivalent to setting your environment variable ``AWS_PROFILE`` to the profile name.
 
-If you really need to set your AWS credentials directly in the running session (strongly discouraged as it may result in accidentally saving these credentials), you can set them with:
+If you really need to set your AWS credentials directly in the running session (strongly discouraged as it may result in accidentally saving these credentials in plain text), you can set them with:
 
 .. code:: python
 
