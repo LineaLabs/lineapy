@@ -15,13 +15,13 @@ jobs:
         with:
           fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
       - name: "Copy demo notebooks to top level demos folder"
-        run: mkdir demos/ && cp -R examples/use_cases/* demos/ && cp examples/tutorials/00_api_basics.ipynb demos/
+        run: mkdir -p demos/ && cp -R examples/use_cases/* demos/ && cp examples/tutorials/00_api_basics.ipynb demos/
 
       - name: "Regex out the NBVAL_SKIP and NBVAL_IGNORE_OUTPUT comments"
         run: |
           cd demos/ 
-          find ./ -type f -name "*.ipynb" -exec sed -i '.bak' 's/\#\ NBVAL_SKIP//g' {} \;
-          find ./ -type f -name "*.ipynb" -exec sed -i '.bak' 's/\#\ NBVAL_IGNORE_OUTPUT//g' {} \;
+          find ./ -type f -name "*.ipynb" -exec sed -i 's/\#[\ ]*NBVAL_SKIP//g' {} \;
+          find ./ -type f -name "*.ipynb" -exec sed -i 's/\#[\ ]*NBVAL_IGNORE_OUTPUT//g' {} \;
 
       - name: "Regex out the is_demo option and tag as demo"
         run: |
