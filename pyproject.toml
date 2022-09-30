@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 79
-extend-exclude = '(__snapshots__|integration/slices|integration/sources|integration/envs|outputs|_alembic|unit/plugins/expected)'
+extend-exclude = '(__snapshots__|integration/slices|integration/sources|integration/envs|outputs|_alembic|unit/plugins/expected|examples)'
 
 [tool.isort]
 profile = "black"

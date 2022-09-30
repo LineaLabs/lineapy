@@ -676,11 +676,9 @@ class SessionArtifacts:
                 value_type = type(value)
                 if ":" in variable_name:
                     variable_name = variable_def.split(":")[0]
-                    typing_info = variable_def.split(":")[1]
                     session_input_variables[variable_name] = InputVariable(
                         variable_name=variable_name,
                         value=value,
-                        typing_info=typing_info,
                         value_type=value_type,
                     )
                 else:
