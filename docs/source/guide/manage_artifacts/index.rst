@@ -11,9 +11,8 @@ Under the hood, it is a collection of two data structures:
 Encapsulating both value and code, as well as other metadata such as creation time and version,
 LineaPy's artifact store provides a more unified and streamlined experience to save, manage, and reuse
 works from different people over time. Contrast this with a typical setup where the team stores their
-outputs in one place (e.g., internal server) and the code in another (e.g., GitHub repo) --- we can
-imagine how difficult it would be to correlation between the two. LineaPy bypasses such "correlation"
-issues by having all in one framework: artifact store.
+outputs in one place (e.g., a Key Value store) and the code in another (e.g., GitHub repo) --- we can
+imagine how difficult it would be to maintain correlations between the two. LineaPy simplifies lineage tracking by storing all correlations in one framework: artifact store.
 
 .. note::
 
