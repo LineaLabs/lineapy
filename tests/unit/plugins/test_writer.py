@@ -1,4 +1,3 @@
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -173,6 +172,7 @@ def check_requirements_txt(t1: str, t2: str):
     ],
 )
 def test_pipeline_generation(
+    tmp_path,
     linea_db,
     execute,
     input_script1,
@@ -202,48 +202,46 @@ def test_pipeline_generation(
     artifact_collection = ArtifactCollection(
         linea_db, artifact_list, input_parameters=input_parameters
     )
-    with tempfile.TemporaryDirectory() as tempfolder:
-        # Construct pipeline writer
-        pipeline_writer = PipelineWriterFactory.get(
-            pipeline_type=PipelineType[framework],
-            artifact_collection=artifact_collection,
-            dependencies=dependencies,
-            pipeline_name=pipeline_name,
-            output_dir=tempfolder,
-            dag_config=dag_config,
+
+    # Construct pipeline writer
+    pipeline_writer = PipelineWriterFactory.get(
+        pipeline_type=PipelineType[framework],
+        artifact_collection=artifact_collection,
+        dependencies=dependencies,
+        pipeline_name=pipeline_name,
+        output_dir=tmp_path,
+        dag_config=dag_config,
+    )
+
+    # Write out pipeline files
+    pipeline_writer.write_pipeline_files()
+
+    # Compare generated vs. expected
+    file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
+    if framework != "SCRIPT":
+        file_endings.append("_dag.py")
+    for file_suffix in file_endings:
+        path = Path(tmp_path, pipeline_name + file_suffix)
+        generated = path.read_text()
+        path_expected = Path(
+            "tests",
+            "unit",
+            "plugins",
+            "expected",
+            pipeline_name,
+            pipeline_name + file_suffix,
         )
-
-        # Write out pipeline files
-        pipeline_writer.write_pipeline_files()
-
-        # Compare generated vs. expected
-        file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
-        if framework != "SCRIPT":
-            file_endings.append("_dag.py")
-        for file_suffix in file_endings:
-            path = Path(tempfolder, pipeline_name + file_suffix)
-            generated = path.read_text()
-            path_expected = Path(
-                "tests",
-                "unit",
-                "plugins",
-                "expected",
-                pipeline_name,
-                pipeline_name + file_suffix,
-            )
-            if file_suffix == "_requirements.txt":
-                assert check_requirements_txt(
-                    generated, path_expected.read_text()
+        if file_suffix == "_requirements.txt":
+            assert check_requirements_txt(generated, path_expected.read_text())
+        else:
+            to_compare = path_expected.read_text()
+            if file_suffix == "_Dockerfile":
+                to_compare = to_compare.format(
+                    python_version=get_system_python_version()
                 )
-            else:
-                to_compare = path_expected.read_text()
-                if file_suffix == "_Dockerfile":
-                    to_compare = to_compare.format(
-                        python_version=get_system_python_version()
-                    )
-                if file_suffix.endswith(".py"):
-                    to_compare = prettify(to_compare)
-                assert generated == to_compare
+            if file_suffix.endswith(".py"):
+                to_compare = prettify(to_compare)
+            assert generated == to_compare
 
 
 @pytest.mark.parametrize(
@@ -268,6 +266,7 @@ def test_pipeline_generation(
     ],
 )
 def test_pipeline_test_generation(
+    tmp_path,
     linea_db,
     execute,
     input_script1,
@@ -288,29 +287,29 @@ def test_pipeline_test_generation(
         execute(code2, snapshot=False)
 
     artifact_collection = ArtifactCollection(linea_db, artifact_list)
-    with tempfile.TemporaryDirectory() as tempfolder:
-        # Construct pipeline writer
-        pipeline_writer = PipelineWriterFactory.get(
-            pipeline_type=PipelineType["SCRIPT"],
-            artifact_collection=artifact_collection,
-            dependencies=dependencies,
-            pipeline_name=pipeline_name,
-            output_dir=tempfolder,
-        )
 
-        # Write out pipeline files
-        pipeline_writer.write_pipeline_files()
+    # Construct pipeline writer
+    pipeline_writer = PipelineWriterFactory.get(
+        pipeline_type=PipelineType["SCRIPT"],
+        artifact_collection=artifact_collection,
+        dependencies=dependencies,
+        pipeline_name=pipeline_name,
+        output_dir=tmp_path,
+    )
 
-        # Compare generated vs. expected
-        path_generated = Path(tempfolder, f"test_{pipeline_name}.py")
-        content_generated = path_generated.read_text()
-        path_expected = Path(
-            "tests",
-            "unit",
-            "plugins",
-            "expected",
-            pipeline_name,
-            f"test_{pipeline_name}.py",
-        )
-        content_expected = prettify(path_expected.read_text())
-        assert content_generated == content_expected
+    # Write out pipeline files
+    pipeline_writer.write_pipeline_files()
+
+    # Compare generated vs. expected
+    path_generated = Path(tmp_path, f"test_{pipeline_name}.py")
+    content_generated = path_generated.read_text()
+    path_expected = Path(
+        "tests",
+        "unit",
+        "plugins",
+        "expected",
+        pipeline_name,
+        f"test_{pipeline_name}.py",
+    )
+    content_expected = prettify(path_expected.read_text())
+    assert content_generated == content_expected

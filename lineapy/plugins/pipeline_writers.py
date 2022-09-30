@@ -117,6 +117,10 @@ class BasePipelineWriter:
     def _write_module_test(self) -> None:
         """
         Write out test scaffolding for refactored code in module file.
+        The scaffolding contains placeholders for testing each function
+        in the module file and is meant to be fleshed out by the user
+        to suit their needs. When run out of the box, it simply tests
+        whether each function in the module runs without error.
         """
         # Format components to be passed into file template
         module_name = f"{self.pipeline_name}_module"
@@ -127,7 +131,7 @@ class BasePipelineWriter:
                 "function_arg_names": sorted(
                     [v for v in node_collection.input_variables]
                 ),
-                "test_case_name": f"test_{node_collection.safename}",
+                "test_function_name": f"test_get_{node_collection.safename}",
             }
             for session_artifacts in self.session_artifacts_sorted
             for node_collection in session_artifacts.artifact_nodecollections

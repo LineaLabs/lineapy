@@ -10,17 +10,25 @@ from script_pipeline_housing_w_dependencies_module import (
 
 
 class TestScriptPipelineHousingWDependencies(unittest.TestCase):
+    def setUp(self) -> None:
+        # Add any processes to execute before each test method
+        pass
+
+    def tearDown(self) -> None:
+        # Add any processes to execute after each test method
+        pass
+
     @classmethod
     def setUpClass(cls) -> None:
-        # Adjust as needed
+        # Add any processes to execute before each test class
         pass
 
     @classmethod
     def tearDownClass(cls) -> None:
-        # Adjust as needed
+        # Add any processes to execute after each test class
         pass
 
-    def test_assets_for_artifact_y_and_downstream(self) -> None:
+    def test_get_assets_for_artifact_y_and_downstream(self) -> None:
         # Adjust as needed
         sample_input: Dict[str, Any] = {}
         try:
@@ -31,7 +39,7 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
                 "Please adapt the test as needed."
             )
 
-    def test_y(self) -> None:
+    def test_get_y(self) -> None:
         # Adjust as needed
         sample_input: Dict[str, Any] = {}
         sample_input["assets"] = None
@@ -43,7 +51,7 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
                 "Please adapt the test as needed."
             )
 
-    def test_p_value(self) -> None:
+    def test_get_p_value(self) -> None:
         # Adjust as needed
         sample_input: Dict[str, Any] = {}
         sample_input["assets"] = None

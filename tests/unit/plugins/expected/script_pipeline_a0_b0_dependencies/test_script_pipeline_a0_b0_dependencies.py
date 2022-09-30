@@ -6,17 +6,25 @@ from script_pipeline_a0_b0_dependencies_module import get_a0, get_b0
 
 
 class TestScriptPipelineA0B0Dependencies(unittest.TestCase):
+    def setUp(self) -> None:
+        # Add any processes to execute before each test method
+        pass
+
+    def tearDown(self) -> None:
+        # Add any processes to execute after each test method
+        pass
+
     @classmethod
     def setUpClass(cls) -> None:
-        # Adjust as needed
+        # Add any processes to execute before each test class
         pass
 
     @classmethod
     def tearDownClass(cls) -> None:
-        # Adjust as needed
+        # Add any processes to execute after each test class
         pass
 
-    def test_b0(self) -> None:
+    def test_get_b0(self) -> None:
         # Adjust as needed
         sample_input: Dict[str, Any] = {}
         try:
@@ -27,7 +35,7 @@ class TestScriptPipelineA0B0Dependencies(unittest.TestCase):
                 "Please adapt the test as needed."
             )
 
-    def test_a0(self) -> None:
+    def test_get_a0(self) -> None:
         # Adjust as needed
         sample_input: Dict[str, Any] = {}
         try:
