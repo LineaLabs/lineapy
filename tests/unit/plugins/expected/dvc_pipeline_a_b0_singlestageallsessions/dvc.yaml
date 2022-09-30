@@ -1,0 +1,3 @@
+stages:
+  run_all_sessions:
+    cmd: python dvc_pipeline_a_b0_singlestageallsessions_module.py

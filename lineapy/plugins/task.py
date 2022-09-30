@@ -112,6 +112,21 @@ AirflowDagConfig = TypedDict(
 )
 
 
+class DVCDagFlavor(Enum):
+    SingleStageAllSessions = 1
+    # TODO: StagePerSession
+    # TODO: StagePerArtifact
+
+
+DVCDagConfig = TypedDict(
+    "DVCDagConfig",
+    {
+        "dag_flavor": str,  # Not native to DVC config
+    },
+    total=False,
+)
+
+
 class TaskDefinition(TypedDict):
     """
     Definition of an artifact, can extend new keys(user, project, ...)

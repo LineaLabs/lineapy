@@ -688,6 +688,8 @@ class SessionArtifacts:
                     session_input_variables[variable_name] = InputVariable(
                         variable_name=variable_name,
                         value=value,
+                        # placeholder for future support to allow user passing typing info
+                        # typing_info=typing_info,
                         value_type=value_type,
                     )
                 else:

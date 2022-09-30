@@ -504,10 +504,12 @@ class PipelineType(Enum):
     Pipeline types allow the to_pipeline to know what to expect
     - SCRIPT : the pipeline is wrapped as a python script
     - AIRFLOW : the pipeline is wrapped as an airflow dag
+    - DVC : the pipeline is wrapped as a DVC
     """
 
     SCRIPT = 1
     AIRFLOW = 2
+    DVC = 3
 
 
 FilePath = Union[str, Path]
