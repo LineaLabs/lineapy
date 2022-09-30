@@ -154,6 +154,7 @@ tests/integration/venvs/
 *.sqlite
 *.db
 *.png
+!lineapy_artifact.png
 
 tmp_*
 *.temp
