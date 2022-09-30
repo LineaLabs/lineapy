@@ -23,11 +23,6 @@ jobs:
           find ./ -type f -name "*.ipynb" -exec sed -i 's/\#[\ ]*NBVAL_SKIP//g' {} \;
           find ./ -type f -name "*.ipynb" -exec sed -i 's/\#[\ ]*NBVAL_IGNORE_OUTPUT//g' {} \;
 
-      - name: "Regex out the is_demo option and tag as demo"
-        run: |
-          cd demos/
-          find ./ -type f -name "*.ipynb" -exec sed -i '.bak' 's/lineapy.options.set(\\"is_demo\\",\ True)/lineapy.tag(\\"Demo\\")/g' {} \;
-
       - name: Commit files
         run: |
           git config --local user.email "infra@linea.ai"

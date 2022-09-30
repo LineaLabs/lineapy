@@ -4,15 +4,13 @@
         "secret": "lineapypassword",
         "client_kwargs": {
             "endpoint_url": "http://minio:9000"
-         }
+        }
     },
     "artifact_storage_dir": "s3://lineapy-artifact-store",
     "customized_annotation_folder": "/home/jovyan/work/.lineapy/custom-annotations",
     "database_url": "postgresql://lineapy:lineapypassword@postgres-lineapy:5432/lineapy_artifact_store",
     "do_not_track": "True",
     "home_dir": "/home/jovyan/work/.lineapy",
-    "is_demo": "True",
     "logging_file": "/home/jovyan/work/.lineapy/lineapy.log",
     "logging_level": "INFO"
 }
-
