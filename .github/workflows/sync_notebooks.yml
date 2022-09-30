@@ -1,4 +1,4 @@
-name: Demos
+name: Sync Demos and docs
 
 on:
   push:
@@ -8,14 +8,18 @@ on:
       - "examples/tutorials/00_api_basics.ipynb"
   
 jobs:
-  copy-demos:
+  sync-notebooks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+      
       - name: "Copy demo notebooks to top level demos folder"
         run: mkdir -p demos/ && cp -R examples/use_cases/* demos/ && cp examples/tutorials/00_api_basics.ipynb demos/
+
+      - name: "copy example notebooks to docs"
+        run: cp examples/tutorials/00_api_basics.ipynb docs/source/tutorials/
 
       - name: "Regex out the NBVAL_SKIP and NBVAL_IGNORE_OUTPUT comments"
         run: |
@@ -28,8 +32,8 @@ jobs:
           git config --local user.email "infra@linea.ai"
           git config --local user.name "Humble bot servant"
           git add .
-          (git diff --quiet && git diff --staged --quiet) || git commit -m "Refresh demos folder"
-      - name: push doc changes
+          (git diff --quiet && git diff --staged --quiet) || git commit -m "Refresh demos folder and update docs"
+      - name: push synced changes
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
