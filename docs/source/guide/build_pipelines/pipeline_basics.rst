@@ -5,23 +5,15 @@ Basics
 
 .. include:: ../../snippets/slack_support.rstinc
 
-Data science workflows revolve around building and refining pipelines, i.e., a series of processes that transform data into useful information/product
-(read more about pipelines :ref:`here <concepts>`).
+Pipeline Creation
+-----------------
 
-Traditionally, this is often manual and time-consuming work as data scientists (or production engineers) need to transform messy development code
-into deployable scripts for the target system (e.g., Airflow).
-
-Having the complete development process stored in artifacts, LineaPy can automate such code transformation, accelerating transition from development to production.
-
-For example, consider a simple pipeline that 1) pre-processes raw data and 2) trains a model with the pre-processed data.
+Consider a simple pipeline that 1) pre-processes raw data and 2) trains a model with the pre-processed data.
 
 .. image:: pipeline.png
   :width: 600
   :align: center
   :alt: Pipeline Example
-
-Pipeline Creation
------------------
 
 Once we have the pre-processed data and the trained model stored as LineaPy artifacts (which can be done during development sessions),
 building a pipeline reduces to “stitching” these artifacts, like so:
