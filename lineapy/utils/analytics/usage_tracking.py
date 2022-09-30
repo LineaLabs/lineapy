@@ -87,8 +87,7 @@ def _session_id() -> str:
 @lru_cache(maxsize=1)
 def do_not_track() -> bool:
     do_not_track: bool = str(options.get("do_not_track")).lower() == "true"
-    is_demo: bool = str(options.get("is_demo")).lower() == "true"
-    return do_not_track or is_demo
+    return do_not_track
 
 
 def _send_amplitude_event(event_type: str, event_properties: dict):
@@ -132,10 +131,9 @@ def track(event: TrackingEvent):
 
 def tag(tag_name: str):
     # This can be used by adding `lineapy.tag('tag_name')` before do_not_track
-    # conditions are triggered, e.g., by `lineapy.options.set("is_demo", True)`
+    # conditions are triggered
     #
-    # Put these two lines at the top of demo notebooks:
+    # Put this line at the top of demo notebooks:
     # lineapy.tag("demo_name") # change "demo_name" with actual demo name.
-    # lineapy.options.set("is_demo", True)
 
     track(TagEvent(tag_name))

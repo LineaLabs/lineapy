@@ -3,6 +3,8 @@
 Concepts
 ========
 
+.. _artifact_concept:
+
 Artifact
 --------
 
@@ -15,6 +17,8 @@ LineaPy not only records the state (i.e. value) of the variable but also traces 
 leading to this state --- as code. Such a complete development history or *lineage* then allows LineaPy to fully reproduce
 the given artifact. Furthermore, it provides the ground to automate data engineering work to bring data science from development to production.
 
+.. _artifact_store_concept:
+
 Artifact Store
 --------------
 
@@ -24,6 +28,8 @@ the user can view, load, and build on artifacts across different development ses
 This unified global storage is designed to accelerate the overall development process, which is iterative in nature.
 Moreover, it can facilitate collaboration between different teams
 as it provides a single source of truth for all prior relevant work.
+
+.. _pipeline_concept:
 
 Pipeline
 --------
