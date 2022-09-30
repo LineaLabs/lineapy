@@ -23,7 +23,7 @@ If you want to use other profiles available in your AWS configuration, you can s
 
 which is equivalent to setting your environment variable ``AWS_PROFILE`` to the profile name.
 
-If you really need to use your AWS key and secret directly(strongly not recommended), you can set them with
+If you really need to use your AWS key and secret directly (strongly discouraged), you can set them with
 
 .. code:: python
 
