@@ -1,0 +1,43 @@
+name: Demos
+
+on:
+  push:
+    branches-ignore: [main]
+    paths:
+      - "examples/use_cases/**/*.ipynb"
+      - "examples/tutorials/00_api_basics.ipynb"
+  
+jobs:
+  copy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+      - name: "Copy demo notebooks to top level demos folder"
+        run: cp -R examples/use_cases/* demos/ && cp examples/tutorials/00_api_basics.ipynb demos/
+
+      - name: "Regex out the NBVAL_SKIP and NBVAL_IGNORE_OUTPUT comments"
+        run: |
+          cd demos/ 
+          find ./ -type f -name "*.ipynb" -exec sed -i '.bak' 's/\#\ NBVAL_SKIP//g' {} \;
+          find ./ -type f -name "*.ipynb" -exec sed -i '.bak' 's/\#\ NBVAL_IGNORE_OUTPUT//g' {} \;
+
+      - name: "Regex out the is_demo option and tag as demo"
+        run: |
+          cd demos/
+          find ./ -type f -name "*.ipynb" -exec sed -i '.bak' 's/lineapy.options.set(\\"is_demo\\",\ True)/lineapy.tag(\\"Demo\\")/g' {} \;
+
+      - name: Commit files
+        run: |
+          git config --local user.email "infra@linea.ai"
+          git config --local user.name "Humble bot servant"
+          git add .
+          (git diff --quiet && git diff --staged --quiet) || git commit -m "Add tutorials to docs"
+      - name: push doc changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+            
+  
