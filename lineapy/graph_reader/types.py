@@ -21,8 +21,6 @@ class InputVariable:
         self.variable_name = variable_name
         self.value = value
         self.value_type = value_type.__name__
-        # placeholder for future support to allow user passing typing info
-        # self.typing_info = typing_info
         self.default_args = f"{self.variable_name} = {repr(self.value)}"
         self.parser_body = f"parser.add_argument('--{self.variable_name}', type={self.value_type}, default={repr(self.value)})"
         self.parser_args = f"{self.variable_name} = args.{self.variable_name}"
