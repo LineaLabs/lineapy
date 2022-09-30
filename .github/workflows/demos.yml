@@ -8,7 +8,7 @@ on:
       - "examples/tutorials/00_api_basics.ipynb"
   
 jobs:
-  copy-docs:
+  copy-demos:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -28,7 +28,7 @@ jobs:
           git config --local user.email "infra@linea.ai"
           git config --local user.name "Humble bot servant"
           git add .
-          (git diff --quiet && git diff --staged --quiet) || git commit -m "Add tutorials to docs"
+          (git diff --quiet && git diff --staged --quiet) || git commit -m "Refresh demos folder"
       - name: push doc changes
         uses: ad-m/github-push-action@master
         with:
