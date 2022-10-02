@@ -87,13 +87,10 @@ class BasePipelineWriter:
         """
         Write out requirements file.
         """
-        # TODO: Filter relevant imports only (i.e., those "touched" by artifacts in pipeline)
         libraries = dict()
         for session_artifacts in self.session_artifacts_sorted:
-            session_libs = self.db.get_libraries_for_session(
-                session_artifacts.session_id
-            )
-            for lib in session_libs:
+            session_artifact_libs = session_artifacts.get_libraries()
+            for lib in session_artifact_libs:
                 if isinstance(lib.package_name, str):
                     lib_name = PIP_PACKAGE_NAMES.get(
                         lib.package_name, lib.package_name

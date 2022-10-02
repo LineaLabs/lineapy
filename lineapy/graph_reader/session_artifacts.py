@@ -7,8 +7,17 @@ import networkx as nx
 
 from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.data.graph import Graph
-from lineapy.data.types import CallNode, GlobalNode, LineaID, MutateNode, Node
+from lineapy.data.types import (
+    CallNode,
+    GlobalNode,
+    LineaID,
+    LiteralNode,
+    LookupNode,
+    MutateNode,
+    Node,
+)
 from lineapy.db.db import RelationalLineaDB
+from lineapy.db.relational import ImportNodeORM
 from lineapy.graph_reader.node_collection import (
     NodeCollection,
     NodeCollectionType,
@@ -736,3 +745,66 @@ class SessionArtifacts:
             return_dict_name=return_dict_name,
         )
         return session_function
+
+    def get_libraries(self) -> List[ImportNodeORM]:
+        """
+        Return a list of ImportNodeORM's containing the libraries associated with this SessionArtifact.
+
+        This function works by taking the imported library information from the whole session
+        and checking if the library is used for this SessionArtifact by trying to match with the
+        relevant nodes in the Session Artifacts import_nodes attribute.
+
+        Specifically we look for CallNodes with function `l_import` and a single argument.
+        The value of the argument Literal node will contain the base library name we want because
+        CallNodes with a single argument are the ones importing without the base_module optional argument,
+        which is only the case when we are importing the base library which we want the name of.
+        """
+
+        # All libraries in a session
+        session_libs = self.db.get_libraries_for_session(self.session_id)
+
+        # Libraries this SessionArtifact uses will be stored here by name
+        session_artifact_lib_names: Set[str] = set()
+
+        # Get all nodes in SessionArtifact "import_nodes" attribute.
+        # Note that these nodes are not actually ImportNodes, but simply the
+        # Call/Literal/Lookup Nodes associated with the captured lines
+        # that are import statements.
+        import_nodes = {
+            id: self.db.get_node_by_id(id) for id in self.import_nodes
+        }
+
+        # Try to find library names through their associated CallNode.
+        # This Node must call l_import with one argument which will be the
+        # base library name we're interested in.
+        for _, node in import_nodes.items():
+            if not isinstance(node, CallNode):
+                continue
+
+            # Check function is l_import
+            function_id_node = import_nodes[node.function_id]
+            if (
+                not isinstance(function_id_node, LookupNode)
+                or function_id_node.name != "l_import"
+            ):
+                continue
+
+            # Check function has a single argument
+            if len(node.positional_args) != 1:
+                continue
+
+            # This single argument should be a literal node holding the library name
+            argument_node = import_nodes[node.positional_args[0].id]
+            if not isinstance(argument_node, LiteralNode):
+                continue
+
+            session_artifact_lib_names.add(argument_node.value)
+
+        # Get only session libraries that are used in this SessionArtifact
+        session_artifact_libs = [
+            lib_info
+            for lib_info in session_libs
+            if lib_info.package_name in session_artifact_lib_names
+        ]
+
+        return session_artifact_libs
