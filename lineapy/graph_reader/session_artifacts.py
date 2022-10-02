@@ -272,24 +272,40 @@ class SessionArtifacts:
                         len(self.node_context[node_id].dependent_variables)
                         == 0
                     )
-                    has_assigned_before = (
-                        self.input_parameters_node.get(var, None) is not None
+                    previous_assignment = self.input_parameters_node.get(
+                        var, None
                     )
-                    if is_literal_assignment:
-                        if has_assigned_before:
-                            raise ValueError(
-                                "Variable %s, is defined more than once", var
+
+                    if previous_assignment is None:
+                        self.input_parameters_node[var] = node_id
+                    else:
+                        previous_assignment_is_literal = (
+                            len(
+                                self.node_context[
+                                    previous_assignment
+                                ].dependent_variables
                             )
-                        else:
+                            == 0
+                        )
+
+                        if (
+                            is_literal_assignment
+                            and previous_assignment_is_literal
+                        ):
+                            raise ValueError(
+                                f"Variable {var}, is defined more than once"
+                            )
+                        elif not previous_assignment_is_literal:
+                            # previous assignment is not literal, so we can reassign it
                             self.input_parameters_node[var] = node_id
+                        # else previous assignment is literal and we should not override it
 
         for var, node_id in self.input_parameters_node.items():
             if len(self.node_context[node_id].dependent_variables) > 0:
-                # Duplicated variable name existing
-                logger.error(
-                    "LineaPy only supports literal value as input parameters for now."
+                raise ValueError(
+                    f"LineaPy only supports literal value as input parameters for now. "
+                    f"{var} only has non-literal values in this Session."
                 )
-                raise Exception
 
     def _get_subgraph_from_node_list(self, node_list: List[LineaID]) -> Graph:
         """

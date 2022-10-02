@@ -82,28 +82,32 @@ ft_with_old_multiplier = ft(a=5)["prod_p"]
 
 
 @pytest.mark.parametrize(
-    "code",
+    "code, message",
     [
         pytest.param(
             "import lineapy\nft = lineapy.get_function(['a'], input_parameters=['a','a'])",
+            "Duplicated input parameters detected in ['a', 'a']",
             id="duplicated_input_vars",
         ),
         pytest.param(
             "import lineapy\nft = lineapy.get_function(['a'], input_parameters=['a','x'])",
+            "The following parameters are missing {'x'}",
             id="nonexisting_input_vars",
         ),
         pytest.param(
             "import lineapy\nft = lineapy.get_function(['b'], input_parameters=['b'])",
+            "LineaPy only supports literal value as input parameters for now. b only has non-literal values in this Session.",
             id="non_literal_assignment",
         ),
         pytest.param(
             # Variable c will affect both artifact b and c
             "import lineapy\nft = lineapy.get_function(['b','c'], input_parameters=['c'])",
+            "Variable c, is defined more than once",
             id="duplicated_literal_assignment",
         ),
     ],
 )
-def test_get_function_error(execute, code):
+def test_get_function_error(execute, code, message):
     """
     Sanity check for lineapy.get_function
     """
@@ -121,3 +125,4 @@ lineapy.save(c,'c')
     res = execute(art_code, snapshot=False)
     with pytest.raises(UserException) as e_info:
         res = execute(code, snapshot=False)
+    assert message in str(e_info.value)
