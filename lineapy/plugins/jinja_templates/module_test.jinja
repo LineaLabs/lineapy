@@ -10,25 +10,25 @@ from {{ MODULE_NAME }} import (
 
 class {{ TEST_CLASS_NAME }}(unittest.TestCase):
     def setUp(self) -> None:
-        # Add any processes to execute before each test method
+        # Add any processes to execute before each test in this class
         pass
 
     def tearDown(self) -> None:
-        # Add any processes to execute after each test method
+        # Add any processes to execute after each test in this class
         pass
 
     @classmethod
     def setUpClass(cls) -> None:
-        # Add any processes to execute before each test class
+        # Add any processes to execute once before all tests in this class run
         pass
 
     @classmethod
     def tearDownClass(cls) -> None:
-        # Add any processes to execute after each test class
+        # Add any processes to execute once after all tests in this class run
         pass
 
 {%- for func_data in FUNCTION_METADATA_LIST %}
-    def {{ func_data.test_function_name }}(self) -> None:
+    def test_{{ func_data.function_name }}(self) -> None:
         # Adjust as needed
         sample_input: Dict[str, Any] = {}
     {%- for arg_name in func_data.function_arg_names %}

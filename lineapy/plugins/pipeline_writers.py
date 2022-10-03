@@ -131,7 +131,6 @@ class BasePipelineWriter:
                 "function_arg_names": sorted(
                     [v for v in node_collection.input_variables]
                 ),
-                "test_function_name": f"test_get_{node_collection.safename}",
             }
             for session_artifacts in self.session_artifacts_sorted
             for node_collection in session_artifacts.artifact_nodecollections
