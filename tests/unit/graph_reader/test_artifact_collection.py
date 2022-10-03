@@ -177,6 +177,33 @@ def test_two_sessions(
                 assert art_pred_session_line_index < art_session_line_index
 
 
+def test_dependencies(linea_db, execute):
+    """
+    Check sort_session_artifacts withing artifactcollection
+    """
+    code = """\n
+import lineapy
+a = 1
+b = 2
+c = a+b
+lineapy.save(a,'a')
+lineapy.save(b,'b')
+lineapy.save(c,'c')
+"""
+    execute(code, snapshot=False)
+    ac = ArtifactCollection(
+        linea_db,
+        target_artifacts=["b", "c"],
+        reuse_pre_computed_artifacts=["b"],
+        input_parameters=["a"],
+    )
+    ac._sort_session_artifacts(dependencies={"c": {"b"}})
+    module = ac.get_module()
+    assert not hasattr(module, "get_a")
+    assert hasattr(module, "get_b")
+    assert hasattr(module, "get_c")
+
+
 @pytest.mark.parametrize(
     "input_parameters, input_values, expected_values",
     [
