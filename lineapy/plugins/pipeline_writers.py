@@ -1,4 +1,5 @@
 import logging
+import warnings
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -15,7 +16,11 @@ from lineapy.plugins.task import (
     TaskGraph,
     TaskGraphEdge,
 )
-from lineapy.plugins.utils import PIP_PACKAGE_NAMES, load_plugin_template
+from lineapy.plugins.utils import (
+    PIP_PACKAGE_NAMES,
+    load_plugin_template,
+    slugify,
+)
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_system_python_version, prettify
 
@@ -43,7 +48,7 @@ class BasePipelineWriter:
     ) -> None:
         self.artifact_collection = artifact_collection
         self.keep_lineapy_save = keep_lineapy_save
-        self.pipeline_name = pipeline_name
+        self.pipeline_name = slugify(pipeline_name)
         self.output_dir = Path(output_dir)
         self.dag_config = dag_config or {}
 
@@ -109,6 +114,45 @@ class BasePipelineWriter:
         file.write_text(lib_names_text)
         logger.info(f"Generated requirements file: {file}")
 
+    def _write_module_test(self) -> None:
+        """
+        Write out test scaffolding for refactored code in module file.
+        The scaffolding contains placeholders for testing each function
+        in the module file and is meant to be fleshed out by the user
+        to suit their needs. When run out of the box, it simply tests
+        whether each function in the module runs without error.
+        """
+        # Format components to be passed into file template
+        module_name = f"{self.pipeline_name}_module"
+        test_class_name = f"Test{self.pipeline_name.title().replace('_', '')}"
+        function_metadata_list = [
+            {
+                "function_name": f"get_{node_collection.safename}",
+                "function_arg_names": sorted(
+                    [v for v in node_collection.input_variables]
+                ),
+            }
+            for session_artifacts in self.session_artifacts_sorted
+            for node_collection in session_artifacts.artifact_nodecollections
+        ]
+
+        # Fill in file template and write it out
+        MODULE_TEST_TEMPLATE = load_plugin_template("module_test.jinja")
+        module_test_text = MODULE_TEST_TEMPLATE.render(
+            MODULE_NAME=module_name,
+            TEST_CLASS_NAME=test_class_name,
+            FUNCTION_METADATA_LIST=function_metadata_list,
+        )
+        file = self.output_dir / f"test_{self.pipeline_name}.py"
+        file.write_text(prettify(module_test_text))
+        logger.info(f"Generated test scaffolding file: {file}")
+        warnings.warn(
+            "Generated tests are provided as template/scaffolding to start with only; "
+            "please modify them to suit your testing needs. "
+            "Also, tests may involve long compute and/or large storage, "
+            "so please take care in running them."
+        )
+
     def _write_dag(self) -> None:
         """
         Write out framework-specific DAG file
@@ -133,6 +177,7 @@ class BasePipelineWriter:
         """
         self._write_module()
         self._write_requirements()
+        self._write_module_test()
         self._write_dag()
         self._write_docker()
 
