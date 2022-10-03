@@ -606,6 +606,7 @@ class SessionArtifacts:
                 for art in self.artifact_nodecollections
                 if art.name in nc_graph.nodes
             ]
+            self.nodecollection_dependencies.graph = nc_graph
 
     def _get_first_artifact_name(self) -> Optional[str]:
         """
