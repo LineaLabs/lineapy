@@ -1,7 +1,7 @@
 import logging
 from collections import Counter, OrderedDict
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, cast
 
 import networkx as nx
 
@@ -12,7 +12,6 @@ from lineapy.data.types import (
     GlobalNode,
     LineaID,
     LiteralNode,
-    LookupNode,
     MutateNode,
     Node,
 )
@@ -777,28 +776,22 @@ class SessionArtifacts:
         # Try to find library names through their associated CallNode.
         # This Node must call l_import with one argument which will be the
         # base library name we're interested in.
-        for _, node in import_nodes.items():
-            if not isinstance(node, CallNode):
-                continue
+        for node_id, node in import_nodes.items():
 
-            # Check function is l_import
-            function_id_node = import_nodes[node.function_id]
-            if (
-                not isinstance(function_id_node, LookupNode)
-                or function_id_node.name != "l_import"
-            ):
-                continue
+            # check if node is CallNode doing module import
+            if _is_import_node(self.graph, node_id):
+                node = cast(CallNode, node)
 
-            # Check function has a single argument
-            if len(node.positional_args) != 1:
-                continue
+                # Check function has a single argument
+                if len(node.positional_args) != 1:
+                    continue
 
-            # This single argument should be a literal node holding the library name
-            argument_node = import_nodes[node.positional_args[0].id]
-            if not isinstance(argument_node, LiteralNode):
-                continue
+                # This single argument should be a literal node holding the library name
+                argument_node = import_nodes[node.positional_args[0].id]
+                if not isinstance(argument_node, LiteralNode):
+                    continue
 
-            session_artifact_lib_names.add(argument_node.value)
+                session_artifact_lib_names.add(argument_node.value)
 
         # Get only session libraries that are used in this SessionArtifact
         session_artifact_libs = [
