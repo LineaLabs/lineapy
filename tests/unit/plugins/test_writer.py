@@ -169,6 +169,17 @@ def check_requirements_txt(t1: str, t2: str):
             [],
             id="airflow_complex_h_perartifact",
         ),
+        pytest.param(
+            "simple",
+            "",
+            ["a", "b0"],
+            "DVC",
+            "dvc_pipeline_a_b0_singlestageallsessions",
+            {},
+            {"dag_flavor": "SingleStageAllSessions"},
+            [],
+            id="dvc_pipeline_a_b0_single_stage_all_sessions",
+        ),
     ],
 )
 def test_pipeline_generation(
@@ -216,12 +227,18 @@ def test_pipeline_generation(
     # Write out pipeline files
     pipeline_writer.write_pipeline_files()
 
-    # Compare generated vs. expected
+    # Get list of files to compare
     file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
-    if framework != "SCRIPT":
+    if framework == "AIRFLOW":
         file_endings.append("_dag.py")
-    for file_suffix in file_endings:
-        path = Path(tmp_path, pipeline_name + file_suffix)
+
+    file_names = [pipeline_name + file_suffix for file_suffix in file_endings]
+    if framework == "DVC":
+        file_names.append("dvc.yaml")
+
+    # Compare generated vs. expected
+    for expected_file_name in file_names:
+        path = Path(tmp_path, expected_file_name)
         generated = path.read_text()
         path_expected = Path(
             "tests",
@@ -229,17 +246,18 @@ def test_pipeline_generation(
             "plugins",
             "expected",
             pipeline_name,
-            pipeline_name + file_suffix,
+            expected_file_name,
         )
-        if file_suffix == "_requirements.txt":
+
+        if expected_file_name.endswith("_requirements.txt"):
             assert check_requirements_txt(generated, path_expected.read_text())
         else:
             to_compare = path_expected.read_text()
-            if file_suffix == "_Dockerfile":
+            if expected_file_name.endswith("_Dockerfile"):
                 to_compare = to_compare.format(
                     python_version=get_system_python_version()
                 )
-            if file_suffix.endswith(".py"):
+            if expected_file_name.endswith(".py"):
                 to_compare = prettify(to_compare)
             assert generated == to_compare
 
