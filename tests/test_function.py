@@ -105,6 +105,12 @@ ft_with_old_multiplier = ft(a=5)["prod_p"]
             "Variable c, is defined more than once",
             id="duplicated_literal_assignment",
         ),
+        pytest.param(
+            # Variable d has a literal and non-literal assignment, code should default correctly to literal, does not error
+            "import lineapy\nft = lineapy.get_function(['b','d'], input_parameters=['d'])",
+            "",
+            id="default_to_literal_assignment",
+        ),
     ],
 )
 def test_get_function_error(execute, code, message):
@@ -121,8 +127,16 @@ lineapy.save(b,'b')
 c = 2
 c = 3
 lineapy.save(c,'c')
+d = 1
+d = d + 1
+lineapy.save(d, 'd')
 """
     res = execute(art_code, snapshot=False)
-    with pytest.raises(UserException) as e_info:
+    # Check exception is raised and error message matches
+    if message:
+        with pytest.raises(UserException) as e_info:
+            res = execute(code, snapshot=False)
+        assert message in str(e_info.value)
+    # Run as is, no error message expected
+    else:
         res = execute(code, snapshot=False)
-    assert message in str(e_info.value)

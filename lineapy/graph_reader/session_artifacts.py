@@ -265,6 +265,12 @@ class SessionArtifacts:
         # the literal assignment only happen once in the entire session at this
         # moment. If there is a way to specify which literal assignment to use
         # as an input parameter. We can relax this restriction.
+        # We allow multiple assignments to non-literals to handle common cases like the
+        # following:
+        # x = 1
+        # x = x + 1
+        # input_parameters = [x]
+        # In this case, the original definition of x = 1 will be parametrized.
         for var, node_ids in input_parameters_assignment_nodes.items():
             for node_id in node_ids:
                 if node_id in self.node_context.keys():
