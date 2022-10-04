@@ -276,7 +276,7 @@ class ArtifactCollection:
             )
             raise ValueError(
                 f"Detected input parameters {module_input_parameters_list} do not agree with user input {self.input_parameters}. "
-                + f"The following parameters are missing {missing_parameters}."
+                + f"The following variables do not have references in any session code: {missing_parameters}."
             )
 
         # Sort input parameter for the run_all in the module as the same order

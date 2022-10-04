@@ -91,7 +91,7 @@ ft_with_old_multiplier = ft(a=5)["prod_p"]
         ),
         pytest.param(
             "import lineapy\nft = lineapy.get_function(['a'], input_parameters=['a','x'])",
-            "The following parameters are missing {'x'}",
+            "The following variables do not have references in any session code: {'x'}",
             id="nonexisting_input_vars",
         ),
         pytest.param(
