@@ -271,8 +271,12 @@ class ArtifactCollection:
                 f"Duplicated input parameters {module_input_parameters_list} across multiple sessions"
             )
         elif set(module_input_parameters_list) != set(self.input_parameters):
+            missing_parameters = set(self.input_parameters) - set(
+                module_input_parameters_list
+            )
             raise ValueError(
-                f"Detected input parameters {module_input_parameters_list} do not agree with user input {self.input_parameters}"
+                f"Detected input parameters {module_input_parameters_list} do not agree with user input {self.input_parameters}. "
+                + f"The following variables do not have references in any session code: {missing_parameters}."
             )
 
         # Sort input parameter for the run_all in the module as the same order
