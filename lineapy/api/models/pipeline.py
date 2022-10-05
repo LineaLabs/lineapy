@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import warnings
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple, Union
 
 from lineapy.api.api_utils import extract_taskgraph
 from lineapy.data.types import PipelineType
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class Pipeline:
     def __init__(
         self,
-        artifacts: List[str],
+        artifacts: List[Union[str, Tuple[str, int]]],
         name: Optional[str] = None,
         dependencies: TaskGraphEdge = {},
     ):
@@ -43,7 +43,7 @@ class Pipeline:
             artifacts, dependencies
         )
         self.name = name or "_".join(self.artifact_safe_names)
-        self.artifact_names: List[str] = artifacts
+        self.artifact_names: List[Union[str, Tuple[str, int]]] = artifacts
         self.id = get_new_id()
 
     def export(
@@ -51,7 +51,7 @@ class Pipeline:
         framework: str = "SCRIPT",
         output_dir: str = ".",
         input_parameters: List[str] = [],
-        reuse_pre_computed_artifacts: List[str] = [],
+        reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
         pipeline_dag_config: Optional[AirflowDagConfig] = {},
     ) -> Path:
         # Create artifact collection

@@ -56,7 +56,7 @@ class BasePipelineWriter:
 
         # Sort sessions topologically (applicable if artifacts come from multiple sessions)
         self.session_artifacts_sorted = (
-            artifact_collection._sort_session_artifacts(
+            artifact_collection.sort_session_artifacts(
                 dependencies=dependencies
             )
         )
@@ -505,7 +505,7 @@ class AirflowCodeGenerator:
 
     def get_params_args(self) -> str:
         input_parameters_dict = dict()
-        for sa in self.artifact_collection._sort_session_artifacts():
+        for sa in self.artifact_collection.sort_session_artifacts():
             for input_spec in sa.get_session_input_parameters_spec().values():
                 input_parameters_dict[
                     input_spec.variable_name
@@ -514,7 +514,7 @@ class AirflowCodeGenerator:
 
     def get_session_function_params_args(self) -> Dict[str, str]:
         session_function_input_parameters = dict()
-        for sa in self.artifact_collection._sort_session_artifacts():
+        for sa in self.artifact_collection.sort_session_artifacts():
             session_input_parameters = list(sa.input_parameters_node.keys())
             if len(session_input_parameters) > 0:
                 session_function_input_parameters[
@@ -531,7 +531,7 @@ class AirflowCodeGenerator:
         self, artifact_function_definitions: Dict[str, TaskDefinition]
     ) -> Dict[str, str]:
         artifact_function_input_parameters = dict()
-        for sa in self.artifact_collection._sort_session_artifacts():
+        for sa in self.artifact_collection.sort_session_artifacts():
             session_input_parameters = set(sa.input_parameters_node.keys())
             for nc in sa.artifact_nodecollections:
                 user_input_variables = artifact_function_definitions[

@@ -197,7 +197,7 @@ lineapy.save(c,'c')
         reuse_pre_computed_artifacts=["b"],
         input_parameters=["a"],
     )
-    ac._sort_session_artifacts(dependencies={"c": {"b"}})
+    ac.sort_session_artifacts(dependencies={"c": {"b"}})
     module = ac.get_module()
     assert not hasattr(module, "get_a")
     assert hasattr(module, "get_b")
