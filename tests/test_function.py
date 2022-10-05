@@ -3,6 +3,31 @@ import pytest
 from lineapy.exceptions.user_exception import UserException
 
 
+@pytest.mark.parametrize(
+    "code, input, expected",
+    [
+        pytest.param(
+            "import lineapy\nx = 1\nlineapy.save(x,'x')\nft = lineapy.get_function(['x'], input_parameters=['x'])",
+            {'x':1},
+            1,
+            id="identity",
+        ),
+        pytest.param(
+            "import lineapy\nx = 1\nx = x+1\nlineapy.save(x,'x')\nft = lineapy.get_function(['x'], input_parameters=['x'])",
+            {'x':1},
+            2,
+            id="mutated",
+        ),
+    ]
+)
+def test_same_name_for_artifact_and_input(execute, code, input, expected):
+    """
+    Test lineapy.get_function
+    """
+    res = execute(code, snapshot=False)
+    ft = res.values["ft"]
+    assert ft(**input)["x"] == expected # x==x
+
 def test_get_function(execute):
     """
     Test lineapy.get_function
@@ -96,7 +121,7 @@ ft_with_old_multiplier = ft(a=5)["prod_p"]
         ),
         pytest.param(
             "import lineapy\nft = lineapy.get_function(['b'], input_parameters=['b'])",
-            "LineaPy only supports literal value as input parameters for now. b only has non-literal values in this Session.",
+            "LineaPy only supports input parameters without dependent variables for now. b has dependent variables: a, c.",
             id="non_literal_assignment",
         ),
         pytest.param(
@@ -104,6 +129,12 @@ ft_with_old_multiplier = ft(a=5)["prod_p"]
             "import lineapy\nft = lineapy.get_function(['b','c'], input_parameters=['c'])",
             "Variable c, is defined more than once",
             id="duplicated_literal_assignment",
+        ),
+        pytest.param(
+            # Variable e is a list, cannot be an input parameter
+            "import lineapy\nft = lineapy.get_function(['e'], input_parameters=['e'])",
+            "LineaPy only supports primitive types as input parameters for now. e in e = [] is a <class 'list'>.",
+            id="non_primitive_input_parameters",
         ),
         pytest.param(
             # Variable d has a literal and non-literal assignment, code should default correctly to literal, does not error
@@ -130,6 +161,9 @@ lineapy.save(c,'c')
 d = 1
 d = d + 1
 lineapy.save(d, 'd')
+e = []
+e.append(1)
+lineapy.save(e, 'e')
 """
     res = execute(art_code, snapshot=False)
     # Check exception is raised and error message matches
