@@ -8,17 +8,17 @@ from lineapy.exceptions.user_exception import UserException
     [
         pytest.param(
             "import lineapy\nx = 1\nlineapy.save(x,'x')\nft = lineapy.get_function(['x'], input_parameters=['x'])",
-            {'x':1},
+            {"x": 1},
             1,
             id="identity",
         ),
         pytest.param(
             "import lineapy\nx = 1\nx = x+1\nlineapy.save(x,'x')\nft = lineapy.get_function(['x'], input_parameters=['x'])",
-            {'x':1},
+            {"x": 1},
             2,
             id="mutated",
         ),
-    ]
+    ],
 )
 def test_same_name_for_artifact_and_input(execute, code, input, expected):
     """
@@ -26,7 +26,8 @@ def test_same_name_for_artifact_and_input(execute, code, input, expected):
     """
     res = execute(code, snapshot=False)
     ft = res.values["ft"]
-    assert ft(**input)["x"] == expected # x==x
+    assert ft(**input)["x"] == expected  # x==x
+
 
 def test_get_function(execute):
     """

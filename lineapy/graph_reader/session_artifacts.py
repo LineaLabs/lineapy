@@ -309,7 +309,9 @@ class SessionArtifacts:
         for var, node_id in self.input_parameters_node.items():
             if len(self.node_context[node_id].dependent_variables) > 0:
                 dep_vars = ", ".join(
-                    sorted(list(self.node_context[node_id].dependent_variables))
+                    sorted(
+                        list(self.node_context[node_id].dependent_variables)
+                    )
                 )
                 raise ValueError(
                     f"LineaPy only supports input parameters without dependent variables for now. "
