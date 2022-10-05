@@ -547,12 +547,12 @@ class SessionArtifacts:
                         )
 
                 # Remove input parameter node
+                nodecollectioninfo._update_variable_info(
+                    self.node_context, self.input_parameters_node
+                )
                 nodecollectioninfo.node_list = (
                     nodecollectioninfo.node_list
                     - set(self.input_parameters_node.values())
-                )
-                nodecollectioninfo._update_variable_info(
-                    self.node_context, self.input_parameters_node
                 )
                 nodecollectioninfo._update_graph(self.graph)
                 self.artifact_nodecollections.append(nodecollectioninfo)

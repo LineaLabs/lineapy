@@ -108,6 +108,7 @@ class NodeCollection:
         """
         Update variable information based on node_list
         """
+        print(input_parameters_node)
         self.dependent_variables = self.dependent_variables.union(
             *[node_context[nid].dependent_variables for nid in self.node_list]
         )
@@ -122,14 +123,15 @@ class NodeCollection:
         # required input variables
         self.input_variables = self.all_variables - self.assigned_variables
         # Add user defined parameter in to input variables list
+        user_input_parameters = set(
+            [
+                var
+                for var, nid in input_parameters_node.items()
+                if nid in self.node_list
+            ]
+        )
         self.input_variables = self.input_variables.union(
-            set(
-                [
-                    input_parameters_node[nid]
-                    for nid in self.node_list
-                    if nid in input_parameters_node.keys()
-                ]
-            )
+            user_input_parameters
         )
 
     def _update_graph(self, graph: Graph) -> None:
