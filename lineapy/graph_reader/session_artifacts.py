@@ -308,9 +308,12 @@ class SessionArtifacts:
 
         for var, node_id in self.input_parameters_node.items():
             if len(self.node_context[node_id].dependent_variables) > 0:
+                dep_vars = ", ".join(
+                    sorted(list(self.node_context[node_id].dependent_variables))
+                )
                 raise ValueError(
-                    f"LineaPy only supports literal value as input parameters for now. "
-                    f"{var} only has non-literal values in this Session."
+                    f"LineaPy only supports input parameters without dependent variables for now. "
+                    f"{var} has dependent variables: {dep_vars}."
                 )
 
     def _get_subgraph_from_node_list(self, node_list: List[LineaID]) -> Graph:
@@ -705,6 +708,16 @@ class SessionArtifacts:
                 variable_name = variable_def.split("=")[0].strip(" ")
                 value = eval(variable_def.split("=")[1].strip(" "))
                 value_type = type(value)
+                if not (
+                    isinstance(value, int)
+                    or isinstance(value, float)
+                    or isinstance(value, str)
+                    or isinstance(value, bool)
+                ):
+                    raise ValueError(
+                        f"LineaPy only supports primitive types as input parameters for now. "
+                        f"{variable_name} in {variable_def} is a {value_type}."
+                    )
                 if ":" in variable_name:
                     variable_name = variable_def.split(":")[0]
                     session_input_variables[variable_name] = InputVariable(

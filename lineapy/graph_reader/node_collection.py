@@ -108,7 +108,6 @@ class NodeCollection:
         """
         Update variable information based on node_list
         """
-        print(input_parameters_node)
         self.dependent_variables = self.dependent_variables.union(
             *[node_context[nid].dependent_variables for nid in self.node_list]
         )
