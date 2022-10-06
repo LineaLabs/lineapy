@@ -51,12 +51,14 @@ class BasePipelineWriter:
         keep_lineapy_save: bool = False,
         pipeline_name: str = "pipeline",
         output_dir: str = ".",
+        generate_test: bool = False,
         dag_config: Optional[Union[AirflowDagConfig, DVCDagConfig]] = None,
     ) -> None:
         self.artifact_collection = artifact_collection
         self.keep_lineapy_save = keep_lineapy_save
         self.pipeline_name = slugify(pipeline_name)
         self.output_dir = Path(output_dir)
+        self.generate_test = generate_test
         self.dag_config = dag_config or {}
         self.dependencies = dependencies
 
@@ -313,8 +315,11 @@ class BasePipelineWriter:
         )
 
     def _create_test(self) -> None:
-        self._write_module_test_scaffold()
-        self._store_artval_for_testing()
+        if self.generate_test is True:
+            self._write_module_test_scaffold()
+            self._store_artval_for_testing()
+        else:
+            pass
 
     def _write_dag(self) -> None:
         """
@@ -340,9 +345,9 @@ class BasePipelineWriter:
         """
         self._write_module()
         self._write_requirements()
-        self._create_test()
         self._write_dag()
         self._write_docker()
+        self._create_test()
 
 
 class AirflowPipelineWriter(BasePipelineWriter):
