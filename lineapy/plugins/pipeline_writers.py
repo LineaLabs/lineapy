@@ -2,9 +2,10 @@ import itertools
 import logging
 import pickle
 import warnings
-from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List, Optional, Union
+
+import networkx as nx
 
 from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import (
@@ -252,49 +253,41 @@ class BasePipelineWriter:
         # This information is to be eventually passed into file template.
         # Fields starting with an underscore are not intended for direct use
         # in the template; they are meant to be used for deriving other fields.
+        # "output" here denotes artifact(s) or common variable(s) that
+        # the function generates.
         function_metadata_list = [
             {
                 "name": f"get_{node_collection.safename}",
                 "output_name": node_collection.safename,
                 "_output_type": node_collection.collection_type,
-                "_argvar_names": node_collection.input_variables,
-                "_retvar_names": node_collection.return_variables,
+                "retvar_names": node_collection.return_variables,
+                "dependent_output_names": nx.ancestors(
+                    session_artifacts.nodecollection_dependencies.graph,
+                    node_collection.safename,
+                ),
             }
             for session_artifacts in self.session_artifacts_sorted
             for node_collection in session_artifacts.artifact_nodecollections
         ]
 
-        # Identify variables factored out by LineaPy to reduce redundant
-        # compute (rather than explicitly stored by the user as artifacts)
-        intermediate_varnames = [
-            var_name
+        # For each function in the pipeline module, topologically order its
+        # "ancestor" functions (i.e., relevant functions that should run before).
+        # Leverage the fact that ``function_metadata_list`` is already topologically sorted.
+        for fm_i in function_metadata_list:
+            fm_i["ancestor_function_metadata_list"] = [
+                fm_j
+                for fm_j in function_metadata_list
+                if fm_j["output_name"] in fm_i["dependent_output_names"]
+            ]
+
+        # Identify "intermediate" results factored out by LineaPy to reduce
+        # redundant compute (rather than stored by the user as artifacts)
+        intermediate_output_names = [
+            function_metadata["output_name"]
             for function_metadata in function_metadata_list
-            for var_name in function_metadata["_retvar_names"]
             if function_metadata["_output_type"]
             == NodeCollectionType.COMMON_VARIABLE
         ]
-
-        # Construct a topologically ordered lookup table for variables
-        # and functions in the pipeline module
-        var_and_func_names_in_order = OrderedDict(
-            {
-                var_name: function_metadata["name"]
-                for function_metadata in function_metadata_list
-                for var_name in function_metadata["_retvar_names"]
-            }
-        )
-
-        # For each function in the pipeline module, topologically order
-        # input variables and identify their respective source functions
-        for function_metadata in function_metadata_list:
-            function_metadata["argvars"] = [
-                {
-                    "name": var_name,
-                    "source_func_name": func_name,
-                }
-                for var_name, func_name in var_and_func_names_in_order.items()
-                if var_name in function_metadata["_argvar_names"]
-            ]
 
         # Format other components to be passed into file template
         module_name = f"{self.pipeline_name}_module"
@@ -307,7 +300,7 @@ class BasePipelineWriter:
             TEST_CLASS_NAME=test_class_name,
             TEST_ARTVAL_DIRNAME=self.test_artval_dirname,
             FUNCTION_METADATA_LIST=function_metadata_list,
-            INTERMEDIATE_VARNAMES=intermediate_varnames,
+            INTERMEDIATE_OUTPUT_NAMES=intermediate_output_names,
         )
         file = self.output_dir / f"test_{self.pipeline_name}.py"
         file.write_text(prettify(module_test_text))

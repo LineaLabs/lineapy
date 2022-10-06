@@ -54,7 +54,7 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         # Delete pickle files for intermediate (non-artifact) values
-        for intermediate_varname in {{ INTERMEDIATE_VARNAMES }}:
+        for intermediate_varname in {{ INTERMEDIATE_OUTPUT_NAMES }}:
             path_to_file = (cls.art_pkl_dir / f"{intermediate_varname}.pkl")
             if os.path.exists(path_to_file):
                 os.remove(path_to_file)
@@ -62,7 +62,7 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
         # Add other processes to execute once after all tests in this class run
         pass
 
-{%- for func_data in FUNCTION_METADATA_LIST %}
+{% for func_data in FUNCTION_METADATA_LIST %}
     def test_{{ func_data.name }}(self) -> None:
         """
         NOTE: The code below is provided as scaffolding/template.
@@ -71,10 +71,13 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
         """
         # Prepare function input (adapt as needed)
         sample_input: Dict[str, Any] = {}
-    {%- for argvar in func_data.argvars %}
-        sample_input["{{ argvar.name }}"] = safe_load_pickle(
-            path_to_file=(self.art_pkl_dir / "{{ argvar.name }}.pkl"),
-            alt_val_func=lambda: {{ argvar.source_func_name }}(
+    {%- for ancestor_func_data in func_data.ancestor_function_metadata_list %}
+        {% for retvar_name in ancestor_func_data.retvar_names -%}
+        sample_input["{{ retvar_name }}"]{{ ", " if not loop.last else " " }}
+        {%- endfor -%}
+        = safe_load_pickle(
+            path_to_file=(self.art_pkl_dir / "{{ ancestor_func_data.output_name }}.pkl"),
+            alt_val_func=lambda: {{ ancestor_func_data.name }}(
                 **sample_input
             ),
             save_alt_val=True,
@@ -96,4 +99,4 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
                 "Test failed, but this may be due to our limited templating. "
                 "Please adapt the test as needed."
             )
-{%- endfor %}
+{% endfor -%}
