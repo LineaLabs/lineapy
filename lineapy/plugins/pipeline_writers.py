@@ -1,5 +1,6 @@
 import itertools
 import logging
+import pickle
 import warnings
 from collections import OrderedDict
 from pathlib import Path
@@ -66,6 +67,9 @@ class BasePipelineWriter:
 
         # Create output directory folder(s) if nonexistent
         self.output_dir.mkdir(exist_ok=True, parents=True)
+
+        # Specify (sub-)directory name to store test artifact values
+        self.test_artval_dirname = "sample_output"
 
     @property
     def docker_template_name(self) -> str:
@@ -217,10 +221,28 @@ class BasePipelineWriter:
         file.write_text(lib_names_text)
         logger.info(f"Generated requirements file: {file}")
 
-    def _write_module_test(self) -> None:
+    def _store_artval_for_testing(self) -> None:
         """
-        Write out test scaffolding for refactored code in module file.
-        The scaffolding contains placeholders for testing each function
+        (Re-)Store artifact values as pickle files to serve as "ground truths"
+        to compare against for equality evaluation of function outputs. The new
+        pickle files are to bear corresponding artifact names.
+        """
+        # Create subdirectory if nonexistent
+        dirpath = self.output_dir / self.test_artval_dirname
+        dirpath.mkdir(exist_ok=True, parents=True)
+
+        # Store each artifact value
+        for sa in self.artifact_collection.session_artifacts.values():
+            for art in sa.target_artifacts:
+                filepath = dirpath / f"{slugify(art.name)}.pkl"
+                artval = art.get_value()
+                with filepath.open("wb") as fp:
+                    pickle.dump(artval, fp)
+
+    def _write_module_test_scaffold(self) -> None:
+        """
+        Write out test scaffold for refactored code in module file.
+        The scaffold contains placeholders for testing each function
         in the module file and is meant to be fleshed out by the user
         to suit their needs. When run out of the box, it performs a naive
         form of equality evaluation for each function's output,
@@ -283,18 +305,23 @@ class BasePipelineWriter:
         module_test_text = MODULE_TEST_TEMPLATE.render(
             MODULE_NAME=module_name,
             TEST_CLASS_NAME=test_class_name,
+            TEST_ARTVAL_DIRNAME=self.test_artval_dirname,
             FUNCTION_METADATA_LIST=function_metadata_list,
             INTERMEDIATE_VARNAMES=intermediate_varnames,
         )
         file = self.output_dir / f"test_{self.pipeline_name}.py"
         file.write_text(prettify(module_test_text))
-        logger.info(f"Generated test scaffolding file: {file}")
+        logger.info(f"Generated test scaffold file: {file}")
         warnings.warn(
-            "Generated tests are provided as template/scaffolding to start with only; "
+            "Generated tests are provided as template/scaffold to start with only; "
             "please modify them to suit your testing needs. "
             "Also, tests may involve long compute and/or large storage, "
             "so please take care in running them."
         )
+
+    def _create_test(self) -> None:
+        self._write_module_test_scaffold()
+        self._store_artval_for_testing()
 
     def _write_dag(self) -> None:
         """
@@ -320,7 +347,7 @@ class BasePipelineWriter:
         """
         self._write_module()
         self._write_requirements()
-        self._write_module_test()
+        self._create_test()
         self._write_dag()
         self._write_docker()
 

@@ -46,7 +46,7 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         # Specify location where sample output files are stored for comparison
-        cls.art_pkl_dir = Path(__file__).parent / "sample_output"
+        cls.art_pkl_dir = (Path(__file__).parent / "{{ TEST_ARTVAL_DIRNAME }}")
 
         # Add other processes to execute once before all tests in this class run
         pass
@@ -55,7 +55,7 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
     def tearDownClass(cls) -> None:
         # Delete pickle files for intermediate (non-artifact) values
         for intermediate_varname in {{ INTERMEDIATE_VARNAMES }}:
-            path_to_file = cls.art_pkl_dir / f"{intermediate_varname}.pkl"
+            path_to_file = (cls.art_pkl_dir / f"{intermediate_varname}.pkl")
             if os.path.exists(path_to_file):
                 os.remove(path_to_file)
 
@@ -73,7 +73,7 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
         sample_input: Dict[str, Any] = {}
     {%- for argvar in func_data.argvars %}
         sample_input["{{ argvar.name }}"] = safe_load_pickle(
-            path_to_file=self.art_pkl_dir / "{{ argvar.name }}.pkl",
+            path_to_file=(self.art_pkl_dir / "{{ argvar.name }}.pkl"),
             alt_val_func=lambda: {{ argvar.source_func_name }}(
                 **sample_input
             ),
@@ -86,7 +86,7 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(
-            path_to_file=self.art_pkl_dir / "{{ func_data.output_name }}.pkl",
+            path_to_file=(self.art_pkl_dir / "{{ func_data.output_name }}.pkl"),
             alt_val_func=lambda: FileNotFoundError,
         )
         try:
