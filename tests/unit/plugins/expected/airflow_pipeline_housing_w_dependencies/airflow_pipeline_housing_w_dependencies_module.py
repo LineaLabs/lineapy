@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
 
-def get_assets_for_artifact_y_and_downstream():
+def get_assets_for_artifact_y_and_downstream(**kwargs):
     assets = pd.read_csv(
         "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
     )
@@ -14,12 +14,12 @@ def get_assets_for_artifact_y_and_downstream():
     return assets
 
 
-def get_y(assets):
+def get_y(assets, **kwargs):
     y = assets["is_new"]
     return y
 
 
-def get_p_value(assets, y):
+def get_p_value(assets, y, **kwargs):
     clf = RandomForestClassifier(random_state=0)
     x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
     clf.fit(x, y)

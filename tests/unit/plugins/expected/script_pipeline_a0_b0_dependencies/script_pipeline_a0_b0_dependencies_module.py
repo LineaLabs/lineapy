@@ -1,9 +1,9 @@
-def get_b0():
+def get_b0(**kwargs):
     b0 = 0
     return b0
 
 
-def get_a0():
+def get_a0(**kwargs):
     a0 = 0
     a0 += 1
     return a0

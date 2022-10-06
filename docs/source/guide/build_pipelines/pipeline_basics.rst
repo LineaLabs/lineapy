@@ -64,7 +64,7 @@ Let's take a closer look at these files. First, we have ``iris_pipeline_module.p
     from sklearn.linear_model import LinearRegression
 
 
-    def get_iris_preprocessed():
+    def get_iris_preprocessed(**kwargs):
         url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
         df = pd.read_csv(url)
         color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
@@ -74,7 +74,7 @@ Let's take a closer look at these files. First, we have ``iris_pipeline_module.p
         return df
 
 
-    def get_iris_model(df):
+    def get_iris_model(df, **kwargs):
         mod = LinearRegression()
         mod.fit(
             X=df[["petal.width", "d_versicolor", "d_virginica"]],
