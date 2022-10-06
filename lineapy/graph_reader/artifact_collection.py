@@ -22,7 +22,7 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.graph_reader.types import InputVariable
 from lineapy.plugins.task import TaskGraphEdge
-from lineapy.plugins.utils import load_plugin_template
+from lineapy.plugins.utils import load_plugin_template, slugify
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
 
@@ -83,7 +83,7 @@ class ArtifactCollection:
             artifacts_by_session[art._session_id].append(art)
             # Record session_id of an artifact
             self.artifact_session[art.name] = art._session_id
-            self.artifact_session[art.name.replace(" ", "_")] = art._session_id
+            self.artifact_session[slugify(art.name)] = art._session_id
 
         pre_calculated_artifacts: Dict[str, LineaArtifact] = {}
         for art_entry in reuse_pre_computed_artifacts:
@@ -155,7 +155,7 @@ class ArtifactCollection:
         task_dependency_edges = list(
             chain.from_iterable(
                 (
-                    (artname.replace(" ", "_"), to_artname.replace(" ", "_"))
+                    (slugify(artname), slugify(to_artname))
                     for artname in from_artname
                 )
                 for to_artname, from_artname in dependencies.items()
