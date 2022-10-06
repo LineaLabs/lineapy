@@ -1,6 +1,7 @@
 import itertools
 import logging
 import warnings
+from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -221,22 +222,61 @@ class BasePipelineWriter:
         Write out test scaffolding for refactored code in module file.
         The scaffolding contains placeholders for testing each function
         in the module file and is meant to be fleshed out by the user
-        to suit their needs. When run out of the box, it simply tests
-        whether each function in the module runs without error.
+        to suit their needs. When run out of the box, it performs a naive
+        form of equality evaluation for each function's output,
+        which demands validation and customization by the user.
         """
-        # Format components to be passed into file template
-        module_name = f"{self.pipeline_name}_module"
-        test_class_name = f"Test{self.pipeline_name.title().replace('_', '')}"
+        # Extract information about each function in the pipeline module.
+        # This information is to be eventually passed into file template.
+        # Fields starting with an underscore are not intended for direct use
+        # in the template; they are meant to be used for deriving other fields.
         function_metadata_list = [
             {
-                "function_name": f"get_{node_collection.safename}",
-                "function_arg_names": sorted(
-                    [v for v in node_collection.input_variables]
-                ),
+                "name": f"get_{node_collection.safename}",
+                "output_name": node_collection.safename,
+                "_output_type": node_collection.collection_type,
+                "_argvar_names": node_collection.input_variables,
+                "_retvar_names": node_collection.return_variables,
             }
             for session_artifacts in self.session_artifacts_sorted
             for node_collection in session_artifacts.artifact_nodecollections
         ]
+
+        # Identify variables factored out by LineaPy to reduce redundant
+        # compute (rather than explicitly stored by the user as artifacts)
+        intermediate_varnames = [
+            var_name
+            for function_metadata in function_metadata_list
+            for var_name in function_metadata["_retvar_names"]
+            if function_metadata["_output_type"]
+            == NodeCollectionType.COMMON_VARIABLE
+        ]
+
+        # Construct a topologically ordered lookup table for variables
+        # and functions in the pipeline module
+        var_and_func_names_in_order = OrderedDict(
+            {
+                var_name: function_metadata["name"]
+                for function_metadata in function_metadata_list
+                for var_name in function_metadata["_retvar_names"]
+            }
+        )
+
+        # For each function in the pipeline module, topologically order
+        # input variables and identify their respective source functions
+        for function_metadata in function_metadata_list:
+            function_metadata["argvars"] = [
+                {
+                    "name": var_name,
+                    "source_func_name": func_name,
+                }
+                for var_name, func_name in var_and_func_names_in_order.items()
+                if var_name in function_metadata["_argvar_names"]
+            ]
+
+        # Format other components to be passed into file template
+        module_name = f"{self.pipeline_name}_module"
+        test_class_name = f"Test{self.pipeline_name.title().replace('_', '')}"
 
         # Fill in file template and write it out
         MODULE_TEST_TEMPLATE = load_plugin_template("module_test.jinja")
@@ -244,6 +284,7 @@ class BasePipelineWriter:
             MODULE_NAME=module_name,
             TEST_CLASS_NAME=test_class_name,
             FUNCTION_METADATA_LIST=function_metadata_list,
+            INTERMEDIATE_VARNAMES=intermediate_varnames,
         )
         file = self.output_dir / f"test_{self.pipeline_name}.py"
         file.write_text(prettify(module_test_text))
