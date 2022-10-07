@@ -70,11 +70,9 @@ class ArtifactCollection:
             )
         )
 
-        # validate the two artifact groups by session
-        self._validate_pre_computed_artifact_sessions(
-            self.target_artifacts_by_session,
-            self.pre_computed_artifacts_by_session,
-        )
+        # TODO: LIN-653, LIN-640
+        # Add some type of validation that all re-use compute artifacts can be matched to
+        # a target artifact.
 
         # For each session, construct SessionArtifacts object
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
@@ -82,9 +80,12 @@ class ArtifactCollection:
             session_id,
             session_artifacts,
         ) in self.target_artifacts_by_session.items():
-            pre_calculated_artifacts = self.pre_computed_artifacts_by_session[
-                session_id
-            ]
+            # TODO: LIN-653, LIN-640 only collect matched pre_computed artifacts in this Session
+            # instead of grabbing all Artifacts as currently required by SessionArtifact
+            pre_calculated_artifacts = sum(
+                self.pre_computed_artifacts_by_session.values(), []
+            )
+
             self.session_artifacts[session_id] = SessionArtifacts(
                 self.db,
                 session_artifacts,
@@ -120,40 +121,6 @@ class ArtifactCollection:
             seen_artifact_names.add(art_def["artifact_name"])
 
         return artifacts_grouped_by_session
-
-    def _validate_pre_computed_artifact_sessions(
-        self,
-        target_artifacts_by_session: Dict[LineaID, List[LineaArtifact]],
-        reuse_pre_computed_artifacts_by_session: Dict[
-            LineaID, List[LineaArtifact]
-        ],
-    ):
-        """
-        Validate no reuse_pre_computed_artifacts exist in a session without any target artifacts.
-
-        Throws KeyError if any such reuse_pre_computed_artifacts exists.
-        """
-
-        unused_sessions = (
-            reuse_pre_computed_artifacts_by_session.keys()
-            - target_artifacts_by_session.keys()
-        )
-        unused_precomputed_artifact_names: List[str] = []
-        for unused_session_id in unused_sessions:
-            unused_precomputed_artifact_names.extend(
-                [
-                    art.name
-                    for art in reuse_pre_computed_artifacts_by_session[
-                        unused_session_id
-                    ]
-                ]
-            )
-        if len(unused_precomputed_artifact_names) > 0:
-            raise KeyError(
-                "The following reuse_pre_computed_artifacts were not in a session associated "
-                + f"with any target or output artifact: {unused_precomputed_artifact_names}. "
-                + "Please check these artifacts are correct or remove them from reuse_pre_computed_artifacts."
-            )
 
     def validate_dependencies(self, dependencies: TaskGraphEdge = {}):
         """
