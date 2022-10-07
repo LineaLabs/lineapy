@@ -1,7 +1,6 @@
 import itertools
 import logging
 import pickle
-import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -307,7 +306,7 @@ class BasePipelineWriter:
         file = self.output_dir / f"test_{self.pipeline_name}.py"
         file.write_text(prettify(module_test_text))
         logger.info(f"Generated test scaffold file: {file}")
-        warnings.warn(
+        logger.warning(
             "Generated tests are provided as template/scaffold to start with only; "
             "please modify them to suit your testing needs. "
             "Also, tests may involve long compute and/or large storage, "
