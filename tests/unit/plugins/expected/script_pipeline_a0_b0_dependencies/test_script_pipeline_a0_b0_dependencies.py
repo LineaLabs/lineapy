@@ -33,6 +33,8 @@ def safe_load_pickle(
 
 
 class TestScriptPipelineA0B0Dependencies(unittest.TestCase):
+    art_pkl_dir: Path
+
     def setUp(self) -> None:
         # Add any processes to execute before each test in this class
         pass
@@ -46,18 +48,12 @@ class TestScriptPipelineA0B0Dependencies(unittest.TestCase):
         # Specify location where sample output files are stored for comparison
         cls.art_pkl_dir = Path(__file__).parent / "sample_output"
 
-        # Add other processes to execute once before all tests in this class run
+        # Add any processes to execute once before all tests in this class run
         pass
 
     @classmethod
     def tearDownClass(cls) -> None:
-        # Delete pickle files for intermediate (non-artifact) values
-        for intermediate_varname in []:
-            path_to_file = cls.art_pkl_dir / f"{intermediate_varname}.pkl"
-            if os.path.exists(path_to_file):
-                os.remove(path_to_file)
-
-        # Add other processes to execute once after all tests in this class run
+        # Add any processes to execute once after all tests in this class run
         pass
 
     def test_get_b0(self) -> None:

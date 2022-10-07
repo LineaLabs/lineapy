@@ -35,6 +35,8 @@ def safe_load_pickle(
         return alt_value
 
 class {{ TEST_CLASS_NAME }}(unittest.TestCase):
+    art_pkl_dir: Path
+
     def setUp(self) -> None:
         # Add any processes to execute before each test in this class
         pass
@@ -48,18 +50,19 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
         # Specify location where sample output files are stored for comparison
         cls.art_pkl_dir = (Path(__file__).parent / "{{ TEST_ARTVAL_DIRNAME }}")
 
-        # Add other processes to execute once before all tests in this class run
+        # Add any processes to execute once before all tests in this class run
         pass
 
     @classmethod
     def tearDownClass(cls) -> None:
+    {%- if INTERMEDIATE_OUTPUT_NAMES|length > 0 %}
         # Delete pickle files for intermediate (non-artifact) values
-        for intermediate_varname in {{ INTERMEDIATE_OUTPUT_NAMES }}:
-            path_to_file = (cls.art_pkl_dir / f"{intermediate_varname}.pkl")
+        for intermediate_output_name in {{ INTERMEDIATE_OUTPUT_NAMES }}:
+            path_to_file = (cls.art_pkl_dir / f"{intermediate_output_name}.pkl")
             if os.path.exists(path_to_file):
                 os.remove(path_to_file)
-
-        # Add other processes to execute once after all tests in this class run
+    {% endif %}
+        # Add any processes to execute once after all tests in this class run
         pass
 
 {% for func_data in FUNCTION_METADATA_LIST %}
