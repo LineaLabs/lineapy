@@ -1,4 +1,4 @@
-import os
+import pickle
 from pathlib import Path
 
 import pytest
@@ -352,4 +352,17 @@ def test_pipeline_test_generation(
         path_generated = Path(
             tmp_path, "sample_output", f"{slugify(artname)}.pkl"
         )
-        assert os.path.exists(path_generated)
+        path_expected = Path(
+            "tests",
+            "unit",
+            "plugins",
+            "expected",
+            pipeline_name,
+            "sample_output",
+            f"{slugify(artname)}.pkl",
+        )
+        with path_generated.open("rb") as fp:
+            content_generated = pickle.load(fp)
+        with path_expected.open("rb") as fp:
+            content_expected = pickle.load(fp)
+        assert type(content_generated) == type(content_expected)
