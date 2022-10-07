@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -6,6 +7,7 @@ from lineapy.api.models.linea_artifact import get_lineaartifactdef
 from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.pipeline_writers import PipelineWriterFactory
+from lineapy.plugins.utils import slugify
 from lineapy.utils.utils import get_system_python_version, prettify
 
 
@@ -276,6 +278,14 @@ def test_pipeline_generation(
             id="script_pipeline_a0_b0_dependencies",
         ),
         pytest.param(
+            "complex",
+            "",
+            ["f", "h"],
+            "script_complex_h_perart",
+            {},
+            id="script_complex_h_perart",
+        ),
+        pytest.param(
             "housing",
             "",
             ["y", "p value"],
@@ -335,3 +345,11 @@ def test_pipeline_test_generation(
     )
     content_expected = prettify(path_expected.read_text())
     assert content_generated == content_expected
+
+    # Check if artifact values have been (re-)stored
+    # to serve as "ground truths" for pipeline testing
+    for artname in artifact_list:
+        path_generated = Path(
+            tmp_path, "sample_output", f"{slugify(artname)}.pkl"
+        )
+        assert os.path.exists(path_generated)
