@@ -176,7 +176,12 @@ class LineaArtifact:
             )
         )
         code = str(
-            get_source_code_from_graph(self._get_subgraph(keep_lineapy_save))
+            get_source_code_from_graph(
+                self._get_subgraph(keep_lineapy_save),
+                session_graph=Graph.create_session_graph(
+                    self.db, self._session_id
+                ),
+            )
         )
         if not use_lineapy_serialization:
             code = de_lineate_code(code, self.db)

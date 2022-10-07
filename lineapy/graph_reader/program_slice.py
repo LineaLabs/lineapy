@@ -188,7 +188,11 @@ class CodeSlice:
         return str(self)
 
 
-def get_source_code_from_graph(program: Graph) -> CodeSlice:
+def get_source_code_from_graph(
+    program: Graph,
+    session_graph: Graph = None,
+    include_non_slice_as_comment=True,
+) -> CodeSlice:
     """
     Returns the code from some subgraph, by including all lines that
     are included in the graphs source.
@@ -206,6 +210,28 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
     source_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
     import_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
     incomplete_block_locations = DefaultDict[SourceCode, Set[int]](set)
+
+    subgraph_nodes = list(set([n.id for n in program.nodes]))
+    # max_execution_count = max(
+    #     [
+    #         # only application for jupyter cells. otherwise execution_count isnt available
+    #         n.source_location.source_code.location.execution_count  # type:ignore
+    #         for n in program.nodes
+    #         if n.source_location is not None
+    #     ]
+    # )
+
+    # if session_graph is not None:
+    #     for snode in session_graph.nodes:
+    #         # print(snode.id)
+    #         # print(snode in program.nodes)
+    #         # print(snode.id in [n.id for n in program.nodes])
+    #         if (
+    #             snode.source_location
+    #             and snode.source_location.source_code.location.execution_count  # type: ignore
+    #             > max_execution_count
+    #         ):
+    #             break
 
     for node in program.nodes:
         if not node.source_location:
@@ -269,20 +295,46 @@ def get_source_code_from_graph(program: Graph) -> CodeSlice:
         source_code_to_lines.items(), key=lambda x: x[0]
     ):
         source_code_lines = source_code.code.split("\n")
-        for line in sorted(lines):
-            body_code.append(source_code_lines[line - 1])
-            if line in incomplete_block_locations[source_code]:
-                line_str = source_code_lines[line - 1]
-                indent = len(line_str) - len(line_str.lstrip())
-                body_code.append(" " * (indent + 1) + "pass")
+        # print("raw code")
+        # print(source_code.code)
+        # print("lines to print")
+        # print(lines)
+        if not include_non_slice_as_comment:
+            for line in sorted(lines):
+                body_code.append(source_code_lines[line - 1])
+                if line in incomplete_block_locations[source_code]:
+                    line_str = source_code_lines[line - 1]
+                    indent = len(line_str) - len(line_str.lstrip())
+                    body_code.append(" " * (indent + 1) + "pass")
+        else:
+            # add the lines that are not part of slice as comments
+            for i in range(len(source_code_lines)):
+                # lineno is 1-indexed in ast
+                if i + 1 in lines:
+                    # this is part of slice
+                    body_code.append(source_code_lines[i])
+                else:
+                    # this is not part of slice and should be commented out.
+                    body_code.append("# " + source_code_lines[i])
 
     import_code = []
     for import_source_code, lines in sorted(
         import_code_to_lines.items(), key=lambda x: x[0]
     ):
         import_code_lines = import_source_code.code.split("\n")
-        for line in sorted(lines):
-            import_code.append(import_code_lines[line - 1])
+        if not include_non_slice_as_comment:
+            for line in sorted(lines):
+                import_code.append(import_code_lines[line - 1])
+        else:
+            # add the lines that are not part of slice as comments
+            for i in range(len(import_code_lines)):
+                # lineno is 1-indexed in ast
+                if i + 1 in lines:
+                    # this is part of slice
+                    import_code.append(import_code_lines[i])
+                else:
+                    # this is not part of slice and should be commented out.
+                    import_code.append("# " + import_code_lines[i])
 
     return CodeSlice(import_code, body_code)
 
