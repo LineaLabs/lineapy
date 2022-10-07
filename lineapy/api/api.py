@@ -22,6 +22,8 @@ from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
+from lineapy.plugins.loader import load_as_module
+from lineapy.plugins.pipeline_writers import BasePipelineWriter
 from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
@@ -503,7 +505,9 @@ def get_function(
         input_parameters=input_parameters,
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
     )
-    return art_collection.get_module().run_all_sessions
+    writer = BasePipelineWriter(art_collection)
+    module = load_as_module(writer)
+    return module.run_all_sessions
 
 
 def get_module_definition(
@@ -538,4 +542,5 @@ def get_module_definition(
         input_parameters=input_parameters,
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
     )
-    return art_collection.generate_module_text()
+    writer = BasePipelineWriter(art_collection)
+    return writer._compose_module()

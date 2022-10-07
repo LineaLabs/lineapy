@@ -4,6 +4,8 @@ import subprocess
 import pytest
 
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
+from lineapy.plugins.loader import load_as_module
+from lineapy.plugins.pipeline_writers import BasePipelineWriter
 
 
 @pytest.mark.parametrize(
@@ -69,7 +71,8 @@ def test_one_session(linea_db, execute, input_script, artifact_list):
 
     execute(code, snapshot=False)
     ac = ArtifactCollection(linea_db, artifact_list)
-    module = ac.get_module()
+    writer = BasePipelineWriter(ac, {})
+    module = load_as_module(writer)
     # Check there is a get_{artifact} function in the module for all artifacts
     assert all(
         [
@@ -139,7 +142,8 @@ def test_two_sessions(
     code = session2_code
     execute(code, snapshot=False)
     ac = ArtifactCollection(linea_db, artifact_list)
-    module = ac.get_module()
+    writer = BasePipelineWriter(ac, {})
+    module = load_as_module(writer)
     # Check there is a get_{artifact} function in the module for all artifacts
     assert all(
         [
@@ -151,7 +155,8 @@ def test_two_sessions(
     # If dependencies have been set, check whether the run_session_including_{art}
     # show up in correct order
     if len(dependencies) > 0:
-        moduletext = ac.generate_module_text(dependencies)
+        writer = BasePipelineWriter(ac, dependencies)
+        moduletext = writer._compose_module()
         first_artifact_in_session = {}
         for sa in ac.session_artifacts.values():
             for nodecollection in sa.artifact_nodecollections:
@@ -197,8 +202,8 @@ lineapy.save(c,'c')
         reuse_pre_computed_artifacts=["b"],
         input_parameters=["a"],
     )
-    ac.sort_session_artifacts(dependencies={"c": {"b"}})
-    module = ac.get_module()
+    writer = BasePipelineWriter(ac, dependencies={"c": {"b"}})
+    module = load_as_module(writer)
     assert not hasattr(module, "get_a")
     assert hasattr(module, "get_b")
     assert hasattr(module, "get_c")
@@ -242,9 +247,10 @@ lineapy.save(b,'prod_p')
     ac = ArtifactCollection(
         linea_db, artifact_list, input_parameters=input_parameters
     )
+    writer = BasePipelineWriter(ac, {})
     temp_module_path = pathlib.Path(tmpdir, "artifactcollection_module.py")
     with open(temp_module_path, "w") as f:
-        f.writelines(ac.generate_module_text())
+        f.writelines(writer._compose_module())
 
     cmds = ["python", str(temp_module_path)]
     # Add input parameter values if specified in cmds

@@ -1,30 +1,23 @@
-import importlib.util
-import itertools
 import logging
-import sys
-import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
-from importlib.abc import Loader
 from itertools import chain
-from pathlib import Path
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Sequence, Set, Tuple, Union
 
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
 
 from lineapy.api.models.linea_artifact import (
     LineaArtifact,
+    LineaArtifactDef,
     get_lineaartifactdef,
 )
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
-from lineapy.graph_reader.types import InputVariable
 from lineapy.plugins.task import TaskGraphEdge
-from lineapy.plugins.utils import load_plugin_template, slugify
+from lineapy.plugins.utils import slugify
 from lineapy.utils.logging_config import configure_logging
-from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
@@ -46,9 +39,11 @@ class ArtifactCollection:
     def __init__(
         self,
         db: RelationalLineaDB,
-        target_artifacts: List[Union[str, Tuple[str, int]]],
+        target_artifacts: Sequence[Union[str, Tuple[str, int]]],
         input_parameters: List[str] = [],
-        reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
+        reuse_pre_computed_artifacts: Sequence[
+            Union[str, Tuple[str, int]]
+        ] = [],
     ) -> None:
         self.db: RelationalLineaDB = db
 
@@ -58,15 +53,23 @@ class ArtifactCollection:
                 f"Duplicated input parameters detected in {input_parameters}"
             )
 
+        target_artifact_defs = [
+            get_lineaartifactdef(art_entry=art_entry)
+            for art_entry in target_artifacts
+        ]
         # Retrieve target artifact objects and group them by session ID
         self.target_artifacts_by_session = (
-            self._get_artifacts_grouped_by_session(target_artifacts)
+            self._get_artifacts_grouped_by_session(target_artifact_defs)
         )
 
+        reuse_pre_computed_artifact_defs = [
+            get_lineaartifactdef(art_entry=art_entry)
+            for art_entry in reuse_pre_computed_artifacts
+        ]
         # Retrieve reuse precomputed artifact objects and group them by session ID
         self.pre_computed_artifacts_by_session = (
             self._get_artifacts_grouped_by_session(
-                reuse_pre_computed_artifacts
+                reuse_pre_computed_artifact_defs
             )
         )
 
@@ -82,7 +85,7 @@ class ArtifactCollection:
         ) in self.target_artifacts_by_session.items():
             # TODO: LIN-653, LIN-640 only collect matched pre_computed artifacts in this Session
             # instead of grabbing all Artifacts as currently required by SessionArtifact
-            pre_calculated_artifacts = sum(
+            pre_calculated_artifacts: List[LineaArtifact] = sum(
                 self.pre_computed_artifacts_by_session.values(), []
             )
 
@@ -94,7 +97,7 @@ class ArtifactCollection:
             )
 
     def _get_artifacts_grouped_by_session(
-        self, artifact_entries: List[Union[str, Tuple[str, int]]]
+        self, artifact_entries: List[LineaArtifactDef]
     ) -> Dict[LineaID, List[LineaArtifact]]:
         """
         Get LineaArtifact from each artifact entry and group by the Session they belong to.
@@ -108,8 +111,7 @@ class ArtifactCollection:
             LineaID, List[LineaArtifact]
         ] = defaultdict(list)
         seen_artifact_names: Set[str] = set()
-        for art_entry in artifact_entries:
-            art_def = get_lineaartifactdef(art_entry=art_entry)
+        for art_def in artifact_entries:
             # Check no two target artifacts have the same name
             if art_def["artifact_name"] in seen_artifact_names:
                 raise KeyError(
@@ -244,154 +246,3 @@ class ArtifactCollection:
             self.session_artifacts[session_id]
             for session_id in session_id_sorted
         ]
-
-    # TODO: Move to writers
-    def _compose_module(
-        self,
-        session_artifacts_sorted: List[SessionArtifacts],
-        indentation: int = 4,
-        return_dict_name="artifacts",
-    ) -> str:
-        """
-        Generate a Python module that calculates artifacts
-        in the given artifact collection.
-        """
-        indentation_block = " " * indentation
-
-        module_imports = "\n".join(
-            [
-                sa.get_session_module_imports()
-                for sa in session_artifacts_sorted
-            ]
-        )
-
-        artifact_function_definition = "\n".join(
-            list(
-                itertools.chain.from_iterable(
-                    [
-                        sa.get_session_artifact_function_definitions(
-                            indentation=indentation
-                        )
-                        for sa in session_artifacts_sorted
-                    ]
-                )
-            )
-        )
-
-        session_functions = "\n".join(
-            [
-                sa.get_session_function(indentation=indentation)
-                for sa in session_artifacts_sorted
-            ]
-        )
-
-        module_function_body = "\n".join(
-            [
-                f"{indentation_block}{return_dict_name}.update({sa.get_session_function_callblock()})"
-                for sa in session_artifacts_sorted
-            ]
-        )
-
-        module_input_parameters: List[InputVariable] = []
-        for sa in session_artifacts_sorted:
-            module_input_parameters += list(
-                sa.get_session_input_parameters_spec().values()
-            )
-
-        module_input_parameters_list = [
-            param.variable_name for param in module_input_parameters
-        ]
-        if len(module_input_parameters_list) != len(
-            set(module_input_parameters_list)
-        ):
-            raise ValueError(
-                f"Duplicated input parameters {module_input_parameters_list} across multiple sessions"
-            )
-        elif set(module_input_parameters_list) != set(self.input_parameters):
-            missing_parameters = set(self.input_parameters) - set(
-                module_input_parameters_list
-            )
-            raise ValueError(
-                f"Detected input parameters {module_input_parameters_list} do not agree with user input {self.input_parameters}. "
-                + f"The following variables do not have references in any session code: {missing_parameters}."
-            )
-
-        # Sort input parameter for the run_all in the module as the same order
-        # of user's input parameter
-        user_input_parameters_ordering = {
-            var: i for i, var in enumerate(self.input_parameters)
-        }
-        module_input_parameters.sort(
-            key=lambda x: user_input_parameters_ordering[x.variable_name]
-        )
-
-        # Put all together to generate module text
-        MODULE_TEMPLATE = load_plugin_template("module.jinja")
-        module_text = MODULE_TEMPLATE.render(
-            indentation_block=indentation_block,
-            module_imports=module_imports,
-            artifact_functions=artifact_function_definition,
-            session_functions=session_functions,
-            module_function_body=module_function_body,
-            default_input_parameters=[
-                param.default_args for param in module_input_parameters
-            ],
-            parser_input_parameters=[
-                param.parser_args for param in module_input_parameters
-            ],
-            parser_blocks=[
-                param.parser_body for param in module_input_parameters
-            ],
-        )
-
-        return module_text
-
-    # TODO: Move to writers
-    def generate_module_text(
-        self,
-        dependencies: TaskGraphEdge = {},
-        indentation: int = 4,
-    ) -> str:
-        """
-        Generate a Python module that reproduces artifacts in the artifact collection.
-        This module is meant to provide function components that can be easily reused to
-        incorporate artifacts into other code contexts.
-
-        :param dependencies: Dependency between artifacts, expressed in graphlib format.
-            For instance, ``{"B": {"A", "C"}}`` means artifacts A and C are prerequisites for artifact B.
-        """
-        # Sort sessions topologically (applicable if artifacts come from multiple sessions)
-        session_artifacts_sorted = self.sort_session_artifacts(
-            dependencies=dependencies
-        )
-
-        # Generate module text
-        module_text = self._compose_module(
-            session_artifacts_sorted=session_artifacts_sorted,
-            indentation=indentation,
-        )
-        return prettify(module_text)
-
-    def get_module(self, dependencies: TaskGraphEdge = {}):
-        """
-        Writing module text to a temp file and load module with names of
-        ``session_art1_art2_...```
-        """
-
-        module_name = f"session_{'_'.join(self.session_artifacts.keys())}"
-        temp_folder = tempfile.mkdtemp()
-        temp_module_path = Path(temp_folder, f"{module_name}.py")
-        with open(temp_module_path, "w") as f:
-            f.writelines(self.generate_module_text(dependencies=dependencies))
-
-        spec = importlib.util.spec_from_file_location(
-            module_name, temp_module_path
-        )
-        if spec is not None:
-            session_module = importlib.util.module_from_spec(spec)
-            assert isinstance(spec.loader, Loader)
-            sys.modules["module.name"] = session_module
-            spec.loader.exec_module(session_module)
-            return session_module
-        else:
-            raise Exception("LineaPy cannot retrive a module.")
