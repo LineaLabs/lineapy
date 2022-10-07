@@ -1,12 +1,12 @@
 import argparse
 
 
-def get_b0(b0):
+def get_b0(b0, **kwargs):
 
     return b0
 
 
-def get_a(b0):
+def get_a(b0, **kwargs):
     a = b0 + 1
     return a
 

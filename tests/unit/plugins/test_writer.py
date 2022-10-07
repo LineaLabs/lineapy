@@ -316,6 +316,7 @@ def test_pipeline_test_generation(
         dependencies=dependencies,
         pipeline_name=pipeline_name,
         output_dir=tmp_path,
+        generate_test=True,
     )
 
     # Write out pipeline files

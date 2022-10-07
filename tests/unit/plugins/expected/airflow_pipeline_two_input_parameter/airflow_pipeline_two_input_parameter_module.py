@@ -1,7 +1,7 @@
 import argparse
 
 
-def get_pn(n, p):
+def get_pn(n, p, **kwargs):
     pn = p * n
     return pn
 
