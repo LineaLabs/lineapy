@@ -10,7 +10,7 @@ RUN pip install -U pip
 RUN pip install fsspec s3fs psycopg2-binary
 
 # install lineapy
-RUN pip install lineapy==0.2.0
+RUN pip install lineapy==0.2.1
 
 # other nice to have libraries
 RUN pip install pandas==1.4.3 scikit-learn==1.1.2
