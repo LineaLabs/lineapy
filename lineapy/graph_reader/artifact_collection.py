@@ -73,10 +73,6 @@ class ArtifactCollection:
             )
         )
 
-        # TODO: LIN-653, LIN-640
-        # Add some type of validation that all re-use compute artifacts can be matched to
-        # a target artifact.
-
         # For each session, construct SessionArtifacts object
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
         for (
@@ -95,6 +91,29 @@ class ArtifactCollection:
                 input_parameters=input_parameters,
                 reuse_pre_computed_artifacts=pre_calculated_artifacts,
             )
+
+        # TODO: LIN-653, LIN-640
+        # Add some type of validation that all re-use compute artifacts can be matched to
+        # a target artifact before the creation of SessionArtifacts.
+        # Check all reuse_pre_computed artifacts is used
+        all_sessions_artifacts = []
+        for sa in self.session_artifacts.values():
+            all_sessions_artifacts += [
+                art.name for art in sa.all_session_artifacts.values()
+            ]
+        pre_calculated_artifacts = sum(
+            self.pre_computed_artifacts_by_session.values(), []
+        )
+        for reuse_art in pre_calculated_artifacts:
+            reuse_name = reuse_art.name
+            if reuse_name not in all_sessions_artifacts:
+                msg = (
+                    f"Artifact {reuse_name} cannot be reused since it is not "
+                    + "used to calculate artifacts "
+                    + f"{', '.join([str(art) for art in target_artifacts])}. "
+                    + "Try to remove it from the reuse list."
+                )
+                raise KeyError(msg)
 
     def _get_artifacts_grouped_by_session(
         self, artifact_entries: List[LineaArtifactDef]
