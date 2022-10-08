@@ -77,6 +77,7 @@ class LiteralType(Enum):
     Boolean = auto()
     NoneType = auto()
     Ellipsis = auto()
+    Bytes = auto()
 
 
 class ValueType(Enum):

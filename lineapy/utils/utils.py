@@ -41,6 +41,8 @@ def get_literal_value_from_string(
         return val
     if literal_type == LiteralType.Ellipsis:
         return ...
+    if literal_type == LiteralType.Bytes:
+        return bytes(val, "utf-8")
     raise NotImplementedError(f"Unsupported literal type: {literal_type}")
 
 
