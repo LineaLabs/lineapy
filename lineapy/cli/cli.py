@@ -25,7 +25,10 @@ from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
 
-from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.api.models.linea_artifact import (
+    LineaArtifact,
+    get_lineaartifactdef,
+)
 from lineapy.data.types import SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
@@ -430,8 +433,10 @@ def python_cli(
 
         # TODO: Use `Pipeline` object as an entry point (LIN-319 needs
         # to be tackled first to define/refine expected behavior for CLI).
-
-        artifact_collection = ArtifactCollection(db, slice)
+        art_slice_defs = [
+            get_lineaartifactdef(art_entry=art_entry) for art_entry in slice
+        ]
+        artifact_collection = ArtifactCollection(db, art_slice_defs)
         task_dependencies = ast.literal_eval(airflow_task_dependencies or "{}")
 
         # Construct pipeline writer

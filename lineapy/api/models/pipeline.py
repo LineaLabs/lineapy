@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from lineapy.api.api_utils import extract_taskgraph
+from lineapy.api.models.linea_artifact import get_lineaartifactdef
 from lineapy.data.types import PipelineType
 from lineapy.db.relational import (
     ArtifactDependencyORM,
@@ -56,11 +57,19 @@ class Pipeline:
     ) -> Path:
         # Create artifact collection
         execution_context = get_context()
+        artifact_defs = [
+            get_lineaartifactdef(art_entry=art_entry)
+            for art_entry in self.artifact_names
+        ]
+        reuse_pre_computed_artifact_defs = [
+            get_lineaartifactdef(art_entry=art_entry)
+            for art_entry in reuse_pre_computed_artifacts
+        ]
         artifact_collection = ArtifactCollection(
             db=execution_context.executor.db,
-            target_artifacts=self.artifact_names,
+            target_artifacts=artifact_defs,
             input_parameters=input_parameters,
-            reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+            reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
         )
 
         # Check if the specified framework is a supported/valid one

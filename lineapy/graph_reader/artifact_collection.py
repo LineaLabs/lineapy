@@ -2,16 +2,12 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain
-from typing import Dict, List, Sequence, Set, Tuple, Union
+from typing import Dict, List, Set
 
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
 
-from lineapy.api.models.linea_artifact import (
-    LineaArtifact,
-    LineaArtifactDef,
-    get_lineaartifactdef,
-)
+from lineapy.api.models.linea_artifact import LineaArtifact, LineaArtifactDef
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
@@ -39,11 +35,9 @@ class ArtifactCollection:
     def __init__(
         self,
         db: RelationalLineaDB,
-        target_artifacts: Sequence[Union[str, Tuple[str, int]]],
+        target_artifacts: List[LineaArtifactDef],
         input_parameters: List[str] = [],
-        reuse_pre_computed_artifacts: Sequence[
-            Union[str, Tuple[str, int]]
-        ] = [],
+        reuse_pre_computed_artifacts: List[LineaArtifactDef] = [],
     ) -> None:
         self.db: RelationalLineaDB = db
 
@@ -53,23 +47,15 @@ class ArtifactCollection:
                 f"Duplicated input parameters detected in {input_parameters}"
             )
 
-        target_artifact_defs = [
-            get_lineaartifactdef(art_entry=art_entry)
-            for art_entry in target_artifacts
-        ]
         # Retrieve target artifact objects and group them by session ID
         self.target_artifacts_by_session = (
-            self._get_artifacts_grouped_by_session(target_artifact_defs)
+            self._get_artifacts_grouped_by_session(target_artifacts)
         )
 
-        reuse_pre_computed_artifact_defs = [
-            get_lineaartifactdef(art_entry=art_entry)
-            for art_entry in reuse_pre_computed_artifacts
-        ]
         # Retrieve reuse precomputed artifact objects and group them by session ID
         self.pre_computed_artifacts_by_session = (
             self._get_artifacts_grouped_by_session(
-                reuse_pre_computed_artifact_defs
+                reuse_pre_computed_artifacts
             )
         )
 
@@ -196,7 +182,7 @@ class ArtifactCollection:
                 "Please check if the provided dependencies include circular relationships."
             )
 
-    def create_inter_session_graph(self, dependencies: TaskGraphEdge = {}):
+    def create_inter_session_taskgraph(self, dependencies: TaskGraphEdge = {}):
         # Helper dictionary to look up artifact information by name
         art_name_to_session_id: Dict[str, LineaID] = {}
         for (
@@ -249,10 +235,14 @@ class ArtifactCollection:
         if dependencies:
             self.validate_dependencies(dependencies)
 
-        inter_session_graph = self.create_inter_session_graph(dependencies)
+        inter_session_taskgraph = self.create_inter_session_taskgraph(
+            dependencies
+        )
         # Sort the session_id
         try:
-            session_id_sorted = list(nx.topological_sort(inter_session_graph))
+            session_id_sorted = list(
+                nx.topological_sort(inter_session_taskgraph)
+            )
         except NetworkXUnfeasible:
             raise Exception(
                 "Current implementation of LineaPy demands it be able to linearly order different sessions, "

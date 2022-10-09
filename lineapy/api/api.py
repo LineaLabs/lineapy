@@ -12,7 +12,10 @@ from typing import Callable, List, Optional, Tuple, Union
 import fsspec
 from pandas.io.pickle import to_pickle
 
-from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.api.models.linea_artifact import (
+    LineaArtifact,
+    get_lineaartifactdef,
+)
 from lineapy.api.models.linea_artifact_store import LineaArtifactStore
 from lineapy.api.models.pipeline import Pipeline
 from lineapy.data.types import Artifact, LineaID, NodeValue
@@ -499,11 +502,18 @@ def get_function(
         within the same session.
     """
     execution_context = get_context()
+    artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
+    ]
+    reuse_pre_computed_artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry)
+        for art_entry in reuse_pre_computed_artifacts
+    ]
     art_collection = ArtifactCollection(
         execution_context.executor.db,
-        artifacts,
+        artifact_defs,
         input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
     )
     writer = BasePipelineWriter(art_collection)
     module = load_as_module(writer)
@@ -536,11 +546,18 @@ def get_module_definition(
         as `run_all_sessions`.
     """
     execution_context = get_context()
+    artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
+    ]
+    reuse_pre_computed_artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry)
+        for art_entry in reuse_pre_computed_artifacts
+    ]
     art_collection = ArtifactCollection(
         execution_context.executor.db,
-        artifacts,
+        artifact_defs,
         input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
     )
     writer = BasePipelineWriter(art_collection)
     return writer._compose_module()

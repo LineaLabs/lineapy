@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from lineapy.api.models.linea_artifact import get_lineaartifactdef
 from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.pipeline_writers import PipelineWriterFactory
@@ -210,8 +211,9 @@ def test_pipeline_generation(
         ).read_text()
         execute(code2, snapshot=False)
 
+    artifact_def_list = [get_lineaartifactdef(art) for art in artifact_list]
     artifact_collection = ArtifactCollection(
-        linea_db, artifact_list, input_parameters=input_parameters
+        linea_db, artifact_def_list, input_parameters=input_parameters
     )
 
     # Construct pipeline writer
@@ -304,7 +306,8 @@ def test_pipeline_test_generation(
         ).read_text()
         execute(code2, snapshot=False)
 
-    artifact_collection = ArtifactCollection(linea_db, artifact_list)
+    artifact_def_list = [get_lineaartifactdef(art) for art in artifact_list]
+    artifact_collection = ArtifactCollection(linea_db, artifact_def_list)
 
     # Construct pipeline writer
     pipeline_writer = PipelineWriterFactory.get(
