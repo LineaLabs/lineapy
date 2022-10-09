@@ -1,6 +1,6 @@
 import functools
+import shutil
 from typing import Callable
-from unittest.mock import patch
 
 import pytest
 from IPython.core.interactiveshell import InteractiveShell
@@ -41,55 +41,28 @@ def test_slice_artifact_inline(run_cell):
     )
 
 
-@pytest.mark.slow
-@patch("lineapy.api.api._try_write_to_pickle", return_value=None)
-@patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
-def test_to_airflow_pymodule(
-    _pickle_name, try_write_to_pickle, python_snapshot, run_cell
-):
+@pytest.fixture
+def airflow_py_module_path(run_cell, add_config):
     assert run_cell("import lineapy") is None
     assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
-    py_module_path = run_cell(
-        "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/')"
-    )
-    assert python_snapshot == (py_module_path / "a_module.py").read_text()
+    if add_config:
+        to_pipeline_command = "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/', pipeline_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
+    else:
+        to_pipeline_command = "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/')"
+
+    py_module_path = run_cell(to_pipeline_command)
+    yield py_module_path
+    # cleanup since this tests creates files
+    shutil.rmtree(py_module_path)
 
 
+@pytest.mark.parametrize("pipeline_file", ["a_module.py", "a_dag.py"])
+@pytest.mark.parametrize("add_config", [True, False])
 @pytest.mark.slow
-def test_to_airflow_dagmodule(python_snapshot, run_cell):
-    assert run_cell("import lineapy") is None
-    assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
-    py_module_path = run_cell(
-        "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags/')"
+def test_to_airflow(python_snapshot, airflow_py_module_path, pipeline_file):
+    assert (
+        python_snapshot == (airflow_py_module_path / pipeline_file).read_text()
     )
-    dag_module_path = py_module_path / "a_dag.py"
-    assert python_snapshot == dag_module_path.read_text()
-
-
-@pytest.mark.slow
-@patch("lineapy.api.api._try_write_to_pickle", return_value=None)
-@patch("lineapy.api.api._pickle_name", return_value="pickle-sample.pkl")
-def test_to_airflow_with_config_pymodule(
-    _pickle_name, try_write_to_pickle, python_snapshot, run_cell
-):
-    assert run_cell("import lineapy") is None
-    assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
-    py_module_path = run_cell(
-        "lineapy.to_pipeline([res.name], framework='AIRFLOW', pipeline_name=res.name, output_dir='~/airflow/dags', pipeline_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
-    )
-    assert python_snapshot == (py_module_path / "a_module.py").read_text()
-
-
-@pytest.mark.slow
-def test_to_airflow_with_config_dagmodule(python_snapshot, run_cell):
-    assert run_cell("import lineapy") is None
-    assert run_cell("a = [1, 2, 3]\nres = lineapy.save(a, 'a')") is None
-    # also tests to see if default dag name gets set
-    py_module_path = run_cell(
-        "lineapy.to_pipeline([res.name], framework='AIRFLOW', output_dir='~/airflow/dags', pipeline_dag_config={'retries': 1, 'schedule_interval': '*/30 * * * *'})"
-    )
-    dag_module_path = py_module_path / "a_dag.py"
-    assert python_snapshot == dag_module_path.read_text()
 
 
 def test_get_value_artifact_inline(run_cell):
