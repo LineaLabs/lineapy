@@ -307,7 +307,12 @@ def generate_save_code(
     "--export-slice-to-airflow-dag",
     "--airflow",
     default=None,
-    help="Requires --slice. Export the sliced code from all slices to an Airflow DAG {export-slice-to-airflow-dag}.py",
+    help="Requires --slice. Export the sliced code from all slices to an Airflow DAG {export-dir}/{export-slice-to-airflow-dag}.py",
+)
+@click.option(
+    "--export-dir",
+    default=".",
+    help="Requires --slice. Export the sliced code from all slices to an Airflow DAG {export-dir}/{export-slice-to-airflow-dag}.py",
 )
 @click.option(
     "--airflow-task-dependencies",
@@ -342,6 +347,7 @@ def python(
     slice: List[str],  # cast tuple into list
     export_slice: List[str],  # cast tuple into list
     export_slice_to_airflow_dag: str,
+    export_dir: str,
     airflow_task_dependencies: str,
     print_source: bool,
     print_graph: bool,
@@ -353,6 +359,7 @@ def python(
         slice,
         export_slice,
         export_slice_to_airflow_dag,
+        export_dir,
         airflow_task_dependencies,
         print_source,
         print_graph,
@@ -366,6 +373,7 @@ def python_cli(
     slice: List[str] = None,  # cast tuple into list
     export_slice: List[str] = None,  # cast tuple into list
     export_slice_to_airflow_dag: str = None,
+    export_dir: str = ".",
     airflow_task_dependencies: str = None,
     print_source: bool = False,
     print_graph: bool = False,
@@ -419,7 +427,9 @@ def python_cli(
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
             full_code = tracer.slice(_slice)
-            pathlib.Path(f"{_export_slice}.py").write_text(full_code)
+            (pathlib.Path(f"{export_dir}") / f"{_export_slice}.py").write_text(
+                full_code
+            )
 
     if export_slice_to_airflow_dag:
         if not slice:
@@ -438,6 +448,8 @@ def python_cli(
         pipeline_writer = AirflowPipelineWriter(
             artifact_collection=artifact_collection,
             dependencies=task_dependencies,
+            pipeline_name=export_slice_to_airflow_dag,
+            output_dir=export_dir,
         )
 
         # Write out pipeline files
