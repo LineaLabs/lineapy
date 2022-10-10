@@ -1,3 +1,4 @@
+import ast
 import sys
 from typing import Any, Callable, Iterable, Optional, Set, Tuple, TypeVar, cast
 from uuid import uuid4
@@ -42,7 +43,8 @@ def get_literal_value_from_string(
     if literal_type == LiteralType.Ellipsis:
         return ...
     if literal_type == LiteralType.Bytes:
-        return bytes(val, "utf-8")
+        # This is right way to undo str(bytes_object)
+        return ast.literal_eval(val)
     raise NotImplementedError(f"Unsupported literal type: {literal_type}")
 
 
