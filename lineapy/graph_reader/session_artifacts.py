@@ -714,6 +714,8 @@ class SessionArtifacts:
         session_input_variables: Dict[str, InputVariable] = dict()
         for line in self.get_session_input_parameters_lines().split("\n"):
             variable_def = line.strip(" ").rstrip(",")
+            if variable_def.startswith("#"):
+                continue
             if len(variable_def) > 0:
                 variable_name = variable_def.split("=")[0].strip(" ")
                 value = eval(variable_def.split("=")[1].strip(" "))
