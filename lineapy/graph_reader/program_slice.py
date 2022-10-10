@@ -189,9 +189,9 @@ class CodeSlice:
 
 
 def get_source_code_from_graph(
-    program: Graph,
-    session_graph: Graph = None,
-    include_non_slice_as_comment=True,
+    slice_nodes: Set[LineaID],
+    session_graph: Graph,
+    include_non_slice_as_comment=False,
 ) -> CodeSlice:
     """
     Returns the code from some subgraph, by including all lines that
@@ -210,30 +210,10 @@ def get_source_code_from_graph(
     source_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
     import_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
     incomplete_block_locations = DefaultDict[SourceCode, Set[int]](set)
+    session_src = DefaultDict[SourceCode, Set[LineaID]](set)
 
-    subgraph_nodes = list(set([n.id for n in program.nodes]))
-    # max_execution_count = max(
-    #     [
-    #         # only application for jupyter cells. otherwise execution_count isnt available
-    #         n.source_location.source_code.location.execution_count  # type:ignore
-    #         for n in program.nodes
-    #         if n.source_location is not None
-    #     ]
-    # )
-
-    # if session_graph is not None:
-    #     for snode in session_graph.nodes:
-    #         # print(snode.id)
-    #         # print(snode in program.nodes)
-    #         # print(snode.id in [n.id for n in program.nodes])
-    #         if (
-    #             snode.source_location
-    #             and snode.source_location.source_code.location.execution_count  # type: ignore
-    #             > max_execution_count
-    #         ):
-    #             break
-
-    for node in program.nodes:
+    for nodeid in slice_nodes:
+        node = session_graph.ids[nodeid]
         if not node.source_location:
             continue
         # In the following code sample:
@@ -262,10 +242,11 @@ def get_source_code_from_graph(
         # To find out the program locations where we need to append a `pass`
         # statement, we maintain the `incomplete_block_location` variable to
         # keep a track of these program lines.
+
         if isinstance(node, (ControlFlowNode)):
             control_dependencies = [
                 child_id
-                for child_id in program.get_children(node.id)
+                for child_id in session_graph.get_children(nodeid)
                 if not child_id == node.companion_id
             ] + ([node.unexec_id] if node.unexec_id is not None else [])
             if len(control_dependencies) == 0:
@@ -288,12 +269,36 @@ def get_source_code_from_graph(
                 )
             )
 
+    # print(slice_nodes)
+    # for n in slice_nodes:
+    #     nn = session_graph.ids[n]
+    #     print(n, nn.node_type)
+    #     if hasattr(nn, "name"):
+    #         print(nn.name)
+    for n in session_graph.nodes:
+        # print(n.id)
+        if n.source_location is None:
+            # print("no source", n.id, n.node_type)
+            continue
+        # ignore the code cells that have no part in the slice at all
+        if (
+            not include_non_slice_as_comment
+            and n.source_location.source_code not in source_code_to_lines
+        ):
+            # print("not including", n.id)
+            continue
+        # print("including", n.id)
+        session_src[n.source_location.source_code] |= set([n.id])
+
     logger.debug("Source code to lines: %s", source_code_to_lines)
     # Sort source codes (for jupyter cells), and select lines
     body_code = []
-    for source_code, lines in sorted(
-        source_code_to_lines.items(), key=lambda x: x[0]
+    for source_code, nodeids in sorted(
+        session_src.items(), key=lambda x: x[0]
     ):
+        # if any of the nodeids in a sourcecode block are in source_code_to_lines,
+        # then there are pieces of the codecell in the final slice.
+        lines = source_code_to_lines.get(source_code, set())
         source_code_lines = source_code.code.split("\n")
         # print("raw code")
         # print(source_code.code)
@@ -307,6 +312,7 @@ def get_source_code_from_graph(
                     indent = len(line_str) - len(line_str.lstrip())
                     body_code.append(" " * (indent + 1) + "pass")
         else:
+
             # add the lines that are not part of slice as comments
             for i in range(len(source_code_lines)):
                 # lineno is 1-indexed in ast
@@ -354,9 +360,10 @@ def get_program_slice(
 
     """
     logger.debug("Slicing graph %s", graph)
-    subgraph = get_slice_graph(graph, sinks, keep_lineapy_save)
-    logger.debug("Subgraph for %s: %s", sinks, subgraph)
-    return get_source_code_from_graph(subgraph)
+    # subgraph = get_slice_graph(graph, sinks, keep_lineapy_save)
+    subgraph_nodes = _get_preliminary_slice(graph, sinks, keep_lineapy_save)
+    # logger.debug("Subgraph for %s: %s", sinks, subgraph)
+    return get_source_code_from_graph(subgraph_nodes, graph)
 
 
 def get_program_slice_by_artifact_name(

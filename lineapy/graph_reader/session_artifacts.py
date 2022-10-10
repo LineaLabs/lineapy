@@ -529,7 +529,9 @@ class SessionArtifacts:
                         common_nodecollectioninfo._update_variable_info(
                             self.node_context, self.input_parameters_node
                         )
-                        common_nodecollectioninfo._update_graph(self.graph)
+                        common_nodecollectioninfo._update_graph(
+                            self._session_graph
+                        )
 
                         remaining_nodes = source_info.node_list - common_nodes
                         remaining_nodecollectioninfo = NodeCollection(
@@ -542,7 +544,9 @@ class SessionArtifacts:
                         remaining_nodecollectioninfo._update_variable_info(
                             self.node_context, self.input_parameters_node
                         )
-                        remaining_nodecollectioninfo._update_graph(self.graph)
+                        remaining_nodecollectioninfo._update_graph(
+                            self._session_graph
+                        )
 
                         self.artifact_nodecollections = (
                             self.artifact_nodecollections[:source_id]
@@ -561,7 +565,7 @@ class SessionArtifacts:
                     nodecollectioninfo.node_list
                     - set(self.input_parameters_node.values())
                 )
-                nodecollectioninfo._update_graph(self.graph)
+                nodecollectioninfo._update_graph(self._session_graph)
                 self.artifact_nodecollections.append(nodecollectioninfo)
 
         # NodeCollection for import
@@ -569,7 +573,8 @@ class SessionArtifacts:
             collection_type=NodeCollectionType.IMPORT,
             node_list=self.import_nodes,
         )
-        self.import_nodecollection._update_graph(self.graph)
+        # TODO: dont comment unsliced code here as well since we dont care about imports
+        self.import_nodecollection._update_graph(self.graph, include_non_slice_as_comment=False)
 
         # NodeCollection for input parameters
         self.input_parameters_nodecollection = NodeCollection(
@@ -579,7 +584,8 @@ class SessionArtifacts:
         self.input_parameters_nodecollection._update_variable_info(
             self.node_context, self.input_parameters_node
         )
-        self.input_parameters_nodecollection._update_graph(self.graph)
+        # TODO: change here to not include raw code since this is generated bits
+        self.input_parameters_nodecollection._update_graph(self.graph, include_non_slice_as_comment=False)
 
     def _update_nodecollection_dependencies(self):
         """

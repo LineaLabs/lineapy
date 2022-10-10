@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import Optional, Set, Tuple, Union
 
 from IPython.display import display
 from pandas.io.pickle import read_pickle
@@ -16,6 +16,7 @@ from lineapy.data.types import LineaID
 from lineapy.db.db import ArtifactORM, RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
+    _get_preliminary_slice,
     get_slice_graph,
     get_source_code_from_graph,
 )
@@ -152,6 +153,15 @@ class LineaArtifact:
         )
 
     @lru_cache(maxsize=None)
+    def _get_subgraph_nodelist(
+        self, keep_lineapy_save: bool = False
+    ) -> Set[LineaID]:
+        session_graph = Graph.create_session_graph(self.db, self._session_id)
+        return _get_preliminary_slice(
+            session_graph, [self._node_id], keep_lineapy_save
+        )
+
+    @lru_cache(maxsize=None)
     def get_code(
         self,
         use_lineapy_serialization: bool = True,
@@ -177,7 +187,7 @@ class LineaArtifact:
         )
         code = str(
             get_source_code_from_graph(
-                self._get_subgraph(keep_lineapy_save),
+                self._get_subgraph_nodelist(keep_lineapy_save),
                 session_graph=Graph.create_session_graph(
                     self.db, self._session_id
                 ),

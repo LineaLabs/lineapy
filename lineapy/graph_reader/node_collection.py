@@ -133,16 +133,18 @@ class NodeCollection:
             user_input_parameters
         )
 
-    def _update_graph(self, graph: Graph) -> None:
+    def _update_graph(
+        self, graph: Graph, include_non_slice_as_comment=True
+    ) -> None:
         """
         Update graph_segment class member based on node_list
 
         Need to manually run this function at least once if you need the graph
         object for code generation.
         """
-        self.graph_segment = graph.get_subgraph_from_id(list(self.node_list))
+        # self.graph_segment = graph.get_subgraph_from_id(list(self.node_list))
         self.raw_codeblock = get_source_code_from_graph(
-            self.graph_segment
+            self.node_list, graph, include_non_slice_as_comment
         ).__str__()
         self.is_empty = self.raw_codeblock == ""
 
