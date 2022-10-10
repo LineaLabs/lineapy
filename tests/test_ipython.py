@@ -56,8 +56,12 @@ def airflow_py_module_path(run_cell, add_config):
     shutil.rmtree(py_module_path)
 
 
-@pytest.mark.parametrize("pipeline_file", ["a_module.py", "a_dag.py"])
-@pytest.mark.parametrize("add_config", [True, False])
+@pytest.mark.parametrize(
+    "pipeline_file", ["a_module.py", "a_dag.py"], ids=["module", "dag"]
+)
+@pytest.mark.parametrize(
+    "add_config", [True, False], ids=["with_config", "no_config"]
+)
 @pytest.mark.slow
 def test_to_airflow(python_snapshot, airflow_py_module_path, pipeline_file):
     assert (
