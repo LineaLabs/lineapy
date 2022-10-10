@@ -57,7 +57,7 @@ class SessionArtifacts:
         db: RelationalLineaDB,
         target_artifacts: List[LineaArtifact],
         input_parameters: List[str] = [],
-        reuse_pre_computed_artifacts: Dict[str, LineaArtifact] = {},
+        reuse_pre_computed_artifacts: List[LineaArtifact] = [],
     ) -> None:
         self.db = db
         self.target_artifacts = target_artifacts
@@ -82,7 +82,9 @@ class SessionArtifacts:
         self.artifact_nodecollections = []
         self.node_context = OrderedDict()
         self.input_parameters = input_parameters
-        self.reuse_pre_computed_artifacts = reuse_pre_computed_artifacts
+        self.reuse_pre_computed_artifacts = {
+            art.name: art for art in reuse_pre_computed_artifacts
+        }
 
         # Retrive all artifacts within the subgraph of target artifacts
         self._retrive_all_session_artifacts()

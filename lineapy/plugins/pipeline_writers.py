@@ -1,3 +1,4 @@
+import itertools
 import logging
 import warnings
 from pathlib import Path
@@ -9,6 +10,7 @@ from lineapy.graph_reader.artifact_collection import (
     SessionArtifacts,
 )
 from lineapy.graph_reader.node_collection import NodeCollectionType
+from lineapy.graph_reader.types import InputVariable
 from lineapy.plugins.task import (
     AirflowDagConfig,
     AirflowDagFlavor,
@@ -53,19 +55,16 @@ class BasePipelineWriter:
         self.pipeline_name = slugify(pipeline_name)
         self.output_dir = Path(output_dir)
         self.dag_config = dag_config or {}
+        self.dependencies = dependencies
 
-        # Sort sessions topologically (applicable if artifacts come from multiple sessions)
         self.session_artifacts_sorted = (
-            artifact_collection._sort_session_artifacts(
+            self.artifact_collection.sort_session_artifacts(
                 dependencies=dependencies
             )
         )
 
         # Create output directory folder(s) if nonexistent
         self.output_dir.mkdir(exist_ok=True, parents=True)
-
-        # We assume there is at least one SessionArtifacts object
-        self.db = self.session_artifacts_sorted[0].db
 
     @property
     def docker_template_name(self) -> str:
@@ -82,13 +81,117 @@ class BasePipelineWriter:
         """
         Write out module file containing refactored code.
         """
-        module_text = self.artifact_collection._compose_module(
-            session_artifacts_sorted=self.session_artifacts_sorted,
+        module_text = self._compose_module(
             indentation=4,
         )
         file = self.output_dir / f"{self.pipeline_name}_module.py"
         file.write_text(prettify(module_text))
         logger.info(f"Generated module file: {file}")
+
+    def _compose_module(
+        self,
+        indentation: int = 4,
+        return_dict_name="artifacts",
+    ) -> str:
+        """
+        Generate a Python module that calculates artifacts
+        in the given artifact collection.
+        """
+
+        # Sort sessions topologically (applicable if artifacts come from multiple sessions)
+
+        indentation_block = " " * indentation
+
+        module_imports = "\n".join(
+            [
+                sa.get_session_module_imports()
+                for sa in self.session_artifacts_sorted
+            ]
+        )
+
+        artifact_function_definition = "\n".join(
+            list(
+                itertools.chain.from_iterable(
+                    [
+                        sa.get_session_artifact_function_definitions(
+                            indentation=indentation
+                        )
+                        for sa in self.session_artifacts_sorted
+                    ]
+                )
+            )
+        )
+
+        session_functions = "\n".join(
+            [
+                sa.get_session_function(indentation=indentation)
+                for sa in self.session_artifacts_sorted
+            ]
+        )
+
+        module_function_body = "\n".join(
+            [
+                f"{indentation_block}{return_dict_name}.update({sa.get_session_function_callblock()})"
+                for sa in self.session_artifacts_sorted
+            ]
+        )
+
+        module_input_parameters: List[InputVariable] = []
+        for sa in self.session_artifacts_sorted:
+            module_input_parameters += list(
+                sa.get_session_input_parameters_spec().values()
+            )
+
+        module_input_parameters_list = [
+            param.variable_name for param in module_input_parameters
+        ]
+        if len(module_input_parameters_list) != len(
+            set(module_input_parameters_list)
+        ):
+            raise ValueError(
+                f"Duplicated input parameters {module_input_parameters_list} across multiple sessions"
+            )
+        elif set(module_input_parameters_list) != set(
+            self.artifact_collection.input_parameters
+        ):
+            missing_parameters = set(
+                self.artifact_collection.input_parameters
+            ) - set(module_input_parameters_list)
+            raise ValueError(
+                f"Detected input parameters {module_input_parameters_list} do not agree with user input {self.artifact_collection.input_parameters}. "
+                + f"The following variables do not have references in any session code: {missing_parameters}."
+            )
+
+        # Sort input parameter for the run_all in the module as the same order
+        # of user's input parameter
+        user_input_parameters_ordering = {
+            var: i
+            for i, var in enumerate(self.artifact_collection.input_parameters)
+        }
+        module_input_parameters.sort(
+            key=lambda x: user_input_parameters_ordering[x.variable_name]
+        )
+
+        # Put all together to generate module text
+        MODULE_TEMPLATE = load_plugin_template("module.jinja")
+        module_text = MODULE_TEMPLATE.render(
+            indentation_block=indentation_block,
+            module_imports=module_imports,
+            artifact_functions=artifact_function_definition,
+            session_functions=session_functions,
+            module_function_body=module_function_body,
+            default_input_parameters=[
+                param.default_args for param in module_input_parameters
+            ],
+            parser_input_parameters=[
+                param.parser_args for param in module_input_parameters
+            ],
+            parser_blocks=[
+                param.parser_body for param in module_input_parameters
+            ],
+        )
+
+        return prettify(module_text)
 
     def _write_requirements(self) -> None:
         """
@@ -505,7 +608,7 @@ class AirflowCodeGenerator:
 
     def get_params_args(self) -> str:
         input_parameters_dict = dict()
-        for sa in self.artifact_collection._sort_session_artifacts():
+        for sa in self.artifact_collection.sort_session_artifacts():
             for input_spec in sa.get_session_input_parameters_spec().values():
                 input_parameters_dict[
                     input_spec.variable_name
@@ -514,7 +617,7 @@ class AirflowCodeGenerator:
 
     def get_session_function_params_args(self) -> Dict[str, str]:
         session_function_input_parameters = dict()
-        for sa in self.artifact_collection._sort_session_artifacts():
+        for sa in self.artifact_collection.sort_session_artifacts():
             session_input_parameters = list(sa.input_parameters_node.keys())
             if len(session_input_parameters) > 0:
                 session_function_input_parameters[
@@ -531,7 +634,7 @@ class AirflowCodeGenerator:
         self, artifact_function_definitions: Dict[str, TaskDefinition]
     ) -> Dict[str, str]:
         artifact_function_input_parameters = dict()
-        for sa in self.artifact_collection._sort_session_artifacts():
+        for sa in self.artifact_collection.sort_session_artifacts():
             session_input_parameters = set(sa.input_parameters_node.keys())
             for nc in sa.artifact_nodecollections:
                 user_input_variables = artifact_function_definitions[
