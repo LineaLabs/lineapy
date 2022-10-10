@@ -373,6 +373,7 @@ def to_pipeline(
     reuse_pre_computed_artifacts: List[str] = [],
     generate_test: bool = False,
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
+    include_non_slice_as_comment: bool = True,
 ) -> Path:
     """
     Writes the pipeline job to a path on disk.
@@ -446,6 +447,7 @@ def to_pipeline(
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
         generate_test=generate_test,
         pipeline_dag_config=pipeline_dag_config,
+        include_non_slice_as_comment=include_non_slice_as_comment,
     )
 
 

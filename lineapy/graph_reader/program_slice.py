@@ -30,7 +30,7 @@ def get_slice_graph(
     :return: A subgraph extracted (i.e., sliced) for the desired node IDs.
 
     """
-    ancestors = _get_preliminary_slice(graph, sinks, keep_lineapy_save)
+    ancestors = get_subgraph_nodelist(graph, sinks, keep_lineapy_save)
 
     ancestors = _include_dependencies_for_indirectly_included_nodes_in_slice(
         graph, ancestors
@@ -41,7 +41,7 @@ def get_slice_graph(
     return subgraph
 
 
-def _get_preliminary_slice(
+def get_subgraph_nodelist(
     graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool
 ) -> Set[LineaID]:
     """
@@ -360,9 +360,7 @@ def get_program_slice(
 
     """
     logger.debug("Slicing graph %s", graph)
-    # subgraph = get_slice_graph(graph, sinks, keep_lineapy_save)
-    subgraph_nodes = _get_preliminary_slice(graph, sinks, keep_lineapy_save)
-    # logger.debug("Subgraph for %s: %s", sinks, subgraph)
+    subgraph_nodes = get_subgraph_nodelist(graph, sinks, keep_lineapy_save)
     return get_source_code_from_graph(subgraph_nodes, graph)
 
 

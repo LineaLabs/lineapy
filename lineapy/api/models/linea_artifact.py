@@ -16,9 +16,9 @@ from lineapy.data.types import LineaID
 from lineapy.db.db import ArtifactORM, RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
-    _get_preliminary_slice,
     get_slice_graph,
     get_source_code_from_graph,
+    get_subgraph_nodelist,
 )
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
@@ -157,7 +157,7 @@ class LineaArtifact:
         self, keep_lineapy_save: bool = False
     ) -> Set[LineaID]:
         session_graph = Graph.create_session_graph(self.db, self._session_id)
-        return _get_preliminary_slice(
+        return get_subgraph_nodelist(
             session_graph, [self._node_id], keep_lineapy_save
         )
 
@@ -166,6 +166,7 @@ class LineaArtifact:
         self,
         use_lineapy_serialization: bool = True,
         keep_lineapy_save: bool = False,
+        include_non_slice_as_comment: bool = False,
     ) -> str:
         """
         Return the slices code for the artifact
@@ -191,6 +192,7 @@ class LineaArtifact:
                 session_graph=Graph.create_session_graph(
                     self.db, self._session_id
                 ),
+                include_non_slice_as_comment=include_non_slice_as_comment,
             )
         )
         if not use_lineapy_serialization:
