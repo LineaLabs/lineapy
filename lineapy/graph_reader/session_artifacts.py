@@ -574,7 +574,9 @@ class SessionArtifacts:
             node_list=self.import_nodes,
         )
         # TODO: dont comment unsliced code here as well since we dont care about imports
-        self.import_nodecollection._update_graph(self.graph, include_non_slice_as_comment=False)
+        self.import_nodecollection._update_graph(
+            self.graph, include_non_slice_as_comment=False
+        )
 
         # NodeCollection for input parameters
         self.input_parameters_nodecollection = NodeCollection(
@@ -585,7 +587,9 @@ class SessionArtifacts:
             self.node_context, self.input_parameters_node
         )
         # TODO: change here to not include raw code since this is generated bits
-        self.input_parameters_nodecollection._update_graph(self.graph, include_non_slice_as_comment=False)
+        self.input_parameters_nodecollection._update_graph(
+            self.graph, include_non_slice_as_comment=False
+        )
 
     def _update_nodecollection_dependencies(self):
         """
