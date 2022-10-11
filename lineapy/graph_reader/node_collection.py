@@ -67,7 +67,7 @@ class NodeCollection:
 
     For all code generating purpose, it need to initiate a real graph objects by::
 
-        seg._update_graph()
+        seg.update_raw_codeblock()
 
     Then, it provide following method to generat different codeblock for different
     purpose.
@@ -133,7 +133,7 @@ class NodeCollection:
             user_input_parameters
         )
 
-    def _update_graph(
+    def update_raw_codeblock(
         self, graph: Graph, include_non_slice_as_comment=True
     ) -> None:
         """

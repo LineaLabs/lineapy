@@ -532,7 +532,7 @@ class SessionArtifacts:
                         common_nodecollectioninfo._update_variable_info(
                             self.node_context, self.input_parameters_node
                         )
-                        common_nodecollectioninfo._update_graph(
+                        common_nodecollectioninfo.update_raw_codeblock(
                             self._session_graph,
                             include_non_slice_as_comment=self.include_non_slice_as_comment,
                         )
@@ -548,7 +548,7 @@ class SessionArtifacts:
                         remaining_nodecollectioninfo._update_variable_info(
                             self.node_context, self.input_parameters_node
                         )
-                        remaining_nodecollectioninfo._update_graph(
+                        remaining_nodecollectioninfo.update_raw_codeblock(
                             self._session_graph,
                             include_non_slice_as_comment=self.include_non_slice_as_comment,
                         )
@@ -570,7 +570,7 @@ class SessionArtifacts:
                     nodecollectioninfo.node_list
                     - set(self.input_parameters_node.values())
                 )
-                nodecollectioninfo._update_graph(
+                nodecollectioninfo.update_raw_codeblock(
                     self._session_graph,
                     include_non_slice_as_comment=self.include_non_slice_as_comment,
                 )
@@ -582,7 +582,7 @@ class SessionArtifacts:
             node_list=self.import_nodes,
         )
         # TODO: dont comment unsliced code here as well since we dont care about imports
-        self.import_nodecollection._update_graph(
+        self.import_nodecollection.update_raw_codeblock(
             self.graph, include_non_slice_as_comment=False
         )
 
@@ -595,7 +595,7 @@ class SessionArtifacts:
             self.node_context, self.input_parameters_node
         )
         # TODO: change here to not include raw code since this is generated bits
-        self.input_parameters_nodecollection._update_graph(
+        self.input_parameters_nodecollection.update_raw_codeblock(
             self.graph, include_non_slice_as_comment=False
         )
 
