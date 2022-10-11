@@ -173,6 +173,20 @@ class NodeTransformer(ast.NodeTransformer):
         else:
             return self.tracer.literal(node.n, self.get_source(node))
 
+    def visit_Bytes(self, node: ast.Bytes) -> LiteralNode:
+        """
+        Note
+        ----
+
+        Deprecated in Python 3.8
+        """
+        if sys.version_info >= (3, 8):
+            raise NotImplementedError(
+                "Bytes nodes are deprecated since Python 3.8"
+            )
+        else:
+            return self.tracer.literal(node.s, self.get_source(node))
+
     def visit_NameConstant(self, node: ast.NameConstant) -> LiteralNode:
         """
         Note
