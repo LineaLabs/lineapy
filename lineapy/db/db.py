@@ -144,6 +144,8 @@ class RelationalLineaDB:
             return LiteralType.Integer
         elif isinstance(val, float):
             return LiteralType.Float
+        elif isinstance(val, bytes):
+            return LiteralType.Bytes
         elif val is None:
             return LiteralType.NoneType
         elif val is ...:
