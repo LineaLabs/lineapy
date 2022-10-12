@@ -3,7 +3,7 @@ import pickle
 import unittest
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Callable
 
 from {{ MODULE_NAME }} import (
 {%- for func_data in FUNCTION_METADATA_LIST %}
@@ -73,22 +73,30 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        sample_input: Dict[str, Any] = {}
+    {%- if func_data.ancestor_function_metadata_list|length == 0 %}
+        pass
+    {%- endif %}
     {%- for ancestor_func_data in func_data.ancestor_function_metadata_list %}
-        {% for retvar_name in ancestor_func_data.retvar_names -%}
-        sample_input["{{ retvar_name }}"]{{ ", " if not loop.last else " " }}
+        {% for retvar_name in ancestor_func_data.return_variable_names -%}
+        {{ retvar_name }}{{ ", " if not loop.last else " " }}
         {%- endfor -%}
         = safe_load_pickle(
             path_to_file=(self.art_pkl_dir / "{{ ancestor_func_data.output_name }}.pkl"),
             alt_val_func=lambda: {{ ancestor_func_data.name }}(
-                **sample_input
+                {% for invar_name in ancestor_func_data.input_variable_names -%}
+                {{ invar_name }}{{ ", " if not loop.last else " " }}
+                {%- endfor -%}
             ),
             save_alt_val=True,
         )
     {%- endfor %}
 
         # Generate function output (adapt as needed)
-        sample_output_generated = {{ func_data.name }}(**sample_input)
+        sample_output_generated = {{ func_data.name }}(
+            {% for invar_name in func_data.input_variable_names -%}
+            {{ invar_name }}{{ ", " if not loop.last else " " }}
+            {%- endfor -%}
+        )
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(

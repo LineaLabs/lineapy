@@ -3,7 +3,7 @@ import pickle
 import unittest
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Callable
 
 from script_complex_h_perart_module import (
     get_a_c_for_artifact_f_and_downstream,
@@ -73,14 +73,16 @@ class TestScriptComplexHPerart(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        sample_input: Dict[str, Any] = {}
+        pass
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_a_c_for_artifact_f_and_downstream(**sample_input)
+        sample_output_generated = get_a_c_for_artifact_f_and_downstream()
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(
-            path_to_file=(self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"),
+            path_to_file=(
+                self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"
+            ),
             alt_val_func=lambda: FileNotFoundError,
         )
         try:
@@ -98,15 +100,16 @@ class TestScriptComplexHPerart(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        sample_input: Dict[str, Any] = {}
-        sample_input["a"], sample_input["c"] = safe_load_pickle(
-            path_to_file=(self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"),
-            alt_val_func=lambda: get_a_c_for_artifact_f_and_downstream(**sample_input),
+        a, c = safe_load_pickle(
+            path_to_file=(
+                self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"
+            ),
+            alt_val_func=lambda: get_a_c_for_artifact_f_and_downstream(),
             save_alt_val=True,
         )
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_f(**sample_input)
+        sample_output_generated = get_f(c)
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(
@@ -128,15 +131,16 @@ class TestScriptComplexHPerart(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        sample_input: Dict[str, Any] = {}
-        sample_input["a"], sample_input["c"] = safe_load_pickle(
-            path_to_file=(self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"),
-            alt_val_func=lambda: get_a_c_for_artifact_f_and_downstream(**sample_input),
+        a, c = safe_load_pickle(
+            path_to_file=(
+                self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"
+            ),
+            alt_val_func=lambda: get_a_c_for_artifact_f_and_downstream(),
             save_alt_val=True,
         )
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_h(**sample_input)
+        sample_output_generated = get_h(a, c)
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(

@@ -3,7 +3,7 @@ import pickle
 import unittest
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Callable
 
 from script_pipeline_a0_b0_dependencies_module import get_a0, get_b0
 
@@ -63,10 +63,10 @@ class TestScriptPipelineA0B0Dependencies(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        sample_input: Dict[str, Any] = {}
+        pass
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_b0(**sample_input)
+        sample_output_generated = get_b0()
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(
@@ -88,10 +88,10 @@ class TestScriptPipelineA0B0Dependencies(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        sample_input: Dict[str, Any] = {}
+        pass
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_a0(**sample_input)
+        sample_output_generated = get_a0()
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(

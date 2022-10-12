@@ -3,7 +3,7 @@ import pickle
 import unittest
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import Callable
 
 from script_pipeline_housing_w_dependencies_module import (
     get_assets_for_artifact_y_and_downstream,
@@ -75,12 +75,10 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        sample_input: Dict[str, Any] = {}
+        pass
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_assets_for_artifact_y_and_downstream(
-            **sample_input
-        )
+        sample_output_generated = get_assets_for_artifact_y_and_downstream()
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(
@@ -104,19 +102,16 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        sample_input: Dict[str, Any] = {}
-        sample_input["assets"] = safe_load_pickle(
+        assets = safe_load_pickle(
             path_to_file=(
                 self.art_pkl_dir / "assets_for_artifact_y_and_downstream.pkl"
             ),
-            alt_val_func=lambda: get_assets_for_artifact_y_and_downstream(
-                **sample_input
-            ),
+            alt_val_func=lambda: get_assets_for_artifact_y_and_downstream(),
             save_alt_val=True,
         )
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_y(**sample_input)
+        sample_output_generated = get_y(assets)
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(
@@ -138,24 +133,21 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        sample_input: Dict[str, Any] = {}
-        sample_input["assets"] = safe_load_pickle(
+        assets = safe_load_pickle(
             path_to_file=(
                 self.art_pkl_dir / "assets_for_artifact_y_and_downstream.pkl"
             ),
-            alt_val_func=lambda: get_assets_for_artifact_y_and_downstream(
-                **sample_input
-            ),
+            alt_val_func=lambda: get_assets_for_artifact_y_and_downstream(),
             save_alt_val=True,
         )
-        sample_input["y"] = safe_load_pickle(
+        y = safe_load_pickle(
             path_to_file=(self.art_pkl_dir / "y.pkl"),
-            alt_val_func=lambda: get_y(**sample_input),
+            alt_val_func=lambda: get_y(assets),
             save_alt_val=True,
         )
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_p_value(**sample_input)
+        sample_output_generated = get_p_value(assets, y)
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(

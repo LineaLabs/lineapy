@@ -1,4 +1,4 @@
-def get_a_c_for_artifact_f_and_downstream(**kwargs):
+def get_a_c_for_artifact_f_and_downstream():
     a0 = 0
     a0 += 1
     a = 1
@@ -8,12 +8,12 @@ def get_a_c_for_artifact_f_and_downstream(**kwargs):
     return a, c
 
 
-def get_f(c, **kwargs):
+def get_f(c):
     f = c + 7
     return f
 
 
-def get_h(a, c, **kwargs):
+def get_h(a, c):
     d = a * 4
     e = d + 5
     e += 6

@@ -164,20 +164,14 @@ class NodeCollection:
                     if len(line.strip(" ")) > 0
                 ]
             )
-            args_list = sorted([v for v in self.input_variables])
+            args_string = ", ".join(sorted([v for v in self.input_variables]))
         else:
             assert self.pre_computed_artifact is not None
             artifact_codeblock = (
                 f"{indentation_block}import lineapy\n{indentation_block}"
             )
             artifact_codeblock += f'{return_string}=lineapy.get("{self.pre_computed_artifact[0]}", {self.pre_computed_artifact[1]}).get_value()'
-            args_list = []
-
-        # Allow for passing keyword arguments. This is mostly to support pipeline testing scaffold,
-        # where input arguments are passed via dictionary unpacking. Adding ``**kwargs`` would not
-        # affect any existing functionalities as it simply enables functions to accept but ignore
-        # irrelevant keyword arguments being passed into (rather than erroring out).
-        args_string = ", ".join(args_list + ["**kwargs"])
+            args_string = ""
 
         return f"def get_{name}({args_string}):\n{artifact_codeblock}\n{indentation_block}return {return_string}"
 

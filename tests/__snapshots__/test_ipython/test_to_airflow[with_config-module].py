@@ -1,4 +1,4 @@
-def get_a(**kwargs):
+def get_a():
     a = [1, 2, 3]
     return a
 

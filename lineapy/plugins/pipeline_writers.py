@@ -259,9 +259,12 @@ class BasePipelineWriter:
         function_metadata_list = [
             {
                 "name": f"get_{node_collection.safename}",
+                "input_variable_names": sorted(
+                    [v for v in node_collection.input_variables]
+                ),
+                "return_variable_names": node_collection.return_variables,
                 "output_name": node_collection.safename,
                 "_output_type": node_collection.collection_type,
-                "retvar_names": node_collection.return_variables,
                 "dependent_output_names": nx.ancestors(
                     session_artifacts.nodecollection_dependencies.graph,
                     node_collection.safename,
