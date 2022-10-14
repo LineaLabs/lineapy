@@ -227,7 +227,7 @@ Finally, we have the automatically generated Dockerfile (``iris_pipeline_Dockerf
 
 .. _testingairflow:
 
-Testing Locally
+Running Locally
 ---------------
 
 With these automatically generated files, we can quickly test running the pipeline locally.
