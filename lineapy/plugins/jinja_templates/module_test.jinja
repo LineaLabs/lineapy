@@ -1,14 +1,42 @@
+import os
+import pickle
 import unittest
 import warnings
-from typing import Any, Dict
+from pathlib import Path
+from typing import Callable
 
 from {{ MODULE_NAME }} import (
 {%- for func_data in FUNCTION_METADATA_LIST %}
-    {{ func_data.function_name }},
+    {{ func_data.name }},
 {%- endfor %}
 )
 
+def safe_load_pickle(
+    path_to_file: Path,
+    alt_val_func: Callable = lambda: FileNotFoundError,
+    save_alt_val: bool = False,
+):
+    """
+    Load the specified pickle file if it exists.
+    If not, use the provided function to generate and return
+    an alternative value (the desired execution should be wrapped
+    inside a lambda function to delay actual execution until needed).
+    """
+    if os.path.exists(path_to_file):
+        with open(path_to_file, "rb") as fp:
+            file_value = pickle.load(fp)
+        return file_value
+    else:
+        alt_value = alt_val_func()
+        if save_alt_val is True:
+            # Store value to avoid recompute across test cases
+            with open(path_to_file, "wb") as fp:
+                pickle.dump(alt_value, fp)
+        return alt_value
+
 class {{ TEST_CLASS_NAME }}(unittest.TestCase):
+    art_pkl_dir: Path
+
     def setUp(self) -> None:
         # Add any processes to execute before each test in this class
         pass
@@ -19,26 +47,67 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        # Specify location where sample output files are stored for comparison
+        cls.art_pkl_dir = (Path(__file__).parent / "{{ TEST_ARTVAL_DIRNAME }}")
+
         # Add any processes to execute once before all tests in this class run
         pass
 
     @classmethod
     def tearDownClass(cls) -> None:
+    {%- if INTERMEDIATE_OUTPUT_NAMES|length > 0 %}
+        # Delete pickle files for intermediate (non-artifact) values
+        for intermediate_output_name in {{ INTERMEDIATE_OUTPUT_NAMES }}:
+            path_to_file = (cls.art_pkl_dir / f"{intermediate_output_name}.pkl")
+            if os.path.exists(path_to_file):
+                os.remove(path_to_file)
+    {% endif %}
         # Add any processes to execute once after all tests in this class run
         pass
 
-{%- for func_data in FUNCTION_METADATA_LIST %}
-    def test_{{ func_data.function_name }}(self) -> None:
-        # Adjust as needed
-        sample_input: Dict[str, Any] = {}
-    {%- for arg_name in func_data.function_arg_names %}
-        sample_input["{{ arg_name }}"] = None
+{% for func_data in FUNCTION_METADATA_LIST %}
+    def test_{{ func_data.name }}(self) -> None:
+        """
+        NOTE: The code below is provided as scaffolding/template.
+        Please adapt it to your specific testing context.
+        [TODO: ADD LINK TO WEB DOCUMENTATION].
+        """
+        # Prepare function input (adapt as needed)
+    {%- if func_data.dependent_output_names|length == 0 %}
+        pass
+    {%- endif %}
+    {%- for output_name in func_data.dependent_output_names %}
+        {% for retvar_name in FUNCTION_METADATA_DICT[output_name].return_variable_names -%}
+        {{ retvar_name }}{{ ", " if not loop.last else " " }}
+        {%- endfor -%}
+        = safe_load_pickle(
+            path_to_file=(self.art_pkl_dir / "{{ FUNCTION_METADATA_DICT[output_name].output_name }}.pkl"),
+            alt_val_func=lambda: {{ FUNCTION_METADATA_DICT[output_name].name }}(
+                {% for invar_name in FUNCTION_METADATA_DICT[output_name].input_variable_names -%}
+                {{ invar_name }}{{ ", " if not loop.last else " " }}
+                {%- endfor -%}
+            ),
+            save_alt_val=True,
+        )
     {%- endfor %}
+
+        # Generate function output (adapt as needed)
+        sample_output_generated = {{ func_data.name }}(
+            {% for invar_name in func_data.input_variable_names -%}
+            {{ invar_name }}{{ ", " if not loop.last else " " }}
+            {%- endfor -%}
+        )
+
+        # Perform tests (add/adapt as needed)
+        sample_output_expected = safe_load_pickle(
+            path_to_file=(self.art_pkl_dir / "{{ func_data.output_name }}.pkl"),
+            alt_val_func=lambda: FileNotFoundError,
+        )
         try:
-            {{ func_data.function_name }}(**sample_input)
+            self.assertEqual(sample_output_generated, sample_output_expected)
         except Exception:
             warnings.warn(
                 "Test failed, but this may be due to our limited templating. "
                 "Please adapt the test as needed."
             )
-{%- endfor %}
+{% endfor -%}

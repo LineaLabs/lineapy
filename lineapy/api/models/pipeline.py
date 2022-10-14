@@ -53,6 +53,7 @@ class Pipeline:
         output_dir: str = ".",
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[str] = [],
+        generate_test: bool = False,
         pipeline_dag_config: Optional[AirflowDagConfig] = {},
     ) -> Path:
         # Create artifact collection
@@ -83,6 +84,7 @@ class Pipeline:
             dependencies=self.dependencies,
             pipeline_name=self.name,
             output_dir=output_dir,
+            generate_test=generate_test,
             dag_config=pipeline_dag_config,
         )
 

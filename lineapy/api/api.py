@@ -371,6 +371,7 @@ def to_pipeline(
     output_dir: str = ".",
     input_parameters: List[str] = [],
     reuse_pre_computed_artifacts: List[str] = [],
+    generate_test: bool = False,
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
 ) -> Path:
     """
@@ -413,6 +414,14 @@ def to_pipeline(
         Names of artifacts in the pipeline for which pre-computed value
         is to be used (rather than recomputing the value).
 
+    generate_test: bool
+        Whether to generate scaffold/template for pipeline testing.
+        Defaults to ``False``. The scaffold contains placeholders for testing
+        each function in the pipeline module file and is meant to be fleshed
+        out by the user to suit their needs. When run out of the box, it performs
+        a naive form of equality evaluation for each function's output,
+        which demands validation and customization by the user.
+
     pipeline_dag_config: Optional[AirflowDagConfig]
         A dictionary of parameters to configure DAG file to be generated.
         Not applicable for "SCRIPT" framework as it does not generate a separate
@@ -435,6 +444,7 @@ def to_pipeline(
         output_dir=output_dir,
         input_parameters=input_parameters,
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+        generate_test=generate_test,
         pipeline_dag_config=pipeline_dag_config,
     )
 

@@ -5,10 +5,10 @@ import warnings
 from pathlib import Path
 from typing import Callable
 
-from script_pipeline_housing_w_dependencies_module import (
-    get_assets_for_artifact_y_and_downstream,
-    get_p_value,
-    get_y,
+from script_complex_h_perart_module import (
+    get_a_c_for_artifact_f_and_downstream,
+    get_f,
+    get_h,
 )
 
 
@@ -36,7 +36,7 @@ def safe_load_pickle(
         return alt_value
 
 
-class TestScriptPipelineHousingWDependencies(unittest.TestCase):
+class TestScriptComplexHPerart(unittest.TestCase):
     art_pkl_dir: Path
 
     def setUp(self) -> None:
@@ -58,9 +58,7 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         # Delete pickle files for intermediate (non-artifact) values
-        for intermediate_output_name in [
-            "assets_for_artifact_y_and_downstream"
-        ]:
+        for intermediate_output_name in ["a_c_for_artifact_f_and_downstream"]:
             path_to_file = cls.art_pkl_dir / f"{intermediate_output_name}.pkl"
             if os.path.exists(path_to_file):
                 os.remove(path_to_file)
@@ -68,7 +66,7 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
         # Add any processes to execute once after all tests in this class run
         pass
 
-    def test_get_assets_for_artifact_y_and_downstream(self) -> None:
+    def test_get_a_c_for_artifact_f_and_downstream(self) -> None:
         """
         NOTE: The code below is provided as scaffolding/template.
         Please adapt it to your specific testing context.
@@ -78,12 +76,12 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
         pass
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_assets_for_artifact_y_and_downstream()
+        sample_output_generated = get_a_c_for_artifact_f_and_downstream()
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(
             path_to_file=(
-                self.art_pkl_dir / "assets_for_artifact_y_and_downstream.pkl"
+                self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"
             ),
             alt_val_func=lambda: FileNotFoundError,
         )
@@ -95,27 +93,27 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
                 "Please adapt the test as needed."
             )
 
-    def test_get_y(self) -> None:
+    def test_get_f(self) -> None:
         """
         NOTE: The code below is provided as scaffolding/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        assets = safe_load_pickle(
+        a, c = safe_load_pickle(
             path_to_file=(
-                self.art_pkl_dir / "assets_for_artifact_y_and_downstream.pkl"
+                self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"
             ),
-            alt_val_func=lambda: get_assets_for_artifact_y_and_downstream(),
+            alt_val_func=lambda: get_a_c_for_artifact_f_and_downstream(),
             save_alt_val=True,
         )
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_y(assets)
+        sample_output_generated = get_f(c)
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(
-            path_to_file=(self.art_pkl_dir / "y.pkl"),
+            path_to_file=(self.art_pkl_dir / "f.pkl"),
             alt_val_func=lambda: FileNotFoundError,
         )
         try:
@@ -126,32 +124,27 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
                 "Please adapt the test as needed."
             )
 
-    def test_get_p_value(self) -> None:
+    def test_get_h(self) -> None:
         """
         NOTE: The code below is provided as scaffolding/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-        assets = safe_load_pickle(
+        a, c = safe_load_pickle(
             path_to_file=(
-                self.art_pkl_dir / "assets_for_artifact_y_and_downstream.pkl"
+                self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"
             ),
-            alt_val_func=lambda: get_assets_for_artifact_y_and_downstream(),
-            save_alt_val=True,
-        )
-        y = safe_load_pickle(
-            path_to_file=(self.art_pkl_dir / "y.pkl"),
-            alt_val_func=lambda: get_y(assets),
+            alt_val_func=lambda: get_a_c_for_artifact_f_and_downstream(),
             save_alt_val=True,
         )
 
         # Generate function output (adapt as needed)
-        sample_output_generated = get_p_value(assets, y)
+        sample_output_generated = get_h(a, c)
 
         # Perform tests (add/adapt as needed)
         sample_output_expected = safe_load_pickle(
-            path_to_file=(self.art_pkl_dir / "p_value.pkl"),
+            path_to_file=(self.art_pkl_dir / "h.pkl"),
             alt_val_func=lambda: FileNotFoundError,
         )
         try:
