@@ -1,6 +1,7 @@
 import itertools
 import logging
 import pickle
+from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -254,41 +255,78 @@ class BasePipelineWriter:
         # This information is to be eventually passed into file template.
         # Fields starting with an underscore are not intended for direct use
         # in the template; they are meant to be used for deriving other fields.
-        # "output" here denotes artifact(s) or common variable(s) that
+        # For instance, if the module file contains the following functions:
+        #
+        # .. code-block:: python
+        #
+        #     def get_url1_for_artifact_iris_model_and_downstream():
+        #         url1 = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+        #         return url1
+        #
+        #     def get_iris_model(url1):
+        #         train_df = pd.read_csv(url1)
+        #         mod = LinearRegression()
+        #         mod.fit(
+        #             X=train_df[["petal.width"]],
+        #             y=train_df["petal.length"],
+        #         )
+        #         return mod
+        #
+        # Then, for the function ``get_iris_model()``, we would have the following
+        # ``function_metadata_dict`` entry:
+        #
+        # .. code-block:: python
+        #
+        #     {
+        #         "iris_model": {
+        #             "name": "get_iris_model",
+        #             "input_variable_names": ["url1"],
+        #             "return_variable_names": ["mod"],
+        #             "output_name": "iris_model",
+        #             "_output_type": NodeCollectionType.ARTIFACT,
+        #             "dependent_output_names": ["url1_for_artifact_iris_model_and_downstream"],
+        #         }
+        #     }
+        #
+        # As shown, "output" here denotes artifact(s) or common variable(s) that
         # the function generates.
-        function_metadata_list = [
+        function_metadata_dict = OrderedDict(
             {
-                "name": f"get_{node_collection.safename}",
-                "input_variable_names": sorted(
-                    [v for v in node_collection.input_variables]
-                ),
-                "return_variable_names": node_collection.return_variables,
-                "output_name": node_collection.safename,
-                "_output_type": node_collection.collection_type,
-                "dependent_output_names": nx.ancestors(
-                    session_artifacts.nodecollection_dependencies.graph,
-                    node_collection.safename,
-                ),
+                node_collection.safename: {
+                    "name": f"get_{node_collection.safename}",
+                    "input_variable_names": sorted(
+                        [v for v in node_collection.input_variables]
+                    ),
+                    "return_variable_names": node_collection.return_variables,
+                    "output_name": node_collection.safename,
+                    "_output_type": node_collection.collection_type,
+                    "dependent_output_names": nx.ancestors(
+                        session_artifacts.nodecollection_dependencies.graph,
+                        node_collection.safename,
+                    ),
+                }
+                for session_artifacts in self.session_artifacts_sorted
+                for node_collection in session_artifacts.artifact_nodecollections
             }
-            for session_artifacts in self.session_artifacts_sorted
-            for node_collection in session_artifacts.artifact_nodecollections
-        ]
+        )
 
         # For each function in the pipeline module, topologically order its
-        # "ancestor" functions (i.e., relevant functions that should run before).
-        # Leverage the fact that ``function_metadata_list`` is already topologically sorted.
-        for fm_i in function_metadata_list:
-            fm_i["ancestor_function_metadata_list"] = [
-                fm_j
-                for fm_j in function_metadata_list
-                if fm_j["output_name"] in fm_i["dependent_output_names"]
+        # dependent outputs (i.e., artifacts and/or common variables that should be
+        # calculated beforehand). Leverage the fact that ``function_metadata_dict``
+        # is already topologically sorted.
+        for function_metadata in function_metadata_dict.values():
+            function_metadata["dependent_output_names"] = [
+                output_name
+                for output_name in function_metadata_dict.keys()
+                if output_name in function_metadata["dependent_output_names"]
             ]
 
-        # Identify "intermediate" results factored out by LineaPy to reduce
-        # redundant compute (rather than stored by the user as artifacts)
+        # Identify common variables factored out by LineaPy to reduce
+        # redundant compute (rather than stored by the user as artifacts),
+        # e.g., ``url1`` in the example above.
         intermediate_output_names = [
             function_metadata["output_name"]
-            for function_metadata in function_metadata_list
+            for function_metadata in function_metadata_dict.values()
             if function_metadata["_output_type"]
             == NodeCollectionType.COMMON_VARIABLE
         ]
@@ -303,7 +341,8 @@ class BasePipelineWriter:
             MODULE_NAME=module_name,
             TEST_CLASS_NAME=test_class_name,
             TEST_ARTVAL_DIRNAME=self.test_artval_dirname,
-            FUNCTION_METADATA_LIST=function_metadata_list,
+            FUNCTION_METADATA_LIST=function_metadata_dict.values(),
+            FUNCTION_METADATA_DICT=function_metadata_dict,
             INTERMEDIATE_OUTPUT_NAMES=intermediate_output_names,
         )
         file = self.output_dir / f"test_{self.pipeline_name}.py"

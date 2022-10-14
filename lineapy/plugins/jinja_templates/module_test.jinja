@@ -73,17 +73,17 @@ class {{ TEST_CLASS_NAME }}(unittest.TestCase):
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
         # Prepare function input (adapt as needed)
-    {%- if func_data.ancestor_function_metadata_list|length == 0 %}
+    {%- if func_data.dependent_output_names|length == 0 %}
         pass
     {%- endif %}
-    {%- for ancestor_func_data in func_data.ancestor_function_metadata_list %}
-        {% for retvar_name in ancestor_func_data.return_variable_names -%}
+    {%- for output_name in func_data.dependent_output_names %}
+        {% for retvar_name in FUNCTION_METADATA_DICT[output_name].return_variable_names -%}
         {{ retvar_name }}{{ ", " if not loop.last else " " }}
         {%- endfor -%}
         = safe_load_pickle(
-            path_to_file=(self.art_pkl_dir / "{{ ancestor_func_data.output_name }}.pkl"),
-            alt_val_func=lambda: {{ ancestor_func_data.name }}(
-                {% for invar_name in ancestor_func_data.input_variable_names -%}
+            path_to_file=(self.art_pkl_dir / "{{ FUNCTION_METADATA_DICT[output_name].output_name }}.pkl"),
+            alt_val_func=lambda: {{ FUNCTION_METADATA_DICT[output_name].name }}(
+                {% for invar_name in FUNCTION_METADATA_DICT[output_name].input_variable_names -%}
                 {{ invar_name }}{{ ", " if not loop.last else " " }}
                 {%- endfor -%}
             ),
