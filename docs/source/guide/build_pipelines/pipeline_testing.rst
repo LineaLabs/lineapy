@@ -291,3 +291,8 @@ With these changes, running the test would result in success without any warning
     a model, we can check whether the model behaves "reasonably" by feeding it with particular input values and observing whether
     it returns output values within a certain range. This type of testing is especially valuable for models involving inherent stochasticity,
     where the same procedure does not necessarily guarantee exactly identical results.
+
+.. note::
+
+   If you want hands-on practice,
+   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02c_test_pipelines.ipynb>`_ tutorial notebook.
