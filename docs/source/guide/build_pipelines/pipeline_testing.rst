@@ -201,10 +201,11 @@ Adapting Pipeline Test
 As shown, both test methods "failed" (i.e., warning messages raised) for ``iris_pipeline``. This is not surprising because,
 again, the scaffold is relying on a naive mode of equality evaluation via ``unittest``'s ``assertEqual()``, which does not
 work for more sophisticated object types such as ``pandas.DataFrame`` and ``sklearn.linear_model.LinearRegression``.
-For more proper equality evaluation, we may make the following updates (highlighted in yellow):
+For more proper equality evaluation, we may replace existing ``try``-``except`` blocks with new ``assert`` statements,
+like so (updates highlighted in yellow):
 
 .. code-block:: python
-   :emphasize-lines: 35, 63
+   :emphasize-lines: 34, 56, 57, 58
 
     # ./output/pipeline_basics/test_iris_pipeline.py
 
@@ -239,13 +240,7 @@ For more proper equality evaluation, we may make the following updates (highligh
                 path_to_file=(self.art_pkl_dir / "iris_preprocessed.pkl"),
                 alt_val_func=lambda: FileNotFoundError,
             )
-            try:
-                assert sample_output_generated.equals(sample_output_expected)
-            except Exception:
-                warnings.warn(
-                    "Test failed, but this may be due to our limited templating. "
-                    "Please adapt the test as needed."
-                )
+            assert sample_output_generated.equals(sample_output_expected)
 
         def test_get_iris_model(self) -> None:
             """
@@ -267,13 +262,9 @@ For more proper equality evaluation, we may make the following updates (highligh
                 path_to_file=(self.art_pkl_dir / "iris_model.pkl"),
                 alt_val_func=lambda: FileNotFoundError,
             )
-            try:
-                assert all(sample_output_generated.coef_ == sample_output_expected.coef_)
-            except Exception:
-                warnings.warn(
-                    "Test failed, but this may be due to our limited templating. "
-                    "Please adapt the test as needed."
-                )
+            assert sample_output_generated.intercept_ == sample_output_expected.intercept_
+            assert all(sample_output_generated.coef_ == sample_output_expected.coef_)
+            assert all(sample_output_generated.feature_names_in_ == sample_output_expected.feature_names_in_)
 
 With these changes, running the test would result in success without any warning messages raised:
 
