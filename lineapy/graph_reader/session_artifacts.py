@@ -59,7 +59,7 @@ class SessionArtifacts:
         target_artifacts: List[LineaArtifact],
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[LineaArtifact] = [],
-        include_non_slice_as_comment: bool = True,
+        include_non_slice_as_comment: bool = False,
     ) -> None:
         self.db = db
         self.target_artifacts = target_artifacts

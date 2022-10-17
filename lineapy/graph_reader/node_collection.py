@@ -134,7 +134,7 @@ class NodeCollection:
         )
 
     def update_raw_codeblock(
-        self, graph: Graph, include_non_slice_as_comment=True
+        self, graph: Graph, include_non_slice_as_comment=False
     ) -> None:
         """
         Update graph_segment class member based on node_list
@@ -142,7 +142,7 @@ class NodeCollection:
         Need to manually run this function at least once if you need the graph
         object for code generation.
         """
-        # self.graph_segment = graph.get_subgraph_from_id(list(self.node_list))
+        self.graph_segment = graph.get_subgraph_from_id(list(self.node_list))
         self.raw_codeblock = get_source_code_from_graph(
             self.node_list, graph, include_non_slice_as_comment
         ).__str__()

@@ -361,6 +361,11 @@ def get_program_slice(
     """
     logger.debug("Slicing graph %s", graph)
     subgraph_nodes = get_subgraph_nodelist(graph, sinks, keep_lineapy_save)
+    subgraph_nodes = (
+        _include_dependencies_for_indirectly_included_nodes_in_slice(
+            graph, subgraph_nodes
+        )
+    )
     return get_source_code_from_graph(subgraph_nodes, graph)
 
 

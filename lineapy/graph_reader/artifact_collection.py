@@ -38,7 +38,7 @@ class ArtifactCollection:
         target_artifacts: List[LineaArtifactDef],
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[LineaArtifactDef] = [],
-        include_non_slice_as_comment=True,
+        include_non_slice_as_comment=False,
     ) -> None:
         self.db: RelationalLineaDB = db
 
