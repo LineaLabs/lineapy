@@ -205,7 +205,7 @@ For more proper equality evaluation, we may replace existing ``try``-``except`` 
 like so (updates highlighted in yellow):
 
 .. code-block:: python
-   :emphasize-lines: 34, 56, 57, 58
+   :emphasize-lines: 34, 56, 57
 
     # ./output/pipeline_basics/test_iris_pipeline.py
 
@@ -264,7 +264,6 @@ like so (updates highlighted in yellow):
             )
             assert sample_output_generated.intercept_ == sample_output_expected.intercept_
             assert all(sample_output_generated.coef_ == sample_output_expected.coef_)
-            assert all(sample_output_generated.feature_names_in_ == sample_output_expected.feature_names_in_)
 
 With these changes, running the test would result in success without any warning messages raised:
 
@@ -275,6 +274,49 @@ With these changes, running the test would result in success without any warning
     Ran 2 tests in 0.103s
 
     OK
+
+Note that the user is free to use their own input and (expected) output values to suit their testing needs.
+For instance, with the example above, say the user happens to have new pre-processed data stored as a CSV file,
+along with the corresponding model's parameter estimates recorded. Then, the user may further customize testing of
+``get_iris_model()`` as the following (newer updates highlighted in yellow):
+
+.. code-block:: python
+   :emphasize-lines: 10, 11, 27, 33, 34
+
+    # ./output/pipeline_basics/test_iris_pipeline.py
+
+    import os
+    import pickle
+    import unittest
+    import warnings
+    from pathlib import Path
+    from typing import Callable
+
+    import numpy as np
+    import pandas as pd
+
+    from iris_pipeline_module import get_iris_model, get_iris_preprocessed
+
+    [...]
+
+    class TestIrisPipeline(unittest.TestCase):
+
+        [...]
+
+        def test_get_iris_model(self) -> None:
+            """
+            NOTE: The code below is provided as scaffolding/template.
+            Please adapt it to your specific testing context.
+            """
+            # Prepare function input (adapt as needed)
+            df = pd.read_csv("some_path_or_url/new_iris_preprocessed.csv")
+
+            # Generate function output (adapt as needed)
+            sample_output_generated = get_iris_model(df)
+
+            # Perform tests (add/adapt as needed)
+            assert round(sample_output_generated.intercept_, 2) == 3.24
+            assert all(np.round(sample_output_generated.coef_, 2) == [0.78, -1.5, -1.84])
 
 .. note::
 
