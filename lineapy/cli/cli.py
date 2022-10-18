@@ -114,7 +114,10 @@ logger = logging.getLogger(__name__)
 )
 @click.option(
     "--default-ml-models-storage-backend",
-    type=click.STRING,
+    type=click.Choice(
+        [member.name for member in ML_MODELS_STORAGE_BACKEND],
+        case_sensitive=False,
+    ),
     help="Default storage backend for ML models",
 )
 def linea_cli(

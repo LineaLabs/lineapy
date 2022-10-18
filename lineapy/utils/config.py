@@ -19,7 +19,7 @@ FILE_PICKLER_BASEDIR = "linea_pickles"
 DB_FILE_NAME = "db.sqlite"
 CUSTOM_ANNOTATIONS_FOLDER_NAME = "custom-annotations"
 CUSTOM_ANNOTATIONS_EXTENSION_NAME = ".annotations.yaml"
-DEFAULT_ML_MODELS_STORAGE_BACKEND = "mlflow"
+DEFAULT_ML_MODELS_STORAGE_BACKEND = ML_MODELS_STORAGE_BACKEND.mlflow.value
 
 logger = logging.getLogger(__name__)
 
