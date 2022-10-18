@@ -115,7 +115,7 @@ class BasePipelineWriter:
 
         module_imports = "\n".join(
             [
-                BaseSessionWriter(sa).get_session_module_imports()
+                BaseSessionWriter().get_session_module_imports(sa)
                 for sa in self.session_artifacts_sorted
             ]
         )
@@ -124,10 +124,8 @@ class BasePipelineWriter:
             list(
                 itertools.chain.from_iterable(
                     [
-                        BaseSessionWriter(
-                            sa
-                        ).get_session_artifact_function_definitions(
-                            indentation=indentation
+                        BaseSessionWriter().get_session_artifact_function_definitions(
+                            session_artifact=sa, indentation=indentation
                         )
                         for sa in self.session_artifacts_sorted
                     ]
@@ -137,8 +135,8 @@ class BasePipelineWriter:
 
         session_functions = "\n".join(
             [
-                BaseSessionWriter(sa).get_session_function(
-                    indentation=indentation
+                BaseSessionWriter().get_session_function(
+                    session_artifact=sa, indentation=indentation
                 )
                 for sa in self.session_artifacts_sorted
             ]
@@ -146,7 +144,7 @@ class BasePipelineWriter:
 
         module_function_body = "\n".join(
             [
-                f"{indentation_block}{return_dict_name}.update({BaseSessionWriter(sa).get_session_function_callblock()})"
+                f"{indentation_block}{return_dict_name}.update({BaseSessionWriter().get_session_function_callblock(sa)})"
                 for sa in self.session_artifacts_sorted
             ]
         )
@@ -154,8 +152,8 @@ class BasePipelineWriter:
         module_input_parameters: List[InputVariable] = []
         for sa in self.session_artifacts_sorted:
             module_input_parameters += list(
-                BaseSessionWriter(sa)
-                .get_session_input_parameters_spec()
+                BaseSessionWriter()
+                .get_session_input_parameters_spec(sa)
                 .values()
             )
 
@@ -493,7 +491,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
         task_definitions = []
         for sa in self.session_artifacts_sorted:
             task_functions.append(
-                BaseSessionWriter(sa).get_session_function_name()
+                BaseSessionWriter().get_session_function_name(sa)
             )
             task_definitions.append(
                 get_session_task_definition(sa, self.pipeline_name)
@@ -632,9 +630,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
             self.artifact_collection.input_parameters
         )
         for session_artifacts in self.session_artifacts_sorted:
-            session_input_parameters_spec = BaseSessionWriter(
-                session_artifacts
-            ).get_session_input_parameters_spec()
+            session_input_parameters_spec = (
+                BaseSessionWriter().get_session_input_parameters_spec(
+                    session_artifacts
+                )
+            )
             for nc in session_artifacts.artifact_nodecollections:
                 all_input_variables = sorted(list(nc.input_variables))
                 artifact_user_input_variables = [
@@ -654,12 +654,12 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     for var in all_input_variables
                     if var not in artifact_user_input_variables
                 ]
-                function_call_block = BaseSessionWriter(
-                    session_artifacts
-                ).get_function_call_block(
-                    nc,
-                    indentation=0,
-                    source_module=f"{self.pipeline_name}_module",
+                function_call_block = (
+                    BaseSessionWriter().get_function_call_block(
+                        nc,
+                        indentation=0,
+                        source_module=f"{self.pipeline_name}_module",
+                    )
                 )
                 return_var_saving_block = [
                     f"pickle.dump({var},open('/tmp/{self.pipeline_name}/variable_{var}.pickle','wb'))"
@@ -697,9 +697,9 @@ def get_session_task_definition(
     Add serialization of output artifacts logic of the session function
     call_block and wrap them into a new function definition.
     """
-    session_input_parameters_spec = BaseSessionWriter(
-        sa
-    ).get_session_input_parameters_spec()
+    session_input_parameters_spec = (
+        BaseSessionWriter().get_session_input_parameters_spec(sa)
+    )
     session_input_variables = list(session_input_parameters_spec.keys())
     user_input_var_typing_block = [
         f"{var} = {session_input_parameters_spec[var].value_type}({var})"
@@ -707,7 +707,7 @@ def get_session_task_definition(
     ]
 
     input_var_loading_block: List[str] = []
-    function_call_block = f"artifacts = {pipeline_name}_module.{BaseSessionWriter(sa).get_session_function_callblock()}"
+    function_call_block = f"artifacts = {pipeline_name}_module.{BaseSessionWriter().get_session_function_callblock(sa)}"
     return_artifacts_saving_block = [
         f"pickle.dump(artifacts['{nc.name}'],open('/tmp/{pipeline_name}/artifact_{nc.safename}.pickle','wb'))"
         for nc in sa.artifact_nodecollections
@@ -716,7 +716,7 @@ def get_session_task_definition(
 
     TASK_FUNCTION_TEMPLATE = load_plugin_template("task_function.jinja")
     return TASK_FUNCTION_TEMPLATE.render(
-        function_name=BaseSessionWriter(sa).get_session_function_name(),
+        function_name=BaseSessionWriter().get_session_function_name(sa),
         user_input_variables=", ".join(session_input_variables),
         typing_blocks=user_input_var_typing_block,
         loading_blocks=input_var_loading_block,
@@ -734,8 +734,8 @@ class AirflowCodeGenerator:
         input_parameters_dict = dict()
         for sa in self.artifact_collection.sort_session_artifacts():
             for input_spec in (
-                BaseSessionWriter(sa)
-                .get_session_input_parameters_spec()
+                BaseSessionWriter()
+                .get_session_input_parameters_spec(sa)
                 .values()
             ):
                 input_parameters_dict[
@@ -749,7 +749,7 @@ class AirflowCodeGenerator:
             session_input_parameters = list(sa.input_parameters_node.keys())
             if len(session_input_parameters) > 0:
                 session_function_input_parameters[
-                    BaseSessionWriter(sa).get_session_function_name()
+                    BaseSessionWriter().get_session_function_name(sa)
                 ] = "op_kwargs=" + str(
                     {
                         var: "{{ params." + var + " }}"

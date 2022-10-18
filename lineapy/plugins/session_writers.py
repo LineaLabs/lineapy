@@ -15,22 +15,26 @@ class BaseSessionWriter:
     object to runnable code.
     """
 
-    def __init__(self, session_artifact: SessionArtifacts):
-        self.session_artifact = session_artifact
+    def __init__(self):
+        pass
 
-    def get_session_module_imports(self, indentation=0) -> str:
+    def get_session_module_imports(
+        self, session_artifact: SessionArtifacts, indentation=0
+    ) -> str:
         """
         Return all the import statement for the session.
         """
-        return self.session_artifact.import_nodecollection.get_import_block(
+        return session_artifact.import_nodecollection.get_import_block(
             indentation=indentation
         )
 
-    def get_session_function_name(self) -> str:
+    def get_session_function_name(
+        self, session_artifact: SessionArtifacts
+    ) -> str:
         """
         Return the session function name: run_session_including_{first_artifact_name}
         """
-        first_artifact_name = self.session_artifact._get_first_artifact_name()
+        first_artifact_name = session_artifact._get_first_artifact_name()
         if first_artifact_name is not None:
             return f"run_session_including_{first_artifact_name}"
         return ""
@@ -83,7 +87,10 @@ class BaseSessionWriter:
         return codeblock
 
     def get_session_function_body(
-        self, indentation, return_dict_name="artifacts"
+        self,
+        session_artifact: SessionArtifacts,
+        indentation,
+        return_dict_name="artifacts",
     ) -> str:
         """
         Return the args for the session function.
@@ -96,27 +103,33 @@ class BaseSessionWriter:
                     keep_lineapy_save=False,
                     return_dict_name=return_dict_name,
                 )
-                for coll in self.session_artifact.artifact_nodecollections
+                for coll in session_artifact.artifact_nodecollections
             ]
         )
 
-    def _get_session_input_parameters_lines(self, indentation=4) -> str:
+    def _get_session_input_parameters_lines(
+        self, session_artifact: SessionArtifacts, indentation=4
+    ) -> str:
         """
         Return lines of session code that are replaced by user selected input
         parameters. These lines also serve as the default values of these
         variables.
         """
-        return self.session_artifact.input_parameters_nodecollection.get_input_parameters_block(
+        return session_artifact.input_parameters_nodecollection.get_input_parameters_block(
             indentation=indentation
         )
 
-    def get_session_input_parameters_spec(self) -> Dict[str, InputVariable]:
+    def get_session_input_parameters_spec(
+        self, session_artifact
+    ) -> Dict[str, InputVariable]:
         """
         Return a dictionary with input parameters as key and InputVariable
         class as value to generate code related to user input variables.
         """
         session_input_variables: Dict[str, InputVariable] = dict()
-        for line in self._get_session_input_parameters_lines().split("\n"):
+        for line in self._get_session_input_parameters_lines(
+            session_artifact
+        ).split("\n"):
             variable_def = line.strip(" ").rstrip(",")
             if len(variable_def) > 0:
                 variable_name = variable_def.split("=")[0].strip(" ")
@@ -147,22 +160,26 @@ class BaseSessionWriter:
                     )
         return session_input_variables
 
-    def get_session_function_callblock(self) -> str:
+    def get_session_function_callblock(
+        self, session_artifact: SessionArtifacts
+    ) -> str:
         """
         Return the code to make the call to the session function as
         `session_function_name(input_parameters)`.
         """
-        session_function_name = self.get_session_function_name()
+        session_function_name = self.get_session_function_name(
+            session_artifact
+        )
         if session_function_name != "":
             session_input_parameters = ", ".join(
-                self.get_session_input_parameters_spec().keys()
+                self.get_session_input_parameters_spec(session_artifact).keys()
             )
             return f"{session_function_name}({session_input_parameters})"
         else:
             return ""
 
     def get_session_artifact_function_definitions(
-        self, indentation=4
+        self, session_artifact: SessionArtifacts, indentation=4
     ) -> List[str]:
         """
         Return the definition of each targeted artifacts calculation
@@ -170,11 +187,11 @@ class BaseSessionWriter:
         """
         return [
             coll.get_function_definition(indentation=indentation)
-            for coll in self.session_artifact.artifact_nodecollections
+            for coll in session_artifact.artifact_nodecollections
         ]
 
     def get_session_function(
-        self, indentation=4, return_dict_name="artifacts"
+        self, session_artifact, indentation=4, return_dict_name="artifacts"
     ) -> str:
         """
         Return the definition of the session function that executes the
@@ -185,11 +202,15 @@ class BaseSessionWriter:
             "session_function.jinja"
         )
         session_function = SESSION_FUNCTION_TEMPLATE.render(
-            session_input_parameters_body=self._get_session_input_parameters_lines(),
+            session_input_parameters_body=self._get_session_input_parameters_lines(
+                session_artifact=session_artifact
+            ),
             indentation_block=indentation_block,
-            session_function_name=self.get_session_function_name(),
+            session_function_name=self.get_session_function_name(
+                session_artifact=session_artifact
+            ),
             session_function_body=self.get_session_function_body(
-                indentation=indentation
+                session_artifact=session_artifact, indentation=indentation
             ),
             return_dict_name=return_dict_name,
         )
