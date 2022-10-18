@@ -153,11 +153,11 @@ class LineaArtifact:
         )
 
     @lru_cache(maxsize=None)
-    def _get_subgraph_nodelist(
+    def _get_sessiongraph_and_subgraph_nodelist(
         self, keep_lineapy_save: bool = False
-    ) -> Set[LineaID]:
+    ) -> Tuple[Graph, Set[LineaID]]:
         session_graph = Graph.create_session_graph(self.db, self._session_id)
-        return get_subgraph_nodelist(
+        return session_graph, get_subgraph_nodelist(
             session_graph, [self._node_id], keep_lineapy_save
         )
 
@@ -186,12 +186,14 @@ class LineaArtifact:
                 is_session_code=False,
             )
         )
+        (
+            sessiongraph,
+            subgraph_nodelist,
+        ) = self._get_sessiongraph_and_subgraph_nodelist(keep_lineapy_save)
         code = str(
             get_source_code_from_graph(
-                self._get_subgraph_nodelist(keep_lineapy_save),
-                session_graph=Graph.create_session_graph(
-                    self.db, self._session_id
-                ),
+                subgraph_nodelist,
+                session_graph=sessiongraph,
                 include_non_slice_as_comment=include_non_slice_as_comment,
             )
         )
