@@ -16,6 +16,26 @@ from lineapy.utils.utils import prettify
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class SubgraphNodeSet:
+    nodes: Set[LineaID]
+    save_nodes: Set[LineaID]
+    show_save_nodes: bool
+
+
+@dataclass
+class CodeSlice:
+    import_lines: List[str]
+    body_lines: List[str]
+    # source_code: SourceCode
+
+    def __str__(self):
+        return prettify("\n".join(self.import_lines + self.body_lines) + "\n")
+
+    def __repr__(self):
+        return str(self)
+
+
 def get_slice_graph(
     graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool = False
 ) -> Graph:
@@ -36,14 +56,14 @@ def get_slice_graph(
         graph, ancestors
     )
 
-    new_nodes = [graph.ids[node] for node in ancestors]
+    new_nodes = [graph.ids[node] for node in ancestors.nodes]
     subgraph = graph.get_subgraph(new_nodes)
     return subgraph
 
 
 def get_subgraph_nodelist(
     graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool
-) -> Set[LineaID]:
+) -> SubgraphNodeSet:
     """
     Computes a preliminary slice first evaluates what all nodes serve as sinks,
     and then for each of the sinks from what all nodes in the graph, can the
@@ -62,37 +82,45 @@ def get_subgraph_nodelist(
             if node.unexec_id is not None:
                 sinks.append(node.id)
 
-    if keep_lineapy_save:
-        # Children of an artifact sink include .save() statement.
-        # Identify .save() statement and make it the new sink.
-        # If not applicable, retain the original artifact sink.
-        new_sinks = []
-        for sink in sinks:
-            new_sink = sink
-            child_ids = graph.get_children(sink)
-            for c_id in child_ids:
-                c_node = graph.get_node(c_id)
-                if isinstance(c_node, CallNode) and c_node.source_location:
-                    source_code = c_node.source_location.source_code.code
-                    line_number = c_node.source_location.lineno
-                    line_code = source_code.split("\n")[line_number - 1]
-                    first_arg = c_node.positional_args[0]
-                    if "lineapy.save" in line_code and first_arg.id == sink:
-                        new_sink = c_id
-            new_sinks.append(new_sink)
-        sinks = new_sinks
+    # Always do this. we want to locate the point where lineapy.save is called.
+    # We will save the parameter that controls whether to include this statement
+    # in final slice and defer the decision downstream
+
+    # Children of an artifact sink include .save() statement.
+    # Identify .save() statement and make it the new sink.
+    # If not applicable, retain the original artifact sink.
+
+    # TODO - extract this piece that gets lineapy.save nodes from children.
+    # In the future we might save this as metadata for the artifact nodes. in which
+    # case all we need to do is get the node id that saved the artifact and we are done.
+    save_sinks = set()
+    for sink in sinks:
+        child_ids = graph.get_children(sink)
+        for c_id in child_ids:
+            c_node = graph.get_node(c_id)
+            if isinstance(c_node, CallNode) and c_node.source_location:
+                source_code = c_node.source_location.source_code.code
+                line_number = c_node.source_location.lineno
+                line_code = source_code.split("\n")[line_number - 1]
+                first_arg = c_node.positional_args[0]
+                if "lineapy.save" in line_code and first_arg.id == sink:
+                    save_sinks.add(c_id)
 
     ancestors: Set[LineaID] = set(sinks)
 
     for sink in sinks:
         ancestors.update(graph.get_ancestors(sink))
 
-    return ancestors
+    return SubgraphNodeSet(
+        nodes=ancestors,
+        save_nodes=save_sinks,
+        show_save_nodes=keep_lineapy_save,
+    )
 
 
 def _include_dependencies_for_indirectly_included_nodes_in_slice(
-    graph: Graph, current_subset: Set[LineaID]
-) -> Set[LineaID]:
+    graph: Graph, current_subset: SubgraphNodeSet
+) -> SubgraphNodeSet:
     """
     Ensures that for each line in the sliced program output, all corresponding
     nodes are included in the selected subgraph, and vice versa
@@ -127,7 +155,7 @@ def _include_dependencies_for_indirectly_included_nodes_in_slice(
     # function is called recursively.
     code_to_lines = DefaultDict[SourceCode, Set[int]](set)
 
-    for node_id in current_subset:
+    for node_id in current_subset.nodes:
         node = graph.get_node(node_id)
         if node is None or not node.source_location:
             continue
@@ -143,7 +171,7 @@ def _include_dependencies_for_indirectly_included_nodes_in_slice(
 
     for node in graph.nodes:
         node_id = node.id  # type: ignore
-        if node_id not in current_subset:
+        if node_id not in current_subset.nodes:
             node = graph.get_node(node_id)
             if (
                 node is None
@@ -164,8 +192,8 @@ def _include_dependencies_for_indirectly_included_nodes_in_slice(
                 completed = False
 
     for node_id in to_be_added:
-        current_subset |= {node_id}
-        current_subset.update(graph.get_ancestors(node_id))
+        current_subset.nodes |= {node_id}
+        current_subset.nodes.update(graph.get_ancestors(node_id))
 
     if completed:
         return current_subset
@@ -175,21 +203,9 @@ def _include_dependencies_for_indirectly_included_nodes_in_slice(
         )
 
 
-@dataclass
-class CodeSlice:
-    import_lines: List[str]
-    body_lines: List[str]
-    # source_code: SourceCode
-
-    def __str__(self):
-        return prettify("\n".join(self.import_lines + self.body_lines) + "\n")
-
-    def __repr__(self):
-        return str(self)
-
-
 def get_source_code_from_graph(
-    slice_nodes: Set[LineaID],
+    # slice_nodes: Set[LineaID],
+    slice_nodes: SubgraphNodeSet,
     session_graph: Graph,
     include_non_slice_as_comment=False,
 ) -> CodeSlice:
@@ -212,7 +228,7 @@ def get_source_code_from_graph(
     incomplete_block_locations = DefaultDict[SourceCode, Set[int]](set)
     session_src = DefaultDict[SourceCode, Set[LineaID]](set)
 
-    for nodeid in slice_nodes:
+    for nodeid in slice_nodes.nodes:
         node = session_graph.ids[nodeid]
         if not node.source_location:
             continue
@@ -283,7 +299,7 @@ def get_source_code_from_graph(
     logger.debug("Source code to lines: %s", source_code_to_lines)
     # Sort source codes (for jupyter cells), and select lines
     body_code = []
-    for source_code, nodeids in sorted(
+    for source_code, _nodeids in sorted(
         session_src.items(), key=lambda x: x[0]
     ):
         # if any of the nodeids in a sourcecode block are in source_code_to_lines,
