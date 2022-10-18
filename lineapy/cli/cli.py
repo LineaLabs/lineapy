@@ -29,7 +29,7 @@ from lineapy.api.models.linea_artifact import (
     LineaArtifact,
     get_lineaartifactdef,
 )
-from lineapy.data.types import SessionType
+from lineapy.data.types import ML_MODELS_STORAGE_BACKEND, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
@@ -107,6 +107,16 @@ logger = logging.getLogger(__name__)
     type=click.Path(dir_okay=False, path_type=pathlib.Path),
     help="Logging file",
 )
+@click.option(
+    "--mlflow-tracking-uri",
+    type=click.STRING,
+    help="MLFlow tracking uri for ML models storage backend.",
+)
+@click.option(
+    "--default-ml-models-storage-backend",
+    type=click.STRING,
+    help="Default storage backend for ML models",
+)
 def linea_cli(
     verbose: bool,
     home_dir: Optional[pathlib.Path],
@@ -116,6 +126,8 @@ def linea_cli(
     do_not_track: Optional[bool],
     logging_level: Optional[str],
     logging_file: Optional[pathlib.Path],
+    mlflow_tracking_uri: Optional[str],
+    default_ml_models_storage_backend: Optional[ML_MODELS_STORAGE_BACKEND],
 ):
     """
     Pass all configuration to lineapy_config
