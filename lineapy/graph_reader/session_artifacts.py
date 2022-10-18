@@ -51,6 +51,7 @@ class SessionArtifacts:
     all_session_artifacts: Dict[LineaID, LineaArtifact]
     input_parameters: List[str]
     nodecollection_dependencies: TaskGraph
+    include_non_slice_as_comment: bool
 
     def __init__(
         self,
@@ -58,6 +59,7 @@ class SessionArtifacts:
         target_artifacts: List[LineaArtifact],
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[LineaArtifact] = [],
+        include_non_slice_as_comment: bool = False,
     ) -> None:
         self.db = db
         self.target_artifacts = target_artifacts
@@ -68,6 +70,7 @@ class SessionArtifacts:
         self._session_graph = Graph.create_session_graph(
             self.db, self._session_id
         )
+        self.include_non_slice_as_comment = include_non_slice_as_comment
         # Only interested union of sliced graph of each artifacts
         self.graph = self._get_subgraph_from_node_list(
             list(
@@ -529,7 +532,10 @@ class SessionArtifacts:
                         common_nodecollectioninfo._update_variable_info(
                             self.node_context, self.input_parameters_node
                         )
-                        common_nodecollectioninfo._update_graph(self.graph)
+                        common_nodecollectioninfo.update_raw_codeblock(
+                            self._session_graph,
+                            include_non_slice_as_comment=self.include_non_slice_as_comment,
+                        )
 
                         remaining_nodes = source_info.node_list - common_nodes
                         remaining_nodecollectioninfo = NodeCollection(
@@ -542,7 +548,10 @@ class SessionArtifacts:
                         remaining_nodecollectioninfo._update_variable_info(
                             self.node_context, self.input_parameters_node
                         )
-                        remaining_nodecollectioninfo._update_graph(self.graph)
+                        remaining_nodecollectioninfo.update_raw_codeblock(
+                            self._session_graph,
+                            include_non_slice_as_comment=self.include_non_slice_as_comment,
+                        )
 
                         self.artifact_nodecollections = (
                             self.artifact_nodecollections[:source_id]
@@ -561,7 +570,10 @@ class SessionArtifacts:
                     nodecollectioninfo.node_list
                     - set(self.input_parameters_node.values())
                 )
-                nodecollectioninfo._update_graph(self.graph)
+                nodecollectioninfo.update_raw_codeblock(
+                    self._session_graph,
+                    include_non_slice_as_comment=self.include_non_slice_as_comment,
+                )
                 self.artifact_nodecollections.append(nodecollectioninfo)
 
         # NodeCollection for import
@@ -569,7 +581,10 @@ class SessionArtifacts:
             collection_type=NodeCollectionType.IMPORT,
             node_list=self.import_nodes,
         )
-        self.import_nodecollection._update_graph(self.graph)
+        # TODO: dont comment unsliced code here as well since we dont care about imports
+        self.import_nodecollection.update_raw_codeblock(
+            self.graph, include_non_slice_as_comment=False
+        )
 
         # NodeCollection for input parameters
         self.input_parameters_nodecollection = NodeCollection(
@@ -579,7 +594,10 @@ class SessionArtifacts:
         self.input_parameters_nodecollection._update_variable_info(
             self.node_context, self.input_parameters_node
         )
-        self.input_parameters_nodecollection._update_graph(self.graph)
+        # TODO: change here to not include raw code since this is generated bits
+        self.input_parameters_nodecollection.update_raw_codeblock(
+            self.graph, include_non_slice_as_comment=False
+        )
 
     def _update_nodecollection_dependencies(self):
         """
@@ -708,6 +726,8 @@ class SessionArtifacts:
         session_input_variables: Dict[str, InputVariable] = dict()
         for line in self.get_session_input_parameters_lines().split("\n"):
             variable_def = line.strip(" ").rstrip(",")
+            if variable_def.startswith("#"):
+                continue
             if len(variable_def) > 0:
                 variable_name = variable_def.split("=")[0].strip(" ")
                 value = eval(variable_def.split("=")[1].strip(" "))

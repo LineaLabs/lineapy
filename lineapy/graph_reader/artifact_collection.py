@@ -38,10 +38,12 @@ class ArtifactCollection:
         target_artifacts: List[LineaArtifactDef],
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[LineaArtifactDef] = [],
+        include_non_slice_as_comment=False,
     ) -> None:
         self.db: RelationalLineaDB = db
 
         self.input_parameters = input_parameters
+        self.include_non_slice_as_comment = include_non_slice_as_comment
         if len(input_parameters) != len(set(input_parameters)):
             raise ValueError(
                 f"Duplicated input parameters detected in {input_parameters}"
@@ -76,6 +78,7 @@ class ArtifactCollection:
                 session_artifacts,
                 input_parameters=input_parameters,
                 reuse_pre_computed_artifacts=pre_calculated_artifacts,
+                include_non_slice_as_comment=include_non_slice_as_comment,
             )
 
         # TODO: LIN-653, LIN-640
