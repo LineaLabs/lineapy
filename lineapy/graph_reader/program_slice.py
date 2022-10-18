@@ -269,25 +269,15 @@ def get_source_code_from_graph(
                 )
             )
 
-    # print(slice_nodes)
-    # for n in slice_nodes:
-    #     nn = session_graph.ids[n]
-    #     print(n, nn.node_type)
-    #     if hasattr(nn, "name"):
-    #         print(nn.name)
     for n in session_graph.nodes:
-        # print(n.id)
         if n.source_location is None:
-            # print("no source", n.id, n.node_type)
             continue
         # ignore the code cells that have no part in the slice at all
         if (
             not include_non_slice_as_comment
             and n.source_location.source_code not in source_code_to_lines
         ):
-            # print("not including", n.id)
             continue
-        # print("including", n.id)
         session_src[n.source_location.source_code] |= set([n.id])
 
     logger.debug("Source code to lines: %s", source_code_to_lines)
@@ -300,10 +290,6 @@ def get_source_code_from_graph(
         # then there are pieces of the codecell in the final slice.
         lines = source_code_to_lines.get(source_code, set())
         source_code_lines = source_code.code.split("\n")
-        # print("raw code")
-        # print(source_code.code)
-        # print("lines to print")
-        # print(lines)
         if not include_non_slice_as_comment:
             for line in sorted(lines):
                 body_code.append(source_code_lines[line - 1])
