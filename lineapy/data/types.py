@@ -7,6 +7,9 @@ from typing import Any, Dict, Iterable, List, NewType, Optional, Union
 
 from pydantic import BaseModel, Field
 
+# import from typing_extensions because of python 3.7
+from typing_extensions import Literal
+
 
 class SessionType(Enum):
     """
@@ -514,3 +517,5 @@ class PipelineType(Enum):
 
 
 FilePath = Union[str, Path]
+
+ML_MODELS_STORAGE_BACKEND = Literal["lineapy", "mlflow"]

@@ -9,7 +9,7 @@ from typing import Any, Dict, Optional
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
-from lineapy.data.types import FilePath
+from lineapy.data.types import ML_MODELS_STORAGE_BACKEND, FilePath
 from lineapy.db.utils import create_lineadb_engine
 
 LINEAPY_FOLDER_NAME = ".lineapy"
@@ -19,6 +19,7 @@ FILE_PICKLER_BASEDIR = "linea_pickles"
 DB_FILE_NAME = "db.sqlite"
 CUSTOM_ANNOTATIONS_FOLDER_NAME = "custom-annotations"
 CUSTOM_ANNOTATIONS_EXTENSION_NAME = ".annotations.yaml"
+DEFAULT_ML_MODELS_STORAGE_BACKEND = "mlflow"
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,8 @@ class lineapy_config:
     logging_level: str
     logging_file: Optional[Path]
     storage_options: Optional[Dict[str, Any]]
+    mlflow_tracking_uri: Optional[str]
+    default_ml_models_storage_backend: Optional[ML_MODELS_STORAGE_BACKEND]
 
     def __init__(
         self,
@@ -63,6 +66,8 @@ class lineapy_config:
         logging_level="INFO",
         logging_file=None,
         storage_options=None,
+        mlflow_tracking_uri=None,
+        default_ml_models_storage_backend=None,
     ):
         if logging_level.isdigit():
             logging_level = logging._levelToName[int(logging_level)]
@@ -75,6 +80,10 @@ class lineapy_config:
         self.do_not_track = do_not_track
         self.logging_level = logging_level
         self.logging_file = logging_file
+        self.mlflow_tracking_uri = mlflow_tracking_uri
+        self.default_ml_models_storage_backend = (
+            default_ml_models_storage_backend
+        )
 
         # config file
         config_file_path = Path(
@@ -119,6 +128,17 @@ class lineapy_config:
     def get(self, key: str) -> Any:
         """Get LineaPy config field"""
         if key in self.__dict__.keys():
+            # fill empty default_ml_models_storage_backend if
+            # mlflow_tracking_uri is set
+            if (
+                key == "default_ml_models_storage_backend"
+                and (getattr(self, key) is None)
+                and (getattr(self, "mlflow_tracking_uri") is not None)
+            ):
+                self.set(
+                    "default_ml_models_storage_backend",
+                    DEFAULT_ML_MODELS_STORAGE_BACKEND,
+                )
             return getattr(self, key)
         else:
             logger.error(key, "is not a lineapy config item")
