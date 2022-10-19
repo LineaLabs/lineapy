@@ -82,7 +82,7 @@ we would have had the following file generated too for testing the modularized c
 
         def test_get_iris_preprocessed(self) -> None:
             """
-            NOTE: The code below is provided as scaffolding/template.
+            NOTE: The code below is provided as scaffold/template.
             Please adapt it to your specific testing context.
             """
             # Prepare function input (adapt as needed)
@@ -106,7 +106,7 @@ we would have had the following file generated too for testing the modularized c
 
         def test_get_iris_model(self) -> None:
             """
-            NOTE: The code below is provided as scaffolding/template.
+            NOTE: The code below is provided as scaffold/template.
             Please adapt it to your specific testing context.
             """
             # Prepare function input (adapt as needed)
@@ -226,7 +226,7 @@ like so (updates highlighted in yellow):
 
         def test_get_iris_preprocessed(self) -> None:
             """
-            NOTE: The code below is provided as scaffolding/template.
+            NOTE: The code below is provided as scaffold/template.
             Please adapt it to your specific testing context.
             """
             # Prepare function input (adapt as needed)
@@ -244,7 +244,7 @@ like so (updates highlighted in yellow):
 
         def test_get_iris_model(self) -> None:
             """
-            NOTE: The code below is provided as scaffolding/template.
+            NOTE: The code below is provided as scaffold/template.
             Please adapt it to your specific testing context.
             """
             # Prepare function input (adapt as needed)
@@ -305,7 +305,7 @@ along with the corresponding model's parameter estimates recorded. Then, the use
 
         def test_get_iris_model(self) -> None:
             """
-            NOTE: The code below is provided as scaffolding/template.
+            NOTE: The code below is provided as scaffold/template.
             Please adapt it to your specific testing context.
             """
             # Prepare function input (adapt as needed)
