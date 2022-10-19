@@ -43,6 +43,8 @@ class lineapy_config:
     :param logging_level: logging level
     :param logging_file: logging file location (only support local for at this time)
     :param storage_options: a dictionary for artifact storage configuration(same as storage_options in pandas, Dask and fsspec)
+    :param mlflow_tracking_uri: URI for MLflow tracking
+    :param default_ml_models_storage_backend: Default storage backend if mlflow_tracking_uri is not empty
     """
 
     home_dir: Path
