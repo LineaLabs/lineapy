@@ -57,28 +57,19 @@ class Pipeline:
         pipeline_dag_config: Optional[AirflowDagConfig] = {},
         include_non_slice_as_comment=False,
     ) -> Path:
-        # Create artifact collection
-        execution_context = get_context()
-        artifact_defs = [
-            get_lineaartifactdef(art_entry=art_entry)
-            for art_entry in self.artifact_names
-        ]
-        reuse_pre_computed_artifact_defs = [
-            get_lineaartifactdef(art_entry=art_entry)
-            for art_entry in reuse_pre_computed_artifacts
-        ]
-        artifact_collection = ArtifactCollection(
-            db=execution_context.executor.db,
-            target_artifacts=artifact_defs,
-            input_parameters=input_parameters,
-            reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
-        )
-
         # Check if the specified framework is a supported/valid one
         if framework not in PipelineType.__members__:
             raise Exception(f"No PipelineType for {framework}")
 
-        # Construct pipeline writer
+        # get artifact_collection for use in pipeline writers
+        artifact_collection = self._get_artifact_collection(
+            input_parameters,
+            reuse_pre_computed_artifacts,
+            include_non_slice_as_comment,
+        )
+
+        # Construct pipeline writer. Check out class:PipelineType for supported frameworks
+        # If you want to add a new framework, please read the "adding a new pipeline writer" tutorial
         pipeline_writer = PipelineWriterFactory.get(
             pipeline_type=PipelineType[framework],
             artifact_collection=artifact_collection,
@@ -112,6 +103,31 @@ class Pipeline:
         )
 
         return pipeline_writer.output_dir
+
+    def _get_artifact_collection(
+        self,
+        input_parameters,
+        reuse_pre_computed_artifacts,
+        include_non_slice_as_comment,
+    ):
+        # Create artifact collection
+        execution_context = get_context()
+        artifact_defs = [
+            get_lineaartifactdef(art_entry=art_entry)
+            for art_entry in self.artifact_names
+        ]
+        reuse_pre_computed_artifact_defs = [
+            get_lineaartifactdef(art_entry=art_entry)
+            for art_entry in reuse_pre_computed_artifacts
+        ]
+        artifact_collection = ArtifactCollection(
+            db=execution_context.executor.db,
+            target_artifacts=artifact_defs,
+            input_parameters=input_parameters,
+            reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
+        )
+
+        return artifact_collection
 
     def save(self):
         """
