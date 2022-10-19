@@ -207,45 +207,6 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
         logging.debug(f"No valid pickle path found for {node_id}")
 
 
-def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
-    """
-    Pickle file for a value to be named with the following scheme.
-    <node_id-hash>-<exec_id-hash>-pickle
-    """
-    return f"pre-{slugify(hash(node_id + execution_id))}-post.pkl"
-
-
-def _try_write_to_pickle(value: object, filename: str) -> None:
-    """
-    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
-
-    :param value: data to pickle
-    :param filename: name of pickle file
-    """
-    if isinstance(value, types.ModuleType):
-        track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))
-        raise ArtifactSaveException(
-            "Lineapy does not support saving Python Module Objects as pickles"
-        )
-
-    artifact_storage_dir = options.safe_get("artifact_storage_dir")
-    filepath = (
-        artifact_storage_dir.joinpath(filename)
-        if isinstance(artifact_storage_dir, Path)
-        else f'{artifact_storage_dir.rstrip("/")}/{filename}'
-    )
-    try:
-        logger.debug(f"Saving file to {filepath} ")
-        to_pickle(
-            value, filepath, storage_options=options.get("storage_options")
-        )
-    except Exception as e:
-        # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
-        logger.error(e)
-        track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
-        raise e
-
-
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     """
     Gets an artifact from the DB.

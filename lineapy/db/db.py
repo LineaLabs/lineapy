@@ -32,6 +32,7 @@ from lineapy.data.types import (
 from lineapy.db.relational import (
     ArtifactDependencyORM,
     ArtifactORM,
+    ArtifactStorageORM,
     Base,
     BaseNodeORM,
     CallNodeORM,
