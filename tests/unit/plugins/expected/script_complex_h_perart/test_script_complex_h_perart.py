@@ -68,7 +68,7 @@ class TestScriptComplexHPerart(unittest.TestCase):
 
     def test_get_a_c_for_artifact_f_and_downstream(self) -> None:
         """
-        NOTE: The code below is provided as scaffolding/template.
+        NOTE: The code below is provided as scaffold/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
@@ -95,7 +95,7 @@ class TestScriptComplexHPerart(unittest.TestCase):
 
     def test_get_f(self) -> None:
         """
-        NOTE: The code below is provided as scaffolding/template.
+        NOTE: The code below is provided as scaffold/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
@@ -126,7 +126,7 @@ class TestScriptComplexHPerart(unittest.TestCase):
 
     def test_get_h(self) -> None:
         """
-        NOTE: The code below is provided as scaffolding/template.
+        NOTE: The code below is provided as scaffold/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """

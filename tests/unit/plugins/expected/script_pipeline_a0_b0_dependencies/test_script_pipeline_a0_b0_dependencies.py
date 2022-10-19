@@ -58,7 +58,7 @@ class TestScriptPipelineA0B0Dependencies(unittest.TestCase):
 
     def test_get_b0(self) -> None:
         """
-        NOTE: The code below is provided as scaffolding/template.
+        NOTE: The code below is provided as scaffold/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
@@ -83,7 +83,7 @@ class TestScriptPipelineA0B0Dependencies(unittest.TestCase):
 
     def test_get_a0(self) -> None:
         """
-        NOTE: The code below is provided as scaffolding/template.
+        NOTE: The code below is provided as scaffold/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """

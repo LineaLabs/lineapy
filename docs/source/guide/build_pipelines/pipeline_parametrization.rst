@@ -194,4 +194,4 @@ pipeline's utility).
 .. note::
 
    If you want hands-on practice,
-   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/03_parametrize_pipelines.ipynb>`_ tutorial notebook.
+   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02b_parametrize_pipelines.ipynb>`_ tutorial notebook.

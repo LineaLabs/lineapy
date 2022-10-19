@@ -70,7 +70,7 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
 
     def test_get_assets_for_artifact_y_and_downstream(self) -> None:
         """
-        NOTE: The code below is provided as scaffolding/template.
+        NOTE: The code below is provided as scaffold/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
@@ -97,7 +97,7 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
 
     def test_get_y(self) -> None:
         """
-        NOTE: The code below is provided as scaffolding/template.
+        NOTE: The code below is provided as scaffold/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """
@@ -128,7 +128,7 @@ class TestScriptPipelineHousingWDependencies(unittest.TestCase):
 
     def test_get_p_value(self) -> None:
         """
-        NOTE: The code below is provided as scaffolding/template.
+        NOTE: The code below is provided as scaffold/template.
         Please adapt it to your specific testing context.
         [TODO: ADD LINK TO WEB DOCUMENTATION].
         """

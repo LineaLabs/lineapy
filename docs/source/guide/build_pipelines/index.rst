@@ -14,4 +14,5 @@ Having the complete development process stored in artifacts, LineaPy can automat
 
    pipeline_basics
    pipeline_parametrization
+   pipeline_testing
    .. pipeline_reusing_precomputed
