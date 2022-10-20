@@ -514,3 +514,8 @@ class PipelineType(Enum):
 
 
 FilePath = Union[str, Path]
+
+
+class ML_MODELS_STORAGE_BACKEND(str, Enum):
+    lineapy = "lineapy"
+    mlflow = "mlflow"
