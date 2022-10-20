@@ -11,8 +11,8 @@ from lineapy.data.types import (
     SourceLocation,
 )
 from lineapy.graph_reader.program_slice import (
+    _get_preliminary_slice,
     _include_dependencies_for_indirectly_included_nodes_in_slice,
-    get_subgraph_nodelist,
 )
 
 source_1 = SourceCode(
@@ -53,14 +53,14 @@ def test_include_dependencies_for_indirectly_included_nodes_in_slice():
     # If _include_dependencies_for_indirectly_included_nodes_in_slice was not
     # present, we would include Instruction 1 and Instruction 3, which means
     # lines 1 and 2 both get included, which indirectly includes Instruction 2,
-    # but the get_subgraph_nodelist would not include Instruction 2's node.
+    # but the _get_preliminary_slice would not include Instruction 2's node.
     nodes = [
         get_dummy_node("1", 1, None),
         get_dummy_node("2", 2, None),
         get_dummy_node("3", 2, "1"),
     ]
     graph = Graph(list(nodes), mocked_session)
-    ancestors = get_subgraph_nodelist(graph, [LineaID("3")], False)
+    ancestors = _get_preliminary_slice(graph, [LineaID("3")], False)
     assert ancestors == {"1", "3"}
     ancestors = _include_dependencies_for_indirectly_included_nodes_in_slice(
         graph, ancestors
@@ -85,7 +85,7 @@ def test_include_dependencies_for_indirectly_included_nodes_in_slice_recursive()
     # If _include_dependencies_for_indirectly_included_nodes_in_slice was not
     # present, we would include Instruction 1 and Instruction 5, which means
     # lines 1 and 4 both get included, which indirectly includes Instruction 6,
-    # but the get_subgraph_nodelist would not include Instruction 2's node.
+    # but the _get_preliminary_slice would not include Instruction 2's node.
     #
     # If _include_dependencies_for_indirectly_included_nodes_in_slice was not
     # recursive, the process would stop after including line 3, but due to
@@ -100,7 +100,7 @@ def test_include_dependencies_for_indirectly_included_nodes_in_slice_recursive()
         get_dummy_node("6", 4, "4"),
     ]
     graph = Graph(list(nodes), mocked_session)
-    ancestors = get_subgraph_nodelist(graph, [LineaID("5")], False)
+    ancestors = _get_preliminary_slice(graph, [LineaID("5")], False)
     assert ancestors == {"1", "5"}
     ancestors = _include_dependencies_for_indirectly_included_nodes_in_slice(
         graph, ancestors

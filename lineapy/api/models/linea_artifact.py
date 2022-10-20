@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Set, Tuple, Union
+from typing import Optional, Tuple, Union
 
 from IPython.display import display
 from pandas.io.pickle import read_pickle
@@ -18,7 +18,6 @@ from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
-    get_subgraph_nodelist,
 )
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
@@ -153,20 +152,10 @@ class LineaArtifact:
         )
 
     @lru_cache(maxsize=None)
-    def _get_sessiongraph_and_subgraph_nodelist(
-        self, keep_lineapy_save: bool = False
-    ) -> Tuple[Graph, Set[LineaID]]:
-        session_graph = Graph.create_session_graph(self.db, self._session_id)
-        return session_graph, get_subgraph_nodelist(
-            session_graph, [self._node_id], keep_lineapy_save
-        )
-
-    @lru_cache(maxsize=None)
     def get_code(
         self,
         use_lineapy_serialization: bool = True,
         keep_lineapy_save: bool = False,
-        include_non_slice_as_comment: bool = False,
     ) -> str:
         """
         Return the slices code for the artifact
@@ -186,16 +175,8 @@ class LineaArtifact:
                 is_session_code=False,
             )
         )
-        (
-            sessiongraph,
-            subgraph_nodelist,
-        ) = self._get_sessiongraph_and_subgraph_nodelist(keep_lineapy_save)
         code = str(
-            get_source_code_from_graph(
-                subgraph_nodelist,
-                session_graph=sessiongraph,
-                include_non_slice_as_comment=include_non_slice_as_comment,
-            )
+            get_source_code_from_graph(self._get_subgraph(keep_lineapy_save))
         )
         if not use_lineapy_serialization:
             code = de_lineate_code(code, self.db)
