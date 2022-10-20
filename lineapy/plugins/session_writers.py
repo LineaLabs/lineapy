@@ -109,7 +109,7 @@ class BaseSessionWriter:
                     keep_lineapy_save=False,
                     return_dict_name=return_dict_name,
                 )
-                for coll in session_artifact.artifact_nodecollections
+                for coll in session_artifact.usercode_nodecollections
             ]
         )
 
@@ -203,7 +203,7 @@ class BaseSessionWriter:
                 include_non_slice_as_comment=include_non_slice_as_comment,
                 indentation=indentation,
             )
-            for coll in session_artifact.artifact_nodecollections
+            for coll in session_artifact.usercode_nodecollections
         ]
 
     def get_session_function(

@@ -46,7 +46,7 @@ class SessionArtifacts:
     graph: Graph
     session_graph: Graph
     db: RelationalLineaDB
-    artifact_nodecollections: List[UserCodeNodeCollection]
+    usercode_nodecollections: List[UserCodeNodeCollection]
     import_nodecollection: ImportNodeCollection
     input_parameters_node: Dict[str, LineaID]
     node_context: Dict[LineaID, NodeInfo]
@@ -99,7 +99,7 @@ class SessionArtifacts:
                 )
             ),
         )
-        self.artifact_nodecollections = []
+        self.usercode_nodecollections = []
         self.node_context = OrderedDict()
         self.input_parameters = input_parameters
         self.reuse_pre_computed_artifacts = {
@@ -427,7 +427,7 @@ class SessionArtifacts:
         """
         self.used_nodes: Set[LineaID] = set()  # Track nodes that get ever used
         self.import_nodes: Set[LineaID] = set()
-        self.artifact_nodecollections = list()
+        self.usercode_nodecollections = list()
         for node_id, n in self.node_context.items():
             if (
                 n.assigned_artifact is not None
@@ -505,7 +505,7 @@ class SessionArtifacts:
                     source_id, source_info = [
                         (i, context)
                         for i, context in enumerate(
-                            self.artifact_nodecollections
+                            self.usercode_nodecollections
                         )
                         if context.name == source_artifact_name
                     ][0]
@@ -553,13 +553,13 @@ class SessionArtifacts:
                             self.node_context, self.input_parameters_node
                         )
 
-                        self.artifact_nodecollections = (
-                            self.artifact_nodecollections[:source_id]
+                        self.usercode_nodecollections = (
+                            self.usercode_nodecollections[:source_id]
                             + [
                                 common_nodecollectioninfo,
                                 remaining_nodecollectioninfo,
                             ]
-                            + self.artifact_nodecollections[(source_id + 1) :]
+                            + self.usercode_nodecollections[(source_id + 1) :]
                         )
 
                 # Remove input parameter node
@@ -570,7 +570,7 @@ class SessionArtifacts:
                     nodecollectioninfo.node_list
                     - set(self.input_parameters_node.values())
                 )
-                self.artifact_nodecollections.append(nodecollectioninfo)
+                self.usercode_nodecollections.append(nodecollectioninfo)
 
         # NodeCollection for import
         self.import_nodecollection = ImportNodeCollection(
@@ -595,12 +595,12 @@ class SessionArtifacts:
         # Artifact nodes that are going to be replaced by cached value
         cache_nodes = [
             nc.name
-            for nc in self.artifact_nodecollections
+            for nc in self.usercode_nodecollections
             if isinstance(nc, ArtifactNodeCollection) and nc.is_pre_computed
         ]
         # Determine input variables of a nodecollection are coming from output
         # variables of nodecollections to build the NodeCollection dependencies
-        for nc in self.artifact_nodecollections:
+        for nc in self.usercode_nodecollections:
             dependencies[nc.name] = set()
             for var in nc.input_variables:
                 if var in last_appearance_nc.keys():
@@ -609,9 +609,9 @@ class SessionArtifacts:
                 last_appearance_nc[var] = nc.name
         # Nodecollection dependencies
         self.nodecollection_dependencies = TaskGraph(
-            nodes=[nc.name for nc in self.artifact_nodecollections],
+            nodes=[nc.name for nc in self.usercode_nodecollections],
             mapping={
-                nc.name: nc.safename for nc in self.artifact_nodecollections
+                nc.name: nc.safename for nc in self.usercode_nodecollections
             },
             edges=dependencies,
         )
@@ -640,9 +640,9 @@ class SessionArtifacts:
             nc_graph.add_edges_from(
                 [edge for edge in cache_nodes_edges if edge[1] in nc_graph]
             )
-            self.artifact_nodecollections = [
+            self.usercode_nodecollections = [
                 art
-                for art in self.artifact_nodecollections
+                for art in self.usercode_nodecollections
                 if art.name in nc_graph.nodes
             ]
             self.nodecollection_dependencies.graph = nc_graph
@@ -651,7 +651,7 @@ class SessionArtifacts:
         """
         Return the name of first artifact(topologically sorted).
         """
-        for coll in self.artifact_nodecollections:
+        for coll in self.usercode_nodecollections:
             if isinstance(coll, ArtifactNodeCollection):
                 return coll.safename
         return None

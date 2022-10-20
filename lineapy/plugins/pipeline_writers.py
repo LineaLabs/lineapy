@@ -321,7 +321,7 @@ class BasePipelineWriter:
                     ),
                 }
                 for session_artifacts in self.session_artifacts_sorted
-                for node_collection in session_artifacts.artifact_nodecollections
+                for node_collection in session_artifacts.usercode_nodecollections
             }
         )
 
@@ -643,7 +643,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     session_artifacts
                 )
             )
-            for nc in session_artifacts.artifact_nodecollections:
+            for nc in session_artifacts.usercode_nodecollections:
                 all_input_variables = sorted(list(nc.input_variables))
                 artifact_user_input_variables = [
                     var
@@ -718,7 +718,7 @@ def get_session_task_definition(
     function_call_block = f"artifacts = {pipeline_name}_module.{BaseSessionWriter().get_session_function_callblock(sa)}"
     return_artifacts_saving_block = [
         f"pickle.dump(artifacts['{nc.name}'],open('/tmp/{pipeline_name}/artifact_{nc.safename}.pickle','wb'))"
-        for nc in sa.artifact_nodecollections
+        for nc in sa.usercode_nodecollections
         if isinstance(nc, ArtifactNodeCollection)
     ]
 
@@ -772,7 +772,7 @@ class AirflowCodeGenerator:
         artifact_function_input_parameters = dict()
         for sa in self.artifact_collection.sort_session_artifacts():
             session_input_parameters = set(sa.input_parameters_node.keys())
-            for nc in sa.artifact_nodecollections:
+            for nc in sa.usercode_nodecollections:
                 user_input_variables = artifact_function_definitions[
                     nc.safename
                 ]["user_input_variables"]
