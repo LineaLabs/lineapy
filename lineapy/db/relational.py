@@ -124,6 +124,15 @@ class ArtifactORM(Base):
     )
 
 
+class MLflowArtifactMetadataORM(Base):
+    __tablename__ = "mlflow_artifact_storage"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    artifact_id = Column(String, ForeignKey("artifact.id"), nullable=False)
+    backend = Column(String, nullable=False)
+    backend_uri = Column(String, nullable=False)
+    model_uri = Column(String, nullable=False)
+
+
 class PipelineORM(Base):
     __tablename__ = "pipeline"
     id = Column(Integer, primary_key=True, autoincrement=True)

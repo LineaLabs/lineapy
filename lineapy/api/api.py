@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Callable, List, Optional, Tuple, Union
 
 import fsspec
-from pandas.io.pickle import to_pickle
 
+from lineapy.api.artifact_serializer import serialize_artifact
 from lineapy.api.models.linea_artifact import (
     LineaArtifact,
     get_lineaartifactdef,
@@ -42,6 +42,9 @@ from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_system_python_version, get_value_type
 
+# from pandas.io.pickle import to_pickle
+
+
 logger = logging.getLogger(__name__)
 # TODO: figure out if we need to configure it all the time
 configure_logging()
@@ -53,7 +56,7 @@ one way to access the same feature.
 """
 
 
-def save(reference: object, name: str) -> LineaArtifact:
+def save(reference: object, name: str, storage_backend=None) -> LineaArtifact:
     """
     Publishes the object to the Linea DB.
 
@@ -105,14 +108,28 @@ def save(reference: object, name: str) -> LineaArtifact:
 
         # TODO add version or timestamp to allow saving of multiple pickle files for the same node id
         # pickles value of artifact and saves to filesystem
-        pickle_name = _pickle_name(value_node_id, execution_id)
-        _try_write_to_pickle(reference, pickle_name)
+        # pickle_name = _pickle_name(value_node_id, execution_id)
+        # _try_write_to_pickle(reference, pickle_name)
+
+        artifact_serialize_metadata = serialize_artifact(
+            value_node_id,
+            execution_id,
+            reference,
+            name,
+            storage_backend,
+        )
+        if artifact_serialize_metadata["backend"] == "mlflow":
+            artifact_path = artifact_serialize_metadata["metadata"].model_uri
+        else:
+            artifact_path = artifact_serialize_metadata["metadata"][
+                "pickle_name"
+            ]
 
         # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=str(pickle_name),
+                value=artifact_path,
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -136,6 +153,7 @@ def save(reference: object, name: str) -> LineaArtifact:
         version=artifact_version,
     )
     db.write_artifact(artifact_to_write)
+
     track(SaveEvent(side_effect=side_effect_to_str(reference)))
 
     linea_artifact = LineaArtifact(
@@ -147,6 +165,15 @@ def save(reference: object, name: str) -> LineaArtifact:
         _session_id=call_node.session_id,
         _version=artifact_version,
     )
+
+    if artifact_serialize_metadata["backend"] == "mlflow":
+        artifactorm = db.get_artifactorm_by_name(
+            artifact_name=name, version=artifact_version
+        )
+        db.write_mlflow_artifactmetadata(
+            artifactorm, artifact_serialize_metadata["metadata"]
+        )
+
     return linea_artifact
 
 
@@ -205,45 +232,6 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
             f.fs.delete(f.path)
     except ValueError:
         logging.debug(f"No valid pickle path found for {node_id}")
-
-
-def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
-    """
-    Pickle file for a value to be named with the following scheme.
-    <node_id-hash>-<exec_id-hash>-pickle
-    """
-    return f"pre-{slugify(hash(node_id + execution_id))}-post.pkl"
-
-
-def _try_write_to_pickle(value: object, filename: str) -> None:
-    """
-    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
-
-    :param value: data to pickle
-    :param filename: name of pickle file
-    """
-    if isinstance(value, types.ModuleType):
-        track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))
-        raise ArtifactSaveException(
-            "Lineapy does not support saving Python Module Objects as pickles"
-        )
-
-    artifact_storage_dir = options.safe_get("artifact_storage_dir")
-    filepath = (
-        artifact_storage_dir.joinpath(filename)
-        if isinstance(artifact_storage_dir, Path)
-        else f'{artifact_storage_dir.rstrip("/")}/{filename}'
-    )
-    try:
-        logger.debug(f"Saving file to {filepath} ")
-        to_pickle(
-            value, filepath, storage_options=options.get("storage_options")
-        )
-    except Exception as e:
-        # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
-        logger.error(e)
-        track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
-        raise e
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
@@ -373,6 +361,7 @@ def to_pipeline(
     reuse_pre_computed_artifacts: List[str] = [],
     generate_test: bool = False,
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
+    include_non_slice_as_comment: bool = False,
 ) -> Path:
     """
     Writes the pipeline job to a path on disk.
@@ -446,6 +435,7 @@ def to_pipeline(
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
         generate_test=generate_test,
         pipeline_dag_config=pipeline_dag_config,
+        include_non_slice_as_comment=include_non_slice_as_comment,
     )
 
 
