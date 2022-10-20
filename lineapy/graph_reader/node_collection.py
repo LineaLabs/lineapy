@@ -181,15 +181,11 @@ class ImportNodeCollection(BaseNodeCollection):
     ImportNodeCollection contains all the nodes used to import libraries in a Session.
     """
 
-    def get_import_block(
-        self, graph: Graph, include_non_slice_as_comment=False, indentation=0
-    ) -> str:
+    def get_import_block(self, graph: Graph, indentation=0) -> str:
         """
         Return a code block for import statement of the graph segment
         """
-        raw_codeblock = self._get_raw_codeblock(
-            graph, include_non_slice_as_comment
-        )
+        raw_codeblock = self._get_raw_codeblock(graph)
         if raw_codeblock == "":
             return ""
 

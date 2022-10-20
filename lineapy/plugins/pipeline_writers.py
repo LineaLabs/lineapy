@@ -117,9 +117,7 @@ class BasePipelineWriter:
 
         module_imports = "\n".join(
             [
-                BaseSessionWriter().get_session_module_imports(
-                    sa, self.include_non_slice_as_comment
-                )
+                BaseSessionWriter().get_session_module_imports(sa)
                 for sa in self.session_artifacts_sorted
             ]
         )
@@ -143,7 +141,6 @@ class BasePipelineWriter:
             [
                 BaseSessionWriter().get_session_function(
                     session_artifact=sa,
-                    include_non_slice_as_comment=self.include_non_slice_as_comment,
                     indentation=indentation,
                 )
                 for sa in self.session_artifacts_sorted

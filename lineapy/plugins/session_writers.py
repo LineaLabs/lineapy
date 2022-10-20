@@ -21,7 +21,6 @@ class BaseSessionWriter:
     def get_session_module_imports(
         self,
         session_artifact: SessionArtifacts,
-        include_non_slice_as_comment=False,
         indentation=0,
     ) -> str:
         """
@@ -30,7 +29,6 @@ class BaseSessionWriter:
 
         return session_artifact.import_nodecollection.get_import_block(
             graph=session_artifact.graph,
-            include_non_slice_as_comment=include_non_slice_as_comment,
             indentation=indentation,
         )
 
@@ -209,7 +207,6 @@ class BaseSessionWriter:
     def get_session_function(
         self,
         session_artifact,
-        include_non_slice_as_comment=False,
         indentation=4,
         return_dict_name="artifacts",
     ) -> str:
