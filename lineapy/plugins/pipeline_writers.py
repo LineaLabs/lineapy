@@ -57,6 +57,7 @@ class BasePipelineWriter:
         output_dir: str = ".",
         generate_test: bool = False,
         dag_config: Optional[Union[AirflowDagConfig, DVCDagConfig]] = None,
+        include_non_slice_as_comment: Optional[bool] = False,
     ) -> None:
         self.artifact_collection = artifact_collection
         self.keep_lineapy_save = keep_lineapy_save
@@ -65,6 +66,7 @@ class BasePipelineWriter:
         self.generate_test = generate_test
         self.dag_config = dag_config or {}
         self.dependencies = dependencies
+        self.include_non_slice_as_comment = include_non_slice_as_comment
 
         self.session_artifacts_sorted = (
             self.artifact_collection.sort_session_artifacts(
@@ -115,7 +117,9 @@ class BasePipelineWriter:
 
         module_imports = "\n".join(
             [
-                BaseSessionWriter().get_session_module_imports(sa)
+                BaseSessionWriter().get_session_module_imports(
+                    sa, self.include_non_slice_as_comment
+                )
                 for sa in self.session_artifacts_sorted
             ]
         )
@@ -125,7 +129,9 @@ class BasePipelineWriter:
                 itertools.chain.from_iterable(
                     [
                         BaseSessionWriter().get_session_artifact_function_definitions(
-                            session_artifact=sa, indentation=indentation
+                            session_artifact=sa,
+                            include_non_slice_as_comment=self.include_non_slice_as_comment,
+                            indentation=indentation,
                         )
                         for sa in self.session_artifacts_sorted
                     ]
@@ -136,7 +142,9 @@ class BasePipelineWriter:
         session_functions = "\n".join(
             [
                 BaseSessionWriter().get_session_function(
-                    session_artifact=sa, indentation=indentation
+                    session_artifact=sa,
+                    include_non_slice_as_comment=self.include_non_slice_as_comment,
+                    indentation=indentation,
                 )
                 for sa in self.session_artifacts_sorted
             ]

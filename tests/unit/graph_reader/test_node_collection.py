@@ -29,13 +29,12 @@ def get_user_code_nodecollection(
     sliced_graph = get_slice_graph(session_graph, sink_node_id_list)
 
     nc = UserCodeNodeCollection(
-        set([node.id for node in sliced_graph.nodes]),
-        session_graph,
-        nc_name,
+        node_list=set([node.id for node in sliced_graph.nodes]),
+        name=nc_name,
         input_variables=set(input_variables),
         return_variables=return_variables,
     )
-    return nc
+    return nc, session_graph
 
 
 @pytest.mark.parametrize(
@@ -67,7 +66,7 @@ def test_fixture(
     input parameters
     """
 
-    nc = get_user_code_nodecollection(
+    nc, session_graph = get_user_code_nodecollection(
         input_code,
         execute,
         variable_sinks,
@@ -81,4 +80,6 @@ def test_fixture(
     expected_function_def = f"""def get_{nc_name}({expected_input_block}):
     p = "p"
     return {expected_return_block}"""
-    assert expected_function_def == nc.get_function_definition()
+    assert expected_function_def == nc.get_function_definition(
+        graph=session_graph
+    )

@@ -44,6 +44,7 @@ class SessionArtifacts:
 
     _session_id: LineaID
     graph: Graph
+    session_graph: Graph
     db: RelationalLineaDB
     artifact_nodecollections: List[UserCodeNodeCollection]
     import_nodecollection: ImportNodeCollection
@@ -54,7 +55,6 @@ class SessionArtifacts:
     all_session_artifacts: Dict[LineaID, LineaArtifact]
     input_parameters: List[str]
     nodecollection_dependencies: TaskGraph
-    include_non_slice_as_comment: bool
 
     def __init__(
         self,
@@ -62,7 +62,6 @@ class SessionArtifacts:
         target_artifacts: List[LineaArtifact],
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[LineaArtifact] = [],
-        include_non_slice_as_comment: bool = False,
     ) -> None:
         self.db = db
         self.target_artifacts = target_artifacts
@@ -70,10 +69,9 @@ class SessionArtifacts:
             art.name for art in self.target_artifacts
         ]
         self._session_id = self.target_artifacts[0]._session_id
-        self._session_graph = Graph.create_session_graph(
+        self.session_graph = Graph.create_session_graph(
             self.db, self._session_id
         )
-        self.include_non_slice_as_comment = include_non_slice_as_comment
 
         def _get_subgraph_from_node_list(
             session_graph: Graph, node_list: List[LineaID]
@@ -87,11 +85,11 @@ class SessionArtifacts:
                 if node is not None:
                     nodes.append(node)
 
-            return self._session_graph.get_subgraph(nodes)
+            return self.session_graph.get_subgraph(nodes)
 
         # Only interested union of sliced graph of each artifacts
         self.graph = _get_subgraph_from_node_list(
-            self._session_graph,
+            self.session_graph,
             list(
                 set.union(
                     *[
@@ -405,7 +403,9 @@ class SessionArtifacts:
                 and self.node_context[n].assigned_artifact
                 != self.node_context[n].artifact_name
             ]
-            pred_graph_segment = pred_nc._get_graph_segment()
+            pred_graph_segment = self.graph.get_subgraph_from_id(
+                list(pred_nc.node_list)
+            )
             assert pred_graph_segment is not None
             source_art_slice_variable_graph = get_slice_graph(
                 pred_graph_segment,
@@ -469,7 +469,6 @@ class SessionArtifacts:
                         ArtifactNodeCollection(
                             name=n.assigned_artifact,
                             node_list=art_nodes,
-                            graph=self.graph,
                             tracked_variables=n.tracked_variables,
                             return_variables=list(n.tracked_variables),
                             predecessor_nodes=pred_nodes,
@@ -481,7 +480,6 @@ class SessionArtifacts:
                     nodecollectioninfo = ArtifactNodeCollection(
                         name=n.assigned_artifact,
                         node_list=art_nodes,
-                        graph=self.graph,
                         tracked_variables=n.tracked_variables,
                         return_variables=list(n.tracked_variables),
                         predecessor_nodes=pred_nodes,
@@ -529,7 +527,6 @@ class SessionArtifacts:
                         common_nodecollectioninfo = UserCodeNodeCollection(
                             name=f"{'_'.join(common_inner_variables)}_for_artifact_{source_info.name}_and_downstream",
                             node_list=common_nodes,
-                            graph=self.graph,
                             return_variables=common_inner_variables,
                         )
                         common_nodecollectioninfo.update_variable_info(
@@ -541,7 +538,6 @@ class SessionArtifacts:
                             remaining_nodecollectioninfo: UserCodeNodeCollection = ArtifactNodeCollection(
                                 name=source_info.name,
                                 node_list=remaining_nodes,
-                                graph=self.graph,
                                 return_variables=source_info.return_variables,
                                 is_pre_computed=source_info.is_pre_computed,
                                 pre_computed_artifact=source_info.pre_computed_artifact,
@@ -550,7 +546,6 @@ class SessionArtifacts:
                             remaining_nodecollectioninfo = UserCodeNodeCollection(
                                 name=source_info.name,
                                 node_list=remaining_nodes,
-                                graph=self.graph,
                                 return_variables=source_info.return_variables,
                             )
 
@@ -579,14 +574,13 @@ class SessionArtifacts:
 
         # NodeCollection for import
         self.import_nodecollection = ImportNodeCollection(
-            name="", node_list=self.import_nodes, graph=self.graph
+            name="", node_list=self.import_nodes
         )
 
         # NodeCollection for input parameters
         self.input_parameters_nodecollection = InputVarNodeCollection(
             name="",
             node_list=set(self.input_parameters_node.values()),
-            graph=self.graph,
         )
 
     def _update_nodecollection_dependencies(self):

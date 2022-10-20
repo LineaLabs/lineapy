@@ -19,13 +19,19 @@ class BaseSessionWriter:
         pass
 
     def get_session_module_imports(
-        self, session_artifact: SessionArtifacts, indentation=0
+        self,
+        session_artifact: SessionArtifacts,
+        include_non_slice_as_comment=False,
+        indentation=0,
     ) -> str:
         """
         Return all the import statement for the session.
         """
+
         return session_artifact.import_nodecollection.get_import_block(
-            indentation=indentation
+            graph=session_artifact.graph,
+            include_non_slice_as_comment=include_non_slice_as_comment,
+            indentation=indentation,
         )
 
     def get_session_function_name(
@@ -89,7 +95,7 @@ class BaseSessionWriter:
     def get_session_function_body(
         self,
         session_artifact: SessionArtifacts,
-        indentation,
+        indentation=0,
         return_dict_name="artifacts",
     ) -> str:
         """
@@ -108,7 +114,9 @@ class BaseSessionWriter:
         )
 
     def _get_session_input_parameters_lines(
-        self, session_artifact: SessionArtifacts, indentation=4
+        self,
+        session_artifact: SessionArtifacts,
+        indentation=4,
     ) -> str:
         """
         Return lines of session code that are replaced by user selected input
@@ -116,7 +124,8 @@ class BaseSessionWriter:
         variables.
         """
         return session_artifact.input_parameters_nodecollection.get_input_parameters_block(
-            indentation=indentation
+            graph=session_artifact.graph,
+            indentation=indentation,
         )
 
     def get_session_input_parameters_spec(
@@ -179,19 +188,30 @@ class BaseSessionWriter:
             return ""
 
     def get_session_artifact_function_definitions(
-        self, session_artifact: SessionArtifacts, indentation=4
+        self,
+        session_artifact: SessionArtifacts,
+        include_non_slice_as_comment=False,
+        indentation=4,
     ) -> List[str]:
         """
         Return the definition of each targeted artifacts calculation
         functions.
         """
         return [
-            coll.get_function_definition(indentation=indentation)
+            coll.get_function_definition(
+                graph=session_artifact.session_graph,
+                include_non_slice_as_comment=include_non_slice_as_comment,
+                indentation=indentation,
+            )
             for coll in session_artifact.artifact_nodecollections
         ]
 
     def get_session_function(
-        self, session_artifact, indentation=4, return_dict_name="artifacts"
+        self,
+        session_artifact,
+        include_non_slice_as_comment=False,
+        indentation=4,
+        return_dict_name="artifacts",
     ) -> str:
         """
         Return the definition of the session function that executes the
@@ -203,14 +223,15 @@ class BaseSessionWriter:
         )
         session_function = SESSION_FUNCTION_TEMPLATE.render(
             session_input_parameters_body=self._get_session_input_parameters_lines(
-                session_artifact=session_artifact
+                session_artifact=session_artifact,
             ),
             indentation_block=indentation_block,
             session_function_name=self.get_session_function_name(
-                session_artifact=session_artifact
+                session_artifact=session_artifact,
             ),
             session_function_body=self.get_session_function_body(
-                session_artifact=session_artifact, indentation=indentation
+                session_artifact=session_artifact,
+                indentation=indentation,
             ),
             return_dict_name=return_dict_name,
         )

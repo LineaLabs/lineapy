@@ -22,19 +22,16 @@ class BaseNodeCollection:
     """
 
     node_list: Set[LineaID]
-    graph: Graph
     name: str
 
     def __post_init__(self):
         self.safename = slugify(self.name)
 
-    def _get_graph_segment(self) -> Graph:
-        return self.graph.get_subgraph_from_id(list(self.node_list))
-
-    def _get_raw_codeblock(self, include_non_slice_as_comment=False) -> str:
-        graph_segment = self._get_graph_segment()
+    def _get_raw_codeblock(
+        self, graph: Graph, include_non_slice_as_comment=False
+    ) -> str:
         return get_source_code_from_graph(
-            graph_segment, include_non_slice_as_comment
+            self.node_list, graph, include_non_slice_as_comment
         ).__str__()
 
 
@@ -115,7 +112,9 @@ class UserCodeNodeCollection(BaseNodeCollection):
             user_input_parameters
         )
 
-    def get_function_definition(self, indentation=4) -> str:
+    def get_function_definition(
+        self, graph: Graph, include_non_slice_as_comment=False, indentation=4
+    ) -> str:
         """
         Return a codeblock to define the function of the graph segment.
         """
@@ -126,7 +125,9 @@ class UserCodeNodeCollection(BaseNodeCollection):
         artifact_codeblock = "\n".join(
             [
                 f"{indentation_block}{line}"
-                for line in self._get_raw_codeblock().split("\n")
+                for line in self._get_raw_codeblock(
+                    graph, include_non_slice_as_comment
+                ).split("\n")
                 if len(line.strip(" ")) > 0
             ]
         )
@@ -147,7 +148,9 @@ class ArtifactNodeCollection(UserCodeNodeCollection):
     is_pre_computed: bool = False
     pre_computed_artifact: Optional[LineaArtifactDef] = None
 
-    def get_function_definition(self, indentation=4) -> str:
+    def get_function_definition(
+        self, graph: Graph, include_non_slice_as_comment=False, indentation=4
+    ) -> str:
         """
         Return a codeblock to define the function of the graph segment.
 
@@ -156,7 +159,9 @@ class ArtifactNodeCollection(UserCodeNodeCollection):
         """
 
         if not self.is_pre_computed:
-            return super().get_function_definition(indentation)
+            return super().get_function_definition(
+                graph, include_non_slice_as_comment, indentation
+            )
         else:
             assert self.pre_computed_artifact is not None
             indentation_block = " " * indentation
@@ -176,11 +181,15 @@ class ImportNodeCollection(BaseNodeCollection):
     ImportNodeCollection contains all the nodes used to import libraries in a Session.
     """
 
-    def get_import_block(self, indentation=0) -> str:
+    def get_import_block(
+        self, graph: Graph, include_non_slice_as_comment=False, indentation=0
+    ) -> str:
         """
         Return a code block for import statement of the graph segment
         """
-        raw_codeblock = self._get_raw_codeblock()
+        raw_codeblock = self._get_raw_codeblock(
+            graph, include_non_slice_as_comment
+        )
         if raw_codeblock == "":
             return ""
 
@@ -203,11 +212,11 @@ class InputVarNodeCollection(BaseNodeCollection):
     to the Session.
     """
 
-    def get_input_parameters_block(self, indentation=4) -> str:
+    def get_input_parameters_block(self, graph: Graph, indentation=4) -> str:
         """
         Return a code block for input parameters of the graph segment
         """
-        raw_codeblock = self._get_raw_codeblock()
+        raw_codeblock = self._get_raw_codeblock(graph)
         if raw_codeblock == "":
             return ""
 
