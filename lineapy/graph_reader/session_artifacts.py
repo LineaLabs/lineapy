@@ -5,7 +5,10 @@ from typing import Dict, List, Optional, Set, Tuple, cast
 
 import networkx as nx
 
-from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.api.models.linea_artifact import (
+    LineaArtifact,
+    get_lineaartifactdef,
+)
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     CallNode,
@@ -18,15 +21,15 @@ from lineapy.data.types import (
 from lineapy.db.db import RelationalLineaDB
 from lineapy.db.relational import ImportNodeORM
 from lineapy.graph_reader.node_collection import (
-    NodeCollection,
-    NodeCollectionType,
+    ArtifactNodeCollection,
+    ImportNodeCollection,
+    InputVarNodeCollection,
     NodeInfo,
+    UserCodeNodeCollection,
 )
 from lineapy.graph_reader.program_slice import get_slice_graph
-from lineapy.graph_reader.types import InputVariable
 from lineapy.graph_reader.utils import _is_import_node
 from lineapy.plugins.task import TaskGraph
-from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
@@ -41,9 +44,10 @@ class SessionArtifacts:
 
     _session_id: LineaID
     graph: Graph
+    session_graph: Graph
     db: RelationalLineaDB
-    artifact_nodecollections: List[NodeCollection]
-    import_nodecollection: NodeCollection
+    usercode_nodecollections: List[UserCodeNodeCollection]
+    import_nodecollection: ImportNodeCollection
     input_parameters_node: Dict[str, LineaID]
     node_context: Dict[LineaID, NodeInfo]
     target_artifacts: List[LineaArtifact]
@@ -51,7 +55,6 @@ class SessionArtifacts:
     all_session_artifacts: Dict[LineaID, LineaArtifact]
     input_parameters: List[str]
     nodecollection_dependencies: TaskGraph
-    include_non_slice_as_comment: bool
 
     def __init__(
         self,
@@ -59,7 +62,6 @@ class SessionArtifacts:
         target_artifacts: List[LineaArtifact],
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[LineaArtifact] = [],
-        include_non_slice_as_comment: bool = False,
     ) -> None:
         self.db = db
         self.target_artifacts = target_artifacts
@@ -67,12 +69,27 @@ class SessionArtifacts:
             art.name for art in self.target_artifacts
         ]
         self._session_id = self.target_artifacts[0]._session_id
-        self._session_graph = Graph.create_session_graph(
+        self.session_graph = Graph.create_session_graph(
             self.db, self._session_id
         )
-        self.include_non_slice_as_comment = include_non_slice_as_comment
+
+        def _get_subgraph_from_node_list(
+            session_graph: Graph, node_list: List[LineaID]
+        ) -> Graph:
+            """
+            Return the subgraph as LineaPy Graph from list of node id
+            """
+            nodes: List[Node] = []
+            for node_id in node_list:
+                node = session_graph.get_node(node_id)
+                if node is not None:
+                    nodes.append(node)
+
+            return self.session_graph.get_subgraph(nodes)
+
         # Only interested union of sliced graph of each artifacts
-        self.graph = self._get_subgraph_from_node_list(
+        self.graph = _get_subgraph_from_node_list(
+            self.session_graph,
             list(
                 set.union(
                     *[
@@ -80,9 +97,9 @@ class SessionArtifacts:
                         for art in target_artifacts
                     ]
                 )
-            )
+            ),
         )
-        self.artifact_nodecollections = []
+        self.usercode_nodecollections = []
         self.node_context = OrderedDict()
         self.input_parameters = input_parameters
         self.reuse_pre_computed_artifacts = {
@@ -91,7 +108,7 @@ class SessionArtifacts:
 
         # Retrive all artifacts within the subgraph of target artifacts
         self._retrive_all_session_artifacts()
-        # Add extra attributes(from predecessors) at session Liena nodes
+        # Add extra attributes(from predecessors) at session Linea nodes
         self._update_node_context()
         # Divide session graph into a set of non-overlapping NodeCollection
         self._slice_session_artifacts()
@@ -200,7 +217,7 @@ class SessionArtifacts:
     def _update_node_context(self):
         """
         Traverse every node within the session in topologically sorted order
-        and update node_context with following informations
+        and update node_context with following information.
 
         assigned_variables : variables assigned at this node
         assigned_artifact : this node is pointing to some artifact
@@ -323,18 +340,6 @@ class SessionArtifacts:
                     f"{var} has dependent variables: {dep_vars}."
                 )
 
-    def _get_subgraph_from_node_list(self, node_list: List[LineaID]) -> Graph:
-        """
-        Return the subgraph as LineaPy Graph from list of node id
-        """
-        nodes: List[Node] = []
-        for node_id in node_list:
-            node = self._session_graph.get_node(node_id)
-            if node is not None:
-                nodes.append(node)
-
-        return self._session_graph.get_subgraph(nodes)
-
     def _get_sliced_nodes(
         self, node_id: LineaID
     ) -> Tuple[Set[LineaID], Set[LineaID]]:
@@ -376,25 +381,8 @@ class SessionArtifacts:
         )
         return predecessor_nodes, predecessor_artifact
 
-    def _get_input_variable_sources(self, pred_nodes) -> Dict[str, Set[str]]:
-        # Get information about which input variable is originated from which artifact
-        input_variable_sources: Dict[str, Set[str]] = dict()
-        for pred_id in pred_nodes:
-            pred_variables = (
-                self.node_context[pred_id].assigned_variables
-                if len(self.node_context[pred_id].assigned_variables) > 0
-                else self.node_context[pred_id].tracked_variables
-            )
-            pred_art = self.node_context[pred_id].artifact_name
-            assert isinstance(pred_art, str)
-            if pred_art != "module_import":
-                input_variable_sources[pred_art] = input_variable_sources.get(
-                    pred_art, set()
-                ).union(pred_variables)
-        return input_variable_sources
-
     def _get_common_variables(
-        self, curr_nc: NodeCollection, pred_nc: NodeCollection
+        self, curr_nc: UserCodeNodeCollection, pred_nc: UserCodeNodeCollection
     ) -> Tuple[List[str], Set[LineaID]]:
         """
         Identify common variables for two NodeCollections.
@@ -402,7 +390,9 @@ class SessionArtifacts:
         assert isinstance(pred_nc.name, str)
         common_inner_variables = (
             pred_nc.all_variables - set(pred_nc.return_variables)
-        ).intersection(curr_nc.input_variable_sources[pred_nc.name])
+        ).intersection(
+            curr_nc.get_input_variable_sources(self.node_context)[pred_nc.name]
+        )
 
         common_nodes = set()
         if len(common_inner_variables) > 0:
@@ -413,9 +403,13 @@ class SessionArtifacts:
                 and self.node_context[n].assigned_artifact
                 != self.node_context[n].artifact_name
             ]
-            assert pred_nc.graph_segment is not None
+            pred_graph_segment = self.graph.get_subgraph_from_id(
+                list(pred_nc.node_list)
+            )
+            assert pred_graph_segment is not None
             source_art_slice_variable_graph = get_slice_graph(
-                pred_nc.graph_segment, slice_variable_nodes
+                pred_graph_segment,
+                slice_variable_nodes,
             )
             common_nodes = set(source_art_slice_variable_graph.nx_graph.nodes)
         else:
@@ -433,7 +427,7 @@ class SessionArtifacts:
         """
         self.used_nodes: Set[LineaID] = set()  # Track nodes that get ever used
         self.import_nodes: Set[LineaID] = set()
-        self.artifact_nodecollections = list()
+        self.usercode_nodecollections = list()
         for node_id, n in self.node_context.items():
             if (
                 n.assigned_artifact is not None
@@ -453,39 +447,44 @@ class SessionArtifacts:
                     self.import_nodes
                 )
                 # Identify precedent artifacts(id and name)
-                pred_nodes, pred_artifact = self._get_predecessor_info(
+                pred_nodes, _ = self._get_predecessor_info(
                     art_nodes, self.import_nodes
-                )
-                # Identify input variables are coming from which artifacts
-                input_variable_sources = self._get_input_variable_sources(
-                    pred_nodes
                 )
                 # Check whether this artifact should be replaced by
                 # pre-computed value, None if no and (name, version) if yes
-                matched_pre_computed = (
-                    (
-                        n.assigned_artifact,
-                        self.reuse_pre_computed_artifacts[
-                            n.assigned_artifact
-                        ].version,
-                    )
-                    if n.assigned_artifact
+                if (
+                    n.assigned_artifact
                     in self.reuse_pre_computed_artifacts.keys()
-                    else None
-                )
-                nodecollectioninfo = NodeCollection(
-                    collection_type=NodeCollectionType.ARTIFACT,
-                    artifact_node_id=node_id,
-                    name=n.assigned_artifact,
-                    tracked_variables=n.tracked_variables,
-                    return_variables=list(n.tracked_variables),
-                    node_list=art_nodes,
-                    predecessor_nodes=pred_nodes,
-                    predecessor_artifact=pred_artifact,
-                    input_variable_sources=input_variable_sources,
-                    sliced_nodes=sliced_nodes,
-                    pre_computed_artifact=matched_pre_computed,
-                )
+                ):
+                    reuse_def = get_lineaartifactdef(
+                        (
+                            n.assigned_artifact,
+                            self.reuse_pre_computed_artifacts[
+                                n.assigned_artifact
+                            ].version,
+                        )
+                    )
+
+                    nodecollectioninfo: ArtifactNodeCollection = (
+                        ArtifactNodeCollection(
+                            name=n.assigned_artifact,
+                            node_list=art_nodes,
+                            tracked_variables=n.tracked_variables,
+                            return_variables=list(n.tracked_variables),
+                            predecessor_nodes=pred_nodes,
+                            is_pre_computed=True,
+                            pre_computed_artifact=reuse_def,
+                        )
+                    )
+                else:
+                    nodecollectioninfo = ArtifactNodeCollection(
+                        name=n.assigned_artifact,
+                        node_list=art_nodes,
+                        tracked_variables=n.tracked_variables,
+                        return_variables=list(n.tracked_variables),
+                        predecessor_nodes=pred_nodes,
+                        is_pre_computed=False,
+                    )
 
                 # Update node context to label the node is assigned to this artifact
                 for n_id in nodecollectioninfo.node_list:
@@ -500,11 +499,13 @@ class SessionArtifacts:
                 for (
                     source_artifact_name,
                     variables,
-                ) in input_variable_sources.items():
+                ) in nodecollectioninfo.get_input_variable_sources(
+                    self.node_context
+                ).items():
                     source_id, source_info = [
                         (i, context)
                         for i, context in enumerate(
-                            self.artifact_nodecollections
+                            self.usercode_nodecollections
                         )
                         if context.name == source_artifact_name
                     ][0]
@@ -523,80 +524,63 @@ class SessionArtifacts:
                     # calculation.
                     if len(common_inner_variables) > 0 and len(common_nodes):
 
-                        common_nodecollectioninfo = NodeCollection(
-                            collection_type=NodeCollectionType.COMMON_VARIABLE,
+                        common_nodecollectioninfo = UserCodeNodeCollection(
                             name=f"{'_'.join(common_inner_variables)}_for_artifact_{source_info.name}_and_downstream",
-                            return_variables=common_inner_variables,
                             node_list=common_nodes,
+                            return_variables=common_inner_variables,
                         )
-                        common_nodecollectioninfo._update_variable_info(
+                        common_nodecollectioninfo.update_variable_info(
                             self.node_context, self.input_parameters_node
-                        )
-                        common_nodecollectioninfo.update_raw_codeblock(
-                            self._session_graph,
-                            include_non_slice_as_comment=self.include_non_slice_as_comment,
                         )
 
                         remaining_nodes = source_info.node_list - common_nodes
-                        remaining_nodecollectioninfo = NodeCollection(
-                            collection_type=NodeCollectionType.ARTIFACT,
-                            name=source_info.name,
-                            return_variables=source_info.return_variables,
-                            node_list=remaining_nodes,
-                            pre_computed_artifact=source_info.pre_computed_artifact,
-                        )
-                        remaining_nodecollectioninfo._update_variable_info(
+                        if isinstance(source_info, ArtifactNodeCollection):
+                            remaining_nodecollectioninfo: UserCodeNodeCollection = ArtifactNodeCollection(
+                                name=source_info.name,
+                                node_list=remaining_nodes,
+                                return_variables=source_info.return_variables,
+                                is_pre_computed=source_info.is_pre_computed,
+                                pre_computed_artifact=source_info.pre_computed_artifact,
+                            )
+                        else:  # outputs a common variable, use base UserCodeNodeCollection instead.
+                            remaining_nodecollectioninfo = UserCodeNodeCollection(
+                                name=source_info.name,
+                                node_list=remaining_nodes,
+                                return_variables=source_info.return_variables,
+                            )
+
+                        remaining_nodecollectioninfo.update_variable_info(
                             self.node_context, self.input_parameters_node
                         )
-                        remaining_nodecollectioninfo.update_raw_codeblock(
-                            self._session_graph,
-                            include_non_slice_as_comment=self.include_non_slice_as_comment,
-                        )
 
-                        self.artifact_nodecollections = (
-                            self.artifact_nodecollections[:source_id]
+                        self.usercode_nodecollections = (
+                            self.usercode_nodecollections[:source_id]
                             + [
                                 common_nodecollectioninfo,
                                 remaining_nodecollectioninfo,
                             ]
-                            + self.artifact_nodecollections[(source_id + 1) :]
+                            + self.usercode_nodecollections[(source_id + 1) :]
                         )
 
                 # Remove input parameter node
-                nodecollectioninfo._update_variable_info(
+                nodecollectioninfo.update_variable_info(
                     self.node_context, self.input_parameters_node
                 )
                 nodecollectioninfo.node_list = (
                     nodecollectioninfo.node_list
                     - set(self.input_parameters_node.values())
                 )
-                nodecollectioninfo.update_raw_codeblock(
-                    self._session_graph,
-                    include_non_slice_as_comment=self.include_non_slice_as_comment,
-                )
-                self.artifact_nodecollections.append(nodecollectioninfo)
+                self.usercode_nodecollections.append(nodecollectioninfo)
 
         # NodeCollection for import
-        self.import_nodecollection = NodeCollection(
-            collection_type=NodeCollectionType.IMPORT,
-            node_list=self.import_nodes,
-        )
-        # TODO: dont comment unsliced code here as well since we dont care about imports
-        self.import_nodecollection.update_raw_codeblock(
-            self.graph, include_non_slice_as_comment=False
+        self.import_nodecollection = ImportNodeCollection(
+            name="", node_list=self.import_nodes
         )
 
         # NodeCollection for input parameters
-        self.input_parameters_nodecollection = NodeCollection(
-            collection_type=NodeCollectionType.INPUT_PARAMETERS,
+        self.input_parameters_nodecollection = InputVarNodeCollection(
+            name="",
             node_list=set(self.input_parameters_node.values()),
-        )
-        self.input_parameters_nodecollection._update_variable_info(
-            self.node_context, self.input_parameters_node
-        )
-        # TODO: change here to not include raw code since this is generated bits
-        self.input_parameters_nodecollection.update_raw_codeblock(
-            self.graph, include_non_slice_as_comment=False
         )
 
     def _update_nodecollection_dependencies(self):
@@ -611,12 +595,12 @@ class SessionArtifacts:
         # Artifact nodes that are going to be replaced by cached value
         cache_nodes = [
             nc.name
-            for nc in self.artifact_nodecollections
-            if nc.pre_computed_artifact is not None
+            for nc in self.usercode_nodecollections
+            if isinstance(nc, ArtifactNodeCollection) and nc.is_pre_computed
         ]
         # Determine input variables of a nodecollection are coming from output
         # variables of nodecollections to build the NodeCollection dependencies
-        for nc in self.artifact_nodecollections:
+        for nc in self.usercode_nodecollections:
             dependencies[nc.name] = set()
             for var in nc.input_variables:
                 if var in last_appearance_nc.keys():
@@ -625,9 +609,9 @@ class SessionArtifacts:
                 last_appearance_nc[var] = nc.name
         # Nodecollection dependencies
         self.nodecollection_dependencies = TaskGraph(
-            nodes=[nc.name for nc in self.artifact_nodecollections],
+            nodes=[nc.name for nc in self.usercode_nodecollections],
             mapping={
-                nc.name: nc.safename for nc in self.artifact_nodecollections
+                nc.name: nc.safename for nc in self.usercode_nodecollections
             },
             edges=dependencies,
         )
@@ -656,9 +640,9 @@ class SessionArtifacts:
             nc_graph.add_edges_from(
                 [edge for edge in cache_nodes_edges if edge[1] in nc_graph]
             )
-            self.artifact_nodecollections = [
+            self.usercode_nodecollections = [
                 art
-                for art in self.artifact_nodecollections
+                for art in self.usercode_nodecollections
                 if art.name in nc_graph.nodes
             ]
             self.nodecollection_dependencies.graph = nc_graph
@@ -667,143 +651,10 @@ class SessionArtifacts:
         """
         Return the name of first artifact(topologically sorted).
         """
-        for coll in self.artifact_nodecollections:
-            if coll.collection_type == NodeCollectionType.ARTIFACT:
+        for coll in self.usercode_nodecollections:
+            if isinstance(coll, ArtifactNodeCollection):
                 return coll.safename
         return None
-
-    def get_session_module_imports(self, indentation=0) -> str:
-        """
-        Return all the import statement for the session.
-        """
-        return self.import_nodecollection.get_import_block(
-            indentation=indentation
-        )
-
-    def get_session_function_name(self) -> str:
-        """
-        Return the session function name: run_session_including_{first_artifact_name}
-        """
-        first_artifact_name = self._get_first_artifact_name()
-        if first_artifact_name is not None:
-            return f"run_session_including_{first_artifact_name}"
-        return ""
-
-    def get_session_function_body(
-        self, indentation, return_dict_name="artifacts"
-    ) -> str:
-        """
-        Return the args for the session function.
-        """
-        return "\n".join(
-            [
-                coll.get_function_call_block(
-                    indentation=indentation,
-                    keep_lineapy_save=False,
-                    result_placeholder=None
-                    if coll.collection_type != NodeCollectionType.ARTIFACT
-                    else return_dict_name,
-                )
-                for coll in self.artifact_nodecollections
-            ]
-        )
-
-    def get_session_input_parameters_lines(self, indentation=4) -> str:
-        """
-        Return lines of session code that are replaced by user selected input
-        parameters. These lines also serve as the default values of these
-        variables.
-        """
-        return self.input_parameters_nodecollection.get_input_parameters_block(
-            indentation=indentation
-        )
-
-    def get_session_input_parameters_spec(self) -> Dict[str, InputVariable]:
-        """
-        Return a dictionary with input parameters as key and InputVariable
-        class as value to generate code related to user input variables.
-        """
-        session_input_variables: Dict[str, InputVariable] = dict()
-        for line in self.get_session_input_parameters_lines().split("\n"):
-            variable_def = line.strip(" ").rstrip(",")
-            if variable_def.startswith("#"):
-                continue
-            if len(variable_def) > 0:
-                variable_name = variable_def.split("=")[0].strip(" ")
-                value = eval(variable_def.split("=")[1].strip(" "))
-                value_type = type(value)
-                if not (
-                    isinstance(value, int)
-                    or isinstance(value, float)
-                    or isinstance(value, str)
-                    or isinstance(value, bool)
-                ):
-                    raise ValueError(
-                        f"LineaPy only supports primitive types as input parameters for now. "
-                        f"{variable_name} in {variable_def} is a {value_type}."
-                    )
-                if ":" in variable_name:
-                    variable_name = variable_def.split(":")[0]
-                    session_input_variables[variable_name] = InputVariable(
-                        variable_name=variable_name,
-                        value=value,
-                        value_type=value_type,
-                    )
-                else:
-                    session_input_variables[variable_name] = InputVariable(
-                        variable_name=variable_name,
-                        value=value,
-                        value_type=value_type,
-                    )
-        return session_input_variables
-
-    def get_session_function_callblock(self) -> str:
-        """
-        Return the code to make the call to the session function as
-        `session_function_name(input_parameters)`.
-        """
-        session_function_name = self.get_session_function_name()
-        if session_function_name != "":
-            session_input_parameters = ", ".join(
-                self.get_session_input_parameters_spec().keys()
-            )
-            return f"{session_function_name}({session_input_parameters})"
-        else:
-            return ""
-
-    def get_session_artifact_function_definitions(
-        self, indentation=4
-    ) -> List[str]:
-        """
-        Return the definition of each targeted artifacts calculation
-        functions.
-        """
-        return [
-            coll.get_function_definition(indentation=indentation)
-            for coll in self.artifact_nodecollections
-        ]
-
-    def get_session_function(
-        self, indentation=4, return_dict_name="artifacts"
-    ) -> str:
-        """
-        Return the definition of the session function that executes the
-        calculation of all targeted artifacts.
-        """
-        indentation_block = " " * indentation
-        SESSION_FUNCTION_TEMPLATE = load_plugin_template(
-            "session_function.jinja"
-        )
-        session_function = SESSION_FUNCTION_TEMPLATE.render(
-            session_input_parameters_body=self.get_session_input_parameters_lines(),
-            indentation_block=indentation_block,
-            session_function_name=self.get_session_function_name(),
-            session_function_body=self.get_session_function_body(
-                indentation=indentation
-            ),
-            return_dict_name=return_dict_name,
-        )
-        return session_function
 
     def get_libraries(self) -> List[ImportNodeORM]:
         """

@@ -72,7 +72,6 @@ class Pipeline:
             target_artifacts=artifact_defs,
             input_parameters=input_parameters,
             reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
-            include_non_slice_as_comment=include_non_slice_as_comment,
         )
 
         # Check if the specified framework is a supported/valid one
@@ -88,6 +87,7 @@ class Pipeline:
             output_dir=output_dir,
             generate_test=generate_test,
             dag_config=pipeline_dag_config,
+            include_non_slice_as_comment=include_non_slice_as_comment,
         )
 
         # Write out pipeline files

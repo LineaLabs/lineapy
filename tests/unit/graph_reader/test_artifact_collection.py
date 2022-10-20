@@ -162,7 +162,7 @@ def test_two_sessions(
         moduletext = writer._compose_module()
         first_artifact_in_session = {}
         for sa in ac.session_artifacts.values():
-            for nodecollection in sa.artifact_nodecollections:
+            for nodecollection in sa.usercode_nodecollections:
                 art_name = sa._get_first_artifact_name()
                 assert isinstance(art_name, str)
                 first_artifact_in_session[nodecollection.name] = (
