@@ -116,7 +116,7 @@ class UserCodeNodeCollection(BaseNodeCollection):
         self, graph: Graph, include_non_slice_as_comment=False, indentation=4
     ) -> str:
         """
-        Return a codeblock to define the function of the graph segment.
+        Return a standalone function to define the function of the graph segment.
         """
         indentation_block = " " * indentation
         name = self.safename

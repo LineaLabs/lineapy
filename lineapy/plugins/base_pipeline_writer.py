@@ -119,7 +119,7 @@ class BasePipelineWriter:
             list(
                 itertools.chain.from_iterable(
                     [
-                        BaseSessionWriter().get_session_artifact_function_definitions(
+                        BaseSessionWriter().get_session_artifact_functions(
                             session_artifact=sa,
                             include_non_slice_as_comment=self.include_non_slice_as_comment,
                             indentation=indentation,
@@ -396,6 +396,14 @@ class BasePipelineWriter:
         self._create_test()
 
     def get_pipeline_args(self) -> Dict[str, InputVariable]:
+        """
+        get_pipeline_args returns the arguments that are required as inputs to the whole pipeline.
+
+        Returns a `pipeline_args` dictionary, which maps a key corresponding to the argument name to
+        Linea's InputVariable object.
+        Specific framework implementations of PipelineWriters should serialize the InputVariable
+        objects to match the format for pipeline arguments that is expected by that framework.
+        """
         pipeline_args: Dict[str, InputVariable] = dict()
         for sa in self.session_artifacts_sorted:
             pipeline_args.update(
@@ -407,9 +415,13 @@ class BasePipelineWriter:
         self,
     ) -> Dict[str, TaskDefinition]:
         """
-        Add deserialization of input variables and serialization of output
-        variables logic of the artifact function call_block and wrap them into a
-        new function definition.
+        get_artifact_task_definitions returns a task definition for each artifact the pipeline produces.
+        This may include tasks that produce common variables that were not initially defined as artifacts.
+
+        Returns a `task_definitions` dictionary, which maps a key corresponding to the task name to
+        Linea's TaskDefinition object.
+        Specific framework implementations of PipelineWriters should serialize the TaskDefinition
+        objects to match the format for pipeline arguments that is expected by that framework.
         """
         task_definitions: Dict[str, TaskDefinition] = dict()
         unused_input_parameters = set(
@@ -437,27 +449,15 @@ class BasePipelineWriter:
                     for var in all_input_variables
                     if var not in artifact_user_input_variables
                 ]
-                function_call_block = (
-                    BaseSessionWriter().get_function_call_block(
-                        nc,
-                        indentation=0,
-                        source_module=f"{self.pipeline_name}_module",
-                    )
+                function_call_block = BaseSessionWriter().get_session_artifact_function_call_block(
+                    nc,
+                    indentation=0,
+                    source_module=f"{self.pipeline_name}_module",
                 )
                 return_var_saving_block = [
                     f"pickle.dump({var},open('/tmp/{self.pipeline_name}/variable_{var}.pickle','wb'))"
                     for var in nc.return_variables
                 ]
-
-                # function_name = pn
-                # user_input_variables = n, p
-                # typing_blocks = [n = int(n), p = str(p)]
-                # loading_block = # pickle.loads
-                # call_block = pn = airflow_pipeline_two_input_parameter_module.get_pn(n, p)
-                # dumping_blocks =
-                #     pickle.dump(
-                #         pn, open("/tmp/airflow_pipeline_two_input_parameter/variable_pn.pickle", "wb")
-                #     )
 
                 task_def: TaskDefinition = TaskDefinition(
                     function_name=nc.safename,
@@ -475,8 +475,12 @@ class BasePipelineWriter:
         self,
     ) -> Dict[str, TaskDefinition]:
         """
-        Add serialization of output artifacts logic of the session function
-        call_block and wrap them into a new function definition.
+        get_session_task_definition returns a task definition for each session in the pipeline.
+
+        Returns a `task_definitions` dictionary, which maps a key corresponding to the task name to
+        Linea's TaskDefinition object.
+        Specific framework implementations of PipelineWriters should serialize the TaskDefinition
+        objects to match the format for pipeline arguments that is expected by that framework.
         """
         task_definitions: Dict[str, TaskDefinition] = dict()
 

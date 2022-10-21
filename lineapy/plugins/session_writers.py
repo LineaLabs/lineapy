@@ -12,7 +12,34 @@ from lineapy.plugins.utils import load_plugin_template
 class BaseSessionWriter:
     """
     BaseSessionWriter contains helper functions to turn the various components of a SessionArtifacts
-    object to runnable code.
+    object to runnable code components, including code to define and run the NodeCollection defined subgraphs
+    as well as the Session as a whole.
+
+    Terminology
+
+    Take the following example function and the line to call it:
+    ```
+    def function_name(input_parameters):
+        code_line_1
+        code_line_2
+        return return_values
+
+    function_name(input_parameters)
+    ```
+
+    We define the code block
+    ```
+        code_line_1
+        code_line_2
+        return return_values
+    ```
+    as the function body.
+
+    The code block that calls the function
+    ```
+    function_name(input_parameters)
+    ```
+    is called the function call block.
     """
 
     def __init__(self):
@@ -43,7 +70,25 @@ class BaseSessionWriter:
             return f"run_session_including_{first_artifact_name}"
         return ""
 
-    def get_function_call_block(
+    def get_session_artifact_functions(
+        self,
+        session_artifact: SessionArtifacts,
+        include_non_slice_as_comment=False,
+        indentation=4,
+    ) -> List[str]:
+        """
+        Return the function definition of the NodeCollection subgraphs that make up the Session.
+        """
+        return [
+            coll.get_function_definition(
+                graph=session_artifact.session_graph,
+                include_non_slice_as_comment=include_non_slice_as_comment,
+                indentation=indentation,
+            )
+            for coll in session_artifact.usercode_nodecollections
+        ]
+
+    def get_session_artifact_function_call_block(
         self,
         coll: UserCodeNodeCollection,
         indentation=0,
@@ -52,13 +97,27 @@ class BaseSessionWriter:
         source_module="",
     ) -> str:
         """
-        Return a codeblock to call the function with return variables of the graph segment
+        Return a codeblock to call the function that returns various variables.
+
+        The actual function to produce the output variables is implemented in `get_function_definition`
+        by the various implementations of NodeCollection.
+
+        :param UserCodeNodeCollection coll: the NodeCollection subgraph that we want to produce a call block for.
         :param int indentation: indentation size
         :param bool keep_lineapy_save: whether do lineapy.save() after execution
         :param Optional[str] result_placeholder: if not null, append the return result to the result_placeholder
         :param str source_module: which module the function is coming from
+
+        Example output:
+
+        ```
+        p = get_multiplier()                        # function call block that calculates multiplier
+        lineapy.save(p, "multiplier")               # only with keep_lineapy_save=True
+        artifacts["multiplier"]=copy.deepcopy(p)    # only with return_dict_name specified
+        ```
+
         The result_placeholder is a list to capture the artifact variables right
-        after calculation. Considering following code::
+        after calculation. Considering following code:
             a = 1
             lineapy.save(a,'a')
             a+=1
@@ -97,11 +156,27 @@ class BaseSessionWriter:
         return_dict_name="artifacts",
     ) -> str:
         """
-        Return the args for the session function.
+        Return a codeblock that runs functions needed to reproduce a session.
+
+        This codeblock uses `get_function_call_block` to call all of the functions defined by
+        NodeCollections in the session specified bt `session_artifact`.
+        The result codeblock can be used as the body of function that runs all the code in a session.
+
+        Example output:
+
+        ```
+        # Session contains artifacts for "multiplier" and "prod_p"
+        p = get_multiplier()
+        artifacts["multiplier"]=copy.deepcopy(p)
+        b = get_prod_p(a, p)
+        artifacts["prod_p"]=copy.deepcopy(b)
+        ```
+
+        All artifacts in the session are saved in the return dictionary `artifacts`
         """
         return "\n".join(
             [
-                self.get_function_call_block(
+                self.get_session_artifact_function_call_block(
                     coll,
                     indentation=indentation,
                     keep_lineapy_save=False,
@@ -111,15 +186,22 @@ class BaseSessionWriter:
             ]
         )
 
-    def _get_session_input_parameters_lines(
+    def get_session_input_parameters_lines(
         self,
         session_artifact: SessionArtifacts,
         indentation=4,
     ) -> str:
         """
-        Return lines of session code that are replaced by user selected input
-        parameters. These lines also serve as the default values of these
-        variables.
+        get_session_input_parameters_lines returns lines of session code
+        that are replaced by user selected `input_parameters`.
+        These lines also serve as the default values of these variables.
+
+        Example output:
+        ```
+        # User called lineapy api with input_parameters=['a', 'p']
+        a = 1,
+        p = 2,
+        ```
         """
         return session_artifact.input_parameters_nodecollection.get_input_parameters_block(
             graph=session_artifact.graph,
@@ -130,11 +212,16 @@ class BaseSessionWriter:
         self, session_artifact
     ) -> Dict[str, InputVariable]:
         """
-        Return a dictionary with input parameters as key and InputVariable
-        class as value to generate code related to user input variables.
+        get_session_input_parameters_spec returns a `session_input_variables` dictionary,
+        which maps a key corresponding to the argument name to Linea's InputVariable
+        object for each input parameter to a Session.
+
+        Resulting InputVariable can be serialized by frameworks that may require non-pythonic
+        format where the raw code lines are insufficient.
         """
         session_input_variables: Dict[str, InputVariable] = dict()
-        for line in self._get_session_input_parameters_lines(
+        # Create a new mapping to InputVariable for each input parameter line
+        for line in self.get_session_input_parameters_lines(
             session_artifact
         ).split("\n"):
             variable_def = line.strip(" ").rstrip(",")
@@ -167,43 +254,6 @@ class BaseSessionWriter:
                     )
         return session_input_variables
 
-    def get_session_function_callblock(
-        self, session_artifact: SessionArtifacts
-    ) -> str:
-        """
-        Return the code to make the call to the session function as
-        `session_function_name(input_parameters)`.
-        """
-        session_function_name = self.get_session_function_name(
-            session_artifact
-        )
-        if session_function_name != "":
-            session_input_parameters = ", ".join(
-                self.get_session_input_parameters_spec(session_artifact).keys()
-            )
-            return f"{session_function_name}({session_input_parameters})"
-        else:
-            return ""
-
-    def get_session_artifact_function_definitions(
-        self,
-        session_artifact: SessionArtifacts,
-        include_non_slice_as_comment=False,
-        indentation=4,
-    ) -> List[str]:
-        """
-        Return the definition of each targeted artifacts calculation
-        functions.
-        """
-        return [
-            coll.get_function_definition(
-                graph=session_artifact.session_graph,
-                include_non_slice_as_comment=include_non_slice_as_comment,
-                indentation=indentation,
-            )
-            for coll in session_artifact.usercode_nodecollections
-        ]
-
     def get_session_function(
         self,
         session_artifact,
@@ -211,15 +261,29 @@ class BaseSessionWriter:
         return_dict_name="artifacts",
     ) -> str:
         """
-        Return the definition of the session function that executes the
+        Return the session function that executes the
         calculation of all targeted artifacts.
+
+        Example output:
+        ```
+        def run_session_including_multiplier(
+            a=1,
+            p=2,
+        ):
+            artifacts = dict()
+            p = get_multiplier()
+            artifacts["multiplier"] = copy.deepcopy(p)
+            b = get_prod_p(a, p)
+            artifacts["prod_p"] = copy.deepcopy(b)
+            return artifacts
+        ```
         """
         indentation_block = " " * indentation
         SESSION_FUNCTION_TEMPLATE = load_plugin_template(
             "session_function.jinja"
         )
         session_function = SESSION_FUNCTION_TEMPLATE.render(
-            session_input_parameters_body=self._get_session_input_parameters_lines(
+            session_input_parameters_body=self.get_session_input_parameters_lines(
                 session_artifact=session_artifact,
             ),
             indentation_block=indentation_block,
@@ -233,3 +297,25 @@ class BaseSessionWriter:
             return_dict_name=return_dict_name,
         )
         return session_function
+
+    def get_session_function_callblock(
+        self, session_artifact: SessionArtifacts
+    ) -> str:
+        """
+        `get_session_function_callblock` returns the code to make the call to the session function.
+
+        Example output:
+        ```
+        run_session_including_multiplier(a, p)
+        ```
+        """
+        session_function_name = self.get_session_function_name(
+            session_artifact
+        )
+        if session_function_name != "":
+            session_input_parameters = ", ".join(
+                self.get_session_input_parameters_spec(session_artifact).keys()
+            )
+            return f"{session_function_name}({session_input_parameters})"
+        else:
+            return ""
