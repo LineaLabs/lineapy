@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum
 from itertools import chain
 from typing import Dict, List, Optional, Set
@@ -127,11 +128,16 @@ DVCDagConfig = TypedDict(
 )
 
 
-class TaskDefinition(TypedDict):
+@dataclass
+class TaskDefinition:
     """
     Definition of an artifact, can extend new keys(user, project, ...)
     in the future.
     """
 
-    definition: str
+    function_name: str
     user_input_variables: List[str]
+    typing_blocks: List[str]
+    loading_blocks: List[str]
+    call_block: str
+    dumping_blocks: List[str]

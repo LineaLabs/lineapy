@@ -15,7 +15,7 @@ from lineapy.db.relational import (
 )
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.plugins.pipeline_writers import PipelineWriterFactory
+from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
 from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
