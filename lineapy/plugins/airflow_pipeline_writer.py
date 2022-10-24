@@ -44,7 +44,60 @@ class AirflowPipelineWriter(BasePipelineWriter):
         self,
         dag_flavor: str,
     ) -> str:
+        """
+        This method implements Airflow DAG code generation corresponding
+        to the following flavors
 
+        - `PythonOperatorPerSession` flavor, where each session gets its
+        own Python operator.
+        - `PythonOperatorPerArtifact` flavor, where each artifact gets its own
+        Python operator.
+
+        Example of `PythonOperatorPerSession` if the two artifacts in our pipeline
+        (e.g., model and prediction) were created in the same session.
+        .. code-block:: python
+            import pickle
+            import g2_z_module
+            ...
+            def task_run_session_including_g2():
+                artifacts = g2_z_module.run_session_including_g2()
+                pickle.dump(artifacts["g2"], open("/tmp/g2_z/artifact_g2.pickle", "wb"))
+                pickle.dump(artifacts["z"], open("/tmp/g2_z/artifact_z.pickle", "wb"))
+            with DAG(...) as dag:
+                run_session_including_g2 = PythonOperator(
+                    task_id="run_session_including_g2_task",
+                    python_callable=task_run_session_including_g2,
+                )
+
+        Example of `PythonOperatorPerArtifact`, if the two artifacts in our pipeline
+        (e.g., model and prediction) were created in the same session:
+        .. code-block:: python
+            import pickle
+            import iris_module
+            ...
+            def task_iris_model():
+                mod = iris_module.get_iris_model()
+                pickle.dump(mod, open("/tmp/iris/variable_mod.pickle", "wb"))
+            def task_iris_pred():
+                mod = pickle.load(open("/tmp/iris/variable_mod.pickle", "rb"))
+                pred = iris_module.get_iris_pred(mod)
+                pickle.dump(
+                    pred, open("/tmp/iris/variable_pred.pickle", "wb")
+                )
+            with DAG(...) as dag:
+                iris_model = PythonOperator(
+                    task_id="iris_model_task",
+                    python_callable=task_iris_model,
+                )
+                iris_pred = PythonOperator(
+                    task_id="iris_pred_task",
+                    python_callable=task_iris_pred,
+                )
+            iris_model >> iris_pred
+
+        This way, the generated Airflow DAG file opens room for engineers
+        to control pipeline runs at a finer level and allows for further customization.
+        """
         DAG_TEMPLATE = load_plugin_template("airflow_dag_PythonOperator.jinja")
         if (
             AirflowDagFlavor[dag_flavor]
