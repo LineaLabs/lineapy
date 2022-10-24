@@ -346,17 +346,12 @@ class RelationalLineaDB:
         mlflowmetadataorm = MLflowArtifactMetadataORM(
             artifact_id=artifactorm.id,
             backend="mlflow",
-            backend_uri=options.get("mlflow_tracking_uri"),
+            tracking_uri=options.get("mlflow_tracking_uri"),
+            registry_uri=options.get("mlflow_registry_uri"),
             model_uri=modelinfo.model_uri,
         )
-        print(
-            mlflowmetadataorm.artifact_id,
-            mlflowmetadataorm.backend,
-            mlflowmetadataorm.model_uri,
-            mlflowmetadataorm.backend_uri,
-        )
         self.session.add(mlflowmetadataorm)
-        # self.renew_session()
+        self.renew_session()
 
     def write_pipeline(
         self, dependencies: List[ArtifactDependencyORM], pipeline: PipelineORM
