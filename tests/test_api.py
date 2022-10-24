@@ -1,7 +1,7 @@
 import pickle
 from pathlib import Path
 
-from lineapy.api.api import _try_write_to_pickle
+from lineapy.api.artifact_serializer import _try_write_to_pickle
 from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.utils.config import options
 

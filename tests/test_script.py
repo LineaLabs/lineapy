@@ -20,6 +20,7 @@ from lineapy.cli.cli import (
 )
 from lineapy.plugins.utils import slugify
 from lineapy.utils.config import options
+from tests.util import clean_lineapy_env_var
 
 
 @pytest.mark.slow
@@ -62,15 +63,6 @@ def test_lineapy_init_with_options():
 
 @pytest.mark.slow
 def test_config_order():
-    def clean_lineapy_env_var():
-        existing_lineapy_env = {
-            x: os.environ[x]
-            for x in os.environ.keys()
-            if x.startswith("LINEAPY_")
-        }
-        for key in existing_lineapy_env.keys():
-            del os.environ[key]
-        return existing_lineapy_env
 
     temp_dir_name = tempfile.mkdtemp()
 
