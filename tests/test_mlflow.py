@@ -1,4 +1,7 @@
+import pytest
 from sklearn.base import BaseEstimator
+
+mlflow = pytest.importorskip("mlflow")
 
 
 def test_save_to_mlflow(execute):

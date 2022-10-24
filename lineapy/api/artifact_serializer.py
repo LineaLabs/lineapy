@@ -1,10 +1,10 @@
 import logging
+import sys
 import types
 from inspect import getmodule
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import mlflow
 from pandas.io.pickle import to_pickle
 from sklearn.base import BaseEstimator
 
@@ -19,15 +19,21 @@ from lineapy.utils.logging_config import configure_logging
 logger = logging.getLogger(__name__)
 configure_logging()
 
-mlflow_io = {
-    "sklearn": [
-        {
-            "class": BaseEstimator,
-            "serializer": mlflow.sklearn.log_model,
-            "deserializer": mlflow.sklearn.load_model,
-        }
-    ]
-}
+
+try:
+    import mlflow
+
+    mlflow_io = {
+        "sklearn": [
+            {
+                "class": BaseEstimator,
+                "serializer": mlflow.sklearn.log_model,
+                "deserializer": mlflow.sklearn.load_model,
+            }
+        ]
+    }
+except ImportError:
+    pass
 
 
 def serialize_artifact(
@@ -78,12 +84,12 @@ def serialize_artifact(
             and options.get("default_ml_models_storage_backend")
             == ARTIFACT_STORAGE_BACKEND.mlflow
         ):
-            try:
-                import mlflow
-            except ModuleNotFoundError:
-                logger.error(
-                    "module 'mlflow' is not installed; please install it with 'pip install lineapy[mlflow]'"
+            if "mlflow" not in sys.modules:
+                msg = (
+                    "module 'mlflow' is not installed;"
+                    + " please install it with 'pip install lineapy[mlflow]'"
                 )
+                raise ModuleNotFoundError(msg)
 
             mlflow.set_tracking_uri(options.get("mlflow_tracking_uri"))
 
