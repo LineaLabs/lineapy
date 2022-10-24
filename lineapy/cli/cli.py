@@ -29,7 +29,7 @@ from lineapy.api.models.linea_artifact import (
     LineaArtifact,
     get_lineaartifactdef,
 )
-from lineapy.data.types import ML_MODELS_STORAGE_BACKEND, SessionType
+from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
@@ -108,6 +108,11 @@ logger = logging.getLogger(__name__)
     help="Logging file",
 )
 @click.option(
+    "--mlflow-registry-uri",
+    type=click.STRING,
+    help="MLFlow registry uri for ML models storage backend.",
+)
+@click.option(
     "--mlflow-tracking-uri",
     type=click.STRING,
     help="MLFlow tracking uri for ML models storage backend.",
@@ -115,7 +120,7 @@ logger = logging.getLogger(__name__)
 @click.option(
     "--default-ml-models-storage-backend",
     type=click.Choice(
-        [member.name for member in ML_MODELS_STORAGE_BACKEND],
+        [member.name for member in ARTIFACT_STORAGE_BACKEND],
         case_sensitive=False,
     ),
     help="Default storage backend for ML models",
@@ -129,8 +134,9 @@ def linea_cli(
     do_not_track: Optional[bool],
     logging_level: Optional[str],
     logging_file: Optional[pathlib.Path],
+    mlflow_registry_uri: Optional[str],
     mlflow_tracking_uri: Optional[str],
-    default_ml_models_storage_backend: Optional[ML_MODELS_STORAGE_BACKEND],
+    default_ml_models_storage_backend: Optional[ARTIFACT_STORAGE_BACKEND],
 ):
     """
     Pass all configuration to lineapy_config
