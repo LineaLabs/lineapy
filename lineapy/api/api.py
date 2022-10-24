@@ -3,7 +3,6 @@ User facing APIs.
 """
 
 import logging
-import types
 import warnings
 from datetime import datetime
 from pathlib import Path
@@ -18,9 +17,8 @@ from lineapy.api.models.linea_artifact import (
 )
 from lineapy.api.models.linea_artifact_store import LineaArtifactStore
 from lineapy.api.models.pipeline import Pipeline
-from lineapy.data.types import Artifact, LineaID, NodeValue
+from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, Artifact, NodeValue
 from lineapy.db.utils import parse_artifact_version
-from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
@@ -28,7 +26,6 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.loader import load_as_module
 from lineapy.plugins.pipeline_writers import BasePipelineWriter
 from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
-from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ErrorType,
@@ -56,7 +53,12 @@ one way to access the same feature.
 """
 
 
-def save(reference: object, name: str, storage_backend=None) -> LineaArtifact:
+def save(
+    reference: object,
+    name: str,
+    storage_backend: Optional[ARTIFACT_STORAGE_BACKEND] = None,
+    **kwargs,
+) -> LineaArtifact:
     """
     Publishes the object to the Linea DB.
 
@@ -70,6 +72,16 @@ def save(reference: object, name: str, storage_backend=None) -> LineaArtifact:
         We are in the process of adding more side effect references, including `assert` statements.
     name: str
         The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
+    storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
+        The storage backend used to save the artifact. Currently support
+        lineapy and mlflow(for mlflow supported model flavors). In case of
+        mlflow, lineapy will use `mlflow.sklearn.log_model` or other supported
+        flavors equivalent to save artifacts into mlflow.
+    **kwargs:
+        Keyword arguments passed into underlying storage mechanism to overwrite
+        default behavior. For `storage_backend='mlflow'`, this can overwrite
+        default arguments in the `mlflow.sklearn.log_model` or other supported
+        flavors equivalent.
 
     Returns
     -------
@@ -102,14 +114,12 @@ def save(reference: object, name: str, storage_backend=None) -> LineaArtifact:
 
     # serialize value to db if we haven't before
     # (happens with multiple artifacts pointing to the same value)
+    serialize_method = ARTIFACT_STORAGE_BACKEND.lineapy
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
 
         # TODO add version or timestamp to allow saving of multiple pickle files for the same node id
-        # pickles value of artifact and saves to filesystem
-        # pickle_name = _pickle_name(value_node_id, execution_id)
-        # _try_write_to_pickle(reference, pickle_name)
 
         artifact_serialize_metadata = serialize_artifact(
             value_node_id,
@@ -117,9 +127,14 @@ def save(reference: object, name: str, storage_backend=None) -> LineaArtifact:
             reference,
             name,
             storage_backend,
+            **kwargs,
         )
-        if artifact_serialize_metadata["backend"] == "mlflow":
+        if (
+            artifact_serialize_metadata["backend"]
+            == ARTIFACT_STORAGE_BACKEND.mlflow
+        ):
             artifact_path = artifact_serialize_metadata["metadata"].model_uri
+            serialize_method = ARTIFACT_STORAGE_BACKEND.mlflow
         else:
             artifact_path = artifact_serialize_metadata["metadata"][
                 "pickle_name"
@@ -154,6 +169,14 @@ def save(reference: object, name: str, storage_backend=None) -> LineaArtifact:
     )
     db.write_artifact(artifact_to_write)
 
+    if serialize_method == ARTIFACT_STORAGE_BACKEND.mlflow:
+        artifactorm = db.get_artifactorm_by_name(
+            artifact_name=name, version=artifact_version
+        )
+        db.write_mlflow_artifactmetadata(
+            artifactorm, artifact_serialize_metadata["metadata"]
+        )
+
     track(SaveEvent(side_effect=side_effect_to_str(reference)))
 
     linea_artifact = LineaArtifact(
@@ -165,14 +188,6 @@ def save(reference: object, name: str, storage_backend=None) -> LineaArtifact:
         _session_id=call_node.session_id,
         _version=artifact_version,
     )
-
-    if artifact_serialize_metadata["backend"] == "mlflow":
-        artifactorm = db.get_artifactorm_by_name(
-            artifact_name=name, version=artifact_version
-        )
-        db.write_mlflow_artifactmetadata(
-            artifactorm, artifact_serialize_metadata["metadata"]
-        )
 
     return linea_artifact
 
@@ -361,7 +376,6 @@ def to_pipeline(
     reuse_pre_computed_artifacts: List[str] = [],
     generate_test: bool = False,
     pipeline_dag_config: Optional[AirflowDagConfig] = {},
-    include_non_slice_as_comment: bool = False,
 ) -> Path:
     """
     Writes the pipeline job to a path on disk.
@@ -435,7 +449,6 @@ def to_pipeline(
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
         generate_test=generate_test,
         pipeline_dag_config=pipeline_dag_config,
-        include_non_slice_as_comment=include_non_slice_as_comment,
     )
 
 

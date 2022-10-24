@@ -1,32 +1,23 @@
 import logging
 import types
-from modulefinder import Module
+from inspect import getmodule
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
+import mlflow
 from pandas.io.pickle import to_pickle
+from sklearn.base import BaseEstimator
 
-from lineapy.data.types import ML_MODELS_STORAGE_BACKEND, LineaID
+from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, LineaID
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.plugins.utils import slugify
-from lineapy.utils.analytics.event_schemas import (
-    CatalogEvent,
-    ErrorType,
-    ExceptionEvent,
-    GetEvent,
-    SaveEvent,
-)
+from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
 configure_logging()
-
-from inspect import getmodule
-
-import mlflow
-from sklearn.base import BaseEstimator
 
 mlflow_io = {
     "sklearn": [
@@ -43,14 +34,49 @@ def serialize_artifact(
     value_node_id: LineaID,
     execution_id: LineaID,
     reference: Any,
-    artifact_name: str,
-    storage_backend,
+    name: str,
+    storage_backend: Optional[ARTIFACT_STORAGE_BACKEND] = None,
+    **kwargs,
 ) -> Dict[str, Any]:
+    """
+    Serialize artifact using various backend.
 
+    Currently, most objects are using lineapy as the backend for serialization.
+    The only exception is mlflow supported model flavors. In order to use
+    mlflow for ml model serialization, following conditions need to be
+    satisified:
+    1. the artifact(ML model) should be a mlflow supported flavor
+    2. mlflow is installed
+    3. storage_backend should be mlflow or storage_backend is None and
+    `options.get("default_ARTIFACT_STORAGE_BACKEND")=='mlflow'`
+
+    Parameters
+    ----------
+    value_node_id: LineaID
+        Value node id in Linea Graph
+    execution_id: LineaID
+        Execution id
+    reference: Union[object, ExternalState]
+        Same as reference in :func:`lineapy.api.save`
+    name: str
+        Same as reference in :func:`lineapy.api.save`
+    storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
+        Same as reference in :func:`lineapy.api.save`
+    **kwargs:
+        Same as reference in :func:`lineapy.api.save`
+
+    Returns
+    -------
+    Dict
+        returned a dictionary with following key-value pair
+        backend: storage backend used to save the artifact
+        metadata: metadata of the storage backed
+    """
     if options.get("mlflow_tracking_uri") is not None:
-        if storage_backend == "mlflow" or (
+        if storage_backend == ARTIFACT_STORAGE_BACKEND.mlflow or (
             storage_backend is None
-            and options.get("default_ml_models_storage_backend") == "mlflow"
+            and options.get("default_ml_models_storage_backend")
+            == ARTIFACT_STORAGE_BACKEND.mlflow
         ):
             try:
                 import mlflow
@@ -67,8 +93,11 @@ def serialize_artifact(
                 if root_module_name in mlflow_io.keys():
                     for class_io in mlflow_io[root_module_name]:
                         if isinstance(reference, class_io["class"]):
+                            kwargs["registered_model_name"] = kwargs.get(
+                                "registered_model_name", name
+                            )
                             model_info = class_io["serializer"](
-                                reference, artifact_name
+                                reference, name, **kwargs
                             )
                             return {
                                 "backend": "mlflow",
