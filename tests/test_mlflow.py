@@ -1,3 +1,8 @@
+import json
+import subprocess
+import tempfile
+from pathlib import Path
+
 import pytest
 from sklearn.base import BaseEstimator
 
@@ -27,3 +32,29 @@ mlflow_model = mlflow.sklearn.load_model(f'models:/lineapy_clf/{latest_version}'
     res = execute(code, snapshot=False)
     mlflow_model = res.values["mlflow_model"]
     assert isinstance(mlflow_model, BaseEstimator)
+
+
+@pytest.mark.slow
+def test_mlflow_config_with_cli():
+    """
+    Verify that `lineapy init` generate with different type of cli options input
+    """
+    temp_dir_name = tempfile.mkdtemp()
+    subprocess.check_call(
+        [
+            "lineapy",
+            "--home-dir",
+            temp_dir_name,
+            "--mlflow-tracking-uri=sqlite://",
+            "--default-ml-models-storage-backend=mlflow",
+            "init",
+        ]
+    )
+
+    with open(Path(temp_dir_name).joinpath("lineapy_config.json"), "r") as f:
+        generated_config = json.load(f)
+
+    assert Path(temp_dir_name).joinpath("lineapy_config.json").exists()
+    assert generated_config["home_dir"] == temp_dir_name
+    assert generated_config["mlflow_tracking_uri"] == "sqlite://"
+    assert generated_config["default_ml_models_storage_backend"] == "mlflow"
