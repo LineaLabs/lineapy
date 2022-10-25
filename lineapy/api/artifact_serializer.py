@@ -6,34 +6,24 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from pandas.io.pickle import to_pickle
-from sklearn.base import BaseEstimator
 
 from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, LineaID
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
+from lineapy.plugins.mlflow_io import mlflow_io
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 
-logger = logging.getLogger(__name__)
-configure_logging()
-
-
 try:
     import mlflow
-
-    mlflow_io = {
-        "sklearn": [
-            {
-                "class": BaseEstimator,
-                "serializer": mlflow.sklearn.log_model,
-                "deserializer": mlflow.sklearn.load_model,
-            }
-        ]
-    }
 except ImportError:
     pass
+
+
+logger = logging.getLogger(__name__)
+configure_logging()
 
 
 def serialize_artifact(
