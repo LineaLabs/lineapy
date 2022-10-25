@@ -32,7 +32,6 @@ class AirflowPipelineWriter(BasePipelineWriter):
             )
 
         # Construct DAG text for the given flavor
-
         full_code = self._write_operators(dag_flavor)
 
         # Write out file
@@ -121,12 +120,12 @@ class AirflowPipelineWriter(BasePipelineWriter):
         }
         task_graph = TaskGraph(
             nodes=task_functions,
-            mapping={f: f for f in task_functions},
+            mapping={tf: tf for tf in task_functions},
             edges=dependencies,
         )
         tasks = [
-            {"name": ft, "op_kwargs": task_params.get(ft, None)}
-            for ft in task_functions
+            {"name": tf, "op_kwargs": task_params.get(tf, None)}
+            for tf in task_functions
         ]
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
