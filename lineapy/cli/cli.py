@@ -34,7 +34,7 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.plugins.pipeline_writers import AirflowPipelineWriter
+from lineapy.plugins.airflow_pipeline_writer import AirflowPipelineWriter
 from lineapy.plugins.utils import slugify
 from lineapy.transformer.transform_code import transform
 from lineapy.utils.analytics.utils import send_lib_info_from_db

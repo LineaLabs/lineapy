@@ -6,7 +6,7 @@ import pytest
 from lineapy.api.models.linea_artifact import get_lineaartifactdef
 from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.plugins.pipeline_writers import PipelineWriterFactory
+from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
 from lineapy.plugins.utils import slugify
 from lineapy.utils.utils import get_system_python_version, prettify
 

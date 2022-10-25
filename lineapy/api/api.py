@@ -25,8 +25,8 @@ from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
+from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
 from lineapy.plugins.loader import load_as_module
-from lineapy.plugins.pipeline_writers import BasePipelineWriter
 from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
