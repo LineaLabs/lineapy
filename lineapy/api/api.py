@@ -39,9 +39,6 @@ from lineapy.utils.config import options
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import get_system_python_version, get_value_type
 
-# from pandas.io.pickle import to_pickle
-
-
 logger = logging.getLogger(__name__)
 # TODO: figure out if we need to configure it all the time
 configure_logging()
@@ -188,7 +185,6 @@ def save(
         _session_id=call_node.session_id,
         _version=artifact_version,
     )
-
     return linea_artifact
 
 
