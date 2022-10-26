@@ -9,7 +9,7 @@ from pandas.io.pickle import to_pickle
 
 from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, LineaID
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
-from lineapy.plugins.mlflow_io import mlflow_io
+from lineapy.plugins.serializers.mlflow_io import mlflow_io
 from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track
@@ -18,6 +18,7 @@ from lineapy.utils.logging_config import configure_logging
 
 try:
     import mlflow
+    from mlflow.models.model import ModelInfo
 except ImportError:
     pass
 
@@ -68,37 +69,13 @@ def serialize_artifact(
         backend: storage backend used to save the artifact
         metadata: metadata of the storage backed
     """
-    if options.get("mlflow_tracking_uri") is not None:
-        if storage_backend == ARTIFACT_STORAGE_BACKEND.mlflow or (
-            storage_backend is None
-            and options.get("default_ml_models_storage_backend")
-            == ARTIFACT_STORAGE_BACKEND.mlflow
-        ):
-            if "mlflow" not in sys.modules:
-                msg = (
-                    "module 'mlflow' is not installed;"
-                    + " please install it with 'pip install lineapy[mlflow]'"
-                )
-                raise ModuleNotFoundError(msg)
-
-            mlflow.set_tracking_uri(options.get("mlflow_tracking_uri"))
-
-            full_module_name = getmodule(reference)
-            if full_module_name is not None:
-                root_module_name = full_module_name.__name__.split(".")[0]
-                if root_module_name in mlflow_io.keys():
-                    for class_io in mlflow_io[root_module_name]:
-                        if isinstance(reference, class_io["class"]):
-                            kwargs["registered_model_name"] = kwargs.get(
-                                "registered_model_name", name
-                            )
-                            model_info = class_io["serializer"](
-                                reference, name, **kwargs
-                            )
-                            return {
-                                "backend": "mlflow",
-                                "metadata": model_info,
-                            }
+    if _able_to_use_mlflow(storage_backend):
+        model_info = _try_write_to_mlflow(reference, name, **kwargs)
+        if model_info is not None:
+            return {
+                "backend": "mlflow",
+                "metadata": model_info,
+            }
 
     pickle_name = _pickle_name(value_node_id, execution_id)
     _try_write_to_pickle(reference, pickle_name)
@@ -106,6 +83,92 @@ def serialize_artifact(
         "backend": "lineapy",
         "metadata": {"pickle_name": str(pickle_name)},
     }
+
+
+def _able_to_use_mlflow(storage_backend) -> bool:
+    """
+    Determine whether to use MLflow to serialize ML models
+
+    Use MLflow if
+    1. config `mlflow_tracking_uri` is not empty
+    2. `storage_backend=='mlflow'` or (`storage_backend is None` and
+        `default_ml_models_storage_backend` is mlflow)
+
+    Parameters
+    ----------
+    storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
+        Same as reference in :func:`lineapy.api.save`
+
+    Returns
+    -------
+    bool
+
+    """
+    if options.get("mlflow_tracking_uri") is not None:
+        if storage_backend == ARTIFACT_STORAGE_BACKEND.mlflow or (
+            storage_backend is None
+            and options.get("default_ml_models_storage_backend")
+            == ARTIFACT_STORAGE_BACKEND.mlflow
+        ):
+            return True
+    return False
+
+
+def _try_write_to_mlflow(
+    value: Any, name: str, **kwargs
+) -> Optional[ModelInfo]:
+    """
+    Try to save artifact with MLflow
+
+    Parameters
+    ----------
+    value: Any
+        value(ML model) to save with mlflow
+    name: str
+        artifact_path and registered_model_name used in
+        `mlflow.sklearn.log_model` or equivalent flavors
+    **kwargs:
+        args to pass into `mlflow.sklearn.log_model` or equivalent flavors
+
+    Returns
+    -------
+    Optional[ModelInfo]
+        return a ModelInfo(MLflow model metadata) if successfully save with
+        mlflow; otherwise None
+
+    """
+
+    logger.info("Trying to save the object to MLflow.")
+
+    # Check mlflow is installed, if not raise error
+    if "mlflow" not in sys.modules:
+        msg = (
+            "module 'mlflow' is not installed;"
+            + " please install it with 'pip install lineapy[mlflow]'"
+        )
+        raise ModuleNotFoundError(msg)
+    mlflow.set_tracking_uri(options.get("mlflow_tracking_uri"))
+
+    # Check value is from a module supported by mlflow
+    full_module_name = getmodule(value)
+    if full_module_name is not None:
+        root_module_name = full_module_name.__name__.split(".")[0]
+        if root_module_name in mlflow_io.keys():
+            for class_io in mlflow_io[root_module_name]:
+                # Check value is the right class type for the module supported by mlflow
+                if isinstance(value, class_io["class"]):
+                    kwargs["registered_model_name"] = kwargs.get(
+                        "registered_model_name", name
+                    )
+                    kwargs["artifact_path"] = kwargs.get("artifact_path", name)
+                    model_info = class_io["serializer"](value, **kwargs)
+                    assert isinstance(model_info, ModelInfo)
+                    return model_info
+
+    logger.info(
+        f"LineaPy is currently not supporting saving {type(value)} to MLflow."
+    )
+    return None
 
 
 def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:

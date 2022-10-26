@@ -4,8 +4,8 @@ annotated modules at this time.
 
 [x] sklearn
 [x] prophet
-[ ] tensorflow
-[ ] keras
+[ ] tensorflow (need update current annotation)
+[ ] keras (need update current annotation)
 [ ] h2o
 [ ] gluon
 [ ] xgboost

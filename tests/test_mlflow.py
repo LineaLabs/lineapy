@@ -11,7 +11,7 @@ mlflow = pytest.importorskip("mlflow")
 
 def test_save_to_mlflow(execute):
     """
-    Test lienapy.save to mlflow, passing `registered_model_name` to test **kwargs.
+    Test lineapy.save to mlflow, passing `registered_model_name` to test **kwargs.
     """
     code = """
 import lineapy
