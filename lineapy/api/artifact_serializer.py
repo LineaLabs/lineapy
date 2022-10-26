@@ -18,7 +18,6 @@ from lineapy.utils.logging_config import configure_logging
 
 try:
     import mlflow
-    from mlflow.models.model import ModelInfo
 except ImportError:
     pass
 
