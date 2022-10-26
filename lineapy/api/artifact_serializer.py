@@ -114,9 +114,7 @@ def _able_to_use_mlflow(storage_backend) -> bool:
     return False
 
 
-def _try_write_to_mlflow(
-    value: Any, name: str, **kwargs
-) -> Optional[ModelInfo]:
+def _try_write_to_mlflow(value: Any, name: str, **kwargs) -> Optional[Any]:
     """
     Try to save artifact with MLflow
 
@@ -132,9 +130,11 @@ def _try_write_to_mlflow(
 
     Returns
     -------
-    Optional[ModelInfo]
+    Optional[Any]
         return a ModelInfo(MLflow model metadata) if successfully save with
-        mlflow; otherwise None
+        mlflow; otherwise None.
+
+    Note that, using Any for type checking in case mlflow is not installed.
 
     """
 
@@ -162,7 +162,6 @@ def _try_write_to_mlflow(
                     )
                     kwargs["artifact_path"] = kwargs.get("artifact_path", name)
                     model_info = class_io["serializer"](value, **kwargs)
-                    assert isinstance(model_info, ModelInfo)
                     return model_info
 
     logger.info(
