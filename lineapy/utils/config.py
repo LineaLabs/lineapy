@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -9,8 +10,13 @@ from typing import Any, Dict, Optional
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
 
-from lineapy.data.types import ML_MODELS_STORAGE_BACKEND, FilePath
+from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, FilePath
 from lineapy.db.utils import create_lineadb_engine
+
+try:
+    import mlflow
+except ImportError:
+    pass
 
 LINEAPY_FOLDER_NAME = ".lineapy"
 LOG_FILE_NAME = "lineapy.log"
@@ -19,7 +25,7 @@ FILE_PICKLER_BASEDIR = "linea_pickles"
 DB_FILE_NAME = "db.sqlite"
 CUSTOM_ANNOTATIONS_FOLDER_NAME = "custom-annotations"
 CUSTOM_ANNOTATIONS_EXTENSION_NAME = ".annotations.yaml"
-DEFAULT_ML_MODELS_STORAGE_BACKEND = ML_MODELS_STORAGE_BACKEND.mlflow.value
+DEFAULT_ML_MODELS_STORAGE_BACKEND = ARTIFACT_STORAGE_BACKEND.mlflow.value
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +49,10 @@ class lineapy_config:
     :param logging_level: logging level
     :param logging_file: logging file location (only support local for at this time)
     :param storage_options: a dictionary for artifact storage configuration(same as storage_options in pandas, Dask and fsspec)
+    :param mlflow_registry_uri: URI for MLflow registry
     :param mlflow_tracking_uri: URI for MLflow tracking
-    :param default_ml_models_storage_backend: Default storage backend if mlflow_tracking_uri is not empty
+    :param default_ml_models_storage_backend: Default storage backend if
+        at least one of mlflow_tracking_uri or mlflow_registry_uri is not empty
     """
 
     home_dir: Path
@@ -55,8 +63,9 @@ class lineapy_config:
     logging_level: str
     logging_file: Optional[Path]
     storage_options: Optional[Dict[str, Any]]
+    mlflow_registry_uri: Optional[str]
     mlflow_tracking_uri: Optional[str]
-    default_ml_models_storage_backend: Optional[ML_MODELS_STORAGE_BACKEND]
+    default_ml_models_storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
 
     def __init__(
         self,
@@ -68,6 +77,7 @@ class lineapy_config:
         logging_level="INFO",
         logging_file=None,
         storage_options=None,
+        mlflow_registry_uri=None,
         mlflow_tracking_uri=None,
         default_ml_models_storage_backend=None,
     ):
@@ -82,6 +92,7 @@ class lineapy_config:
         self.do_not_track = do_not_track
         self.logging_level = logging_level
         self.logging_file = logging_file
+        self.mlflow_registry_uri = mlflow_registry_uri
         self.mlflow_tracking_uri = mlflow_tracking_uri
         self.default_ml_models_storage_backend = (
             default_ml_models_storage_backend
@@ -131,11 +142,14 @@ class lineapy_config:
         """Get LineaPy config field"""
         if key in self.__dict__.keys():
             # fill empty default_ml_models_storage_backend if
-            # mlflow_tracking_uri is set
+            # mlflow_registry_uri or mlflow_tracking_uri is set
             if (
                 key == "default_ml_models_storage_backend"
                 and (getattr(self, key) is None)
-                and (getattr(self, "mlflow_tracking_uri") is not None)
+                and (
+                    (getattr(self, "mlflow_tracking_uri") is not None)
+                    or (getattr(self, "mlflow_registry_uri") is not None)
+                )
             ):
                 self.set(
                     "default_ml_models_storage_backend",
@@ -172,6 +186,18 @@ class lineapy_config:
                     os.environ[f"LINEAPY_{key.upper()}"] = json.dumps(value)
                 else:
                     os.environ[f"LINEAPY_{key.upper()}"] = str(value)
+
+            if key == "mlflow_registry_uri":
+                if "mlflow" in sys.modules:
+                    mlflow.set_registry_uri(value)
+                else:
+                    raise ModuleNotFoundError("mlflow is not installed")
+
+            if key == "mlflow_tracking_uri":
+                if "mlflow" in sys.modules:
+                    mlflow.set_tracking_uri(value)
+                else:
+                    raise ModuleNotFoundError("mlflow is not installed")
 
             # Send a heartbeat to artifact_storage_dir
             if key == "artifact_storage_dir":

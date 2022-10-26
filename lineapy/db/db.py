@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
@@ -45,6 +46,7 @@ from lineapy.db.relational import (
     KeywordArgORM,
     LiteralNodeORM,
     LookupNodeORM,
+    MLflowArtifactMetadataORM,
     MutateNodeORM,
     NodeORM,
     NodeValueORM,
@@ -59,9 +61,12 @@ from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track  # circular dep issues
-from lineapy.utils.config import lineapy_config
+from lineapy.utils.config import lineapy_config, options
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.utils import get_literal_value_from_string
+
+if "mlflow" in sys.modules:
+    from mlflow.models.model import ModelInfo
 
 logger = logging.getLogger(__name__)
 
@@ -333,6 +338,19 @@ class RelationalLineaDB:
             version=artifact.version,
         )
         self.session.add(artifact_orm)
+        self.renew_session()
+
+    def write_mlflow_artifactmetadata(
+        self, artifactorm: ArtifactORM, modelinfo: ModelInfo
+    ) -> None:
+        mlflowmetadataorm = MLflowArtifactMetadataORM(
+            artifact_id=artifactorm.id,
+            backend="mlflow",
+            tracking_uri=options.get("mlflow_tracking_uri"),
+            registry_uri=options.get("mlflow_registry_uri"),
+            model_uri=modelinfo.model_uri,
+        )
+        self.session.add(mlflowmetadataorm)
         self.renew_session()
 
     def write_pipeline(

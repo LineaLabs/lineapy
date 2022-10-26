@@ -20,6 +20,7 @@ from lineapy.cli.cli import (
 )
 from lineapy.plugins.utils import slugify
 from lineapy.utils.config import options
+from tests.util import clean_lineapy_env_var
 
 
 @pytest.mark.slow
@@ -43,8 +44,6 @@ def test_lineapy_init_with_options():
             temp_dir_name,
             "--do-not-track=true",
             "--logging-level=debug",
-            "--mlflow-tracking-uri=sqlite://",
-            "--default-ml-models-storage-backend=mlflow",
             "init",
         ]
     )
@@ -56,21 +55,10 @@ def test_lineapy_init_with_options():
     assert generated_config["home_dir"] == temp_dir_name
     assert generated_config["do_not_track"] == "True"
     assert generated_config["logging_level"] == "DEBUG"
-    assert generated_config["mlflow_tracking_uri"] == "sqlite://"
-    assert generated_config["default_ml_models_storage_backend"] == "mlflow"
 
 
 @pytest.mark.slow
 def test_config_order():
-    def clean_lineapy_env_var():
-        existing_lineapy_env = {
-            x: os.environ[x]
-            for x in os.environ.keys()
-            if x.startswith("LINEAPY_")
-        }
-        for key in existing_lineapy_env.keys():
-            del os.environ[key]
-        return existing_lineapy_env
 
     temp_dir_name = tempfile.mkdtemp()
 

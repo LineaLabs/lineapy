@@ -3,24 +3,22 @@ User facing APIs.
 """
 
 import logging
-import types
 import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Callable, List, Optional, Tuple, Union
 
 import fsspec
-from pandas.io.pickle import to_pickle
 
+from lineapy.api.artifact_serializer import serialize_artifact
 from lineapy.api.models.linea_artifact import (
     LineaArtifact,
     get_lineaartifactdef,
 )
 from lineapy.api.models.linea_artifact_store import LineaArtifactStore
 from lineapy.api.models.pipeline import Pipeline
-from lineapy.data.types import Artifact, LineaID, NodeValue
+from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, Artifact, NodeValue
 from lineapy.db.utils import parse_artifact_version
-from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
@@ -28,7 +26,6 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
 from lineapy.plugins.loader import load_as_module
 from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
-from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ErrorType,
@@ -53,7 +50,12 @@ one way to access the same feature.
 """
 
 
-def save(reference: object, name: str) -> LineaArtifact:
+def save(
+    reference: object,
+    name: str,
+    storage_backend: Optional[ARTIFACT_STORAGE_BACKEND] = None,
+    **kwargs,
+) -> LineaArtifact:
     """
     Publishes the object to the Linea DB.
 
@@ -67,6 +69,16 @@ def save(reference: object, name: str) -> LineaArtifact:
         We are in the process of adding more side effect references, including `assert` statements.
     name: str
         The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
+    storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
+        The storage backend used to save the artifact. Currently support
+        lineapy and mlflow(for mlflow supported model flavors). In case of
+        mlflow, lineapy will use `mlflow.sklearn.log_model` or other supported
+        flavors equivalent to save artifacts into mlflow.
+    **kwargs:
+        Keyword arguments passed into underlying storage mechanism to overwrite
+        default behavior. For `storage_backend='mlflow'`, this can overwrite
+        default arguments in the `mlflow.sklearn.log_model` or other supported
+        flavors equivalent.
 
     Returns
     -------
@@ -99,20 +111,37 @@ def save(reference: object, name: str) -> LineaArtifact:
 
     # serialize value to db if we haven't before
     # (happens with multiple artifacts pointing to the same value)
+    serialize_method = ARTIFACT_STORAGE_BACKEND.lineapy
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
 
         # TODO add version or timestamp to allow saving of multiple pickle files for the same node id
-        # pickles value of artifact and saves to filesystem
-        pickle_name = _pickle_name(value_node_id, execution_id)
-        _try_write_to_pickle(reference, pickle_name)
+
+        artifact_serialize_metadata = serialize_artifact(
+            value_node_id,
+            execution_id,
+            reference,
+            name,
+            storage_backend,
+            **kwargs,
+        )
+        if (
+            artifact_serialize_metadata["backend"]
+            == ARTIFACT_STORAGE_BACKEND.mlflow
+        ):
+            artifact_path = artifact_serialize_metadata["metadata"].model_uri
+            serialize_method = ARTIFACT_STORAGE_BACKEND.mlflow
+        else:
+            artifact_path = artifact_serialize_metadata["metadata"][
+                "pickle_name"
+            ]
 
         # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=str(pickle_name),
+                value=artifact_path,
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -136,6 +165,15 @@ def save(reference: object, name: str) -> LineaArtifact:
         version=artifact_version,
     )
     db.write_artifact(artifact_to_write)
+
+    if serialize_method == ARTIFACT_STORAGE_BACKEND.mlflow:
+        artifactorm = db.get_artifactorm_by_name(
+            artifact_name=name, version=artifact_version
+        )
+        db.write_mlflow_artifactmetadata(
+            artifactorm, artifact_serialize_metadata["metadata"]
+        )
+
     track(SaveEvent(side_effect=side_effect_to_str(reference)))
 
     linea_artifact = LineaArtifact(
@@ -205,45 +243,6 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
             f.fs.delete(f.path)
     except ValueError:
         logging.debug(f"No valid pickle path found for {node_id}")
-
-
-def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
-    """
-    Pickle file for a value to be named with the following scheme.
-    <node_id-hash>-<exec_id-hash>-pickle
-    """
-    return f"pre-{slugify(hash(node_id + execution_id))}-post.pkl"
-
-
-def _try_write_to_pickle(value: object, filename: str) -> None:
-    """
-    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
-
-    :param value: data to pickle
-    :param filename: name of pickle file
-    """
-    if isinstance(value, types.ModuleType):
-        track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))
-        raise ArtifactSaveException(
-            "Lineapy does not support saving Python Module Objects as pickles"
-        )
-
-    artifact_storage_dir = options.safe_get("artifact_storage_dir")
-    filepath = (
-        artifact_storage_dir.joinpath(filename)
-        if isinstance(artifact_storage_dir, Path)
-        else f'{artifact_storage_dir.rstrip("/")}/{filename}'
-    )
-    try:
-        logger.debug(f"Saving file to {filepath} ")
-        to_pickle(
-            value, filepath, storage_options=options.get("storage_options")
-        )
-    except Exception as e:
-        # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
-        logger.error(e)
-        track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
-        raise e
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
