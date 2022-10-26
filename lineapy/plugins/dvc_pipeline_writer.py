@@ -1,7 +1,9 @@
 import logging
+from enum import Enum
+
+from typing_extensions import TypedDict
 
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
-from lineapy.plugins.task import DVCDagFlavor
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 
@@ -48,3 +50,18 @@ class DVCPipelineWriter(BasePipelineWriter):
     @property
     def docker_template_name(self) -> str:
         return "dvc_dockerfile.jinja"
+
+
+class DVCDagFlavor(Enum):
+    SingleStageAllSessions = 1
+    # TODO: StagePerSession
+    # TODO: StagePerArtifact
+
+
+DVCDagConfig = TypedDict(
+    "DVCDagConfig",
+    {
+        "dag_flavor": str,  # Not native to DVC config
+    },
+    total=False,
+)

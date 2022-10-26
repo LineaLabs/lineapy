@@ -299,7 +299,9 @@ class BaseSessionWriter:
         return session_function
 
     def get_session_function_callblock(
-        self, session_artifact: SessionArtifacts
+        self,
+        session_artifact: SessionArtifacts,
+        indentation=4,
     ) -> str:
         """
         `get_session_function_callblock` returns the code to make the call to the session function.
@@ -309,6 +311,8 @@ class BaseSessionWriter:
         run_session_including_multiplier(a, p)
         ```
         """
+        indentation_block = " " * indentation
+
         session_function_name = self.get_session_function_name(
             session_artifact
         )
@@ -316,6 +320,6 @@ class BaseSessionWriter:
             session_input_parameters = ", ".join(
                 self.get_session_input_parameters_spec(session_artifact).keys()
             )
-            return f"{session_function_name}({session_input_parameters})"
+            return f"{indentation_block}{session_function_name}({session_input_parameters})"
         else:
             return ""
