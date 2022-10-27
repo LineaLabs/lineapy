@@ -1,5 +1,5 @@
-Artifact Storage
-================
+Artifact Store
+==============
 
 In LineaPy, an artifact store is a centralized repository for artifacts
 (check :ref:`here <artifact_store_concept>` for a conceptual explanation).

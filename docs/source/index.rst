@@ -16,7 +16,7 @@ Welcome to LineaPy!
    :caption: User Guide
 
    tutorials/00_api_basics
-   guide/refactor_code/index
+   guide/artifacts/index
    guide/build_pipelines/index
    guide/manage_artifacts/index
 
@@ -33,7 +33,7 @@ Welcome to LineaPy!
    :maxdepth: 1
    :caption: Support
 
-   support/faq
+   support/faq/index
    support/community
 
 
