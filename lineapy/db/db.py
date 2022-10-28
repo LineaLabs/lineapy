@@ -5,9 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
-import sqlalchemy
 from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
-from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql.expression import and_
 
 from lineapy.data.types import (
@@ -347,7 +345,7 @@ class RelationalLineaDB:
     ) -> None:
         model_flavors = [
             flavor
-            for flavor in ModelInfo.flavors.keys()
+            for flavor in modelinfo.flavors.keys()
             if flavor != "python_function"
         ]
         if len(model_flavors) > 1:

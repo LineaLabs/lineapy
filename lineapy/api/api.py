@@ -280,7 +280,7 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
         _node_id=artifactorm.node_id,
         _session_id=artifactorm.node.session_id,
         _version=artifactorm.version,  # type: ignore
-        name=artifactorm.name,
+        name=artifact_name,
         date_created=artifactorm.date_created,  # type: ignore
     )
 

@@ -9,7 +9,7 @@ from sklearn.base import BaseEstimator
 mlflow = pytest.importorskip("mlflow")
 
 
-def test_save_to_mlflow(execute):
+def test_save_and_get_to_mlflow(execute):
     """
     Test lineapy.save to mlflow, passing `registered_model_name` to test **kwargs.
     """
@@ -25,13 +25,29 @@ X = [[ 1,  2,  3],  # 2 samples, 3 features
 y = [0, 1]  # classes of each sample
 clf.fit(X, y)
 lineapy.save(clf, 'clf', registered_model_name='lineapy_clf')
+
+art = lineapy.get('clf')
+lineapy_model = art.get_value()
+
+metadata = art.get_metadata()
+
 client = mlflow.MlflowClient()
 latest_version = client.search_model_versions("name='lineapy_clf'")[0].version
 mlflow_model = mlflow.sklearn.load_model(f'models:/lineapy_clf/{latest_version}')
 """
     res = execute(code, snapshot=False)
+
+    # Retrieve registered model from mlflow
     mlflow_model = res.values["mlflow_model"]
     assert isinstance(mlflow_model, BaseEstimator)
+
+    # Retrieve model from Artifact.get_value()
+    lineapy_model = res.values["lineapy_model"]
+    assert isinstance(lineapy_model, BaseEstimator)
+
+    # Metadata
+    metadata = res.values["metadata"]
+    assert "lineapy" in metadata.keys() and "mlflow" in metadata.keys()
 
 
 @pytest.mark.slow

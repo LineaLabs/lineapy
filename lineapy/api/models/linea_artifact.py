@@ -108,13 +108,17 @@ class LineaArtifact:
         Get and return the value of the artifact
         """
         metadata = self.get_metadata()
-        saved_filepath = metadata['lineapy']['storage_path']
+        saved_filepath = metadata["lineapy"]["storage_path"]
+        print(metadata)
         if saved_filepath is None:
             return None
         else:
             track(GetValueEvent(has_value=True))
             # read from mlflow
-            if metadata['lineapy']['storage_backend'] == ARTIFACT_STORAGE_BACKEND.mlflow:
+            if (
+                metadata["lineapy"]["storage_backend"]
+                == ARTIFACT_STORAGE_BACKEND.mlflow
+            ):
                 value = self._read_mlflow()
                 return value
 
@@ -123,45 +127,49 @@ class LineaArtifact:
             return value
 
     @lru_cache(maxsize=None)
-    def _get_storage_path(self) -> str:
-        return self.db.get_node_value_path(
-            self._node_id, self._execution_id
-        )
+    def _get_storage_path(self) -> Optional[str]:
+        return self.db.get_node_value_path(self._node_id, self._execution_id)
 
     @lru_cache(maxsize=None)
-    def get_metadata(self, lineapy_only:bool = False):
+    def get_metadata(self, lineapy_only: bool = False):
 
         if self._artifact_id is None or self.date_created is None:
-            lineapy_metadata = self.db.get_artifactorm_by_name(
-                name=self.name, version=self.version
+            lineaartifact_metadata = self.db.get_artifactorm_by_name(
+                artifact_name=self.name, version=self.version
             )
-            self._artifact_id = lineapy_metadata._artifact_id
-            self.date_created = lineapy_metadata.date_created
+            self._artifact_id = lineaartifact_metadata.id
+            self.date_created = lineaartifact_metadata.date_created
 
-        self.storage_path = self._get_storage_path()
-        self.storage_backend = 'mlflow' if self.storage_path.startswith('model:') else 'lineapy'
+        assert isinstance(self._artifact_id, int)
 
-        metadata = {
-            'lineapy' : {
-                k:v
-                for k,v in self.__dict__.items()
-            }
-        }
+        storage_path = self._get_storage_path()
+        storage_backend = (
+            "mlflow"
+            if isinstance(storage_path, str)
+            and storage_path.startswith("runs:")
+            else "lineapy"
+        )
 
-        if not lineapy_only and self.storage_type=='mlflow':
-            metadata['mlflow'] = self.db.get_mlflowartifactmetadataorm_by_artifact_id(
+        metadata = {"lineapy": {k: v for k, v in self.__dict__.items()}}
+        metadata["lineapy"]["storage_path"] = storage_path
+        metadata["lineapy"]["storage_backend"] = storage_backend
+
+        if not lineapy_only and storage_backend == "mlflow":
+            metadata[
+                "mlflow"
+            ] = self.db.get_mlflowartifactmetadataorm_by_artifact_id(
                 self._artifact_id
             ).__dict__
 
         return metadata
 
-
     def _read_mlflow(self):
         if self._artifact_id is None:
             self._artifact_id = self.db.get_artifactorm_by_name(
-                name=self.name, version=self.version
-            )
+                artifact_name=self.name, version=self.version
+            ).id
 
+        assert isinstance(self._artifact_id, int)
         mlflow_metadata = self.db.get_mlflowartifactmetadataorm_by_artifact_id(
             self._artifact_id
         )
@@ -172,6 +180,7 @@ class LineaArtifact:
         options.set("mlflow_tracking_uri", mlflow_metadata.tracking_uri)
         options.set("mlflow_registry_uri", mlflow_metadata.registry_uri)
 
+        assert isinstance(mlflow_metadata.model_flavor, str)
         value = mlflow_io[mlflow_metadata.model_flavor]["deserializer"](
             mlflow_metadata.model_uri
         )
@@ -367,6 +376,3 @@ class LineaArtifact:
         return LineaArtifact.get_artifact_from_name_and_version(
             db, **artifactdef
         )
-
-    def metadata(self) -> Dict:
-
