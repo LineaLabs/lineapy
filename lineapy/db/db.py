@@ -5,7 +5,9 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
+import sqlalchemy
 from sqlalchemy.orm import defaultload, scoped_session, sessionmaker
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.sql.expression import and_
 
 from lineapy.data.types import (
@@ -343,12 +345,21 @@ class RelationalLineaDB:
     def write_mlflow_artifactmetadata(
         self, artifactorm: ArtifactORM, modelinfo: ModelInfo
     ) -> None:
+        model_flavors = [
+            flavor
+            for flavor in ModelInfo.flavors.keys()
+            if flavor != "python_function"
+        ]
+        if len(model_flavors) > 1:
+            raise
+
         mlflowmetadataorm = MLflowArtifactMetadataORM(
             artifact_id=artifactorm.id,
             backend="mlflow",
             tracking_uri=options.get("mlflow_tracking_uri"),
             registry_uri=options.get("mlflow_registry_uri"),
             model_uri=modelinfo.model_uri,
+            model_flavor=model_flavors[0],
         )
         self.session.add(mlflowmetadataorm)
         self.renew_session()
@@ -832,3 +843,15 @@ class RelationalLineaDB:
             .all()
         )
         return [(n[0].id, n[1].variable_name) for n in results]
+
+    def get_mlflowartifactmetadataorm_by_artifact_id(
+        self, artifact_id: int
+    ) -> MLflowArtifactMetadataORM:
+        """
+        Gets the most recent artifact with a certain name.
+        """
+
+        res_query = self.session.query(MLflowArtifactMetadataORM).filter(
+            MLflowArtifactMetadataORM.artifact_id == artifact_id
+        )
+        return res_query.one()

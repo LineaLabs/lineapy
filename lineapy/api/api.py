@@ -272,15 +272,16 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
 
     execution_context = get_context()
     db = execution_context.executor.db
-    artifact = db.get_artifactorm_by_name(artifact_name, final_version)
+    artifactorm = db.get_artifactorm_by_name(artifact_name, final_version)
     linea_artifact = LineaArtifact(
         db=db,
-        _execution_id=artifact.execution_id,
-        _node_id=artifact.node_id,
-        _session_id=artifact.node.session_id,
-        _version=artifact.version,  # type: ignore
-        name=artifact_name,
-        date_created=artifact.date_created,  # type: ignore
+        _artifact_id=artifactorm.id,
+        _execution_id=artifactorm.execution_id,
+        _node_id=artifactorm.node_id,
+        _session_id=artifactorm.node.session_id,
+        _version=artifactorm.version,  # type: ignore
+        name=artifactorm.name,
+        date_created=artifactorm.date_created,  # type: ignore
     )
 
     # Check version compatibility

@@ -153,15 +153,20 @@ def _try_write_to_mlflow(value: Any, name: str, **kwargs) -> Optional[Any]:
     if full_module_name is not None:
         root_module_name = full_module_name.__name__.split(".")[0]
         if root_module_name in mlflow_io.keys():
-            for class_io in mlflow_io[root_module_name]:
-                # Check value is the right class type for the module supported by mlflow
-                if isinstance(value, class_io["class"]):
-                    kwargs["registered_model_name"] = kwargs.get(
-                        "registered_model_name", name
-                    )
-                    kwargs["artifact_path"] = kwargs.get("artifact_path", name)
-                    model_info = class_io["serializer"](value, **kwargs)
-                    return model_info
+            flavor_io = mlflow_io[root_module_name]
+            # Check value is the right class type for the module supported by mlflow
+            if any(
+                [
+                    isinstance(value, target_class)
+                    for target_class in flavor_io["class"]
+                ]
+            ):
+                kwargs["registered_model_name"] = kwargs.get(
+                    "registered_model_name", name
+                )
+                kwargs["artifact_path"] = kwargs.get("artifact_path", name)
+                model_info = flavor_io["serializer"](value, **kwargs)
+                return model_info
 
     logger.info(
         f"LineaPy is currently not supporting saving {type(value)} to MLflow."

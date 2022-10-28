@@ -12,7 +12,7 @@ from typing_extensions import NotRequired, TypedDict
 
 from lineapy.api.api_utils import de_lineate_code
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID
+from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, LineaID
 from lineapy.db.db import ArtifactORM, RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
@@ -20,6 +20,7 @@ from lineapy.graph_reader.program_slice import (
     get_source_code_from_graph,
     get_subgraph_nodelist,
 )
+from lineapy.plugins.serializers.mlflow_io import mlflow_io
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -79,9 +80,10 @@ class LineaArtifact:
     """name of the artifact"""
     _version: int
     """version of the artifact - currently start from 0"""
+    _artifact_id: Optional[int] = field(default=None, repr=False)
     date_created: Optional[datetime] = field(default=None, repr=False)
-    # setting repr to false for date_created for now since it duplicates version
-    """Optional because date_created cannot be set by the user. 
+    # setting repr to false for date_created, _artifact_id for now since it duplicates version
+    """Optional because date_created and _artifact_id cannot be set by the user. 
     it is supposed to be automatically set when the artifact gets saved to the 
     db. so when creating lineaArtifact the first time, it will be unset. When 
     you get the artifact or list of artifacts as an artifact store, we retrieve 
@@ -105,36 +107,105 @@ class LineaArtifact:
         """
         Get and return the value of the artifact
         """
-        pickle_filename = self.db.get_node_value_path(
-            self._node_id, self._execution_id
-        )
-        if pickle_filename is None:
+        metadata = self.get_metadata()
+        saved_filepath = metadata['lineapy']['storage_path']
+        if saved_filepath is None:
             return None
         else:
-            # TODO - set unicode etc here
             track(GetValueEvent(has_value=True))
+            # read from mlflow
+            if metadata['lineapy']['storage_backend'] == ARTIFACT_STORAGE_BACKEND.mlflow:
+                value = self._read_mlflow()
+                return value
 
-            artifact_storage_dir = options.safe_get("artifact_storage_dir")
-            filepath = (
-                artifact_storage_dir.joinpath(pickle_filename)
-                if isinstance(artifact_storage_dir, Path)
-                else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
+            # read from lineapy
+            value = self._read_pickle(saved_filepath)
+            return value
+
+    @lru_cache(maxsize=None)
+    def _get_storage_path(self) -> str:
+        return self.db.get_node_value_path(
+            self._node_id, self._execution_id
+        )
+
+    @lru_cache(maxsize=None)
+    def get_metadata(self, lineapy_only:bool = False):
+
+        if self._artifact_id is None or self.date_created is None:
+            lineapy_metadata = self.db.get_artifactorm_by_name(
+                name=self.name, version=self.version
             )
-            try:
-                logger.debug(
-                    f"Retriving pickle file from {filepath} ",
+            self._artifact_id = lineapy_metadata._artifact_id
+            self.date_created = lineapy_metadata.date_created
+
+        self.storage_path = self._get_storage_path()
+        self.storage_backend = 'mlflow' if self.storage_path.startswith('model:') else 'lineapy'
+
+        metadata = {
+            'lineapy' : {
+                k:v
+                for k,v in self.__dict__.items()
+            }
+        }
+
+        if not lineapy_only and self.storage_type=='mlflow':
+            metadata['mlflow'] = self.db.get_mlflowartifactmetadataorm_by_artifact_id(
+                self._artifact_id
+            ).__dict__
+
+        return metadata
+
+
+    def _read_mlflow(self):
+        if self._artifact_id is None:
+            self._artifact_id = self.db.get_artifactorm_by_name(
+                name=self.name, version=self.version
+            )
+
+        mlflow_metadata = self.db.get_mlflowartifactmetadataorm_by_artifact_id(
+            self._artifact_id
+        )
+
+        current_mlflow_tracking_uri = options.get("mlflow_tracking_uri")
+        current_mlflow_registry_uri = options.get("mlflow_registry_uri")
+
+        options.set("mlflow_tracking_uri", mlflow_metadata.tracking_uri)
+        options.set("mlflow_registry_uri", mlflow_metadata.registry_uri)
+
+        value = mlflow_io[mlflow_metadata.model_flavor]["deserializer"](
+            mlflow_metadata.model_uri
+        )
+
+        options.set("mlflow_tracking_uri", current_mlflow_tracking_uri)
+        options.set("mlflow_registry_uri", current_mlflow_registry_uri)
+        return value
+
+    def _read_pickle(self, pickle_filename):
+        """
+        Read pickle file from artifact storage dir
+        """
+        # TODO - set unicode etc here
+        artifact_storage_dir = options.safe_get("artifact_storage_dir")
+        filepath = (
+            artifact_storage_dir.joinpath(pickle_filename)
+            if isinstance(artifact_storage_dir, Path)
+            else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
+        )
+        try:
+            logger.debug(
+                f"Retriving pickle file from {filepath} ",
+            )
+            return read_pickle(
+                filepath, storage_options=options.get("storage_options")
+            )
+        except Exception as e:
+            logger.error(e)
+            track(
+                ExceptionEvent(
+                    ErrorType.RETRIEVE, "Error in retriving pickle file"
                 )
-                return read_pickle(
-                    filepath, storage_options=options.get("storage_options")
-                )
-            except Exception as e:
-                logger.error(e)
-                track(
-                    ExceptionEvent(
-                        ErrorType.RETRIEVE, "Error in retriving pickle file"
-                    )
-                )
-                raise e
+            )
+            raise e
 
     # Note that I removed the @properties because they were not working
     # well with the lru_cache
@@ -264,6 +335,7 @@ class LineaArtifact:
         assert isinstance(artifactorm.name, str)
         return LineaArtifact(
             db=db,
+            _artifact_id=artifactorm.id,
             _execution_id=artifactorm.execution_id,
             _node_id=artifactorm.node_id,
             _session_id=artifactorm.node.session_id,
@@ -295,3 +367,6 @@ class LineaArtifact:
         return LineaArtifact.get_artifact_from_name_and_version(
             db, **artifactdef
         )
+
+    def metadata(self) -> Dict:
+

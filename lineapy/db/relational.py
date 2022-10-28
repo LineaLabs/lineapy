@@ -132,6 +132,7 @@ class MLflowArtifactMetadataORM(Base):
     tracking_uri = Column(String, nullable=False)
     registry_uri = Column(String, nullable=True)
     model_uri = Column(String, nullable=False)
+    model_flavor = Column(String, nullable=False)
 
 
 class PipelineORM(Base):
