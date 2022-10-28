@@ -210,39 +210,54 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     get_version = None if isinstance(version, str) else version
 
     try:
-        artifact = db.get_artifactorm_by_name(
-            artifact_name, version=get_version
-        )
+        metadata = get(artifact_name, get_version).get_metadata()
     except UserException:
         raise NameError(
             f"{artifact_name}:{version} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
         )
 
-    node_id = artifact.node_id
-    execution_id = artifact.execution_id
+    lineapy_metadata = metadata["lineapy"]
+    node_id = lineapy_metadata.node_id
+    execution_id = lineapy_metadata.execution_id
 
-    pickled_path = None
-    try:
-        pickled_name = db.get_node_value_path(node_id, execution_id)
-        pickled_path = (
-            str(options.safe_get("artifact_storage_dir")).rstrip("/")
-            + f"/{pickled_name}"
-        )
-        # Wrap the db operation and file as a transaction
-        with fsspec.open(pickled_path) as f:
-            db.delete_artifact_by_name(artifact_name, version=version)
-            logging.info(
-                f"Deleted Artifact: {artifact_name} version: {version}"
+    if lineapy_metadata.storage_backend == ARTIFACT_STORAGE_BACKEND.lineapy:
+        try:
+            storage_path = lineapy_metadata.storage_path
+            pickled_path = (
+                str(options.safe_get("artifact_storage_dir")).rstrip("/")
+                + f"/{storage_path}"
             )
-            try:
-                db.delete_node_value_from_db(node_id, execution_id)
-            except UserException:
+            # Wrap the db operation and file as a transaction
+            with fsspec.open(pickled_path) as f:
+                db.delete_artifact_by_name(artifact_name, version=version)
                 logging.info(
-                    f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+                    f"Deleted Artifact: {artifact_name} version: {version}"
                 )
-            f.fs.delete(f.path)
-    except ValueError:
-        logging.debug(f"No valid pickle path found for {node_id}")
+                try:
+                    db.delete_node_value_from_db(node_id, execution_id)
+                except UserException:
+                    logging.info(
+                        f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+                    )
+                f.fs.delete(f.path)
+        except ValueError:
+            logging.debug(f"No valid pickle path found for {node_id}")
+    elif lineapy_metadata.storage_backend == ARTIFACT_STORAGE_BACKEND.mlflow:
+        db.delete_artifact_by_name(artifact_name, version=version)
+        try:
+            db.delete_node_value_from_db(node_id, execution_id)
+        except UserException:
+            logging.info(
+                f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+            )
+        try:
+            db.delete_mlflow_metadata_by_artifact_id(
+                lineapy_metadata.artifact_id
+            )
+        except UserException:
+            logging.info(
+                f"Artifact id {lineapy_metadata.artifact_id} is not found in DB"
+            )
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:

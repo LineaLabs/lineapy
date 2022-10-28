@@ -778,6 +778,13 @@ class RelationalLineaDB:
             self.session.delete(res)
         self.renew_session()
 
+    def delete_mlflow_metadata_by_artifact_id(self, artifact_id: int):
+        res_query = self.session.query(MLflowArtifactMetadataORM).filter(
+            MLflowArtifactMetadataORM.artifact_id == artifact_id
+        )
+        res_query.delete()
+        self.renew_session()
+
     def delete_node_value_from_db(
         self, node_id: LineaID, execution_id: LineaID
     ):

@@ -8,11 +8,17 @@ from typing import Optional, Set, Tuple, Union
 
 from IPython.display import display
 from pandas.io.pickle import read_pickle
-from typing_extensions import NotRequired, TypedDict
 
 from lineapy.api.api_utils import de_lineate_code
 from lineapy.data.graph import Graph
-from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, LineaID
+from lineapy.data.types import (
+    ARTIFACT_STORAGE_BACKEND,
+    ArtifactInfo,
+    LineaArtifactDef,
+    LineaArtifactInfo,
+    LineaID,
+    MLflowArtifactInfo,
+)
 from lineapy.db.db import ArtifactORM, RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
@@ -20,7 +26,7 @@ from lineapy.graph_reader.program_slice import (
     get_source_code_from_graph,
     get_subgraph_nodelist,
 )
-from lineapy.plugins.serializers.mlflow_io import mlflow_io
+from lineapy.plugins.serializers.mlflow_io import read_mlflow
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -34,16 +40,6 @@ from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
-
-
-class LineaArtifactDef(TypedDict):
-    """
-    Definition of an artifact, can extend new keys(user, project, ...)
-    in the future.
-    """
-
-    artifact_name: str
-    version: NotRequired[Optional[int]]
 
 
 def get_lineaartifactdef(
@@ -108,86 +104,88 @@ class LineaArtifact:
         Get and return the value of the artifact
         """
         metadata = self.get_metadata()
-        saved_filepath = metadata["lineapy"]["storage_path"]
-        print(metadata)
+        linea_metadata = metadata["lineapy"]
+        saved_filepath = linea_metadata.storage_path
         if saved_filepath is None:
             return None
         else:
             track(GetValueEvent(has_value=True))
             # read from mlflow
-            if (
-                metadata["lineapy"]["storage_backend"]
-                == ARTIFACT_STORAGE_BACKEND.mlflow
-            ):
-                value = self._read_mlflow()
-                return value
+            if "mlflow" in metadata.keys():
+                return read_mlflow(metadata["mlflow"])
 
             # read from lineapy
-            value = self._read_pickle(saved_filepath)
-            return value
+            return self._read_pickle(saved_filepath)
 
     @lru_cache(maxsize=None)
     def _get_storage_path(self) -> Optional[str]:
         return self.db.get_node_value_path(self._node_id, self._execution_id)
 
     @lru_cache(maxsize=None)
-    def get_metadata(self, lineapy_only: bool = False):
+    def get_metadata(self, lineapy_only: bool = False) -> ArtifactInfo:
+        """
+        Get artifact metadata
+
+        :param lineapy_only: If ``False``, will include both LineaPy related
+            metadata and metadata from storage backend(if it is not LineaPy).
+            If ``True``, will only return LineaPy related metadata no matter
+            which storage backend is using.
+
+        """
 
         if self._artifact_id is None or self.date_created is None:
-            lineaartifact_metadata = self.db.get_artifactorm_by_name(
+            artifactorm = self.db.get_artifactorm_by_name(
                 artifact_name=self.name, version=self.version
             )
-            self._artifact_id = lineaartifact_metadata.id
-            self.date_created = lineaartifact_metadata.date_created
+            self._artifact_id = artifactorm.id
+            self.date_created = artifactorm.date_created
 
         assert isinstance(self._artifact_id, int)
+        assert isinstance(self.date_created, datetime)
 
         storage_path = self._get_storage_path()
         storage_backend = (
-            "mlflow"
+            ARTIFACT_STORAGE_BACKEND.mlflow
             if isinstance(storage_path, str)
             and storage_path.startswith("runs:")
-            else "lineapy"
+            else ARTIFACT_STORAGE_BACKEND.lineapy
         )
 
-        metadata = {"lineapy": {k: v for k, v in self.__dict__.items()}}
-        metadata["lineapy"]["storage_path"] = storage_path
-        metadata["lineapy"]["storage_backend"] = storage_backend
+        lineaartifact_metadata = LineaArtifactInfo(
+            artifact_id=self._artifact_id,
+            name=self.name,
+            version=self.version,
+            execution_id=self._execution_id,
+            session_id=self._session_id,
+            node_id=self._node_id,
+            date_created=self.date_created,
+            storage_path=storage_path,
+            storage_backend=storage_backend,
+        )
+
+        metadata = ArtifactInfo(lineapy=lineaartifact_metadata)
 
         if not lineapy_only and storage_backend == "mlflow":
-            metadata[
-                "mlflow"
-            ] = self.db.get_mlflowartifactmetadataorm_by_artifact_id(
-                self._artifact_id
-            ).__dict__
+            mlflowartifactorm = (
+                self.db.get_mlflowartifactmetadataorm_by_artifact_id(
+                    self._artifact_id
+                )
+            )
+            assert isinstance(mlflowartifactorm.id, int)
+            assert isinstance(mlflowartifactorm.artifact_id, int)
+            assert isinstance(mlflowartifactorm.tracking_uri, str)
+            assert isinstance(mlflowartifactorm.model_uri, str)
+            assert isinstance(mlflowartifactorm.model_flavor, str)
+            metadata["mlflow"] = MLflowArtifactInfo(
+                id=mlflowartifactorm.id,
+                artifact_id=mlflowartifactorm.artifact_id,
+                tracking_uri=mlflowartifactorm.tracking_uri,
+                registry_uri=mlflowartifactorm.registry_uri,
+                model_uri=mlflowartifactorm.model_uri,
+                model_flavor=mlflowartifactorm.model_flavor,
+            )
 
         return metadata
-
-    def _read_mlflow(self):
-        if self._artifact_id is None:
-            self._artifact_id = self.db.get_artifactorm_by_name(
-                artifact_name=self.name, version=self.version
-            ).id
-
-        assert isinstance(self._artifact_id, int)
-        mlflow_metadata = self.db.get_mlflowartifactmetadataorm_by_artifact_id(
-            self._artifact_id
-        )
-
-        current_mlflow_tracking_uri = options.get("mlflow_tracking_uri")
-        current_mlflow_registry_uri = options.get("mlflow_registry_uri")
-
-        options.set("mlflow_tracking_uri", mlflow_metadata.tracking_uri)
-        options.set("mlflow_registry_uri", mlflow_metadata.registry_uri)
-
-        assert isinstance(mlflow_metadata.model_flavor, str)
-        value = mlflow_io[mlflow_metadata.model_flavor]["deserializer"](
-            mlflow_metadata.model_uri
-        )
-
-        options.set("mlflow_tracking_uri", current_mlflow_tracking_uri)
-        options.set("mlflow_registry_uri", current_mlflow_registry_uri)
-        return value
 
     def _read_pickle(self, pickle_filename):
         """
