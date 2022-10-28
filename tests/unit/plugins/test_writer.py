@@ -232,7 +232,7 @@ def test_pipeline_generation(
     pipeline_writer.write_pipeline_files()
 
     # Get list of files to compare
-    file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
+    file_endings = ["_module.py", "_requirements.txt"]
     if framework == "AIRFLOW":
         file_endings.append("_dag.py")
 
