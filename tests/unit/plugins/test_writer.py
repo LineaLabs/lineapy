@@ -8,7 +8,6 @@ from lineapy.data.types import PipelineType
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
 from lineapy.plugins.utils import slugify
-from lineapy.utils.utils import get_system_python_version, prettify
 
 
 def check_requirements_txt(t1: str, t2: str):
@@ -197,6 +196,7 @@ def test_pipeline_generation(
     dependencies,
     dag_config,
     input_parameters,
+    snapshot,
 ):
     """
     Test two sessions
@@ -232,7 +232,7 @@ def test_pipeline_generation(
     pipeline_writer.write_pipeline_files()
 
     # Get list of files to compare
-    file_endings = ["_module.py", "_requirements.txt", "_Dockerfile"]
+    file_endings = ["_module.py", "_requirements.txt"]
     if framework == "AIRFLOW":
         file_endings.append("_dag.py")
 
@@ -244,26 +244,7 @@ def test_pipeline_generation(
     for expected_file_name in file_names:
         path = Path(tmp_path, expected_file_name)
         generated = path.read_text()
-        path_expected = Path(
-            "tests",
-            "unit",
-            "plugins",
-            "expected",
-            pipeline_name,
-            expected_file_name,
-        )
-
-        if expected_file_name.endswith("_requirements.txt"):
-            assert check_requirements_txt(generated, path_expected.read_text())
-        else:
-            to_compare = path_expected.read_text()
-            if expected_file_name.endswith("_Dockerfile"):
-                to_compare = to_compare.format(
-                    python_version=get_system_python_version()
-                )
-            if expected_file_name.endswith(".py"):
-                to_compare = prettify(to_compare)
-            assert generated == to_compare
+        assert generated == snapshot
 
 
 @pytest.mark.parametrize(
@@ -304,6 +285,7 @@ def test_pipeline_test_generation(
     artifact_list,
     pipeline_name,
     dependencies,
+    snapshot,
 ):
     code1 = Path(
         "tests", "unit", "graph_reader", "inputs", input_script1
@@ -335,16 +317,7 @@ def test_pipeline_test_generation(
     # Compare generated vs. expected
     path_generated = Path(tmp_path, f"test_{pipeline_name}.py")
     content_generated = path_generated.read_text()
-    path_expected = Path(
-        "tests",
-        "unit",
-        "plugins",
-        "expected",
-        pipeline_name,
-        f"test_{pipeline_name}.py",
-    )
-    content_expected = prettify(path_expected.read_text())
-    assert content_generated == content_expected
+    assert content_generated == snapshot
 
     # Check if artifact values have been (re-)stored
     # to serve as "ground truths" for pipeline testing

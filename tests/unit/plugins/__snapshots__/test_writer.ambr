@@ -1,0 +1,2118 @@
+# name: test_pipeline_generation[airflow_complex_h_perartifact]
+  '
+  def get_a_c_for_artifact_f_and_downstream():
+      a0 = 0
+      a0 += 1
+      a = 1
+      a += 1
+      b = a * 2 + a0
+      c = b + 3
+      return a, c
+  
+  
+  def get_f(c):
+      f = c + 7
+      return f
+  
+  
+  def get_h(a, c):
+      d = a * 4
+      e = d + 5
+      e += 6
+      a += 1
+      g = c + e * 2
+      h = a + g
+      return h
+  
+  
+  def run_session_including_f():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a, c = get_a_c_for_artifact_f_and_downstream()
+      f = get_f(c)
+      artifacts["f"] = copy.deepcopy(f)
+      h = get_h(a, c)
+      artifacts["h"] = copy.deepcopy(h)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_f())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_complex_h_perartifact].1
+  ''
+---
+# name: test_pipeline_generation[airflow_complex_h_perartifact].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_complex_h_perart_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_complex_h_perart")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def dag_teardown():
+      pickle_files = (
+          pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  def task_a_c_for_artifact_f_and_downstream():
+  
+      a, c = airflow_complex_h_perart_module.get_a_c_for_artifact_f_and_downstream()
+  
+      pickle.dump(a, open("/tmp/airflow_complex_h_perart/variable_a.pickle", "wb"))
+  
+      pickle.dump(c, open("/tmp/airflow_complex_h_perart/variable_c.pickle", "wb"))
+  
+  
+  def task_f():
+  
+      c = pickle.load(open("/tmp/airflow_complex_h_perart/variable_c.pickle", "rb"))
+  
+      f = airflow_complex_h_perart_module.get_f(c)
+  
+      pickle.dump(f, open("/tmp/airflow_complex_h_perart/variable_f.pickle", "wb"))
+  
+  
+  def task_h():
+  
+      a = pickle.load(open("/tmp/airflow_complex_h_perart/variable_a.pickle", "rb"))
+  
+      c = pickle.load(open("/tmp/airflow_complex_h_perart/variable_c.pickle", "rb"))
+  
+      h = airflow_complex_h_perart_module.get_h(a, c)
+  
+      pickle.dump(h, open("/tmp/airflow_complex_h_perart/variable_h.pickle", "wb"))
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+  }
+  
+  with DAG(
+      dag_id="airflow_complex_h_perart_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      setup = PythonOperator(
+          task_id="dag_setup",
+          python_callable=dag_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="dag_teardown",
+          python_callable=dag_teardown,
+      )
+  
+      a_c_for_artifact_f_and_downstream = PythonOperator(
+          task_id="a_c_for_artifact_f_and_downstream_task",
+          python_callable=task_a_c_for_artifact_f_and_downstream,
+      )
+  
+      f = PythonOperator(
+          task_id="f_task",
+          python_callable=task_f,
+      )
+  
+      h = PythonOperator(
+          task_id="h_task",
+          python_callable=task_h,
+      )
+  
+      a_c_for_artifact_f_and_downstream >> f
+  
+      f >> h
+  
+      setup >> a_c_for_artifact_f_and_downstream
+  
+      h >> teardown
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_a0_b0]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_a0_b0].1
+  ''
+---
+# name: test_pipeline_generation[airflow_pipeline_a0_b0].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_pipeline_a0_b0_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def dag_teardown():
+      pickle_files = (
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0").glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  def task_a0():
+  
+      a0 = airflow_pipeline_a0_b0_module.get_a0()
+  
+      pickle.dump(a0, open("/tmp/airflow_pipeline_a0_b0/variable_a0.pickle", "wb"))
+  
+  
+  def task_b0():
+  
+      b0 = airflow_pipeline_a0_b0_module.get_b0()
+  
+      pickle.dump(b0, open("/tmp/airflow_pipeline_a0_b0/variable_b0.pickle", "wb"))
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+  }
+  
+  with DAG(
+      dag_id="airflow_pipeline_a0_b0_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      setup = PythonOperator(
+          task_id="dag_setup",
+          python_callable=dag_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="dag_teardown",
+          python_callable=dag_teardown,
+      )
+  
+      a0 = PythonOperator(
+          task_id="a0_task",
+          python_callable=task_a0,
+      )
+  
+      b0 = PythonOperator(
+          task_id="b0_task",
+          python_callable=task_b0,
+      )
+  
+      a0 >> b0
+  
+      setup >> a0
+  
+      b0 >> teardown
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_a0_b0_dependencies]
+  '
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_b0())
+      artifacts.update(run_session_including_a0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_a0_b0_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[airflow_pipeline_a0_b0_dependencies].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_pipeline_a0_b0_dependencies_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0_dependencies")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def dag_teardown():
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_a0_b0_dependencies")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  def task_b0():
+  
+      b0 = airflow_pipeline_a0_b0_dependencies_module.get_b0()
+  
+      pickle.dump(
+          b0, open("/tmp/airflow_pipeline_a0_b0_dependencies/variable_b0.pickle", "wb")
+      )
+  
+  
+  def task_a0():
+  
+      a0 = airflow_pipeline_a0_b0_dependencies_module.get_a0()
+  
+      pickle.dump(
+          a0, open("/tmp/airflow_pipeline_a0_b0_dependencies/variable_a0.pickle", "wb")
+      )
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+  }
+  
+  with DAG(
+      dag_id="airflow_pipeline_a0_b0_dependencies_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      setup = PythonOperator(
+          task_id="dag_setup",
+          python_callable=dag_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="dag_teardown",
+          python_callable=dag_teardown,
+      )
+  
+      b0 = PythonOperator(
+          task_id="b0_task",
+          python_callable=task_b0,
+      )
+  
+      a0 = PythonOperator(
+          task_id="a0_task",
+          python_callable=task_a0,
+      )
+  
+      b0 >> a0
+  
+      setup >> b0
+  
+      a0 >> teardown
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_a_b0_input_parameter_per_artifact]
+  '
+  import argparse
+  
+  
+  def get_b0(b0):
+  
+      return b0
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_b0(b0=0):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0(b0)
+      artifacts["b0"] = copy.deepcopy(b0)
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      b0=0,
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_b0(b0))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--b0", type=int, default=0)
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          b0=args.b0,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_a_b0_input_parameter_per_artifact].1
+  ''
+---
+# name: test_pipeline_generation[airflow_pipeline_a_b0_input_parameter_per_artifact].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_pipeline_a_b0_inputpar_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def dag_teardown():
+      pickle_files = (
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar").glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  def task_b0(b0):
+  
+      b0 = int(b0)
+  
+      b0 = airflow_pipeline_a_b0_inputpar_module.get_b0(b0)
+  
+      pickle.dump(
+          b0, open("/tmp/airflow_pipeline_a_b0_inputpar/variable_b0.pickle", "wb")
+      )
+  
+  
+  def task_a():
+  
+      b0 = pickle.load(
+          open("/tmp/airflow_pipeline_a_b0_inputpar/variable_b0.pickle", "rb")
+      )
+  
+      a = airflow_pipeline_a_b0_inputpar_module.get_a(b0)
+  
+      pickle.dump(a, open("/tmp/airflow_pipeline_a_b0_inputpar/variable_a.pickle", "wb"))
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+      "params": {"b0": 0},
+  }
+  
+  with DAG(
+      dag_id="airflow_pipeline_a_b0_inputpar_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      setup = PythonOperator(
+          task_id="dag_setup",
+          python_callable=dag_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="dag_teardown",
+          python_callable=dag_teardown,
+      )
+  
+      b0 = PythonOperator(
+          task_id="b0_task",
+          python_callable=task_b0,
+          op_kwargs={"b0": "{{ params.b0 }}"},
+      )
+  
+      a = PythonOperator(
+          task_id="a_task",
+          python_callable=task_a,
+      )
+  
+      b0 >> a
+  
+      setup >> b0
+  
+      a >> teardown
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_a_b0_input_parameter_per_session]
+  '
+  import argparse
+  
+  
+  def get_b0(b0):
+  
+      return b0
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_b0(b0=0):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0(b0)
+      artifacts["b0"] = copy.deepcopy(b0)
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      b0=0,
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_b0(b0))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--b0", type=int, default=0)
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          b0=args.b0,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_a_b0_input_parameter_per_session].1
+  ''
+---
+# name: test_pipeline_generation[airflow_pipeline_a_b0_input_parameter_per_session].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_pipeline_a_b0_inputpar_session_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath(
+          "airflow_pipeline_a_b0_inputpar_session"
+      )
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def dag_teardown():
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_a_b0_inputpar_session")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  def task_run_session_including_b0(b0):
+  
+      b0 = int(b0)
+  
+      artifacts = airflow_pipeline_a_b0_inputpar_session_module.run_session_including_b0(
+          b0
+      )
+  
+      pickle.dump(
+          artifacts["b0"],
+          open("/tmp/airflow_pipeline_a_b0_inputpar_session/artifact_b0.pickle", "wb"),
+      )
+  
+      pickle.dump(
+          artifacts["a"],
+          open("/tmp/airflow_pipeline_a_b0_inputpar_session/artifact_a.pickle", "wb"),
+      )
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+      "params": {"b0": 0},
+  }
+  
+  with DAG(
+      dag_id="airflow_pipeline_a_b0_inputpar_session_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      setup = PythonOperator(
+          task_id="dag_setup",
+          python_callable=dag_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="dag_teardown",
+          python_callable=dag_teardown,
+      )
+  
+      run_session_including_b0 = PythonOperator(
+          task_id="run_session_including_b0_task",
+          python_callable=task_run_session_including_b0,
+          op_kwargs={"b0": "{{ params.b0 }}"},
+      )
+  
+      setup >> run_session_including_b0
+  
+      run_session_including_b0 >> teardown
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_housing_multiple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_housing_multiple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_housing_multiple].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_pipeline_housing_multiple_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def dag_teardown():
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_housing_multiple")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  def task_assets_for_artifact_y_and_downstream():
+  
+      assets = (
+          airflow_pipeline_housing_multiple_module.get_assets_for_artifact_y_and_downstream()
+      )
+  
+      pickle.dump(
+          assets,
+          open("/tmp/airflow_pipeline_housing_multiple/variable_assets.pickle", "wb"),
+      )
+  
+  
+  def task_y():
+  
+      assets = pickle.load(
+          open("/tmp/airflow_pipeline_housing_multiple/variable_assets.pickle", "rb")
+      )
+  
+      y = airflow_pipeline_housing_multiple_module.get_y(assets)
+  
+      pickle.dump(
+          y, open("/tmp/airflow_pipeline_housing_multiple/variable_y.pickle", "wb")
+      )
+  
+  
+  def task_p_value():
+  
+      assets = pickle.load(
+          open("/tmp/airflow_pipeline_housing_multiple/variable_assets.pickle", "rb")
+      )
+  
+      y = pickle.load(
+          open("/tmp/airflow_pipeline_housing_multiple/variable_y.pickle", "rb")
+      )
+  
+      p = airflow_pipeline_housing_multiple_module.get_p_value(assets, y)
+  
+      pickle.dump(
+          p, open("/tmp/airflow_pipeline_housing_multiple/variable_p.pickle", "wb")
+      )
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+  }
+  
+  with DAG(
+      dag_id="airflow_pipeline_housing_multiple_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      setup = PythonOperator(
+          task_id="dag_setup",
+          python_callable=dag_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="dag_teardown",
+          python_callable=dag_teardown,
+      )
+  
+      assets_for_artifact_y_and_downstream = PythonOperator(
+          task_id="assets_for_artifact_y_and_downstream_task",
+          python_callable=task_assets_for_artifact_y_and_downstream,
+      )
+  
+      y = PythonOperator(
+          task_id="y_task",
+          python_callable=task_y,
+      )
+  
+      p_value = PythonOperator(
+          task_id="p_value_task",
+          python_callable=task_p_value,
+      )
+  
+      assets_for_artifact_y_and_downstream >> y
+  
+      y >> p_value
+  
+      setup >> assets_for_artifact_y_and_downstream
+  
+      p_value >> teardown
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_housing_simple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_p_value():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      clf = RandomForestClassifier(random_state=0)
+      y = assets["is_new"]
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_p_value():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      p = get_p_value()
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_p_value())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_housing_simple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_housing_simple].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_pipeline_housing_simple_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_simple")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def dag_teardown():
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_housing_simple")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  def task_p_value():
+  
+      p = airflow_pipeline_housing_simple_module.get_p_value()
+  
+      pickle.dump(p, open("/tmp/airflow_pipeline_housing_simple/variable_p.pickle", "wb"))
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+  }
+  
+  with DAG(
+      dag_id="airflow_pipeline_housing_simple_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      setup = PythonOperator(
+          task_id="dag_setup",
+          python_callable=dag_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="dag_teardown",
+          python_callable=dag_teardown,
+      )
+  
+      p_value = PythonOperator(
+          task_id="p_value_task",
+          python_callable=task_p_value,
+      )
+  
+      setup >> p_value
+  
+      p_value >> teardown
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_housing_w_dependencies]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_housing_w_dependencies].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_housing_w_dependencies].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_pipeline_housing_w_dependencies_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath(
+          "airflow_pipeline_housing_w_dependencies"
+      )
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def dag_teardown():
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_housing_w_dependencies")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  def task_assets_for_artifact_y_and_downstream():
+  
+      assets = (
+          airflow_pipeline_housing_w_dependencies_module.get_assets_for_artifact_y_and_downstream()
+      )
+  
+      pickle.dump(
+          assets,
+          open(
+              "/tmp/airflow_pipeline_housing_w_dependencies/variable_assets.pickle", "wb"
+          ),
+      )
+  
+  
+  def task_y():
+  
+      assets = pickle.load(
+          open(
+              "/tmp/airflow_pipeline_housing_w_dependencies/variable_assets.pickle", "rb"
+          )
+      )
+  
+      y = airflow_pipeline_housing_w_dependencies_module.get_y(assets)
+  
+      pickle.dump(
+          y, open("/tmp/airflow_pipeline_housing_w_dependencies/variable_y.pickle", "wb")
+      )
+  
+  
+  def task_p_value():
+  
+      assets = pickle.load(
+          open(
+              "/tmp/airflow_pipeline_housing_w_dependencies/variable_assets.pickle", "rb"
+          )
+      )
+  
+      y = pickle.load(
+          open("/tmp/airflow_pipeline_housing_w_dependencies/variable_y.pickle", "rb")
+      )
+  
+      p = airflow_pipeline_housing_w_dependencies_module.get_p_value(assets, y)
+  
+      pickle.dump(
+          p, open("/tmp/airflow_pipeline_housing_w_dependencies/variable_p.pickle", "wb")
+      )
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+  }
+  
+  with DAG(
+      dag_id="airflow_pipeline_housing_w_dependencies_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      setup = PythonOperator(
+          task_id="dag_setup",
+          python_callable=dag_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="dag_teardown",
+          python_callable=dag_teardown,
+      )
+  
+      assets_for_artifact_y_and_downstream = PythonOperator(
+          task_id="assets_for_artifact_y_and_downstream_task",
+          python_callable=task_assets_for_artifact_y_and_downstream,
+      )
+  
+      y = PythonOperator(
+          task_id="y_task",
+          python_callable=task_y,
+      )
+  
+      p_value = PythonOperator(
+          task_id="p_value_task",
+          python_callable=task_p_value,
+      )
+  
+      assets_for_artifact_y_and_downstream >> y
+  
+      y >> p_value
+  
+      setup >> assets_for_artifact_y_and_downstream
+  
+      p_value >> teardown
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_two_input_parameter]
+  '
+  import argparse
+  
+  
+  def get_pn(n, p):
+      pn = p * n
+      return pn
+  
+  
+  def run_session_including_pn(
+      p="p",
+      n=5,
+  ):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      pn = get_pn(n, p)
+      artifacts["pn"] = copy.deepcopy(pn)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      n=5,
+      p="p",
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_pn(p, n))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--n", type=int, default=5)
+      parser.add_argument("--p", type=str, default="p")
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          n=args.n,
+          p=args.p,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_pipeline_two_input_parameter].1
+  ''
+---
+# name: test_pipeline_generation[airflow_pipeline_two_input_parameter].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_pipeline_two_input_parameter_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def dag_setup():
+      pickle_folder = pathlib.Path("/tmp").joinpath(
+          "airflow_pipeline_two_input_parameter"
+      )
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def dag_teardown():
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_two_input_parameter")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  def task_pn(n, p):
+  
+      n = int(n)
+  
+      p = str(p)
+  
+      pn = airflow_pipeline_two_input_parameter_module.get_pn(n, p)
+  
+      pickle.dump(
+          pn, open("/tmp/airflow_pipeline_two_input_parameter/variable_pn.pickle", "wb")
+      )
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+      "params": {"p": "p", "n": 5},
+  }
+  
+  with DAG(
+      dag_id="airflow_pipeline_two_input_parameter_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      setup = PythonOperator(
+          task_id="dag_setup",
+          python_callable=dag_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="dag_teardown",
+          python_callable=dag_teardown,
+      )
+  
+      pn = PythonOperator(
+          task_id="pn_task",
+          python_callable=task_pn,
+          op_kwargs={"n": "{{ params.n }}", "p": "{{ params.p }}"},
+      )
+  
+      setup >> pn
+  
+      pn >> teardown
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_single_stage_all_sessions]
+  '
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_single_stage_all_sessions].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_single_stage_all_sessions].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_pipeline_a_b0_singlestageallsessions_module.py
+  '
+---
+# name: test_pipeline_generation[script_pipeline_a0_b0]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[script_pipeline_a0_b0].1
+  ''
+---
+# name: test_pipeline_generation[script_pipeline_a0_b0_dependencies]
+  '
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_b0())
+      artifacts.update(run_session_including_a0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[script_pipeline_a0_b0_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[script_pipeline_housing_multiple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[script_pipeline_housing_multiple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[script_pipeline_housing_simple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_p_value():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      clf = RandomForestClassifier(random_state=0)
+      y = assets["is_new"]
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_p_value():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      p = get_p_value()
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_p_value())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[script_pipeline_housing_simple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[script_pipeline_housing_w_dependencies]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[script_pipeline_housing_w_dependencies].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_test_generation[script_complex_h_perart]
+  '
+  import os
+  import pickle
+  import unittest
+  import warnings
+  from pathlib import Path
+  from typing import Callable
+  
+  from script_complex_h_perart_module import (
+      get_a_c_for_artifact_f_and_downstream,
+      get_f,
+      get_h,
+  )
+  
+  
+  def safe_load_pickle(
+      path_to_file: Path,
+      alt_val_func: Callable = lambda: FileNotFoundError,
+      save_alt_val: bool = False,
+  ):
+      """
+      Load the specified pickle file if it exists.
+      If not, use the provided function to generate and return
+      an alternative value (the desired execution should be wrapped
+      inside a lambda function to delay actual execution until needed).
+      """
+      if os.path.exists(path_to_file):
+          with open(path_to_file, "rb") as fp:
+              file_value = pickle.load(fp)
+          return file_value
+      else:
+          alt_value = alt_val_func()
+          if save_alt_val is True:
+              # Store value to avoid recompute across test cases
+              with open(path_to_file, "wb") as fp:
+                  pickle.dump(alt_value, fp)
+          return alt_value
+  
+  
+  class TestScriptComplexHPerart(unittest.TestCase):
+      art_pkl_dir: Path
+  
+      def setUp(self) -> None:
+          # Add any processes to execute before each test in this class
+          pass
+  
+      def tearDown(self) -> None:
+          # Add any processes to execute after each test in this class
+          pass
+  
+      @classmethod
+      def setUpClass(cls) -> None:
+          # Specify location where sample output files are stored for comparison
+          cls.art_pkl_dir = Path(__file__).parent / "sample_output"
+  
+          # Add any processes to execute once before all tests in this class run
+          pass
+  
+      @classmethod
+      def tearDownClass(cls) -> None:
+          # Delete pickle files for intermediate (non-artifact) values
+          for intermediate_output_name in ["a_c_for_artifact_f_and_downstream"]:
+              path_to_file = cls.art_pkl_dir / f"{intermediate_output_name}.pkl"
+              if os.path.exists(path_to_file):
+                  os.remove(path_to_file)
+  
+          # Add any processes to execute once after all tests in this class run
+          pass
+  
+      def test_get_a_c_for_artifact_f_and_downstream(self) -> None:
+          """
+          NOTE: The code below is provided as scaffold/template.
+          Please adapt it to your specific testing context.
+          [TODO: ADD LINK TO WEB DOCUMENTATION].
+          """
+          # Prepare function input (adapt as needed)
+          pass
+  
+          # Generate function output (adapt as needed)
+          sample_output_generated = get_a_c_for_artifact_f_and_downstream()
+  
+          # Perform tests (add/adapt as needed)
+          sample_output_expected = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"),
+              alt_val_func=lambda: FileNotFoundError,
+          )
+          try:
+              self.assertEqual(sample_output_generated, sample_output_expected)
+          except Exception:
+              warnings.warn(
+                  "Test failed, but this may be due to our limited templating. "
+                  "Please adapt the test as needed."
+              )
+  
+      def test_get_f(self) -> None:
+          """
+          NOTE: The code below is provided as scaffold/template.
+          Please adapt it to your specific testing context.
+          [TODO: ADD LINK TO WEB DOCUMENTATION].
+          """
+          # Prepare function input (adapt as needed)
+          a, c = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"),
+              alt_val_func=lambda: get_a_c_for_artifact_f_and_downstream(),
+              save_alt_val=True,
+          )
+  
+          # Generate function output (adapt as needed)
+          sample_output_generated = get_f(c)
+  
+          # Perform tests (add/adapt as needed)
+          sample_output_expected = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "f.pkl"),
+              alt_val_func=lambda: FileNotFoundError,
+          )
+          try:
+              self.assertEqual(sample_output_generated, sample_output_expected)
+          except Exception:
+              warnings.warn(
+                  "Test failed, but this may be due to our limited templating. "
+                  "Please adapt the test as needed."
+              )
+  
+      def test_get_h(self) -> None:
+          """
+          NOTE: The code below is provided as scaffold/template.
+          Please adapt it to your specific testing context.
+          [TODO: ADD LINK TO WEB DOCUMENTATION].
+          """
+          # Prepare function input (adapt as needed)
+          a, c = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "a_c_for_artifact_f_and_downstream.pkl"),
+              alt_val_func=lambda: get_a_c_for_artifact_f_and_downstream(),
+              save_alt_val=True,
+          )
+  
+          # Generate function output (adapt as needed)
+          sample_output_generated = get_h(a, c)
+  
+          # Perform tests (add/adapt as needed)
+          sample_output_expected = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "h.pkl"),
+              alt_val_func=lambda: FileNotFoundError,
+          )
+          try:
+              self.assertEqual(sample_output_generated, sample_output_expected)
+          except Exception:
+              warnings.warn(
+                  "Test failed, but this may be due to our limited templating. "
+                  "Please adapt the test as needed."
+              )
+  
+  '
+---
+# name: test_pipeline_test_generation[script_pipeline_a0_b0_dependencies]
+  '
+  import os
+  import pickle
+  import unittest
+  import warnings
+  from pathlib import Path
+  from typing import Callable
+  
+  from script_pipeline_a0_b0_dependencies_module import get_a0, get_b0
+  
+  
+  def safe_load_pickle(
+      path_to_file: Path,
+      alt_val_func: Callable = lambda: FileNotFoundError,
+      save_alt_val: bool = False,
+  ):
+      """
+      Load the specified pickle file if it exists.
+      If not, use the provided function to generate and return
+      an alternative value (the desired execution should be wrapped
+      inside a lambda function to delay actual execution until needed).
+      """
+      if os.path.exists(path_to_file):
+          with open(path_to_file, "rb") as fp:
+              file_value = pickle.load(fp)
+          return file_value
+      else:
+          alt_value = alt_val_func()
+          if save_alt_val is True:
+              # Store value to avoid recompute across test cases
+              with open(path_to_file, "wb") as fp:
+                  pickle.dump(alt_value, fp)
+          return alt_value
+  
+  
+  class TestScriptPipelineA0B0Dependencies(unittest.TestCase):
+      art_pkl_dir: Path
+  
+      def setUp(self) -> None:
+          # Add any processes to execute before each test in this class
+          pass
+  
+      def tearDown(self) -> None:
+          # Add any processes to execute after each test in this class
+          pass
+  
+      @classmethod
+      def setUpClass(cls) -> None:
+          # Specify location where sample output files are stored for comparison
+          cls.art_pkl_dir = Path(__file__).parent / "sample_output"
+  
+          # Add any processes to execute once before all tests in this class run
+          pass
+  
+      @classmethod
+      def tearDownClass(cls) -> None:
+          # Add any processes to execute once after all tests in this class run
+          pass
+  
+      def test_get_b0(self) -> None:
+          """
+          NOTE: The code below is provided as scaffold/template.
+          Please adapt it to your specific testing context.
+          [TODO: ADD LINK TO WEB DOCUMENTATION].
+          """
+          # Prepare function input (adapt as needed)
+          pass
+  
+          # Generate function output (adapt as needed)
+          sample_output_generated = get_b0()
+  
+          # Perform tests (add/adapt as needed)
+          sample_output_expected = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "b0.pkl"),
+              alt_val_func=lambda: FileNotFoundError,
+          )
+          try:
+              self.assertEqual(sample_output_generated, sample_output_expected)
+          except Exception:
+              warnings.warn(
+                  "Test failed, but this may be due to our limited templating. "
+                  "Please adapt the test as needed."
+              )
+  
+      def test_get_a0(self) -> None:
+          """
+          NOTE: The code below is provided as scaffold/template.
+          Please adapt it to your specific testing context.
+          [TODO: ADD LINK TO WEB DOCUMENTATION].
+          """
+          # Prepare function input (adapt as needed)
+          pass
+  
+          # Generate function output (adapt as needed)
+          sample_output_generated = get_a0()
+  
+          # Perform tests (add/adapt as needed)
+          sample_output_expected = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "a0.pkl"),
+              alt_val_func=lambda: FileNotFoundError,
+          )
+          try:
+              self.assertEqual(sample_output_generated, sample_output_expected)
+          except Exception:
+              warnings.warn(
+                  "Test failed, but this may be due to our limited templating. "
+                  "Please adapt the test as needed."
+              )
+  
+  '
+---
+# name: test_pipeline_test_generation[script_pipeline_housing_w_dependencies]
+  '
+  import os
+  import pickle
+  import unittest
+  import warnings
+  from pathlib import Path
+  from typing import Callable
+  
+  from script_pipeline_housing_w_dependencies_module import (
+      get_assets_for_artifact_y_and_downstream,
+      get_p_value,
+      get_y,
+  )
+  
+  
+  def safe_load_pickle(
+      path_to_file: Path,
+      alt_val_func: Callable = lambda: FileNotFoundError,
+      save_alt_val: bool = False,
+  ):
+      """
+      Load the specified pickle file if it exists.
+      If not, use the provided function to generate and return
+      an alternative value (the desired execution should be wrapped
+      inside a lambda function to delay actual execution until needed).
+      """
+      if os.path.exists(path_to_file):
+          with open(path_to_file, "rb") as fp:
+              file_value = pickle.load(fp)
+          return file_value
+      else:
+          alt_value = alt_val_func()
+          if save_alt_val is True:
+              # Store value to avoid recompute across test cases
+              with open(path_to_file, "wb") as fp:
+                  pickle.dump(alt_value, fp)
+          return alt_value
+  
+  
+  class TestScriptPipelineHousingWDependencies(unittest.TestCase):
+      art_pkl_dir: Path
+  
+      def setUp(self) -> None:
+          # Add any processes to execute before each test in this class
+          pass
+  
+      def tearDown(self) -> None:
+          # Add any processes to execute after each test in this class
+          pass
+  
+      @classmethod
+      def setUpClass(cls) -> None:
+          # Specify location where sample output files are stored for comparison
+          cls.art_pkl_dir = Path(__file__).parent / "sample_output"
+  
+          # Add any processes to execute once before all tests in this class run
+          pass
+  
+      @classmethod
+      def tearDownClass(cls) -> None:
+          # Delete pickle files for intermediate (non-artifact) values
+          for intermediate_output_name in ["assets_for_artifact_y_and_downstream"]:
+              path_to_file = cls.art_pkl_dir / f"{intermediate_output_name}.pkl"
+              if os.path.exists(path_to_file):
+                  os.remove(path_to_file)
+  
+          # Add any processes to execute once after all tests in this class run
+          pass
+  
+      def test_get_assets_for_artifact_y_and_downstream(self) -> None:
+          """
+          NOTE: The code below is provided as scaffold/template.
+          Please adapt it to your specific testing context.
+          [TODO: ADD LINK TO WEB DOCUMENTATION].
+          """
+          # Prepare function input (adapt as needed)
+          pass
+  
+          # Generate function output (adapt as needed)
+          sample_output_generated = get_assets_for_artifact_y_and_downstream()
+  
+          # Perform tests (add/adapt as needed)
+          sample_output_expected = safe_load_pickle(
+              path_to_file=(
+                  self.art_pkl_dir / "assets_for_artifact_y_and_downstream.pkl"
+              ),
+              alt_val_func=lambda: FileNotFoundError,
+          )
+          try:
+              self.assertEqual(sample_output_generated, sample_output_expected)
+          except Exception:
+              warnings.warn(
+                  "Test failed, but this may be due to our limited templating. "
+                  "Please adapt the test as needed."
+              )
+  
+      def test_get_y(self) -> None:
+          """
+          NOTE: The code below is provided as scaffold/template.
+          Please adapt it to your specific testing context.
+          [TODO: ADD LINK TO WEB DOCUMENTATION].
+          """
+          # Prepare function input (adapt as needed)
+          assets = safe_load_pickle(
+              path_to_file=(
+                  self.art_pkl_dir / "assets_for_artifact_y_and_downstream.pkl"
+              ),
+              alt_val_func=lambda: get_assets_for_artifact_y_and_downstream(),
+              save_alt_val=True,
+          )
+  
+          # Generate function output (adapt as needed)
+          sample_output_generated = get_y(assets)
+  
+          # Perform tests (add/adapt as needed)
+          sample_output_expected = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "y.pkl"),
+              alt_val_func=lambda: FileNotFoundError,
+          )
+          try:
+              self.assertEqual(sample_output_generated, sample_output_expected)
+          except Exception:
+              warnings.warn(
+                  "Test failed, but this may be due to our limited templating. "
+                  "Please adapt the test as needed."
+              )
+  
+      def test_get_p_value(self) -> None:
+          """
+          NOTE: The code below is provided as scaffold/template.
+          Please adapt it to your specific testing context.
+          [TODO: ADD LINK TO WEB DOCUMENTATION].
+          """
+          # Prepare function input (adapt as needed)
+          assets = safe_load_pickle(
+              path_to_file=(
+                  self.art_pkl_dir / "assets_for_artifact_y_and_downstream.pkl"
+              ),
+              alt_val_func=lambda: get_assets_for_artifact_y_and_downstream(),
+              save_alt_val=True,
+          )
+          y = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "y.pkl"),
+              alt_val_func=lambda: get_y(assets),
+              save_alt_val=True,
+          )
+  
+          # Generate function output (adapt as needed)
+          sample_output_generated = get_p_value(assets, y)
+  
+          # Perform tests (add/adapt as needed)
+          sample_output_expected = safe_load_pickle(
+              path_to_file=(self.art_pkl_dir / "p_value.pkl"),
+              alt_val_func=lambda: FileNotFoundError,
+          )
+          try:
+              self.assertEqual(sample_output_generated, sample_output_expected)
+          except Exception:
+              warnings.warn(
+                  "Test failed, but this may be due to our limited templating. "
+                  "Please adapt the test as needed."
+              )
+  
+  '
+---
