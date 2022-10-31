@@ -15,7 +15,7 @@ Why Use LineaPy?
 ----------------
 
 Going from data science development to production is full of friction. The engineering process to make messy development code production-ready is manual and
-time-consuming. LineaPy creates a frictionless path for taking your data science work from development to production with just **two lines** of code.
+time-consuming. LineaPy creates a frictionless path for taking your data science work from development to production with just *two lines* of code.
 
 Use Case 1: Cleaning Messy Notebooks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -5,6 +5,12 @@ Installation
 
 .. include:: ../snippets/slack_support.rstinc
 
+Prerequisites
+-------------
+
+LineaPy runs on ``Python>=3.7`` and ``IPython>=7.0.0``. It does not come with a Jupyter installation,
+so you will need to `install one <https://jupyter.org/install>`_ for interactive computing.
+
 Basics
 ------
 
@@ -14,11 +20,8 @@ To install LineaPy, run:
 
     pip install lineapy
 
-Or, if you want the latest version of LineaPy directly from the source, run:
-
-.. code:: bash
-
-    pip install git+https://github.com/LineaLabs/lineapy.git --upgrade
+If you want to run the latest version of LineaPy directly from the source, follow instructions
+:ref:`here <contribution_install>`.
 
 .. note::
 
