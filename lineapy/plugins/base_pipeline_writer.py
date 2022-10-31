@@ -114,7 +114,6 @@ class BasePipelineWriter:
                         BaseSessionWriter().get_session_artifact_functions(
                             session_artifact=sa,
                             include_non_slice_as_comment=self.include_non_slice_as_comment,
-                            indentation=indentation,
                         )
                         for sa in self.session_artifacts_sorted
                     ]
@@ -126,7 +125,6 @@ class BasePipelineWriter:
             [
                 BaseSessionWriter().get_session_function(
                     session_artifact=sa,
-                    indentation=indentation,
                 )
                 for sa in self.session_artifacts_sorted
             ]
@@ -134,7 +132,7 @@ class BasePipelineWriter:
 
         module_function_body = "\n".join(
             [
-                f"{indentation_block}{return_dict_name}.update({BaseSessionWriter().get_session_function_callblock(sa)})"
+                f"{return_dict_name}.update({BaseSessionWriter().get_session_function_callblock(sa)})"
                 for sa in self.session_artifacts_sorted
             ]
         )
@@ -178,7 +176,7 @@ class BasePipelineWriter:
         )
 
         # Put all together to generate module text
-        MODULE_TEMPLATE = load_plugin_template("module.jinja")
+        MODULE_TEMPLATE = load_plugin_template("module/module.jinja")
         module_text = MODULE_TEMPLATE.render(
             indentation_block=indentation_block,
             module_imports=module_imports,
@@ -333,7 +331,7 @@ class BasePipelineWriter:
         test_class_name = f"Test{self.pipeline_name.title().replace('_', '')}"
 
         # Fill in file template and write it out
-        MODULE_TEST_TEMPLATE = load_plugin_template("module_test.jinja")
+        MODULE_TEST_TEMPLATE = load_plugin_template("module/module_test.jinja")
         module_test_text = MODULE_TEST_TEMPLATE.render(
             MODULE_NAME=module_name,
             TEST_CLASS_NAME=test_class_name,

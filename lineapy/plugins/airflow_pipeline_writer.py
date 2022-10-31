@@ -258,12 +258,13 @@ class AirflowPipelineWriter(BasePipelineWriter):
         self,
         pipeline_task: Dict[str, TaskDefinition],
         task_serialization: TaskSerializer,
-        indentation=4,
     ) -> List[str]:
         """
         Returns rendered tasks for the pipeline tasks.
         """
-        TASK_FUNCTION_TEMPLATE = load_plugin_template("task_function.jinja")
+        TASK_FUNCTION_TEMPLATE = load_plugin_template(
+            "task/task_function.jinja"
+        )
         task_defs: List[str] = []
         for task_name, taskdef in pipeline_task.items():
             loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
@@ -276,7 +277,6 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 loading_blocks=loading_blocks,
                 call_block=taskdef.call_block,
                 dumping_blocks=dumping_blocks,
-                indentation_block=" " * indentation,
             )
             task_defs.append(function_definition)
 

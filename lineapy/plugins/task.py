@@ -96,7 +96,12 @@ class TaskSerializer(Enum):
     # TODO: lineapy.get and lineapy.save
 
 
-def extract_taskgraph(artifacts: List[str], dependencies: TaskGraphEdge):
+def extract_taskgraph(
+    artifacts: List[str], dependencies: TaskGraphEdge
+) -> Tuple[List[str], TaskGraph]:
+    """
+    extract_taskgraph returns a list of artifacts and the taskgraph corresponding to the provided dependencies
+    """
     artifact_safe_names = []
     for artifact_name in artifacts:
         artifact_var = slugify(artifact_name)
@@ -127,10 +132,10 @@ def render_task_io_serialize_blocks(
 
     if task_serialization == TaskSerializer.LocalPickle:
         SERIALIZER_TEMPLATE = load_plugin_template(
-            "task_local_pickle_ser.jinja"
+            "task/localpickle/task_local_pickle_ser.jinja"
         )
         DESERIALIZER_TEMPLATE = load_plugin_template(
-            "task_local_pickle_deser.jinja"
+            "task/localpickle/task_local_pickle_deser.jinja"
         )
     # Add more renderable task serializers here
 

@@ -1,0 +1,3 @@
+pickle_folder = pathlib.Path('/tmp').joinpath('{{pipeline_name}}')
+if not pickle_folder.exists():
+    pickle_folder.mkdir()

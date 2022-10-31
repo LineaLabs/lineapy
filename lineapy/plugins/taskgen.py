@@ -7,6 +7,7 @@ from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.graph_reader.node_collection import ArtifactNodeCollection
 from lineapy.plugins.session_writers import BaseSessionWriter
 from lineapy.plugins.task import DagTaskBreakdown, TaskDefinition
+from lineapy.plugins.utils import load_plugin_template
 
 
 def get_task_definitions(
@@ -78,7 +79,6 @@ def get_artifact_task_definitions(
             function_call_block = (
                 BaseSessionWriter().get_session_artifact_function_call_block(
                     nc,
-                    indentation=4,
                     source_module=f"{pipeline_name}_module",
                 )
             )
@@ -120,11 +120,12 @@ def get_session_task_definition(
 
         raw_function_call_block = (
             BaseSessionWriter().get_session_function_callblock(
-                session_artifacts, indentation=0
+                session_artifacts
             )
         )
-        indentation_block = " " * 4
-        function_call_block = f"{indentation_block}artifacts = {pipeline_name}_module.{raw_function_call_block}"
+        function_call_block = (
+            f"artifacts = {pipeline_name}_module.{raw_function_call_block}"
+        )
         return_vars = [
             nc.safename
             for nc in session_artifacts.usercode_nodecollections
@@ -171,29 +172,31 @@ def get_allsessions_task_definition(
     }
 
 
-def get_localpickle_setup_task_definition(pipeline_name, indentation=4):
+def get_localpickle_setup_task_definition(pipeline_name):
     """
     Returns a TaskDefinition that is used to set up pipeline that uses local pickle type
     serialization for inter task communication.
 
     This task should be used at the beginning of a pipeline.
     """
-    indentation_block = " " * indentation
+    TASK_LOCALPICKLE_SETUP_TEMPLATE = load_plugin_template(
+        "task/localpickle/task_local_pickle_setup.jinja"
+    )
+    call_block = TASK_LOCALPICKLE_SETUP_TEMPLATE.render(
+        pipeline_name=pipeline_name
+    )
     return TaskDefinition(
         function_name="dag_setup",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
-        call_block=f"""{indentation_block}pickle_folder = pathlib.Path('/tmp').joinpath('{pipeline_name}')
-{indentation_block}if not pickle_folder.exists():
-{indentation_block}{indentation_block}pickle_folder.mkdir()
-    """,
+        call_block=call_block,
         return_vars=[],
         pipeline_name=pipeline_name,
     )
 
 
-def get_localpickle_teardown_task_definition(pipeline_name, indentation=4):
+def get_localpickle_teardown_task_definition(pipeline_name):
     """
     Returns a TaskDefinition that is used to teardown a pipeline that uses local pickle type
     serialization for inter task communication.
@@ -201,16 +204,18 @@ def get_localpickle_teardown_task_definition(pipeline_name, indentation=4):
     This task should be used at the end of a pipeline.
 
     """
-    indentation_block = " " * indentation
+    TASK_LOCALPICKLE_TEARDOWN_TEMPLATE = load_plugin_template(
+        "task/localpickle/task_local_pickle_teardown.jinja"
+    )
+    call_block = TASK_LOCALPICKLE_TEARDOWN_TEMPLATE.render(
+        pipeline_name=pipeline_name
+    )
     return TaskDefinition(
         function_name="dag_teardown",
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
-        call_block=f"""{indentation_block}pickle_files = pathlib.Path('/tmp').joinpath('{pipeline_name}').glob('*.pickle')
-{indentation_block}for f in pickle_files:
-{indentation_block}{indentation_block}f.unlink()
-""",
+        call_block=call_block,
         return_vars=[],
         pipeline_name=pipeline_name,
     )

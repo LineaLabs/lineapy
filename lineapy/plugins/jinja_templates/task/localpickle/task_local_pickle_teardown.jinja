@@ -1,0 +1,3 @@
+pickle_files = pathlib.Path('/tmp').joinpath('{{pipeline_name}}').glob('*.pickle')
+for f in pickle_files:
+    f.unlink()

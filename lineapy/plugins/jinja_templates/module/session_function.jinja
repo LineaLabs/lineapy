@@ -1,0 +1,8 @@
+def {{session_function_name}}({{session_input_parameters_body}}):
+    # Given multiple artifacts, we need to save each right after
+    # its calculation to protect from any irrelevant downstream
+    # mutations (e.g., inside other artifact calculations)
+    import copy
+    {{return_dict_name}} = dict()
+{{session_function_body | indent(4, True) }}
+    return {{return_dict_name}}
