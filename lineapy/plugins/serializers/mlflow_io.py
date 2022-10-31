@@ -17,12 +17,12 @@ annotated modules at this time.
 [ ] keras (need update current annotation)
 [ ] h2o
 [ ] gluon
-[ ] xgboost
+[x] xgboost
 [ ] lightgbm
 [ ] catboost
 [ ] spacy
 [ ] fastai
-[ ] statsmodels
+[x] statsmodels
 
 """
 
@@ -53,6 +53,28 @@ try:
             "class": [Prophet],
             "serializer": mlflow.prophet.log_model,
             "deserializer": mlflow.prophet.load_model,
+        }
+    except Exception:
+        pass
+
+    try:
+        from xgboost.core import Booster
+
+        mlflow_io["xgboost"] = {
+            "class": [Booster],
+            "serializer": mlflow.xgboost.log_model,
+            "deserializer": mlflow.xgboost.load_model,
+        }
+    except Exception:
+        pass
+
+    try:
+        from statsmodels.base.wrapper import ResultsWrapper
+
+        mlflow_io["statsmodels"] = {
+            "class": [ResultsWrapper],
+            "serializer": mlflow.statsmodels.log_model,
+            "deserializer": mlflow.statsmodels.load_model,
         }
     except Exception:
         pass
