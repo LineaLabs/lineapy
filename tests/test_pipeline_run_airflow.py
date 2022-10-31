@@ -1,4 +1,5 @@
 import subprocess
+import time
 from pathlib import Path
 
 import pytest
@@ -20,7 +21,7 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             ["y", "p value"],
             "airflow_pipeline_housing_w_dependencies",
             {"p value": {"y"}},
-            {},
+            {"retries": 0},
             [],
             id="airflow_pipeline_housing_w_dependencies",
         ),
@@ -117,3 +118,24 @@ def test_run_airflow_dag(
         # Run in current root lineapy so that relative paths are accurate
         # cd=".",
     )
+
+    # Check the final dag state is success.
+    captured_dagstate = virtualenv.run(
+        f"airflow dags state {pipeline_name}_dag 2020-10-19",
+        capture=True,
+    ).strip()
+
+    # Only wait here for 60 seconds
+    # We do not wait here for failure state due a bug with Airflow local execution
+    # which causes the DAG to hang in "running" state indefinitely on task
+    # failure.
+    for _ in range(10):
+        if captured_dagstate.endswith("success"):
+            break
+        time.sleep(6)
+        captured_dagstate = virtualenv.run(
+            f"airflow dags state {pipeline_name}_dag 2020-10-19",
+            capture=True,
+        ).strip()
+
+    assert captured_dagstate.endswith("success")
