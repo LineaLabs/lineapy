@@ -39,12 +39,12 @@
   - [Use Case 2: Revisiting Previous Work](#use-case-2-revisiting-previous-work)
   - [Use Case 3: Building Pipelines](#use-case-3-building-pipelines)
 - [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
   - [Installation](#installation)
-  - [Quick Start](#quick-start)
   - [Interfaces](#interfaces)
     - [Jupyter and IPython](#jupyter-and-ipython)
-    - [Hosted Jupyter Environment](#hosted-jupyter-environment)
     - [CLI](#cli)
+  - [Quick Start](#quick-start)
 - [Usage Reporting](#usage-reporting)
 - [What Next?](#what-next)
 
@@ -97,6 +97,18 @@ To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/
 
 ## Getting Started
 
+LineaPy is a Python package for capturing, analyzing, and automating data science workflows.
+At a high level, LineaPy traces the sequence of code execution to form a comprehensive understanding
+of the code and its context. This understanding allows LineaPy to provide a set of tools that help
+data scientists bring their work to production more quickly and easily, with just *two lines* of code.
+
+Check this [section](#what-problems-can-lineapy-solve) for types of problems that LineaPy can help to solve.
+
+### Prerequisites
+
+LineaPy runs on `Python>=3.7` and `IPython>=7.0.0`. It does not come with a Jupyter installation,
+so you will need to [install one](https://jupyter.org/install) for interactive computing.
+
 ### Installation
 
 To install LineaPy, run:
@@ -105,148 +117,17 @@ To install LineaPy, run:
 pip install lineapy
 ```
 
-Or, if you want the latest version of LineaPy directly from the source, run:
+If you want to run the latest version of LineaPy directly from the source, follow instructions
+[here](https://docs.lineapy.org/en/latest/development/start/setup.html#installation).
 
-```
-pip install git+https://github.com/LineaLabs/lineapy.git --upgrade
-```
-
-LineaPy offers several extras to extend its core capabilities:
-
-| Version  | Installation Command            | Enables                                              |
-| -------- | ------------------------------- | ---------------------------------------------------- |
-| minimal  | `pip install lineapy[minimal]`  | Minimal dependencies for LineaPy                     |
-| dev      | `pip install lineapy[dev]`      | All LineaPy dependencies for testing and development |
-| s3       | `pip install lineapy[s3]`       | Dependencies to use S3 to save artifact              |
-| graph    | `pip install lineapy[graph]`    | Dependencies to visualize LineaPy node graph         |
-| postgres | `pip install lineapy[postgres]` | Dependencies to use PostgreSQL backend               |
-
-The `minimal` version of LineaPy does not include `black` or `isort`,
-which may result in less organized output code and scripts.
-
-By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
-However, SQLite has several limitations, one of which is that it does not support multiple concurrent
-writes to a database (it will result in a database lock). If you want to use a more robust database,
-please follow [instructions](https://docs.lineapy.org/en/latest/guide/manage_artifacts/database/postgres.html) for using PostgreSQL.
-
-### Quick Start
-
-Once LineaPy is installed, we are ready to start using the package. We start with a simple
-example using the [Iris dataset](https://en.wikipedia.org/wiki/Iris_flower_data_set) to demonstrate how to use LineaPy to 1) store a variable's history, 2) get its cleaned-up code,
-and 3) build an executable pipeline for the variable.
-
-```python
-import lineapy
-import pandas as pd
-from sklearn.linear_model import LinearRegression, ElasticNet
-
-# Load data
-url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-df = pd.read_csv(url)
-
-# Some very basic feature engineering
-color_map = {"Setosa": 0, "Versicolor": 1, "Virginica": 2}
-df["variety_color"] = df["variety"].map(color_map)
-df2 = df.copy()
-df2["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
-df2["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
-
-# Initialize two models
-model1 = LinearRegression()
-model2 = ElasticNet()
-
-# Fit both models
-model1.fit(
-    X=df2[["petal.width", "d_versicolor", "d_virginica"]],
-    y=df2["sepal.width"],
-)
-model2.fit(
-    X=df[["petal.width", "variety_color"]],
-    y=df["sepal.width"],
-)
-```
-
-Now, we reach the end of our development session and decide to save the ElasticNet model.
-We can store the model as a LineaPy :ref:`artifact <concepts>` as follows:
-
-```python
-# Store the model as an artifact
-lineapy.save(model2, "iris_elasticnet_model")
-```
-
-A LineaPy artifact encapsulates both the value *and* code, so we can easily retrieve
-the model's code, like so:
-
-```python
-# Retrieve the model artifact
-artifact = lineapy.get("iris_elasticnet_model")
-
-# Check code for the model artifact
-print(artifact.get_code())
-```
-
-which will print:
-
-```
-import pandas as pd
-from sklearn.linear_model import ElasticNet
-
-df = pd.read_csv(
-    "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-)
-color_map = {"Setosa": 0, "Versicolor": 1, "Virginica": 2}
-df["variety_color"] = df["variety"].map(color_map)
-model2 = ElasticNet()
-model2.fit(
-    X=df[["petal.width", "variety_color"]],
-    y=df["sepal.width"],
-)
-```
-
-Note that these are the minimal essential steps to produce the model. That is, LineaPy has automatically
-cleaned up the original code by removing extraneous operations that do not affect the model.
-
-Say we are now asked to retrain the model on a regular basis to account for any updates in the source data.
-We need to set up a pipeline to train the model, and LineaPy make it as simple as a single line of code:
-
-```python
-lineapy.to_pipeline(
-    artifacts=["iris_elasticnet_model"],
-    input_parameters=["url"],  # Specify variable(s) to parametrize
-    pipeline_name="iris_model_pipeline",
-    output_dir="output/",
-    framework="AIRFLOW",
-)
-```
-
-which generates several files that can be used to execute the pipeline from the UI or CLI.
-
-In sum, LineaPy automates time-consuming, manual steps in a data science workflow, helping us move
-our work into production more quickly.
+LineaPy offers several extras to extend its core capabilities, such as support for PostgreSQL or Amazon S3.
+Learn more about these and other installation options [here](https://docs.lineapy.org/en/latest/fundamentals/setup.html#extras).
 
 ### Interfaces
 
 #### Jupyter and IPython
 
-To use LineaPy in an interactive computing environment such as Jupyter Notebook/Lab or IPython, launch the environment with the `lineapy` command, like so:
-
-```bash
-lineapy jupyter notebook
-```
-
-```bash
-lineapy jupyter lab
-```
-
-```bash
-lineapy ipython
-```
-
-This will automatically load the LineaPy extension in the corresponding interactive shell application.
-
-Or, if the application is already running without the extension loaded, which can happen
-when we start the Jupyter server with `jupyter notebook` or `jupyter lab` without `lineapy`,
-you can load it on the fly with:
+To use LineaPy in an interactive computing environment such as Jupyter Notebook/Lab or IPython, load its extension with:
 
 ```python
 %load_ext lineapy
@@ -260,53 +141,144 @@ in the middle of a session will lead to erroneous behaviors by LineaPy.
 - This loads the extension to the current session only, i.e., it does not carry over
 to different sessions; you will need to repeat it for each new session.
 
-#### Hosted Jupyter Environment
+Alternatively, you can launch the environment with the `lineapy` command, like so:
 
-In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle, Databricks or in any other environments that are not started using CLI (such as Jupyter extension within VS Code), you need to install `lineapy` directly within your notebook first via:
-
-```ipython
-!pip install lineapy
+```bash
+lineapy jupyter notebook
 ```
 
-then you can manually load `lineapy` extension with :
-
-```python
-%load_ext lineapy
+```bash
+lineapy jupyter lab
 ```
 
-For environments with older versions `IPython<7.0` like Google Colab, we need to upgrade the `IPython>=7.0` module before the above steps, we can upgrade `IPython` via:
-
-```ipython
-!pip install --upgrade ipython
+```bash
+lineapy ipython
 ```
 
-and restart the notebook runtime:
+This will automatically load the LineaPy extension in the corresponding interactive shell application,
+and you will not need to manually load it for every new session.
 
-```ipython
-exit()
-```
-
-then we can start setting up LineaPy as described previously.
+*NOTE:* If your Jupyter environment has multiple kernels, choose `Python 3 (ipykernel)` which `lineapy`
+defaults to.
 
 #### CLI
 
-We can also use LineaPy as a CLI command. Run:
+You can also use LineaPy as a CLI command or a runnable Python module. Run:
 
 ```bash
+# LineaPy as a CLI command
 lineapy python --help
+```
+
+or
+
+```bash
+# LineaPy as a runnable Python module
+python -m lineapy --help
 ```
 
 to see available options.
 
-#### Python Module
+### Quick Start
 
-Lineapy is also a runnable python module. 
+Once LineaPy is installed and loaded, you are ready to start using the package. Let's use a simple
+example using the [Iris dataset](https://en.wikipedia.org/wiki/Iris_flower_data_set) to demonstrate
+how to use LineaPy to 1) store a variable's history, 2) get its cleaned-up code,
+and 3) build an executable pipeline for the variable.
 
-```bash
-python -m lineapy --help
+Consider development code looking as follows:
+
+```python
+import lineapy
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+# Load data
+url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+df = pd.read_csv(url)
+
+# Map each species to a color
+color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
+df["variety_color"] = df["variety"].map(color_map)
+
+# Plot petal vs. sepal width by species
+df.plot.scatter("petal.width", "sepal.width", c="variety_color")
+plt.show()
+
+# Create dummy variables encoding species
+df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
+df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
+
+# Initiate the model
+mod = LinearRegression()
+
+# Fit the model
+mod.fit(
+    X=df[["petal.width", "d_versicolor", "d_virginica"]],
+    y=df["sepal.width"],
+)
 ```
 
-and works the same as using the CLI.
+Now, say you reached the end of your development and decided to save the trained model.
+You can store the model as a LineaPy [artifact](https://docs.lineapy.org/en/latest/fundamentals/concepts.html#artifact) as follows:
+
+```python
+# Save the model as an artifact
+lineapy.save(mod, "iris_model")
+```
+
+A LineaPy artifact encapsulates both the value *and* code, so you can easily retrieve
+the model's code, like so:
+
+```python
+# Retrieve the model artifact
+artifact = lineapy.get("iris_model")
+
+# Check code for the model artifact
+print(artifact.get_code())
+```
+
+which will print:
+
+```
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+df = pd.read_csv(url)
+color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
+df["variety_color"] = df["variety"].map(color_map)
+df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
+df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
+mod = LinearRegression()
+mod.fit(
+    X=df[["petal.width", "d_versicolor", "d_virginica"]],
+    y=df["sepal.width"],
+)
+```
+
+Note that these are the minimal essential steps to produce the model. That is, LineaPy has automatically
+cleaned up the original code by removing extraneous operations that do not affect the model (e.g., plotting).
+
+Say you are now asked to retrain the model on a regular basis to account for any updates in the source data.
+You need to set up a pipeline to train the model, which LineaPy makes as simple as a single function call:
+
+```python
+lineapy.to_pipeline(
+    artifacts=["iris_model"],
+    input_parameters=["url"],  # Specify variable(s) to parametrize
+    pipeline_name="iris_model_pipeline",
+    output_dir="output/",
+    framework="AIRFLOW",
+)
+```
+
+which generates several files that can be used to execute the pipeline from the UI or CLI (check this
+[tutorial](https://docs.lineapy.org/en/latest/guide/build_pipelines/pipeline_basics.html) for more details).
+
+In sum, LineaPy automates time-consuming, manual steps in a data science workflow, helping us move
+our work into production more quickly.
 
 ## Usage Reporting
 
