@@ -539,6 +539,10 @@ class LineaArtifactDef(TypedDict):
 
 @dataclass
 class LineaArtifactInfo:
+    """
+    Backend storage metadata for LineaPy
+    """
+
     artifact_id: int
     name: str
     version: int
@@ -552,6 +556,10 @@ class LineaArtifactInfo:
 
 @dataclass
 class MLflowArtifactInfo:
+    """
+    Backend storage metadata for MLflow
+    """
+
     id: int
     artifact_id: int
     tracking_uri: str
@@ -561,5 +569,12 @@ class MLflowArtifactInfo:
 
 
 class ArtifactInfo(TypedDict):
+    """
+    Artifact backend storage metadata
+    - lineapy : storage backend for LineaPy
+    - mlflow : storage backend metadata for MLflow (only exists when the
+        artifact is saved in MLflow)
+    """
+
     lineapy: LineaArtifactInfo
     mlflow: NotRequired[MLflowArtifactInfo]

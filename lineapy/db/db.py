@@ -343,13 +343,17 @@ class RelationalLineaDB:
     def write_mlflow_artifactmetadata(
         self, artifactorm: ArtifactORM, modelinfo: ModelInfo
     ) -> None:
+        """
+        Write MLflow metadata for the artifact
+        """
         model_flavors = [
             flavor
             for flavor in modelinfo.flavors.keys()
             if flavor != "python_function"
         ]
         if len(model_flavors) > 1:
-            raise
+            msg = "Currently, only one MLflow model flavor(other than python_function) is supported."
+            raise NotImplementedError(msg)
 
         mlflowmetadataorm = MLflowArtifactMetadataORM(
             artifact_id=artifactorm.id,
@@ -778,7 +782,10 @@ class RelationalLineaDB:
             self.session.delete(res)
         self.renew_session()
 
-    def delete_mlflow_metadata_by_artifact_id(self, artifact_id: int):
+    def delete_mlflow_metadata_by_artifact_id(self, artifact_id: int) -> None:
+        """
+        Delete MLflow metadata for the artifact
+        """
         res_query = self.session.query(MLflowArtifactMetadataORM).filter(
             MLflowArtifactMetadataORM.artifact_id == artifact_id
         )
@@ -853,7 +860,7 @@ class RelationalLineaDB:
         self, artifact_id: int
     ) -> MLflowArtifactMetadataORM:
         """
-        Gets the most recent artifact with a certain name.
+        Get MLflow metadata for the artifact
         """
 
         res_query = self.session.query(MLflowArtifactMetadataORM).filter(

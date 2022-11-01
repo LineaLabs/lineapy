@@ -11,7 +11,11 @@ mlflow = pytest.importorskip("mlflow")
 
 def test_save_and_get_to_mlflow(execute):
     """
-    Test lineapy.save to mlflow, passing `registered_model_name` to test **kwargs.
+    Test mlflow as backend storage
+
+    Test lineapy.save for mlflow, passing `registered_model_name` to test
+    **kwargs. Test Artifact.get_value() for mlflow and validate model
+    exists in MLflow.
     """
     code = """
 import lineapy

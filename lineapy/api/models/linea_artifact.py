@@ -124,12 +124,14 @@ class LineaArtifact:
     @lru_cache(maxsize=None)
     def get_metadata(self, lineapy_only: bool = False) -> ArtifactInfo:
         """
-        Get artifact metadata
+        Get artifact backend storage metadata
 
         :param lineapy_only: If ``False``, will include both LineaPy related
             metadata and metadata from storage backend(if it is not LineaPy).
             If ``True``, will only return LineaPy related metadata no matter
             which storage backend is using.
+
+        :return: Metadata for artifact backend storage.
 
         """
 
