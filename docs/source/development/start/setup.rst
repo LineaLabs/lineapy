@@ -66,6 +66,17 @@ Once the virtual environment is activated, install packages necessary for runnin
 
 Note that this may take a while to complete.
 
+Running LineaPy
+---------------
+
+During development, you may want to check how your changes affect the behavior of the package.
+LineaPy supports several interfaces to run on, and the relevant instructions are documented :ref:`here <interfaces>`.
+Please select the most convenient option for you.
+
+.. note::
+
+    When running LineaPy, make sure that the virtual environment has been activated.
+
 Making Changes
 --------------
 
