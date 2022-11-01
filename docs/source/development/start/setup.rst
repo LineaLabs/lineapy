@@ -5,6 +5,8 @@ Setup and Basics
 
 .. include:: ../../snippets/slack_support.rstinc
 
+.. _contribution_install:
+
 Installation
 ------------
 
