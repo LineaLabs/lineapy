@@ -29,10 +29,10 @@ Welcome to LineaPy!
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: References
 
-   references/development
-   references/internals
+   references/development/index
+   references/internals/index
    references/configurations
    references/api_reference

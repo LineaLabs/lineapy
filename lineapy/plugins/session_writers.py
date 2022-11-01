@@ -298,7 +298,7 @@ class BaseSessionWriter:
         )
         return session_function
 
-    def get_session_function_callblock(
+    def get_session_function_call_block(
         self, session_artifact: SessionArtifacts
     ) -> str:
         """

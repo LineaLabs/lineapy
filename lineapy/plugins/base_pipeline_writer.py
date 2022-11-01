@@ -142,7 +142,7 @@ class BasePipelineWriter:
 
         module_function_body = "\n".join(
             [
-                f"{indentation_block}{return_dict_name}.update({BaseSessionWriter().get_session_function_callblock(sa)})"
+                f"{indentation_block}{return_dict_name}.update({BaseSessionWriter().get_session_function_call_block(sa)})"
                 for sa in self.session_artifacts_sorted
             ]
         )
@@ -500,7 +500,7 @@ class BasePipelineWriter:
             ]
 
             input_var_loading_block: List[str] = []
-            function_call_block = f"artifacts = {self.pipeline_name}_module.{BaseSessionWriter().get_session_function_callblock(session_artifacts)}"
+            function_call_block = f"artifacts = {self.pipeline_name}_module.{BaseSessionWriter().get_session_function_call_block(session_artifacts)}"
             return_artifacts_saving_block = [
                 f"pickle.dump(artifacts['{nc.name}'],open('/tmp/{self.pipeline_name}/artifact_{nc.safename}.pickle','wb'))"
                 for nc in session_artifacts.usercode_nodecollections

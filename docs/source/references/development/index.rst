@@ -1,5 +1,3 @@
-.. _development:
-
 Contributor Guide
 =================
 
