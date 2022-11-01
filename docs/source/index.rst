@@ -29,7 +29,7 @@ Welcome to LineaPy!
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: References
 
    references/development/index

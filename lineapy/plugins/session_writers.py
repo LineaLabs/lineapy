@@ -18,27 +18,32 @@ class BaseSessionWriter:
     Terminology
 
     Take the following example function and the line to call it:
-    ```
-    def function_name(input_parameters):
-        code_line_1
-        code_line_2
-        return return_values
 
-    function_name(input_parameters)
-    ```
+    .. code-block:: python
+
+        def function_name(input_parameters):
+            code_line_1
+            code_line_2
+            return return_values
+
+        function_name(input_parameters)
 
     We define the code block
-    ```
+
+    .. code-block:: python
+
         code_line_1
         code_line_2
         return return_values
-    ```
+
     as the function body.
 
     The code block that calls the function
-    ```
-    function_name(input_parameters)
-    ```
+
+    .. code-block:: python
+
+        function_name(input_parameters)
+
     is called the function call block.
     """
 
@@ -110,14 +115,17 @@ class BaseSessionWriter:
 
         Example output:
 
-        ```
-        p = get_multiplier()                        # function call block that calculates multiplier
-        lineapy.save(p, "multiplier")               # only with keep_lineapy_save=True
-        artifacts["multiplier"]=copy.deepcopy(p)    # only with return_dict_name specified
-        ```
+        .. code-block:: python
+
+            p = get_multiplier()                        # function call block that calculates multiplier
+            lineapy.save(p, "multiplier")               # only with keep_lineapy_save=True
+            artifacts["multiplier"]=copy.deepcopy(p)    # only with return_dict_name specified
 
         The result_placeholder is a list to capture the artifact variables right
         after calculation. Considering following code:
+
+        .. code-block:: python
+
             a = 1
             lineapy.save(a,'a')
             a+=1
@@ -125,6 +133,7 @@ class BaseSessionWriter:
             lineapy.save(b,'b')
             c = a+1
             lineapy.save(c,'c')
+
         we need to record the artifact a before it is mutated.
         """
 
@@ -164,13 +173,13 @@ class BaseSessionWriter:
 
         Example output:
 
-        ```
-        # Session contains artifacts for "multiplier" and "prod_p"
-        p = get_multiplier()
-        artifacts["multiplier"]=copy.deepcopy(p)
-        b = get_prod_p(a, p)
-        artifacts["prod_p"]=copy.deepcopy(b)
-        ```
+        .. code-block:: python
+
+            # Session contains artifacts for "multiplier" and "prod_p"
+            p = get_multiplier()
+            artifacts["multiplier"]=copy.deepcopy(p)
+            b = get_prod_p(a, p)
+            artifacts["prod_p"]=copy.deepcopy(b)
 
         All artifacts in the session are saved in the return dictionary `artifacts`
         """
@@ -197,11 +206,13 @@ class BaseSessionWriter:
         These lines also serve as the default values of these variables.
 
         Example output:
-        ```
-        # User called lineapy api with input_parameters=['a', 'p']
-        a = 1,
-        p = 2,
-        ```
+
+        .. code-block:: python
+
+            # User called lineapy api with input_parameters=['a', 'p']
+            a = 1,
+            p = 2,
+
         """
         return session_artifact.input_parameters_nodecollection.get_input_parameters_block(
             graph=session_artifact.graph,
@@ -265,18 +276,20 @@ class BaseSessionWriter:
         calculation of all targeted artifacts.
 
         Example output:
-        ```
-        def run_session_including_multiplier(
-            a=1,
-            p=2,
-        ):
-            artifacts = dict()
-            p = get_multiplier()
-            artifacts["multiplier"] = copy.deepcopy(p)
-            b = get_prod_p(a, p)
-            artifacts["prod_p"] = copy.deepcopy(b)
-            return artifacts
-        ```
+
+        .. code-block:: python
+
+            def run_session_including_multiplier(
+                a=1,
+                p=2,
+            ):
+                artifacts = dict()
+                p = get_multiplier()
+                artifacts["multiplier"] = copy.deepcopy(p)
+                b = get_prod_p(a, p)
+                artifacts["prod_p"] = copy.deepcopy(b)
+                return artifacts
+
         """
         indentation_block = " " * indentation
         SESSION_FUNCTION_TEMPLATE = load_plugin_template(
@@ -305,9 +318,11 @@ class BaseSessionWriter:
         `get_session_function_callblock` returns the code to make the call to the session function.
 
         Example output:
-        ```
-        run_session_including_multiplier(a, p)
-        ```
+
+        .. code-block:: python
+
+            run_session_including_multiplier(a, p)
+
         """
         session_function_name = self.get_session_function_name(
             session_artifact
