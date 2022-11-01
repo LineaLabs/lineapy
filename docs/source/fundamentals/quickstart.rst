@@ -5,104 +5,108 @@ Quick Start
 
 .. note::
 
-    Make sure that you have LineaPy installed. You can find relevant instructions 
-    in the :ref:`Installation <setup>` section.
+    Make sure that you have LineaPy installed and loaded in your environment. You can find relevant instructions 
+    in :ref:`Installation <setup>` and :ref:`Interfaces <interfaces>`.
 
 .. include:: ../snippets/slack_support.rstinc
 
-Once LineaPy is installed, we are ready to start using the package. We start with a simple
-example using the `Iris dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_ to demonstrate how to use LineaPy to 1) store a variable's history, 2) get its cleaned-up code,
+Once LineaPy is installed and loaded, you are ready to start using the package. Let's look at a simple
+example using the `Iris dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_ to demonstrate
+how to use LineaPy to 1) store a variable's history, 2) get its cleaned-up code,
 and 3) build an executable pipeline for the variable.
+
+The following development code fits a linear regression model to the Iris dataset:
 
 .. code:: python
 
     import lineapy
     import pandas as pd
-    from sklearn.linear_model import LinearRegression, ElasticNet
+    import matplotlib.pyplot as plt
+    from sklearn.linear_model import LinearRegression
 
     # Load data
     url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
     df = pd.read_csv(url)
 
-    # Some very basic feature engineering
-    color_map = {"Setosa": 0, "Versicolor": 1, "Virginica": 2}
+    # Map each species to a color
+    color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
     df["variety_color"] = df["variety"].map(color_map)
-    df2 = df.copy()
-    df2["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
-    df2["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
 
-    # Initialize two models
-    model1 = LinearRegression()
-    model2 = ElasticNet()
+    # Plot petal vs. sepal width by species
+    df.plot.scatter("petal.width", "sepal.width", c="variety_color")
+    plt.show()
 
-    # Fit both models
-    model1.fit(
-        X=df2[["petal.width", "d_versicolor", "d_virginica"]],
-        y=df2["sepal.width"],
+    # Create dummy variables encoding species
+    df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
+    df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
+
+    # Initiate the model
+    mod = LinearRegression()
+
+    # Fit the model
+    mod.fit(
+        X=df[["petal.width", "d_versicolor", "d_virginica"]],
+        y=df["sepal.width"],
     )
-    model2.fit(
-        X = df[["petal.width", "variety_color"]],
-        y = df["sepal.width"],
-    )
 
-
-Now, we reach the end of our development session and decide to save the ElasticNet model.
-We can store the model as a LineaPy :ref:`artifact <concepts>` as follows:
+Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy :ref:`artifact <concepts>` with the following code:
 
 .. code:: python
 
-    # Store the model as an artifact
-    lineapy.save(model2, "iris_elasticnet_model")
+    # Save the model as an artifact
+    lineapy.save(mod, "iris_model")
 
-A LineaPy artifact encapsulates both the value *and* code, so we can easily retrieve
+A LineaPy artifact encapsulates both the value *and* code, so you can easily retrieve
 the model's code, like so:
 
 .. code:: python
 
     # Retrieve the model artifact
-    artifact = lineapy.get("iris_elasticnet_model")
+    artifact = lineapy.get("iris_model")
 
     # Check code for the model artifact
     print(artifact.get_code())
 
-which will print:
+The print statement will output:
 
 .. code:: none
 
     import pandas as pd
-    from sklearn.linear_model import ElasticNet
+    from sklearn.linear_model import LinearRegression
 
-    df = pd.read_csv(
-        "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-    )
-    color_map = {"Setosa": 0, "Versicolor": 1, "Virginica": 2}
+    url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
+    df = pd.read_csv(url)
+    color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
     df["variety_color"] = df["variety"].map(color_map)
-    model2 = ElasticNet()
-    model2.fit(
-        X=df[["petal.width", "variety_color"]],
+    df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
+    df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
+    mod = LinearRegression()
+    mod.fit(
+        X=df[["petal.width", "d_versicolor", "d_virginica"]],
         y=df["sepal.width"],
     )
 
 Note that these are the minimal essential steps to produce the model. That is, LineaPy has automatically
-cleaned up the original code by removing extraneous operations that do not affect the model.
+cleaned up the original code by removing extraneous operations that do not affect the model (e.g., plotting).
 
-Say we are now asked to retrain the model on a regular basis to account for any updates in the source data.
-We need to set up a pipeline to train the model, and LineaPy make it as simple as a single line of code:
+Let's say you're asked to retrain the model on a regular basis to account for any updates in the source data.
+You need to set up a pipeline to train the model --- LineaPy makes this as simple as a single function call:
 
 .. code:: python
 
     lineapy.to_pipeline(
-        artifacts=["iris_elasticnet_model"],
+        artifacts=["iris_model"],
         input_parameters=["url"],  # Specify variable(s) to parametrize
         pipeline_name="iris_model_pipeline",
         output_dir="output/",
         framework="AIRFLOW",
     )
 
-which generates several files that can be used to execute the pipeline from the UI or CLI.
+This command generates several files that can be used to execute the pipeline from the UI or CLI. (Check this
+:ref:`tutorial <pipeline_basics>` for more details.)
 
-In sum, LineaPy automates time-consuming, manual steps in a data science workflow, helping us move
-our work into production more quickly.
+In short, LineaPy automates time-consuming, manual steps in a data science workflow, helping us get
+our work to production more quickly and easily.
 
 .. note::
 
