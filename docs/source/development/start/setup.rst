@@ -77,8 +77,11 @@ Please select the most convenient option for you.
 
     When running LineaPy, make sure that the virtual environment has been activated.
 
+Development
+-----------
+
 Making Changes
---------------
+**************
 
 With development dependencies installed, you are now ready to contribute to the source code!
 First, make a separate branch for your development work. Please use an informative name so that
@@ -112,7 +115,7 @@ If the new (development) branch has not been pushed before, you will need to cre
     git push --set-upstream origin <NEW-BRANCH-NAME>
 
 Testing Changes
----------------
+***************
 
 Testing is an important part of ``lineapy``'s development as it ensures that all features stay functional after changes.
 Hence, we strongly recommend you add tests for changes you introduce (check this :ref:`tutorial <add_test>` for adding tests).
@@ -130,7 +133,7 @@ Or, to run a particular test (e.g., one that you added/modified):
     pytest <PATH-TO-TEST-FILE>
 
 Integrating Changes
--------------------
+*******************
 
 As you make your changes in your development branch, it is very possible that the original ``lineapy`` repo is updated by other developers.
 To ensure that your changes are compatible with these updates by others, you will need to regularly "sync" your development branch with the original
