@@ -95,7 +95,7 @@ pip install lineapy
 ```
 
 If you want to run the latest version of LineaPy directly from the source, follow instructions
-[here](https://docs.lineapy.org/en/latest/development/start/setup.html#installation).
+[here](https://docs.lineapy.org/en/lin-680-produce-first-revamp-of-contributor-guide/development/start/setup.html#installation).
 
 LineaPy offers several extras to extend its core capabilities, such as support for PostgreSQL or Amazon S3.
 Learn more about these and other installation options [here](https://docs.lineapy.org/en/latest/fundamentals/setup.html#extras).
