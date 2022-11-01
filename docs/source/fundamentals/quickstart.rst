@@ -10,10 +10,12 @@ Quick Start
 
 .. include:: ../snippets/slack_support.rstinc
 
-Once LineaPy is installed and loaded, you are ready to start using the package. Let's use a simple
+Once LineaPy is installed and loaded, you are ready to start using the package. Let's look at a simple
 example using the `Iris dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_ to demonstrate
 how to use LineaPy to 1) store a variable's history, 2) get its cleaned-up code,
 and 3) build an executable pipeline for the variable.
+
+The following development code fits a linear regression model to the Iris dataset:
 
 .. code:: python
 
@@ -47,9 +49,7 @@ and 3) build an executable pipeline for the variable.
         y=df["sepal.width"],
     )
 
-
-Now, say you reached the end of your development and decided to save the trained model.
-You can store the model as a LineaPy :ref:`artifact <concepts>` as follows:
+Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy :ref:`artifact <concepts>` with the following code:
 
 .. code:: python
 
@@ -67,7 +67,7 @@ the model's code, like so:
     # Check code for the model artifact
     print(artifact.get_code())
 
-which will print:
+The print statement will output:
 
 .. code:: none
 
@@ -89,8 +89,8 @@ which will print:
 Note that these are the minimal essential steps to produce the model. That is, LineaPy has automatically
 cleaned up the original code by removing extraneous operations that do not affect the model (e.g., plotting).
 
-Say you are now asked to retrain the model on a regular basis to account for any updates in the source data.
-You need to set up a pipeline to train the model, which LineaPy makes as simple as a single function call:
+Let's say you're asked to retrain the model on a regular basis to account for any updates in the source data.
+You need to set up a pipeline to train the model --- LineaPy makes this as simple as a single function call:
 
 .. code:: python
 
@@ -102,11 +102,11 @@ You need to set up a pipeline to train the model, which LineaPy makes as simple 
         framework="AIRFLOW",
     )
 
-which generates several files that can be used to execute the pipeline from the UI or CLI (check this
-:ref:`tutorial <pipeline_basics>` for more details).
+This command generates several files that can be used to execute the pipeline from the UI or CLI. (Check this
+:ref:`tutorial <pipeline_basics>` for more details.)
 
-In sum, LineaPy automates time-consuming, manual steps in a data science workflow, helping us move
-our work into production more quickly.
+In short, LineaPy automates time-consuming, manual steps in a data science workflow, helping us get
+our work to production more quickly and easily.
 
 .. note::
 

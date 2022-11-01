@@ -8,17 +8,17 @@ Interfaces
 Jupyter and IPython
 -------------------
 
-To use LineaPy in an interactive computing environment such as Jupyter Notebook/Lab or IPython, load its extension with:
+To use LineaPy in an interactive computing environment such as Jupyter Notebook/Lab or IPython, load its extension by executing the following command at the top of your session:
 
 .. code:: python
 
     %load_ext lineapy
 
-executed at the top of your session. Please note:
+Please note:
 
-- You will need to run this as the first command in a given session; executing it in the middle of a session will lead to erroneous behaviors by LineaPy.
+- You must run this as the first command in a given session. Executing it in the middle of a session will lead to erroneous behaviors by LineaPy.
 
-- This loads the extension to the current session only, i.e., it does not carry over to different sessions; you will need to repeat it for each new session.
+- This command loads the extension for the current session only. It does not carry over to different sessions, so you will need to repeat it for each new session.
 
 Alternatively, you can launch the environment with the ``lineapy`` command, like so:
 
@@ -75,7 +75,7 @@ Finally, you can start setting up LineaPy as described previously.
 CLI
 ---
 
-You can also use LineaPy as a CLI command or a runnable Python module. Run:
+You can also use LineaPy as a CLI command or runnable Python module. To see available options, run the following commands:
 
 .. code:: bash
 
@@ -88,5 +88,3 @@ or
 
     # LineaPy as a runnable Python module
     python -m lineapy --help
-
-to see available options.

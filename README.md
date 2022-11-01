@@ -52,7 +52,7 @@
 
 ### Use Case 1: Cleaning Messy Notebooks
 
-When working in a Jupyter notebook day after day, it's easy to write messy code -- You might execute cells out of order, execute the same cell repeatedly, and edit or delete cells until you've acquired good results, especially when generating tables, models, and charts. This highly dynamic and interactive notebook use, however, can introduce some issues. Our colleagues may not be able to reproduce our results by rerunning our notebook, and worse still, we ourselves may forget the steps required to produce our previous results.
+When working in a Jupyter notebook day after day, it's easy to write messy code &mdash; You might execute cells out of order, execute the same cell repeatedly, and edit or delete cells until you've acquired good results, especially when generating tables, models, and charts. This highly dynamic and interactive notebook use, however, can introduce some issues. Our colleagues may not be able to reproduce our results by rerunning our notebook, and worse still, we ourselves may forget the steps required to produce our previous results.
 
 One way to avoid this problem is to keep the notebook in sequential order by constantly re-executing
 the entire notebook during development. This approach, however, interrupts our natural workflows and stream of
@@ -68,7 +68,7 @@ To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/
 
 ### Use Case 3: Building Pipelines
 
-As our notebooks become more mature, we may use them like pipelines. For example, our notebook might process the latest data to update a dashboard, or pre-process data and dump it into the file system for downstream model development. To keep our results up-to-date, we might be expected to re-execute these processes on a regular basis. Running notebooks manually is a brittle process that's prone to errors, so we may want to set up proper pipelines for production. If relevant engineering support is not available, we need to clean up and refactor our notebook code so that it can be used in orchestration systems or job schedulers, such as cron, Apache Airflow, or Prefect. Of course, this assumes that we already know how these tools work and how to use them -- If not, we need to spend time learning about them in the first place! All this operational work is time-consuming, and detracts from the time that we can spend on our core duties as a data scientist.
+As our notebooks become more mature, we may use them like pipelines. For example, our notebook might process the latest data to update a dashboard, or pre-process data and dump it into the file system for downstream model development. To keep our results up-to-date, we might be expected to re-execute these processes on a regular basis. Running notebooks manually is a brittle process that's prone to errors, so we may want to set up proper pipelines for production. If relevant engineering support is not available, we need to clean up and refactor our notebook code so that it can be used in orchestration systems or job schedulers, such as cron, Apache Airflow, or Prefect. Of course, this assumes that we already know how these tools work and how to use them &mdash; If not, we need to spend time learning about them in the first place! All this operational work is time-consuming, and detracts from the time that we can spend on our core duties as a data scientist.
 
 To see how LineaPy can help here, check out [this](https://github.com/LineaLabs/lineapy/blob/v0.2.x/.colab/create_a_simple_pipeline/create_a_simple_pipeline.ipynb) demo or <a href="https://bit.ly/3SJewuO"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>.
 
@@ -234,7 +234,7 @@ Note that these are the minimal essential steps to produce the model. That is, L
 cleaned up the original code by removing extraneous operations that do not affect the model (e.g., plotting).
 
 Let's say you're asked to retrain the model on a regular basis to account for any updates in the source data.
-You need to set up a pipeline to train the model -- LineaPy makes this as simple as a single function call:
+You need to set up a pipeline to train the model &mdash; LineaPy makes this as simple as a single function call:
 
 ```python
 lineapy.to_pipeline(
@@ -246,7 +246,7 @@ lineapy.to_pipeline(
 )
 ```
 
-That command generates several files that can be used to execute the pipeline from the UI or CLI. (Check this
+This command generates several files that can be used to execute the pipeline from the UI or CLI. (Check this
 [tutorial](https://docs.lineapy.org/en/latest/guide/build_pipelines/pipeline_basics.html) for more details.)
 
 In short, LineaPy automates time-consuming, manual steps in a data science workflow, helping us get
