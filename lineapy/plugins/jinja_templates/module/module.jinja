@@ -12,7 +12,7 @@ def run_all_sessions({%- for input_parameter in default_input_parameters %}
 {{indentation_block}}{{input_parameter}},
 {%- endfor -%}):
 {{indentation_block}}artifacts = dict()
-{{module_function_body}}
+{{module_function_body | indent(4, True)}}
 {{indentation_block}}return artifacts
 
 if __name__ == "__main__":

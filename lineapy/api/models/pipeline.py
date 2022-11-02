@@ -3,9 +3,8 @@ from __future__ import annotations
 import logging
 import warnings
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
-from lineapy.api.api_utils import extract_taskgraph
 from lineapy.api.models.linea_artifact import get_lineaartifactdef
 from lineapy.data.types import PipelineType
 from lineapy.db.relational import (
@@ -16,7 +15,7 @@ from lineapy.db.relational import (
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
-from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
+from lineapy.plugins.task import TaskGraphEdge, extract_taskgraph
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -54,7 +53,7 @@ class Pipeline:
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[str] = [],
         generate_test: bool = False,
-        pipeline_dag_config: Optional[AirflowDagConfig] = {},
+        pipeline_dag_config: Optional[Dict] = {},
         include_non_slice_as_comment=False,
     ) -> Path:
         # Check if the specified framework is a supported/valid one
@@ -97,7 +96,7 @@ class Pipeline:
             ToPipelineEvent(
                 framework,
                 len(self.artifact_names),
-                self.task_graph.get_airflow_dependency() != "",
+                len(list(self.task_graph.graph.edges)) > 0,
                 pipeline_dag_config is not None,
             )
         )

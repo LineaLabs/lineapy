@@ -10,15 +10,6 @@ from airflow.operators.python_operator import PythonOperator
 {% endblock %}
 
 {% block plugin_dag_block %}
-def dag_setup():
-    pickle_folder = pathlib.Path('/tmp').joinpath('{{ DAG_NAME }}')
-    if not pickle_folder.exists():
-        pickle_folder.mkdir()
-
-def dag_teardown():
-    pickle_files = pathlib.Path('/tmp').joinpath('{{ DAG_NAME }}').glob('*.pickle')
-    for f in pickle_files:
-        f.unlink()
 {% for TASK_DEF in task_definitions %}
 {{ TASK_DEF }} 
 {% endfor %}
@@ -42,16 +33,6 @@ with DAG(
     catchup={{ CATCHUP }},
     default_args=default_dag_args,
 ) as dag:
-
-    setup = PythonOperator(
-        task_id="dag_setup",
-        python_callable=dag_setup,
-    )
-
-    teardown = PythonOperator(
-        task_id="dag_teardown",
-        python_callable=dag_teardown,
-    )
 
 {% for task in tasks %}
 {% if task['op_kwargs'] is none %}
