@@ -32,8 +32,6 @@
     5. [Further Readings](#45-further-readings)
     6. [Benchmarking](#46-benchmarking)
 
-https://github.com/LineaLabs/lineapy/blob/update_docs/CONTRIBUTING.md#1-where-to-start
-
 ## 1. Where to Start
 
 ### 1.1. Build and read the docs
