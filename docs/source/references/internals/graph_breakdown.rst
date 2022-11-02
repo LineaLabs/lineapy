@@ -17,7 +17,7 @@ The Artifact Collection is the main entrypoint and abstraction for defining the 
     
 The ArtifactCollection can be thought of as a group of artifacts that the user selects and their corresponding graph(s) that will get refactored into reusable components.
 
-The input and output artifacts and variables can come from different user sessions, so the main job of ArtifactCollection is to group the inputs and outputs by session, creating a SessionArtifacts object for each session, and handling inter session dependencies.  
+The artifacts and variables can come from different user sessions, so the main job of ArtifactCollection is to group the inputs and outputs by session, creating a SessionArtifacts object for each session, and handling inter session dependencies.  
 
 Session Artifacts
 ~~~~~~~~~~~~~~~~~
