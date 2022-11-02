@@ -1,12 +1,12 @@
 def task_{{function_name}}({{user_input_variables}}):
 {% for typing_block in typing_blocks %}
-{{indentation_block}}{{typing_block}}
+{{typing_block | indent(4, True) }}
 {% endfor %}
 {% for loading_block in loading_blocks %}
-{{indentation_block}}{{loading_block}}
+{{loading_block | indent(4, True) }}
 {% endfor %}
-{{indentation_block}}{{ call_block }}
+{{ call_block | indent(4, True) }}
 {% for dumping_block in dumping_blocks %}
-{{indentation_block}}{{dumping_block}}
+{{dumping_block | indent(4, True) }}
 {% endfor %}
 
