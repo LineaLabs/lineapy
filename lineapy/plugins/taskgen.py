@@ -28,7 +28,9 @@ def get_task_definitions(
     objects to match the format for pipeline arguments that is expected by that framework.
     """
     if task_breakdown == DagTaskBreakdown.TaskAllSessions:
-        return get_allsessions_task_definition(pipeline_name)
+        return get_allsessions_task_definition(
+            artifact_collection, pipeline_name
+        )
     elif task_breakdown == DagTaskBreakdown.TaskPerSession:
         return get_session_task_definition(artifact_collection, pipeline_name)
     elif task_breakdown == DagTaskBreakdown.TaskPerArtifact:
@@ -152,21 +154,23 @@ def get_session_task_definition(
 
 
 def get_allsessions_task_definition(
+    artifact_collection: ArtifactCollection,
     pipeline_name: str,
 ) -> Dict[str, TaskDefinition]:
     """
     get_allsessions_task_definition returns a single task definition for the whole pipeline.
     """
+
     indentation_block = " " * 4
     return {
         "run_all": TaskDefinition(
             function_name="run_all",
-            user_input_variables=[],
+            user_input_variables=artifact_collection.input_parameters,
             loaded_input_variables=[],
             typing_blocks=[],
             call_block=f"{indentation_block}artifacts = {pipeline_name}_module.run_all_sessions()"
             "",
-            return_vars=[],
+            return_vars=["artifacts"],
             pipeline_name=pipeline_name,
         )
     }
