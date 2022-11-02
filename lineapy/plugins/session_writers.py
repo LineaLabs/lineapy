@@ -48,7 +48,6 @@ class BaseSessionWriter:
     def get_session_module_imports(
         self,
         session_artifact: SessionArtifacts,
-        indentation=0,
     ) -> str:
         """
         Return all the import statement for the session.
@@ -56,7 +55,6 @@ class BaseSessionWriter:
 
         return session_artifact.import_nodecollection.get_import_block(
             graph=session_artifact.graph,
-            indentation=indentation,
         )
 
     def get_session_function_name(
@@ -74,7 +72,6 @@ class BaseSessionWriter:
         self,
         session_artifact: SessionArtifacts,
         include_non_slice_as_comment=False,
-        indentation=4,
     ) -> List[str]:
         """
         Return the function definition of the NodeCollection subgraphs that make up the Session.
@@ -83,7 +80,6 @@ class BaseSessionWriter:
             coll.get_function_definition(
                 graph=session_artifact.session_graph,
                 include_non_slice_as_comment=include_non_slice_as_comment,
-                indentation=indentation,
             )
             for coll in session_artifact.usercode_nodecollections
         ]
@@ -91,7 +87,6 @@ class BaseSessionWriter:
     def get_session_artifact_function_call_block(
         self,
         coll: UserCodeNodeCollection,
-        indentation=0,
         keep_lineapy_save=False,
         return_dict_name=None,
         source_module="",
@@ -103,7 +98,6 @@ class BaseSessionWriter:
         by the various implementations of NodeCollection.
 
         :param UserCodeNodeCollection coll: the NodeCollection subgraph that we want to produce a call block for.
-        :param int indentation: indentation size
         :param bool keep_lineapy_save: whether do lineapy.save() after execution
         :param Optional[str] result_placeholder: if not null, append the return result to the result_placeholder
         :param str source_module: which module the function is coming from
@@ -128,7 +122,6 @@ class BaseSessionWriter:
         we need to record the artifact a before it is mutated.
         """
 
-        indentation_block = " " * indentation
         return_string = ", ".join(coll.return_variables)
         args_string = ", ".join(sorted([v for v in coll.input_variables]))
         if isinstance(coll, ArtifactNodeCollection) and coll.is_pre_computed:
@@ -137,22 +130,21 @@ class BaseSessionWriter:
         # handle calling the function from a module
         if source_module != "":
             source_module = f"{source_module}."
-        codeblock = f"{indentation_block}{return_string} = {source_module}get_{coll.safename}({args_string})"
+        codeblock = f"{return_string} = {source_module}get_{coll.safename}({args_string})"
         if keep_lineapy_save and isinstance(coll, ArtifactNodeCollection):
-            codeblock += f"""\n{indentation_block}lineapy.save({coll.return_variables[0]}, "{coll.name}")"""
+            codeblock += f"""\nlineapy.save({coll.return_variables[0]}, "{coll.name}")"""
 
         if (
             isinstance(coll, ArtifactNodeCollection)
             and return_dict_name is not None
         ):
-            codeblock += f"""\n{indentation_block}{return_dict_name}["{coll.name}"]=copy.deepcopy({coll.return_variables[0]})"""
+            codeblock += f"""\n{return_dict_name}["{coll.name}"]=copy.deepcopy({coll.return_variables[0]})"""
 
         return codeblock
 
     def get_session_function_body(
         self,
         session_artifact: SessionArtifacts,
-        indentation=0,
         return_dict_name="artifacts",
     ) -> str:
         """
@@ -178,7 +170,6 @@ class BaseSessionWriter:
             [
                 self.get_session_artifact_function_call_block(
                     coll,
-                    indentation=indentation,
                     keep_lineapy_save=False,
                     return_dict_name=return_dict_name,
                 )
@@ -257,7 +248,6 @@ class BaseSessionWriter:
     def get_session_function(
         self,
         session_artifact,
-        indentation=4,
         return_dict_name="artifacts",
     ) -> str:
         """
@@ -278,28 +268,26 @@ class BaseSessionWriter:
             return artifacts
         ```
         """
-        indentation_block = " " * indentation
         SESSION_FUNCTION_TEMPLATE = load_plugin_template(
-            "session_function.jinja"
+            "module/session_function.jinja"
         )
         session_function = SESSION_FUNCTION_TEMPLATE.render(
             session_input_parameters_body=self.get_session_input_parameters_lines(
                 session_artifact=session_artifact,
             ),
-            indentation_block=indentation_block,
             session_function_name=self.get_session_function_name(
                 session_artifact=session_artifact,
             ),
             session_function_body=self.get_session_function_body(
                 session_artifact=session_artifact,
-                indentation=indentation,
             ),
             return_dict_name=return_dict_name,
         )
         return session_function
 
     def get_session_function_callblock(
-        self, session_artifact: SessionArtifacts
+        self,
+        session_artifact: SessionArtifacts,
     ) -> str:
         """
         `get_session_function_callblock` returns the code to make the call to the session function.
@@ -309,6 +297,7 @@ class BaseSessionWriter:
         run_session_including_multiplier(a, p)
         ```
         """
+
         session_function_name = self.get_session_function_name(
             session_artifact
         )
