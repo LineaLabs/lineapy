@@ -1,6 +1,8 @@
 Why do I get an error for database lock?
 ========================================
 
+.. include:: ../../snippets/slack_support.rstinc
+
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
 However, SQLite has several limitations, one of which is that it does not support multiple concurrent
 writes to a database (it will result in a database lock). Such concurrent writes to a database can happen,

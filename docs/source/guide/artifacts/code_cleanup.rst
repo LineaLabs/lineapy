@@ -164,7 +164,7 @@ Hence, LineaPy's automatic code clean-up can save considerable time for data sci
 
 .. note::
 
-   LineaPy's code cleanup has few known limitations. Check this :ref:`page <incorrect_slicing>` if you encounter issues.
+   LineaPy's code cleanup has few known limitations. Check this :ref:`page <slicing_issues>` if you encounter issues.
 
 .. note::
 

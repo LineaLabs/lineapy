@@ -1,3 +1,5 @@
+.. _annotate_package:
+
 Annotate Packages
 =================
 

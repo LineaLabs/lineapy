@@ -6,5 +6,5 @@ FAQ
 .. toctree::
    :maxdepth: 1
 
-   incorrect_slicing
+   slicing_issues/index
    db_lock
