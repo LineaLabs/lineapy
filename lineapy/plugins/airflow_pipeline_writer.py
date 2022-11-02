@@ -227,10 +227,12 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
         Example:
 
-        "params":{
-            a: "value",
-            b: 0,
-        }
+        .. code-block:: python
+
+            "params":{
+                a: "value",
+                b: 0,
+            }
         """
         input_parameters_dict: Dict[str, Any] = {}
         for parameter_name, input_spec in super().get_pipeline_args().items():
