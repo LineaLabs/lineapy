@@ -44,3 +44,4 @@ imagine how difficult it would be to maintain correlations between the two. Line
 
    artifact_reuse
    storage_location/index
+   storage_backend/index

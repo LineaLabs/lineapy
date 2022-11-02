@@ -11,23 +11,29 @@ These items are determined by the following order:
 - Configuration file
 - Default values
 
-+-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
-| name                                | usage                         | type    | default                                    | environmental variables                         |
-+=====================================+===============================+=========+============================================+=================================================+
-| home_dir                            | LineaPy base folder           | Path    | `$HOME/.lineapy`                           | `LINEAPY_HOME_DIR`                              |
-+-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
-| artifact_storage_dir                | artifact saving folder        | Path    | `$LINEAPY_HOME_DIR/linea_pickles`          | `LINEAPY_ARTIFACT_STORAGE_DIR`                  |
-+-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
-| database_url                        | LineaPy db connection string  | string  | `sqlite:///$LINEAPY_HOME_DIR/db.sqlite`    | `LINEAPY_DATABASE_URL`                          |
-+-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
-| customized_annotation_folder        | user annotations folder       | Path    | `$LINEAPY_HOME_DIR/customized_annotations` | `LINEAPY_CUSTOMIZED_ANNOTATION_FOLDER`          |
-+-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
-| do_not_track                        | disable user analytics        | boolean | false                                      | `LINEAPY_DO_NOT_TRACK`                          |
-+-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
-| logging_level                       | logging level                 | string  | INFO                                       | `LINEAPY_LOGGING_LEVEL`                         |
-+-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
-| logging_file                        | logging file path             | Path    | `$LINEAPY_HOME_DIR/lineapy.log`            | `LINEAPY_LOGGING_FILE`                          | 
-+-------------------------------------+-------------------------------+---------+--------------------------------------------+-------------------------------------------------+
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| name                                | usage                                 | type    | default                                    | environmental variables                         |
++=====================================+=======================================+=========+============================================+=================================================+
+| home_dir                            | LineaPy base folder                   | Path    | `$HOME/.lineapy`                           | `LINEAPY_HOME_DIR`                              |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| artifact_storage_dir                | artifact saving folder                | Path    | `$LINEAPY_HOME_DIR/linea_pickles`          | `LINEAPY_ARTIFACT_STORAGE_DIR`                  |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| database_url                        | LineaPy db connection string          | string  | `sqlite:///$LINEAPY_HOME_DIR/db.sqlite`    | `LINEAPY_DATABASE_URL`                          |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| customized_annotation_folder        | user annotations folder               | Path    | `$LINEAPY_HOME_DIR/customized_annotations` | `LINEAPY_CUSTOMIZED_ANNOTATION_FOLDER`          |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| do_not_track                        | disable user analytics                | boolean | false                                      | `LINEAPY_DO_NOT_TRACK`                          |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| logging_level                       | logging level                         | string  | INFO                                       | `LINEAPY_LOGGING_LEVEL`                         |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| logging_file                        | logging file path                     | Path    | `$LINEAPY_HOME_DIR/lineapy.log`            | `LINEAPY_LOGGING_FILE`                          |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| mlflow_tracking_uri                 | mlflow tracking                       | string  | None                                       | `LINEAPY_MLFLOW_TRACKING_URI`                   |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| mlflow_registry_uri                 | mlflow registry                       | string  | None                                       | `LINEAPY_MLFLOW_REGISTRY_URI`                   |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
+| default_ml_models_storage_backend   | default storage backend for ml models | string  | mlflow                                     | `LINEAPY_DEFAULT_ML_MODELS_STORAGE_BACKEND`     |
++-------------------------------------+---------------------------------------+---------+--------------------------------------------+-------------------------------------------------+
 
 All LineaPy configuration items follow following naming convention; in configuration file, all variable name should be lower case with underscore, 
 all environmental variable name should be upper case with underscore and all CLI options should be lower case.
@@ -107,3 +113,27 @@ Instead, if you want ot use environmental variables, you should configure it thr
 
 Note that, which ``storage_options`` items you can set are depends on the filesystem you are using.
 In the following section, we will discuss how to set the storage options for S3.
+
+Artifact Backend Storage
+------------------------
+
+When an artifact is also an ML model, you can set the ``mlflow_tracking_uri`` and ``mlflow_registry_uri`` (depending on how your MLflow is configured) to use MLflow as the storage backend for ML models; 
+i.e., saving the artifact with ``lineapy.save(model, 'model', storage_backend='mlflow')`` to save the artifact(ML model) directly in MLflow but still register in the LineaPy artifact store.
+
+For instance, if you want to use ``databricks`` as your MLflow tracking URI to save your ML models, you can set them with
+
+.. code:: python
+
+    lineapy.options.set('mlflow_tracking_uri', 'databricks')
+
+or you can put it in the LineaPy configuration files, and you can run
+
+.. code:: python
+
+    lineapy.save(model, 'model', storage_backend='mlflow')
+
+to save your artifact(ML model) in MLflow while you can still use it as a typical LineaPy artifact.
+If the ``model`` is not supported by MLflow, it will fall back to using the standard LineaPy protocol to save the model as an artifact.
+
+Furthermore, if the ``default_ml_models_storage_backend='mlflow'``(as default when you only set ``mlflow_tracking_uri``), there is no need to specify ``storage_backend='mlflow'`` in the ``lineapy.save`` to save the model in MLflow.
+Or you can change to ``default_ml_models_storage_backend='lineapy'``, and save your artifacts(ML models) with LineaPy backend as default and use MLflow when you specify ``storage_backend='mlflow'`` in the ``lineapy.save``.
