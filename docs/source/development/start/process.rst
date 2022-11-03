@@ -8,8 +8,8 @@ To contribute to LineaPy, you can take the following three steps: 1) open an iss
 
 First, check existing tickets on LineaPy's `issue tracker <https://github.com/LineaLabs/lineapy/issues>`_
 to see if any of them already addresses your concern. If none, open a new one with as much detail about your issue
-as possible. We currently provide templates for two types of issues (``Feature Request`` and ``Bug Report``),
-but feel free to adapt them to suit your particular needs/contexts.
+as possible. We currently provide `templates <https://github.com/LineaLabs/lineapy/issues/new/choose>`_
+for two types of issues (``Feature Request`` and ``Bug Report``), but feel free to adapt them to suit your particular needs/contexts.
 
 2. Triage the Issue
 -------------------
