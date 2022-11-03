@@ -8,6 +8,6 @@ Areas to Contribute
 .. toctree::
    :maxdepth: 1
 
-   add_test
+   .. add_test
    annotate_package
    integrate_pipeline_framework
