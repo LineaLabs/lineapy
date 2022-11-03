@@ -1,0 +1,11 @@
+- module: cv2
+  annotations:
+    - criteria:
+        class_instance: Algorithm
+        class_method_name: train
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT
