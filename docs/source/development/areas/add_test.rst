@@ -3,4 +3,4 @@
 Add tests
 =========
 
-[TODO: Add a tutorial for adding new tests]
+[COMING SOON]
