@@ -1,9 +1,9 @@
 import ast
 import logging
 import sys
-from typing import Any, Optional, cast
+from typing import Any, Optional, Union, cast
 
-from lineapy.data.types import CallNode, LiteralNode, Node, SourceLocation
+from lineapy.data.types import CallNode, Node, SourceLocation
 from lineapy.transformer.base_transformer import BaseTransformer
 from lineapy.transformer.transformer_util import create_lib_attributes
 from lineapy.utils.constants import (
@@ -40,6 +40,7 @@ from lineapy.utils.constants import (
     SET_ITEM,
     SUB,
 )
+from lineapy.utils.deprecation_utils import Constant
 from lineapy.utils.lineabuiltins import (
     l_alias,
     l_assert,
@@ -193,16 +194,11 @@ class NodeTransformer(BaseTransformer):
                 f"We do not support deleting {type(target)}"
             )
 
-    def visit_Constant(self, node: ast.Constant) -> Node:
+    def visit_Constant(self, node: Union[ast.Constant, Constant]) -> Node:
         return self.tracer.literal(
             node.value,
             self.get_source(node),
         )
-
-    def visit_LiteralNode(self, node: LiteralNode) -> LiteralNode:
-        # This is to capture nodes processes by python 3.7 transformer
-        # They have already been added to the db and do not need to be processed any further
-        return node
 
     def visit_Assign(self, node: ast.Assign) -> None:
         """
@@ -233,8 +229,9 @@ class NodeTransformer(BaseTransformer):
                 value_node.lineno = min(node.lineno, value_node.lineno)
                 # ignoring type because end_lineno will always be there for lineapy
                 value_node.end_lineno = max(  # type:ignore
-                    node.end_lineno, value_node.end_lineno
+                    node.end_lineno, value_node.end_lineno  # type: ignore
                 )
+
                 self.visit_assign_value(
                     target,
                     self.visit(value_node),
@@ -562,5 +559,3 @@ class NodeTransformer(BaseTransformer):
                 for k, v in zip(keys, values)
             ),
         )
-
-    

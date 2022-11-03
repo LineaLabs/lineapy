@@ -1,6 +1,8 @@
 import functools
 import weakref
+from ast import expr
 from functools import singledispatch, update_wrapper
+from typing import Any, Optional
 
 
 # Descriptor version
@@ -145,3 +147,11 @@ def lru_cache(*lru_args, **lru_kwargs):
         return wrapped_func
 
     return decorator
+
+
+class Constant(expr):
+    value: Any  # None, str, bytes, bool, int, float, complex, Ellipsis
+    kind: Optional[str]
+    # Aliases for value, for backwards compatibility
+    s: Any
+    n: complex
