@@ -3,23 +3,15 @@ import logging
 import pickle
 from collections import OrderedDict
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import networkx as nx
 
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.graph_reader.node_collection import (
-    ArtifactNodeCollection,
-    UserCodeNodeCollection,
-)
+from lineapy.graph_reader.node_collection import UserCodeNodeCollection
 from lineapy.graph_reader.types import InputVariable
 from lineapy.plugins.session_writers import BaseSessionWriter
-from lineapy.plugins.task import (
-    AirflowDagConfig,
-    DVCDagConfig,
-    TaskDefinition,
-    TaskGraphEdge,
-)
+from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import (
     PIP_PACKAGE_NAMES,
     load_plugin_template,
@@ -49,7 +41,7 @@ class BasePipelineWriter:
         pipeline_name: str = "pipeline",
         output_dir: str = ".",
         generate_test: bool = False,
-        dag_config: Optional[Union[AirflowDagConfig, DVCDagConfig]] = None,
+        dag_config: Optional[Dict] = None,
         include_non_slice_as_comment: Optional[bool] = False,
     ) -> None:
         self.artifact_collection = artifact_collection
@@ -122,7 +114,6 @@ class BasePipelineWriter:
                         BaseSessionWriter().get_session_artifact_functions(
                             session_artifact=sa,
                             include_non_slice_as_comment=self.include_non_slice_as_comment,
-                            indentation=indentation,
                         )
                         for sa in self.session_artifacts_sorted
                     ]
@@ -134,7 +125,6 @@ class BasePipelineWriter:
             [
                 BaseSessionWriter().get_session_function(
                     session_artifact=sa,
-                    indentation=indentation,
                 )
                 for sa in self.session_artifacts_sorted
             ]
@@ -142,7 +132,7 @@ class BasePipelineWriter:
 
         module_function_body = "\n".join(
             [
-                f"{indentation_block}{return_dict_name}.update({BaseSessionWriter().get_session_function_callblock(sa)})"
+                f"{return_dict_name}.update({BaseSessionWriter().get_session_function_callblock(sa)})"
                 for sa in self.session_artifacts_sorted
             ]
         )
@@ -186,7 +176,7 @@ class BasePipelineWriter:
         )
 
         # Put all together to generate module text
-        MODULE_TEMPLATE = load_plugin_template("module.jinja")
+        MODULE_TEMPLATE = load_plugin_template("module/module.jinja")
         module_text = MODULE_TEMPLATE.render(
             indentation_block=indentation_block,
             module_imports=module_imports,
@@ -341,7 +331,7 @@ class BasePipelineWriter:
         test_class_name = f"Test{self.pipeline_name.title().replace('_', '')}"
 
         # Fill in file template and write it out
-        MODULE_TEST_TEMPLATE = load_plugin_template("module_test.jinja")
+        MODULE_TEST_TEMPLATE = load_plugin_template("module/module_test.jinja")
         module_test_text = MODULE_TEST_TEMPLATE.render(
             MODULE_NAME=module_name,
             TEST_CLASS_NAME=test_class_name,
@@ -410,114 +400,3 @@ class BasePipelineWriter:
                 BaseSessionWriter().get_session_input_parameters_spec(sa)
             )
         return pipeline_args
-
-    def get_artifact_task_definitions(
-        self,
-    ) -> Dict[str, TaskDefinition]:
-        """
-        get_artifact_task_definitions returns a task definition for each artifact the pipeline produces.
-        This may include tasks that produce common variables that were not initially defined as artifacts.
-
-        Returns a `task_definitions` dictionary, which maps a key corresponding to the task name to
-        Linea's TaskDefinition object.
-        Specific framework implementations of PipelineWriters should serialize the TaskDefinition
-        objects to match the format for pipeline arguments that is expected by that framework.
-        """
-        task_definitions: Dict[str, TaskDefinition] = dict()
-        unused_input_parameters = set(
-            self.artifact_collection.input_parameters
-        )
-        session_input_parameters_spec = self.get_pipeline_args()
-
-        for session_artifacts in self.session_artifacts_sorted:
-            for nc in session_artifacts.usercode_nodecollections:
-                all_input_variables = sorted(list(nc.input_variables))
-                artifact_user_input_variables = [
-                    var
-                    for var in all_input_variables
-                    if var in unused_input_parameters
-                ]
-                user_input_var_typing_block = [
-                    f"{var} = {session_input_parameters_spec[var].value_type}({var})"
-                    for var in artifact_user_input_variables
-                ]
-                unused_input_parameters.difference_update(
-                    set(artifact_user_input_variables)
-                )
-                input_var_loading_block = [
-                    f"{var} = pickle.load(open('/tmp/{self.pipeline_name}/variable_{var}.pickle','rb'))"
-                    for var in all_input_variables
-                    if var not in artifact_user_input_variables
-                ]
-                function_call_block = BaseSessionWriter().get_session_artifact_function_call_block(
-                    nc,
-                    indentation=0,
-                    source_module=f"{self.pipeline_name}_module",
-                )
-                return_var_saving_block = [
-                    f"pickle.dump({var},open('/tmp/{self.pipeline_name}/variable_{var}.pickle','wb'))"
-                    for var in nc.return_variables
-                ]
-
-                task_def: TaskDefinition = TaskDefinition(
-                    function_name=nc.safename,
-                    user_input_variables=artifact_user_input_variables,
-                    typing_blocks=user_input_var_typing_block,
-                    loading_blocks=input_var_loading_block,
-                    call_block=function_call_block,
-                    dumping_blocks=return_var_saving_block,
-                )
-                task_definitions[nc.safename] = task_def
-
-        return task_definitions
-
-    def get_session_task_definition(
-        self,
-    ) -> Dict[str, TaskDefinition]:
-        """
-        get_session_task_definition returns a task definition for each session in the pipeline.
-
-        Returns a `task_definitions` dictionary, which maps a key corresponding to the task name to
-        Linea's TaskDefinition object.
-        Specific framework implementations of PipelineWriters should serialize the TaskDefinition
-        objects to match the format for pipeline arguments that is expected by that framework.
-        """
-        task_definitions: Dict[str, TaskDefinition] = dict()
-
-        for session_artifacts in self.session_artifacts_sorted:
-
-            session_input_parameters_spec = (
-                BaseSessionWriter().get_session_input_parameters_spec(
-                    session_artifacts
-                )
-            )
-            session_input_variables = list(
-                session_input_parameters_spec.keys()
-            )
-            user_input_var_typing_block = [
-                f"{var} = {session_input_parameters_spec[var].value_type}({var})"
-                for var in session_input_variables
-            ]
-
-            input_var_loading_block: List[str] = []
-            function_call_block = f"artifacts = {self.pipeline_name}_module.{BaseSessionWriter().get_session_function_callblock(session_artifacts)}"
-            return_artifacts_saving_block = [
-                f"pickle.dump(artifacts['{nc.name}'],open('/tmp/{self.pipeline_name}/artifact_{nc.safename}.pickle','wb'))"
-                for nc in session_artifacts.usercode_nodecollections
-                if isinstance(nc, ArtifactNodeCollection)
-            ]
-            function_name = BaseSessionWriter().get_session_function_name(
-                session_artifacts
-            )
-            task_def: TaskDefinition = TaskDefinition(
-                function_name=function_name,
-                user_input_variables=session_input_variables,
-                typing_blocks=user_input_var_typing_block,
-                loading_blocks=input_var_loading_block,
-                call_block=function_call_block,
-                dumping_blocks=return_artifacts_saving_block,
-            )
-
-            task_definitions[function_name] = task_def
-
-        return task_definitions
