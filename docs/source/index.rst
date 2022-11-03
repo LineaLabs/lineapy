@@ -41,7 +41,6 @@ Welcome to LineaPy!
    :maxdepth: 1
    :caption: References
 
-   references/development/index
    references/internals/index
    references/configurations
    references/api_reference

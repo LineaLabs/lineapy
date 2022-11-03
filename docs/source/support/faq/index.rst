@@ -8,3 +8,4 @@ FAQ
 
    slicing_issues/index
    db_lock
+   black_no_attribute
