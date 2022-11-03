@@ -1,15 +1,15 @@
 """mlflow_integration
 
-Revision ID: 037407ead950
+Revision ID: 07d0db31e15f
 Revises: 4907800d9126
-Create Date: 2022-10-27 21:44:05.526679
+Create Date: 2022-11-03 16:26:37.217174
 
 """
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "037407ead950"
+revision = "07d0db31e15f"
 down_revision = "4907800d9126"
 branch_labels = None
 depends_on = None
@@ -26,6 +26,7 @@ def upgrade() -> None:
         sa.Column("registry_uri", sa.String(), nullable=True),
         sa.Column("model_uri", sa.String(), nullable=False),
         sa.Column("model_flavor", sa.String(), nullable=False),
+        sa.Column("delete_time", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["artifact_id"],
             ["artifact.id"],

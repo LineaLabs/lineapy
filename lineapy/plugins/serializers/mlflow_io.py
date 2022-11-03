@@ -155,7 +155,7 @@ def try_write_to_mlflow(value: Any, name: str, **kwargs) -> Optional[Any]:
     return None
 
 
-def read_mlflow(mlflow_metadata: MLflowArtifactInfo):
+def read_mlflow(mlflow_metadata: MLflowArtifactInfo) -> Any:
     """
     Read model from MLflow artifact store
 

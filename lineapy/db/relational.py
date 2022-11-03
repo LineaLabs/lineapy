@@ -133,6 +133,7 @@ class MLflowArtifactMetadataORM(Base):
     registry_uri = Column(String, nullable=True)
     model_uri = Column(String, nullable=False)
     model_flavor = Column(String, nullable=False)
+    delete_time = Column(DateTime, nullable=True)
 
 
 class PipelineORM(Base):

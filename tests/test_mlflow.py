@@ -9,7 +9,8 @@ from sklearn.base import BaseEstimator
 mlflow = pytest.importorskip("mlflow")
 
 
-def test_save_and_get_to_mlflow(execute):
+@pytest.mark.slow
+def test_save_get_delete_to_mlflow(execute):
     """
     Test mlflow as backend storage
 
@@ -38,6 +39,12 @@ metadata = art.get_metadata()
 client = mlflow.MlflowClient()
 latest_version = client.search_model_versions("name='lineapy_clf'")[0].version
 mlflow_model = mlflow.sklearn.load_model(f'models:/lineapy_clf/{latest_version}')
+
+lineapy.delete('clf', version=art.version)
+try:
+    deleted_clf = lineapy.get('clf', version=art.version)
+except:
+    deleted_clf = None
 """
     res = execute(code, snapshot=False)
 
@@ -52,6 +59,10 @@ mlflow_model = mlflow.sklearn.load_model(f'models:/lineapy_clf/{latest_version}'
     # Metadata
     metadata = res.values["metadata"]
     assert "lineapy" in metadata.keys() and "mlflow" in metadata.keys()
+
+    # Delete
+    deleted_clf = res.values["deleted_clf"]
+    assert deleted_clf is None
 
 
 @pytest.mark.slow

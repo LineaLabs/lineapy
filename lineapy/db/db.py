@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
@@ -785,11 +786,15 @@ class RelationalLineaDB:
     def delete_mlflow_metadata_by_artifact_id(self, artifact_id: int) -> None:
         """
         Delete MLflow metadata for the artifact
+
+        Add current timestamp to delete_time to the mlflowartifactmetadata table
         """
-        res_query = self.session.query(MLflowArtifactMetadataORM).filter(
-            MLflowArtifactMetadataORM.artifact_id == artifact_id
-        )
-        res_query.delete()
+        self.session.query(MLflowArtifactMetadataORM).filter(
+            and_(
+                MLflowArtifactMetadataORM.artifact_id == artifact_id,
+                MLflowArtifactMetadataORM.delete_time.is_(None),
+            )
+        ).update({"delete_time": datetime.utcnow()})
         self.renew_session()
 
     def delete_node_value_from_db(
@@ -864,6 +869,9 @@ class RelationalLineaDB:
         """
 
         res_query = self.session.query(MLflowArtifactMetadataORM).filter(
-            MLflowArtifactMetadataORM.artifact_id == artifact_id
+            and_(
+                MLflowArtifactMetadataORM.artifact_id == artifact_id,
+                MLflowArtifactMetadataORM.delete_time.is_(None),
+            )
         )
         return res_query.one()
