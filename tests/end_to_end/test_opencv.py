@@ -2,6 +2,8 @@ import pytest
 
 from lineapy.utils.utils import prettify
 
+cv2 = pytest.importorskip("cv2")
+
 
 @pytest.mark.slow
 def test_opencv_knn(execute):
