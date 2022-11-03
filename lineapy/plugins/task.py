@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from enum import Enum
 from itertools import chain
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Set, Tuple
 
 import networkx as nx
-from typing_extensions import TypedDict
+
+from lineapy.plugins.utils import load_plugin_template, slugify
 
 TaskGraphEdge = Dict[str, Set[str]]
 
@@ -61,72 +62,6 @@ class TaskGraph(object):
     def get_taskorder(self) -> List[str]:
         return list(nx.topological_sort(self.graph))
 
-    # Depreciate after new to_pipeline is implemented
-    def get_airflow_dependency(self):
-        return (
-            "\n".join(
-                [f"{task0}>> {task1}" for task0, task1 in self.graph.edges]
-            )
-            if len(list(self.graph.edges)) > 0
-            else ""
-        )
-
-    def get_airflow_dependencies(
-        self,
-        setup_task: Optional[str] = None,
-        teardown_task: Optional[str] = None,
-    ):
-        taskorder = [
-            task for task in self.get_taskorder() if task in self.graph.nodes
-        ]
-        dependencies = [
-            f"{task0}>> {task1}" for task0, task1 in self.graph.edges
-        ]
-        if setup_task is not None:
-            dependencies.append(f"{setup_task} >> {taskorder[0]}")
-        if teardown_task is not None:
-            dependencies.append(f"{taskorder[-1]} >> {teardown_task}")
-        return dependencies
-
-
-class AirflowDagFlavor(Enum):
-    PythonOperatorPerSession = 1
-    PythonOperatorPerArtifact = 2
-    # To be implemented for different flavor of airflow dags
-    # BashOperator = 3
-    # DockerOperator = 4
-    # KubernetesPodOperator = 5
-
-
-AirflowDagConfig = TypedDict(
-    "AirflowDagConfig",
-    {
-        "owner": str,
-        "retries": int,
-        "start_date": str,
-        "schedule_interval": str,
-        "max_active_runs": int,
-        "catchup": str,
-        "dag_flavor": str,  # Not native to Airflow config
-    },
-    total=False,
-)
-
-
-class DVCDagFlavor(Enum):
-    SingleStageAllSessions = 1
-    # TODO: StagePerSession
-    # TODO: StagePerArtifact
-
-
-DVCDagConfig = TypedDict(
-    "DVCDagConfig",
-    {
-        "dag_flavor": str,  # Not native to DVC config
-    },
-    total=False,
-)
-
 
 @dataclass
 class TaskDefinition:
@@ -137,7 +72,86 @@ class TaskDefinition:
 
     function_name: str
     user_input_variables: List[str]
+    loaded_input_variables: List[str]
     typing_blocks: List[str]
-    loading_blocks: List[str]
     call_block: str
-    dumping_blocks: List[str]
+    return_vars: List[str]
+    pipeline_name: str
+
+
+class DagTaskBreakdown(Enum):
+    """
+    Enum to define how to break down a graph into tasks for the pipeline.
+    """
+
+    TaskAllSessions = 1  # all sessions are one task
+    TaskPerSession = 2  # each session corresponds to one task
+    TaskPerArtifact = 3  # each artifact or common variable is a task
+
+
+class TaskSerializer(Enum):
+    """Enum to define what type of object serialization to use for inter task communication."""
+
+    LocalPickle = 1
+    # TODO: lineapy.get and lineapy.save
+
+
+def extract_taskgraph(
+    artifacts: List[str], dependencies: TaskGraphEdge
+) -> Tuple[List[str], TaskGraph]:
+    """
+    extract_taskgraph returns a list of artifacts and the taskgraph corresponding to the provided dependencies
+    """
+    artifact_safe_names = []
+    for artifact_name in artifacts:
+        artifact_var = slugify(artifact_name)
+        if len(artifact_var) == 0:
+            raise ValueError(f"Invalid slice name {artifact_name}.")
+        artifact_safe_names.append(artifact_var)
+
+    task_graph = TaskGraph(
+        artifacts,
+        {slice: task for slice, task in zip(artifacts, artifact_safe_names)},
+        dependencies,
+    )
+    return (artifact_safe_names, task_graph)
+
+
+def render_task_io_serialize_blocks(
+    taskdef: TaskDefinition, task_serialization: TaskSerializer
+) -> Tuple[List[str], List[str]]:
+    """
+    render_task_io_serialize_blocks renders object ser and deser code blocks.
+
+    These code blocks can be used for inter task communication.
+    This function returns the task deserialization block first,
+    since this block should be included first in the function to load the variables.
+    """
+    task_serialization_blocks = []
+    task_deserialization_block = []
+
+    if task_serialization == TaskSerializer.LocalPickle:
+        SERIALIZER_TEMPLATE = load_plugin_template(
+            "task/localpickle/task_local_pickle_ser.jinja"
+        )
+        DESERIALIZER_TEMPLATE = load_plugin_template(
+            "task/localpickle/task_local_pickle_deser.jinja"
+        )
+    # Add more renderable task serializers here
+
+    for loaded_input_variable in taskdef.loaded_input_variables:
+        task_deserialization_block.append(
+            DESERIALIZER_TEMPLATE.render(
+                loaded_input_variable=loaded_input_variable,
+                pipeline_name=taskdef.pipeline_name,
+            )
+        )
+    for return_variable in taskdef.return_vars:
+        task_serialization_blocks.append(
+            SERIALIZER_TEMPLATE.render(
+                return_variable=return_variable,
+                pipeline_name=taskdef.pipeline_name,
+            )
+        )
+
+    return task_deserialization_block, task_serialization_blocks

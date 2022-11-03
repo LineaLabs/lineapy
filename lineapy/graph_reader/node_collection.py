@@ -152,7 +152,7 @@ class ArtifactNodeCollection(UserCodeNodeCollection):
         self, graph: Graph, include_non_slice_as_comment=False, indentation=4
     ) -> str:
         """
-        Return a codeblock to define the function of the graph segment.
+        Return a function body code block from code in the graph segment.
 
         If self.is_pre_computed_artifact is True, will replace the calculation
         block with lineapy.get().get_value()

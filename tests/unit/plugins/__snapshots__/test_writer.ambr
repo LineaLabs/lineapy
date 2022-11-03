@@ -67,20 +67,6 @@
   from airflow.utils.dates import days_ago
   
   
-  def dag_setup():
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_complex_h_perart")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
-  
-  
-  def dag_teardown():
-      pickle_files = (
-          pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").glob("*.pickle")
-      )
-      for f in pickle_files:
-          f.unlink()
-  
-  
   def task_a_c_for_artifact_f_and_downstream():
   
       a, c = airflow_complex_h_perart_module.get_a_c_for_artifact_f_and_downstream()
@@ -110,6 +96,22 @@
       pickle.dump(h, open("/tmp/airflow_complex_h_perart/variable_h.pickle", "wb"))
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_complex_h_perart")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def task_teardown():
+  
+      pickle_files = (
+          pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
   default_dag_args = {
       "owner": "airflow",
       "retries": 2,
@@ -125,13 +127,8 @@
   ) as dag:
   
       setup = PythonOperator(
-          task_id="dag_setup",
-          python_callable=dag_setup,
-      )
-  
-      teardown = PythonOperator(
-          task_id="dag_teardown",
-          python_callable=dag_teardown,
+          task_id="setup_task",
+          python_callable=task_setup,
       )
   
       a_c_for_artifact_f_and_downstream = PythonOperator(
@@ -149,11 +146,16 @@
           python_callable=task_h,
       )
   
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
+      )
+  
+      setup >> a_c_for_artifact_f_and_downstream
+  
       a_c_for_artifact_f_and_downstream >> f
   
       f >> h
-  
-      setup >> a_c_for_artifact_f_and_downstream
   
       h >> teardown
   
@@ -224,20 +226,6 @@
   from airflow.utils.dates import days_ago
   
   
-  def dag_setup():
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
-  
-  
-  def dag_teardown():
-      pickle_files = (
-          pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0").glob("*.pickle")
-      )
-      for f in pickle_files:
-          f.unlink()
-  
-  
   def task_a0():
   
       a0 = airflow_pipeline_a0_b0_module.get_a0()
@@ -250,6 +238,22 @@
       b0 = airflow_pipeline_a0_b0_module.get_b0()
   
       pickle.dump(b0, open("/tmp/airflow_pipeline_a0_b0/variable_b0.pickle", "wb"))
+  
+  
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def task_teardown():
+  
+      pickle_files = (
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0").glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
   
   
   default_dag_args = {
@@ -267,13 +271,8 @@
   ) as dag:
   
       setup = PythonOperator(
-          task_id="dag_setup",
-          python_callable=dag_setup,
-      )
-  
-      teardown = PythonOperator(
-          task_id="dag_teardown",
-          python_callable=dag_teardown,
+          task_id="setup_task",
+          python_callable=task_setup,
       )
   
       a0 = PythonOperator(
@@ -286,9 +285,14 @@
           python_callable=task_b0,
       )
   
-      a0 >> b0
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
+      )
   
       setup >> a0
+  
+      a0 >> b0
   
       b0 >> teardown
   
@@ -359,20 +363,13 @@
   from airflow.utils.dates import days_ago
   
   
-  def dag_setup():
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0_dependencies")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
+  def task_a0():
   
+      a0 = airflow_pipeline_a0_b0_dependencies_module.get_a0()
   
-  def dag_teardown():
-      pickle_files = (
-          pathlib.Path("/tmp")
-          .joinpath("airflow_pipeline_a0_b0_dependencies")
-          .glob("*.pickle")
+      pickle.dump(
+          a0, open("/tmp/airflow_pipeline_a0_b0_dependencies/variable_a0.pickle", "wb")
       )
-      for f in pickle_files:
-          f.unlink()
   
   
   def task_b0():
@@ -384,13 +381,22 @@
       )
   
   
-  def task_a0():
+  def task_setup():
   
-      a0 = airflow_pipeline_a0_b0_dependencies_module.get_a0()
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0_dependencies")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
   
-      pickle.dump(
-          a0, open("/tmp/airflow_pipeline_a0_b0_dependencies/variable_a0.pickle", "wb")
+  
+  def task_teardown():
+  
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_a0_b0_dependencies")
+          .glob("*.pickle")
       )
+      for f in pickle_files:
+          f.unlink()
   
   
   default_dag_args = {
@@ -408,18 +414,8 @@
   ) as dag:
   
       setup = PythonOperator(
-          task_id="dag_setup",
-          python_callable=dag_setup,
-      )
-  
-      teardown = PythonOperator(
-          task_id="dag_teardown",
-          python_callable=dag_teardown,
-      )
-  
-      b0 = PythonOperator(
-          task_id="b0_task",
-          python_callable=task_b0,
+          task_id="setup_task",
+          python_callable=task_setup,
       )
   
       a0 = PythonOperator(
@@ -427,11 +423,21 @@
           python_callable=task_a0,
       )
   
-      b0 >> a0
+      b0 = PythonOperator(
+          task_id="b0_task",
+          python_callable=task_b0,
+      )
   
-      setup >> b0
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
+      )
   
-      a0 >> teardown
+      setup >> a0
+  
+      a0 >> b0
+  
+      b0 >> teardown
   
   '
 ---
@@ -498,20 +504,6 @@
   from airflow.utils.dates import days_ago
   
   
-  def dag_setup():
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
-  
-  
-  def dag_teardown():
-      pickle_files = (
-          pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar").glob("*.pickle")
-      )
-      for f in pickle_files:
-          f.unlink()
-  
-  
   def task_b0(b0):
   
       b0 = int(b0)
@@ -534,6 +526,22 @@
       pickle.dump(a, open("/tmp/airflow_pipeline_a_b0_inputpar/variable_a.pickle", "wb"))
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def task_teardown():
+  
+      pickle_files = (
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar").glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
   default_dag_args = {
       "owner": "airflow",
       "retries": 2,
@@ -550,13 +558,8 @@
   ) as dag:
   
       setup = PythonOperator(
-          task_id="dag_setup",
-          python_callable=dag_setup,
-      )
-  
-      teardown = PythonOperator(
-          task_id="dag_teardown",
-          python_callable=dag_teardown,
+          task_id="setup_task",
+          python_callable=task_setup,
       )
   
       b0 = PythonOperator(
@@ -570,9 +573,14 @@
           python_callable=task_a,
       )
   
-      b0 >> a
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
+      )
   
       setup >> b0
+  
+      b0 >> a
   
       a >> teardown
   
@@ -641,24 +649,6 @@
   from airflow.utils.dates import days_ago
   
   
-  def dag_setup():
-      pickle_folder = pathlib.Path("/tmp").joinpath(
-          "airflow_pipeline_a_b0_inputpar_session"
-      )
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
-  
-  
-  def dag_teardown():
-      pickle_files = (
-          pathlib.Path("/tmp")
-          .joinpath("airflow_pipeline_a_b0_inputpar_session")
-          .glob("*.pickle")
-      )
-      for f in pickle_files:
-          f.unlink()
-  
-  
   def task_run_session_including_b0(b0):
   
       b0 = int(b0)
@@ -668,14 +658,32 @@
       )
   
       pickle.dump(
-          artifacts["b0"],
-          open("/tmp/airflow_pipeline_a_b0_inputpar_session/artifact_b0.pickle", "wb"),
+          b0, open("/tmp/airflow_pipeline_a_b0_inputpar_session/variable_b0.pickle", "wb")
       )
   
       pickle.dump(
-          artifacts["a"],
-          open("/tmp/airflow_pipeline_a_b0_inputpar_session/artifact_a.pickle", "wb"),
+          a, open("/tmp/airflow_pipeline_a_b0_inputpar_session/variable_a.pickle", "wb")
       )
+  
+  
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath(
+          "airflow_pipeline_a_b0_inputpar_session"
+      )
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def task_teardown():
+  
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_a_b0_inputpar_session")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
   
   
   default_dag_args = {
@@ -694,19 +702,19 @@
   ) as dag:
   
       setup = PythonOperator(
-          task_id="dag_setup",
-          python_callable=dag_setup,
-      )
-  
-      teardown = PythonOperator(
-          task_id="dag_teardown",
-          python_callable=dag_teardown,
+          task_id="setup_task",
+          python_callable=task_setup,
       )
   
       run_session_including_b0 = PythonOperator(
           task_id="run_session_including_b0_task",
           python_callable=task_run_session_including_b0,
           op_kwargs={"b0": "{{ params.b0 }}"},
+      )
+  
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
       )
   
       setup >> run_session_including_b0
@@ -791,22 +799,6 @@
   from airflow.utils.dates import days_ago
   
   
-  def dag_setup():
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
-  
-  
-  def dag_teardown():
-      pickle_files = (
-          pathlib.Path("/tmp")
-          .joinpath("airflow_pipeline_housing_multiple")
-          .glob("*.pickle")
-      )
-      for f in pickle_files:
-          f.unlink()
-  
-  
   def task_assets_for_artifact_y_and_downstream():
   
       assets = (
@@ -849,6 +841,24 @@
       )
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def task_teardown():
+  
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_housing_multiple")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
   default_dag_args = {
       "owner": "airflow",
       "retries": 2,
@@ -864,13 +874,8 @@
   ) as dag:
   
       setup = PythonOperator(
-          task_id="dag_setup",
-          python_callable=dag_setup,
-      )
-  
-      teardown = PythonOperator(
-          task_id="dag_teardown",
-          python_callable=dag_teardown,
+          task_id="setup_task",
+          python_callable=task_setup,
       )
   
       assets_for_artifact_y_and_downstream = PythonOperator(
@@ -888,11 +893,16 @@
           python_callable=task_p_value,
       )
   
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
+      )
+  
+      setup >> assets_for_artifact_y_and_downstream
+  
       assets_for_artifact_y_and_downstream >> y
   
       y >> p_value
-  
-      setup >> assets_for_artifact_y_and_downstream
   
       p_value >> teardown
   
@@ -963,13 +973,22 @@
   from airflow.utils.dates import days_ago
   
   
-  def dag_setup():
+  def task_p_value():
+  
+      p = airflow_pipeline_housing_simple_module.get_p_value()
+  
+      pickle.dump(p, open("/tmp/airflow_pipeline_housing_simple/variable_p.pickle", "wb"))
+  
+  
+  def task_setup():
+  
       pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_simple")
       if not pickle_folder.exists():
           pickle_folder.mkdir()
   
   
-  def dag_teardown():
+  def task_teardown():
+  
       pickle_files = (
           pathlib.Path("/tmp")
           .joinpath("airflow_pipeline_housing_simple")
@@ -977,13 +996,6 @@
       )
       for f in pickle_files:
           f.unlink()
-  
-  
-  def task_p_value():
-  
-      p = airflow_pipeline_housing_simple_module.get_p_value()
-  
-      pickle.dump(p, open("/tmp/airflow_pipeline_housing_simple/variable_p.pickle", "wb"))
   
   
   default_dag_args = {
@@ -1001,18 +1013,18 @@
   ) as dag:
   
       setup = PythonOperator(
-          task_id="dag_setup",
-          python_callable=dag_setup,
-      )
-  
-      teardown = PythonOperator(
-          task_id="dag_teardown",
-          python_callable=dag_teardown,
+          task_id="setup_task",
+          python_callable=task_setup,
       )
   
       p_value = PythonOperator(
           task_id="p_value_task",
           python_callable=task_p_value,
+      )
+  
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
       )
   
       setup >> p_value
@@ -1097,24 +1109,6 @@
   from airflow.utils.dates import days_ago
   
   
-  def dag_setup():
-      pickle_folder = pathlib.Path("/tmp").joinpath(
-          "airflow_pipeline_housing_w_dependencies"
-      )
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
-  
-  
-  def dag_teardown():
-      pickle_files = (
-          pathlib.Path("/tmp")
-          .joinpath("airflow_pipeline_housing_w_dependencies")
-          .glob("*.pickle")
-      )
-      for f in pickle_files:
-          f.unlink()
-  
-  
   def task_assets_for_artifact_y_and_downstream():
   
       assets = (
@@ -1163,6 +1157,26 @@
       )
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath(
+          "airflow_pipeline_housing_w_dependencies"
+      )
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def task_teardown():
+  
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_housing_w_dependencies")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
   default_dag_args = {
       "owner": "airflow",
       "retries": 2,
@@ -1178,13 +1192,8 @@
   ) as dag:
   
       setup = PythonOperator(
-          task_id="dag_setup",
-          python_callable=dag_setup,
-      )
-  
-      teardown = PythonOperator(
-          task_id="dag_teardown",
-          python_callable=dag_teardown,
+          task_id="setup_task",
+          python_callable=task_setup,
       )
   
       assets_for_artifact_y_and_downstream = PythonOperator(
@@ -1202,11 +1211,16 @@
           python_callable=task_p_value,
       )
   
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
+      )
+  
+      setup >> assets_for_artifact_y_and_downstream
+  
       assets_for_artifact_y_and_downstream >> y
   
       y >> p_value
-  
-      setup >> assets_for_artifact_y_and_downstream
   
       p_value >> teardown
   
@@ -1274,24 +1288,6 @@
   from airflow.utils.dates import days_ago
   
   
-  def dag_setup():
-      pickle_folder = pathlib.Path("/tmp").joinpath(
-          "airflow_pipeline_two_input_parameter"
-      )
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
-  
-  
-  def dag_teardown():
-      pickle_files = (
-          pathlib.Path("/tmp")
-          .joinpath("airflow_pipeline_two_input_parameter")
-          .glob("*.pickle")
-      )
-      for f in pickle_files:
-          f.unlink()
-  
-  
   def task_pn(n, p):
   
       n = int(n)
@@ -1303,6 +1299,26 @@
       pickle.dump(
           pn, open("/tmp/airflow_pipeline_two_input_parameter/variable_pn.pickle", "wb")
       )
+  
+  
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath(
+          "airflow_pipeline_two_input_parameter"
+      )
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def task_teardown():
+  
+      pickle_files = (
+          pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_two_input_parameter")
+          .glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
   
   
   default_dag_args = {
@@ -1321,19 +1337,19 @@
   ) as dag:
   
       setup = PythonOperator(
-          task_id="dag_setup",
-          python_callable=dag_setup,
-      )
-  
-      teardown = PythonOperator(
-          task_id="dag_teardown",
-          python_callable=dag_teardown,
+          task_id="setup_task",
+          python_callable=task_setup,
       )
   
       pn = PythonOperator(
           task_id="pn_task",
           python_callable=task_pn,
           op_kwargs={"n": "{{ params.n }}", "p": "{{ params.p }}"},
+      )
+  
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
       )
   
       setup >> pn

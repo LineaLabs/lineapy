@@ -54,6 +54,12 @@ lineapy.plugins.task module
 .. automodule:: lineapy.plugins.task
    :members:
 
+lineapy.plugins.taskgen module
+------------------------------
+
+.. automodule:: lineapy.plugins.taskgen
+   :members:
+
 lineapy.plugins.utils module
 ----------------------------
 

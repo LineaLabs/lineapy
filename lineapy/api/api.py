@@ -6,7 +6,7 @@ import logging
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 
@@ -25,7 +25,8 @@ from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
 from lineapy.plugins.loader import load_as_module
-from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
+from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ErrorType,
@@ -387,7 +388,7 @@ def to_pipeline(
     input_parameters: List[str] = [],
     reuse_pre_computed_artifacts: List[str] = [],
     generate_test: bool = False,
-    pipeline_dag_config: Optional[AirflowDagConfig] = {},
+    pipeline_dag_config: Optional[Dict] = {},
     include_non_slice_as_comment: bool = False,
 ) -> Path:
     """
