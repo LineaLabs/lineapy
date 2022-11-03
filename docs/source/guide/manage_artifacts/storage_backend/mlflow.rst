@@ -40,6 +40,8 @@ Thus, we provide an option(``default_ml_models_storage_backend``) to let users d
 
 Here are behaviors about which storage backend to use for ML models:
 
+* Only set ``mlflow_tracking_uri`` but not ``default_ml_models_storage_backend``
+
 .. code:: python
 
     lineapy.options.set("mlflow_tracking_uri", "databricks")
@@ -48,11 +50,23 @@ Here are behaviors about which storage backend to use for ML models:
     lineapy.save(model, 'model', storage_backend='mlflow') # Use MLflow
     lineapy.save(model, 'model', storage_backend='lineapy') # Use LineaPy
 
+
+* Set ``mlflow_tracking_uri`` and ``default_ml_models_storage_backend=='mlflow'``
+
+.. code:: python
+
+    lineapy.options.set("mlflow_tracking_uri", "databricks")
     lineapy.options.set("default_ml_models_storage_backend", "mlflow")
     lineapy.save(model, 'model') # Use MLflow
     lineapy.save(model, 'model', storage_backend='mlflow') # Use MLflow
     lineapy.save(model, 'model', storage_backend='lineapy') # Use LineaPy
 
+
+* Set ``mlflow_tracking_uri`` and ``default_ml_models_storage_backend=='lineapy'``
+
+.. code:: python
+
+    lineapy.options.set("mlflow_tracking_uri", "databricks")
     lineapy.options.set("default_ml_models_storage_backend", "lineapy")
     lineapy.save(model, 'model') # Use LineaPy
     lineapy.save(model, 'model', storage_backend='mlflow') # Use MLflow
@@ -70,21 +84,22 @@ Retrieve Artifact from Both LineaPy and MLflow
 ----------------------------------------------
 
 Depend on what users want to do (or be familiar with). 
-Users can retrieve the artifact(ML model) from LineaPy and MLflow once users execute ``lineapy.save`` with ``MLflow`` as the storage backend to save the artifact.
+Users can retrieve the same artifact(ML model) from LineaPy API and MLflow API once users execute ``lineapy.save`` with ``mlflow`` as the storage backend to save the artifact.
+
+* Retrieve artifact(model) with LineaPy API
 
 .. code:: python
 
-    # LineaPy way
     artifact = lineapy.get('model')
-    model = artifact.get_value()
+    lineapy_model = artifact.get_value()
 
-    artifact.get_code() # to slice the code
-    lineapy.to_pipeline(['model']) # to create a pipeline 
+* Retrieve artifact(model) with Mlflow API
 
-    # MLflow way
-    metadata = artifact.get_metadata()
+.. code:: python
+
     client = mlflow.MlflowClient()
     latest_version = client.search_model_versions("name='clf'")[0].version
+    # This is exactly the same object as `lineapy_model` in previous session
     mlflow_model = mlflow.sklearn.load_model(f'models:/clf/{latest_version}')    
 
 Which MLflow Model Flavor is Supported
