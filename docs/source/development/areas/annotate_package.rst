@@ -188,18 +188,11 @@ In contrast, we would get the correct code cleanup with the following package an
                 - self_ref: SELF_REF
                 - result: RESULT
 
-where ``views`` specifies entities whose modifications should be linked to one another. In this example,
-``result`` and ``self_ref`` are set to be views of each other, which means that modification of the ``fit``
-call's output (e.g., ``fitted_mod`` in ``fitted_mod = mod.fit(...)``) will modify the ``fit`` caller itself
-(e.g., ``mod`` in ``fitted_mod = mod.fit(...)``), and vice versa. Differently put, ``views`` establishes
-links between objects that need to be tracked together.
+where
+
+* ``BaseEstimator`` is a parent class of ``LinearModel``, which is in turn a parent class of ``LinearRegression``.
+
+* ``views`` specifies entities whose modifications should be linked to one another. In this example, ``result`` and ``self_ref`` are set to be views of each other, which means that modification of the ``fit`` call's output (e.g., ``fitted_mod`` in ``fitted_mod = mod.fit(...)``) will modify the ``fit`` caller itself (e.g., ``mod`` in ``fitted_mod = mod.fit(...)``), and vice versa. Differently put, ``views`` establishes links between objects that need to be tracked together because a change in one will change the other(s).
 
 In sum, instructions above tell ``lineapy`` to recognize ``fit`` method of ``BaseEstimator`` class (defined under ``sklearn.base`` module)
 as an API that mutates the function caller itself, and to treat it as such in relevant downstream tasks such as code cleanup.
-
-.. note::
-
-    ``BaseEstimator`` is a parent class of ``LinearModel``, which is in turn a parent class of ``LinearRegression``.
-    Hence, the annotation above is done at a more fundamental level, which is recommended to avoid redundant annotations
-    among related classes (i.e., other model classes that inherit from ``BaseEstimator``). In practice, identifying the right
-    "root" level to annotate at often involves exploring the target package's codebase for some time.

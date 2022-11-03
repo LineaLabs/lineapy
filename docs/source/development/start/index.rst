@@ -12,7 +12,7 @@ and successful, so we welcome contribution from any new members.
     setup
     .. example
     tips
-    support
+    help
 
 .. note::
 

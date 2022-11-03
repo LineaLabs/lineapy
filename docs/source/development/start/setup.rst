@@ -31,6 +31,13 @@ To keep the forked repo in sync with the original one, set an "upstream":
 Setting up Virtual Environment
 ******************************
 
+.. note::
+
+    Here, we use `venv <https://docs.python.org/3/library/venv.html>`_ for virtual environment setup
+    because it comes with Python core distribution. If you prefer a different option (e.g.,
+    `conda <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_),
+    you can skip this section.
+
 When done cloning, move into the repo and initiate a virtual environment:
 
 .. code:: bash
@@ -126,11 +133,21 @@ To run all tests (beware that this may take a while to complete):
 
     pytest tests
 
-Or, to run a particular test (e.g., one that you added/modified):
+Or, to run select tests (e.g., those that you added/modified):
 
 .. code:: bash
 
-    pytest <PATH-TO-TEST-FILE>
+    # Example: Run all tests in a folder
+    pytest tests/unit/plugins
+
+    # Example: Run all tests in a file
+    pytest tests/unit/plugins/test_writer.py
+
+    # Example: Run a particular test
+    pytest tests/unit/plugins/test_writer.py::test_pipeline_generation
+
+    # Example: Run a parametrized test with a particular set of parameter values
+    pytest tests/unit/plugins/test_writer.py::test_pipeline_generation[script_pipeline_a0_b0]
 
 Integrating Changes
 *******************
@@ -158,6 +175,8 @@ Then, sync your development branch with the updated ``main`` branch:
     you will need to resolve merge conflict(s). Check this
     `tutorial <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/addressing-merge-conflicts/resolving-a-merge-conflict-using-the-command-line>`_
     to learn how.
+
+    If the issue persists, please get in touch with LineaPy's core development team on :ref:`Slack <community_support>`.
 
 Once you are content with your changes and ready to integrate them into the original ``lineapy`` project,
 you can open a pull request following instructions `here <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork>`_.
