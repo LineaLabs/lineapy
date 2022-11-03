@@ -31,6 +31,16 @@ logger = logging.getLogger(__name__)
 configure_logging()
 
 mlflow_io = {}
+"""
+This dictionary holds information about how to serialize and deserialize for 
+each MLflow supported model flavors. Each individual key is a module name; 
+i.e., MLflow supported flavor, ``sklearn`` for instance. Each value is a 
+dictionary with following three keys:
+
+1. class: list of object class with the module that can be log/save in MLflow 
+2. serializer: the method in MLflow to log the model flavor
+3. deserializer is the method in MLflow to retrieve the model
+"""
 
 try:
     import mlflow
@@ -85,7 +95,8 @@ except ImportError:
 
 def try_write_to_mlflow(value: Any, name: str, **kwargs) -> Optional[Any]:
     """
-    Try to save artifact with MLflow
+    Try to save artifact with MLflow. If success return mlflow ModelInfo,
+    return None if fail.
 
     Parameters
     ----------
@@ -101,9 +112,8 @@ def try_write_to_mlflow(value: Any, name: str, **kwargs) -> Optional[Any]:
     -------
     Optional[Any]
         return a ModelInfo(MLflow model metadata) if successfully save with
-        mlflow; otherwise None.
-
-    Note that, using Any for type checking in case mlflow is not installed.
+        mlflow; otherwise None. Note that, using Any not ModelInfo here in
+        case mlflow is not installed and cause error when loading lineapy
 
     """
 
@@ -135,6 +145,7 @@ def try_write_to_mlflow(value: Any, name: str, **kwargs) -> Optional[Any]:
                     "registered_model_name", name
                 )
                 kwargs["artifact_path"] = kwargs.get("artifact_path", name)
+                # This is where save to MLflow happen
                 model_info = flavor_io["serializer"](value, **kwargs)
                 return model_info
 

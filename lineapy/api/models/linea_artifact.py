@@ -85,6 +85,17 @@ class LineaArtifact:
     you get the artifact or list of artifacts as an artifact store, we retrieve 
     the date from db directly"""
 
+    def __post_init__(self) -> None:
+        """
+        Fill empty _artifact_id and date_created attributes.
+        """
+        if self._artifact_id is None or self.date_created is None:
+            artifactorm = self.db.get_artifactorm_by_name(
+                artifact_name=self.name, version=self.version
+            )
+            self._artifact_id = artifactorm.id
+            self.date_created = artifactorm.date_created
+
     @property
     def version(self) -> int:
         track(GetVersionEvent(""))
@@ -121,6 +132,17 @@ class LineaArtifact:
     def _get_storage_path(self) -> Optional[str]:
         return self.db.get_node_value_path(self._node_id, self._execution_id)
 
+    def _get_storage_backend(self, storage_path) -> ARTIFACT_STORAGE_BACKEND:
+        """
+        Get storage backend based on the storage path
+
+        """
+        if isinstance(storage_path, str) and storage_path.startswith("runs:"):
+            # MLflow log_model should return the model URI with prefix ``runs:``
+            return ARTIFACT_STORAGE_BACKEND.mlflow
+        else:
+            return ARTIFACT_STORAGE_BACKEND.lineapy
+
     @lru_cache(maxsize=None)
     def get_metadata(self, lineapy_only: bool = False) -> ArtifactInfo:
         """
@@ -135,23 +157,11 @@ class LineaArtifact:
 
         """
 
-        if self._artifact_id is None or self.date_created is None:
-            artifactorm = self.db.get_artifactorm_by_name(
-                artifact_name=self.name, version=self.version
-            )
-            self._artifact_id = artifactorm.id
-            self.date_created = artifactorm.date_created
-
         assert isinstance(self._artifact_id, int)
         assert isinstance(self.date_created, datetime)
 
         storage_path = self._get_storage_path()
-        storage_backend = (
-            ARTIFACT_STORAGE_BACKEND.mlflow
-            if isinstance(storage_path, str)
-            and storage_path.startswith("runs:")
-            else ARTIFACT_STORAGE_BACKEND.lineapy
-        )
+        storage_backend = self._get_storage_backend(storage_path)
 
         lineaartifact_metadata = LineaArtifactInfo(
             artifact_id=self._artifact_id,
