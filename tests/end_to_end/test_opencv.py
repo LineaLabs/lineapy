@@ -1,7 +1,5 @@
 import pytest
 
-from lineapy.utils.utils import prettify
-
 cv2 = pytest.importorskip("cv2")
 
 
