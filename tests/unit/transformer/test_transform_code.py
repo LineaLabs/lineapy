@@ -13,6 +13,6 @@ def test_transform_fn(nt_mock: MagicMock):
     mocked_tracer = MagicMock()
     source_location = MagicMock()
     transform("x = 1", source_location, mocked_tracer)
-    nt_mock.assert_called_once_with("x = 1", source_location, mocked_tracer)
+    nt_mock.assert_called_once()
     mocked_tracer.db.commit.assert_called_once()
     # TODO - test that source giver is called only for 3.7 and below
