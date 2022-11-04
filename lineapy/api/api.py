@@ -26,7 +26,6 @@ from lineapy.instrumentation.annotation_spec import ExternalState
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
 from lineapy.plugins.loader import load_as_module
 from lineapy.plugins.task import TaskGraphEdge
-from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ErrorType,
@@ -221,36 +220,26 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     node_id = lineapy_metadata.node_id
     execution_id = lineapy_metadata.execution_id
 
+    db.delete_artifact_by_name(artifact_name, version=version)
+    logging.info(f"Deleted Artifact: {artifact_name} version: {version}")
+    try:
+        db.delete_node_value_from_db(node_id, execution_id)
+    except UserException:
+        logging.info(
+            f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+        )
+    except ValueError:
+        logging.debug(f"No valid storage path found for {node_id}")
+
     if lineapy_metadata.storage_backend == ARTIFACT_STORAGE_BACKEND.lineapy:
-        try:
-            storage_path = lineapy_metadata.storage_path
-            pickled_path = (
-                str(options.safe_get("artifact_storage_dir")).rstrip("/")
-                + f"/{storage_path}"
-            )
-            # Wrap the db operation and file as a transaction
-            with fsspec.open(pickled_path) as f:
-                db.delete_artifact_by_name(artifact_name, version=version)
-                logging.info(
-                    f"Deleted Artifact: {artifact_name} version: {version}"
-                )
-                try:
-                    db.delete_node_value_from_db(node_id, execution_id)
-                except UserException:
-                    logging.info(
-                        f"Node: {node_id} with execution ID: {execution_id} not found in DB"
-                    )
-                f.fs.delete(f.path)
-        except ValueError:
-            logging.debug(f"No valid pickle path found for {node_id}")
+        storage_path = lineapy_metadata.storage_path
+        pickled_path = (
+            str(options.safe_get("artifact_storage_dir")).rstrip("/")
+            + f"/{storage_path}"
+        )
+        with fsspec.open(pickled_path) as f:
+            f.fs.delete(f.path)
     elif lineapy_metadata.storage_backend == ARTIFACT_STORAGE_BACKEND.mlflow:
-        db.delete_artifact_by_name(artifact_name, version=version)
-        try:
-            db.delete_node_value_from_db(node_id, execution_id)
-        except UserException:
-            logging.info(
-                f"Node: {node_id} with execution ID: {execution_id} not found in DB"
-            )
         try:
             db.delete_mlflow_metadata_by_artifact_id(
                 lineapy_metadata.artifact_id
