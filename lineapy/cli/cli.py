@@ -29,7 +29,7 @@ from lineapy.api.models.linea_artifact import (
     LineaArtifact,
     get_lineaartifactdef,
 )
-from lineapy.data.types import SessionType
+from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
@@ -107,6 +107,24 @@ logger = logging.getLogger(__name__)
     type=click.Path(dir_okay=False, path_type=pathlib.Path),
     help="Logging file",
 )
+@click.option(
+    "--mlflow-registry-uri",
+    type=click.STRING,
+    help="MLFlow registry uri for ML models storage backend.",
+)
+@click.option(
+    "--mlflow-tracking-uri",
+    type=click.STRING,
+    help="MLFlow tracking uri for ML models storage backend.",
+)
+@click.option(
+    "--default-ml-models-storage-backend",
+    type=click.Choice(
+        [member.name for member in ARTIFACT_STORAGE_BACKEND],
+        case_sensitive=False,
+    ),
+    help="Default storage backend for ML models",
+)
 def linea_cli(
     verbose: bool,
     home_dir: Optional[pathlib.Path],
@@ -116,6 +134,9 @@ def linea_cli(
     do_not_track: Optional[bool],
     logging_level: Optional[str],
     logging_file: Optional[pathlib.Path],
+    mlflow_registry_uri: Optional[str],
+    mlflow_tracking_uri: Optional[str],
+    default_ml_models_storage_backend: Optional[ARTIFACT_STORAGE_BACKEND],
 ):
     """
     Pass all configuration to lineapy_config
@@ -210,16 +231,17 @@ def notebook(
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
     db = RelationalLineaDB.from_config(options)
-    artifact = db.get_artifactorm_by_name(artifact_name)
+    artifactorm = db.get_artifactorm_by_name(artifact_name)
     # FIXME: mypy issue with SQLAlchemy, see https://github.com/python/typeshed/issues/974
     api_artifact = LineaArtifact(
         db=db,
-        _execution_id=artifact.execution_id,
-        _node_id=artifact.node_id,
-        _session_id=artifact.node.session_id,
-        _version=artifact.version,  # type: ignore
+        _artifact_id=artifactorm.id,
+        _execution_id=artifactorm.execution_id,
+        _node_id=artifactorm.node_id,
+        _session_id=artifactorm.node.session_id,
+        _version=artifactorm.version,  # type: ignore
         name=artifact_name,
-        date_created=artifact.date_created,  # type: ignore
+        date_created=artifactorm.date_created,  # type: ignore
     )
     logger.info(api_artifact.get_code())
 
@@ -261,15 +283,16 @@ def file(
 
     # Print the slice:
     # FIXME: weird indirection
-    artifact = db.get_artifactorm_by_name(artifact_name)
+    artifactorm = db.get_artifactorm_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
-        _execution_id=artifact.execution_id,
-        _node_id=artifact.node_id,
-        _session_id=artifact.node.session_id,
-        _version=artifact.version,  # type:ignore
+        _artifact_id=artifactorm.id,
+        _execution_id=artifactorm.execution_id,
+        _node_id=artifactorm.node_id,
+        _session_id=artifactorm.node.session_id,
+        _version=artifactorm.version,  # type:ignore
         name=artifact_name,
-        date_created=artifact.date_created,  # type:ignore
+        date_created=artifactorm.date_created,  # type:ignore
     )
     logger.info(api_artifact.get_code())
 

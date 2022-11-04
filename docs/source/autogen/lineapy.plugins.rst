@@ -1,6 +1,14 @@
 lineapy.plugins package
 =======================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   lineapy.plugins.serializers
+
 Submodules
 ----------
 
