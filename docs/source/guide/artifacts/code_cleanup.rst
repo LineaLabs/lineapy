@@ -1,5 +1,7 @@
-Refactoring Code
-================
+.. _code_cleanup:
+
+Code Cleanup
+============
 
 .. include:: ../../snippets/slack_support.rstinc
 
@@ -7,10 +9,10 @@ Data science development is characterized by nimble, iterative experimentation a
 Data scientists explore many possibilities before reaching the final result. The rapid exploration process often
 leads to long, messy code, the majority of which has no impact on the final result.
 
-Code refactoring is hence an essential step for moving data science work into production. Yet, it often becomes a major
+Code cleanup is hence an essential step for moving data science work into production. Yet, it often becomes a major
 bottleneck as it involves manual inspection of long, messy code that sometimes does not make sense even to its own
 author. With the complete development history stored in artifacts, LineaPy enables automatic code clean-up,
-facilitating code refactoring and hence transition to production.
+facilitating code cleanup and hence transition to production.
 
 For instance, say we are a botanical data scientist modeling the relationship between different parts of
 the iris flower, and we end up with the following development code:
@@ -146,9 +148,6 @@ which is more concise and manageable than what we initially had --- a long, mess
 Note that the cleaned-up code above is a subset of the original development code. That is, LineaPy "condensed" the
 original code by removing extraneous operations that do not affect the artifact we care about, i.e., ``lm_2``.
 
-In practice, development scripts/notebooks by data scientists are much longer and more complicated than this simple example.
-Hence, LineaPy's automatic code clean-up can save considerable time for data scientists to move their work into production.
-
 .. note::
 
    This does not mean that we lost other parts of the development code. We can still access the artifact's
@@ -157,102 +156,17 @@ Hence, LineaPy's automatic code clean-up can save considerable time for data sci
 
 .. note::
 
-    In fact, ``lineapy.save()`` itself returns the artifact object, so we could have simply
-    executed ``artifact = lineapy.save(lm_2, "linear_model_v2")`` above.
+   In fact, ``lineapy.save()`` itself returns the artifact object, so we could have simply
+   executed ``artifact = lineapy.save(lm_2, "linear_model_v2")`` above.
+
+In practice, development scripts/notebooks by data scientists are much longer and more complicated than this simple example.
+Hence, LineaPy's automatic code clean-up can save considerable time for data scientists to move their work into production.
+
+.. note::
+
+   LineaPy's code cleanup has few known limitations. Check this :ref:`page <slicing_issues>` if you encounter issues.
 
 .. note::
 
    If you want hands-on practice,
    check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/01_refactor_code.ipynb>`_ tutorial notebook.
-
-Limitations
------------
-
-We discuss few cases in which LineaPy's code refactoring might lead to issues, and what steps can be taken by the users to get around them.
-
-Suppose we have a code which has conditionals in them, for example:
-
-.. code:: python
-
-   import lineapy
-   
-   lst = []
-   var = 10
-
-   if var > 5:
-      lst.append(10)
-      var += 10
-   else:
-      lst.append(20)
-      var += 20
-
-   lineapy.save(var, 'variable')
-
-In this example, if we try to obtain the cleaned up code for the artifact as follows:
-
-.. code:: python
-
-   artifact = lineapy.get('variable')
-   print(artifact.get_code())
-
-We note that the cleaned-up code outputted is as follows:
-
-.. code:: python
-
-   var = 10
-
-   if var > 5:
-      var += 10
-   else:
-      lst.append(20)
-      var += 20
-   
-Note that in case we visit the ``else`` branch in the cleaned-up code, we would encounter a Runtime Error 
-saying that the name ``lst`` is not defined. The reason for this behavior is that while creating the Linea 
-Graph, LineaPy executes the user code to obtain run-time information, which enables LineaPy to create fairly
-accurate cleaned-up code. However, in the case of conditionals, only one branch would be visited and hence we
-would not have accurate run-time information about the instructions in the non-visited branch. We make an 
-approximation in this case, which is to include all the instructions in the branches which are not visited.
-
-Since we are not able to perform analysis within the non-visited branch, we do not have the information required
-to know that the variable ``lst`` which is being included due to the non-included ``else`` branch, is defined
-outside the ``if`` block, and hence the definition of ``lst`` gets sliced out as it is not required for the 
-final collected artifact. 
-
-To get around this behavior, the user can manually edit the source code by deleting the instruction within the 
-non-visited branch which does not contribute to the artifact, or as an alternative, the user can add dummy 
-variable declarations to ensure the code does not crash, as shown below:
-
-.. code:: python
-
-   import lineapy
-   
-   lst = []
-   var = 10
-
-   if var > 5:
-      lst.append(10)
-      var += 10
-   else:
-      var += 20
-
-   lineapy.save(var, 'variable')
-
-OR
-
-.. code:: python
-
-   import lineapy
-   
-   lst = []
-   var = 10
-
-   if var > 5:
-      lst.append(10)
-      var += 10
-   else:
-      lst = []
-      lst.append(20)
-      var += 20
-
-   lineapy.save(var, 'variable')
