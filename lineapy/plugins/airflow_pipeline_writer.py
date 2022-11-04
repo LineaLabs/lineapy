@@ -97,12 +97,12 @@ class AirflowPipelineWriter(BasePipelineWriter):
         This method implements Airflow DAG code generation corresponding
         to the following flavors
 
-        - `PythonOperatorPerSession` flavor, where each session gets its
+        - ``PythonOperatorPerSession`` flavor, where each session gets its
         own Python operator.
-        - `PythonOperatorPerArtifact` flavor, where each artifact gets its own
+        - ``PythonOperatorPerArtifact`` flavor, where each artifact gets its own
         Python operator.
 
-        Example of `PythonOperatorPerSession` if the two artifacts in our pipeline
+        Example of ``PythonOperatorPerSession`` if the two artifacts in our pipeline
         (e.g., model and prediction) were created in the same session.
         .. code-block:: python
             import pickle
@@ -118,7 +118,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     python_callable=task_run_session_including_g2,
                 )
 
-        Example of `PythonOperatorPerArtifact`, if the two artifacts in our pipeline
+        Example of ``PythonOperatorPerArtifact``, if the two artifacts in our pipeline
         (e.g., model and prediction) were created in the same session:
         .. code-block:: python
             import pickle
@@ -156,13 +156,13 @@ class AirflowPipelineWriter(BasePipelineWriter):
             task_breakdown = DagTaskBreakdown.TaskPerArtifact
 
         # Get task definitions based on dag_flavor
-        task_defs = get_task_definitions(
+        task_defs: Dict[str, TaskDefinition] = get_task_definitions(
             self.artifact_collection,
             pipeline_name=self.pipeline_name,
             task_breakdown=task_breakdown,
         )
 
-        task_functions = list(task_defs.keys())
+        task_names = list(task_defs.keys())
 
         # Add setup and teardown if local pickle serializer is selected
         if task_serialization == TaskSerializer.LocalPickle:
@@ -172,34 +172,34 @@ class AirflowPipelineWriter(BasePipelineWriter):
             task_defs["teardown"] = get_localpickle_teardown_task_definition(
                 self.pipeline_name
             )
-            # insert in order to task_functions so that setup runs first and teardown runs last
-            task_functions.insert(0, "setup")
-            task_functions.append("teardown")
+            # insert in order to task_names so that setup runs first and teardown runs last
+            task_names.insert(0, "setup")
+            task_names.append("teardown")
 
-        rendered_task_definitions = self.get_rendered_task_definitions(
+        task_defs = {tn: task_defs[tn] for tn in task_names}
+
+        rendered_task_defs = self.get_rendered_task_definitions(
             task_defs, task_serialization
         )
 
         # Handle dependencies
         dependencies = {
-            task_functions[i + 1]: {task_functions[i]}
-            for i in range(len(task_functions) - 1)
+            task_names[i + 1]: {task_names[i]}
+            for i in range(len(task_names) - 1)
         }
         task_graph = TaskGraph(
-            nodes=task_functions,
-            mapping={tf: tf for tf in task_functions},
+            nodes=task_names,
+            mapping={tn: tn for tn in task_names},
             edges=dependencies,
         )
         task_dependencies = [
             f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges
         ]
 
-        # Get rendered params blocks for tasks
-        raw_task_params_dict = self.get_rendered_task_params_args(task_defs)
-        task_params = [
-            {"name": tf, "op_kwargs": raw_task_params_dict.get(tf, None)}
-            for tf in task_functions
-        ]
+        # Get DAG parameters for an Airflow pipeline
+        input_parameters_dict: Dict[str, Any] = {}
+        for parameter_name, input_spec in super().get_pipeline_args().items():
+            input_parameters_dict[parameter_name] = input_spec.value
 
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
@@ -210,55 +210,19 @@ class AirflowPipelineWriter(BasePipelineWriter):
             SCHEDULE_INTERVAL=self.dag_config.get(
                 "schedule_interval", "*/15 * * * *"
             ),
-            dag_params=self.get_airflow_pipeline_args(),
             MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
             CATCHUP=self.dag_config.get("catchup", "False"),
-            task_definitions=rendered_task_definitions,
-            tasks=task_params,
+            dag_params=input_parameters_dict,
+            task_definitions=rendered_task_defs,
+            tasks=task_defs,
             task_dependencies=task_dependencies,
         )
 
         return full_code
 
-    def get_airflow_pipeline_args(self) -> str:
-        """
-        get_pipeline_args returns the DAG parameters for an Airflow Pipeline.
-        This is formatted in an Airflow friendly format.
-
-        Example:
-
-        .. code-block:: python
-
-            "params":{
-                a: "value",
-                b: 0,
-            }
-        """
-        input_parameters_dict: Dict[str, Any] = {}
-        for parameter_name, input_spec in super().get_pipeline_args().items():
-            input_parameters_dict[parameter_name] = input_spec.value
-        return '"params":' + str(input_parameters_dict)
-
-    def get_rendered_task_params_args(
-        self, pipeline_task: Dict[str, TaskDefinition]
-    ) -> Dict[str, str]:
-        """
-        Returns rendered arguments for the pipeline tasks.
-        """
-        function_input_parameters = dict()
-        for task_name, taskdef in pipeline_task.items():
-            if len(taskdef.user_input_variables) > 0:
-                function_input_parameters[task_name] = "op_kwargs=" + str(
-                    {
-                        var: "{{ params." + var + " }}"
-                        for var in taskdef.user_input_variables
-                    }
-                )
-        return function_input_parameters
-
     def get_rendered_task_definitions(
         self,
-        pipeline_task: Dict[str, TaskDefinition],
+        task_defs: Dict[str, TaskDefinition],
         task_serialization: TaskSerializer,
     ) -> List[str]:
         """
@@ -267,19 +231,19 @@ class AirflowPipelineWriter(BasePipelineWriter):
         TASK_FUNCTION_TEMPLATE = load_plugin_template(
             "task/task_function.jinja"
         )
-        task_defs: List[str] = []
-        for task_name, taskdef in pipeline_task.items():
+        rendered_task_defs: List[str] = []
+        for task_name, task_def in task_defs.items():
             loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                taskdef, task_serialization
+                task_def, task_serialization
             )
-            function_definition = TASK_FUNCTION_TEMPLATE.render(
+            task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
                 function_name=task_name,
-                user_input_variables=", ".join(taskdef.user_input_variables),
-                typing_blocks=taskdef.typing_blocks,
+                user_input_variables=", ".join(task_def.user_input_variables),
+                typing_blocks=task_def.typing_blocks,
                 loading_blocks=loading_blocks,
-                call_block=taskdef.call_block,
+                call_block=task_def.call_block,
                 dumping_blocks=dumping_blocks,
             )
-            task_defs.append(function_definition)
+            rendered_task_defs.append(task_def_rendered)
 
-        return task_defs
+        return rendered_task_defs

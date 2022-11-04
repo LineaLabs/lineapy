@@ -67,6 +67,13 @@
   from airflow.utils.dates import days_ago
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_complex_h_perart")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
   def task_a_c_for_artifact_f_and_downstream():
   
       a, c = airflow_complex_h_perart_module.get_a_c_for_artifact_f_and_downstream()
@@ -94,13 +101,6 @@
       h = airflow_complex_h_perart_module.get_h(a, c)
   
       pickle.dump(h, open("/tmp/airflow_complex_h_perart/variable_h.pickle", "wb"))
-  
-  
-  def task_setup():
-  
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_complex_h_perart")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
   
   
   def task_teardown():
@@ -226,6 +226,13 @@
   from airflow.utils.dates import days_ago
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
   def task_a0():
   
       a0 = airflow_pipeline_a0_b0_module.get_a0()
@@ -238,13 +245,6 @@
       b0 = airflow_pipeline_a0_b0_module.get_b0()
   
       pickle.dump(b0, open("/tmp/airflow_pipeline_a0_b0/variable_b0.pickle", "wb"))
-  
-  
-  def task_setup():
-  
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
   
   
   def task_teardown():
@@ -363,6 +363,13 @@
   from airflow.utils.dates import days_ago
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0_dependencies")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
   def task_a0():
   
       a0 = airflow_pipeline_a0_b0_dependencies_module.get_a0()
@@ -379,13 +386,6 @@
       pickle.dump(
           b0, open("/tmp/airflow_pipeline_a0_b0_dependencies/variable_b0.pickle", "wb")
       )
-  
-  
-  def task_setup():
-  
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0_dependencies")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
   
   
   def task_teardown():
@@ -504,6 +504,13 @@
   from airflow.utils.dates import days_ago
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
   def task_b0(b0):
   
       b0 = int(b0)
@@ -524,13 +531,6 @@
       a = airflow_pipeline_a_b0_inputpar_module.get_a(b0)
   
       pickle.dump(a, open("/tmp/airflow_pipeline_a_b0_inputpar/variable_a.pickle", "wb"))
-  
-  
-  def task_setup():
-  
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
   
   
   def task_teardown():
@@ -649,6 +649,15 @@
   from airflow.utils.dates import days_ago
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath(
+          "airflow_pipeline_a_b0_inputpar_session"
+      )
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
   def task_run_session_including_b0(b0):
   
       b0 = int(b0)
@@ -664,15 +673,6 @@
       pickle.dump(
           a, open("/tmp/airflow_pipeline_a_b0_inputpar_session/variable_a.pickle", "wb")
       )
-  
-  
-  def task_setup():
-  
-      pickle_folder = pathlib.Path("/tmp").joinpath(
-          "airflow_pipeline_a_b0_inputpar_session"
-      )
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
   
   
   def task_teardown():
@@ -799,6 +799,13 @@
   from airflow.utils.dates import days_ago
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
   def task_assets_for_artifact_y_and_downstream():
   
       assets = (
@@ -839,13 +846,6 @@
       pickle.dump(
           p, open("/tmp/airflow_pipeline_housing_multiple/variable_p.pickle", "wb")
       )
-  
-  
-  def task_setup():
-  
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple")
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
   
   
   def task_teardown():
@@ -973,18 +973,18 @@
   from airflow.utils.dates import days_ago
   
   
-  def task_p_value():
-  
-      p = airflow_pipeline_housing_simple_module.get_p_value()
-  
-      pickle.dump(p, open("/tmp/airflow_pipeline_housing_simple/variable_p.pickle", "wb"))
-  
-  
   def task_setup():
   
       pickle_folder = pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_simple")
       if not pickle_folder.exists():
           pickle_folder.mkdir()
+  
+  
+  def task_p_value():
+  
+      p = airflow_pipeline_housing_simple_module.get_p_value()
+  
+      pickle.dump(p, open("/tmp/airflow_pipeline_housing_simple/variable_p.pickle", "wb"))
   
   
   def task_teardown():
@@ -1109,6 +1109,15 @@
   from airflow.utils.dates import days_ago
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath(
+          "airflow_pipeline_housing_w_dependencies"
+      )
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
   def task_assets_for_artifact_y_and_downstream():
   
       assets = (
@@ -1155,15 +1164,6 @@
       pickle.dump(
           p, open("/tmp/airflow_pipeline_housing_w_dependencies/variable_p.pickle", "wb")
       )
-  
-  
-  def task_setup():
-  
-      pickle_folder = pathlib.Path("/tmp").joinpath(
-          "airflow_pipeline_housing_w_dependencies"
-      )
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
   
   
   def task_teardown():
@@ -1288,6 +1288,15 @@
   from airflow.utils.dates import days_ago
   
   
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath(
+          "airflow_pipeline_two_input_parameter"
+      )
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
   def task_pn(n, p):
   
       n = int(n)
@@ -1299,15 +1308,6 @@
       pickle.dump(
           pn, open("/tmp/airflow_pipeline_two_input_parameter/variable_pn.pickle", "wb")
       )
-  
-  
-  def task_setup():
-  
-      pickle_folder = pathlib.Path("/tmp").joinpath(
-          "airflow_pipeline_two_input_parameter"
-      )
-      if not pickle_folder.exists():
-          pickle_folder.mkdir()
   
   
   def task_teardown():

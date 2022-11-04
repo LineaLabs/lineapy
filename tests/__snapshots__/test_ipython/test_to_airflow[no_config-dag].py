@@ -7,18 +7,18 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.utils.dates import days_ago
 
 
-def task_a():
-
-    a = a_module.get_a()
-
-    pickle.dump(a, open("/tmp/a/variable_a.pickle", "wb"))
-
-
 def task_setup():
 
     pickle_folder = pathlib.Path("/tmp").joinpath("a")
     if not pickle_folder.exists():
         pickle_folder.mkdir()
+
+
+def task_a():
+
+    a = a_module.get_a()
+
+    pickle.dump(a, open("/tmp/a/variable_a.pickle", "wb"))
 
 
 def task_teardown():
