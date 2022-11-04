@@ -26,28 +26,6 @@ class BaseTransformer(ast.NodeTransformer):
         # None if it was a statement. Used by ipython to grab the last value
         self.last_statement_result: Optional[Node] = None
 
-    def generic_visit(self, node):
-        """
-        had to rewrite this because apparently if we process nodes in a list, it just extends it willy nilly
-        """
-        for field, old_value in ast.iter_fields(node):
-            if isinstance(old_value, list):
-                new_values = []
-                for value in old_value:
-                    if isinstance(value, ast.AST):
-                        value = self.visit(value)
-                        if value is None:
-                            continue
-                    new_values.append(value)
-                old_value[:] = new_values
-            elif isinstance(old_value, ast.AST):
-                new_node = self.visit(old_value)
-                if new_node is None:
-                    delattr(node, field)
-                else:
-                    setattr(node, field, new_node)
-        return node
-
     def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
         if sys.version_info < (3, 8):
             from lineapy.utils.deprecation_utils import get_source_segment
