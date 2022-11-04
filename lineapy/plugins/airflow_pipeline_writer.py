@@ -156,13 +156,13 @@ class AirflowPipelineWriter(BasePipelineWriter):
             task_breakdown = DagTaskBreakdown.TaskPerArtifact
 
         # Get task definitions based on dag_flavor
-        task_defs = get_task_definitions(
+        task_defs: Dict[str, TaskDefinition] = get_task_definitions(
             self.artifact_collection,
             pipeline_name=self.pipeline_name,
             task_breakdown=task_breakdown,
         )
 
-        task_functions = list(task_defs.keys())
+        task_names = list(task_defs.keys())
 
         # Add setup and teardown if local pickle serializer is selected
         if task_serialization == TaskSerializer.LocalPickle:
@@ -172,24 +172,24 @@ class AirflowPipelineWriter(BasePipelineWriter):
             task_defs["teardown"] = get_localpickle_teardown_task_definition(
                 self.pipeline_name
             )
-            # insert in order to task_functions so that setup runs first and teardown runs last
-            task_functions.insert(0, "setup")
-            task_functions.append("teardown")
+            # insert in order to task_names so that setup runs first and teardown runs last
+            task_names.insert(0, "setup")
+            task_names.append("teardown")
 
-        task_defs = {tf: task_defs[tf] for tf in task_functions}
+        task_defs = {tn: task_defs[tn] for tn in task_names}
 
-        rendered_task_definitions = self.get_rendered_task_definitions(
+        rendered_task_defs = self.get_rendered_task_definitions(
             task_defs, task_serialization
         )
 
         # Handle dependencies
         dependencies = {
-            task_functions[i + 1]: {task_functions[i]}
-            for i in range(len(task_functions) - 1)
+            task_names[i + 1]: {task_names[i]}
+            for i in range(len(task_names) - 1)
         }
         task_graph = TaskGraph(
-            nodes=task_functions,
-            mapping={tf: tf for tf in task_functions},
+            nodes=task_names,
+            mapping={tn: tn for tn in task_names},
             edges=dependencies,
         )
         task_dependencies = [
@@ -213,7 +213,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
             dag_params=input_parameters_dict,
             MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
             CATCHUP=self.dag_config.get("catchup", "False"),
-            task_definitions=rendered_task_definitions,
+            task_definitions=rendered_task_defs,
             tasks=task_defs,
             task_dependencies=task_dependencies,
         )
@@ -222,7 +222,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
     def get_rendered_task_definitions(
         self,
-        pipeline_task: Dict[str, TaskDefinition],
+        task_defs: Dict[str, TaskDefinition],
         task_serialization: TaskSerializer,
     ) -> List[str]:
         """
@@ -231,19 +231,19 @@ class AirflowPipelineWriter(BasePipelineWriter):
         TASK_FUNCTION_TEMPLATE = load_plugin_template(
             "task/task_function.jinja"
         )
-        task_defs: List[str] = []
-        for task_name, taskdef in pipeline_task.items():
+        rendered_task_defs: List[str] = []
+        for task_name, task_def in task_defs.items():
             loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                taskdef, task_serialization
+                task_def, task_serialization
             )
-            function_definition = TASK_FUNCTION_TEMPLATE.render(
+            task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
                 function_name=task_name,
-                user_input_variables=", ".join(taskdef.user_input_variables),
-                typing_blocks=taskdef.typing_blocks,
+                user_input_variables=", ".join(task_def.user_input_variables),
+                typing_blocks=task_def.typing_blocks,
                 loading_blocks=loading_blocks,
-                call_block=taskdef.call_block,
+                call_block=task_def.call_block,
                 dumping_blocks=dumping_blocks,
             )
-            task_defs.append(function_definition)
+            rendered_task_defs.append(task_def_rendered)
 
-        return task_defs
+        return rendered_task_defs
