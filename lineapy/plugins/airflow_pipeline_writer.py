@@ -97,12 +97,12 @@ class AirflowPipelineWriter(BasePipelineWriter):
         This method implements Airflow DAG code generation corresponding
         to the following flavors
 
-        - `PythonOperatorPerSession` flavor, where each session gets its
+        - ``PythonOperatorPerSession`` flavor, where each session gets its
         own Python operator.
-        - `PythonOperatorPerArtifact` flavor, where each artifact gets its own
+        - ``PythonOperatorPerArtifact`` flavor, where each artifact gets its own
         Python operator.
 
-        Example of `PythonOperatorPerSession` if the two artifacts in our pipeline
+        Example of ``PythonOperatorPerSession`` if the two artifacts in our pipeline
         (e.g., model and prediction) were created in the same session.
         .. code-block:: python
             import pickle
@@ -118,7 +118,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     python_callable=task_run_session_including_g2,
                 )
 
-        Example of `PythonOperatorPerArtifact`, if the two artifacts in our pipeline
+        Example of ``PythonOperatorPerArtifact``, if the two artifacts in our pipeline
         (e.g., model and prediction) were created in the same session:
         .. code-block:: python
             import pickle
