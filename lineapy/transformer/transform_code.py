@@ -38,17 +38,21 @@ def transform(
 
     # initialize the transformer IN ORDER of preference
     transformers: List[BaseTransformer] = []
+
     # python 3.7 handler
     if sys.version_info < (3, 8):
         transformers.append(Py37Transformer(src, tracer))
+
     # python 3.8 handler
     if sys.version_info < (3, 9):
         transformers.append(Py38Transformer(src, tracer))
 
+    # newer conditional transformers
+    # FIXME these done work so they have been removed for now
+    # transformers.append(ConditionalTransformer(src, tracer))
+
     # main transformation handler
     transformers.append(NodeTransformer(src, tracer))
-
-    # TODO control flow handler
 
     # parse the usercode in preparation for visits
     try:
@@ -77,9 +81,7 @@ def transform(
             res = None
             for trans in transformers:
 
-                # print(f"before {trans.__class__.__name__}: {ast.dump(stmt)}")
                 res = trans.visit(stmt)
-                # print(f"after {trans.__class__.__name__}: {ast.dump(stmt)}")
                 # swap the node with the output of previous transformer and use that for further calls
                 # or some other statement to figure out whether the node is properly processed or not
                 if res is not None:
@@ -90,12 +92,9 @@ def transform(
                 raise NotImplementedError(
                     f"Don't know how to transform {type(stmt).__name__}"
                 )
-            # FIXME - this is needed for jupyter, will revisit this after prototype phase.
-            last_statement_result = res  # type: ignore
-        # replaced by the for loop above
-        # node_transformer.visit(tree)
+            last_statement_result = res
 
         tracer.db.commit()
-        return last_statement_result  # type: ignore
+        return last_statement_result
 
     return None
