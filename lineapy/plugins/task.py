@@ -68,6 +68,15 @@ class TaskDefinition:
     """
     Definition of an artifact, can extend new keys(user, project, ...)
     in the future.
+
+        function_name: suggested function name this task that wont conflict with other linea generated tasks
+        user_input_variables: arguments that must be provided through the framework
+        loaded_input_variables: arguments that are provided by other tasks and must be loaded through inter task communication
+        typing_blocks: for user_input_variables, casts the input variables to the correct type
+        call_block: line of code to call the function in module file
+        return_vars: outputs that need to be serialized to be used
+        pipeline_name: overall pipeline name
+
     """
 
     function_name: str
