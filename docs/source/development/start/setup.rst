@@ -59,6 +59,12 @@ To deactivate the virtual environment, you can type:
 
     deactivate
 
+.. warning::
+
+    If you use a different name for this virtual environment subfolder, you will need to register the new name in
+    several config files including ``.gitignore``, ``.flake8``, ``pyproject.toml`` lest it will create friction for
+    other workflows such as pre-commit. Hence, we strongly recommend you name the subfolder ``env/`` as instructed above.
+
 Installing Dependencies
 ***********************
 
@@ -108,6 +114,25 @@ After making changes you desire, save them to your development branch:
 .. note::
 
     To learn more about saving changes in Git, check this `tutorial <https://www.atlassian.com/git/tutorials/saving-changes>`_.
+
+.. note::
+
+    LineaPy provides several `pre-commit <https://pre-commit.com/>`_ hooks to automatically standardize styles and formats
+    across its codebase.
+
+    To run these hooks automatically upon every new commit:
+
+    .. code-block:: bash
+
+        pre-commit install
+
+    To run the hooks even when there are no changes:
+
+    .. code-block:: bash
+
+        pre-commit run --all-files
+
+    LineaPy's pre-commit hooks do not run tests since tests are too time-consuming to run on every commit. For testing, see the section below.
 
 Note that these changes have been saved only locally at this point, and you need to "push" them to your forked repo on GitHub:
 
