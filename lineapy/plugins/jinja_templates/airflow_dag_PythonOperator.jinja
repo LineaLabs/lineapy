@@ -34,12 +34,16 @@ with DAG(
     default_args=default_dag_args,
 ) as dag:
 
-{% for task in tasks %}
-    {{ task['name'] }} = PythonOperator(
-        task_id="{{ task['name'] }}_task",
-        python_callable=task_{{ task['name'] }},
-    {%- if task['op_kwargs'] is not none %}
-        {{task['op_kwargs']}},
+{% for task_name, task_def in tasks.items() %}
+    {{ task_name }} = PythonOperator(
+        task_id="{{ task_name }}_task",
+        python_callable=task_{{ task_name }},
+    {%- if task_def.user_input_variables|length > 0 %}
+        op_kwargs={
+        {%- for var in task_def.user_input_variables %}
+            "{{ var }}": "{{ '{{' }} params.{{ var }} {{ '}}' }}"{{ ',' if not loop.last else '' }}
+        {%- endfor %}
+        },
     {%- endif %}
     )
 {% endfor %}

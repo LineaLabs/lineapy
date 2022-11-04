@@ -176,6 +176,8 @@ class AirflowPipelineWriter(BasePipelineWriter):
             task_functions.insert(0, "setup")
             task_functions.append("teardown")
 
+        task_defs = {tf: task_defs[tf] for tf in task_functions}
+
         rendered_task_definitions = self.get_rendered_task_definitions(
             task_defs, task_serialization
         )
@@ -192,13 +194,6 @@ class AirflowPipelineWriter(BasePipelineWriter):
         )
         task_dependencies = [
             f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges
-        ]
-
-        # Get rendered params blocks for tasks
-        raw_task_params_dict = self.get_rendered_task_params_args(task_defs)
-        task_params = [
-            {"name": tf, "op_kwargs": raw_task_params_dict.get(tf, None)}
-            for tf in task_functions
         ]
 
         # Get DAG parameters for an Airflow pipeline
@@ -219,28 +214,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
             MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
             CATCHUP=self.dag_config.get("catchup", "False"),
             task_definitions=rendered_task_definitions,
-            tasks=task_params,
+            tasks=task_defs,
             task_dependencies=task_dependencies,
         )
 
         return full_code
-
-    def get_rendered_task_params_args(
-        self, pipeline_task: Dict[str, TaskDefinition]
-    ) -> Dict[str, str]:
-        """
-        Returns rendered arguments for the pipeline tasks.
-        """
-        function_input_parameters = dict()
-        for task_name, taskdef in pipeline_task.items():
-            if len(taskdef.user_input_variables) > 0:
-                function_input_parameters[task_name] = "op_kwargs=" + str(
-                    {
-                        var: "{{ params." + var + " }}"
-                        for var in taskdef.user_input_variables
-                    }
-                )
-        return function_input_parameters
 
     def get_rendered_task_definitions(
         self,
