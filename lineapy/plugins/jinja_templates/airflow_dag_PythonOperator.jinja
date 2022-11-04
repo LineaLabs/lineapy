@@ -21,8 +21,8 @@ default_dag_args = {
     "owner": "{{ OWNER }}",
     "retries": {{ RETRIES }},
     "start_date": {{ START_DATE }},
-{%- if (dag_params != '"params":{}') %}
-    {{ dag_params }},
+{%- if (dag_params|length > 0) %}
+    "params": {{ dag_params }},
 {%- endif %}
 }
 

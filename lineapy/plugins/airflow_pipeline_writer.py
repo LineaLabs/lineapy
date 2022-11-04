@@ -201,6 +201,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
             for tf in task_functions
         ]
 
+        # Get DAG parameters for an Airflow pipeline
+        input_parameters_dict: Dict[str, Any] = {}
+        for parameter_name, input_spec in super().get_pipeline_args().items():
+            input_parameters_dict[parameter_name] = input_spec.value
+
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
             MODULE_NAME=self.pipeline_name + "_module",
@@ -210,7 +215,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
             SCHEDULE_INTERVAL=self.dag_config.get(
                 "schedule_interval", "*/15 * * * *"
             ),
-            dag_params=self.get_airflow_pipeline_args(),
+            dag_params=input_parameters_dict,
             MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
             CATCHUP=self.dag_config.get("catchup", "False"),
             task_definitions=rendered_task_definitions,
@@ -219,25 +224,6 @@ class AirflowPipelineWriter(BasePipelineWriter):
         )
 
         return full_code
-
-    def get_airflow_pipeline_args(self) -> str:
-        """
-        get_pipeline_args returns the DAG parameters for an Airflow Pipeline.
-        This is formatted in an Airflow friendly format.
-
-        Example:
-
-        .. code-block:: python
-
-            "params":{
-                a: "value",
-                b: 0,
-            }
-        """
-        input_parameters_dict: Dict[str, Any] = {}
-        for parameter_name, input_spec in super().get_pipeline_args().items():
-            input_parameters_dict[parameter_name] = input_spec.value
-        return '"params":' + str(input_parameters_dict)
 
     def get_rendered_task_params_args(
         self, pipeline_task: Dict[str, TaskDefinition]
