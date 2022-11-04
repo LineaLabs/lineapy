@@ -1,21 +1,13 @@
-{% extends "airflow_base_dag.jinja" %}
-
-{% block plugin_import_block %}
 import {{ MODULE_NAME }}
 import pickle
 import pathlib
 from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.python_operator import PythonOperator
-{% endblock %}
 
-{% block plugin_dag_block %}
-{% for TASK_DEF in task_definitions %}
-{{ TASK_DEF }} 
+{% for task_def in task_definitions %}
+{{ task_def }} 
 {% endfor %}
-{% endblock %}
-
-{% block plugin_tasks_block %}
 
 default_dag_args = {
     "owner": "{{ OWNER }}",
@@ -47,10 +39,9 @@ with DAG(
     {%- endif %}
     )
 {% endfor %}
+
 {% if task_dependencies is not none %}
 {% for TASK_DEPENDENCIES in task_dependencies %}
     {{TASK_DEPENDENCIES}}
 {% endfor %}
 {%endif %}
-{% endblock %}
-
