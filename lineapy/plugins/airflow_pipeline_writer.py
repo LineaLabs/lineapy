@@ -210,9 +210,9 @@ class AirflowPipelineWriter(BasePipelineWriter):
             SCHEDULE_INTERVAL=self.dag_config.get(
                 "schedule_interval", "*/15 * * * *"
             ),
-            dag_params=input_parameters_dict,
             MAX_ACTIVE_RUNS=self.dag_config.get("max_active_runs", 1),
             CATCHUP=self.dag_config.get("catchup", "False"),
+            dag_params=input_parameters_dict,
             task_definitions=rendered_task_defs,
             tasks=task_defs,
             task_dependencies=task_dependencies,
