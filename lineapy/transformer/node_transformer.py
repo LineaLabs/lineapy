@@ -89,10 +89,6 @@ class NodeTransformer(BaseTransformer):
             return self._exec_statement(node)
         elif isinstance(node, ast.expr):
             return self._exec_expression(node)
-        # else:
-        #     raise NotImplementedError(
-        #         f"Don't know how to transform {type(node).__name__}"
-        #     )
 
     def visit_Module(self, node: ast.Module) -> Any:
         for stmt in node.body:

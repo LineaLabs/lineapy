@@ -5,7 +5,7 @@ from lineapy.utils.deprecation_utils import Constant
 
 
 class Py37Transformer(BaseTransformer):
-    def convert_to_constant(self, value, node) -> Constant:
+    def _convert_to_constant(self, value, node) -> Constant:
         if not hasattr(
             node, "end_lineno"
         ):  # somehow didnt go through our sourcegiver
@@ -22,16 +22,16 @@ class Py37Transformer(BaseTransformer):
             )
 
     def visit_Ellipsis(self, node: ast.Ellipsis) -> Constant:
-        return self.convert_to_constant(..., node)
+        return self._convert_to_constant(..., node)
 
     def visit_Str(self, node: ast.Str) -> Constant:
-        return self.convert_to_constant(node.s, node)
+        return self._convert_to_constant(node.s, node)
 
     def visit_Num(self, node: ast.Num) -> Constant:
-        return self.convert_to_constant(node.n, node)
+        return self._convert_to_constant(node.n, node)
 
     def visit_NameConstant(self, node: ast.NameConstant) -> Constant:
-        return self.convert_to_constant(node.value, node)
+        return self._convert_to_constant(node.value, node)
 
     def visit_Bytes(self, node: ast.Bytes) -> Constant:
-        return self.convert_to_constant(node.s, node)
+        return self._convert_to_constant(node.s, node)
