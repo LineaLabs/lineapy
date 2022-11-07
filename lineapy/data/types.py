@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import datetime
+from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, NewType, Optional, Union
 
 from pydantic import BaseModel, Field
+from typing_extensions import NotRequired, TypedDict
 
 
 class SessionType(Enum):
@@ -514,3 +516,65 @@ class PipelineType(Enum):
 
 
 FilePath = Union[str, Path]
+
+
+class ARTIFACT_STORAGE_BACKEND(str, Enum):
+    """
+    Artifact storage backend
+    """
+
+    lineapy = "lineapy"
+    mlflow = "mlflow"
+
+
+class LineaArtifactDef(TypedDict):
+    """
+    Definition of an artifact, can extend new keys(user, project, ...)
+    in the future.
+    """
+
+    artifact_name: str
+    version: NotRequired[Optional[int]]
+
+
+@dataclass
+class LineaArtifactInfo:
+    """
+    Backend storage metadata for LineaPy
+    """
+
+    artifact_id: int
+    name: str
+    version: int
+    execution_id: LineaID
+    session_id: LineaID
+    node_id: LineaID
+    date_created: datetime.datetime
+    storage_path: str
+    storage_backend: ARTIFACT_STORAGE_BACKEND
+
+
+@dataclass
+class MLflowArtifactInfo:
+    """
+    Backend storage metadata for MLflow
+    """
+
+    id: int
+    artifact_id: int
+    tracking_uri: str
+    registry_uri: Optional[str]
+    model_uri: str
+    model_flavor: str
+
+
+class ArtifactInfo(TypedDict):
+    """
+    Artifact backend storage metadata
+    - lineapy : storage backend for LineaPy
+    - mlflow : storage backend metadata for MLflow (only exists when the
+        artifact is saved in MLflow)
+    """
+
+    lineapy: LineaArtifactInfo
+    mlflow: NotRequired[MLflowArtifactInfo]

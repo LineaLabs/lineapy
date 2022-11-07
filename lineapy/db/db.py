@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
@@ -45,6 +47,7 @@ from lineapy.db.relational import (
     KeywordArgORM,
     LiteralNodeORM,
     LookupNodeORM,
+    MLflowArtifactMetadataORM,
     MutateNodeORM,
     NodeORM,
     NodeValueORM,
@@ -59,9 +62,12 @@ from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track  # circular dep issues
-from lineapy.utils.config import lineapy_config
+from lineapy.utils.config import lineapy_config, options
 from lineapy.utils.constants import DB_SQLITE_PREFIX
 from lineapy.utils.utils import get_literal_value_from_string
+
+if "mlflow" in sys.modules:
+    from mlflow.models.model import ModelInfo
 
 logger = logging.getLogger(__name__)
 
@@ -333,6 +339,32 @@ class RelationalLineaDB:
             version=artifact.version,
         )
         self.session.add(artifact_orm)
+        self.renew_session()
+
+    def write_mlflow_artifactmetadata(
+        self, artifactorm: ArtifactORM, modelinfo: ModelInfo
+    ) -> None:
+        """
+        Write MLflow metadata for the artifact
+        """
+        model_flavors = [
+            flavor
+            for flavor in modelinfo.flavors.keys()
+            if flavor != "python_function"
+        ]
+        if len(model_flavors) > 1:
+            msg = "Currently, only one MLflow model flavor(other than python_function) is supported."
+            raise NotImplementedError(msg)
+
+        mlflowmetadataorm = MLflowArtifactMetadataORM(
+            artifact_id=artifactorm.id,
+            backend="mlflow",
+            tracking_uri=options.get("mlflow_tracking_uri"),
+            registry_uri=options.get("mlflow_registry_uri"),
+            model_uri=modelinfo.model_uri,
+            model_flavor=model_flavors[0],
+        )
+        self.session.add(mlflowmetadataorm)
         self.renew_session()
 
     def write_pipeline(
@@ -751,6 +783,20 @@ class RelationalLineaDB:
             self.session.delete(res)
         self.renew_session()
 
+    def delete_mlflow_metadata_by_artifact_id(self, artifact_id: int) -> None:
+        """
+        Delete MLflow metadata for the artifact
+
+        Add current timestamp to delete_time to the mlflowartifactmetadata table
+        """
+        self.session.query(MLflowArtifactMetadataORM).filter(
+            and_(
+                MLflowArtifactMetadataORM.artifact_id == artifact_id,
+                MLflowArtifactMetadataORM.delete_time.is_(None),
+            )
+        ).update({"delete_time": datetime.utcnow()})
+        self.renew_session()
+
     def delete_node_value_from_db(
         self, node_id: LineaID, execution_id: LineaID
     ):
@@ -814,3 +860,18 @@ class RelationalLineaDB:
             .all()
         )
         return [(n[0].id, n[1].variable_name) for n in results]
+
+    def get_mlflowartifactmetadataorm_by_artifact_id(
+        self, artifact_id: int
+    ) -> MLflowArtifactMetadataORM:
+        """
+        Get MLflow metadata for the artifact
+        """
+
+        res_query = self.session.query(MLflowArtifactMetadataORM).filter(
+            and_(
+                MLflowArtifactMetadataORM.artifact_id == artifact_id,
+                MLflowArtifactMetadataORM.delete_time.is_(None),
+            )
+        )
+        return res_query.one()
