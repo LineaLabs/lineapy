@@ -52,6 +52,7 @@ from lineapy.utils.utils import (
 )
 
 logger = logging.getLogger(__name__)
+_current_tracer = None
 
 
 @dataclass
@@ -63,6 +64,7 @@ class Tracer:
     globals_: InitVar[Optional[Dict[str, object]]] = None
 
     variable_name_to_node: Dict[str, Node] = field(default_factory=dict)
+    all_variable_changes: List[Tuple[str, Node]] = field(default_factory=list)
     module_name_to_node: Dict[str, Node] = field(default_factory=dict)
 
     tracer_context: TracerContext = field(init=False)
@@ -110,6 +112,8 @@ class Tracer:
         self.tracer_context = TracerContext(
             session_context=session_context, db=self.db
         )
+        global _current_tracer
+        _current_tracer = self
 
     @property
     def values(self) -> Dict[str, object]:
@@ -138,6 +142,7 @@ class Tracer:
                 node,
                 {k: v.id for k, v in self.variable_name_to_node.items()},
             )
+
         except ArtifactSaveException as exc_info:
             logger.error("Artifact could not be saved.")
             logger.debug(exc_info)
@@ -517,6 +522,7 @@ class Tracer:
         """
         Assign updates a local mapping of variable nodes.
         """
+
         logger.debug("assigning %s = %s", variable_name, value_node)
         existing_value_node = self.variable_name_to_node.get(
             variable_name, None
@@ -528,6 +534,7 @@ class Tracer:
         ):
             self.variable_name_to_node[variable_name] = value_node
             self.db.write_assigned_variable(value_node.id, variable_name)
+
         return
 
     def tuple(
@@ -559,3 +566,11 @@ class Tracer:
 
     def get_working_dir(self) -> str:
         return self.tracer_context.session_context.working_directory
+
+
+def get_tracer() -> Tracer:
+    global _current_tracer
+    if not _current_tracer:
+        raise RuntimeError("ERROR NO TRACER SET")
+
+    return _current_tracer

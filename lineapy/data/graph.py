@@ -210,6 +210,27 @@ class Graph(object):
                 nodes.append(node)
         return self.get_subgraph(nodes)
 
+    def get_subgraph_sink_source(
+        self, sinks: List[LineaID], sources: List[LineaID]
+    ) -> "Graph":
+
+        temp_nx_graph = self.nx_graph.copy()
+
+        for node in self.nodes:
+            for parent_id in node.parents():
+                if parent_id in sources:
+                    temp_nx_graph.remove_edge(parent_id, node.id)
+
+        subgraph_nodes = dict()
+
+        for sink in sinks:
+            subgraph_nodes.update({id: self.ids[sink]})
+            subgraph_nodes.update(
+                {id: self.ids[id] for id in nx.ancestors(temp_nx_graph, sink)}
+            )
+
+        return Graph(list(subgraph_nodes.values()), self.session_context)
+
     @classmethod
     def create_session_graph(cls, db: RelationalLineaDB, session_id: LineaID):
         session_context = db.get_session_context(session_id)

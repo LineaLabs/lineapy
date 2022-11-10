@@ -17,7 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 def get_slice_graph(
-    graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool = False
+    graph: Graph,
+    sinks: List[LineaID],
+    sources: List[LineaID],
+    keep_lineapy_save: bool = False,
 ) -> Graph:
     """
     Takes a full graph from the session
@@ -30,19 +33,26 @@ def get_slice_graph(
     :return: A subgraph extracted (i.e., sliced) for the desired node IDs.
 
     """
-    ancestors = get_subgraph_nodelist(graph, sinks, keep_lineapy_save)
-
-    ancestors = _include_dependencies_for_indirectly_included_nodes_in_slice(
-        graph, ancestors
+    subgraph_nodes = get_subgraph_nodelist(
+        graph, sinks, sources, keep_lineapy_save
     )
 
-    new_nodes = [graph.ids[node] for node in ancestors]
+    subgraph_nodes = (
+        _include_dependencies_for_indirectly_included_nodes_in_slice(
+            graph, subgraph_nodes
+        )
+    )
+
+    new_nodes = [graph.ids[node] for node in subgraph_nodes]
     subgraph = graph.get_subgraph(new_nodes)
     return subgraph
 
 
 def get_subgraph_nodelist(
-    graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool
+    graph: Graph,
+    sinks: List[LineaID],
+    sources: List[LineaID],
+    keep_lineapy_save: bool,
 ) -> Set[LineaID]:
     """
     Computes a preliminary slice first evaluates what all nodes serve as sinks,
@@ -82,12 +92,10 @@ def get_subgraph_nodelist(
             new_sinks.append(new_sink)
         sinks = new_sinks
 
-    ancestors: Set[LineaID] = set(sinks)
+    subgraph: Graph = graph.get_subgraph_sink_source(sinks, sources)
+    subgraph_nodes: Set[LineaID] = set([node.id for node in subgraph.nodes])
 
-    for sink in sinks:
-        ancestors.update(graph.get_ancestors(sink))
-
-    return ancestors
+    return subgraph_nodes
 
 
 def _include_dependencies_for_indirectly_included_nodes_in_slice(
@@ -332,7 +340,10 @@ def get_source_code_from_graph(
 
 
 def get_program_slice(
-    graph: Graph, sinks: List[LineaID], keep_lineapy_save: bool = False
+    graph: Graph,
+    sinks: List[LineaID],
+    sources: List[LineaID],
+    keep_lineapy_save: bool = False,
 ) -> CodeSlice:
     """
     Find the necessary and sufficient code for computing the sink nodes.
@@ -346,7 +357,9 @@ def get_program_slice(
 
     """
     logger.debug("Slicing graph %s", graph)
-    subgraph_nodes = get_subgraph_nodelist(graph, sinks, keep_lineapy_save)
+    subgraph_nodes = get_subgraph_nodelist(
+        graph, sinks, sources, keep_lineapy_save
+    )
     subgraph_nodes = (
         _include_dependencies_for_indirectly_included_nodes_in_slice(
             graph, subgraph_nodes
@@ -361,4 +374,4 @@ def get_program_slice_by_artifact_name(
     artifact = db.get_artifactorm_by_name(name)
     nodes = db.get_nodes_for_session(artifact.node.session_id)
     graph = Graph(nodes, db.get_session_context(artifact.node.session_id))
-    return get_program_slice(graph, [artifact.node_id], keep_lineapy_save)
+    return get_program_slice(graph, [artifact.node_id], [], keep_lineapy_save)

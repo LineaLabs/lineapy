@@ -239,7 +239,7 @@ class LineaArtifact:
         """
         session_graph = Graph.create_session_graph(self.db, self._session_id)
         return get_slice_graph(
-            session_graph, [self._node_id], keep_lineapy_save
+            session_graph, [self._node_id], [], keep_lineapy_save
         )
 
     @lru_cache(maxsize=None)
@@ -248,7 +248,7 @@ class LineaArtifact:
     ) -> Tuple[Graph, Set[LineaID]]:
         session_graph = Graph.create_session_graph(self.db, self._session_id)
         return session_graph, get_subgraph_nodelist(
-            session_graph, [self._node_id], keep_lineapy_save
+            session_graph, [self._node_id], [], keep_lineapy_save
         )
 
     @lru_cache(maxsize=None)

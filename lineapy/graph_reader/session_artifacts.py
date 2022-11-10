@@ -347,7 +347,7 @@ class SessionArtifacts:
         Get sliced nodes from session graph and separate nodes for import
         and main calculation.
         """
-        nodes = set(get_slice_graph(self.graph, [node_id]).nx_graph.nodes)
+        nodes = set(get_slice_graph(self.graph, [node_id], []).nx_graph.nodes)
         # Identify import nodes
         importnodes = set(
             [
@@ -409,6 +409,7 @@ class SessionArtifacts:
             assert pred_graph_segment is not None
             source_art_slice_variable_graph = get_slice_graph(
                 pred_graph_segment,
+                [],
                 slice_variable_nodes,
             )
             common_nodes = set(source_art_slice_variable_graph.nx_graph.nodes)

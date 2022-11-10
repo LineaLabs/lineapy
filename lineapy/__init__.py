@@ -10,6 +10,7 @@ from lineapy.api.api import (
     get_pipeline,
     reload,
     save,
+    temp_print,
     to_pipeline,
 )
 from lineapy.data.graph import Graph
@@ -44,6 +45,7 @@ __all__ = [
     "options",
     "tag",
     "__version__",
+    "temp_print",
 ]
 
 
