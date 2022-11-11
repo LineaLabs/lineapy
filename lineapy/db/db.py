@@ -388,6 +388,10 @@ class RelationalLineaDB:
             raise UserException(NameError(msg))
         return res
 
+    def get_all_pipelines(self) -> List[PipelineORM]:
+        res = self.session.query(PipelineORM).all()
+        return res
+
     def artifact_in_db(
         self, node_id: LineaID, execution_id: LineaID, name: str, version: int
     ) -> bool:

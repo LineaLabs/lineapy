@@ -10,7 +10,8 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
 import ipywidgets
-from IPython.display import display
+import pyvis
+from IPython.display import HTML, display
 
 from lineapy.api.artifact_serializer import serialize_artifact
 from lineapy.api.models.linea_artifact import (
@@ -590,16 +591,6 @@ def get_module_definition(
 
 
 def temp_print():
-    """
-    Returns
-    -------
-    LineaArtifactStore
-        An object of the class `LineaArtifactStore` that allows for printing and exporting artifacts metadata.
-    """
-    # execution_context = get_context()
-    # executor = execution_context.executor
-    # print(executor._all_nodes)
-
     execution_context = get_context()
     executor = execution_context.executor
     tracer = get_tracer()
@@ -706,4 +697,120 @@ def temp_print():
 
     display(ipywidgets.HBox([input_box, output_box]))
     display(btn)
+    display(output_display_group)
+
+
+def temp_pall():
+    execution_context = get_context()
+    executor = execution_context.executor
+
+    db = executor.db
+
+    import networkx as nx
+
+    full_lineage_graph = nx.Graph()
+
+    for artifact_orm in db.get_all_artifacts():
+        name_tag = f"Artifact group: {artifact_orm.name}"
+
+        session_id = LineaArtifact.get_artifact_from_orm(
+            db, artifact_orm
+        )._session_id
+        session_tag = f"User session: {session_id}"
+
+        tag = f"Artifact: {artifact_orm.name}_{artifact_orm.version}"
+        full_lineage_graph.add_node(
+            tag,
+            size=20,
+            title=tag,
+            group=1,
+        )
+
+        if name_tag not in full_lineage_graph:
+            full_lineage_graph.add_node(
+                name_tag,
+                size=20,
+                title=name_tag,
+                group=2,
+            )
+
+        full_lineage_graph.add_edge(tag, name_tag)
+
+        if session_tag not in full_lineage_graph:
+            full_lineage_graph.add_node(
+                session_tag,
+                size=20,
+                title=session_tag,
+                group=3,
+            )
+
+        full_lineage_graph.add_edge(tag, session_tag)
+
+    for pipeline_orm in db.get_all_pipelines():
+
+        pipeline_tag = f"Pipeline: {pipeline_orm.name}"
+        full_lineage_graph.add_node(
+            pipeline_tag,
+            size=20,
+            title=pipeline_tag,
+            group=0,
+        )
+
+        for artifact_orm in pipeline_orm.artifacts:
+            artifact_tag = (
+                f"Artifact: {artifact_orm.name}_{artifact_orm.version}"
+            )
+
+            full_lineage_graph.add_edge(pipeline_tag, artifact_tag, weight=5)
+
+    output_display_group = ipywidgets.Output(
+        layout={"border": "1px solid black"}
+    )
+
+    depth_slider = ipywidgets.IntSlider(
+        value=1,
+        min=1,
+        max=4,
+        step=1,
+        description="Test:",
+        disabled=False,
+        continuous_update=False,
+        orientation="horizontal",
+        readout=True,
+        readout_format="d",
+    )
+
+    select_box = ipywidgets.Combobox(
+        # value=list(tag_to_node.keys())[0],
+        placeholder="Choose Someone",
+        options=list(full_lineage_graph.nodes),
+        description="Combobox:",
+        # ensure_option=True,
+        disabled=False,
+    )
+
+    def event_handler(event):
+        with output_display_group:
+
+            if select_box.value in set(full_lineage_graph.nodes):
+                output_display_group.clear_output()
+
+                subgraph = nx.ego_graph(
+                    full_lineage_graph,
+                    select_box.value,
+                    radius=depth_slider.value,
+                )
+                subgraph.nodes[select_box.value]["group"] = 6
+                subgraph.nodes[select_box.value]["size"] = 30
+
+                nt = pyvis.network.Network("500px", "500px", notebook=True)
+                nt.from_nx(subgraph)
+                nt.show("lineage_graph.html")
+                display(HTML("lineage_graph.html"))
+
+    depth_slider.observe(event_handler)
+    display(depth_slider)
+    select_box.observe(event_handler)
+    display(select_box)
+
     display(output_display_group)

@@ -10,6 +10,7 @@ from lineapy.api.api import (
     get_pipeline,
     reload,
     save,
+    temp_pall,
     temp_print,
     to_pipeline,
 )
@@ -46,6 +47,7 @@ __all__ = [
     "tag",
     "__version__",
     "temp_print",
+    "temp_pall",
 ]
 
 
