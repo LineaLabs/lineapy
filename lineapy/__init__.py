@@ -4,14 +4,13 @@ from lineapy.api.api import (
     artifact_store,
     create_pipeline,
     delete,
+    function_selector,
     get,
     get_function,
     get_module_definition,
     get_pipeline,
     reload,
     save,
-    temp_pall,
-    temp_print,
     to_pipeline,
 )
 from lineapy.data.graph import Graph
@@ -46,8 +45,7 @@ __all__ = [
     "options",
     "tag",
     "__version__",
-    "temp_print",
-    "temp_pall",
+    "function_selector",
 ]
 
 
