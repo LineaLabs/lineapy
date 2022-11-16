@@ -11,19 +11,12 @@
     - criteria:
         function_names:
           - read_csv
+          - read_table
           - read_fwf
-          - read_json
-          - read_html
-          - read_xml
-          - read_excel
-          - read_hdf
-          - read_feather
           - read_parquet
+          - read_hdf
+          - read_json
           - read_orc
-          - read_stata
-          - read_sas
-          - read_spss
-          - read_pickle
       side_effects:
         - dependency:
             external_state: file_system
@@ -32,7 +25,6 @@
     - criteria:
         class_method_names:
           - to_sql
-          - to_gbq
         class_instance: DataFrame
       side_effects:
         - mutated_value:
@@ -42,13 +34,10 @@
           - to_csv
           - to_json
           - to_html
-          - to_xml
-          - to_excel
           - to_hdf
           - to_feather
           - to_parquet
-          - to_stata
-          - to_pickle
+          - to_records
         class_instance: DataFrame
       side_effects:
         - mutated_value:
@@ -58,15 +47,18 @@
   annotations:
     - criteria:
         class_instance: DataFrame
-        class_method_names: 
+        class_method_names:
           - compute
-          - head
-          - visualize
-          - annotate
-          - optimize
       side_effects:
         - mutated_value:
             self_ref: SELF_REF
         - views:
             - self_ref: SELF_REF
             - result: RESULT
+    - criteria:
+        class_instance: DataFrame
+        class_method_names:
+          - pop
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
