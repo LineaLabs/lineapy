@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from itertools import chain
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, Union
 
 import networkx as nx
 
@@ -39,8 +39,10 @@ class TaskGraph(object):
 
     def __init__(
         self,
-        nodes: List[str],
-        mapping: Dict[str, str],
+        nodes: List[Union[str, Tuple[str, int]]],
+        mapping: Dict[
+            Union[str, Tuple[str, int]], Union[str, Tuple[str, int]]
+        ],
         edges: TaskGraphEdge = {},
     ):
         self.graph = nx.DiGraph()
@@ -97,8 +99,8 @@ class TaskSerializer(Enum):
 
 
 def extract_taskgraph(
-    artifacts: List[str], dependencies: TaskGraphEdge
-) -> Tuple[List[str], TaskGraph]:
+    artifacts: List[Union[str, Tuple[str, int]]], dependencies: TaskGraphEdge
+) -> Tuple[List[Union[str, Tuple[str, int]]], TaskGraph]:
     """
     extract_taskgraph returns a list of artifacts and the taskgraph corresponding to the provided dependencies
     """

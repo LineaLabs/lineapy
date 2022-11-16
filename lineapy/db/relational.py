@@ -75,6 +75,28 @@ artifact_to_pipeline_table = Table(
     Column("artifact_id", ForeignKey("artifact.id")),
 )
 
+reuse_artifact_to_pipeline_table = Table(
+    "reuse_artifact_to_pipeline",
+    Base.metadata,
+    Column("pipeline_id", ForeignKey("pipeline.id")),
+    Column("artifact_id", ForeignKey("artifact.id")),
+)
+
+var_to_pipeline_table = Table(
+    "var_to_pipeline",
+    Base.metadata,
+    Column("pipeline_id", ForeignKey("pipeline.id")),
+    Column("var_node_id", ForeignKey("assigned_variable_node.id")),
+)
+
+inputvar_to_pipeline_table = Table(
+    "inputvar_to_pipeline",
+    Base.metadata,
+    Column("pipeline_id", ForeignKey("pipeline.id")),
+    Column("var_node_id", ForeignKey("assigned_variable_node.id")),
+)
+
+
 dependency_to_artifact_table = Table(
     "dependency_to_artifact_table",
     Base.metadata,
@@ -136,12 +158,36 @@ class MLflowArtifactMetadataORM(Base):
     delete_time = Column(DateTime, nullable=True)
 
 
+class VariableNodeORM(Base):
+
+    __tablename__ = "assigned_variable_node"
+    id = Column(String, primary_key=True)
+    # Warlus operator can assign to multiple variables at the same node,  so need two primary keys
+    variable_name: str = Column(String, nullable=False, primary_key=True)
+
+
 class PipelineORM(Base):
     __tablename__ = "pipeline"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
+    isUDF = Column(Boolean, nullable=False, default=False)
     artifacts = relationship(
         ArtifactORM, secondary=artifact_to_pipeline_table, collection_class=set
+    )
+    reuseartifacts = relationship(
+        ArtifactORM,
+        secondary=reuse_artifact_to_pipeline_table,
+        collection_class=set,
+    )
+    outputvariables = relationship(
+        VariableNodeORM,
+        secondary=var_to_pipeline_table,
+        collection_class=set,
+    )
+    inputvariables = relationship(
+        VariableNodeORM,
+        secondary=inputvar_to_pipeline_table,
+        collection_class=set,
     )
     dependencies: List[ArtifactDependencyORM] = relationship(
         "ArtifactDependencyORM",
@@ -455,11 +501,3 @@ NodeORM = Union[
     IfNodeORM,
     ElseNodeORM,
 ]
-
-
-class VariableNodeORM(Base):
-
-    __tablename__ = "assigned_variable_node"
-    id = Column(String, primary_key=True)
-    # Warlus operator can assign to multiple variables at the same node,  so need two primary keys
-    variable_name: str = Column(String, nullable=False, primary_key=True)

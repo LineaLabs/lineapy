@@ -369,13 +369,13 @@ def artifact_store() -> LineaArtifactStore:
 # TODO - this piece needs to test more than just the output of jupyter cell.
 # we need to ensure all the required files (python module and the dag file) get written to the right place.
 def to_pipeline(
-    artifacts: List[str],
+    artifacts: List[Union[str, Tuple[str, int]]],
     framework: str = "SCRIPT",
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
     output_dir: str = ".",
     input_parameters: List[str] = [],
-    reuse_pre_computed_artifacts: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
     generate_test: bool = False,
     pipeline_dag_config: Optional[Dict] = {},
     include_non_slice_as_comment: bool = False,
@@ -443,13 +443,13 @@ def to_pipeline(
         artifacts=artifacts,
         name=pipeline_name,
         dependencies=dependencies,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
     )
     pipeline.save()
     return pipeline.export(
         framework=framework,
         output_dir=output_dir,
-        input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
         generate_test=generate_test,
         pipeline_dag_config=pipeline_dag_config,
         include_non_slice_as_comment=include_non_slice_as_comment,
@@ -457,15 +457,19 @@ def to_pipeline(
 
 
 def create_pipeline(
-    artifacts: List[str],
+    artifacts: List[Union[str, Tuple[str, int]]],
     pipeline_name: Optional[str] = None,
     dependencies: TaskGraphEdge = {},
+    input_parameters: List[str] = [],
+    reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
     persist: bool = False,
 ) -> Pipeline:
     pipeline = Pipeline(
         artifacts=artifacts,
         name=pipeline_name,
         dependencies=dependencies,
+        input_parameters=input_parameters,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
     )
     if persist:
         pipeline.save()
@@ -474,6 +478,7 @@ def create_pipeline(
 
 
 def get_function(
+    function_name: str,
     artifacts: List[Union[str, Tuple[str, int]]],
     input_parameters: List[str] = [],
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
@@ -518,21 +523,21 @@ def get_function(
         name in different notebooks and don't save same artifact multiple times
         within the same session.
     """
-    execution_context = get_context()
-    artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
-    ]
-    reuse_pre_computed_artifact_defs = [
-        get_lineaartifactdef(art_entry=art_entry)
-        for art_entry in reuse_pre_computed_artifacts
-    ]
-    art_collection = ArtifactCollection(
-        execution_context.executor.db,
-        artifact_defs,
+    pipeline = Pipeline(
+        artifacts,
+        function_name,
+        dependencies={},
         input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+        is_udf=True,
     )
-    writer = BasePipelineWriter(art_collection)
+
+    # save function as "pipeline" to DB.
+    pipeline.save()
+
+    writer = BasePipelineWriter(
+        pipeline.artifact_collection, pipeline_name=function_name
+    )
     module = load_as_module(writer)
     return module.run_all_sessions
 

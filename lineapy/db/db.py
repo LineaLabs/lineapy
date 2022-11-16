@@ -865,6 +865,23 @@ class RelationalLineaDB:
         )
         return [(n[0].id, n[1].variable_name) for n in results]
 
+    def get_assigned_variable_orm_by_name(
+        self,
+        node_id: LineaID,
+        variable_name: str,
+    ) -> VariableNodeORM:
+        """
+        Gets the most recent artifact with a certain name.
+        If a version is not specified, it will return the most recent
+        version sorted by date_created
+        """
+        res_query = (
+            self.session.query(VariableNodeORM)
+            .filter(VariableNodeORM.id == node_id)
+            .filter(VariableNodeORM.variable_name == variable_name)
+        )
+        return res_query.one()
+
     def get_mlflowartifactmetadataorm_by_artifact_id(
         self, artifact_id: int
     ) -> MLflowArtifactMetadataORM:

@@ -13,7 +13,7 @@ def lineage_explorer():
 
     db = executor.db
 
-    full_lineage_graph = nx.Graph()
+    full_lineage_graph = nx.DiGraph()
 
     for artifact_orm in db.get_all_artifacts():
 
@@ -39,7 +39,7 @@ def lineage_explorer():
             )
 
         full_lineage_graph.add_edge(
-            artifact_tag, session_tag, color="blue", lineage_type="session"
+            session_tag, artifact_tag, color="blue", lineage_type="session"
         )
 
     for pipeline_orm in db.get_all_pipelines():
@@ -60,6 +60,53 @@ def lineage_explorer():
             full_lineage_graph.add_edge(
                 pipeline_tag,
                 artifact_tag,
+                weight=5,
+                color="black",
+                lineage_type="pipeline",
+            )
+
+        for artifact_orm in pipeline_orm.reuseartifacts:
+            artifact_tag = (
+                f"Artifact: {artifact_orm.name}_{artifact_orm.version}"
+            )
+
+            full_lineage_graph.add_edge(
+                artifact_tag,
+                pipeline_tag,
+                weight=5,
+                color="black",
+                lineage_type="pipeline",
+            )
+
+        for input_variable_orm in pipeline_orm.inputvariables:
+            variable_tag = f"Variable: {input_variable_orm.variable_name} uniqueID {input_variable_orm.id}"
+            if variable_tag not in full_lineage_graph:
+                full_lineage_graph.add_node(
+                    variable_tag,
+                    size=15,
+                    title=variable_tag,
+                    group=4,
+                )
+            full_lineage_graph.add_edge(
+                variable_tag,
+                pipeline_tag,
+                weight=5,
+                color="black",
+                lineage_type="pipeline",
+            )
+
+        for output_variable_orm in pipeline_orm.outputvariables:
+            variable_tag = f"Variable: {output_variable_orm.variable_name} uniqueID {output_variable_orm.id}"
+            if variable_tag not in full_lineage_graph:
+                full_lineage_graph.add_node(
+                    variable_tag,
+                    size=15,
+                    title=variable_tag,
+                    group=4,
+                )
+            full_lineage_graph.add_edge(
+                pipeline_tag,
+                variable_tag,
                 weight=5,
                 color="black",
                 lineage_type="pipeline",
@@ -121,6 +168,7 @@ def lineage_explorer():
                     full_lineage_graph,
                     select_box.value,
                     radius=depth_slider.value,
+                    undirected=True,
                 )
 
                 # filtering
@@ -131,7 +179,7 @@ def lineage_explorer():
                     if subgraph.nodes[node]["group"] == 2 and not show_session:
                         nodes_to_remove.append(node)
                     if (
-                        subgraph.nodes[node]["group"] == 3
+                        subgraph.nodes[node]["group"] in [3, 4]
                         and not show_pipeline
                     ):
                         nodes_to_remove.append(node)
@@ -144,13 +192,16 @@ def lineage_explorer():
                     subgraph,
                     select_box.value,
                     radius=depth_slider.value,
+                    undirected=True,
                 )
 
                 # highlight the selected node
                 subgraph.nodes[select_box.value]["group"] = 0
                 subgraph.nodes[select_box.value]["size"] = 30
 
-                nt = pyvis.network.Network("500px", "500px", notebook=True)
+                nt = pyvis.network.Network(
+                    "500px", "500px", notebook=True, directed=True
+                )
                 nt.from_nx(subgraph)
                 nt.show("lineage_graph.html")
                 display(HTML("lineage_graph.html"))
