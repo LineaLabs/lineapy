@@ -4,7 +4,6 @@ from lineapy.api.api import (
     artifact_store,
     create_pipeline,
     delete,
-    function_selector,
     get,
     get_function,
     get_module_definition,
@@ -45,7 +44,6 @@ __all__ = [
     "options",
     "tag",
     "__version__",
-    "function_selector",
 ]
 
 
