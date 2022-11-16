@@ -1,7 +1,7 @@
 import ipywidgets
 import networkx as nx
 import pyvis
-from IPython.display import HTML, display
+from IPython.display import IFrame, display
 
 from lineapy.api.models.linea_artifact import LineaArtifact
 from lineapy.execution.context import get_context
@@ -204,7 +204,7 @@ def lineage_explorer():
                 )
                 nt.from_nx(subgraph)
                 nt.show("lineage_graph.html")
-                display(HTML("lineage_graph.html"))
+                display(IFrame("lineage_graph.html", 500, 500))
 
     select_box.observe(event_handler)
     display(select_box)
