@@ -33,7 +33,7 @@ Our goal is to have TaskDefinition provide modular blocks that can be used by mu
     The key idea behind a TaskDefinition is that we believe that a task should correspond to whatever the "unit of execution" is for your framework. 
     For example, in Airflow, this would be the concept of an Operator.
 
-For the latest attributes in TaskDefinition, please refer to our `API reference <https://docs.lineapy.org/en/latest/autogen/lineapy.plugins.html?highlight=TaskDefinition#lineapy.plugins.task.TaskDefinition>`_.
+For the latest attributes in TaskDefinition, please refer to our API reference :class:`lineapy.plugins.task.TaskDefinition`.
 
 .. note::
     If you feel there a code block is missing from task definition create a separate PR to add it along with an example of why your framework needs it.
