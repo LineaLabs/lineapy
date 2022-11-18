@@ -6,25 +6,28 @@ Integrate a New Pipeline Framework
 One major feature of Lineapy is the ability to create pipelines that run various pipeline orchestration frameworks.
 We believe that supporting pipeline frameworks to meet data engineers where they are with their current stacks provides the best user experience and reducing manual work for writing pipelines.
 
-In this tutorial we will go through how to write an new pipeline integration. We'll first go through important concepts before diving into concrete steps.
+Read more about the concept of a pipeline :ref:`here <pipeline_concept>` and Lineapy Pipelines :ref:`here <pipelines>`.
+
+In this tutorial we will go through how to write an new pipeline integration. We'll first go through important concepts before diving into concrete steps. If you want to dive right into the concrete steps, skip ahead to the :ref:`checklist <pipeline_integration_checklist>`.
+
+
 This tutorial will use airflow as an illustrative example, but there may not be a one size fits all approach for all integrations so please adapt the content in this guide to suite your individual needs.
 
 The module file
 ---------------
 
-The module file contains all the user code from the original notebook needed to run a pipeline. 
-The code is already cleaned and refactored code based on parameters passed to a ``to_pipeline call`` and is presented as a python module file. 
+The module file contains all the user code from the original notebook needed to run a pipeline. The module file is one of a few files that Lineapy generates to create pipelines, an overview of which can be found here :ref:`here <iris_pipeline_module>`.
 
-This file can and should be used by integrations. Pipeline writers should inherit ``_write_module`` and make sure their inherited or implemented version of ``write_pipeline_files`` calls ``_write_module``. 
+The module file contains code that is already cleaned and refactored based on parameters passed to a ``to_pipeline call`` and is presented as a python module file. 
 
-The key for new integrations is to figure out how to call these functions within the constraints of their framework. Fortunately, we provide another abstraction to help make this easy. 
+This file can and should be used by integrations. The key for new integrations is to figure out how to call these functions within the constraints of their framework. Fortunately, we provide another abstraction to help make this easy. 
 
 
 What is a task definition?
 --------------------------
 
 Task Definition is the abstraction that Linea provides integration writers that provides all the information needed to call the functions in the module file.
-Our goal is to have TaskDefinition provide modular blocks that can be used by multiple frameworks with some help from templating to provide framework specific syntax. 
+Our goal is to have TaskDefinition provide modular blocks that can be used by multiple frameworks with some help from Jinja templating to provide framework specific syntax. 
 
 .. note::
     The key idea behind a TaskDefinition is that we believe that a task should correspond to whatever the "unit of execution" is for your framework. 
@@ -52,6 +55,7 @@ Currently ``get_task_definitions`` returns TaskDefinitions in a dictionary which
 
 Data dependencies is work in progress, and when completed should allow us to specify dependencies in a way to give integration writers parallelizable task graphs.
 
+.. _pipeline_integration_checklist:
 
 Writing a new integration checklist
 -----------------------------------
@@ -59,6 +63,7 @@ Writing a new integration checklist
 #. Create new pipeline writer file in ``lineapy/plugins/``
 #. Register a new ``PipelineType`` in ``lineapy/data/types.py``
 #. Add your new pipeline writer to the ``PipelineWriterFactory`` in ``lineapy/plugins/pipeline_writer_factory``
+#. Ensure your Pipeline writer inherits ``_write_module`` and make sure the inherited or implemented version of ``write_pipeline_files`` calls ``_write_module``. 
 #. Implement ``_write_dag`` for your pipeline writer. 
 
 Suggested steps for ``_write_dag`` with examples in ``AirflowPipelineWriter``:
@@ -111,6 +116,16 @@ Suggested steps for ``_write_dag`` with examples in ``AirflowPipelineWriter``:
             task_definitions=rendered_task_defs,
             task_dependencies=task_dependencies,
         )
+
+Using Templates
+---------------
+
+You may have noticed at this point that the last few bullet points in the checklist involve rendering and using Jinja templates. Jinja templates are Lineapy's preferred way of templating the code that we generate.
+
+All of the templates that are used in lineapy can be found in the `templates directory <https://github.com/LineaLabs/lineapy/tree/main/lineapy/plugins/jinja_templates>`_. 
+These templates are loaded using the ``load_plugin_template`` command as illustrated in the examples above, and can be rendered using the ``render`` method while passing in values for the placeholder variables.
+
+Feel free to skim some of the templates we have already created for an idea on how we use these templates. Online tutorials are also helpful, the "Getting started with Jinja" sections on `this one <https://realpython.com/primer-on-jinja-templating/#get-started-with-jinja>`_ are a good place to start. 
 
 Testing
 -------
