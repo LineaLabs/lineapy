@@ -55,7 +55,7 @@ is a Python package called ``psycopg2``, which can be installed as follows:
 
 .. code:: bash
 
-    $ pip install psycopg2
+    $ pip install psycopg2-binary
 
 Connect LineaPy with PostgreSQL
 -------------------------------

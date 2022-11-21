@@ -116,7 +116,7 @@ typing_libs = [
 ]
 
 postgres_libs = [
-    "psycopg2",
+    "psycopg2-binary",
 ]
 
 s3_libs = ["boto3", "s3fs", "botocore"]
