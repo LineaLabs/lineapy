@@ -44,8 +44,7 @@ VERSION = version("lineapy/utils/version.py")
 minimal_requirement = [
     "click>=8.0.0",
     "pydantic",
-    "SQLAlchemy>=1.4",
-    "SQLAlchemy<2.0.0",  # https://sqlalche.me/e/20/zlpr
+    "SQLAlchemy>=1.4, <2.0.0",  # https://sqlalche.me/e/20/zlpr
     "networkx",
     "rich",
     "pyyaml",
