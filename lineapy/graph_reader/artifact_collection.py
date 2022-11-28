@@ -1,8 +1,7 @@
 import logging
-from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain
-from typing import Dict, List, Set
+from typing import Dict, List
 
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
@@ -11,6 +10,7 @@ from lineapy.api.models.linea_artifact import LineaArtifact, LineaArtifactDef
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
+from lineapy.graph_reader.utils import get_artifacts_grouped_by_session
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.logging_config import configure_logging
@@ -48,14 +48,14 @@ class ArtifactCollection:
             )
 
         # Retrieve target artifact objects and group them by session ID
-        self.target_artifacts_by_session = (
-            self._get_artifacts_grouped_by_session(target_artifacts)
+        self.target_artifacts_by_session = get_artifacts_grouped_by_session(
+            self.db, target_artifacts
         )
 
         # Retrieve reuse precomputed artifact objects and group them by session ID
         self.pre_computed_artifacts_by_session = (
-            self._get_artifacts_grouped_by_session(
-                reuse_pre_computed_artifacts
+            get_artifacts_grouped_by_session(
+                self.db, reuse_pre_computed_artifacts
             )
         )
 
@@ -100,34 +100,6 @@ class ArtifactCollection:
                     + "Try to remove it from the reuse list."
                 )
                 raise KeyError(msg)
-
-    def _get_artifacts_grouped_by_session(
-        self, artifact_entries: List[LineaArtifactDef]
-    ) -> Dict[LineaID, List[LineaArtifact]]:
-        """
-        Get LineaArtifact from each artifact entry and group by the Session they belong to.
-
-        Artifact entries are specified as name and optionally version as the end user would specify.
-
-        This helper function is used to group target and reuse_precomputed artifacts so that we can
-        create SessionArtifacts for each Session.
-        """
-        artifacts_grouped_by_session: Dict[
-            LineaID, List[LineaArtifact]
-        ] = defaultdict(list)
-        seen_artifact_names: Set[str] = set()
-        for art_def in artifact_entries:
-            # Check no two target artifacts have the same name
-            if art_def["artifact_name"] in seen_artifact_names:
-                raise KeyError(
-                    "Artifact %s is duplicated", art_def["artifact_name"]
-                )
-            # Retrieve artifact and put it in the right group
-            art = LineaArtifact.get_artifact_from_def(self.db, art_def)
-            artifacts_grouped_by_session[art._session_id].append(art)
-            seen_artifact_names.add(art_def["artifact_name"])
-
-        return artifacts_grouped_by_session
 
     def validate_dependencies(self, dependencies: TaskGraphEdge = {}):
         """
