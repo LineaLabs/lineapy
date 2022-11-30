@@ -1,10 +1,10 @@
-from collections import defaultdict
 from itertools import groupby
-from typing import Dict, List
+from typing import Iterable, List, Tuple
 
 from lineapy.api.models.linea_artifact import LineaArtifact, LineaArtifactDef
 from lineapy.data.graph import Graph
 from lineapy.data.types import CallNode, LineaID, LookupNode
+from lineapy.db.db import RelationalLineaDB
 
 
 def is_import_node(graph: Graph, node_id: LineaID) -> bool:
@@ -22,10 +22,19 @@ def is_import_node(graph: Graph, node_id: LineaID) -> bool:
     return False
 
 
+def get_db_artifacts_from_artifactdef(
+    db: RelationalLineaDB, artifact_entries: List[LineaArtifactDef]
+) -> List[LineaArtifact]:
+    # converts artifactdef list to a linea artfact list by fetching it from the db
+    return [
+        LineaArtifact.get_artifact_from_def(db, art_def)
+        for art_def in artifact_entries
+    ]
+
+
 def get_artifacts_grouped_by_session(
-    db,
-    artifact_entries: List[LineaArtifactDef],
-) -> Dict[LineaID, List[LineaArtifact]]:
+    all_linea_artifacts: List[LineaArtifact],
+) -> Iterable[Tuple[LineaID, List[LineaArtifact]]]:
     """
     Get LineaArtifact from each artifact entry and group by the Session they belong to.
 
@@ -35,29 +44,12 @@ def get_artifacts_grouped_by_session(
     create SessionArtifacts for each Session.
 
     """
-    # TODO: This seems to do three things:
-    # 2)
-    # 3) groups these initialized artifacts into a dict with session ids as key
+    # This function groups artifacts into a dict with session ids as key
     #
-    # I think the function is doing too much and needs to be fragmented into three with each handling these tasks
-
-    artifacts_grouped_by_session: Dict[
-        LineaID, List[LineaArtifact]
-    ] = defaultdict(list)
-
-    # converts artifactdef to a linea artfact by fetching it from the db
-    all_linea_artifacts = [
-        LineaArtifact.get_artifact_from_def(db, art_def)
-        for art_def in artifact_entries
-    ]
     for session_id, artifacts_by_session in groupby(
         all_linea_artifacts, lambda d: d._session_id
     ):
-        # TODO: collapsing here for now but we could very well yield as a generator.
-        # leaving it for future refactors
-        artifacts_grouped_by_session[session_id] = list(artifacts_by_session)
-
-    return artifacts_grouped_by_session
+        yield session_id, list(artifacts_by_session)
 
 
 def check_duplicates(artifact_entries: List[LineaArtifactDef]):
