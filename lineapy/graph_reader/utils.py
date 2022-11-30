@@ -41,11 +41,6 @@ def get_artifacts_grouped_by_session(
     #
     # I think the function is doing too much and needs to be fragmented into three with each handling these tasks
 
-    # TODO - migrate this check outside this function.
-    # Check if artifact name has been repeated in the input list
-    # original comment: Check no two target artifacts have the same name
-    check_duplicates(artifact_entries)
-
     artifacts_grouped_by_session: Dict[
         LineaID, List[LineaArtifact]
     ] = defaultdict(list)

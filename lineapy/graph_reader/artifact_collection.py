@@ -10,7 +10,10 @@ from lineapy.api.models.linea_artifact import LineaArtifact, LineaArtifactDef
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
-from lineapy.graph_reader.utils import get_artifacts_grouped_by_session
+from lineapy.graph_reader.utils import (
+    check_duplicates,
+    get_artifacts_grouped_by_session,
+)
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.logging_config import configure_logging
@@ -42,10 +45,16 @@ class ArtifactCollection:
         self.db: RelationalLineaDB = db
 
         self.input_parameters = input_parameters
+
+        # check if any duplicates exist in input parameters
         if len(input_parameters) != len(set(input_parameters)):
             raise ValueError(
                 f"Duplicated input parameters detected in {input_parameters}"
             )
+        # Check if artifact name has been repeated in the input list
+        # original comment: Check no two target artifacts have the same name
+        check_duplicates(target_artifacts)
+        check_duplicates(reuse_pre_computed_artifacts)
 
         # Retrieve target artifact objects and group them by session ID
         self.target_artifacts_by_session = get_artifacts_grouped_by_session(
