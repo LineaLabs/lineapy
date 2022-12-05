@@ -78,6 +78,7 @@ As our notebooks become more mature, we may use them like pipelines. For example
 
    guides/installation
    guides/interfaces
+   guides/contribute/index
 
 
 .. .. toctree::
@@ -93,14 +94,6 @@ As our notebooks become more mature, we may use them like pipelines. For example
 ..    guide/artifacts/index
 ..    guide/build_pipelines/index
 ..    guide/manage_artifacts/index
-
-
-.. .. toctree::
-..    :maxdepth: 1
-..    :caption: Contributor Guide
-
-..    development/start/index
-..    development/areas/index
 
 
 .. .. toctree::
