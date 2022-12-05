@@ -1,5 +1,12 @@
 Prerequisites
 -------------
+* The latest version of this demo cloned from the lineapy repository.
+```
+git clone git@github.com:LineaLabs/lineapy.git
+cd lineapy/examples/self-hosting-lineapy/
+git pull
+```
+
 * Docker and [Docker compose](https://docs.docker.com/compose/install/). Make sure you have [Compose V2](https://docs.docker.com/compose/#compose-v2-and-the-new-docker-compose-command) and the new `docker compose` command.
 The easiest way to install Docker compose is to install Docker Desktop for [Mac](https://docs.docker.com/desktop/install/mac-install/), [Windows](https://docs.docker.com/desktop/install/windows-install/), or [Linux](https://docs.docker.com/desktop/install/linux-install/).
 

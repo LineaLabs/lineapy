@@ -20,6 +20,7 @@ from lineapy.cli.cli import (
 )
 from lineapy.plugins.utils import slugify
 from lineapy.utils.config import options
+from tests.util import clean_lineapy_env_var
 
 
 @pytest.mark.slow
@@ -58,15 +59,6 @@ def test_lineapy_init_with_options():
 
 @pytest.mark.slow
 def test_config_order():
-    def clean_lineapy_env_var():
-        existing_lineapy_env = {
-            x: os.environ[x]
-            for x in os.environ.keys()
-            if x.startswith("LINEAPY_")
-        }
-        for key in existing_lineapy_env.keys():
-            del os.environ[key]
-        return existing_lineapy_env
 
     temp_dir_name = tempfile.mkdtemp()
 
@@ -162,12 +154,14 @@ def test_slice_housing_airflow():
     """
     Verifies that the "--airflow" CLI command is aliased to the `lineapy` executable
     """
-    python_cli(
-        file_name=pathlib.Path("tests/housing.py"),
-        slice=["p value", "y"],
-        export_slice_to_airflow_dag="sliced_housing_dag",
-        airflow_task_dependencies="{'p value': {'y'}}",
-    )
+    with tempfile.TemporaryDirectory() as output_dir:
+        python_cli(
+            file_name=pathlib.Path("tests/housing.py"),
+            slice=["p value", "y"],
+            export_slice_to_airflow_dag="sliced_housing_dag",
+            export_dir=output_dir,
+            airflow_task_dependencies="{'p value': {'y'}}",
+        )
 
 
 @pytest.mark.slow

@@ -9,17 +9,12 @@ import asttokens
 import pytest
 from mock import MagicMock
 
+from lineapy.data.types import SourceCode
 from lineapy.transformer.node_transformer import NodeTransformer
+from lineapy.transformer.py37_transformer import Py37Transformer
+from lineapy.transformer.py38_transformer import Py38Transformer
 from lineapy.transformer.source_giver import SourceGiver
-
-
-def _get_ast_node(code):
-    node = ast.parse(code)
-    if sys.version_info < (3, 8):  # give me endlines!
-        asttokens.ASTTokens(code, parse=False, tree=node)
-        SourceGiver().transform(node)
-
-    return node
+from lineapy.utils.utils import get_new_id
 
 
 class TestNodeTransformer:
@@ -105,10 +100,26 @@ class TestNodeTransformer:
         basic_tests_list,
     )
 
+    def _get_ast_node(self, code):
+        node = ast.parse(code)
+        if sys.version_info < (3, 8):  # give me endlines!
+            asttokens.ASTTokens(code, parse=False, tree=node)
+            SourceGiver().transform(node)
+
+        if sys.version_info < (3, 8):
+            py37 = Py37Transformer(self.nt.source_code, self.nt.tracer)
+            py37.visit(node.body[0])
+        if sys.version_info < (3, 9):
+            py38 = Py38Transformer(self.nt.source_code, self.nt.tracer)
+            py38.visit(node.body[0])
+
+        return node
+
     @pytest.fixture(autouse=True)
     def before_everything(self):
+        src = SourceCode(id=get_new_id(), code="", location=MagicMock())
         nt = NodeTransformer(
-            "", MagicMock(), MagicMock()  # SourceCodeLocation(0, 0, 0, 0)
+            src, MagicMock()  # SourceCodeLocation(0, 0, 0, 0)
         )
         assert nt is not None
         self.nt = nt
@@ -118,21 +129,21 @@ class TestNodeTransformer:
         self.nt._exec_statement = MagicMock()
 
         # this inits an ast.Module containing one expression whose value is a ast.lambda
-        test_node = _get_ast_node("lambda x: x + 10")
+        test_node = self._get_ast_node("lambda x: x + 10")
         lambda_node = test_node.body[0].value
         self.nt.generic_visit(lambda_node)
         self.nt._exec_statement.assert_not_called()
         self.nt._exec_expression.assert_called_once()
 
     def test_assign_executes(self):
-        test_node = _get_ast_node("a = 10")
+        test_node = self._get_ast_node("a = 10")
         self.nt.visit_Assign = MagicMock()
         self.nt.visit(test_node.body[0])
         self.nt.visit_Assign.assert_called_once_with(test_node.body[0])
 
     def test_assign_calls_tracer_assign(self):
         self.nt.get_source = MagicMock()
-        test_node = _get_ast_node("a = 10")
+        test_node = self._get_ast_node("a = 10")
         tracer = self.nt.tracer
         self.nt.visit(test_node.body[0])
         tracer.assign.assert_called_once_with("a", tracer.literal.return_value)
@@ -144,7 +155,7 @@ class TestNodeTransformer:
     )
     def test_assign_subscript_attribute_calls_tracer_assign(self, code):
         self.nt.get_source = MagicMock()
-        test_node = _get_ast_node(code)
+        test_node = self._get_ast_node(code)
         tracer = self.nt.tracer
         self.nt.visit(test_node.body[0])
         tracer.call.assert_called_once_with(
@@ -156,7 +167,7 @@ class TestNodeTransformer:
         )
 
     def test_visit_delete_executes(self):
-        test_node = _get_ast_node("del a")
+        test_node = self._get_ast_node("del a")
         with pytest.raises(NotImplementedError):
             self.nt.visit_Delete(test_node.body[0])
 
@@ -166,7 +177,7 @@ class TestNodeTransformer:
 
     def test_get_else_source_space_after_if_block(self):
         CODE = """if a:\n\tb\n\n\nelse:\n\tc"""
-        test_node = _get_ast_node(CODE).body[0]
+        test_node = self._get_ast_node(CODE).body[0]
         source_location = self.nt.get_else_source(test_node)
         # Checking whether all cases to set end_lineno for returned
         # SourceLocation are hit
@@ -177,7 +188,7 @@ class TestNodeTransformer:
 
     def test_get_else_source_no_newline_after_else_keyword(self):
         CODE = """if a:\n\tb\nelse: c"""
-        test_node = _get_ast_node(CODE).body[0]
+        test_node = self._get_ast_node(CODE).body[0]
         source_location = self.nt.get_else_source(test_node)
         # Checking whether all cases to set end_lineno for returned
         # SourceLocation are hit
@@ -191,7 +202,7 @@ class TestNodeTransformer:
     )
     def test_visit_delete_subscript_attribute_calls_tracer_call(self, code):
         self.nt.get_source = MagicMock()
-        test_node = _get_ast_node(code)
+        test_node = self._get_ast_node(code)
         tracer = self.nt.tracer
         self.nt.visit(test_node.body[0])
         tracer.call.assert_called_once_with(
@@ -208,7 +219,7 @@ class TestNodeTransformer:
         self, code, visitor, visitor_count, call_count
     ):
         self.nt._get_code_from_node = MagicMock()
-        test_node = _get_ast_node(code)
+        test_node = self._get_ast_node(code)
         self.nt.visit(test_node)
         # doing this so that we can select which function in tracer gets called.
         # might be overkill though so leaving it at this
@@ -219,7 +230,7 @@ class TestNodeTransformer:
     def test_code_visits_right_visitor(
         self, code, visitor, visitor_count, call_count
     ):
-        test_node = _get_ast_node(code)
+        test_node = self._get_ast_node(code)
         self.nt.__setattr__("visit_" + visitor, MagicMock())
         nt_visitor = self.nt.__getattribute__("visit_" + visitor)
         self.nt.visit(test_node)

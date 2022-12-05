@@ -525,7 +525,7 @@ def run_and_log(*args, **kwargs) -> subprocess.CompletedProcess[str]:
     # Set lineapy subprocesses to have more verbose logging
     env = {**os.environ, "LINEAPY_LOG_LEVEL": "INFO"}
     logger.info("Calling %s", " ".join(map(str, args)))
-    return subprocess.run(args, check=True, env=env, text=True, **kwargs)
+    return subprocess.run(args, check=True, env=env, text=True)
 
 
 @contextlib.contextmanager

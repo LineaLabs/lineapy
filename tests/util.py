@@ -1,3 +1,4 @@
+import os
 import os.path as path
 import sys
 from ast import AST, dump
@@ -170,3 +171,12 @@ class EqualsArray:
 
     def __eq__(self, __o: object) -> bool:
         return numpy.array_equal(self.array, __o)  # type: ignore
+
+
+def clean_lineapy_env_var():
+    existing_lineapy_env = {
+        x: os.environ[x] for x in os.environ.keys() if x.startswith("LINEAPY_")
+    }
+    for key in existing_lineapy_env.keys():
+        del os.environ[key]
+    return existing_lineapy_env

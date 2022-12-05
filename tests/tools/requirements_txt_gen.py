@@ -86,7 +86,7 @@ DEV_REQUIRES = [
     # DBs
     ##
     "pg",
-    "psycopg2",
+    "psycopg2-binary",
     "pytest-xdist",
     "sphinx-autobuild",
 ]

@@ -49,7 +49,7 @@ where ``<pipeline_name>`` is ``iris_pipeline`` in the current example.
 .. note::
 
    If you want hands-on practice,
-   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02_build_pipelines.ipynb>`_ tutorial notebook.
+   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02a_build_pipelines.ipynb>`_ tutorial notebook.
 
 Output Files
 ------------
@@ -227,7 +227,7 @@ Finally, we have the automatically generated Dockerfile (``iris_pipeline_Dockerf
 
 .. _testingairflow:
 
-Testing Locally
+Running Locally
 ---------------
 
 With these automatically generated files, we can quickly test running the pipeline locally.

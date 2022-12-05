@@ -4,21 +4,29 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import Optional, Set, Tuple, Union
 
 from IPython.display import display
 from pandas.io.pickle import read_pickle
-from typing_extensions import NotRequired, TypedDict
 
 from lineapy.api.api_utils import de_lineate_code
 from lineapy.data.graph import Graph
-from lineapy.data.types import LineaID
+from lineapy.data.types import (
+    ARTIFACT_STORAGE_BACKEND,
+    ArtifactInfo,
+    LineaArtifactDef,
+    LineaArtifactInfo,
+    LineaID,
+    MLflowArtifactInfo,
+)
 from lineapy.db.db import ArtifactORM, RelationalLineaDB
 from lineapy.execution.executor import Executor
 from lineapy.graph_reader.program_slice import (
     get_slice_graph,
     get_source_code_from_graph,
+    get_subgraph_nodelist,
 )
+from lineapy.plugins.serializers.mlflow_io import read_mlflow
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -32,16 +40,6 @@ from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
-
-
-class LineaArtifactDef(TypedDict):
-    """
-    Definition of an artifact, can extend new keys(user, project, ...)
-    in the future.
-    """
-
-    artifact_name: str
-    version: NotRequired[Optional[int]]
 
 
 def get_lineaartifactdef(
@@ -78,13 +76,25 @@ class LineaArtifact:
     """name of the artifact"""
     _version: int
     """version of the artifact - currently start from 0"""
+    _artifact_id: Optional[int] = field(default=None, repr=False)
     date_created: Optional[datetime] = field(default=None, repr=False)
-    # setting repr to false for date_created for now since it duplicates version
-    """Optional because date_created cannot be set by the user. 
+    # setting repr to false for date_created, _artifact_id for now since it duplicates version
+    """Optional because date_created and _artifact_id cannot be set by the user. 
     it is supposed to be automatically set when the artifact gets saved to the 
     db. so when creating lineaArtifact the first time, it will be unset. When 
     you get the artifact or list of artifacts as an artifact store, we retrieve 
     the date from db directly"""
+
+    def __post_init__(self) -> None:
+        """
+        Fill empty _artifact_id and date_created attributes.
+        """
+        if self._artifact_id is None or self.date_created is None:
+            artifactorm = self.db.get_artifactorm_by_name(
+                artifact_name=self.name, version=self.version
+            )
+            self._artifact_id = artifactorm.id
+            self.date_created = artifactorm.date_created
 
     @property
     def version(self) -> int:
@@ -104,36 +114,117 @@ class LineaArtifact:
         """
         Get and return the value of the artifact
         """
-        pickle_filename = self.db.get_node_value_path(
-            self._node_id, self._execution_id
-        )
-        if pickle_filename is None:
+        metadata = self.get_metadata()
+        linea_metadata = metadata["lineapy"]
+        saved_filepath = linea_metadata.storage_path
+        if saved_filepath is None:
             return None
         else:
-            # TODO - set unicode etc here
             track(GetValueEvent(has_value=True))
+            # read from mlflow
+            if "mlflow" in metadata.keys():
+                return read_mlflow(metadata["mlflow"])
 
-            artifact_storage_dir = options.safe_get("artifact_storage_dir")
-            filepath = (
-                artifact_storage_dir.joinpath(pickle_filename)
-                if isinstance(artifact_storage_dir, Path)
-                else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
+            # read from lineapy
+            return self._read_pickle(saved_filepath)
+
+    @lru_cache(maxsize=None)
+    def _get_storage_path(self) -> Optional[str]:
+        return self.db.get_node_value_path(self._node_id, self._execution_id)
+
+    def _get_storage_backend(self, storage_path) -> ARTIFACT_STORAGE_BACKEND:
+        """
+        Get storage backend based on the storage path
+
+        """
+        if isinstance(storage_path, str) and storage_path.startswith("runs:"):
+            # MLflow log_model should return the model URI with prefix ``runs:``
+            return ARTIFACT_STORAGE_BACKEND.mlflow
+        else:
+            return ARTIFACT_STORAGE_BACKEND.lineapy
+
+    @lru_cache(maxsize=None)
+    def get_metadata(self, lineapy_only: bool = False) -> ArtifactInfo:
+        """
+        Get artifact backend storage metadata
+
+        :param lineapy_only: If ``False``, will include both LineaPy related
+            metadata and metadata from storage backend(if it is not LineaPy).
+            If ``True``, will only return LineaPy related metadata no matter
+            which storage backend is using.
+
+        :return: Metadata for artifact backend storage.
+
+        """
+
+        assert isinstance(self._artifact_id, int)
+        assert isinstance(self.date_created, datetime)
+
+        storage_path = self._get_storage_path()
+        storage_backend = self._get_storage_backend(storage_path)
+
+        lineaartifact_metadata = LineaArtifactInfo(
+            artifact_id=self._artifact_id,
+            name=self.name,
+            version=self.version,
+            execution_id=self._execution_id,
+            session_id=self._session_id,
+            node_id=self._node_id,
+            date_created=self.date_created,
+            storage_path=storage_path,
+            storage_backend=storage_backend,
+        )
+
+        metadata = ArtifactInfo(lineapy=lineaartifact_metadata)
+
+        if not lineapy_only and storage_backend == "mlflow":
+            mlflowartifactorm = (
+                self.db.get_mlflowartifactmetadataorm_by_artifact_id(
+                    self._artifact_id
+                )
             )
-            try:
-                logger.debug(
-                    f"Retriving pickle file from {filepath} ",
+            assert isinstance(mlflowartifactorm.id, int)
+            assert isinstance(mlflowartifactorm.artifact_id, int)
+            assert isinstance(mlflowartifactorm.tracking_uri, str)
+            assert isinstance(mlflowartifactorm.model_uri, str)
+            assert isinstance(mlflowartifactorm.model_flavor, str)
+            metadata["mlflow"] = MLflowArtifactInfo(
+                id=mlflowartifactorm.id,
+                artifact_id=mlflowartifactorm.artifact_id,
+                tracking_uri=mlflowartifactorm.tracking_uri,
+                registry_uri=mlflowartifactorm.registry_uri,
+                model_uri=mlflowartifactorm.model_uri,
+                model_flavor=mlflowartifactorm.model_flavor,
+            )
+
+        return metadata
+
+    def _read_pickle(self, pickle_filename):
+        """
+        Read pickle file from artifact storage dir
+        """
+        # TODO - set unicode etc here
+        artifact_storage_dir = options.safe_get("artifact_storage_dir")
+        filepath = (
+            artifact_storage_dir.joinpath(pickle_filename)
+            if isinstance(artifact_storage_dir, Path)
+            else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
+        )
+        try:
+            logger.debug(
+                f"Retriving pickle file from {filepath} ",
+            )
+            return read_pickle(
+                filepath, storage_options=options.get("storage_options")
+            )
+        except Exception as e:
+            logger.error(e)
+            track(
+                ExceptionEvent(
+                    ErrorType.RETRIEVE, "Error in retriving pickle file"
                 )
-                return read_pickle(
-                    filepath, storage_options=options.get("storage_options")
-                )
-            except Exception as e:
-                logger.error(e)
-                track(
-                    ExceptionEvent(
-                        ErrorType.RETRIEVE, "Error in retriving pickle file"
-                    )
-                )
-                raise e
+            )
+            raise e
 
     # Note that I removed the @properties because they were not working
     # well with the lru_cache
@@ -152,10 +243,20 @@ class LineaArtifact:
         )
 
     @lru_cache(maxsize=None)
+    def _get_sessiongraph_and_subgraph_nodelist(
+        self, keep_lineapy_save: bool = False
+    ) -> Tuple[Graph, Set[LineaID]]:
+        session_graph = Graph.create_session_graph(self.db, self._session_id)
+        return session_graph, get_subgraph_nodelist(
+            session_graph, [self._node_id], keep_lineapy_save
+        )
+
+    @lru_cache(maxsize=None)
     def get_code(
         self,
         use_lineapy_serialization: bool = True,
         keep_lineapy_save: bool = False,
+        include_non_slice_as_comment: bool = False,
     ) -> str:
         """
         Return the slices code for the artifact
@@ -175,8 +276,16 @@ class LineaArtifact:
                 is_session_code=False,
             )
         )
+        (
+            sessiongraph,
+            subgraph_nodelist,
+        ) = self._get_sessiongraph_and_subgraph_nodelist(keep_lineapy_save)
         code = str(
-            get_source_code_from_graph(self._get_subgraph(keep_lineapy_save))
+            get_source_code_from_graph(
+                subgraph_nodelist,
+                session_graph=sessiongraph,
+                include_non_slice_as_comment=include_non_slice_as_comment,
+            )
         )
         if not use_lineapy_serialization:
             code = de_lineate_code(code, self.db)
@@ -245,6 +354,7 @@ class LineaArtifact:
         assert isinstance(artifactorm.name, str)
         return LineaArtifact(
             db=db,
+            _artifact_id=artifactorm.id,
             _execution_id=artifactorm.execution_id,
             _node_id=artifactorm.node_id,
             _session_id=artifactorm.node.session_id,

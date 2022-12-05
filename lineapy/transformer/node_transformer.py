@@ -1,19 +1,10 @@
 import ast
 import logging
 import sys
-from pathlib import Path
-from typing import Any, List, Optional, cast
+from typing import Any, Optional, Union, cast
 
-from lineapy.data.types import (
-    CallNode,
-    LiteralNode,
-    Node,
-    NodeType,
-    SourceCode,
-    SourceCodeLocation,
-    SourceLocation,
-)
-from lineapy.instrumentation.tracer import Tracer
+from lineapy.data.types import CallNode, Node, SourceLocation
+from lineapy.transformer.base_transformer import BaseTransformer
 from lineapy.transformer.transformer_util import create_lib_attributes
 from lineapy.utils.constants import (
     ADD,
@@ -49,6 +40,7 @@ from lineapy.utils.constants import (
     SET_ITEM,
     SUB,
 )
+from lineapy.utils.deprecation_utils import Constant
 from lineapy.utils.lineabuiltins import (
     l_alias,
     l_assert,
@@ -60,12 +52,11 @@ from lineapy.utils.lineabuiltins import (
     l_unpack_ex,
     l_unpack_sequence,
 )
-from lineapy.utils.utils import get_new_id
 
 logger = logging.getLogger(__name__)
 
 
-class NodeTransformer(ast.NodeTransformer):
+class NodeTransformer(BaseTransformer):
     """
     .. note::
 
@@ -73,34 +64,6 @@ class NodeTransformer(ast.NodeTransformer):
           so that the transformation do not get called more than once.
 
     """
-
-    def __init__(
-        self,
-        code: str,
-        location: SourceCodeLocation,
-        tracer: Tracer,
-    ):
-        self.source_code = SourceCode(
-            id=get_new_id(), code=code, location=location
-        )
-        tracer.db.write_source_code(self.source_code)
-        self.tracer = tracer
-        # Set __file__ to the pathname of the file
-        if isinstance(location, Path):
-            tracer.executor.module_file = str(location)
-        # The result of the last line, a node if it was an expression,
-        # None if it was a statement. Used by ipython to grab the last value
-        self.last_statement_result: Optional[Node] = None
-
-    def _get_code_from_node(self, node: ast.AST) -> Optional[str]:
-        if sys.version_info < (3, 8):
-            from lineapy.utils.deprecation_utils import get_source_segment
-
-            return get_source_segment(self.source_code.code, node, padded=True)
-        else:
-            return ast.get_source_segment(
-                self.source_code.code, node, padded=True
-            )
 
     def generic_visit(self, node: ast.AST):
         """
@@ -126,66 +89,6 @@ class NodeTransformer(ast.NodeTransformer):
             return self._exec_statement(node)
         elif isinstance(node, ast.expr):
             return self._exec_expression(node)
-        else:
-            raise NotImplementedError(
-                f"Don't know how to transform {type(node).__name__}"
-            )
-
-    def visit_Ellipsis(self, node: ast.Ellipsis) -> LiteralNode:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.8
-        """
-        if sys.version_info >= (3, 8):
-            raise NotImplementedError(
-                "Ellipsis nodes are deprecated since Python 3.8"
-            )
-        else:
-            return self.tracer.literal(..., self.get_source(node))
-
-    def visit_Str(self, node: ast.Str) -> LiteralNode:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.8
-        """
-        if sys.version_info >= (3, 8):
-            raise NotImplementedError(
-                "Str nodes are deprecated since Python 3.8"
-            )
-        else:
-            return self.tracer.literal(node.s, self.get_source(node))
-
-    def visit_Num(self, node: ast.Num) -> LiteralNode:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.8
-        """
-        if sys.version_info >= (3, 8):
-            raise NotImplementedError(
-                "Num nodes are deprecated since Python 3.8"
-            )
-        else:
-            return self.tracer.literal(node.n, self.get_source(node))
-
-    def visit_NameConstant(self, node: ast.NameConstant) -> LiteralNode:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.8
-        """
-        if sys.version_info >= (3, 8):
-            raise NotImplementedError(
-                "Num nodes are deprecated since Python 3.8"
-            )
-        else:
-            return self.tracer.literal(node.value, self.get_source(node))
 
     def visit_Module(self, node: ast.Module) -> Any:
         for stmt in node.body:
@@ -228,101 +131,6 @@ class NodeTransformer(ast.NodeTransformer):
             self.get_source(node),
             attributes=create_lib_attributes(node.names),
         )
-
-    def visit_If_hidden(self, node: ast.If) -> Any:
-        test_call_node = self.visit(node.test)
-
-        node_id = get_new_id()
-        else_id = get_new_id() if len(node.orelse) > 0 else None
-
-        # We first check the value of the test node, depending on it's truth
-        # value we might have two cases as described below
-        if self.tracer.executor._id_to_value[test_call_node.id]:
-            # In case the test condition is truthy, we will visit only the
-            # statements within the body of the If node.
-            with self.tracer.get_control_node(
-                NodeType.IfNode,
-                node_id,
-                else_id,
-                self.get_source(node.test),
-                test_call_node.id,
-                None,
-            ):
-                for stmt in node.body:
-                    self.visit(stmt)
-            # For the statements within the orelse of the IfNode, since they
-            # are actually not executed, we simply treat all of the enclosed
-            # statements as a black box, and get a literal node containing all
-            # the unexecuted statements. We then create an ElseNode which
-            # points to the LiteralNode containing the unexecuted statements,
-            # which ensures all the unexecuted statements are always included
-            # in the sliced program
-            if else_id is not None:
-                with self.tracer.get_control_node(
-                    NodeType.ElseNode,
-                    else_id,
-                    node_id,
-                    self.get_else_source(node),
-                    None,
-                    self.get_black_box_without_executing(node.orelse).id,
-                ):
-                    pass
-        else:
-            # In this case, the test condition is falsy, so we reverse the
-            # analysis above: the statements in the body of the If node are not
-            # visited, hence they are treated as a blackbox, while the
-            # statements within the orelse branch are visited, and we call the
-            # visit() method on these statements.
-            with self.tracer.get_control_node(
-                NodeType.IfNode,
-                node_id,
-                else_id,
-                self.get_source(node.test),
-                test_call_node.id,
-                self.get_black_box_without_executing(node.body).id,
-            ):
-                pass
-            if else_id is not None:
-                with self.tracer.get_control_node(
-                    NodeType.ElseNode,
-                    else_id,
-                    node_id,
-                    self.get_else_source(node),
-                ):
-                    for stmt in node.orelse:
-                        self.visit(stmt)
-
-    def visit_Index(self, node: ast.Index) -> Node:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.9
-        """
-        if sys.version_info >= (3, 9):
-            raise NotImplementedError(
-                "Index nodes are deprecated in Python 3.9"
-            )
-        else:
-            return self.visit(node.value)
-
-    def visit_ExtSlice(self, node: ast.ExtSlice) -> Node:
-        """
-        Note
-        ----
-
-        Deprecated in Python 3.9
-        """
-        if sys.version_info >= (3, 9):
-            raise NotImplementedError(
-                "ExtSlice nodes are deprecated in Python 3.9"
-            )
-        else:
-            elem_nodes = [self.visit(elem) for elem in node.dims]
-            return self.tracer.tuple(
-                *elem_nodes,
-                source_location=self.get_source(node),
-            )
 
     def visit_Name(self, node: ast.Name) -> Node:
         return self.tracer.lookup_node(node.id, self.get_source(node))
@@ -382,7 +190,7 @@ class NodeTransformer(ast.NodeTransformer):
                 f"We do not support deleting {type(target)}"
             )
 
-    def visit_Constant(self, node: ast.Constant) -> Node:
+    def visit_Constant(self, node: Union[ast.Constant, Constant]) -> Node:
         return self.tracer.literal(
             node.value,
             self.get_source(node),
@@ -417,8 +225,9 @@ class NodeTransformer(ast.NodeTransformer):
                 value_node.lineno = min(node.lineno, value_node.lineno)
                 # ignoring type because end_lineno will always be there for lineapy
                 value_node.end_lineno = max(  # type:ignore
-                    node.end_lineno, value_node.end_lineno
+                    node.end_lineno, value_node.end_lineno  # type: ignore
                 )
+
                 self.visit_assign_value(
                     target,
                     self.visit(value_node),
@@ -746,60 +555,3 @@ class NodeTransformer(ast.NodeTransformer):
                 for k, v in zip(keys, values)
             ),
         )
-
-    def get_source(self, node: ast.AST) -> Optional[SourceLocation]:
-        if not hasattr(node, "lineno"):
-            return None
-        return SourceLocation(
-            source_code=self.source_code,
-            lineno=node.lineno,
-            col_offset=node.col_offset,
-            end_lineno=node.end_lineno,  # type: ignore
-            end_col_offset=node.end_col_offset,  # type: ignore
-        )
-
-    def get_else_source(self, node: ast.If) -> Optional[SourceLocation]:
-        body_source = self.get_source(node.body[-1])
-        orelse_source = (
-            self.get_source(node.orelse[0]) if node.orelse else None
-        )
-        assert body_source, "Body of If/Else must have at least one statement"
-        if not orelse_source:
-            # If there is no else block, the else keyword would not be present
-            return None
-        return SourceLocation(
-            source_code=self.source_code,
-            # Else node can only start one line after if block, hence we add 1
-            lineno=body_source.end_lineno + 1,
-            col_offset=0,
-            # Keyword else can be in the previous line or the same line as the
-            # first statement of the else block
-            end_lineno=max(
-                orelse_source.lineno - 1, body_source.end_lineno + 1
-            ),
-            end_col_offset=orelse_source.col_offset,
-        )
-
-    def get_black_box_without_executing(
-        self, nodes: List[ast.stmt]
-    ) -> LiteralNode:
-        # We simply create a LiteralNode with the code within the block
-        # Processing a LiteralNode does not actually execute the statement
-        assert (
-            len(nodes) > 0
-        ), "The code block should contain at least one statement."
-        code = "\n".join(
-            [
-                str(self._get_code_from_node(node))
-                for node in nodes
-                if (self._get_code_from_node(node) is not None)
-            ]
-        )
-        source_location = SourceLocation(
-            source_code=self.source_code,
-            lineno=nodes[0].lineno,
-            col_offset=nodes[0].col_offset,
-            end_lineno=nodes[-1].end_lineno,  # type: ignore
-            end_col_offset=nodes[-1].end_col_offset,  # type: ignore
-        )
-        return self.tracer.literal(code, source_location=source_location)

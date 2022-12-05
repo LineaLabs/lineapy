@@ -44,7 +44,7 @@ VERSION = version("lineapy/utils/version.py")
 minimal_requirement = [
     "click>=8.0.0",
     "pydantic",
-    "SQLAlchemy>=1.4",
+    "SQLAlchemy>=1.4, <2.0.0",  # https://sqlalche.me/e/20/zlpr
     "networkx",
     "rich",
     "pyyaml",
@@ -116,16 +116,19 @@ typing_libs = [
 ]
 
 postgres_libs = [
-    "psycopg2",
+    "psycopg2-binary",
 ]
 
 s3_libs = ["boto3", "s3fs", "botocore"]
+
+mlflow_libs = ["mlflow"]
 
 MINIMAL_REQUIRES = minimal_requirement
 INSTALL_REQUIRES = minimal_requirement + formatter_libs
 POSTGRES_REQUIRES = INSTALL_REQUIRES + postgres_libs
 GRAPH_REQUIRES = INSTALL_REQUIRES + graph_libs
 S3_REQUIRES = INSTALL_REQUIRES + s3_libs
+MLFLOW_REQUIRES = INSTALL_REQUIRES + mlflow_libs
 DEV_REQUIRES = (
     minimal_requirement
     + formatter_libs
@@ -138,6 +141,7 @@ DEV_REQUIRES = (
     + doc_libs
     + typing_libs
     + s3_libs
+    + mlflow_libs
 )
 EXTRA_REQUIRES = {
     "dev": DEV_REQUIRES,
@@ -145,6 +149,7 @@ EXTRA_REQUIRES = {
     "postgres": POSTGRES_REQUIRES,
     "minimal": MINIMAL_REQUIRES,
     "s3": S3_REQUIRES,
+    "mlflow": MLFLOW_REQUIRES,
 }
 
 setup(
@@ -164,6 +169,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     packages=find_packages(exclude=["tests", "tests.*"]),
     # https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point

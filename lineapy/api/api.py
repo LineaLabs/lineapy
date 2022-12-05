@@ -3,27 +3,29 @@ User facing APIs.
 """
 
 import logging
-import types
 import warnings
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import fsspec
-from pandas.io.pickle import to_pickle
 
-from lineapy.api.models.linea_artifact import LineaArtifact
+from lineapy.api.artifact_serializer import serialize_artifact
+from lineapy.api.models.linea_artifact import (
+    LineaArtifact,
+    get_lineaartifactdef,
+)
 from lineapy.api.models.linea_artifact_store import LineaArtifactStore
 from lineapy.api.models.pipeline import Pipeline
-from lineapy.data.types import Artifact, LineaID, NodeValue
+from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, Artifact, NodeValue
 from lineapy.db.utils import parse_artifact_version
-from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.exceptions.user_exception import UserException
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.annotation_spec import ExternalState
-from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
-from lineapy.plugins.utils import slugify
+from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.loader import load_as_module
+from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
     CatalogEvent,
     ErrorType,
@@ -48,7 +50,12 @@ one way to access the same feature.
 """
 
 
-def save(reference: object, name: str) -> LineaArtifact:
+def save(
+    reference: object,
+    name: str,
+    storage_backend: Optional[ARTIFACT_STORAGE_BACKEND] = None,
+    **kwargs,
+) -> LineaArtifact:
     """
     Publishes the object to the Linea DB.
 
@@ -62,6 +69,16 @@ def save(reference: object, name: str) -> LineaArtifact:
         We are in the process of adding more side effect references, including `assert` statements.
     name: str
         The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
+    storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
+        The storage backend used to save the artifact. Currently support
+        lineapy and mlflow(for mlflow supported model flavors). In case of
+        mlflow, lineapy will use `mlflow.sklearn.log_model` or other supported
+        flavors equivalent to save artifacts into mlflow.
+    **kwargs:
+        Keyword arguments passed into underlying storage mechanism to overwrite
+        default behavior. For `storage_backend='mlflow'`, this can overwrite
+        default arguments in the `mlflow.sklearn.log_model` or other supported
+        flavors equivalent.
 
     Returns
     -------
@@ -94,20 +111,37 @@ def save(reference: object, name: str) -> LineaArtifact:
 
     # serialize value to db if we haven't before
     # (happens with multiple artifacts pointing to the same value)
+    serialize_method = ARTIFACT_STORAGE_BACKEND.lineapy
     if not db.node_value_in_db(
         node_id=value_node_id, execution_id=execution_id
     ):
 
         # TODO add version or timestamp to allow saving of multiple pickle files for the same node id
-        # pickles value of artifact and saves to filesystem
-        pickle_name = _pickle_name(value_node_id, execution_id)
-        _try_write_to_pickle(reference, pickle_name)
+
+        artifact_serialize_metadata = serialize_artifact(
+            value_node_id,
+            execution_id,
+            reference,
+            name,
+            storage_backend,
+            **kwargs,
+        )
+        if (
+            artifact_serialize_metadata["backend"]
+            == ARTIFACT_STORAGE_BACKEND.mlflow
+        ):
+            artifact_path = artifact_serialize_metadata["metadata"].model_uri
+            serialize_method = ARTIFACT_STORAGE_BACKEND.mlflow
+        else:
+            artifact_path = artifact_serialize_metadata["metadata"][
+                "pickle_name"
+            ]
 
         # adds reference to pickled file inside database
         db.write_node_value(
             NodeValue(
                 node_id=value_node_id,
-                value=str(pickle_name),
+                value=artifact_path,
                 execution_id=execution_id,
                 start_time=timing[0],
                 end_time=timing[1],
@@ -131,6 +165,15 @@ def save(reference: object, name: str) -> LineaArtifact:
         version=artifact_version,
     )
     db.write_artifact(artifact_to_write)
+
+    if serialize_method == ARTIFACT_STORAGE_BACKEND.mlflow:
+        artifactorm = db.get_artifactorm_by_name(
+            artifact_name=name, version=artifact_version
+        )
+        db.write_mlflow_artifactmetadata(
+            artifactorm, artifact_serialize_metadata["metadata"]
+        )
+
     track(SaveEvent(side_effect=side_effect_to_str(reference)))
 
     linea_artifact = LineaArtifact(
@@ -167,78 +210,44 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     get_version = None if isinstance(version, str) else version
 
     try:
-        artifact = db.get_artifactorm_by_name(
-            artifact_name, version=get_version
-        )
+        metadata = get(artifact_name, get_version).get_metadata()
     except UserException:
         raise NameError(
             f"{artifact_name}:{version} not found. Perhaps there was a typo. Please try lineapy.artifact_store() to inspect all your artifacts."
         )
 
-    node_id = artifact.node_id
-    execution_id = artifact.execution_id
+    lineapy_metadata = metadata["lineapy"]
+    node_id = lineapy_metadata.node_id
+    execution_id = lineapy_metadata.execution_id
 
-    pickled_path = None
+    db.delete_artifact_by_name(artifact_name, version=version)
+    logging.info(f"Deleted Artifact: {artifact_name} version: {version}")
     try:
-        pickled_name = db.get_node_value_path(node_id, execution_id)
+        db.delete_node_value_from_db(node_id, execution_id)
+    except UserException:
+        logging.info(
+            f"Node: {node_id} with execution ID: {execution_id} not found in DB"
+        )
+    except ValueError:
+        logging.debug(f"No valid storage path found for {node_id}")
+
+    if lineapy_metadata.storage_backend == ARTIFACT_STORAGE_BACKEND.lineapy:
+        storage_path = lineapy_metadata.storage_path
         pickled_path = (
             str(options.safe_get("artifact_storage_dir")).rstrip("/")
-            + f"/{pickled_name}"
+            + f"/{storage_path}"
         )
-        # Wrap the db operation and file as a transaction
         with fsspec.open(pickled_path) as f:
-            db.delete_artifact_by_name(artifact_name, version=version)
-            logging.info(
-                f"Deleted Artifact: {artifact_name} version: {version}"
-            )
-            try:
-                db.delete_node_value_from_db(node_id, execution_id)
-            except UserException:
-                logging.info(
-                    f"Node: {node_id} with execution ID: {execution_id} not found in DB"
-                )
             f.fs.delete(f.path)
-    except ValueError:
-        logging.debug(f"No valid pickle path found for {node_id}")
-
-
-def _pickle_name(node_id: LineaID, execution_id: LineaID) -> str:
-    """
-    Pickle file for a value to be named with the following scheme.
-    <node_id-hash>-<exec_id-hash>-pickle
-    """
-    return f"pre-{slugify(hash(node_id + execution_id))}-post.pkl"
-
-
-def _try_write_to_pickle(value: object, filename: str) -> None:
-    """
-    Saves the value to a random file inside linea folder. This file path is returned and eventually saved to the db.
-
-    :param value: data to pickle
-    :param filename: name of pickle file
-    """
-    if isinstance(value, types.ModuleType):
-        track(ExceptionEvent(ErrorType.SAVE, "Invalid type for artifact"))
-        raise ArtifactSaveException(
-            "Lineapy does not support saving Python Module Objects as pickles"
-        )
-
-    artifact_storage_dir = options.safe_get("artifact_storage_dir")
-    filepath = (
-        artifact_storage_dir.joinpath(filename)
-        if isinstance(artifact_storage_dir, Path)
-        else f'{artifact_storage_dir.rstrip("/")}/{filename}'
-    )
-    try:
-        logger.debug(f"Saving file to {filepath} ")
-        to_pickle(
-            value, filepath, storage_options=options.get("storage_options")
-        )
-    except Exception as e:
-        # Don't see an easy way to catch all possible exceptions from the to_pickle, so just catch everything for now
-        logger.error(e)
-        track(ExceptionEvent(ErrorType.SAVE, "Pickling error"))
-        raise e
+    elif lineapy_metadata.storage_backend == ARTIFACT_STORAGE_BACKEND.mlflow:
+        try:
+            db.delete_mlflow_metadata_by_artifact_id(
+                lineapy_metadata.artifact_id
+            )
+        except UserException:
+            logging.info(
+                f"Artifact id {lineapy_metadata.artifact_id} is not found in DB"
+            )
 
 
 def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
@@ -268,15 +277,16 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
 
     execution_context = get_context()
     db = execution_context.executor.db
-    artifact = db.get_artifactorm_by_name(artifact_name, final_version)
+    artifactorm = db.get_artifactorm_by_name(artifact_name, final_version)
     linea_artifact = LineaArtifact(
         db=db,
-        _execution_id=artifact.execution_id,
-        _node_id=artifact.node_id,
-        _session_id=artifact.node.session_id,
-        _version=artifact.version,  # type: ignore
+        _artifact_id=artifactorm.id,
+        _execution_id=artifactorm.execution_id,
+        _node_id=artifactorm.node_id,
+        _session_id=artifactorm.node.session_id,
+        _version=artifactorm.version,  # type: ignore
         name=artifact_name,
-        date_created=artifact.date_created,  # type: ignore
+        date_created=artifactorm.date_created,  # type: ignore
     )
 
     # Check version compatibility
@@ -366,7 +376,9 @@ def to_pipeline(
     output_dir: str = ".",
     input_parameters: List[str] = [],
     reuse_pre_computed_artifacts: List[str] = [],
-    pipeline_dag_config: Optional[AirflowDagConfig] = {},
+    generate_test: bool = False,
+    pipeline_dag_config: Optional[Dict] = {},
+    include_non_slice_as_comment: bool = False,
 ) -> Path:
     """
     Writes the pipeline job to a path on disk.
@@ -408,6 +420,14 @@ def to_pipeline(
         Names of artifacts in the pipeline for which pre-computed value
         is to be used (rather than recomputing the value).
 
+    generate_test: bool
+        Whether to generate scaffold/template for pipeline testing.
+        Defaults to ``False``. The scaffold contains placeholders for testing
+        each function in the pipeline module file and is meant to be fleshed
+        out by the user to suit their needs. When run out of the box, it performs
+        a naive form of equality evaluation for each function's output,
+        which demands validation and customization by the user.
+
     pipeline_dag_config: Optional[AirflowDagConfig]
         A dictionary of parameters to configure DAG file to be generated.
         Not applicable for "SCRIPT" framework as it does not generate a separate
@@ -430,7 +450,9 @@ def to_pipeline(
         output_dir=output_dir,
         input_parameters=input_parameters,
         reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+        generate_test=generate_test,
         pipeline_dag_config=pipeline_dag_config,
+        include_non_slice_as_comment=include_non_slice_as_comment,
     )
 
 
@@ -497,13 +519,22 @@ def get_function(
         within the same session.
     """
     execution_context = get_context()
+    artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
+    ]
+    reuse_pre_computed_artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry)
+        for art_entry in reuse_pre_computed_artifacts
+    ]
     art_collection = ArtifactCollection(
         execution_context.executor.db,
-        artifacts,
+        artifact_defs,
         input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
     )
-    return art_collection.get_module().run_all_sessions
+    writer = BasePipelineWriter(art_collection)
+    module = load_as_module(writer)
+    return module.run_all_sessions
 
 
 def get_module_definition(
@@ -532,10 +563,18 @@ def get_module_definition(
         as `run_all_sessions`.
     """
     execution_context = get_context()
+    artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry) for art_entry in artifacts
+    ]
+    reuse_pre_computed_artifact_defs = [
+        get_lineaartifactdef(art_entry=art_entry)
+        for art_entry in reuse_pre_computed_artifacts
+    ]
     art_collection = ArtifactCollection(
         execution_context.executor.db,
-        artifacts,
+        artifact_defs,
         input_parameters=input_parameters,
-        reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+        reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
     )
-    return art_collection.generate_module_text()
+    writer = BasePipelineWriter(art_collection)
+    return writer._compose_module()

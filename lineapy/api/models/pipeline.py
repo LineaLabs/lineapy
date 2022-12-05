@@ -3,9 +3,9 @@ from __future__ import annotations
 import logging
 import warnings
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
-from lineapy.api.api_utils import extract_taskgraph
+from lineapy.api.models.linea_artifact import get_lineaartifactdef
 from lineapy.data.types import PipelineType
 from lineapy.db.relational import (
     ArtifactDependencyORM,
@@ -14,8 +14,8 @@ from lineapy.db.relational import (
 )
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
-from lineapy.plugins.pipeline_writers import PipelineWriterFactory
-from lineapy.plugins.task import AirflowDagConfig, TaskGraphEdge
+from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
+from lineapy.plugins.task import TaskGraphEdge, extract_taskgraph
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -52,29 +52,32 @@ class Pipeline:
         output_dir: str = ".",
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[str] = [],
-        pipeline_dag_config: Optional[AirflowDagConfig] = {},
+        generate_test: bool = False,
+        pipeline_dag_config: Optional[Dict] = {},
+        include_non_slice_as_comment=False,
     ) -> Path:
-        # Create artifact collection
-        execution_context = get_context()
-        artifact_collection = ArtifactCollection(
-            db=execution_context.executor.db,
-            target_artifacts=self.artifact_names,
-            input_parameters=input_parameters,
-            reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
-        )
-
         # Check if the specified framework is a supported/valid one
         if framework not in PipelineType.__members__:
             raise Exception(f"No PipelineType for {framework}")
 
-        # Construct pipeline writer
+        # get artifact_collection for use in pipeline writers
+        artifact_collection = self._get_artifact_collection(
+            input_parameters,
+            reuse_pre_computed_artifacts,
+            include_non_slice_as_comment,
+        )
+
+        # Construct pipeline writer. Check out class:PipelineType for supported frameworks
+        # If you want to add a new framework, please read the "adding a new pipeline writer" tutorial
         pipeline_writer = PipelineWriterFactory.get(
             pipeline_type=PipelineType[framework],
             artifact_collection=artifact_collection,
             dependencies=self.dependencies,
             pipeline_name=self.name,
             output_dir=output_dir,
+            generate_test=generate_test,
             dag_config=pipeline_dag_config,
+            include_non_slice_as_comment=include_non_slice_as_comment,
         )
 
         # Write out pipeline files
@@ -93,12 +96,37 @@ class Pipeline:
             ToPipelineEvent(
                 framework,
                 len(self.artifact_names),
-                self.task_graph.get_airflow_dependency() != "",
+                len(list(self.task_graph.graph.edges)) > 0,
                 pipeline_dag_config is not None,
             )
         )
 
         return pipeline_writer.output_dir
+
+    def _get_artifact_collection(
+        self,
+        input_parameters,
+        reuse_pre_computed_artifacts,
+        include_non_slice_as_comment,
+    ):
+        # Create artifact collection
+        execution_context = get_context()
+        artifact_defs = [
+            get_lineaartifactdef(art_entry=art_entry)
+            for art_entry in self.artifact_names
+        ]
+        reuse_pre_computed_artifact_defs = [
+            get_lineaartifactdef(art_entry=art_entry)
+            for art_entry in reuse_pre_computed_artifacts
+        ]
+        artifact_collection = ArtifactCollection(
+            db=execution_context.executor.db,
+            target_artifacts=artifact_defs,
+            input_parameters=input_parameters,
+            reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
+        )
+
+        return artifact_collection
 
     def save(self):
         """

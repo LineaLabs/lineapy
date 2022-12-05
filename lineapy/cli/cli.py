@@ -25,13 +25,16 @@ from nbconvert.preprocessors import ExecutePreprocessor
 from rich.console import Console
 from rich.progress import Progress
 
-from lineapy.api.models.linea_artifact import LineaArtifact
-from lineapy.data.types import SessionType
+from lineapy.api.models.linea_artifact import (
+    LineaArtifact,
+    get_lineaartifactdef,
+)
+from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, SessionType
 from lineapy.db.db import RelationalLineaDB
 from lineapy.exceptions.excepthook import set_custom_excepthook
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.instrumentation.tracer import Tracer
-from lineapy.plugins.pipeline_writers import AirflowPipelineWriter
+from lineapy.plugins.airflow_pipeline_writer import AirflowPipelineWriter
 from lineapy.plugins.utils import slugify
 from lineapy.transformer.transform_code import transform
 from lineapy.utils.analytics.utils import send_lib_info_from_db
@@ -104,6 +107,24 @@ logger = logging.getLogger(__name__)
     type=click.Path(dir_okay=False, path_type=pathlib.Path),
     help="Logging file",
 )
+@click.option(
+    "--mlflow-registry-uri",
+    type=click.STRING,
+    help="MLFlow registry uri for ML models storage backend.",
+)
+@click.option(
+    "--mlflow-tracking-uri",
+    type=click.STRING,
+    help="MLFlow tracking uri for ML models storage backend.",
+)
+@click.option(
+    "--default-ml-models-storage-backend",
+    type=click.Choice(
+        [member.name for member in ARTIFACT_STORAGE_BACKEND],
+        case_sensitive=False,
+    ),
+    help="Default storage backend for ML models",
+)
 def linea_cli(
     verbose: bool,
     home_dir: Optional[pathlib.Path],
@@ -113,6 +134,9 @@ def linea_cli(
     do_not_track: Optional[bool],
     logging_level: Optional[str],
     logging_file: Optional[pathlib.Path],
+    mlflow_registry_uri: Optional[str],
+    mlflow_tracking_uri: Optional[str],
+    default_ml_models_storage_backend: Optional[ARTIFACT_STORAGE_BACKEND],
 ):
     """
     Pass all configuration to lineapy_config
@@ -207,16 +231,17 @@ def notebook(
     # TODO: duplicated with `get` but no context set, should rewrite eventually
     # to not duplicate
     db = RelationalLineaDB.from_config(options)
-    artifact = db.get_artifactorm_by_name(artifact_name)
+    artifactorm = db.get_artifactorm_by_name(artifact_name)
     # FIXME: mypy issue with SQLAlchemy, see https://github.com/python/typeshed/issues/974
     api_artifact = LineaArtifact(
         db=db,
-        _execution_id=artifact.execution_id,
-        _node_id=artifact.node_id,
-        _session_id=artifact.node.session_id,
-        _version=artifact.version,  # type: ignore
+        _artifact_id=artifactorm.id,
+        _execution_id=artifactorm.execution_id,
+        _node_id=artifactorm.node_id,
+        _session_id=artifactorm.node.session_id,
+        _version=artifactorm.version,  # type: ignore
         name=artifact_name,
-        date_created=artifact.date_created,  # type: ignore
+        date_created=artifactorm.date_created,  # type: ignore
     )
     logger.info(api_artifact.get_code())
 
@@ -258,15 +283,16 @@ def file(
 
     # Print the slice:
     # FIXME: weird indirection
-    artifact = db.get_artifactorm_by_name(artifact_name)
+    artifactorm = db.get_artifactorm_by_name(artifact_name)
     api_artifact = LineaArtifact(
         db=db,
-        _execution_id=artifact.execution_id,
-        _node_id=artifact.node_id,
-        _session_id=artifact.node.session_id,
-        _version=artifact.version,  # type:ignore
+        _artifact_id=artifactorm.id,
+        _execution_id=artifactorm.execution_id,
+        _node_id=artifactorm.node_id,
+        _session_id=artifactorm.node.session_id,
+        _version=artifactorm.version,  # type:ignore
         name=artifact_name,
-        date_created=artifact.date_created,  # type:ignore
+        date_created=artifactorm.date_created,  # type:ignore
     )
     logger.info(api_artifact.get_code())
 
@@ -307,7 +333,12 @@ def generate_save_code(
     "--export-slice-to-airflow-dag",
     "--airflow",
     default=None,
-    help="Requires --slice. Export the sliced code from all slices to an Airflow DAG {export-slice-to-airflow-dag}.py",
+    help="Requires --slice. Export the sliced code from all slices to an Airflow DAG {export-dir}/{export-slice-to-airflow-dag}.py",
+)
+@click.option(
+    "--export-dir",
+    default=".",
+    help="Requires --slice. Export the sliced code from all slices to an Airflow DAG {export-dir}/{export-slice-to-airflow-dag}.py",
 )
 @click.option(
     "--airflow-task-dependencies",
@@ -342,6 +373,7 @@ def python(
     slice: List[str],  # cast tuple into list
     export_slice: List[str],  # cast tuple into list
     export_slice_to_airflow_dag: str,
+    export_dir: str,
     airflow_task_dependencies: str,
     print_source: bool,
     print_graph: bool,
@@ -353,6 +385,7 @@ def python(
         slice,
         export_slice,
         export_slice_to_airflow_dag,
+        export_dir,
         airflow_task_dependencies,
         print_source,
         print_graph,
@@ -366,6 +399,7 @@ def python_cli(
     slice: List[str] = None,  # cast tuple into list
     export_slice: List[str] = None,  # cast tuple into list
     export_slice_to_airflow_dag: str = None,
+    export_dir: str = ".",
     airflow_task_dependencies: str = None,
     print_source: bool = False,
     print_graph: bool = False,
@@ -419,7 +453,9 @@ def python_cli(
             exit(1)
         for _slice, _export_slice in zip(slice, export_slice):
             full_code = tracer.slice(_slice)
-            pathlib.Path(f"{_export_slice}.py").write_text(full_code)
+            (pathlib.Path(f"{export_dir}") / f"{_export_slice}.py").write_text(
+                full_code
+            )
 
     if export_slice_to_airflow_dag:
         if not slice:
@@ -430,14 +466,18 @@ def python_cli(
 
         # TODO: Use `Pipeline` object as an entry point (LIN-319 needs
         # to be tackled first to define/refine expected behavior for CLI).
-
-        artifact_collection = ArtifactCollection(db, slice)
+        art_slice_defs = [
+            get_lineaartifactdef(art_entry=art_entry) for art_entry in slice
+        ]
+        artifact_collection = ArtifactCollection(db, art_slice_defs)
         task_dependencies = ast.literal_eval(airflow_task_dependencies or "{}")
 
         # Construct pipeline writer
         pipeline_writer = AirflowPipelineWriter(
             artifact_collection=artifact_collection,
             dependencies=task_dependencies,
+            pipeline_name=export_slice_to_airflow_dag,
+            output_dir=export_dir,
         )
 
         # Write out pipeline files
