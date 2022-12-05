@@ -35,9 +35,7 @@
           - to_json
           - to_html
           - to_hdf
-          - to_feather
           - to_parquet
-          - to_records
         class_instance: DataFrame
       side_effects:
         - mutated_value:
