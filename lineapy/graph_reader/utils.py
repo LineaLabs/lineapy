@@ -22,7 +22,7 @@ def is_import_node(graph: Graph, node_id: LineaID) -> bool:
     return False
 
 
-def get_db_artifacts_from_artifactdef(
+def get_artifacts_from_artifactdef(
     db: RelationalLineaDB, artifact_entries: List[LineaArtifactDef]
 ) -> List[LineaArtifact]:
     """
@@ -35,7 +35,7 @@ def get_db_artifacts_from_artifactdef(
     ]
 
 
-def get_artifacts_grouped_by_session(
+def group_artifacts_by_session(
     all_linea_artifacts: List[LineaArtifact],
 ) -> Iterable[Tuple[LineaID, List[LineaArtifact]]]:
     """
@@ -52,8 +52,13 @@ def get_artifacts_grouped_by_session(
 
 def check_duplicates(artifact_entries: List[LineaArtifactDef]):
     all_names = [art_def["artifact_name"] for art_def in artifact_entries]
-    if len(all_names) != len(set(all_names)):
+    all_unique_names = set()
+    duplicate_names = [
+        d
+        for d in all_names
+        if d in all_unique_names or all_unique_names.add(d)  # type: ignore
+    ]
+    if len(duplicate_names) > 0:
         raise KeyError(
-            # TODO - make this error more specific. Should tell you which calling list has the duplicates
-            "Duplicate artifacts found in input"
+            f"Duplicate artifacts found in input: {', '.join(duplicate_names)}"
         )

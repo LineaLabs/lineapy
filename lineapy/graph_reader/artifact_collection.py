@@ -12,8 +12,8 @@ from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
 from lineapy.graph_reader.utils import (
     check_duplicates,
-    get_artifacts_grouped_by_session,
-    get_db_artifacts_from_artifactdef,
+    get_artifacts_from_artifactdef,
+    group_artifacts_by_session,
 )
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import slugify
@@ -62,12 +62,12 @@ class ArtifactCollection:
         # Retrieve target artifact objects
         self.target_artifacts: List[
             LineaArtifact
-        ] = get_db_artifacts_from_artifactdef(self.db, target_artifacts)
+        ] = get_artifacts_from_artifactdef(self.db, target_artifacts)
 
         # Retrieve reuse precomputed artifact objects
         self.pre_computed_artifacts: List[
             LineaArtifact
-        ] = get_db_artifacts_from_artifactdef(
+        ] = get_artifacts_from_artifactdef(
             self.db, reuse_pre_computed_artifacts
         )
 
@@ -77,7 +77,7 @@ class ArtifactCollection:
         for (
             session_id,
             target_artifacts_by_session,
-        ) in get_artifacts_grouped_by_session(self.target_artifacts):
+        ) in group_artifacts_by_session(self.target_artifacts):
 
             self.session_artifacts[session_id] = SessionArtifacts(
                 self.db,
