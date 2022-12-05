@@ -49,7 +49,7 @@ The following development code fits a linear regression model to the Iris datase
         y=df["sepal.width"],
     )
 
-Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy :ref:`artifact <concepts>` with the following code:
+Let's say you're happy with your above code, and you've decided to save the trained model. You can store the model as a LineaPy :ref:`artifact <artifact_concept>` with the following code:
 
 .. code:: python
 

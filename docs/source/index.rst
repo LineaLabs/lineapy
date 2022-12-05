@@ -2,6 +2,16 @@ Welcome to LineaPy!
 ===================
 
 .. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: Concepts
+
+   concepts/artifact
+   concepts/artifact-store
+   concepts/pipeline
+
+
+.. toctree::
    :maxdepth: 1
 
    fundamentals/intro
