@@ -12,6 +12,18 @@ Welcome to LineaPy!
 
 
 .. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: Tutorials
+
+   tutorials/00_api_basics
+   tutorials/01_refactor_code
+   tutorials/02a_build_pipelines
+   tutorials/02b_parametrize_pipelines
+   tutorials/02c_test_pipelines
+
+
+.. toctree::
    :maxdepth: 1
 
    fundamentals/intro
