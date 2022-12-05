@@ -47,7 +47,7 @@ class BasePipelineWriter:
         self.artifact_collection = artifact_collection
         self.keep_lineapy_save = keep_lineapy_save
         self.pipeline_name = slugify(pipeline_name)
-        self.output_dir = Path(output_dir)
+        self.output_dir = Path(output_dir).expanduser()
         self.generate_test = generate_test
         self.dag_config = dag_config or {}
         self.dependencies = dependencies
