@@ -24,45 +24,54 @@ Welcome to LineaPy!
 
 
 .. toctree::
+   :hidden:
    :maxdepth: 1
+   :caption: Guides
 
-   fundamentals/intro
-   fundamentals/setup
-   fundamentals/interfaces
-   fundamentals/quickstart
-   fundamentals/concepts
+   guides/installation
+   guides/interfaces
 
 
-.. toctree::
-   :maxdepth: 1
-   :caption: User Guide
+.. .. toctree::
+..    :maxdepth: 1
 
-   tutorials/00_api_basics
-   guide/artifacts/index
-   guide/build_pipelines/index
-   guide/manage_artifacts/index
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Contributor Guide
-
-   development/start/index
-   development/areas/index
+..    fundamentals/intro
+..    fundamentals/setup
+..    fundamentals/interfaces
+..    fundamentals/quickstart
+..    fundamentals/concepts
 
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Support
+.. .. toctree::
+..    :maxdepth: 1
+..    :caption: User Guide
 
-   support/faq/index
-   support/community
+..    tutorials/00_api_basics
+..    guide/artifacts/index
+..    guide/build_pipelines/index
+..    guide/manage_artifacts/index
 
 
-.. toctree::
-   :maxdepth: 1
-   :caption: References
+.. .. toctree::
+..    :maxdepth: 1
+..    :caption: Contributor Guide
 
-   references/internals/index
-   references/configurations
-   references/api_reference
+..    development/start/index
+..    development/areas/index
+
+
+.. .. toctree::
+..    :maxdepth: 1
+..    :caption: Support
+
+..    support/faq/index
+..    support/community
+
+
+.. .. toctree::
+..    :maxdepth: 1
+..    :caption: References
+
+..    references/internals/index
+..    references/configurations
+..    references/api_reference

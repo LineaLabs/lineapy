@@ -6,7 +6,7 @@ Quick Start
 .. note::
 
     Make sure that you have LineaPy installed and loaded in your environment. You can find relevant instructions 
-    in :ref:`Installation <setup>` and :ref:`Interfaces <interfaces>`.
+    in :ref:`Installation <installation>` and :ref:`Interfaces <interfaces>`.
 
 .. include:: ../snippets/slack_support.rstinc
 
