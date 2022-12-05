@@ -77,7 +77,9 @@ class NodeTransformer(BaseTransformer):
             ast.stmt,
         ):
             if (
-                isinstance(node, ast.FunctionDef)
+                isinstance(
+                    node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)
+                )
                 and len(node.decorator_list) > 0
             ):
                 min_decorator_line = min(
