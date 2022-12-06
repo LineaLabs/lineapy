@@ -1,16 +1,26 @@
 Changing Storage Location
 =========================
 
-You can change the artifact storage location by setting the `LINEAPY_ARTIFACT_STORAGE_DIR` environmental variable, 
-or other ways mentioned in the above section.
+By default, the serialized values and the metadata are stored in ``.lineapy/linea_pickles/``
+and ``.lineapy/db.sqlite``, respectively, where ``.lineapy/`` is created under
+the system's home directory.
 
-For instance, if you want to use a local directory, e.g., ``~/lineapy/artifact_store``, as your artifact storage location and start IPython you can
+This default location can be overridden by modifying the configuration file:
 
-- Adding ``{"artifact_storage_dir": "/lineapy/artifact_store"}`` in configuration file: and run ``lineapy ipython``
-- In environmental variable: ``export LINEAPY_ARTIFACT_STORAGE_DIR=/lineapy/artifact_store && lineapy ipython`` 
-- In CLI options: ``lineapy --artifact-storage-dir='/lineapy/artifact_store' ipython``
+.. code:: json
 
-or you can start ipython as usual then run ``lineapy.options.set('artifact_storage_dir', '/lineapy/artifact_store')`` at the beginning of the ipython session.
+    {
+        "artifact_storage_dir": [NEW-PATH-TO-STORE-SERIALIZED-VALUES],
+        "database_url": [NEW-DATABASE-URL-FOR-STORING-METADATA],
+        ...
+    }
+
+or making these updates in each interactive session:
+
+.. code:: python
+
+    lineapy.options.set('artifact_storage_dir', [NEW-PATH-TO-STORE-SERIALIZED-VALUES])
+    lineapy.options.set('database_url', [NEW-DATABASE-URL-FOR-STORING-METADATA])
 
 The best way to configure these filesystems is through the ways officially recommended by the cloud storage providers.
 For instance, if you want to configure your AWS credential to use an S3 bucket as your artifact storage directory,

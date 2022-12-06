@@ -1,5 +1,10 @@
-Why do I get an error for database lock?
-========================================
+.. _issues_in_using_artifacts:
+
+Troubleshooting
+===============
+
+Database Lock
+-------------
 
 .. include:: ../../snippets/slack_support.rstinc
 
