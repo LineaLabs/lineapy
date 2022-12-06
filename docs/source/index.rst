@@ -79,6 +79,17 @@ As our notebooks become more mature, we may use them like pipelines. For example
    guides/installation
    guides/interfaces
    guides/contribute/index
+   guides/support
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+   :caption: References
+
+   references/api_reference
+
+
 
 
 .. .. toctree::
@@ -101,13 +112,3 @@ As our notebooks become more mature, we may use them like pipelines. For example
 ..    :caption: Support
 
 ..    support/faq/index
-..    support/community
-
-
-.. .. toctree::
-..    :maxdepth: 1
-..    :caption: References
-
-..    references/internals/index
-..    references/configurations
-..    references/api_reference
