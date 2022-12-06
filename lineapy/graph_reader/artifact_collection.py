@@ -1,8 +1,7 @@
 import logging
-from collections import defaultdict
 from dataclasses import dataclass
 from itertools import chain
-from typing import Dict, List, Set
+from typing import Dict, List
 
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
@@ -11,6 +10,11 @@ from lineapy.api.models.linea_artifact import LineaArtifact, LineaArtifactDef
 from lineapy.data.types import LineaID
 from lineapy.db.db import RelationalLineaDB
 from lineapy.graph_reader.session_artifacts import SessionArtifacts
+from lineapy.graph_reader.utils import (
+    check_duplicates,
+    get_artifacts_from_artifactdef,
+    group_artifacts_by_session,
+)
 from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.logging_config import configure_logging
@@ -42,55 +46,60 @@ class ArtifactCollection:
         self.db: RelationalLineaDB = db
 
         self.input_parameters = input_parameters
+
+        # ------ Validate inputs ------
+        # check if any duplicates exist in input parameters
         if len(input_parameters) != len(set(input_parameters)):
             raise ValueError(
                 f"Duplicated input parameters detected in {input_parameters}"
             )
+        # Check if target artifacts name has been repeated in the input list
+        check_duplicates(target_artifacts)
+        # Check if entries in reuse pre computed artifacts list have been repeated
+        check_duplicates(reuse_pre_computed_artifacts)
 
-        # Retrieve target artifact objects and group them by session ID
-        self.target_artifacts_by_session = (
-            self._get_artifacts_grouped_by_session(target_artifacts)
+        # ------ Initialize Linea Artifacts from artifactdef ------
+        # Retrieve target artifact objects
+        self.target_artifacts: List[
+            LineaArtifact
+        ] = get_artifacts_from_artifactdef(self.db, target_artifacts)
+
+        # Retrieve reuse precomputed artifact objects
+        self.pre_computed_artifacts: List[
+            LineaArtifact
+        ] = get_artifacts_from_artifactdef(
+            self.db, reuse_pre_computed_artifacts
         )
 
-        # Retrieve reuse precomputed artifact objects and group them by session ID
-        self.pre_computed_artifacts_by_session = (
-            self._get_artifacts_grouped_by_session(
-                reuse_pre_computed_artifacts
-            )
-        )
-
+        # ------ Group artifacts by session using SessionArtifact ------
         # For each session, construct SessionArtifacts object
         self.session_artifacts: Dict[LineaID, SessionArtifacts] = {}
         for (
             session_id,
-            session_artifacts,
-        ) in self.target_artifacts_by_session.items():
-            # TODO: LIN-653, LIN-640 only collect matched pre_computed artifacts in this Session
-            # instead of grabbing all Artifacts as currently required by SessionArtifact
-            pre_calculated_artifacts: List[LineaArtifact] = sum(
-                self.pre_computed_artifacts_by_session.values(), []
-            )
+            target_artifacts_by_session,
+        ) in group_artifacts_by_session(self.target_artifacts):
 
             self.session_artifacts[session_id] = SessionArtifacts(
                 self.db,
-                session_artifacts,
+                target_artifacts_by_session,
                 input_parameters=input_parameters,
-                reuse_pre_computed_artifacts=pre_calculated_artifacts,
+                # TODO: LIN-653, LIN-640 only collect matched pre_computed artifacts in this Session
+                # instead of grabbing all Artifacts as currently required by SessionArtifact
+                reuse_pre_computed_artifacts=self.pre_computed_artifacts,
             )
 
         # TODO: LIN-653, LIN-640
         # Add some type of validation that all re-use compute artifacts can be matched to
         # a target artifact before the creation of SessionArtifacts.
+        # If calls to .values() are repeated in the class, it might indicate a need for a new datastructure to hold the values
+        all_sessions_artifacts = [
+            art.name
+            for sa in self.session_artifacts.values()
+            for art in sa.all_session_artifacts.values()
+        ]
+
         # Check all reuse_pre_computed artifacts is used
-        all_sessions_artifacts = []
-        for sa in self.session_artifacts.values():
-            all_sessions_artifacts += [
-                art.name for art in sa.all_session_artifacts.values()
-            ]
-        pre_calculated_artifacts = sum(
-            self.pre_computed_artifacts_by_session.values(), []
-        )
-        for reuse_art in pre_calculated_artifacts:
+        for reuse_art in self.pre_computed_artifacts:
             reuse_name = reuse_art.name
             if reuse_name not in all_sessions_artifacts:
                 msg = (
@@ -100,34 +109,6 @@ class ArtifactCollection:
                     + "Try to remove it from the reuse list."
                 )
                 raise KeyError(msg)
-
-    def _get_artifacts_grouped_by_session(
-        self, artifact_entries: List[LineaArtifactDef]
-    ) -> Dict[LineaID, List[LineaArtifact]]:
-        """
-        Get LineaArtifact from each artifact entry and group by the Session they belong to.
-
-        Artifact entries are specified as name and optionally version as the end user would specify.
-
-        This helper function is used to group target and reuse_precomputed artifacts so that we can
-        create SessionArtifacts for each Session.
-        """
-        artifacts_grouped_by_session: Dict[
-            LineaID, List[LineaArtifact]
-        ] = defaultdict(list)
-        seen_artifact_names: Set[str] = set()
-        for art_def in artifact_entries:
-            # Check no two target artifacts have the same name
-            if art_def["artifact_name"] in seen_artifact_names:
-                raise KeyError(
-                    "Artifact %s is duplicated", art_def["artifact_name"]
-                )
-            # Retrieve artifact and put it in the right group
-            art = LineaArtifact.get_artifact_from_def(self.db, art_def)
-            artifacts_grouped_by_session[art._session_id].append(art)
-            seen_artifact_names.add(art_def["artifact_name"])
-
-        return artifacts_grouped_by_session
 
     def validate_dependencies(self, dependencies: TaskGraphEdge = {}):
         """
@@ -185,13 +166,11 @@ class ArtifactCollection:
     def create_inter_session_taskgraph(self, dependencies: TaskGraphEdge = {}):
         # Helper dictionary to look up artifact information by name
         art_name_to_session_id: Dict[str, LineaID] = {}
-        for (
-            session_id,
-            artifact_list,
-        ) in self.target_artifacts_by_session.items():
-            for artifact in artifact_list:
-                art_name_to_session_id[artifact.name] = session_id
-                art_name_to_session_id[slugify(artifact.name)] = session_id
+        for artifact in self.target_artifacts:
+            art_name_to_session_id[artifact.name] = artifact._session_id
+            art_name_to_session_id[
+                slugify(artifact.name)
+            ] = artifact._session_id
 
         session_id_nodes = list(self.session_artifacts.keys())
         session_id_edges = list(
