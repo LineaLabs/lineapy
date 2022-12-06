@@ -79,7 +79,6 @@ As our notebooks become more mature, we may use them like pipelines. For example
    guides/installation
    guides/configuration/index
    guides/interfaces
-   guides/code-cleanup/index
    guides/using-artifacts/index
    guides/contribute/index
    guides/support

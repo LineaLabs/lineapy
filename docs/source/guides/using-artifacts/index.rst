@@ -7,5 +7,6 @@ facilitate collaboration in development as well as transition to production.
 .. toctree::
     :maxdepth: 1
 
+    code-cleanup
     artifact-reuse
     troubleshoot

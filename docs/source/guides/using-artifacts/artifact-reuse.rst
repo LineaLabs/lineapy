@@ -1,5 +1,5 @@
-Using Existing Artifacts
-========================
+Reusing Past Work
+=================
 
 Once connected to an artifact store (it can be an individual or shared one), we can query existing artifacts, like so:
 
