@@ -1,8 +1,8 @@
 Using Artifacts
 ===============
 
-Capturing complete development history, LineaPy :ref:`artifacts <artifact_concept>` help to 
-facilitate collaboration in development as well as transition to production.
+Capturing complete development history, LineaPy :ref:`artifacts <artifact_concept>` help users
+effectively collaborate and build on past work.
 
 .. toctree::
     :maxdepth: 1
