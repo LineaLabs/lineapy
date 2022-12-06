@@ -1,5 +1,5 @@
-Unannotated Third-Party APIs
-=============================
+Annotating Third-Party APIs
+===========================
 
 .. include:: ../../../snippets/slack_support.rstinc
 

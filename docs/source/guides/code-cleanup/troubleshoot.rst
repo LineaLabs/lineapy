@@ -1,5 +1,12 @@
+.. _slicing_issues:
+
+Troubleshooting
+===============
+
+We discuss few cases in which LineaPy's code cleanup might lead to issues, and what steps can be taken by the user to get around them.
+
 Unvisited Conditional
-=====================
+---------------------
 
 .. include:: ../../../snippets/slack_support.rstinc
 
@@ -89,4 +96,3 @@ OR
       var += 20
 
    lineapy.save(var, 'variable')
-   
