@@ -81,6 +81,7 @@ As our notebooks become more mature, we may use them like pipelines. For example
    guides/interfaces
    guides/using-artifacts/index
    guides/contribute/index
+   guides/troubleshoot
    guides/support
 
 

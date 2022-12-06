@@ -9,4 +9,3 @@ facilitate collaboration in development as well as transition to production.
 
     code-cleanup
     artifact-reuse
-    troubleshoot

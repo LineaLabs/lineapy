@@ -1,12 +1,10 @@
-.. _issues_in_using_artifacts:
-
 Troubleshooting
 ===============
 
+.. include:: ../snippets/slack_support.rstinc
+
 Database Lock
 -------------
-
-.. include:: ../../snippets/slack_support.rstinc
 
 By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
 However, SQLite has several limitations, one of which is that it does not support multiple concurrent
@@ -41,3 +39,8 @@ which will unlock the database.
 
 If database locking is a persisting issue in your usage, we recommend you use a more robust database such as PostgreSQL,
 for which relevant instructions can be found :ref:`here <postgres>`.
+
+No Attribute Error for ``black``
+--------------------------------
+
+Lineapy uses the `black library <https://pypi.org/project/black/>`_ to format produced code. Make sure you have the version of black as specified in `LineaPy's requirements.txt <https://github.com/LineaLabs/lineapy/blob/main/requirements.txt>`_.

@@ -1,5 +1,5 @@
-Getting Help
-============
+More Help
+=========
 
 .. _community_support:
 
