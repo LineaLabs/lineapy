@@ -13,5 +13,6 @@ facilitating transition to production.
 .. toctree::
    :maxdepth: 1
 
+   basics
    annotate-package
    troubleshoot

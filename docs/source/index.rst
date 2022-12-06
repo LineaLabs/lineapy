@@ -90,27 +90,3 @@ As our notebooks become more mature, we may use them like pipelines. For example
    :caption: References
 
    references/api_reference
-
-
-
-
-.. .. toctree::
-..    :maxdepth: 1
-
-..    fundamentals/quickstart
-
-
-.. .. toctree::
-..    :maxdepth: 1
-..    :caption: User Guide
-
-..    guide/artifacts/index
-..    guide/build_pipelines/index
-..    guide/manage_artifacts/index
-
-
-.. .. toctree::
-..    :maxdepth: 1
-..    :caption: Support
-
-..    support/faq/index

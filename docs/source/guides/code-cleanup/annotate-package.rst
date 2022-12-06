@@ -1,7 +1,7 @@
 Annotating Third-Party APIs
 ===========================
 
-.. include:: ../../../snippets/slack_support.rstinc
+.. include:: ../../../../snippets/slack_support.rstinc
 
 Python ecosystem offers a lot of interesting and useful packages that are not part of the core distribution.
 These third-party packages often come with their own new APIs, and LineaPy is not guaranteed to handle all

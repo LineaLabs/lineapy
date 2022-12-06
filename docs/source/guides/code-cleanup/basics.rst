@@ -1,20 +1,7 @@
-.. _code_cleanup:
+Cleaning up Development Code
+============================
 
-Code Cleanup
-============
-
-.. include:: ../../snippets/slack_support.rstinc
-
-Data science development is characterized by nimble, iterative experimentation and exploratory data analysis.
-Data scientists explore many possibilities before reaching the final result. The rapid exploration process often
-leads to long, messy code, the majority of which has no impact on the final result.
-
-Code cleanup is hence an essential step for moving data science work into production. Yet, it often becomes a major
-bottleneck as it involves manual inspection of long, messy code that sometimes does not make sense even to its own
-author. With the complete development history stored in artifacts, LineaPy enables automatic code clean-up,
-facilitating code cleanup and hence transition to production.
-
-For instance, say we are a botanical data scientist modeling the relationship between different parts of
+Say we are a botanical data scientist modeling the relationship between different parts of
 the iris flower, and we end up with the following development code:
 
 .. code:: python
@@ -165,8 +152,3 @@ Hence, LineaPy's automatic code clean-up can save considerable time for data sci
 .. note::
 
    LineaPy's code cleanup has few known limitations. Check this :ref:`page <slicing_issues>` if you encounter issues.
-
-.. note::
-
-   If you want hands-on practice,
-   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/01_refactor_code.ipynb>`_ tutorial notebook.
