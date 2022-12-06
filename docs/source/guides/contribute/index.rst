@@ -1,5 +1,5 @@
-Contributing to LineaPy
-=======================
+Contributing
+============
 
 First of all, thank you for your interest in contributing to LineaPy!
 We believe that it is the community that makes an open source project truly great

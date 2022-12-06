@@ -77,6 +77,7 @@ As our notebooks become more mature, we may use them like pipelines. For example
    :caption: Guides
 
    guides/installation
+   guides/configuration/index
    guides/interfaces
    guides/contribute/index
    guides/support

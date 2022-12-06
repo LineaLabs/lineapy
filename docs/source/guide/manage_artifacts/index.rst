@@ -37,7 +37,7 @@ imagine how difficult it would be to maintain correlations between the two. Line
       lineapy.options.set('artifact_storage_dir', [NEW-PATH-TO-STORE-SERIALIZED-VALUES])
       lineapy.options.set('database_url', [NEW-DATABASE-URL-FOR-STORING-METADATA])
    
-   Read more about configuration :ref:`here <configurations>`.
+   Read more about configuration :ref:`here <configuration>`.
 
 .. toctree::
    :maxdepth: 1

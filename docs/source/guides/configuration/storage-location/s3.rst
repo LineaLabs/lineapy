@@ -1,7 +1,7 @@
 .. _s3:
 
 Storing Artifact Values in Amazon S3
-------------------------------------
+====================================
 
 .. include:: ../../../snippets/slack_support.rstinc
 

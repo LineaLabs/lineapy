@@ -1,7 +1,7 @@
 .. _installation:
 
-Installing LineaPy
-==================
+Installation
+============
 
 .. include:: ../snippets/slack_support.rstinc
 
