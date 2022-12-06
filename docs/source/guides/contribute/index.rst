@@ -10,6 +10,5 @@ and successful, so we welcome contribution from any new members.
 
     process
     setup
-    .. example
     tips
     areas/index
