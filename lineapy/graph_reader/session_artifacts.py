@@ -612,6 +612,7 @@ class SessionArtifacts:
             nodes=[nc.name for nc in self.usercode_nodecollections],
             edges=dependencies,
         )
+
         self.nodecollection_dependencies.remap_nodes(
             mapping={
                 nc.name: nc.safename for nc in self.usercode_nodecollections

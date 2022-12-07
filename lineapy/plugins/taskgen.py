@@ -130,8 +130,9 @@ def get_artifact_task_definition_graph(
             )
             task_definitions[nc.safename] = task_def
 
-    # TODO
-    return task_definitions, TaskGraph([], {})
+    # no remapping needed, inter_artifact_taskgraph already uses nc.safename
+    task_graph = artifact_collection.create_inter_artifact_taskgraph()
+    return task_definitions, task_graph
 
 
 def get_session_task_definition_graph(
@@ -141,6 +142,9 @@ def get_session_task_definition_graph(
     get_session_task_definition returns a task definition for each session in the pipeline.
     """
     task_definitions: Dict[str, TaskDefinition] = dict()
+
+    # maps session_id to task names to create taskgraph
+    session_id_task_map: Dict[str, str] = {}
 
     for session_artifacts in artifact_collection.sort_session_artifacts():
 
@@ -184,11 +188,15 @@ def get_session_task_definition_graph(
         )
 
         task_definitions[function_name] = task_def
+        session_id_task_map[session_artifacts.session_id] = function_name
 
     artifact_collection.create_inter_session_taskgraph()
 
-    # TODO
-    return task_definitions, TaskGraph([], {})
+    # avoid mapping in place here to not overwrite the artifact collection session taskgraph
+    task_graph = artifact_collection.inter_session_taskgraph.remap_nodes(
+        session_id_task_map, inplace=False
+    )
+    return (task_definitions, task_graph)
 
 
 def get_allsessions_task_definition_graph(

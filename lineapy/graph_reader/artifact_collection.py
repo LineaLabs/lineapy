@@ -1,10 +1,10 @@
+import itertools
 import logging
 from dataclasses import dataclass
 from itertools import chain
 from typing import Dict, List
 
 import networkx as nx
-from networkx.exception import NetworkXUnfeasible
 
 from lineapy.api.models.linea_artifact import LineaArtifact, LineaArtifactDef
 from lineapy.data.types import LineaID
@@ -114,6 +114,7 @@ class ArtifactCollection:
         self.dependencies = dependencies
         self._validate_dependencies()
         self.inter_session_taskgraph = self.create_inter_session_taskgraph()
+        self.inter_artifact_taskgraph = self.create_inter_artifact_taskgraph()
 
     def _validate_dependencies(self):
         """
@@ -169,38 +170,62 @@ class ArtifactCollection:
             )
 
     def create_inter_session_taskgraph(self) -> TaskGraph:
-        # Helper dictionary to look up artifact information by name
-        art_name_to_session_id: Dict[str, LineaID] = {}
-        for artifact in self.target_artifacts:
-            art_name_to_session_id[artifact.name] = artifact._session_id
-            art_name_to_session_id[
-                slugify(artifact.name)
-            ] = artifact._session_id
-
-        session_id_nodes = list(self.session_artifacts.keys())
-        session_id_edges = list(
-            chain.from_iterable(
-                (
-                    (
-                        art_name_to_session_id[slugify(from_artname)],
-                        art_name_to_session_id[slugify(to_artname)],
-                    )
-                    for from_artname in from_artname_set
-                )
-                for to_artname, from_artname_set in self.dependencies.items()
-            )
-        )
-        # remove loops in graph for dependencies within a session
-        taskgraph_session_id_edges: TaskGraphEdge = {}
-        for edge in session_id_edges:
-            if edge[0] != edge[1]:
-                taskgraph_session_id_edges.get(edge[0], set()).add(edge[1])
-
+        # todo slugify
         inter_session_graph = TaskGraph(
-            nodes=[str(session_id) for session_id in session_id_nodes],
-            edges=taskgraph_session_id_edges,
+            nodes=[art.name for art in self.target_artifacts],
+            edges=self.dependencies,
         )
+
+        # Helper dictionary to look up artifact information by name
+        art_name_to_session_id: Dict[str, str] = {}
+        for artifact in self.target_artifacts:
+            art_name_to_session_id[artifact.name] = str(artifact._session_id)
+            art_name_to_session_id[slugify(artifact.name)] = str(
+                artifact._session_id
+            )
+
+        print(inter_session_graph)
+        inter_session_graph.remap_nodes(art_name_to_session_id)
+        print(inter_session_graph)
+
+        # remove loops in graph for dependencies within a session
+        inter_session_graph.remove_self_loops()
+
         return inter_session_graph
+
+    def create_inter_artifact_taskgraph(self) -> TaskGraph:
+
+        inter_artifact_taskgraph = TaskGraph(nodes=[], edges={})
+
+        # add subgraph for each session_artifact
+        for sa in self.session_artifacts.values():
+            inter_artifact_taskgraph.graph = nx.compose(
+                inter_artifact_taskgraph.graph,
+                sa.nodecollection_dependencies.graph,
+            )
+
+        for (
+            from_session_id,
+            to_session_id,
+        ) in self.inter_session_taskgraph.graph.edges:
+            # get sink nodes from the first session artifact
+            from_session_sink_nodes = self.session_artifacts[
+                from_session_id
+            ].nodecollection_dependencies.sink_nodes
+
+            # get source nodes from the second session artifact
+            to_session_source_nodes = self.session_artifacts[
+                to_session_id
+            ].nodecollection_dependencies.source_nodes
+
+            # add edges between each pair of sink/sources
+
+            inter_artifact_taskgraph.graph.add_edges_from(
+                itertools.product(
+                    from_session_sink_nodes, to_session_source_nodes
+                )
+            )
+        return inter_artifact_taskgraph
 
     def sort_session_artifacts(
         self,
@@ -219,15 +244,7 @@ class ArtifactCollection:
         which is a future project.
         """
         # Sort the session_id
-        try:
-            session_id_sorted = self.inter_session_taskgraph.get_taskorder()
-        except NetworkXUnfeasible:
-            raise Exception(
-                "Current implementation of LineaPy demands it be able to linearly order different sessions, "
-                "which prohibits any circular dependencies between sessions. "
-                "Please check if your provided dependencies include such circular dependencies between sessions, "
-                "e.g., Artifact A (Session 1) -> Artifact B (Session 2) -> Artifact C (Session 1)."
-            )
+        session_id_sorted = self.inter_session_taskgraph.get_taskorder()
 
         return [
             self.session_artifacts[LineaID(session_id)]

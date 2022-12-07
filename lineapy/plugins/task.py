@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
 from itertools import chain
 from typing import Dict, List, Set, Tuple
 
 import networkx as nx
+from networkx.exception import NetworkXUnfeasible
 
 from lineapy.plugins.utils import load_plugin_template
 
@@ -55,41 +58,68 @@ class TaskGraph(object):
         )
         self.graph.add_edges_from(graph_edges)
 
-    def remap_nodes(self, mapping: Dict[str, str]):
-        nx.relabel_nodes(self.graph, mapping, copy=False)
+    def remap_nodes(self, mapping: Dict[str, str], inplace=True) -> TaskGraph:
+        if inplace:
+            nx.relabel_nodes(self.graph, mapping, copy=False)
+            return self
+        else:
+            remapped_taskgraph = TaskGraph([])
+            remapped_taskgraph.graph = nx.relabel_nodes(
+                self.graph, mapping, copy=True
+            )
+            return remapped_taskgraph
 
     def insert_setup_task(self, setup_task_name: str):
         """
         insert_setup_task adds a setup task that will be run before all the original source tasks
         """
-        sources = [
-            node
-            for node in self.graph.nodes
-            if self.graph.in_degree(node) == 0
-        ]
 
         self.graph.add_node(setup_task_name)
 
-        for old_source in sources:
-            self.graph.add_edge(setup_task_name, old_source)
+        for old_source in self.source_nodes:
+            if not old_source == setup_task_name:
+                self.graph.add_edge(setup_task_name, old_source)
 
     def insert_teardown_task(self, cleanup_task_name: str):
         """
         insert_cleanup_task adds a cleanup task that will be run after all the original sink tasks
         """
-        sinks = [
+
+        self.graph.add_node(cleanup_task_name)
+
+        for old_sink in self.sink_nodes:
+            if not old_sink == cleanup_task_name:
+                self.graph.add_edge(old_sink, cleanup_task_name)
+
+    def get_taskorder(self) -> List[str]:
+        try:
+            return list(nx.topological_sort(self.graph))
+        except NetworkXUnfeasible:
+            raise Exception(
+                "Current implementation of LineaPy demands it be able to linearly order different sessions, "
+                "which prohibits any circular dependencies between sessions. "
+                "Please check if your provided dependencies include such circular dependencies between sessions, "
+                "e.g., Artifact A (Session 1) -> Artifact B (Session 2) -> Artifact C (Session 1)."
+            )
+
+    def remove_self_loops(self):
+        self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
+
+    @property
+    def sink_nodes(self):
+        return [
             node
             for node in self.graph.nodes
             if self.graph.out_degree(node) == 0
         ]
 
-        self.graph.add_node(cleanup_task_name)
-
-        for old_sink in sinks:
-            self.graph.add_edge(old_sink, cleanup_task_name)
-
-    def get_taskorder(self) -> List[str]:
-        return list(nx.topological_sort(self.graph))
+    @property
+    def source_nodes(self):
+        return [
+            node
+            for node in self.graph.nodes
+            if self.graph.in_degree(node) == 0
+        ]
 
 
 @dataclass

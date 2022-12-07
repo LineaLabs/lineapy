@@ -144,7 +144,9 @@ def test_two_sessions(
     code = session2_code
     execute(code, snapshot=False)
     artifact_def_list = [get_lineaartifactdef(art) for art in artifact_list]
-    ac = ArtifactCollection(linea_db, artifact_def_list)
+    ac = ArtifactCollection(
+        linea_db, artifact_def_list, dependencies=dependencies
+    )
     writer = BasePipelineWriter(ac)
     module = load_as_module(writer)
     # Check there is a get_{artifact} function in the module for all artifacts
@@ -158,10 +160,6 @@ def test_two_sessions(
     # If dependencies have been set, check whether the run_session_including_{art}
     # show up in correct order
     if len(dependencies) > 0:
-        ac = ArtifactCollection(
-            linea_db, artifact_def_list, dependencies=dependencies
-        )
-        writer = BasePipelineWriter(ac)
         moduletext = writer._compose_module()
         first_artifact_in_session = {}
         for sa in ac.session_artifacts.values():
@@ -186,7 +184,6 @@ def test_two_sessions(
                 assert art_pred_session_line_index >= 0
                 # required art session is in from of art session
                 assert art_pred_session_line_index < art_session_line_index
-        print(moduletext)
 
 
 def test_dependencies(linea_db, execute):
