@@ -2,7 +2,7 @@ alembic==1.8.0
 altair==4.2.0
 astor==0.8.1
 astpretty==2.1.0
-asttokens==2.0.5
+asttokens==2.1.0
 black==22.3.0
 click==8.1.2
 coveralls==3.3.1
