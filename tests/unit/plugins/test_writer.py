@@ -182,6 +182,94 @@ def check_requirements_txt(t1: str, t2: str):
             [],
             id="dvc_pipeline_a_b0_single_stage_all_sessions",
         ),
+        pytest.param(
+            "simple",
+            "",
+            ["a", "b0"],
+            "ARGO",
+            "argo_pipeline_a_b0",
+            {},
+            {},
+            [],
+            id="argo_pipeline_a_b0",
+        ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "ARGO",
+            "argo_pipeline_a0_b0",
+            {},
+            {},
+            [],
+            id="argo_pipeline_a0_b0",
+        ),
+        pytest.param(
+            "simple",
+            "",
+            ["a", "b0"],
+            "ARGO",
+            "argo_pipeline_a_b0_inputpar",
+            {},
+            {"dag_flavor": "PythonOperatorPerArtifact"},
+            ["b0"],
+            id="argo_pipeline_a_b0_input_parameter_per_artifact",
+        ),
+        pytest.param(
+            "simple",
+            "",
+            ["a", "b0"],
+            "ARGO",
+            "argo_pipeline_a_b0_inputpar_session",
+            {},
+            {"dag_flavor": "PythonOperatorPerSession"},
+            ["b0"],
+            id="argo_pipeline_a_b0_input_parameter_per_session",
+        ),
+        pytest.param(
+            "simple_twovar",
+            "",
+            ["pn"],
+            "ARGO",
+            "argo_pipeline_two_input_parameter",
+            {},
+            {"dag_flavor": "PythonOperatorPerArtifact"},
+            ["n", "p"],
+            id="argo_pipeline_two_input_parameter",
+        ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "ARGO",
+            "argo_pipeline_a0_b0_dependencies",
+            {"a0": {"b0"}},
+            {},
+            [],
+            id="argo_pipeline_a0_b0_dependencies",
+        ),
+        pytest.param(
+            "housing",
+            "",
+            ["y", "p value"],
+            "ARGO",
+            "argo_pipeline_housing_w_dependencies",
+            {"p value": {"y"}},
+            {},
+            [],
+            id="argo_pipeline_housing_w_dependencies",
+        ),
+        pytest.param(
+            "complex",
+            "",
+            ["f", "h"],
+            "ARGO",
+            "argo_complex_h_perart",
+            {},
+            {"dag_flavor": "PythonOperatorPerArtifact"},
+            [],
+            id="argo_complex_h_perartifact",
+        ),
     ],
 )
 def test_pipeline_generation(
@@ -233,7 +321,7 @@ def test_pipeline_generation(
 
     # Get list of files to compare
     file_endings = ["_module.py", "_requirements.txt"]
-    if framework == "AIRFLOW":
+    if framework == ("AIRFLOW" or "ARGO"):
         file_endings.append("_dag.py")
 
     file_names = [pipeline_name + file_suffix for file_suffix in file_endings]

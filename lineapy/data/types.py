@@ -508,11 +508,13 @@ class PipelineType(Enum):
     - SCRIPT : the pipeline is wrapped as a python script
     - AIRFLOW : the pipeline is wrapped as an airflow dag
     - DVC : the pipeline is wrapped as a DVC
+    - ARGO: the pipeline is wrapped as an Argo workflow dag
     """
 
     SCRIPT = 1
     AIRFLOW = 2
     DVC = 3
+    ARGO = 4
 
 
 FilePath = Union[str, Path]

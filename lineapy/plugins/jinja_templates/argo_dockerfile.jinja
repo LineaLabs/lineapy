@@ -1,0 +1,21 @@
+FROM python:{{ python_version }}
+
+RUN mkdir /tmp/installers
+WORKDIR /tmp/installers
+
+# Copy all the requirements to run current DAG
+COPY ./{{ pipeline_name }}_requirements.txt ./
+
+# Install git and argo
+RUN apt update
+RUN apt install -y git
+RUN pip install argo
+RUN pip install hera-workflows
+
+# Install required libs
+RUN pip install -r ./{{ pipeline_name }}_requirements.txt
+
+WORKDIR /home
+COPY . .
+
+ENTRYPOINT [ "argo", "repro", "run_all_sessions"]

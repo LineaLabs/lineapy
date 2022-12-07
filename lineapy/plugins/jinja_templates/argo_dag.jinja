@@ -1,0 +1,36 @@
+import {{ MODULE_NAME }}
+import pickle
+import pathlib
+
+from hera.task import Task
+from hera.workflow import Workflow
+from hera.workflow_service import WorkflowService
+
+{% for task_def in task_definitions %}
+{{ task_def }}
+{% endfor %}
+
+ws = WorkflowService(
+    host = "{{ HOST }}",
+    verify_ssl = {{ VERIFY_SSL }},
+    token = "{{ TOKEN }}",
+    namespace = "{{ NAMESPACE }}",
+)
+
+with Workflow("{{ WORFLOW_NAME }}", service = ws) as w:
+{% for task_name, task_def in tasks.items() %}
+    {%- if task_def.user_input_variables|length > 0 %}
+    {{ task_name }} = Task('{{ task_name }}', task_{{ task_name }}, {{ task_def.user_input_variables }})
+    {% else %}
+    {{ task_name }} = Task('{{ task_name }}', task_{{ task_name }})
+    {% endif %}
+{% endfor %}
+
+
+{% if task_dependencies is not none %}
+{% for TASK_DEPENDENCIES in task_dependencies %}
+    {{TASK_DEPENDENCIES}}
+{% endfor %}
+{% endif %}
+
+w.create()

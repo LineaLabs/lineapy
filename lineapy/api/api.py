@@ -389,7 +389,7 @@ def to_pipeline(
         Names of artifacts to be included in the pipeline.
 
     framework: str
-        "AIRFLOW" or "SCRIPT". Defaults to "SCRIPT" if not specified.
+        "AIRFLOW", "ARGO" or "SCRIPT". Defaults to "SCRIPT" if not specified.
 
     pipeline_name: Optional[str]
         Name of the pipeline.
@@ -432,7 +432,8 @@ def to_pipeline(
         A dictionary of parameters to configure DAG file to be generated.
         Not applicable for "SCRIPT" framework as it does not generate a separate
         DAG file. For "AIRFLOW" framework, Airflow-native config params such as
-        "retries" and "schedule_interval" can be passed in.
+        "retries" and "schedule_interval" can be passed in. For "ARGO" framework,
+        Argo-native config params such as "namespace" and "service_account_name".
 
     Returns
     -------
