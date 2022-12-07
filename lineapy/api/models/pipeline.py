@@ -15,7 +15,7 @@ from lineapy.db.relational import (
 from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
-from lineapy.plugins.task import TaskGraphEdge, extract_taskgraph
+from lineapy.plugins.task import TaskGraphEdge
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -39,11 +39,8 @@ class Pipeline:
                 "Pipelines must contain at least one artifact\nEmpty Pipelines are invalid"
             )
         self.dependencies = dependencies
-        self.artifact_safe_names, self.task_graph = extract_taskgraph(
-            artifacts, dependencies
-        )
-        self.name = name or "_".join(self.artifact_safe_names)
         self.artifact_names: List[str] = artifacts
+        self.name = name or "_".join(self.artifact_names)
         self.id = get_new_id()
 
     def export(
@@ -62,9 +59,10 @@ class Pipeline:
 
         # get artifact_collection for use in pipeline writers
         artifact_collection = self._get_artifact_collection(
-            input_parameters,
-            reuse_pre_computed_artifacts,
-            include_non_slice_as_comment,
+            input_parameters=input_parameters,
+            reuse_pre_computed_artifacts=reuse_pre_computed_artifacts,
+            include_non_slice_as_comment=include_non_slice_as_comment,
+            dependencies=self.dependencies,
         )
 
         # Construct pipeline writer. Check out class:PipelineType for supported frameworks
@@ -72,7 +70,6 @@ class Pipeline:
         pipeline_writer = PipelineWriterFactory.get(
             pipeline_type=PipelineType[framework],
             artifact_collection=artifact_collection,
-            dependencies=self.dependencies,
             pipeline_name=self.name,
             output_dir=output_dir,
             generate_test=generate_test,
@@ -96,7 +93,7 @@ class Pipeline:
             ToPipelineEvent(
                 framework,
                 len(self.artifact_names),
-                len(list(self.task_graph.graph.edges)) > 0,
+                len(self.dependencies) > 0,
                 pipeline_dag_config is not None,
             )
         )
@@ -107,6 +104,7 @@ class Pipeline:
         self,
         input_parameters,
         reuse_pre_computed_artifacts,
+        dependencies,
         include_non_slice_as_comment,
     ):
         # Create artifact collection
@@ -124,6 +122,7 @@ class Pipeline:
             target_artifacts=artifact_defs,
             input_parameters=input_parameters,
             reuse_pre_computed_artifacts=reuse_pre_computed_artifact_defs,
+            dependencies=dependencies,
         )
 
         return artifact_collection

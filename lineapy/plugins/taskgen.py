@@ -1,20 +1,20 @@
 """
 This taskgen files contains helper functions to create tasks.
 """
-from typing import Dict
+from typing import Dict, Tuple
 
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.graph_reader.node_collection import ArtifactNodeCollection
 from lineapy.plugins.session_writers import BaseSessionWriter
-from lineapy.plugins.task import DagTaskBreakdown, TaskDefinition
+from lineapy.plugins.task import DagTaskBreakdown, TaskDefinition, TaskGraph
 from lineapy.plugins.utils import load_plugin_template
 
 
-def get_task_definitions(
+def get_task_graph(
     artifact_collection: ArtifactCollection,
     pipeline_name: str,
     task_breakdown: DagTaskBreakdown,
-) -> Dict[str, TaskDefinition]:
+) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_task_definitions returns a dictionary of TaskDefinitions
 
@@ -28,13 +28,15 @@ def get_task_definitions(
     objects to match the format for pipeline arguments that is expected by that framework.
     """
     if task_breakdown == DagTaskBreakdown.TaskAllSessions:
-        return get_allsessions_task_definition(
+        return get_allsessions_task_definition_graph(
             artifact_collection, pipeline_name
         )
     elif task_breakdown == DagTaskBreakdown.TaskPerSession:
-        return get_session_task_definition(artifact_collection, pipeline_name)
+        return get_session_task_definition_graph(
+            artifact_collection, pipeline_name
+        )
     elif task_breakdown == DagTaskBreakdown.TaskPerArtifact:
-        return get_artifact_task_definitions(
+        return get_artifact_task_definition_graph(
             artifact_collection, pipeline_name
         )
     else:
@@ -42,10 +44,42 @@ def get_task_definitions(
             f"Task breakdown granularity {task_breakdown} is not currently supported."
         )
 
+        # # Handle dependencies
+        # dependencies = {
+        #     task_names[i + 1]: {task_names[i]}
+        #     for i in range(len(task_names) - 1)
+        # }
+        # task_graph = TaskGraph(
+        #     nodes=task_names,
+        #     mapping={tn: tn for tn in task_names},
+        #     edges=dependencies,
+        # )
 
-def get_artifact_task_definitions(
+
+# def extract_taskgraph(
+#     artifacts: List[str], dependencies: TaskGraphEdge
+# ) -> Tuple[List[str], TaskGraph]:
+#     """
+#     extract_taskgraph returns a list of artifacts and the taskgraph corresponding to the provided dependencies
+#     """
+#     artifact_safe_names = []
+#     for artifact_name in artifacts:
+#         artifact_var = slugify(artifact_name)
+#         if len(artifact_var) == 0:
+#             raise ValueError(f"Invalid slice name {artifact_name}.")
+#         artifact_safe_names.append(artifact_var)
+
+#     task_graph = TaskGraph(
+#         artifacts,
+#         {slice: task for slice, task in zip(artifacts, artifact_safe_names)},
+#         dependencies,
+#     )
+#     return (artifact_safe_names, task_graph)
+
+
+def get_artifact_task_definition_graph(
     artifact_collection: ArtifactCollection, pipeline_name: str
-) -> Dict[str, TaskDefinition]:
+) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_artifact_task_definitions returns a task definition for each artifact the pipeline produces.
     This may include tasks that produce common variables that were not initially defined as artifacts.
@@ -96,12 +130,13 @@ def get_artifact_task_definitions(
             )
             task_definitions[nc.safename] = task_def
 
-    return task_definitions
+    # TODO
+    return task_definitions, TaskGraph([], {})
 
 
-def get_session_task_definition(
+def get_session_task_definition_graph(
     artifact_collection: ArtifactCollection, pipeline_name: str
-) -> Dict[str, TaskDefinition]:
+) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_session_task_definition returns a task definition for each session in the pipeline.
     """
@@ -150,13 +185,16 @@ def get_session_task_definition(
 
         task_definitions[function_name] = task_def
 
-    return task_definitions
+    artifact_collection.create_inter_session_taskgraph()
+
+    # TODO
+    return task_definitions, TaskGraph([], {})
 
 
-def get_allsessions_task_definition(
+def get_allsessions_task_definition_graph(
     artifact_collection: ArtifactCollection,
     pipeline_name: str,
-) -> Dict[str, TaskDefinition]:
+) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_allsessions_task_definition returns a single task definition for the whole pipeline.
     """
@@ -173,7 +211,7 @@ def get_allsessions_task_definition(
             return_vars=["artifacts"],
             pipeline_name=pipeline_name,
         )
-    }
+    }, TaskGraph(nodes=["run_all"], edges={})
 
 
 def get_localpickle_setup_task_definition(pipeline_name):

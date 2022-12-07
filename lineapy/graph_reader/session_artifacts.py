@@ -610,10 +610,12 @@ class SessionArtifacts:
         # Nodecollection dependencies
         self.nodecollection_dependencies = TaskGraph(
             nodes=[nc.name for nc in self.usercode_nodecollections],
+            edges=dependencies,
+        )
+        self.nodecollection_dependencies.remap_nodes(
             mapping={
                 nc.name: nc.safename for nc in self.usercode_nodecollections
             },
-            edges=dependencies,
         )
         # Graph with each nodecollection as node
         nc_graph = self.nodecollection_dependencies.graph

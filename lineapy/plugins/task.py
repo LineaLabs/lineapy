@@ -5,7 +5,7 @@ from typing import Dict, List, Set, Tuple
 
 import networkx as nx
 
-from lineapy.plugins.utils import load_plugin_template, slugify
+from lineapy.plugins.utils import load_plugin_template
 
 TaskGraphEdge = Dict[str, Set[str]]
 
@@ -40,11 +40,9 @@ class TaskGraph(object):
     def __init__(
         self,
         nodes: List[str],
-        mapping: Dict[str, str],
         edges: TaskGraphEdge = {},
     ):
         self.graph = nx.DiGraph()
-        self.artifact_raw_to_safe_mapping = mapping
         self.graph.add_nodes_from(nodes)
         # parsing the other format to our tuple-based format
         # note that nesting is not allowed (enforced by the type signature)
@@ -57,7 +55,38 @@ class TaskGraph(object):
         )
         self.graph.add_edges_from(graph_edges)
 
+    def remap_nodes(self, mapping: Dict[str, str]):
         nx.relabel_nodes(self.graph, mapping, copy=False)
+
+    def insert_setup_task(self, setup_task_name: str):
+        """
+        insert_setup_task adds a setup task that will be run before all the original source tasks
+        """
+        sources = [
+            node
+            for node in self.graph.nodes
+            if self.graph.in_degree(node) == 0
+        ]
+
+        self.graph.add_node(setup_task_name)
+
+        for old_source in sources:
+            self.graph.add_edge(setup_task_name, old_source)
+
+    def insert_teardown_task(self, cleanup_task_name: str):
+        """
+        insert_cleanup_task adds a cleanup task that will be run after all the original sink tasks
+        """
+        sinks = [
+            node
+            for node in self.graph.nodes
+            if self.graph.out_degree(node) == 0
+        ]
+
+        self.graph.add_node(cleanup_task_name)
+
+        for old_sink in sinks:
+            self.graph.add_edge(old_sink, cleanup_task_name)
 
     def get_taskorder(self) -> List[str]:
         return list(nx.topological_sort(self.graph))
@@ -103,27 +132,6 @@ class TaskSerializer(Enum):
 
     LocalPickle = 1
     # TODO: lineapy.get and lineapy.save
-
-
-def extract_taskgraph(
-    artifacts: List[str], dependencies: TaskGraphEdge
-) -> Tuple[List[str], TaskGraph]:
-    """
-    extract_taskgraph returns a list of artifacts and the taskgraph corresponding to the provided dependencies
-    """
-    artifact_safe_names = []
-    for artifact_name in artifacts:
-        artifact_var = slugify(artifact_name)
-        if len(artifact_var) == 0:
-            raise ValueError(f"Invalid slice name {artifact_name}.")
-        artifact_safe_names.append(artifact_var)
-
-    task_graph = TaskGraph(
-        artifacts,
-        {slice: task for slice, task in zip(artifacts, artifact_safe_names)},
-        dependencies,
-    )
-    return (artifact_safe_names, task_graph)
 
 
 def render_task_io_serialize_blocks(

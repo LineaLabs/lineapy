@@ -15,7 +15,7 @@ from lineapy.graph_reader.utils import (
     get_artifacts_from_artifactdef,
     group_artifacts_by_session,
 )
-from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.task import TaskGraph, TaskGraphEdge
 from lineapy.plugins.utils import slugify
 from lineapy.utils.logging_config import configure_logging
 
@@ -42,6 +42,7 @@ class ArtifactCollection:
         target_artifacts: List[LineaArtifactDef],
         input_parameters: List[str] = [],
         reuse_pre_computed_artifacts: List[LineaArtifactDef] = [],
+        dependencies: TaskGraphEdge = {},
     ) -> None:
         self.db: RelationalLineaDB = db
 
@@ -110,7 +111,11 @@ class ArtifactCollection:
                 )
                 raise KeyError(msg)
 
-    def validate_dependencies(self, dependencies: TaskGraphEdge = {}):
+        self.dependencies = dependencies
+        self._validate_dependencies()
+        self.inter_session_taskgraph = self.create_inter_session_taskgraph()
+
+    def _validate_dependencies(self):
         """
         Validate provided dependencies.
 
@@ -135,7 +140,7 @@ class ArtifactCollection:
                     )
                     for from_artname in from_artname_set
                 )
-                for to_artname, from_artname_set in dependencies.items()
+                for to_artname, from_artname_set in self.dependencies.items()
             )
         )
         combined_taskgraph.add_edges_from(task_dependency_edges)
@@ -163,7 +168,7 @@ class ArtifactCollection:
                 "Please check if the provided dependencies include circular relationships."
             )
 
-    def create_inter_session_taskgraph(self, dependencies: TaskGraphEdge = {}):
+    def create_inter_session_taskgraph(self) -> TaskGraph:
         # Helper dictionary to look up artifact information by name
         art_name_to_session_id: Dict[str, LineaID] = {}
         for artifact in self.target_artifacts:
@@ -182,20 +187,23 @@ class ArtifactCollection:
                     )
                     for from_artname in from_artname_set
                 )
-                for to_artname, from_artname_set in dependencies.items()
+                for to_artname, from_artname_set in self.dependencies.items()
             )
         )
         # remove loops in graph for dependencies within a session
-        session_id_edges = [
-            edge for edge in session_id_edges if edge[0] != edge[1]
-        ]
-        inter_session_graph = nx.DiGraph()
-        inter_session_graph.add_nodes_from(session_id_nodes)
-        inter_session_graph.add_edges_from(session_id_edges)
+        taskgraph_session_id_edges: TaskGraphEdge = {}
+        for edge in session_id_edges:
+            if edge[0] != edge[1]:
+                taskgraph_session_id_edges.get(edge[0], set()).add(edge[1])
+
+        inter_session_graph = TaskGraph(
+            nodes=[str(session_id) for session_id in session_id_nodes],
+            edges=taskgraph_session_id_edges,
+        )
         return inter_session_graph
 
     def sort_session_artifacts(
-        self, dependencies: TaskGraphEdge = {}
+        self,
     ) -> List[SessionArtifacts]:
         """
         Use the user-provided artifact dependencies to
@@ -210,18 +218,9 @@ class ArtifactCollection:
         support such circular dependencies between sessions,
         which is a future project.
         """
-        # Construct inter session dependency graph
-        if dependencies:
-            self.validate_dependencies(dependencies)
-
-        inter_session_taskgraph = self.create_inter_session_taskgraph(
-            dependencies
-        )
         # Sort the session_id
         try:
-            session_id_sorted = list(
-                nx.topological_sort(inter_session_taskgraph)
-            )
+            session_id_sorted = self.inter_session_taskgraph.get_taskorder()
         except NetworkXUnfeasible:
             raise Exception(
                 "Current implementation of LineaPy demands it be able to linearly order different sessions, "
@@ -231,6 +230,6 @@ class ArtifactCollection:
             )
 
         return [
-            self.session_artifacts[session_id]
+            self.session_artifacts[LineaID(session_id)]
             for session_id in session_id_sorted
         ]
