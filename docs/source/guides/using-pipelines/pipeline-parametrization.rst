@@ -1,4 +1,4 @@
-Parametrization
+Parametrization 
 ===============
 
 .. include:: ../../snippets/slack_support.rstinc
@@ -190,8 +190,3 @@ pipeline's utility).
     ``a = "123"`` and ``a = "abc"`` exist in the pipeline's artifact code, we cannot make
     ``a`` an input parameter since its reference is ambiguous, i.e., we are not sure which
     literal assignment ``a`` refers to.
-
-.. note::
-
-   If you want hands-on practice,
-   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02b_parametrize_pipelines.ipynb>`_ tutorial notebook.

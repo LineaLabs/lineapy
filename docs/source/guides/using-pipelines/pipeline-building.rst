@@ -1,12 +1,12 @@
 .. _pipeline_basics:
 
-Basics
-======
+Pipeline Building
+=================
 
 .. include:: ../../snippets/slack_support.rstinc
 
-Pipeline Creation
------------------
+Example
+-------
 
 Consider a simple pipeline that 1) pre-processes raw data and 2) trains a model with the pre-processed data.
 
@@ -45,11 +45,6 @@ Running this creates files that can be used to execute the pipeline as an Airflo
 * ``<pipeline_name>_Dockerfile``: Contains commands to set up the environment to run the pipeline
 
 where ``<pipeline_name>`` is ``iris_pipeline`` in the current example.
-
-.. note::
-
-   If you want hands-on practice,
-   check out `this <https://github.com/LineaLabs/lineapy/blob/main/examples/tutorials/02a_build_pipelines.ipynb>`_ tutorial notebook.
 
 Output Files
 ------------
