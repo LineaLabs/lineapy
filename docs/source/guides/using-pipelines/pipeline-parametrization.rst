@@ -190,5 +190,3 @@ pipeline's utility).
     ``a = "123"`` and ``a = "abc"`` exist in the pipeline's artifact code, we cannot make
     ``a`` an input parameter since its reference is ambiguous, i.e., we are not sure which
     literal assignment ``a`` refers to.
-
-.. include:: ../../snippets/docs_feedback.rstinc

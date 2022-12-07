@@ -243,5 +243,3 @@ We then stand up a container instance with the following command:
 
 In the current example where we set ``framework="AIRFLOW"``, this will result in an Airflow instance
 with an executable DAG in it.
-
-.. include:: ../../snippets/docs_feedback.rstinc

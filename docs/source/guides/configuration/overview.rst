@@ -83,5 +83,3 @@ The configuration file shall look like this:
 
     Note that, you need to make sure whenever you are setting `LINEAPY_DATABASE_URL`, you point to the  `LINEAPY_ARTIFACT_STORAGE_DIR`.
     If not, ``Artifact.get_value`` might return an error that is related cannot find underlying pickle object.
-
-.. include:: ../../snippets/docs_feedback.rstinc

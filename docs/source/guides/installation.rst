@@ -67,5 +67,3 @@ If LineaPy is installed by an individual user, it will be accessible to that par
 user only as long as they do not have a write permission on the shared environment.
 In this case, the user will need to run ``%load_ext lineapy`` at the top of their session
 as explained below.
-
-.. include:: ../snippets/docs_feedback.rstinc

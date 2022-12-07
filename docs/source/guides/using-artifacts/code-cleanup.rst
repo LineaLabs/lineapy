@@ -360,5 +360,3 @@ OR
       var += 20
 
    lineapy.save(var, 'variable')
-
-.. include:: ../../snippets/docs_feedback.rstinc

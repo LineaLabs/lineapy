@@ -84,5 +84,3 @@ or
 
     # LineaPy as a runnable Python module
     python -m lineapy --help
-
-.. include:: ../snippets/docs_feedback.rstinc
