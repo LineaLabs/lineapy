@@ -1407,6 +1407,94 @@
       cmd: python dvc_pipeline_a_b0_singlestageallsessions_module.py
   '
 ---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact]
+  '
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact].2
+  '
+  stages:
+  
+      b0:
+          cmd: python task_b0.py
+          outs:
+              - b0.pickle
+  
+      a:
+          cmd: python task_a.py
+          deps:
+              - b0.pickle
+          outs:
+              - a.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact].3
+  '
+  import dvc_pipeline_a_b0_stageperartifact_module
+  import pickle
+  
+  def task_a():
+      b0 = pickle.load(open('b0.pickle','rb'))
+      a = dvc_pipeline_a_b0_stageperartifact_module.get_a(b0=b0)
+      pickle.dump(a, open('a.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_a()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact].4
+  '
+  import dvc_pipeline_a_b0_stageperartifact_module
+  import pickle
+  
+  def task_b0():
+      b0 = dvc_pipeline_a_b0_stageperartifact_module.get_b0()
+      pickle.dump(b0, open('b0.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_b0()
+  '
+---
 # name: test_pipeline_generation[script_pipeline_a0_b0]
   '
   def get_a0():

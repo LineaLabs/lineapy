@@ -1,0 +1,18 @@
+import {{ MODULE_NAME }}
+import pickle
+
+def task_{{ STAGE["name"] }}():
+{%- if STAGE["deps"]|length > 0 %}
+    {%- for dep in STAGE["deps"] %}
+    {{ dep }} = pickle.load(open('{{ dep }}.pickle','rb'))
+    {%- endfor %}
+{%- endif %}
+{%- if STAGE["outs"]|length > 0 %}
+    {%- for out in STAGE["outs"] %}
+    {{ out }} = {{ MODULE_NAME }}.get_{{ out }}({%- if STAGE["deps"]|length > 0 %}{%- for dep in STAGE["deps"] %}{{ dep }}={{ dep }}{%- endfor %}{%- endif %})
+    pickle.dump({{ out }}, open('{{ out }}.pickle','wb'))
+    {%- endfor %}
+{%- endif %}
+
+if __name__ == "__main__":
+    task_{{ STAGE["name"] }}()

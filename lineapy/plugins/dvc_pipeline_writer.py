@@ -1,9 +1,13 @@
 import logging
 from enum import Enum
+from typing import Dict, List
 
+from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
+from lineapy.plugins.task import DagTaskBreakdown, TaskDefinition
+from lineapy.plugins.taskgen import get_task_definitions
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 
@@ -11,7 +15,36 @@ logger = logging.getLogger(__name__)
 configure_logging()
 
 
+class Stage(BaseModel):
+    name: str
+    deps: List[str]
+    outs: List[str]
+
+
+class DVCDagFlavor(Enum):
+    SingleStageAllSessions = 1
+    StagePerArtifact = 2
+    # TODO: StagePerSession
+
+
+DVCDagConfig = TypedDict(
+    "DVCDagConfig",
+    {
+        "dag_flavor": str,  # Not native to DVC config
+    },
+    total=False,
+)
+
+
 class DVCPipelineWriter(BasePipelineWriter):
+    """
+    Class for pipeline file writer. Corresponds to "DVC" framework.
+    """
+
+    @property
+    def docker_template_name(self) -> str:
+        return "dvc_dockerfile.jinja"
+
     def _write_dag(self) -> None:
         dag_flavor = self.dag_config.get(
             "dag_flavor", "SingleStageAllSessions"
@@ -23,12 +56,15 @@ class DVCPipelineWriter(BasePipelineWriter):
 
         # Construct DAG text for the given flavor
         if DVCDagFlavor[dag_flavor] == DVCDagFlavor.SingleStageAllSessions:
-            full_code = self._write_operator_run_all_sessions()
+            dvc_yaml_code = self._write_operator_run_all_sessions()
+
+        if DVCDagFlavor[dag_flavor] == DVCDagFlavor.StagePerArtifact:
+            dvc_yaml_code = self._write_operator_run_per_artifact()
 
         # Write out file
-        file = self.output_dir / "dvc.yaml"
-        file.write_text(full_code)
-        logger.info(f"Generated DAG file: {file}")
+        dvc_dag_file = self.output_dir / "dvc.yaml"
+        dvc_dag_file.write_text(dvc_yaml_code)
+        logger.info(f"Generated DAG file: {dvc_dag_file}")
 
     def _write_operator_run_all_sessions(self) -> str:
         """
@@ -47,21 +83,47 @@ class DVCPipelineWriter(BasePipelineWriter):
 
         return full_code
 
-    @property
-    def docker_template_name(self) -> str:
-        return "dvc_dockerfile.jinja"
+    def _write_operator_run_per_artifact(self) -> str:
+        """
+        This hidden method implements DVC DAG code generation corresponding
+        to the `StagePerArtifact` flavor.
+        """
 
+        DAG_TEMPLATE = load_plugin_template("dvc_dag_StagePerArtifact.jinja")
 
-class DVCDagFlavor(Enum):
-    SingleStageAllSessions = 1
-    # TODO: StagePerSession
-    # TODO: StagePerArtifact
+        task_defs: Dict[str, TaskDefinition] = get_task_definitions(
+            self.artifact_collection,
+            pipeline_name=self.pipeline_name,
+            task_breakdown=DagTaskBreakdown.TaskPerArtifact,
+        )
 
+        stages = [
+            Stage(
+                name=key,
+                deps=value.loaded_input_variables,
+                outs=value.return_vars,
+            ).dict()
+            for key, value in task_defs.items()
+        ]
 
-DVCDagConfig = TypedDict(
-    "DVCDagConfig",
-    {
-        "dag_flavor": str,  # Not native to DVC config
-    },
-    total=False,
-)
+        full_code = DAG_TEMPLATE.render(stages=stages)
+
+        for stage in stages:
+            self._write_python_operator_per_run_artifact(stage)
+
+        return full_code
+
+    def _write_python_operator_per_run_artifact(self, stage: dict):
+        """
+        This hidden method generates the python cmd files for each DVC stage.
+        """
+        TASK_TEMPLATE = load_plugin_template("dvc_dag_PythonOperator.jinja")
+
+        python_operator_code = TASK_TEMPLATE.render(
+            MODULE_NAME=f"{self.pipeline_name}_module", STAGE=stage
+        )
+        filename = f"task_{stage['name']}.py"
+        python_operator_file = self.output_dir / filename
+        python_operator_file.write_text(python_operator_code)
+        print(python_operator_file)
+        logger.info(f"Generated DAG file: {python_operator_file}")
