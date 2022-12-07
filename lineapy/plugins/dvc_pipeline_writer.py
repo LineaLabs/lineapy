@@ -106,7 +106,9 @@ class DVCPipelineWriter(BasePipelineWriter):
             for key, value in task_defs.items()
         ]
 
-        full_code = DAG_TEMPLATE.render(stages=stages)
+        full_code = DAG_TEMPLATE.render(
+            MODULE_NAME=f"{self.pipeline_name}_module", STAGES=stages
+        )
 
         for stage in stages:
             self._write_python_operator_per_run_artifact(stage)
