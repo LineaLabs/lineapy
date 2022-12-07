@@ -52,6 +52,14 @@ As our notebooks become more mature, we may use them like pipelines. For example
 .. toctree::
    :hidden:
    :maxdepth: 1
+   :caption: Quickstart
+
+   tutorials/00_lineapy_quickstart
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
    :caption: Concepts
 
    concepts/artifact
@@ -64,8 +72,8 @@ As our notebooks become more mature, we may use them like pipelines. For example
    :maxdepth: 1
    :caption: Tutorials
 
-   tutorials/00_using_artifacts
-   tutorials/01_pipeline_building
+   tutorials/01_using_artifacts
+   tutorials/02_pipeline_building
 
 
 .. toctree::
