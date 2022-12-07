@@ -177,9 +177,9 @@ class AirflowPipelineWriter(BasePipelineWriter):
             task_defs, task_serialization
         )
 
-        task_dependencies = [
-            f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges
-        ]
+        task_dependencies = sorted(
+            [f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges]
+        )
 
         # Get DAG parameters for an Airflow pipeline
         input_parameters_dict: Dict[str, Any] = {}
@@ -231,4 +231,5 @@ class AirflowPipelineWriter(BasePipelineWriter):
             )
             rendered_task_defs.append(task_def_rendered)
 
-        return rendered_task_defs
+        # sort here to maintain deterministic behavior of writing
+        return sorted(rendered_task_defs)
