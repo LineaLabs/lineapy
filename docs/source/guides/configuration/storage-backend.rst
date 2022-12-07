@@ -1,16 +1,29 @@
+Changing Storage Backend
+========================
+
+.. include:: ../../snippets/slack_support.rstinc
+
+Out of the box, LineaPy is the default storage backend for all artifacts.
+For certain storage backends in use (e.g., storing model artifacts in MLflow), saving one more copy of the same artifact into LineaPy causes sync issue between the two systems.
+Thus, LineaPy supports using different storage backends for certain data types (e.g., ML models).
+This support is essential for users to leverage functionalities from both LineaPy and other familiar toolkit (e.g., MLflow).
+
+.. note::
+
+   Storage backend refers to the overall system handling storage and should be distinguished from specific storage locations such as Amazon S3.
+   For instance, LineaPy is a storage backend that can use different storage locations.
+
 .. _mlflow:
 
-Using MLflow as Storage Backend to Save ML Models
-=================================================
-
-.. include:: ../../../snippets/slack_support.rstinc
+Saving ML Models to MLflow Backend
+----------------------------------
 
 By default, LineaPy uses LineaPy to save artifacts for all object types.
 However, for users who have access to MLflow, MLflow might be their first choice to save the ML model.
 Thus, we enable using MLflow as the backend storage for ML models.
 
 Configure MLflow
-----------------
+^^^^^^^^^^^^^^^^
 
 Depend on how our MLflow is configured. We might need to specify ``tracking URI`` and (optional) ``registry URI``in MLflow to start using MLflow. 
 
@@ -32,7 +45,7 @@ To let LineaPy be aware of the existence of MLflow, we need to set corresponding
     For objects not supported by MLflow, it will fall back to using LineaPy as the storage backend as usual.
 
 Set Default Storage Backend for ML Models
------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Each user might have a different usage pattern for MLflow; some might use it for logging purposes and record all developing models. Some might treat it as a public space and only publish models that meet specific criteria to MLflow. 
 In the first case, users want to use MLflow to save artifacts(ML models) by default, and in the second case, users only want to use MLflow to save artifacts when they want.
@@ -81,7 +94,7 @@ For instance, if we want to specify ``registered_model_name``, we can write the 
     lineapy.save(model, name="model", storage_backend="mlflow", registered_model_name="clf")
 
 Retrieve Artifact from Both LineaPy and MLflow
-----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Depend on what users want to do (or be familiar with). 
 Users can retrieve the same artifact(ML model) from LineaPy API and MLflow API once users execute ``lineapy.save`` with ``mlflow`` as the storage backend to save the artifact.
@@ -103,8 +116,7 @@ Users can retrieve the same artifact(ML model) from LineaPy API and MLflow API o
     mlflow_model = mlflow.sklearn.load_model(f'models:/clf/{latest_version}')    
 
 Which MLflow Model Flavor is Supported
---------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Currently, we are supporting following flavors: ``sklearn``, ``xgboost``, ``prophet`` and ``statsmodels``.
 We plan to support all MLflow supported model flavors soon.
-

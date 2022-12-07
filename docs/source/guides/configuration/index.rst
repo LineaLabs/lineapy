@@ -10,5 +10,5 @@ logging and storage location.
     :maxdepth: 1
 
     overview
-    storage-location/index
-    storage-backend/index
+    storage-location
+    storage-backend
