@@ -3,7 +3,7 @@
 Annotate Packages
 =================
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: ../../../snippets/slack_support.rstinc
 
 One big strength of the Python language is its large and active development community. This means that
 we have a lot of interesting and useful Python packages that are not part of the core Python distribution.

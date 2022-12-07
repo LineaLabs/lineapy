@@ -9,7 +9,7 @@ the system's home directory.
 
 This default location can be overridden by modifying the configuration file:
 
-.. code:: json
+.. code:: none
 
     {
         "artifact_storage_dir": [NEW-PATH-TO-STORE-SERIALIZED-VALUES],
@@ -49,8 +49,6 @@ Note that, which ``storage_options`` items you can set are depends on the filesy
 
 Storing Artifact Metadata in PostgreSQL
 ---------------------------------------
-
-.. include:: ../../../snippets/slack_support.rstinc
 
 By default, LineaPy uses SQLite to store artifact metadata (e.g., name, version, code), which keeps the package light and simple.
 Given the limitations of SQLite (e.g., single write access to a database at a time), however,
@@ -159,8 +157,6 @@ Using ``postgresql://`` instead should fix this error.
 
 Storing Artifact Values in Amazon S3
 ------------------------------------
-
-.. include:: ../../../snippets/slack_support.rstinc
 
 To use S3 as LineaPy's serialized value location, you can run the following command in your notebook to change your storage backend:
 

@@ -1,7 +1,7 @@
 Integrate a New Pipeline Framework
 ==================================
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: ../../../snippets/slack_support.rstinc
 
 One major feature of Lineapy is the ability to create pipelines that run various pipeline orchestration frameworks.
 We believe that supporting pipeline frameworks to meet data engineers where they are with their current stacks provides the best user experience for reducing manual work of pipeline writing.

@@ -1,3 +1,5 @@
+.. _code_cleanup:
+
 Cleaning up Development Code
 ============================
 
@@ -168,7 +170,7 @@ Annotating Third-Party APIs
 
 Python ecosystem offers a lot of interesting and useful packages that are not part of the core distribution.
 These third-party packages often come with their own new APIs, and LineaPy is not guaranteed to handle all
-of them properly when :ref:`removing extraneous code <code_cleanup>`. For such "unrecognized" APIs, we can add
+of them properly when removing extraneous code. For such "unrecognized" APIs, we can add
 instructions for LineaPy, which we call "package annotation".
 
 For instance, without relevant package annotation, running
