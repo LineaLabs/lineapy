@@ -5,7 +5,7 @@ on:
     branches-ignore: [main]
     paths:
       - "examples/use_cases/**/*.ipynb"
-      - "examples/tutorials/00_api_basics.ipynb"
+      - "examples/tutorials/*.ipynb"
   
 jobs:
   sync-notebooks:
@@ -14,18 +14,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
-      
-      - name: "Copy demo notebooks to top level .colab folder"
-        run: mkdir -p .colab/ && cp -R examples/use_cases/* .colab/ && cp examples/tutorials/00_api_basics.ipynb .colab/
 
-      - name: "copy example notebooks to docs"
-        run: cp examples/tutorials/00_api_basics.ipynb docs/source/tutorials/
+      - name: "Copy demo & tutorial notebooks to top level .colab folder"
+        run: mkdir -p .colab/ && cp -R examples/use_cases/* .colab/ && cp -R examples/tutorials/* .colab/
 
-      - name: "Regex out the NBVAL_SKIP and NBVAL_IGNORE_OUTPUT comments"
-        run: |
-          cd .colab/ 
-          find ./ -type f -name "*.ipynb" -exec sed -i 's/\#[\ ]*NBVAL_SKIP//g' {} \;
-          find ./ -type f -name "*.ipynb" -exec sed -i 's/\#[\ ]*NBVAL_IGNORE_OUTPUT//g' {} \;
+      - name: "Copy tutorial notebooks to docs"
+        run: cp -R examples/tutorials/* docs/source/tutorials/
 
       - name: Commit files
         run: |
@@ -38,5 +32,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
-            
-  
