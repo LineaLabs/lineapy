@@ -76,5 +76,6 @@ html_js_files = [
     (
         "//script.crazyegg.com/pages/scripts/0111/9525.js",
         {"type": "text/javascript", "async": "async"},
-    )
+    ),
+    "js/custom.js",
 ]
