@@ -196,3 +196,5 @@ where
 
 In sum, instructions above tell ``lineapy`` to recognize ``fit`` method of ``BaseEstimator`` class (defined under ``sklearn.base`` module)
 as an API that mutates the function caller itself, and to treat it as such in relevant downstream tasks such as code cleanup.
+
+.. include:: ../../../snippets/docs_feedback.rstinc

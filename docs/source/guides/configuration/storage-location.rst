@@ -153,6 +153,8 @@ If you are using PostgreSQL as your database, you might encounter the following 
 This is caused by a change in SQLAlchemy where they dropped support for DB URLs of the form ``postgres://``.
 Using ``postgresql://`` instead should fix this error.
 
+.. include:: ../../snippets/docs_feedback.rstinc
+
 .. _s3:
 
 Storing Artifact Values in Amazon S3
@@ -186,3 +188,5 @@ If you really need to set your AWS credentials directly in the running session (
 which is equivalent to setting environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY``.
 
 To learn more about which S3 configuration items that you can set in ``storage_options``, you can see the parameters of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_ since ``fsspec`` is passing ``storage_options`` items to ``s3fs.S3FileSystem`` to access S3 under the hood.
+
+.. include:: ../../snippets/docs_feedback.rstinc

@@ -20,3 +20,5 @@ LineaPy's artifact store is globally accessible, which means the user can view, 
 different development sessions and even different projects. This unified global storage is designed to accelerate the overall
 development process, which is iterative in nature. Moreover, it can facilitate collaboration between different teams
 as it provides a single source of truth for all prior relevant work.
+
+.. include:: ../snippets/docs_feedback.rstinc

@@ -105,6 +105,7 @@ doc_libs = [
     "nbsphinx",
     "sphinx_rtd_theme",
     "sphinx-autobuild",
+    "sphinx_design",
     "pandoc",
 ]
 

@@ -40,6 +40,7 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.todo",
     "nbsphinx",
+    "sphinx_design",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

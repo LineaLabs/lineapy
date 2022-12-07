@@ -120,3 +120,5 @@ Which MLflow Model Flavor is Supported
 
 Currently, we are supporting following flavors: ``sklearn``, ``xgboost``, ``prophet`` and ``statsmodels``.
 We plan to support all MLflow supported model flavors soon.
+
+.. include:: ../../snippets/docs_feedback.rstinc

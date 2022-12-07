@@ -1,7 +1,7 @@
 Cleaning up Development Code
 ============================
 
-.. include:: ../../../../snippets/slack_support.rstinc
+.. include:: ../../snippets/slack_support.rstinc
 
 Data science development is characterized by nimble, iterative experimentation and exploratory data analysis.
 Data scientists explore many possibilities before reaching the final result. The rapid exploration process often
@@ -272,8 +272,6 @@ We discuss few cases in which LineaPy's code cleanup might lead to issues, and w
 Unvisited Conditional
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. include:: ../../../snippets/slack_support.rstinc
-
 Suppose we have a code which has conditionals in them, for example:
 
 .. code:: python
@@ -360,3 +358,5 @@ OR
       var += 20
 
    lineapy.save(var, 'variable')
+
+.. include:: ../../snippets/docs_feedback.rstinc

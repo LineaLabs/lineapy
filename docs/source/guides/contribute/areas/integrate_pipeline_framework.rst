@@ -169,3 +169,5 @@ Be sure to also run pytest with the ``--snapshot-update`` flag and commit the sn
 
 End to end tests such as the one found for airflow in ``tests/test_pipeline_run_airflow.py`` are also highly recommended but much more involved as they require setting up a environment that can run the framework you are providing an integration for and having APIs to check the dag runs successfully.
 Please consult your individual framework's documentation and add these tests if possible.
+
+.. include:: ../../../snippets/docs_feedback.rstinc
