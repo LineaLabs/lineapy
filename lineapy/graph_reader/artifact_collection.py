@@ -184,9 +184,9 @@ class ArtifactCollection:
                 artifact._session_id
             )
 
-        print(inter_session_graph)
-        inter_session_graph.remap_nodes(art_name_to_session_id)
-        print(inter_session_graph)
+        inter_session_graph = inter_session_graph.remap_nodes(
+            art_name_to_session_id
+        )
 
         # remove loops in graph for dependencies within a session
         inter_session_graph.remove_self_loops()

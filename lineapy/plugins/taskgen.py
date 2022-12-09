@@ -194,7 +194,7 @@ def get_session_task_definition_graph(
 
     # avoid mapping in place here to not overwrite the artifact collection session taskgraph
     task_graph = artifact_collection.inter_session_taskgraph.remap_nodes(
-        session_id_task_map, inplace=False
+        session_id_task_map
     )
     return (task_definitions, task_graph)
 

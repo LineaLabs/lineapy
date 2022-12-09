@@ -58,16 +58,12 @@ class TaskGraph(object):
         )
         self.graph.add_edges_from(graph_edges)
 
-    def remap_nodes(self, mapping: Dict[str, str], inplace=True) -> TaskGraph:
-        if inplace:
-            nx.relabel_nodes(self.graph, mapping, copy=False)
-            return self
-        else:
-            remapped_taskgraph = TaskGraph([])
-            remapped_taskgraph.graph = nx.relabel_nodes(
-                self.graph, mapping, copy=True
-            )
-            return remapped_taskgraph
+    def remap_nodes(self, mapping: Dict[str, str]) -> TaskGraph:
+        remapped_taskgraph = TaskGraph([])
+        remapped_taskgraph.graph = nx.relabel_nodes(
+            self.graph, mapping, copy=True
+        )
+        return remapped_taskgraph
 
     def insert_setup_task(self, setup_task_name: str):
         """
