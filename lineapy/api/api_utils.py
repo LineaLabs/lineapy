@@ -4,17 +4,13 @@ import re
 import warnings
 from pathlib import Path
 
-# import cloudpickle
+import cloudpickle
 from pandas.io.common import get_handle
 
 from lineapy.db.db import RelationalLineaDB
 from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
 from lineapy.utils.analytics.usage_tracking import track
 from lineapy.utils.config import options
-
-# from pandas.io.pickle import read_pickle
-# from pandas.io.pickle import to_pickle as pandas_pickle
-
 
 logger = logging.getLogger(__name__)
 
@@ -82,17 +78,21 @@ def to_pickle(
     ) as handles:
         # Simplifying use cases handled in pandas for readability.
         # letting pickle write directly to the buffer is more memory-efficient
-        pickle.dump(
-            # error: Argument 2 to "dump" has incompatible type "Union[IO[Any],
-            # RawIOBase, BufferedIOBase, TextIOBase, TextIOWrapper, mmap]"; expected
-            # "IO[bytes]"
-            value,
-            handles.handle,  # type: ignore[arg-type]
-            protocol=pickle.HIGHEST_PROTOCOL,
-        )
+        try:
+            cloudpickle.dump(
+                value,
+                handles.handle,  # type: ignore[arg-type]
+                protocol=pickle.HIGHEST_PROTOCOL,
+            )
+        except Exception:
+            pickle.dump(
+                value,
+                handles.handle,  # type: ignore[arg-type]
+                protocol=pickle.HIGHEST_PROTOCOL,
+            )
 
 
-def _read_pickle(pickle_filename):
+def read_pickle(pickle_filename):
     """
     Read pickle file from artifact storage dir
     """
@@ -107,7 +107,7 @@ def _read_pickle(pickle_filename):
         logger.debug(
             f"Retriving pickle file from {filepath} ",
         )
-        return pandas_read_pickle(
+        return _try_pickle_read(
             filepath, storage_options=options.get("storage_options")
         )
     except Exception as e:
@@ -120,14 +120,12 @@ def _read_pickle(pickle_filename):
         raise e
 
 
-def pandas_read_pickle(
-    filepath_or_buffer, compression="infer", storage_options=None
-):
+def _try_pickle_read(filepath_or_buffer, storage_options=None):
 
     with get_handle(
         filepath_or_buffer,
         "rb",
-        compression=compression,
+        compression="infer",
         is_text=False,
         storage_options=storage_options,
     ) as handles:
@@ -143,7 +141,8 @@ def pandas_read_pickle(
         with warnings.catch_warnings(record=True):
             # We want to silence any warnings about, e.g. moved modules.
             warnings.simplefilter("ignore", Warning)
-            # error: Argument 1 to "load" has incompatible type "Union[IO[Any],
-            # RawIOBase, BufferedIOBase, TextIOBase, TextIOWrapper, mmap]";
-            # expected "IO[bytes]"
-            return pickle.load(handles.handle)  # type: ignore[arg-type]
+
+            try:
+                return cloudpickle.load(handles.handle)  # type: ignore[arg-type]
+            except Exception:
+                return pickle.load(handles.handle)  # type: ignore[arg-type]

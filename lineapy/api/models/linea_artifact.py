@@ -5,7 +5,7 @@ from typing import Optional, Set, Tuple, Union
 
 from IPython.display import display
 
-from lineapy.api.api_utils import _read_pickle, de_lineate_code
+from lineapy.api.api_utils import de_lineate_code, read_pickle
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ARTIFACT_STORAGE_BACKEND,
@@ -119,7 +119,7 @@ class LineaArtifact:
                 return read_mlflow(metadata["mlflow"])
 
             # read from lineapy
-            return _read_pickle(saved_filepath)
+            return read_pickle(saved_filepath)
 
     @lru_cache(maxsize=None)
     def _get_storage_path(self) -> Optional[str]:
