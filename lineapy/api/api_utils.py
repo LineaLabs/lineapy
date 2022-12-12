@@ -1,6 +1,17 @@
+import logging
+import pickle
 import re
+from pathlib import Path
+
+from pandas.io.pickle import read_pickle
+from pandas.io.pickle import to_pickle as pandas_pickle
 
 from lineapy.db.db import RelationalLineaDB
+from lineapy.utils.analytics.event_schemas import ErrorType, ExceptionEvent
+from lineapy.utils.analytics.usage_tracking import track
+from lineapy.utils.config import options
+
+logger = logging.getLogger(__name__)
 
 
 def de_lineate_code(code: str, db: RelationalLineaDB) -> str:
@@ -50,3 +61,45 @@ def de_lineate_code(code: str, db: RelationalLineaDB) -> str:
     # logger.debug("replaces made: %s", replaces)
 
     return swapped
+
+
+def to_pickle(
+    value,
+    filepath_or_buffer,
+    storage_options=None,
+):
+    pandas_pickle(
+        obj=value,
+        filepath_or_buffer=filepath_or_buffer,
+        compression="infer",
+        protocol=pickle.HIGHEST_PROTOCOL,
+        storage_options=storage_options,
+    )
+
+
+def _read_pickle(pickle_filename):
+    """
+    Read pickle file from artifact storage dir
+    """
+    # TODO - set unicode etc here
+    artifact_storage_dir = options.safe_get("artifact_storage_dir")
+    filepath = (
+        artifact_storage_dir.joinpath(pickle_filename)
+        if isinstance(artifact_storage_dir, Path)
+        else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
+    )
+    try:
+        logger.debug(
+            f"Retriving pickle file from {filepath} ",
+        )
+        return read_pickle(
+            filepath, storage_options=options.get("storage_options")
+        )
+    except Exception as e:
+        logger.error(e)
+        track(
+            ExceptionEvent(
+                ErrorType.RETRIEVE, "Error in retriving pickle file"
+            )
+        )
+        raise e

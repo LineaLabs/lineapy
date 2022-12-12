@@ -1,15 +1,11 @@
-from __future__ import annotations
-
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
 from typing import Optional, Set, Tuple, Union
 
 from IPython.display import display
-from pandas.io.pickle import read_pickle
 
-from lineapy.api.api_utils import de_lineate_code
+from lineapy.api.api_utils import _read_pickle, de_lineate_code
 from lineapy.data.graph import Graph
 from lineapy.data.types import (
     ARTIFACT_STORAGE_BACKEND,
@@ -28,14 +24,11 @@ from lineapy.graph_reader.program_slice import (
 )
 from lineapy.plugins.serializers.mlflow_io import read_mlflow
 from lineapy.utils.analytics.event_schemas import (
-    ErrorType,
-    ExceptionEvent,
     GetCodeEvent,
     GetValueEvent,
     GetVersionEvent,
 )
 from lineapy.utils.analytics.usage_tracking import track
-from lineapy.utils.config import options
 from lineapy.utils.deprecation_utils import lru_cache
 from lineapy.utils.utils import prettify
 
@@ -126,7 +119,7 @@ class LineaArtifact:
                 return read_mlflow(metadata["mlflow"])
 
             # read from lineapy
-            return self._read_pickle(saved_filepath)
+            return _read_pickle(saved_filepath)
 
     @lru_cache(maxsize=None)
     def _get_storage_path(self) -> Optional[str]:
@@ -198,33 +191,6 @@ class LineaArtifact:
             )
 
         return metadata
-
-    def _read_pickle(self, pickle_filename):
-        """
-        Read pickle file from artifact storage dir
-        """
-        # TODO - set unicode etc here
-        artifact_storage_dir = options.safe_get("artifact_storage_dir")
-        filepath = (
-            artifact_storage_dir.joinpath(pickle_filename)
-            if isinstance(artifact_storage_dir, Path)
-            else f'{artifact_storage_dir.rstrip("/")}/{pickle_filename}'
-        )
-        try:
-            logger.debug(
-                f"Retriving pickle file from {filepath} ",
-            )
-            return read_pickle(
-                filepath, storage_options=options.get("storage_options")
-            )
-        except Exception as e:
-            logger.error(e)
-            track(
-                ExceptionEvent(
-                    ErrorType.RETRIEVE, "Error in retriving pickle file"
-                )
-            )
-            raise e
 
     # Note that I removed the @properties because they were not working
     # well with the lru_cache
@@ -347,7 +313,7 @@ class LineaArtifact:
     @staticmethod
     def get_artifact_from_orm(
         db: RelationalLineaDB, artifactorm: ArtifactORM
-    ) -> LineaArtifact:
+    ) -> "LineaArtifact":
         """
         Return LineaArtifact from artifactorm
         """
@@ -368,7 +334,7 @@ class LineaArtifact:
         db: RelationalLineaDB,
         artifact_name: str,
         version: Optional[int] = None,
-    ) -> LineaArtifact:
+    ) -> "LineaArtifact":
         """
         Return LineaArtifact from artifact name and version
         """
@@ -379,7 +345,7 @@ class LineaArtifact:
     @staticmethod
     def get_artifact_from_def(
         db: RelationalLineaDB, artifactdef: LineaArtifactDef
-    ) -> LineaArtifact:
+    ) -> "LineaArtifact":
         """
         Return LineaArtifact from LineaArtifactDef
         """
