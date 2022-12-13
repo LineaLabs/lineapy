@@ -10,3 +10,5 @@ Once the individual components are developed, they are connected to form an end-
 In LineaPy, each component is represented as an artifact, and LineaPy provides APIs to create pipelines from a group of artifacts. These pipelines can then be run through specific orchestration engines to handle new data.
 
 Note that the pipelines created by LineaPy are meant to be reviewed and accepted by developers before they go into production, and we provide mechanisms to verify the generated pipelines in the development environment for validation.
+
+.. include:: /snippets/docs_feedback.rstinc

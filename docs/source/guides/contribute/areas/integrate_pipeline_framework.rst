@@ -1,7 +1,7 @@
 Integrate a New Pipeline Framework
 ==================================
 
-.. include:: ../../../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 One major feature of Lineapy is the ability to create pipelines that run various pipeline orchestration frameworks.
 We believe that supporting pipeline frameworks to meet data engineers where they are with their current stacks provides the best user experience for reducing manual work of pipeline writing.
@@ -169,3 +169,5 @@ Be sure to also run pytest with the ``--snapshot-update`` flag and commit the sn
 
 End to end tests such as the one found for airflow in ``tests/test_pipeline_run_airflow.py`` are also highly recommended but much more involved as they require setting up a environment that can run the framework you are providing an integration for and having APIs to check the dag runs successfully.
 Please consult your individual framework's documentation and add these tests if possible.
+
+.. include:: /snippets/docs_feedback.rstinc

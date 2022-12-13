@@ -3,7 +3,7 @@
 Setup and Basics
 ================
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 .. _contribution_install:
 
@@ -207,3 +207,5 @@ Once you are content with your changes and ready to integrate them into the orig
 you can open a pull request following instructions `here <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork>`_.
 Make sure that ``base repository`` is set to ``LineaLabs/lineapy`` and ``base`` to ``main``. To facilitate the review,
 please provide as much detail as possible about your changes in your pull request.
+
+.. include:: /snippets/docs_feedback.rstinc

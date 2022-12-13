@@ -9,3 +9,5 @@ That is, if a PR contains more than one commit, GitHub will combine them into a 
 equals the PR title (followed by the PR number) and the description consists of commit messages for all squashed
 commits (in date order). Hence, we ask you to organize each PR with related changes only so that it can represent
 a single unit of meaningful change.
+
+.. include:: /snippets/docs_feedback.rstinc

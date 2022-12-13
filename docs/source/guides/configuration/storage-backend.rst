@@ -1,7 +1,7 @@
 Changing Storage Backend
 ========================
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 Out of the box, LineaPy is the default storage backend for all artifacts.
 For certain storage backends in use (e.g., storing model artifacts in MLflow), saving one more copy of the same artifact into LineaPy causes sync issue between the two systems.
@@ -120,3 +120,5 @@ Which MLflow Model Flavor is Supported
 
 Currently, we are supporting following flavors: ``sklearn``, ``xgboost``, ``prophet`` and ``statsmodels``.
 We plan to support all MLflow supported model flavors soon.
+
+.. include:: /snippets/docs_feedback.rstinc

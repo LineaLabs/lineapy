@@ -1,7 +1,7 @@
 Changing Storage Location
 =========================
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 By default, the serialized values and the metadata are stored in ``.lineapy/linea_pickles/``
 and ``.lineapy/db.sqlite``, respectively, where ``.lineapy/`` is created under
@@ -182,3 +182,5 @@ If you really need to set your AWS credentials directly in the running session (
 which is equivalent to setting environment variables ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY``.
 
 To learn more about which S3 configuration items that you can set in ``storage_options``, you can see the parameters of `s3fs.S3FileSystem <https://s3fs.readthedocs.io/en/latest/api.html>`_ since ``fsspec`` is passing ``storage_options`` items to ``s3fs.S3FileSystem`` to access S3 under the hood.
+
+.. include:: /snippets/docs_feedback.rstinc

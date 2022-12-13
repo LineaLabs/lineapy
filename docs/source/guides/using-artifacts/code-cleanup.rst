@@ -3,7 +3,7 @@
 Cleaning up Development Code
 ============================
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 Data science development is characterized by nimble, iterative experimentation and exploratory data analysis.
 Data scientists explore many possibilities before reaching the final result. The rapid exploration process often
@@ -360,3 +360,5 @@ OR
       var += 20
 
    lineapy.save(var, 'variable')
+
+.. include:: /snippets/docs_feedback.rstinc

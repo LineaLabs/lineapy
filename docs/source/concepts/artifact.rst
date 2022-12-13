@@ -11,3 +11,5 @@ What makes LineaPy special is that it treats an artifact as both code and value.
 LineaPy not only records the state (i.e., value) of the variable but also traces and saves all relevant operations
 leading to this state --- as code. Such a complete development history or *lineage* then allows LineaPy to fully reproduce
 the given artifact. Furthermore, it provides the ground to automate data engineering work to bring data science from development to production.
+
+.. include:: /snippets/docs_feedback.rstinc

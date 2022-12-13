@@ -3,7 +3,7 @@
 Testing
 =======
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 When building a pipeline, LineaPy transforms the user's original code into modularized functions
 where extraneous operations are removed. With such changes, the user may want to ensure that the
@@ -324,3 +324,5 @@ along with the corresponding model's parameter estimates recorded. Then, the use
     a model, we can check whether the model behaves "reasonably" by feeding it with particular input values and observing whether
     it returns output values within a certain range. This type of testing is especially valuable for models involving inherent stochasticity,
     where the same procedure does not necessarily guarantee exactly identical results.
+
+.. include:: /snippets/docs_feedback.rstinc

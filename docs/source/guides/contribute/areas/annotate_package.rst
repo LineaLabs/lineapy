@@ -3,7 +3,7 @@
 Annotate Packages
 =================
 
-.. include:: ../../../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 One big strength of the Python language is its large and active development community. This means that
 we have a lot of interesting and useful Python packages that are not part of the core Python distribution.
@@ -196,3 +196,5 @@ where
 
 In sum, instructions above tell ``lineapy`` to recognize ``fit`` method of ``BaseEstimator`` class (defined under ``sklearn.base`` module)
 as an API that mutates the function caller itself, and to treat it as such in relevant downstream tasks such as code cleanup.
+
+.. include:: /snippets/docs_feedback.rstinc

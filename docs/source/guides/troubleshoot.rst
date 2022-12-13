@@ -1,7 +1,7 @@
 Troubleshooting
 ===============
 
-.. include:: ../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 Database Lock
 -------------
@@ -44,3 +44,5 @@ No Attribute Error for ``black``
 --------------------------------
 
 Lineapy uses the `black library <https://pypi.org/project/black/>`_ to format produced code. Make sure you have the version of black as specified in `LineaPy's requirements.txt <https://github.com/LineaLabs/lineapy/blob/main/requirements.txt>`_.
+
+.. include:: /snippets/docs_feedback.rstinc

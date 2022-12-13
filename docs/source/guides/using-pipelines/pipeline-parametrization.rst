@@ -1,7 +1,7 @@
 Parametrization 
 ===============
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 Oftentimes, data scientists/engineers need to run the same pipeline with different parameters.
 For instance, they may want to use a different data set for model training and/or prediction.
@@ -190,3 +190,5 @@ pipeline's utility).
     ``a = "123"`` and ``a = "abc"`` exist in the pipeline's artifact code, we cannot make
     ``a`` an input parameter since its reference is ambiguous, i.e., we are not sure which
     literal assignment ``a`` refers to.
+
+.. include:: /snippets/docs_feedback.rstinc

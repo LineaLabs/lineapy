@@ -1,7 +1,7 @@
 Reusing Past Work
 =================
 
-.. include:: ../../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 Once connected to an artifact store (it can be an individual or shared one), we can query existing artifacts, like so:
 
@@ -95,3 +95,5 @@ This example illustrates the benefit of LineaPy's unified storage framework:
 encapsulating both value and code as well as other metadata, LineaPy's artifact store
 enables the user to explore the history and relations among different works,
 hence rendering them more reusable.
+
+.. include:: /snippets/docs_feedback.rstinc

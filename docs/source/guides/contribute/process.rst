@@ -32,3 +32,5 @@ Unless the issue resolution requires deeper expertise or larger scope (e.g., arc
 to be the implementation owner. If so, you can follow instructions in :ref:`Setup and Basics <contribution_setup_and_basics>` to start
 your work. We view implementation as a collaborative process too, so please feel free to engage the :ref:`LineaPy community <community_support>`
 for any questions, concerns, and/or advice.
+
+.. include:: /snippets/docs_feedback.rstinc

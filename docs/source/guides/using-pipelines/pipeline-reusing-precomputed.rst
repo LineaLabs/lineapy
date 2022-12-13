@@ -168,3 +168,5 @@ all over again.
 
     Reuse of pre-computed artifacts is currently not supported for ``framework="AIRFLOW"``.
     Hence, the generated Airflow DAG file would recompute all artifacts in the pipeline.
+
+.. include:: /snippets/docs_feedback.rstinc

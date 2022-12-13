@@ -3,7 +3,7 @@
 Running LineaPy
 ===============
 
-.. include:: ../snippets/slack_support.rstinc
+.. include:: /snippets/slack_support.rstinc
 
 Jupyter and IPython
 -------------------
@@ -84,3 +84,5 @@ or
 
     # LineaPy as a runnable Python module
     python -m lineapy --help
+
+.. include:: /snippets/docs_feedback.rstinc
