@@ -173,6 +173,17 @@ def check_requirements_txt(t1: str, t2: str):
         ),
         pytest.param(
             "simple",
+            "diamond",
+            ["a", "diamond_sink", "diamond_left", "diamond_right"],
+            "AIRFLOW",
+            "airflow_diamond_dependencies",
+            {"diamond_sink": {"a"}},
+            {"dag_flavor": "PythonOperatorPerArtifact"},
+            [],
+            id="airflow_diamond_dependencies",
+        ),
+        pytest.param(
+            "simple",
             "",
             ["a", "b0"],
             "DVC",

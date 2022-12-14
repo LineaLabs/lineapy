@@ -163,6 +163,241 @@
   
   '
 ---
+# name: test_pipeline_generation[airflow_diamond_dependencies]
+  '
+  def get_a():
+      b0 = 0
+      a = b0 + 1
+      return a
+  
+  
+  def get_diamond_common_for_artifact_diamond_left_and_downstream():
+      diamond_common = 1
+      return diamond_common
+  
+  
+  def get_diamond_left(diamond_common):
+      diamond_left = diamond_common + 1
+      return diamond_left
+  
+  
+  def get_diamond_right(diamond_common):
+      diamond_right = diamond_common + 1
+      return diamond_right
+  
+  
+  def get_diamond_sink(diamond_left, diamond_right):
+      diamond_sink = diamond_left + diamond_right
+      return diamond_sink
+  
+  
+  def run_session_including_a():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a = get_a()
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_session_including_diamond_left():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      diamond_common = get_diamond_common_for_artifact_diamond_left_and_downstream()
+      diamond_left = get_diamond_left(diamond_common)
+      artifacts["diamond_left"] = copy.deepcopy(diamond_left)
+      diamond_right = get_diamond_right(diamond_common)
+      artifacts["diamond_right"] = copy.deepcopy(diamond_right)
+      diamond_sink = get_diamond_sink(diamond_left, diamond_right)
+      artifacts["diamond_sink"] = copy.deepcopy(diamond_sink)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a())
+      artifacts.update(run_session_including_diamond_left())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[airflow_diamond_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[airflow_diamond_dependencies].2
+  '
+  import pathlib
+  import pickle
+  
+  import airflow_diamond_dependencies_module
+  from airflow import DAG
+  from airflow.operators.python_operator import PythonOperator
+  from airflow.utils.dates import days_ago
+  
+  
+  def task_a():
+  
+      a = airflow_diamond_dependencies_module.get_a()
+  
+      pickle.dump(a, open("/tmp/airflow_diamond_dependencies/variable_a.pickle", "wb"))
+  
+  
+  def task_diamond_common_for_artifact_diamond_left_and_downstream():
+  
+      diamond_common = (
+          airflow_diamond_dependencies_module.get_diamond_common_for_artifact_diamond_left_and_downstream()
+      )
+  
+      pickle.dump(
+          diamond_common,
+          open("/tmp/airflow_diamond_dependencies/variable_diamond_common.pickle", "wb"),
+      )
+  
+  
+  def task_diamond_left():
+  
+      diamond_common = pickle.load(
+          open("/tmp/airflow_diamond_dependencies/variable_diamond_common.pickle", "rb")
+      )
+  
+      diamond_left = airflow_diamond_dependencies_module.get_diamond_left(diamond_common)
+  
+      pickle.dump(
+          diamond_left,
+          open("/tmp/airflow_diamond_dependencies/variable_diamond_left.pickle", "wb"),
+      )
+  
+  
+  def task_diamond_right():
+  
+      diamond_common = pickle.load(
+          open("/tmp/airflow_diamond_dependencies/variable_diamond_common.pickle", "rb")
+      )
+  
+      diamond_right = airflow_diamond_dependencies_module.get_diamond_right(
+          diamond_common
+      )
+  
+      pickle.dump(
+          diamond_right,
+          open("/tmp/airflow_diamond_dependencies/variable_diamond_right.pickle", "wb"),
+      )
+  
+  
+  def task_diamond_sink():
+  
+      diamond_left = pickle.load(
+          open("/tmp/airflow_diamond_dependencies/variable_diamond_left.pickle", "rb")
+      )
+  
+      diamond_right = pickle.load(
+          open("/tmp/airflow_diamond_dependencies/variable_diamond_right.pickle", "rb")
+      )
+  
+      diamond_sink = airflow_diamond_dependencies_module.get_diamond_sink(
+          diamond_left, diamond_right
+      )
+  
+      pickle.dump(
+          diamond_sink,
+          open("/tmp/airflow_diamond_dependencies/variable_diamond_sink.pickle", "wb"),
+      )
+  
+  
+  def task_setup():
+  
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_diamond_dependencies")
+      if not pickle_folder.exists():
+          pickle_folder.mkdir()
+  
+  
+  def task_teardown():
+  
+      pickle_files = (
+          pathlib.Path("/tmp").joinpath("airflow_diamond_dependencies").glob("*.pickle")
+      )
+      for f in pickle_files:
+          f.unlink()
+  
+  
+  default_dag_args = {
+      "owner": "airflow",
+      "retries": 2,
+      "start_date": days_ago(1),
+  }
+  
+  with DAG(
+      dag_id="airflow_diamond_dependencies_dag",
+      schedule_interval="*/15 * * * *",
+      max_active_runs=1,
+      catchup=False,
+      default_args=default_dag_args,
+  ) as dag:
+  
+      a = PythonOperator(
+          task_id="a_task",
+          python_callable=task_a,
+      )
+  
+      diamond_common_for_artifact_diamond_left_and_downstream = PythonOperator(
+          task_id="diamond_common_for_artifact_diamond_left_and_downstream_task",
+          python_callable=task_diamond_common_for_artifact_diamond_left_and_downstream,
+      )
+  
+      diamond_left = PythonOperator(
+          task_id="diamond_left_task",
+          python_callable=task_diamond_left,
+      )
+  
+      diamond_right = PythonOperator(
+          task_id="diamond_right_task",
+          python_callable=task_diamond_right,
+      )
+  
+      diamond_sink = PythonOperator(
+          task_id="diamond_sink_task",
+          python_callable=task_diamond_sink,
+      )
+  
+      setup = PythonOperator(
+          task_id="setup_task",
+          python_callable=task_setup,
+      )
+  
+      teardown = PythonOperator(
+          task_id="teardown_task",
+          python_callable=task_teardown,
+      )
+  
+      a >> diamond_common_for_artifact_diamond_left_and_downstream
+  
+      diamond_common_for_artifact_diamond_left_and_downstream >> diamond_left
+  
+      diamond_common_for_artifact_diamond_left_and_downstream >> diamond_right
+  
+      diamond_left >> diamond_sink
+  
+      diamond_right >> diamond_sink
+  
+      diamond_sink >> teardown
+  
+      setup >> a
+  
+  '
+---
 # name: test_pipeline_generation[airflow_pipeline_a0_b0]
   '
   def get_a0():
@@ -439,7 +674,9 @@
   
       a0 >> teardown
   
-      b0 >> a0
+      b0 >> teardown
+  
+      setup >> a0
   
       setup >> b0
   

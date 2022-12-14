@@ -16,6 +16,7 @@ from lineapy.execution.context import get_context
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
 from lineapy.plugins.task import TaskGraphEdge
+from lineapy.plugins.utils import slugify
 from lineapy.utils.analytics.event_schemas import (
     ErrorType,
     ExceptionEvent,
@@ -40,7 +41,15 @@ class Pipeline:
             )
         self.dependencies = dependencies
         self.artifact_names: List[str] = artifacts
-        self.name = name or "_".join(self.artifact_names)
+
+        artifact_safe_names = []
+        for artifact_name in artifacts:
+            artifact_var = slugify(artifact_name)
+            if len(artifact_var) == 0:
+                raise ValueError(f"Invalid slice name {artifact_name}.")
+            artifact_safe_names.append(artifact_var)
+
+        self.name = name or "_".join(artifact_safe_names)
         self.id = get_new_id()
 
     def export(

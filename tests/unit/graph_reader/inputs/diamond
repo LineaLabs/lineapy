@@ -1,0 +1,10 @@
+import lineapy
+
+diamond_common = 1
+diamond_left = diamond_common + 1
+diamond_right = diamond_common + 1
+diamond_sink = diamond_left + diamond_right
+lineapy.save(diamond_common, "diamond_common")
+lineapy.save(diamond_left, "diamond_left")
+lineapy.save(diamond_right, "diamond_right")
+lineapy.save(diamond_sink, "diamond_sink")

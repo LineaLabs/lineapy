@@ -1,4 +1,3 @@
-import itertools
 import logging
 from dataclasses import dataclass
 from itertools import chain
@@ -111,27 +110,84 @@ class ArtifactCollection:
                 )
                 raise KeyError(msg)
 
-        self.dependencies = dependencies
-        self._validate_dependencies()
-        self.inter_session_taskgraph = self.create_inter_session_taskgraph()
-        self.inter_artifact_taskgraph = self.create_inter_artifact_taskgraph()
+        # slugify dependencies and save to self.dependencies
+        self.dependencies: TaskGraphEdge = {}
+        for to_artname, from_artname_set in dependencies.items():
+            self.dependencies[slugify(to_artname)] = set()
+            for from_artname in from_artname_set:
+                self.dependencies[slugify(to_artname)].add(
+                    slugify(from_artname)
+                )
 
-    def _validate_dependencies(self):
-        """
-        Validate provided dependencies.
-
-        This function checks if all the artifacts defined in dependencies can be found in
-        this artifact collection and if the dependencies creates any circular dependencies.
-        """
-        # Merge task graph from all sessions
-        combined_taskgraph = nx.union_all(
-            [
-                session_artifact.nodecollection_dependencies.graph
-                for _, session_artifact in self.session_artifacts.items()
-            ]
+        # Create taskgraph breakdowns based on dependencies
+        self.inter_session_taskgraph = self.create_inter_session_taskgraph(
+            self.dependencies
         )
 
-        # Add edge for user specified dependencies
+        self.inter_artifact_taskgraph = self.create_inter_artifact_taskgraph(
+            self.dependencies
+        )
+
+    def _validate_dependencies_used(
+        self, taskgraph: TaskGraph, dependencies: TaskGraphEdge
+    ):
+        """
+        Validate all the provided dependencies can be used in the taskgraph.
+
+        This function checks if all the artifacts defined in dependencies can be found in
+        this artifact collection. Raises an error if not all dependencies are usable.
+        """
+
+        # Check for unused dependencies and throw error
+        task_dependency_nodes = set(chain(dependencies))
+        unused_artname = [
+            artname
+            for artname in task_dependency_nodes
+            if artname not in list(taskgraph.graph.nodes)
+        ]
+        if len(unused_artname) > 0:
+            msg = (
+                "Dependency graph includes artifacts "
+                + ", ".join(unused_artname)
+                + ", which are not in this artifact collection: "
+                + ", ".join(list(taskgraph.graph.nodes))
+            )
+            raise KeyError(msg)
+
+    def _validate_graph_acyclic(self, taskgraph: TaskGraph):
+        """
+        Validate provided dependencies created an acyclic TaskGraph.
+        """
+        if nx.is_directed_acyclic_graph(taskgraph.graph) is False:
+            raise Exception(
+                "LineaPy detected conflict with the provided dependencies. "
+                "Please check if the provided dependencies include circular relationships."
+            )
+
+    def create_inter_session_taskgraph(
+        self, dependencies: TaskGraphEdge
+    ) -> TaskGraph:
+        """
+        Returns TaskGraph for dependencies between Sessions.
+
+        Nodes are SessionIds and edges between Sessions are specified by the dependencies
+        existing in the combined_taskgraph.
+        """
+
+        inter_session_taskgraph = TaskGraph(nodes=[], edges={})
+
+        # Helper dictionary to look up the session for each task
+        task_name_to_session_id: Dict[str, str] = {}
+
+        # add subgraph for each session_artifact
+        for sa in self.session_artifacts.values():
+            inter_session_taskgraph.graph = nx.compose(
+                inter_session_taskgraph.graph,
+                sa.nodecollection_dependencies.graph,
+            )
+            for node_coll_task in sa.nodecollection_dependencies.graph.nodes:
+                task_name_to_session_id[node_coll_task] = str(sa.session_id)
+
         task_dependency_edges = list(
             chain.from_iterable(
                 (
@@ -141,60 +197,46 @@ class ArtifactCollection:
                     )
                     for from_artname in from_artname_set
                 )
-                for to_artname, from_artname_set in self.dependencies.items()
+                for to_artname, from_artname_set in dependencies.items()
             )
         )
-        combined_taskgraph.add_edges_from(task_dependency_edges)
 
-        # Check for unused dependencies and throw error
-        task_dependency_nodes = set(chain(*task_dependency_edges))
-        unused_artname = [
-            artname
-            for artname in task_dependency_nodes
-            if artname not in list(combined_taskgraph.nodes)
-        ]
-        if len(unused_artname) > 0:
-            msg = (
-                "Dependency graph includes artifacts"
-                + ", ".join(unused_artname)
-                + ", which are not in this artifact collection: "
-                + ", ".join(list(combined_taskgraph.nodes))
-            )
-            raise KeyError(msg)
+        self._validate_dependencies_used(inter_session_taskgraph, dependencies)
 
-        # Check if the graph is acyclic
-        if nx.is_directed_acyclic_graph(combined_taskgraph) is False:
-            raise Exception(
-                "LineaPy detected conflict with the provided dependencies. "
-                "Please check if the provided dependencies include circular relationships."
-            )
+        inter_session_taskgraph.graph.add_edges_from(task_dependency_edges)
 
-    def create_inter_session_taskgraph(self) -> TaskGraph:
-        # todo slugify
-        inter_session_graph = TaskGraph(
-            nodes=[art.name for art in self.target_artifacts],
-            edges=self.dependencies,
-        )
-
-        # Helper dictionary to look up artifact information by name
-        art_name_to_session_id: Dict[str, str] = {}
-        for artifact in self.target_artifacts:
-            art_name_to_session_id[artifact.name] = str(artifact._session_id)
-            art_name_to_session_id[slugify(artifact.name)] = str(
-                artifact._session_id
-            )
-
-        inter_session_graph = inter_session_graph.remap_nodes(
-            art_name_to_session_id
+        inter_session_taskgraph = inter_session_taskgraph.remap_nodes(
+            task_name_to_session_id
         )
 
         # remove loops in graph for dependencies within a session
-        inter_session_graph.remove_self_loops()
+        inter_session_taskgraph.remove_self_loops()
+        self._validate_graph_acyclic(inter_session_taskgraph)
 
-        return inter_session_graph
+        return inter_session_taskgraph
 
-    def create_inter_artifact_taskgraph(self) -> TaskGraph:
+    def create_inter_artifact_taskgraph(
+        self, dependencies: TaskGraphEdge
+    ) -> TaskGraph:
+        """
+        Returns TaskGraph for dependencies between "Artifacts".
 
+        Nodes correspond to nodecollections.
+
+        Edges between artifacts in different sessions are replaced
+        so that all the dependencies pointing to the target artifact instead point to
+        its "root" tasks in the session which are source tasks that can be used to generate the artifact.
+
+        Session 1: A -> B
+        Session 2: C -> D
+
+        If a user specifies a dependency from B -> D, the inter artifact taskgraph will
+        instead draw a dependency from B -> C to ensure B runs before all the intra session
+        dependencies of D.
+
+        Note: These additional edges prevent bugs as the user maybe be unable to specify dependencies
+        to automatically generated components.
+        """
         inter_artifact_taskgraph = TaskGraph(nodes=[], edges={})
 
         # add subgraph for each session_artifact
@@ -204,27 +246,46 @@ class ArtifactCollection:
                 sa.nodecollection_dependencies.graph,
             )
 
-        for (
-            from_session_id,
-            to_session_id,
-        ) in self.inter_session_taskgraph.graph.edges:
-            # get sink nodes from the first session artifact
-            from_session_sink_nodes = self.session_artifacts[
-                from_session_id
-            ].nodecollection_dependencies.sink_nodes
-
-            # get source nodes from the second session artifact
-            to_session_source_nodes = self.session_artifacts[
-                to_session_id
-            ].nodecollection_dependencies.source_nodes
-
-            # add edges between each pair of sink/sources
-
-            inter_artifact_taskgraph.graph.add_edges_from(
-                itertools.product(
-                    from_session_sink_nodes, to_session_source_nodes
-                )
+        art_name_to_session_id: Dict[str, str] = {}
+        for artifact in self.target_artifacts:
+            art_name_to_session_id[slugify(artifact.name)] = str(
+                artifact._session_id
             )
+
+        self._validate_dependencies_used(
+            inter_artifact_taskgraph, dependencies
+        )
+
+        for to_artname, from_artname_set in dependencies.items():
+            for from_artname in from_artname_set:
+                from_session_id, to_session_id = (
+                    art_name_to_session_id[from_artname],
+                    art_name_to_session_id[to_artname],
+                )
+
+                if from_session_id != to_session_id:
+                    # this edge needs to be replaced, all the dependencies of target artifact in the same session
+                    # must be run after the source artifact is created
+
+                    to_graph = self.session_artifacts[
+                        LineaID(to_session_id)
+                    ].nodecollection_dependencies
+
+                    to_art_ancestors = nx.ancestors(
+                        to_graph.graph, source=to_artname
+                    )
+
+                    for to_source_node in to_graph.source_nodes:
+                        if to_source_node in to_art_ancestors:
+                            inter_artifact_taskgraph.graph.add_edge(
+                                from_artname, to_source_node
+                            )
+                else:
+                    inter_artifact_taskgraph.graph.add_edge(
+                        from_artname, to_artname
+                    )
+
+        self._validate_graph_acyclic(inter_artifact_taskgraph)
         return inter_artifact_taskgraph
 
     def sort_session_artifacts(
@@ -246,6 +307,7 @@ class ArtifactCollection:
         # Sort the session_id
         session_id_sorted = self.inter_session_taskgraph.get_taskorder()
 
+        print(f"session_id_sorted: {session_id_sorted}")
         return [
             self.session_artifacts[LineaID(session_id)]
             for session_id in session_id_sorted

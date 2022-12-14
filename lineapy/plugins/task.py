@@ -58,6 +58,13 @@ class TaskGraph(object):
         )
         self.graph.add_edges_from(graph_edges)
 
+    def copy(
+        self,
+    ) -> TaskGraph:
+        copied_taskgraph = TaskGraph([])
+        copied_taskgraph.graph = self.graph.copy()
+        return copied_taskgraph
+
     def remap_nodes(self, mapping: Dict[str, str]) -> TaskGraph:
         remapped_taskgraph = TaskGraph([])
         remapped_taskgraph.graph = nx.relabel_nodes(

@@ -44,38 +44,6 @@ def get_task_graph(
             f"Task breakdown granularity {task_breakdown} is not currently supported."
         )
 
-        # # Handle dependencies
-        # dependencies = {
-        #     task_names[i + 1]: {task_names[i]}
-        #     for i in range(len(task_names) - 1)
-        # }
-        # task_graph = TaskGraph(
-        #     nodes=task_names,
-        #     mapping={tn: tn for tn in task_names},
-        #     edges=dependencies,
-        # )
-
-
-# def extract_taskgraph(
-#     artifacts: List[str], dependencies: TaskGraphEdge
-# ) -> Tuple[List[str], TaskGraph]:
-#     """
-#     extract_taskgraph returns a list of artifacts and the taskgraph corresponding to the provided dependencies
-#     """
-#     artifact_safe_names = []
-#     for artifact_name in artifacts:
-#         artifact_var = slugify(artifact_name)
-#         if len(artifact_var) == 0:
-#             raise ValueError(f"Invalid slice name {artifact_name}.")
-#         artifact_safe_names.append(artifact_var)
-
-#     task_graph = TaskGraph(
-#         artifacts,
-#         {slice: task for slice, task in zip(artifacts, artifact_safe_names)},
-#         dependencies,
-#     )
-#     return (artifact_safe_names, task_graph)
-
 
 def get_artifact_task_definition_graph(
     artifact_collection: ArtifactCollection, pipeline_name: str
@@ -131,7 +99,9 @@ def get_artifact_task_definition_graph(
             task_definitions[nc.safename] = task_def
 
     # no remapping needed, inter_artifact_taskgraph already uses nc.safename
-    task_graph = artifact_collection.create_inter_artifact_taskgraph()
+    task_graph = artifact_collection.create_inter_artifact_taskgraph(
+        dependencies=artifact_collection.dependencies
+    )
     return task_definitions, task_graph
 
 
@@ -190,7 +160,9 @@ def get_session_task_definition_graph(
         task_definitions[function_name] = task_def
         session_id_task_map[session_artifacts.session_id] = function_name
 
-    artifact_collection.create_inter_session_taskgraph()
+    artifact_collection.create_inter_session_taskgraph(
+        dependencies=artifact_collection.dependencies
+    )
 
     # avoid mapping in place here to not overwrite the artifact collection session taskgraph
     task_graph = artifact_collection.inter_session_taskgraph.remap_nodes(
