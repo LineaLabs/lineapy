@@ -63,7 +63,7 @@ Writing a new integration checklist
 
     Suggested steps for ``_write_dag`` with examples in ``AirflowPipelineWriter``:
 
-    #.  `Get TaskDefinitions <https://github.com/LineaLabs/lineapy/blob/d3a0f533ee7a44a4002fbfb86faddd54429b84b5/lineapy/plugins/airflow_pipeline_writer.py#L159>`_
+    #.  `Get TaskGraph <https://github.com/LineaLabs/lineapy/blob/d3a0f533ee7a44a4002fbfb86faddd54429b84b5/lineapy/plugins/airflow_pipeline_writer.py#L159>`_
 
         .. code-block:: python
 

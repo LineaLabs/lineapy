@@ -163,7 +163,7 @@
   
   '
 ---
-# name: test_pipeline_generation[airflow_diamond_dependencies]
+# name: test_pipeline_generation[airflow_hidden_session_dependencies]
   '
   def get_a():
       b0 = 0
@@ -171,24 +171,19 @@
       return a
   
   
-  def get_diamond_common_for_artifact_diamond_left_and_downstream():
-      diamond_common = 1
-      return diamond_common
+  def get_linear_first_for_artifact_linear_second_and_downstream():
+      linear_first = 1
+      return linear_first
   
   
-  def get_diamond_left(diamond_common):
-      diamond_left = diamond_common + 1
-      return diamond_left
+  def get_linear_second(linear_first):
+      linear_second = linear_first + 1
+      return linear_second
   
   
-  def get_diamond_right(diamond_common):
-      diamond_right = diamond_common + 1
-      return diamond_right
-  
-  
-  def get_diamond_sink(diamond_left, diamond_right):
-      diamond_sink = diamond_left + diamond_right
-      return diamond_sink
+  def get_linear_third(linear_first, linear_second):
+      linear_third = linear_second + linear_first
+      return linear_third
   
   
   def run_session_including_a():
@@ -203,27 +198,25 @@
       return artifacts
   
   
-  def run_session_including_diamond_left():
+  def run_session_including_linear_second():
       # Given multiple artifacts, we need to save each right after
       # its calculation to protect from any irrelevant downstream
       # mutations (e.g., inside other artifact calculations)
       import copy
   
       artifacts = dict()
-      diamond_common = get_diamond_common_for_artifact_diamond_left_and_downstream()
-      diamond_left = get_diamond_left(diamond_common)
-      artifacts["diamond_left"] = copy.deepcopy(diamond_left)
-      diamond_right = get_diamond_right(diamond_common)
-      artifacts["diamond_right"] = copy.deepcopy(diamond_right)
-      diamond_sink = get_diamond_sink(diamond_left, diamond_right)
-      artifacts["diamond_sink"] = copy.deepcopy(diamond_sink)
+      linear_first = get_linear_first_for_artifact_linear_second_and_downstream()
+      linear_second = get_linear_second(linear_first)
+      artifacts["linear_second"] = copy.deepcopy(linear_second)
+      linear_third = get_linear_third(linear_first, linear_second)
+      artifacts["linear_third"] = copy.deepcopy(linear_third)
       return artifacts
   
   
   def run_all_sessions():
       artifacts = dict()
       artifacts.update(run_session_including_a())
-      artifacts.update(run_session_including_diamond_left())
+      artifacts.update(run_session_including_linear_second())
       return artifacts
   
   
@@ -234,15 +227,15 @@
   
   '
 ---
-# name: test_pipeline_generation[airflow_diamond_dependencies].1
+# name: test_pipeline_generation[airflow_hidden_session_dependencies].1
   ''
 ---
-# name: test_pipeline_generation[airflow_diamond_dependencies].2
+# name: test_pipeline_generation[airflow_hidden_session_dependencies].2
   '
   import pathlib
   import pickle
   
-  import airflow_diamond_dependencies_module
+  import airflow_hidden_session_dependencies_module
   from airflow import DAG
   from airflow.operators.python_operator import PythonOperator
   from airflow.utils.dates import days_ago
@@ -250,76 +243,82 @@
   
   def task_a():
   
-      a = airflow_diamond_dependencies_module.get_a()
+      a = airflow_hidden_session_dependencies_module.get_a()
   
-      pickle.dump(a, open("/tmp/airflow_diamond_dependencies/variable_a.pickle", "wb"))
+      pickle.dump(
+          a, open("/tmp/airflow_hidden_session_dependencies/variable_a.pickle", "wb")
+      )
   
   
-  def task_diamond_common_for_artifact_diamond_left_and_downstream():
+  def task_linear_first_for_artifact_linear_second_and_downstream():
   
-      diamond_common = (
-          airflow_diamond_dependencies_module.get_diamond_common_for_artifact_diamond_left_and_downstream()
+      linear_first = (
+          airflow_hidden_session_dependencies_module.get_linear_first_for_artifact_linear_second_and_downstream()
       )
   
       pickle.dump(
-          diamond_common,
-          open("/tmp/airflow_diamond_dependencies/variable_diamond_common.pickle", "wb"),
+          linear_first,
+          open(
+              "/tmp/airflow_hidden_session_dependencies/variable_linear_first.pickle",
+              "wb",
+          ),
       )
   
   
-  def task_diamond_left():
+  def task_linear_second():
   
-      diamond_common = pickle.load(
-          open("/tmp/airflow_diamond_dependencies/variable_diamond_common.pickle", "rb")
+      linear_first = pickle.load(
+          open(
+              "/tmp/airflow_hidden_session_dependencies/variable_linear_first.pickle",
+              "rb",
+          )
       )
   
-      diamond_left = airflow_diamond_dependencies_module.get_diamond_left(diamond_common)
-  
-      pickle.dump(
-          diamond_left,
-          open("/tmp/airflow_diamond_dependencies/variable_diamond_left.pickle", "wb"),
-      )
-  
-  
-  def task_diamond_right():
-  
-      diamond_common = pickle.load(
-          open("/tmp/airflow_diamond_dependencies/variable_diamond_common.pickle", "rb")
-      )
-  
-      diamond_right = airflow_diamond_dependencies_module.get_diamond_right(
-          diamond_common
+      linear_second = airflow_hidden_session_dependencies_module.get_linear_second(
+          linear_first
       )
   
       pickle.dump(
-          diamond_right,
-          open("/tmp/airflow_diamond_dependencies/variable_diamond_right.pickle", "wb"),
+          linear_second,
+          open(
+              "/tmp/airflow_hidden_session_dependencies/variable_linear_second.pickle",
+              "wb",
+          ),
       )
   
   
-  def task_diamond_sink():
+  def task_linear_third():
   
-      diamond_left = pickle.load(
-          open("/tmp/airflow_diamond_dependencies/variable_diamond_left.pickle", "rb")
+      linear_first = pickle.load(
+          open(
+              "/tmp/airflow_hidden_session_dependencies/variable_linear_first.pickle",
+              "rb",
+          )
       )
   
-      diamond_right = pickle.load(
-          open("/tmp/airflow_diamond_dependencies/variable_diamond_right.pickle", "rb")
+      linear_second = pickle.load(
+          open(
+              "/tmp/airflow_hidden_session_dependencies/variable_linear_second.pickle",
+              "rb",
+          )
       )
   
-      diamond_sink = airflow_diamond_dependencies_module.get_diamond_sink(
-          diamond_left, diamond_right
+      linear_third = airflow_hidden_session_dependencies_module.get_linear_third(
+          linear_first, linear_second
       )
   
       pickle.dump(
-          diamond_sink,
-          open("/tmp/airflow_diamond_dependencies/variable_diamond_sink.pickle", "wb"),
+          linear_third,
+          open(
+              "/tmp/airflow_hidden_session_dependencies/variable_linear_third.pickle",
+              "wb",
+          ),
       )
   
   
   def task_setup():
   
-      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_diamond_dependencies")
+      pickle_folder = pathlib.Path("/tmp").joinpath("airflow_hidden_session_dependencies")
       if not pickle_folder.exists():
           pickle_folder.mkdir()
   
@@ -327,7 +326,9 @@
   def task_teardown():
   
       pickle_files = (
-          pathlib.Path("/tmp").joinpath("airflow_diamond_dependencies").glob("*.pickle")
+          pathlib.Path("/tmp")
+          .joinpath("airflow_hidden_session_dependencies")
+          .glob("*.pickle")
       )
       for f in pickle_files:
           f.unlink()
@@ -340,7 +341,7 @@
   }
   
   with DAG(
-      dag_id="airflow_diamond_dependencies_dag",
+      dag_id="airflow_hidden_session_dependencies_dag",
       schedule_interval="*/15 * * * *",
       max_active_runs=1,
       catchup=False,
@@ -352,24 +353,19 @@
           python_callable=task_a,
       )
   
-      diamond_common_for_artifact_diamond_left_and_downstream = PythonOperator(
-          task_id="diamond_common_for_artifact_diamond_left_and_downstream_task",
-          python_callable=task_diamond_common_for_artifact_diamond_left_and_downstream,
+      linear_first_for_artifact_linear_second_and_downstream = PythonOperator(
+          task_id="linear_first_for_artifact_linear_second_and_downstream_task",
+          python_callable=task_linear_first_for_artifact_linear_second_and_downstream,
       )
   
-      diamond_left = PythonOperator(
-          task_id="diamond_left_task",
-          python_callable=task_diamond_left,
+      linear_second = PythonOperator(
+          task_id="linear_second_task",
+          python_callable=task_linear_second,
       )
   
-      diamond_right = PythonOperator(
-          task_id="diamond_right_task",
-          python_callable=task_diamond_right,
-      )
-  
-      diamond_sink = PythonOperator(
-          task_id="diamond_sink_task",
-          python_callable=task_diamond_sink,
+      linear_third = PythonOperator(
+          task_id="linear_third_task",
+          python_callable=task_linear_third,
       )
   
       setup = PythonOperator(
@@ -382,17 +378,15 @@
           python_callable=task_teardown,
       )
   
-      a >> diamond_common_for_artifact_diamond_left_and_downstream
+      a >> linear_first_for_artifact_linear_second_and_downstream
   
-      diamond_common_for_artifact_diamond_left_and_downstream >> diamond_left
+      linear_first_for_artifact_linear_second_and_downstream >> linear_second
   
-      diamond_common_for_artifact_diamond_left_and_downstream >> diamond_right
+      linear_first_for_artifact_linear_second_and_downstream >> linear_third
   
-      diamond_left >> diamond_sink
+      linear_second >> linear_third
   
-      diamond_right >> diamond_sink
-  
-      diamond_sink >> teardown
+      linear_third >> teardown
   
       setup >> a
   
