@@ -16,7 +16,7 @@ def get_task_graph(
     task_breakdown: DagTaskBreakdown,
 ) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
-    get_task_definitions returns a dictionary of TaskDefinitions
+    get_task_graph returns a dictionary of TaskDefinitions
 
     This function breaks down the artifact_collection into tasks based on the
     task_breakdown parameter. This will give the main bulk of tasks that should

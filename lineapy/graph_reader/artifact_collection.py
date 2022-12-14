@@ -307,7 +307,6 @@ class ArtifactCollection:
         # Sort the session_id
         session_id_sorted = self.inter_session_taskgraph.get_taskorder()
 
-        print(f"session_id_sorted: {session_id_sorted}")
         return [
             self.session_artifacts[LineaID(session_id)]
             for session_id in session_id_sorted
