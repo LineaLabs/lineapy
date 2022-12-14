@@ -57,6 +57,7 @@ minimal_requirement = [
     "fsspec",
     "pandas",
     "alembic==1.8.0",
+    "cloudpickle",
 ]
 
 graph_libs = [

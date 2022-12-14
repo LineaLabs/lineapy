@@ -5,6 +5,7 @@ astpretty==2.1.0
 asttokens==2.0.5
 black==22.3.0
 click==8.1.2
+cloudpickle==2.2.0
 coveralls==3.3.1
 fastparquet==0.8.0
 flake8==4.0.1
@@ -24,7 +25,7 @@ pdbpp==0.10.3
 pg==0.1
 Pillow==9.1.1
 pre-commit==2.18.1
-psycopg2-binary==2.9.3
+psycopg2-binary==2.9.5
 pydantic==1.9.0
 pytest==6.2.5
 pytest-alembic==0.8.2
