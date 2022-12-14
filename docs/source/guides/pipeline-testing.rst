@@ -1,7 +1,7 @@
 .. _pipeline_testing:
 
-Testing
-=======
+Testing a Generated Pipeline
+============================
 
 .. include:: /snippets/slack_support.rstinc
 
@@ -10,60 +10,30 @@ where extraneous operations are removed. With such changes, the user may want to
 transformed code is valid and reliable before actually using it. To support this, LineaPy's pipeline
 API provides an optional ``generate_test`` argument (default set to ``False``).
 
-As a concrete example, consider the :ref:`pipeline created in the Basics section <iris_pipeline_module>`,
-where we got the following modularized code:
+Creating Pipeline Test
+----------------------
+
+To create tests for a pipeline, set ``generate_test=True``, like so:
+
+.. code-block:: python
+    :emphasize-lines: 7
+
+    lineapy.to_pipeline(
+        pipeline_name="iris_pipeline",
+        artifacts=["iris_preprocessed", "iris_model"],
+        dependencies={"iris_model": {"iris_preprocessed"}},
+        output_dir="~/airflow/dags/",
+        framework="AIRFLOW",
+        generate_test=True,
+    )
+
+Running this will produce, along with usual pipeline files, an additional file
+for pipeline testing (``test_<pipeline_name>.py`` where ``<pipeline_name>`` is
+``iris_pipeline`` in the above example), which may look as follows:
 
 .. code-block:: python
 
-    # ./output/pipeline_basics/iris_pipeline_module.py
-
-    import pandas as pd
-    from sklearn.linear_model import LinearRegression
-
-
-    def get_iris_preprocessed():
-        url = "https://raw.githubusercontent.com/LineaLabs/lineapy/main/examples/tutorials/data/iris.csv"
-        df = pd.read_csv(url)
-        color_map = {"Setosa": "green", "Versicolor": "blue", "Virginica": "red"}
-        df["variety_color"] = df["variety"].map(color_map)
-        df["d_versicolor"] = df["variety"].apply(lambda x: 1 if x == "Versicolor" else 0)
-        df["d_virginica"] = df["variety"].apply(lambda x: 1 if x == "Virginica" else 0)
-        return df
-
-
-    def get_iris_model(df):
-        mod = LinearRegression()
-        mod.fit(
-            X=df[["petal.width", "d_versicolor", "d_virginica"]],
-            y=df["sepal.width"],
-        )
-        return mod
-
-    [...]
-
-Generating Pipeline Test
-------------------------
-
-Now, had we run
-
-.. code-block:: python
-   :emphasize-lines: 8
-
-   # Build an Airflow pipeline using artifacts
-   lineapy.to_pipeline(
-      pipeline_name="iris_pipeline",
-      artifacts=["iris_preprocessed", "iris_model"],
-      dependencies={"iris_model": {"iris_preprocessed"}},
-      output_dir="./output/pipeline_basics/",
-      framework="AIRFLOW",
-      generate_test=True,
-   )
-
-we would have had the following file generated too for testing the modularized code:
-
-.. code-block:: python
-
-    # ./output/pipeline_basics/test_iris_pipeline.py
+    # /Users/username/airflow/dags/test_iris_pipeline.py
 
     import os
     import pickle
@@ -136,7 +106,7 @@ As shown, the file contains test methods (e.g., ``TestIrisPipeline.test_get_iris
 each examine validity of the corresponding function in the module file (e.g., ``get_iris_preprocessed()``).
 Specifically, each test method attempts to check whether running the target function generates the same
 output (i.e., artifact value such as pre-processed data) as the original one saved in the artifact store
-(which gets copied over to a new local subfolder, e.g., ``./output/pipeline_basics/sample_output/``
+(which gets copied over to a new local subfolder, e.g., ``~/airflow/dags/sample_output/``
 in this case, during pipeline generation).
 
 .. note::
@@ -174,16 +144,16 @@ Hence, for the ``iris_pipeline`` example discussed here, running
 
 .. code-block:: bash
 
-    cd ./output/pipeline_basics/
+    cd ~/airflow/dags/
     python -m unittest test_iris_pipeline.TestIrisPipeline
 
 would result in
 
 .. code-block:: none
 
-    /Users/sangyoonpark/Projects/Linea/prod/lineapy/examples/tutorials/output/pipeline_basics/test_iris_pipeline.py:108: UserWarning: Test failed, but this may be due to our limited templating. Please adapt the test as needed.
+    /Users/username/airflow/dags/test_iris_pipeline.py:108: UserWarning: Test failed, but this may be due to our limited templating. Please adapt the test as needed.
     warnings.warn(
-    ./Users/sangyoonpark/Projects/Linea/prod/lineapy/examples/tutorials/output/pipeline_basics/test_iris_pipeline.py:79: UserWarning: Test failed, but this may be due to our limited templating. Please adapt the test as needed.
+    ./Users/username/airflow/dags/test_iris_pipeline.py:79: UserWarning: Test failed, but this may be due to our limited templating. Please adapt the test as needed.
     warnings.warn(
     .
     ----------------------------------------------------------------------
@@ -207,7 +177,7 @@ like so (updates highlighted in yellow):
 .. code-block:: python
    :emphasize-lines: 34, 56, 57
 
-    # ./output/pipeline_basics/test_iris_pipeline.py
+    # /Users/username/airflow/dags/test_iris_pipeline.py
 
     import os
     import pickle
@@ -283,7 +253,7 @@ along with the corresponding model's parameter estimates recorded. Then, the use
 .. code-block:: python
    :emphasize-lines: 10, 11, 27, 33, 34
 
-    # ./output/pipeline_basics/test_iris_pipeline.py
+    # /Users/username/airflow/dags/test_iris_pipeline.py
 
     import os
     import pickle

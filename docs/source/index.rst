@@ -84,8 +84,12 @@ As our notebooks become more mature, we may use them like pipelines. For example
    guides/installation
    guides/configuration/index
    guides/interfaces
-   guides/using-artifacts/index
-   guides/using-pipelines/index
+   guides/code-cleanup
+   guides/package-annotation
+   guides/artifact-reuse
+   guides/pipeline-building
+   guides/pipeline-parametrization
+   guides/pipeline-testing
    guides/contribute/index
    guides/troubleshoot
    guides/support

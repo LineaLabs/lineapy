@@ -1,5 +1,5 @@
-Reusing Past Work
-=================
+Discovering and Reusing Past Work
+=================================
 
 .. include:: /snippets/slack_support.rstinc
 
