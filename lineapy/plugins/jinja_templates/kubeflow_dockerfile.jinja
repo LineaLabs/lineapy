@@ -1,0 +1,22 @@
+# Be sure to build this docker file with the following command
+# docker build -t {{ pipeline_name }} -f {{ pipeline_name }}_Dockerfile .
+
+FROM python:{{ python_version }}
+
+RUN mkdir /tmp/installers
+WORKDIR /tmp/installers
+
+# Copy all the requirements to run current DAG
+COPY ./{{ pipeline_name }}_requirements.txt ./
+
+# Install kubeflow python sdk
+RUN apt update
+RUN pip install kfp
+
+# Install required libs
+RUN pip install -r ./{{ pipeline_name }}_requirements.txt
+
+WORKDIR /home
+COPY . .
+
+ENTRYPOINT ["python", "{{ pipeline_name }}_module.py"]
