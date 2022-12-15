@@ -99,9 +99,8 @@ def get_artifact_task_definition_graph(
             task_definitions[nc.safename] = task_def
 
     # no remapping needed, inter_artifact_taskgraph already uses nc.safename
-    task_graph = artifact_collection.create_inter_artifact_taskgraph(
-        dependencies=artifact_collection.dependencies
-    )
+    task_graph = artifact_collection.inter_artifact_taskgraph
+
     return task_definitions, task_graph
 
 
@@ -159,10 +158,6 @@ def get_session_task_definition_graph(
 
         task_definitions[function_name] = task_def
         session_id_task_map[session_artifacts.session_id] = function_name
-
-    artifact_collection.create_inter_session_taskgraph(
-        dependencies=artifact_collection.dependencies
-    )
 
     # avoid mapping in place here to not overwrite the artifact collection session taskgraph
     task_graph = artifact_collection.inter_session_taskgraph.remap_nodes(

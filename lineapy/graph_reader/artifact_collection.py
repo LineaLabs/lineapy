@@ -14,7 +14,7 @@ from lineapy.graph_reader.utils import (
     get_artifacts_from_artifactdef,
     group_artifacts_by_session,
 )
-from lineapy.plugins.task import TaskGraph, TaskGraphEdge
+from lineapy.plugins.task import TaskGraph, TaskGraphEdge, slugify_dependencies
 from lineapy.plugins.utils import slugify
 from lineapy.utils.logging_config import configure_logging
 
@@ -111,13 +111,7 @@ class ArtifactCollection:
                 raise KeyError(msg)
 
         # slugify dependencies and save to self.dependencies
-        self.dependencies: TaskGraphEdge = {}
-        for to_artname, from_artname_set in dependencies.items():
-            self.dependencies[slugify(to_artname)] = set()
-            for from_artname in from_artname_set:
-                self.dependencies[slugify(to_artname)].add(
-                    slugify(from_artname)
-                )
+        self.dependencies: TaskGraphEdge = slugify_dependencies(dependencies)
 
         # Create taskgraph breakdowns based on dependencies
         self.inter_session_taskgraph = self.create_inter_session_taskgraph(
@@ -281,9 +275,9 @@ class ArtifactCollection:
                                 from_artname, to_source_node
                             )
                 else:
-                    inter_artifact_taskgraph.graph.add_edge(
-                        from_artname, to_artname
-                    )
+                    # when user specifies intra-session dependency, we can ignore since
+                    # we assume Linea has all the intra-session dependencies figured out.
+                    pass
 
         self._validate_graph_acyclic(inter_artifact_taskgraph)
         return inter_artifact_taskgraph

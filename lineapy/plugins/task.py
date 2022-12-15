@@ -8,7 +8,7 @@ from typing import Dict, List, Set, Tuple
 import networkx as nx
 from networkx.exception import NetworkXUnfeasible
 
-from lineapy.plugins.utils import load_plugin_template
+from lineapy.plugins.utils import load_plugin_template, slugify
 
 TaskGraphEdge = Dict[str, Set[str]]
 
@@ -123,6 +123,19 @@ class TaskGraph(object):
             for node in self.graph.nodes
             if self.graph.in_degree(node) == 0
         ]
+
+
+def slugify_dependencies(dependencies: TaskGraphEdge) -> TaskGraphEdge:
+    # slugify dependencies and save to self.dependencies
+    slugified_dependencies: TaskGraphEdge = {}
+    for to_artname, from_artname_set in dependencies.items():
+        slugified_dependencies[slugify(to_artname)] = set()
+        for from_artname in from_artname_set:
+            slugified_dependencies[slugify(to_artname)].add(
+                slugify(from_artname)
+            )
+
+    return slugified_dependencies
 
 
 @dataclass
