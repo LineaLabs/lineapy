@@ -1,13 +1,19 @@
 import logging
 from enum import Enum
-from typing import Dict, TypedDict
+from typing import Any, Dict, List, TypedDict
 
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
-from lineapy.plugins.task import DagTaskBreakdown, TaskDefinition
+from lineapy.plugins.task import (
+    DagTaskBreakdown,
+    TaskDefinition,
+    TaskSerializer,
+    render_task_io_serialize_blocks,
+)
 from lineapy.plugins.taskgen import get_task_definitions
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
-from lineapy.utils.utils import prettify
+
+# from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
@@ -21,6 +27,7 @@ class KubeflowDagFlavor(Enum):
 KubeflowDagConfig = TypedDict(
     "KubeflowDagConfig",
     {
+        "host_url": str,
         "dag_flavor": str,  # Not native to DVC config
     },
     total=False,
@@ -72,10 +79,54 @@ class KubeflowPipelineWriter(BasePipelineWriter):
 
         task_defs = {tn: task_defs[tn] for tn in task_names}
 
-        full_code = DAG_TEMPLATE.render()
+        rendered_task_defs = self.get_rendered_task_definitions(
+            task_defs, TaskSerializer.LocalPickle
+        )
+
+        input_parameters_dict: Dict[str, Any] = {}
+        for parameter_name, input_spec in super().get_pipeline_args().items():
+            input_parameters_dict[parameter_name] = input_spec.value
+
+        full_code = DAG_TEMPLATE.render(
+            DAG_NAME=self.pipeline_name,
+            MODULE_NAME=self.pipeline_name + "_module",
+            HOST_URL=self.dag_config.get("host_url", "http://localhost:3000"),
+            dag_params=input_parameters_dict,
+            task_definitions=rendered_task_defs,
+            tasks=task_defs,
+            # task_dependencies=task_dependencies,
+        )
 
         return full_code
 
     @property
     def docker_template_name(self) -> str:
         return "kubeflow_dockerfile.jinja"
+
+    def get_rendered_task_definitions(
+        self,
+        task_defs: Dict[str, TaskDefinition],
+        task_serialization: TaskSerializer,
+    ) -> List[str]:
+        """
+        Returns rendered tasks for the pipeline tasks.
+        """
+        TASK_FUNCTION_TEMPLATE = load_plugin_template(
+            "task/task_function.jinja"
+        )
+        rendered_task_defs: List[str] = []
+        for task_name, task_def in task_defs.items():
+            loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
+                task_def, task_serialization
+            )
+            task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
+                function_name=task_name,
+                user_input_variables=", ".join(task_def.user_input_variables),
+                typing_blocks=task_def.typing_blocks,
+                loading_blocks=loading_blocks,
+                call_block=task_def.call_block,
+                dumping_blocks=dumping_blocks,
+            )
+            rendered_task_defs.append(task_def_rendered)
+
+        return rendered_task_defs
