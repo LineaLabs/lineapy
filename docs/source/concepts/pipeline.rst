@@ -1,4 +1,4 @@
-.. _pipeline_concept:
+.. _concept_pipeline:
 
 Pipeline
 ========

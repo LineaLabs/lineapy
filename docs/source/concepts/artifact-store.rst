@@ -1,4 +1,4 @@
-.. _artifact_store_concept:
+.. _concept_artifact_store:
 
 Artifact Store
 ==============

@@ -6,7 +6,7 @@ Integrate a New Pipeline Framework
 One major feature of Lineapy is the ability to create pipelines that run various pipeline orchestration frameworks.
 We believe that supporting pipeline frameworks to meet data engineers where they are with their current stacks provides the best user experience for reducing manual work of pipeline writing.
 
-Read more about the concept of a pipeline :ref:`here <pipeline_concept>` and Lineapy Pipelines :ref:`here <pipelines>`.
+Read more about the concept of a pipeline :ref:`here <concept_pipeline>` and Lineapy Pipelines :ref:`here <pipelines>`.
 
 In this tutorial we will go through how to write an new pipeline integration. We'll first go through important concepts before diving into concrete steps. If you want to dive right into the concrete steps, skip ahead to the :ref:`checklist <pipeline_integration_checklist>`.
 

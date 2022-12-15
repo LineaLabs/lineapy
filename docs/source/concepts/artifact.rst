@@ -1,4 +1,4 @@
-.. _artifact_concept:
+.. _concept_artifact:
 
 Artifact
 ========
