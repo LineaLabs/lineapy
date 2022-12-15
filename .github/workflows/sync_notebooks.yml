@@ -21,6 +21,12 @@ jobs:
       - name: "Copy tutorial notebooks to docs"
         run: cp -R examples/tutorials/* docs/source/tutorials/
 
+      - name: "Regex out the NBVAL_SKIP and NBVAL_IGNORE_OUTPUT comments"
+        run: |
+          cd .colab/ 
+          find ./ -type f -name "*.ipynb" -exec sed -i 's/\#[\ ]*NBVAL_SKIP//g' {} \;
+          find ./ -type f -name "*.ipynb" -exec sed -i 's/\#[\ ]*NBVAL_IGNORE_OUTPUT//g' {} \;
+
       - name: Commit files
         run: |
           git config --local user.email "infra@linea.ai"
