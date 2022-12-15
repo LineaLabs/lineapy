@@ -114,11 +114,11 @@ class ArtifactCollection:
         self.dependencies: TaskGraphEdge = slugify_dependencies(dependencies)
 
         # Create taskgraph breakdowns based on dependencies
-        self.inter_session_taskgraph = self.create_inter_session_taskgraph(
+        self.inter_session_taskgraph = self._create_inter_session_taskgraph(
             self.dependencies
         )
 
-        self.inter_artifact_taskgraph = self.create_inter_artifact_taskgraph(
+        self.inter_artifact_taskgraph = self._create_inter_artifact_taskgraph(
             self.dependencies
         )
 
@@ -158,7 +158,7 @@ class ArtifactCollection:
                 "Please check if the provided dependencies include circular relationships."
             )
 
-    def create_inter_session_taskgraph(
+    def _create_inter_session_taskgraph(
         self, dependencies: TaskGraphEdge
     ) -> TaskGraph:
         """
@@ -209,7 +209,7 @@ class ArtifactCollection:
 
         return inter_session_taskgraph
 
-    def create_inter_artifact_taskgraph(
+    def _create_inter_artifact_taskgraph(
         self, dependencies: TaskGraphEdge
     ) -> TaskGraph:
         """
