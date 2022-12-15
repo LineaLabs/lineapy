@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List, Tuple, TypedDict
 
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
 from lineapy.plugins.task import (
@@ -12,8 +12,7 @@ from lineapy.plugins.task import (
 from lineapy.plugins.taskgen import get_task_definitions
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
-
-# from lineapy.utils.utils import prettify
+from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
@@ -79,8 +78,11 @@ class KubeflowPipelineWriter(BasePipelineWriter):
 
         task_defs = {tn: task_defs[tn] for tn in task_names}
 
-        rendered_task_defs = self.get_rendered_task_definitions(
-            task_defs, TaskSerializer.LocalPickle
+        (
+            rendered_task_defs,
+            task_loading_blocks,
+        ) = self.get_rendered_task_definitions(
+            task_defs, TaskSerializer.ParametrizedPickle
         )
 
         input_parameters_dict: Dict[str, Any] = {}
@@ -89,15 +91,15 @@ class KubeflowPipelineWriter(BasePipelineWriter):
 
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
-            MODULE_NAME=self.pipeline_name + "_module",
             HOST_URL=self.dag_config.get("host_url", "http://localhost:3000"),
             dag_params=input_parameters_dict,
             task_definitions=rendered_task_defs,
             tasks=task_defs,
+            task_loading_blocks=task_loading_blocks,
             # task_dependencies=task_dependencies,
         )
 
-        return full_code
+        return prettify(full_code)
 
     @property
     def docker_template_name(self) -> str:
@@ -107,7 +109,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         self,
         task_defs: Dict[str, TaskDefinition],
         task_serialization: TaskSerializer,
-    ) -> List[str]:
+    ) -> Tuple[List[str], Dict[str, str]]:
         """
         Returns rendered tasks for the pipeline tasks.
         """
@@ -115,18 +117,42 @@ class KubeflowPipelineWriter(BasePipelineWriter):
             "task/task_function.jinja"
         )
         rendered_task_defs: List[str] = []
+        task_loading_blocks: Dict[str, str] = {}
+
         for task_name, task_def in task_defs.items():
             loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
                 task_def, task_serialization
             )
+
+            input_vars = task_def.user_input_variables
+
+            input_paths = [
+                f"variable_{loaded_input_variable}_path: kfp.components.InputPath(str)"
+                for loaded_input_variable in task_def.loaded_input_variables
+            ]
+
+            output_paths = [
+                f"variable_{return_variable}_path: kfp.components.OutputPath(str)"
+                for return_variable in task_def.return_vars
+            ]
+
+            for return_variable in task_def.return_vars:
+                task_loading_blocks[
+                    return_variable
+                ] = f'task_{task_name}.outputs["variable_{return_variable}"]'
+
             task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
+                MODULE_NAME=self.pipeline_name + "_module",
                 function_name=task_name,
-                user_input_variables=", ".join(task_def.user_input_variables),
+                user_input_variables=", ".join(
+                    input_vars + input_paths + output_paths
+                ),
                 typing_blocks=task_def.typing_blocks,
                 loading_blocks=loading_blocks,
                 call_block=task_def.call_block,
                 dumping_blocks=dumping_blocks,
+                include_imports_locally=True,
             )
             rendered_task_defs.append(task_def_rendered)
 
-        return rendered_task_defs
+        return rendered_task_defs, task_loading_blocks

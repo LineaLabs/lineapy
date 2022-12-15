@@ -1,6 +1,3 @@
-import {{ MODULE_NAME }}
-import pickle
-import pathlib
 import kfp
 from kfp.components import create_component_from_func
 
@@ -9,7 +6,7 @@ from kfp.components import create_component_from_func
 {% endfor %}
 
 {% for task_name, task_def in tasks.items() %}
-{{ task_name }} = create_component_from_func(task_{{ task_name }})
+{{ task_name }}_component = create_component_from_func(task_{{ task_name }}, base_image="{{ DAG_NAME }}:lineapy")
 {% endfor %}
 
 client = kfp.Client(host="{{ HOST_URL }}")
@@ -17,22 +14,15 @@ client = kfp.Client(host="{{ HOST_URL }}")
 @kfp.dsl.pipeline(
   name='{{ DAG_NAME }}_dag',
 )
-def {{ DAG_NAME }}_pipeline({%- for var in dag_params.keys() %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %}):
-  # Passes a pipeline parameter and a constant value to the `add_op` factory
-  # function.
-  # first_add_task = add_op(a, 4)
-  # Passes an output reference from `first_add_task` and a pipeline parameter
-  # to the `add_op` factory function. For operations with a single return
-  # value, the output reference can be accessed as `task.output` or
-  # `task.outputs['output_name']`.
-  # second_add_task = add_op(first_add_task.output, b)
+def {{ DAG_NAME }}({%- for var in dag_params.keys() %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %}):
   {% for task_name, task_def in tasks.items() %}
-  {{ task_name }}({%- for var in task_def.user_input_variables %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %})
-  {% endfor %}
+  task_{{ task_name }} = {{ task_name }}_component(
+    {%- for var in task_def.user_input_variables %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %}{%- if task_def.loaded_input_variables|length > 0 and task_def.user_input_variables|length > 0 %},{%- endif %}{%- for var in task_def.loaded_input_variables %}{{ task_loading_blocks[var] }}{{ ',' if not loop.last else '' }}{%- endfor %}
+  )
+  {%- endfor %}
 
 # Specify argument values for your pipeline run.
-# arguments = {'a': '7', 'b': '8'}
 pipeline_arguments = {{ dag_params }}
 
 # Create a pipeline run, using the client you initialized in a prior step.
-client.create_run_from_pipeline_func({{ DAG_NAME }}_pipeline, arguments = pipeline_arguments)
+client.create_run_from_pipeline_func({{ DAG_NAME }}, arguments = pipeline_arguments)
