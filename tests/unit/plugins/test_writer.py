@@ -260,6 +260,17 @@ def check_requirements_txt(t1: str, t2: str):
             id="argo_pipeline_housing_w_dependencies",
         ),
         pytest.param(
+            "housing",
+            "",
+            ["p value"],
+            "ARGO",
+            "argo_pipeline_housing_simple",
+            {},
+            {},
+            [],
+            id="argo_pipeline_housing_simple",
+        ),
+        pytest.param(
             "complex",
             "",
             ["f", "h"],

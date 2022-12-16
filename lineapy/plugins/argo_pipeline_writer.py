@@ -16,11 +16,7 @@ from lineapy.plugins.task import (
     TaskSerializer,
     render_task_io_serialize_blocks,
 )
-from lineapy.plugins.taskgen import (
-    get_localpickle_setup_task_definition,
-    get_localpickle_teardown_task_definition,
-    get_task_definitions,
-)
+from lineapy.plugins.taskgen import get_task_definitions
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -73,7 +69,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
         try:
             task_serialization = TaskSerializer[
-                self.dag_config.get("task_serialization", "LocalPickle")
+                self.dag_config.get("task_serialization", "LocalPickleArgo")
             ]
         except KeyError:
             raise ValueError(
@@ -112,18 +108,6 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
         task_names = list(task_defs.keys())
 
-        # Add setup and teardown if local pickle serializer is selected
-        if task_serialization == TaskSerializer.LocalPickle:
-            task_defs["setup"] = get_localpickle_setup_task_definition(
-                self.pipeline_name
-            )
-            task_defs["teardown"] = get_localpickle_teardown_task_definition(
-                self.pipeline_name
-            )
-            # insert in order to task_names so that setup runs first and teardown runs last
-            task_names.insert(0, "setup")
-            task_names.append("teardown")
-
         task_defs = {tn: task_defs[tn] for tn in task_names}
 
         rendered_task_defs = self.get_rendered_task_definitions(
@@ -144,6 +128,15 @@ class ARGOPipelineWriter(BasePipelineWriter):
             f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges
         ]
 
+        SERIALIZER_TEMPLATE = load_plugin_template(
+            "task/localpickle/task_local_pickle_ser_argo.jinja"
+        )
+
+        return_artifacts = []
+        for _, taskdef in task_defs.items():
+            for return_variable in taskdef.return_vars:
+                return_artifacts.append(return_variable)
+
         # Get DAG parameters for an ARGO pipeline
         input_parameters_dict: Dict[str, Any] = {}
         for parameter_name, input_spec in super().get_pipeline_args().items():
@@ -152,15 +145,19 @@ class ARGOPipelineWriter(BasePipelineWriter):
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
             MODULE_NAME=self.pipeline_name + "_module",
-            NAMESPACE=self.dag_config.get("namespace", "default"),
+            NAMESPACE=self.dag_config.get("namespace", "argo"),
             HOST=self.dag_config.get("host", "https://localhost:2746"),
             VERIFY_SSL=self.dag_config.get("verify_ssl", "False"),
             WORFLOW_NAME=self.dag_config.get(
                 "workflow_name", self.pipeline_name.replace("_", "-")
             ),
+            IMAGE=self.dag_config.get("image", "argo_pipeline:latest"),
+            IMAGE_PULL_POLICY=self.dag_config.get(
+                "image_pull_policy", "Never"
+            ),
             TOKEN=self.get_sa_token(
-                self.dag_config.get("service_account", "pipe"),
-                self.dag_config.get("namespace", "default"),
+                self.dag_config.get("service_account", "argo"),
+                self.dag_config.get("namespace", "argo"),
                 self.dag_config.get(
                     "kube_config", os.path.expanduser("~/.kube/config")
                 ),
@@ -169,6 +166,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
             task_definitions=rendered_task_defs,
             tasks=task_defs,
             task_dependencies=task_dependencies,
+            return_artifacts=return_artifacts,
         )
 
         return full_code
@@ -182,7 +180,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
         Returns rendered tasks for the pipeline tasks.
         """
         TASK_FUNCTION_TEMPLATE = load_plugin_template(
-            "task/task_function.jinja"
+            "task/task_function_argo.jinja"
         )
         rendered_task_defs: List[str] = []
         for task_name, task_def in task_defs.items():
@@ -190,6 +188,14 @@ class ARGOPipelineWriter(BasePipelineWriter):
                 task_def, task_serialization
             )
             task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
+                imports=[
+                    "import " + x
+                    for x in [
+                        self.pipeline_name + "_module",
+                        "pickle",
+                        "pathlib",
+                    ]
+                ],
                 function_name=task_name,
                 user_input_variables=", ".join(task_def.user_input_variables),
                 typing_blocks=task_def.typing_blocks,
@@ -204,7 +210,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
     def get_sa_token(
         self,
         service_account: str,
-        namespace: str = "default",
+        namespace: str = "argo",
         config_file: Optional[str] = None,
     ):
         if config_file is not None and not os.path.isfile(config_file):
@@ -219,7 +225,12 @@ class ARGOPipelineWriter(BasePipelineWriter):
             % (service_account, namespace)
         )
 
-        if len(v1.list_namespaced_secret(namespace).items) == 0:
+        if (
+            v1.read_namespaced_service_account(
+                service_account, namespace
+            ).secrets
+            is None
+        ):
             print("No secrets found in namespace: %s" % namespace)
             return None
 

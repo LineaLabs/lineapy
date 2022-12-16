@@ -9,7 +9,7 @@ COPY ./{{ pipeline_name }}_requirements.txt ./
 # Install git and argo
 RUN apt update
 RUN apt install -y git
-RUN pip install argo
+RUN pip install argo-workflows
 RUN pip install hera-workflows
 
 # Install required libs

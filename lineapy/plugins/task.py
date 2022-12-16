@@ -102,6 +102,7 @@ class TaskSerializer(Enum):
     """Enum to define what type of object serialization to use for inter task communication."""
 
     LocalPickle = 1
+    LocalPickleArgo = 2
     # TODO: lineapy.get and lineapy.save
 
 
@@ -142,6 +143,13 @@ def render_task_io_serialize_blocks(
     if task_serialization == TaskSerializer.LocalPickle:
         SERIALIZER_TEMPLATE = load_plugin_template(
             "task/localpickle/task_local_pickle_ser.jinja"
+        )
+        DESERIALIZER_TEMPLATE = load_plugin_template(
+            "task/localpickle/task_local_pickle_deser.jinja"
+        )
+    elif task_serialization == TaskSerializer.LocalPickleArgo:
+        SERIALIZER_TEMPLATE = load_plugin_template(
+            "task/localpickle/task_local_pickle_ser_argo.jinja"
         )
         DESERIALIZER_TEMPLATE = load_plugin_template(
             "task/localpickle/task_local_pickle_deser.jinja"

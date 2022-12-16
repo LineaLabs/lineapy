@@ -1,7 +1,4 @@
-import {{ MODULE_NAME }}
-import pickle
-import pathlib
-
+from hera import Artifact, ImagePullPolicy
 from hera.task import Task
 from hera.workflow import Workflow
 from hera.workflow_service import WorkflowService
@@ -19,11 +16,28 @@ ws = WorkflowService(
 
 with Workflow("{{ WORFLOW_NAME }}", service = ws) as w:
 {% for task_name, task_def in tasks.items() %}
-    {%- if task_def.user_input_variables|length > 0 %}
-    {{ task_name }} = Task('{{ task_name }}', task_{{ task_name }}, {{ task_def.user_input_variables }})
-    {% else %}
-    {{ task_name }} = Task('{{ task_name }}', task_{{ task_name }})
+    {{ task_name }} = Task("{{ task_name }}",
+    task_{{ task_name }},
+    {% if task_def.user_input_variables|length > 0 %}
+    [
+        {"{{ 
+            task_def.user_input_variables|join('", "')
+        }}"}
+    ],
     {% endif %}
+    image = "{{ IMAGE }}",
+    image_pull_policy = ImagePullPolicy.{{ IMAGE_PULL_POLICY }},
+    {% if return_artifacts|length > 0 %}
+    outputs = [
+        {% for output in return_artifacts %}
+        Artifact(
+            "{{ output }}",
+            "/tmp/variable_{{output}}.pickle",
+        ),
+        {% endfor %}
+    ],
+    {% endif %}
+)
 {% endfor %}
 
 
