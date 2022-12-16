@@ -12,8 +12,10 @@ import json
 import logging
 import os
 import sys
+import time
 import uuid
 from functools import lru_cache
+from pathlib import Path
 
 import requests
 from IPython import get_ipython
@@ -80,8 +82,33 @@ def _api_key() -> str:
 
 
 @lru_cache(maxsize=1)
-def _session_id() -> str:
-    return str(uuid.uuid4())  # uuid that marks current python session
+def _user_id() -> str:
+    return str(
+        uuid.uuid3(uuid.NAMESPACE_X500, str(Path("~").expanduser().resolve()))
+    )  # recognize users based on their home dir
+
+
+@lru_cache(maxsize=1)
+def _device_id() -> str:
+    # This is an attempt to get mac address for the current device however, it has limitations.
+    # This thread goes over the different issues in detail.
+    # https://stackoverflow.com/questions/36235807/fixed-identifier-for-a-machine-uuid-getnode
+    # For now though, this works as our goal is to simply tie a device to a semi-stable id
+    # instead of a constantly changing random number. NOTE: getnode can and does return random
+    # numbers as well however the only case discussed when that happens is in android where it
+    # does not have permissions to access macids. This should not be a case we need to deal with
+    # so going with this until we see weirdness
+
+    return str(
+        uuid.uuid3(uuid.NAMESPACE_X500, str(uuid.getnode()))
+    )  # hash the device mac id
+
+
+@lru_cache(maxsize=1)
+def _session_id() -> int:
+    return (
+        time.time_ns() // 1000000
+    )  # session id is recommended to be time in ms since epoch
 
 
 @lru_cache(maxsize=1)
@@ -94,7 +121,9 @@ def _send_amplitude_event(event_type: str, event_properties: dict):
     events = [
         {
             "event_type": event_type,
-            "user_id": _session_id(),
+            "user_id": _user_id(),
+            "device_id": _device_id(),
+            "session_id": _session_id(),
             "event_properties": event_properties,
         }
     ]
