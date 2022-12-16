@@ -11,7 +11,7 @@ from lineapy.plugins.task import (
     TaskSerializer,
     render_task_io_serialize_blocks,
 )
-from lineapy.plugins.taskgen import get_task_definitions
+from lineapy.plugins.taskgen import get_task_graph
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -71,7 +71,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
             task_breakdown = DagTaskBreakdown.TaskPerArtifact
 
         # Get task definitions based on dag_flavor
-        task_defs: Dict[str, TaskDefinition] = get_task_definitions(
+        task_defs, _ = get_task_graph(
             self.artifact_collection,
             pipeline_name=self.pipeline_name,
             task_breakdown=task_breakdown,
@@ -155,7 +155,9 @@ class KubeflowPipelineWriter(BasePipelineWriter):
                 ),
                 typing_blocks=task_def.typing_blocks,
                 loading_blocks=loading_blocks,
+                pre_call_block="",
                 call_block=task_def.call_block,
+                post_call_block="",
                 dumping_blocks=dumping_blocks,
                 include_imports_locally=True,
             )
