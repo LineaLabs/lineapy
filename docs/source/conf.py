@@ -40,6 +40,7 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.todo",
     "nbsphinx",
+    "sphinx_design",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -75,5 +76,6 @@ html_js_files = [
     (
         "//script.crazyegg.com/pages/scripts/0111/9525.js",
         {"type": "text/javascript", "async": "async"},
-    )
+    ),
+    "js/custom.js",
 ]
