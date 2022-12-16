@@ -20,6 +20,7 @@ except ImportError:
 
 LINEAPY_FOLDER_NAME = ".lineapy"
 LOG_FILE_NAME = "lineapy.log"
+DEVICE_ID_FILE_NAME = ".devid"
 CONFIG_FILE_NAME = "lineapy_config.json"
 FILE_PICKLER_BASEDIR = "linea_pickles"
 DB_FILE_NAME = "db.sqlite"
@@ -92,6 +93,7 @@ class lineapy_config:
         self.do_not_track = do_not_track
         self.logging_level = logging_level
         self.logging_file = logging_file
+        self.dev_id = None
         self.mlflow_registry_uri = mlflow_registry_uri
         self.mlflow_tracking_uri = mlflow_tracking_uri
         self.default_ml_models_storage_backend = (
@@ -288,6 +290,19 @@ class lineapy_config:
                 )
             return safe_get_folder("customized_annotation_folder")
 
+        elif name == "dev_id":
+            if self.dev_id is None:
+                dev_id_file = Path(safe_get_folder("home_dir")).joinpath(
+                    DEVICE_ID_FILE_NAME
+                )
+                self.set(
+                    "dev_id",
+                    dev_id_file,
+                    verbose=False,
+                )
+            else:
+                dev_id_file = logging_file = Path(str(self.dev_id))
+            return dev_id_file
         else:
             return self.get(name)
 

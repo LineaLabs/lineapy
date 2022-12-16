@@ -1,5 +1,7 @@
 from unittest.mock import ANY, patch
 
+import pytest
+
 from lineapy.utils.analytics.event_schemas import SaveEvent
 from lineapy.utils.analytics.usage_tracking import (
     _amplitude_url,
@@ -10,6 +12,7 @@ from lineapy.utils.analytics.usage_tracking import (
     _user_id,
     track,
 )
+from lineapy.utils.config import options
 
 
 @patch("lineapy.utils.analytics.usage_tracking.requests.post")
@@ -93,3 +96,13 @@ def test_send_amplitude_event_adds_userdata(mock_post):
         headers=ANY,
         timeout=ANY,
     )
+
+
+@pytest.mark.folder(options.safe_get("home_dir"))
+def test_device_id_persisted(move_folder):
+    devid_path = options.safe_get("dev_id")
+    # should not need to remove the old file since move folder is creating a new one for us
+    # call the device id function.
+    new_dev_id = _device_id()
+    with open(devid_path, "r") as f:
+        assert f.read() == new_dev_id

@@ -96,12 +96,20 @@ def _device_id() -> str:
     # For now though, this works as our goal is to simply tie a device to a semi-stable id
     # instead of a constantly changing random number. NOTE: getnode can and does return random
     # numbers as well however the only case discussed when that happens is in android where it
-    # does not have permissions to access macids. This should not be a case we need to deal with
-    # so going with this until we see weirdness
+    # does not have permissions to access macids. This seems to happen in more cases as we have
+    # observed more device ids for the same user than we expected. To fix this, we'll persist
+    # an id to the .lineapy folder for future use. This might give us a bit more stability 
 
-    return str(
-        uuid.uuid3(uuid.NAMESPACE_X500, str(uuid.getnode()))
-    )  # hash the device mac id
+    device_id = ""
+    with open(options.safe_get("dev_id"), "w+") as f:
+        device_id = f.read()
+        if not device_id:
+            device_id = str(
+                uuid.uuid3(uuid.NAMESPACE_X500, str(uuid.getnode()))
+            )  # hash the device mac id
+            f.write(device_id)
+
+    return device_id
 
 
 @lru_cache(maxsize=1)
@@ -165,4 +173,5 @@ def tag(tag_name: str):
     # Put this line at the top of demo notebooks:
     # lineapy.tag("demo_name") # change "demo_name" with actual demo name.
 
+    track(TagEvent(tag_name))
     track(TagEvent(tag_name))
