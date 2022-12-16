@@ -1,6 +1,8 @@
 import logging
 from enum import Enum
-from typing import Any, Dict, List, Tuple, TypedDict
+from typing import Any, Dict, List, Tuple
+
+from typing_extensions import TypedDict
 
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
 from lineapy.plugins.task import (
@@ -35,7 +37,6 @@ KubeflowDagConfig = TypedDict(
 
 class KubeflowPipelineWriter(BasePipelineWriter):
     def _write_dag(self) -> None:
-
         # Check if the given DAG flavor is a supported/valid one
         try:
             dag_flavor = KubeflowDagFlavor[
@@ -58,7 +59,9 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         self,
         dag_flavor: KubeflowDagFlavor,
     ) -> str:
-        """ """
+        """
+        Returns a code block containing all the operators for a Kubeflow DAG.
+        """
 
         DAG_TEMPLATE = load_plugin_template("kubeflow_dag.jinja")
 
@@ -81,9 +84,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         (
             rendered_task_defs,
             task_loading_blocks,
-        ) = self.get_rendered_task_definitions(
-            task_defs, TaskSerializer.ParametrizedPickle
-        )
+        ) = self.get_rendered_task_definitions(task_defs)
 
         input_parameters_dict: Dict[str, Any] = {}
         for parameter_name, input_spec in super().get_pipeline_args().items():
@@ -108,10 +109,13 @@ class KubeflowPipelineWriter(BasePipelineWriter):
     def get_rendered_task_definitions(
         self,
         task_defs: Dict[str, TaskDefinition],
-        task_serialization: TaskSerializer,
     ) -> Tuple[List[str], Dict[str, str]]:
         """
-        Returns rendered tasks for the pipeline tasks.
+        Returns rendered tasks for the pipeline tasks along with a dictionary to lookup
+        previous task outputs.
+
+        The returned dictionary is used by the DAG to connect the right input files to
+        output files for inter task communication.
         """
         TASK_FUNCTION_TEMPLATE = load_plugin_template(
             "task/task_function.jinja"
@@ -121,7 +125,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
 
         for task_name, task_def in task_defs.items():
             loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                task_def, task_serialization
+                task_def, TaskSerializer.ParametrizedPickle
             )
 
             input_vars = task_def.user_input_variables
@@ -136,6 +140,8 @@ class KubeflowPipelineWriter(BasePipelineWriter):
                 for return_variable in task_def.return_vars
             ]
 
+            # this task will output variables to a file that other tasks can access
+            # through KFP's task.outputs attribute
             for return_variable in task_def.return_vars:
                 task_loading_blocks[
                     return_variable

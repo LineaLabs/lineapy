@@ -178,7 +178,9 @@ class DagTaskBreakdown(Enum):
 class TaskSerializer(Enum):
     """Enum to define what type of object serialization to use for inter task communication."""
 
+    # Write to local pickle directory under /tmp/
     LocalPickle = 1
+    # Write to a pickle directory that can be parametrized
     ParametrizedPickle = 2
     # TODO: lineapy.get and lineapy.save
 
