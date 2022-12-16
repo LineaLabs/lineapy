@@ -241,7 +241,9 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 user_input_variables=", ".join(task_def.user_input_variables),
                 typing_blocks=task_def.typing_blocks,
                 loading_blocks=loading_blocks,
+                pre_call_block=task_def.pre_call_block,
                 call_block=task_def.call_block,
+                post_call_block=task_def.post_call_block,
                 dumping_blocks=dumping_blocks,
             )
             rendered_task_defs.append(task_def_rendered)

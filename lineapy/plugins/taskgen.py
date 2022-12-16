@@ -90,7 +90,9 @@ def get_artifact_task_definitions(
                 user_input_variables=artifact_user_input_variables,
                 loaded_input_variables=loaded_input_vars,
                 typing_blocks=user_input_var_typing_block,
+                pre_call_block="",
                 call_block=function_call_block,
+                post_call_block="",
                 return_vars=nc.return_variables,
                 pipeline_name=pipeline_name,
             )
@@ -125,9 +127,16 @@ def get_session_task_definition(
                 session_artifacts
             )
         )
+        # Call module's run session function and unpack the artifacts from it
         function_call_block = (
-            f"artifacts = {pipeline_name}_module.{raw_function_call_block}"
+            f"artifacts = {pipeline_name}_module.{raw_function_call_block}\n"
         )
+        unpack_vars_block = "\n".join(
+            f'{nc.safename} = artifacts["{nc.name}"]'
+            for nc in session_artifacts.usercode_nodecollections
+            if isinstance(nc, ArtifactNodeCollection)
+        )
+
         return_vars = [
             nc.safename
             for nc in session_artifacts.usercode_nodecollections
@@ -143,7 +152,9 @@ def get_session_task_definition(
             user_input_variables=session_input_variables,
             loaded_input_variables=[],
             typing_blocks=user_input_var_typing_block,
+            pre_call_block="",
             call_block=function_call_block,
+            post_call_block=unpack_vars_block,
             return_vars=return_vars,
             pipeline_name=pipeline_name,
         )
@@ -168,8 +179,9 @@ def get_allsessions_task_definition(
             user_input_variables=artifact_collection.input_parameters,
             loaded_input_variables=[],
             typing_blocks=[],
-            call_block=f"{indentation_block}artifacts = {pipeline_name}_module.run_all_sessions()"
-            "",
+            pre_call_block="",
+            call_block=f"{indentation_block}artifacts = {pipeline_name}_module.run_all_sessions()",
+            post_call_block="",
             return_vars=["artifacts"],
             pipeline_name=pipeline_name,
         )
@@ -194,7 +206,9 @@ def get_localpickle_setup_task_definition(pipeline_name):
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
+        pre_call_block="",
         call_block=call_block,
+        post_call_block="",
         return_vars=[],
         pipeline_name=pipeline_name,
     )
@@ -219,7 +233,9 @@ def get_localpickle_teardown_task_definition(pipeline_name):
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
+        pre_call_block="",
         call_block=call_block,
+        post_call_block="",
         return_vars=[],
         pipeline_name=pipeline_name,
     )
