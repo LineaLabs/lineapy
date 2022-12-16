@@ -120,19 +120,26 @@ def get_session_task_definition(
             for var in session_input_variables
         ]
 
-        raw_function_call_block = (
-            BaseSessionWriter().get_session_function_callblock(
-                session_artifacts
-            )
-        )
-        function_call_block = (
-            f"artifacts = {pipeline_name}_module.{raw_function_call_block}"
-        )
         return_vars = [
             nc.safename
             for nc in session_artifacts.usercode_nodecollections
             if isinstance(nc, ArtifactNodeCollection)
         ]
+
+        raw_function_call_block = (
+            BaseSessionWriter().get_session_function_callblock(
+                session_artifacts
+            )
+        )
+        # Call module's run session function and unpack the artifacts from it
+        function_call_block = (
+            f"artifacts = {pipeline_name}_module.{raw_function_call_block}\n"
+            + "\n".join(
+                f'{nc.safename} = artifacts["{nc.name}"]'
+                for nc in session_artifacts.usercode_nodecollections
+                if isinstance(nc, ArtifactNodeCollection)
+            )
+        )
 
         function_name = BaseSessionWriter().get_session_function_name(
             session_artifacts

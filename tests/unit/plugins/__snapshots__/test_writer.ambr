@@ -665,6 +665,8 @@
       artifacts = airflow_pipeline_a_b0_inputpar_session_module.run_session_including_b0(
           b0
       )
+      b0 = artifacts["b0"]
+      a = artifacts["a"]
   
       pickle.dump(
           b0, open("/tmp/airflow_pipeline_a_b0_inputpar_session/variable_b0.pickle", "wb")
