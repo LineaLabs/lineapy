@@ -19,7 +19,7 @@ jobs:
         run: mkdir -p .colab/ && cp -R examples/use_cases/* .colab/ && cp -R examples/tutorials/* .colab/
 
       - name: "Copy tutorial notebooks to docs"
-        run: cp -R examples/tutorials/* docs/source/tutorials/
+        run: cp -R examples/tutorials/* docs/tutorials/
 
       - name: "Regex out the NBVAL_SKIP and NBVAL_IGNORE_OUTPUT comments"
         run: |

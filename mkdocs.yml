@@ -1,0 +1,27 @@
+site_name: LineaPy
+
+theme:
+  name: "material"
+  logo: images/icon-lineapy-white.png
+  favicon: images/lineapy-square-light.png
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Concepts:
+    - Artifact: concepts/artifact.md
+    - Artifact Store: concepts/artifact-store.md
+    - Pipeline: concepts/pipeline.md
+  - Tutorials:
+    - tutorials/00_lineapy_quickstart.ipynb
+
+repo_name: LineaLabs/lineapy
+repo_url: https://github.com/LineaLabs/lineapy
+
+plugins:
+  - search
+  - mkdocs-jupyter
