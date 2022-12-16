@@ -1,0 +1,8 @@
+import lineapy
+
+linear_first = 1
+linear_second = linear_first + 1
+linear_third = linear_second + linear_first
+lineapy.save(linear_first, "linear_first")
+lineapy.save(linear_second, "linear_second")
+lineapy.save(linear_third, "linear_third")
