@@ -83,7 +83,9 @@ class TaskDefinition:
     user_input_variables: List[str]
     loaded_input_variables: List[str]
     typing_blocks: List[str]
+    pre_call_block: str
     call_block: str
+    post_call_block: str
     return_vars: List[str]
     pipeline_name: str
 

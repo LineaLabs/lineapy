@@ -5,7 +5,9 @@ def task_{{function_name}}({{user_input_variables}}):
 {% for loading_block in loading_blocks %}
 {{loading_block | indent(4, True) }}
 {% endfor %}
+{{ pre_call_block | indent(4, True) }}
 {{ call_block | indent(4, True) }}
+{{ post_call_block | indent(4, True) }}
 {% for dumping_block in dumping_blocks %}
 {{dumping_block | indent(4, True) }}
 {% endfor %}
