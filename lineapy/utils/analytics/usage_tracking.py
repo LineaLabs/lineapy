@@ -98,7 +98,7 @@ def _device_id() -> str:
     # numbers as well however the only case discussed when that happens is in android where it
     # does not have permissions to access macids. This seems to happen in more cases as we have
     # observed more device ids for the same user than we expected. To fix this, we'll persist
-    # an id to the .lineapy folder for future use. This might give us a bit more stability 
+    # an id to the .lineapy folder for future use. This might give us a bit more stability
 
     device_id = ""
     with open(options.safe_get("dev_id"), "w+") as f:
