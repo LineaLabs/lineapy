@@ -21,6 +21,12 @@ def {{ DAG_NAME }}({%- for var in dag_params.keys() %}{{ var }}{{ ',' if not loo
   )
   {%- endfor %}
 
+  {% if task_dependencies is not none %}
+  {% for TASK_DEPENDENCIES in task_dependencies %}
+  {{TASK_DEPENDENCIES}}
+  {% endfor %}
+  {%endif %}
+
 # Specify argument values for your pipeline run.
 pipeline_arguments = {{ dag_params }}
 

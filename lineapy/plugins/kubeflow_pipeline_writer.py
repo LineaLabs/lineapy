@@ -11,7 +11,11 @@ from lineapy.plugins.task import (
     TaskSerializer,
     render_task_io_serialize_blocks,
 )
-from lineapy.plugins.taskgen import get_task_graph
+from lineapy.plugins.taskgen import (
+    get_noop_setup_task_definition,
+    get_noop_teardown_task_definition,
+    get_task_graph,
+)
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -71,14 +75,21 @@ class KubeflowPipelineWriter(BasePipelineWriter):
             task_breakdown = DagTaskBreakdown.TaskPerArtifact
 
         # Get task definitions based on dag_flavor
-        task_defs, _ = get_task_graph(
+        task_defs, task_graph = get_task_graph(
             self.artifact_collection,
             pipeline_name=self.pipeline_name,
             task_breakdown=task_breakdown,
         )
 
-        task_names = list(task_defs.keys())
+        task_defs["setup"] = get_noop_setup_task_definition(self.pipeline_name)
+        task_defs["teardown"] = get_noop_teardown_task_definition(
+            self.pipeline_name
+        )
+        # insert in order to task_names so that setup runs first and teardown runs last
+        task_graph.insert_setup_task("setup")
+        task_graph.insert_teardown_task("teardown")
 
+        task_names = list(task_defs.keys())
         task_defs = {tn: task_defs[tn] for tn in task_names}
 
         (
@@ -90,6 +101,13 @@ class KubeflowPipelineWriter(BasePipelineWriter):
         for parameter_name, input_spec in super().get_pipeline_args().items():
             input_parameters_dict[parameter_name] = input_spec.value
 
+        task_dependencies = sorted(
+            [
+                f"task_{task1}.after(task_{task0})"
+                for task0, task1 in task_graph.graph.edges
+            ]
+        )
+
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
             HOST_URL=self.dag_config.get("host_url", "http://localhost:3000"),
@@ -97,7 +115,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
             task_definitions=rendered_task_defs,
             tasks=task_defs,
             task_loading_blocks=task_loading_blocks,
-            # task_dependencies=task_dependencies,
+            task_dependencies=task_dependencies,
         )
 
         return prettify(full_code)

@@ -17,7 +17,8 @@ RUN pip install kfp
 RUN pip install -r ./{{ pipeline_name }}_requirements.txt
 
 WORKDIR /home
-COPY . .
+COPY ./{{ pipeline_name }}_module.py ./
+COPY ./{{ pipeline_name }}_dag.py ./
 
 # Set environment variable so module file can be 
 # found by kubeflow components

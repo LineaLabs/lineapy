@@ -252,3 +252,44 @@ def get_localpickle_teardown_task_definition(pipeline_name):
         return_vars=[],
         pipeline_name=pipeline_name,
     )
+
+
+def get_noop_setup_task_definition(pipeline_name):
+    """
+    Returns a TaskDefinition that no-ops so that users can write
+    their own setup tasks by replacing the setup call block.
+
+    This task should be used at the beginning of a pipeline.
+    """
+    return TaskDefinition(
+        function_name="dag_setup",
+        user_input_variables=[],
+        loaded_input_variables=[],
+        typing_blocks=[],
+        pre_call_block="",
+        call_block="pass",
+        post_call_block="",
+        return_vars=[],
+        pipeline_name=pipeline_name,
+    )
+
+
+def get_noop_teardown_task_definition(pipeline_name):
+    """
+    Returns a TaskDefinition that no-ops so that users can write
+    their own teardown tasks by replacing the teardown call block.
+
+    This task should be used at the end of a pipeline.
+
+    """
+    return TaskDefinition(
+        function_name="dag_teardown",
+        user_input_variables=[],
+        loaded_input_variables=[],
+        typing_blocks=[],
+        pre_call_block="",
+        call_block="pass",
+        post_call_block="",
+        return_vars=[],
+        pipeline_name=pipeline_name,
+    )
