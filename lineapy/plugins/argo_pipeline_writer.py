@@ -12,11 +12,10 @@ from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
 from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
-    TaskGraph,
     TaskSerializer,
     render_task_io_serialize_blocks,
 )
-from lineapy.plugins.taskgen import get_task_definitions
+from lineapy.plugins.taskgen import get_task_graph
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -100,7 +99,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
             task_breakdown = DagTaskBreakdown.TaskPerArtifact
 
         # Get task definitions based on dag_flavor
-        task_defs: Dict[str, TaskDefinition] = get_task_definitions(
+        task_defs, task_graph = get_task_graph(
             self.artifact_collection,
             pipeline_name=self.pipeline_name,
             task_breakdown=task_breakdown,
@@ -119,11 +118,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
             task_names[i + 1]: {task_names[i]}
             for i in range(len(task_names) - 1)
         }
-        task_graph = TaskGraph(
-            nodes=task_names,
-            mapping={tn: tn for tn in task_names},
-            edges=dependencies,
-        )
+
         task_dependencies = [
             f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges
         ]
