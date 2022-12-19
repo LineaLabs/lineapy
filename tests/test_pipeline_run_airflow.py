@@ -19,11 +19,40 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             "housing",
             "",
             ["y", "p value"],
-            "airflow_pipeline_housing_w_dependencies",
+            "airflow_pipeline_housing_artifacts_w_dependencies",
             {"p value": {"y"}},
-            {"retries": 0},
+            {
+                "retries": 0,
+                "dag_flavor": "PythonOperatorPerArtifact",
+            },
             [],
-            id="airflow_pipeline_housing_w_dependencies",
+            id="airflow_pipeline_housing_artifacts_w_dependencies",
+        ),
+        pytest.param(
+            "housing",
+            "",
+            ["y", "p value"],
+            "airflow_pipeline_housing_session_w_dependencies",
+            {"p value": {"y"}},
+            {
+                "retries": 0,
+                "dag_flavor": "PythonOperatorPerSession",
+            },
+            [],
+            id="airflow_pipeline_housing_session_w_dependencies",
+        ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "script_pipeline_a0_b0_dependencies",
+            {"a0": {"b0"}},
+            {
+                "retries": 0,
+                "dag_flavor": "PythonOperatorPerSession",
+            },
+            [],
+            id="airflow_two_session_w_dependencies",
         ),
     ],
 )
@@ -61,14 +90,16 @@ def test_run_airflow_dag(
     # Write out pipeline files
     artifact_def_list = [get_lineaartifactdef(art) for art in artifact_list]
     artifact_collection = ArtifactCollection(
-        linea_db, artifact_def_list, input_parameters=input_parameters
+        linea_db,
+        artifact_def_list,
+        input_parameters=input_parameters,
+        dependencies=dependencies,
     )
 
     # Construct pipeline writer
     pipeline_writer = PipelineWriterFactory.get(
         pipeline_type=PipelineType["AIRFLOW"],
         artifact_collection=artifact_collection,
-        dependencies=dependencies,
         pipeline_name=pipeline_name,
         output_dir=tmp_path,
         dag_config=dag_config,

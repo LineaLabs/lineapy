@@ -173,6 +173,17 @@ def check_requirements_txt(t1: str, t2: str):
         ),
         pytest.param(
             "simple",
+            "linear",
+            ["a", "linear_second", "linear_third"],
+            "AIRFLOW",
+            "airflow_hidden_session_dependencies",
+            {"linear_third": {"a"}},
+            {"dag_flavor": "PythonOperatorPerArtifact"},
+            [],
+            id="airflow_hidden_session_dependencies",
+        ),
+        pytest.param(
+            "simple",
             "",
             ["a", "b0"],
             "DVC",
@@ -314,14 +325,16 @@ def test_pipeline_generation(
 
     artifact_def_list = [get_lineaartifactdef(art) for art in artifact_list]
     artifact_collection = ArtifactCollection(
-        linea_db, artifact_def_list, input_parameters=input_parameters
+        linea_db,
+        artifact_def_list,
+        input_parameters=input_parameters,
+        dependencies=dependencies,
     )
 
     # Construct pipeline writer
     pipeline_writer = PipelineWriterFactory.get(
         pipeline_type=PipelineType[framework],
         artifact_collection=artifact_collection,
-        dependencies=dependencies,
         pipeline_name=pipeline_name,
         output_dir=tmp_path,
         dag_config=dag_config,
@@ -398,13 +411,16 @@ def test_pipeline_test_generation(
         execute(code2, snapshot=False)
 
     artifact_def_list = [get_lineaartifactdef(art) for art in artifact_list]
-    artifact_collection = ArtifactCollection(linea_db, artifact_def_list)
+    artifact_collection = ArtifactCollection(
+        linea_db,
+        artifact_def_list,
+        dependencies=dependencies,
+    )
 
     # Construct pipeline writer
     pipeline_writer = PipelineWriterFactory.get(
         pipeline_type=PipelineType["SCRIPT"],
         artifact_collection=artifact_collection,
-        dependencies=dependencies,
         pipeline_name=pipeline_name,
         output_dir=tmp_path,
         generate_test=True,

@@ -43,19 +43,8 @@ Getting TaskDefinitions
 
 Functions to get TaskDefinitions should be located in ``lineapy/plugins/taskgen.py``.
 
-For integration writer the most important function is ``get_task_definitions``. Given a task breakdown granularity, it will return a dictionary mapping function name to TaskDefinitions. Framework specific pipeline integrations should call this to get TaskDefinitions that can be rendered using framework specific syntax.
-
-Getting dependencies between TaskDefinitions 
----------------------------------------------
-
-
-Many data pipeline frameworks require some type of specification of the dependencies between the tasks so their schedulers can schedule tasks appropriately.
-
-
-Currently ``get_task_definitions`` returns TaskDefinitions in a dictionary which when iterated through returns tasks in a topological sorted order. This means if your framework supports setting runtime dependencies between tasks setting a linear execution order will guarantee correctness when executing the pipeline. See AirflowPipelineWriter ``_write_operators`` for an example of this.
-
-.. note::
-    Data dependencies is work in progress, and when completed should allow us to specify dependencies in a way to give integration writers parallelizable task graphs.
+For integration writer the most important function is ``get_task_graph``. Given a task breakdown granularity, it will return a dictionary mapping function name to TaskDefinitions along with a TaskGraph that specifies the dependencies needed to be added between tasks. 
+Framework specific pipeline integrations should call this to get TaskDefinitions that can be rendered using framework specific syntax.
 
 .. _pipeline_integration_checklist:
 
@@ -74,11 +63,11 @@ Writing a new integration checklist
 
     Suggested steps for ``_write_dag`` with examples in ``AirflowPipelineWriter``:
 
-    #.  `Get TaskDefinitions <https://github.com/LineaLabs/lineapy/blob/d3a0f533ee7a44a4002fbfb86faddd54429b84b5/lineapy/plugins/airflow_pipeline_writer.py#L159>`_
+    #.  `Get TaskGraph <https://github.com/LineaLabs/lineapy/blob/d3a0f533ee7a44a4002fbfb86faddd54429b84b5/lineapy/plugins/airflow_pipeline_writer.py#L159>`_
 
         .. code-block:: python
 
-            task_defs: Dict[str, TaskDefinition] = get_task_definitions( ... )
+            task_defs, task_graph = get_task_graph( ... )
 
     #.  `Handle dependencies between tasks <https://github.com/LineaLabs/lineapy/blob/d3a0f533ee7a44a4002fbfb86faddd54429b84b5/lineapy/plugins/airflow_pipeline_writer.py#L185>`_
         

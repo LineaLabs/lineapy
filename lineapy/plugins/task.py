@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
 from itertools import chain
 from typing import Dict, List, Set, Tuple
 
 import networkx as nx
+from networkx.exception import NetworkXUnfeasible
 
 from lineapy.plugins.utils import load_plugin_template, slugify
 
@@ -40,11 +43,9 @@ class TaskGraph(object):
     def __init__(
         self,
         nodes: List[str],
-        mapping: Dict[str, str],
         edges: TaskGraphEdge = {},
     ):
         self.graph = nx.DiGraph()
-        self.artifact_raw_to_safe_mapping = mapping
         self.graph.add_nodes_from(nodes)
         # parsing the other format to our tuple-based format
         # note that nesting is not allowed (enforced by the type signature)
@@ -57,10 +58,84 @@ class TaskGraph(object):
         )
         self.graph.add_edges_from(graph_edges)
 
-        nx.relabel_nodes(self.graph, mapping, copy=False)
+    def copy(
+        self,
+    ) -> TaskGraph:
+        copied_taskgraph = TaskGraph([])
+        copied_taskgraph.graph = self.graph.copy()
+        return copied_taskgraph
+
+    def remap_nodes(self, mapping: Dict[str, str]) -> TaskGraph:
+        remapped_taskgraph = TaskGraph([])
+        remapped_taskgraph.graph = nx.relabel_nodes(
+            self.graph, mapping, copy=True
+        )
+        return remapped_taskgraph
+
+    def insert_setup_task(self, setup_task_name: str):
+        """
+        insert_setup_task adds a setup task that will be run before all the original source tasks
+        """
+
+        self.graph.add_node(setup_task_name)
+
+        for old_source in self.source_nodes:
+            if not old_source == setup_task_name:
+                self.graph.add_edge(setup_task_name, old_source)
+
+    def insert_teardown_task(self, cleanup_task_name: str):
+        """
+        insert_cleanup_task adds a cleanup task that will be run after all the original sink tasks
+        """
+
+        self.graph.add_node(cleanup_task_name)
+
+        for old_sink in self.sink_nodes:
+            if not old_sink == cleanup_task_name:
+                self.graph.add_edge(old_sink, cleanup_task_name)
 
     def get_taskorder(self) -> List[str]:
-        return list(nx.topological_sort(self.graph))
+        try:
+            return list(nx.topological_sort(self.graph))
+        except NetworkXUnfeasible:
+            raise Exception(
+                "Current implementation of LineaPy demands it be able to linearly order different sessions, "
+                "which prohibits any circular dependencies between sessions. "
+                "Please check if your provided dependencies include such circular dependencies between sessions, "
+                "e.g., Artifact A (Session 1) -> Artifact B (Session 2) -> Artifact C (Session 1)."
+            )
+
+    def remove_self_loops(self):
+        self.graph.remove_edges_from(nx.selfloop_edges(self.graph))
+
+    @property
+    def sink_nodes(self):
+        return [
+            node
+            for node in self.graph.nodes
+            if self.graph.out_degree(node) == 0
+        ]
+
+    @property
+    def source_nodes(self):
+        return [
+            node
+            for node in self.graph.nodes
+            if self.graph.in_degree(node) == 0
+        ]
+
+
+def slugify_dependencies(dependencies: TaskGraphEdge) -> TaskGraphEdge:
+    # slugify dependencies and save to self.dependencies
+    slugified_dependencies: TaskGraphEdge = {}
+    for to_artname, from_artname_set in dependencies.items():
+        slugified_dependencies[slugify(to_artname)] = set()
+        for from_artname in from_artname_set:
+            slugified_dependencies[slugify(to_artname)].add(
+                slugify(from_artname)
+            )
+
+    return slugified_dependencies
 
 
 @dataclass
@@ -83,7 +158,9 @@ class TaskDefinition:
     user_input_variables: List[str]
     loaded_input_variables: List[str]
     typing_blocks: List[str]
+    pre_call_block: str
     call_block: str
+    post_call_block: str
     return_vars: List[str]
     pipeline_name: str
 
@@ -104,27 +181,6 @@ class TaskSerializer(Enum):
     LocalPickle = 1
     LocalPickleArgo = 2
     # TODO: lineapy.get and lineapy.save
-
-
-def extract_taskgraph(
-    artifacts: List[str], dependencies: TaskGraphEdge
-) -> Tuple[List[str], TaskGraph]:
-    """
-    extract_taskgraph returns a list of artifacts and the taskgraph corresponding to the provided dependencies
-    """
-    artifact_safe_names = []
-    for artifact_name in artifacts:
-        artifact_var = slugify(artifact_name)
-        if len(artifact_var) == 0:
-            raise ValueError(f"Invalid slice name {artifact_name}.")
-        artifact_safe_names.append(artifact_var)
-
-    task_graph = TaskGraph(
-        artifacts,
-        {slice: task for slice, task in zip(artifacts, artifact_safe_names)},
-        dependencies,
-    )
-    return (artifact_safe_names, task_graph)
 
 
 def render_task_io_serialize_blocks(

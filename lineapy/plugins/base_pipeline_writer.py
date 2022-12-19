@@ -11,7 +11,6 @@ from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.graph_reader.node_collection import UserCodeNodeCollection
 from lineapy.graph_reader.types import InputVariable
 from lineapy.plugins.session_writers import BaseSessionWriter
-from lineapy.plugins.task import TaskGraphEdge
 from lineapy.plugins.utils import (
     PIP_PACKAGE_NAMES,
     load_plugin_template,
@@ -36,7 +35,6 @@ class BasePipelineWriter:
     def __init__(
         self,
         artifact_collection: ArtifactCollection,
-        dependencies: TaskGraphEdge = {},
         keep_lineapy_save: bool = False,
         pipeline_name: str = "pipeline",
         output_dir: str = ".",
@@ -50,14 +48,12 @@ class BasePipelineWriter:
         self.output_dir = Path(output_dir).expanduser()
         self.generate_test = generate_test
         self.dag_config = dag_config or {}
-        self.dependencies = dependencies
         self.include_non_slice_as_comment = include_non_slice_as_comment
 
         self.session_artifacts_sorted = (
-            self.artifact_collection.sort_session_artifacts(
-                dependencies=dependencies
-            )
+            self.artifact_collection.sort_session_artifacts()
         )
+
         # Create output directory folder(s) if nonexistent
         self.output_dir.mkdir(exist_ok=True, parents=True)
 
