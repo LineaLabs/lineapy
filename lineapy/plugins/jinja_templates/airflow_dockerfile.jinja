@@ -9,7 +9,8 @@ COPY ./{{ pipeline_name }}_requirements.txt ./
 RUN pip install -r ./{{ pipeline_name }}_requirements.txt
 
 WORKDIR /opt/airflow/dags
-COPY . .
+COPY ./{{ pipeline_name }}_module.py ./
+COPY ./{{ pipeline_name }}_dag.py ./
 
 WORKDIR /opt/airflow
 

@@ -193,6 +193,28 @@ def check_requirements_txt(t1: str, t2: str):
             [],
             id="dvc_pipeline_a_b0_single_stage_all_sessions",
         ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "KUBEFLOW",
+            "kubeflow_pipeline_a0_b0_component_artifact",
+            {},
+            {"dag_flavor": "ComponentPerArtifact"},
+            [],
+            id="kubeflow_pipeline_a0_b0_component_artifact",
+        ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "KUBEFLOW",
+            "kubeflow_pipeline_a0_b0_component_session",
+            {},
+            {"dag_flavor": "ComponentPerSession"},
+            [],
+            id="kubeflow_pipeline_a0_b0_component_session",
+        ),
     ],
 )
 def test_pipeline_generation(
@@ -246,7 +268,7 @@ def test_pipeline_generation(
 
     # Get list of files to compare
     file_endings = ["_module.py", "_requirements.txt"]
-    if framework == "AIRFLOW":
+    if framework in ["AIRFLOW", "KUBEFLOW"]:
         file_endings.append("_dag.py")
 
     file_names = [pipeline_name + file_suffix for file_suffix in file_endings]

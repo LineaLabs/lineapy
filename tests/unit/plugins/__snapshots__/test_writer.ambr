@@ -1649,6 +1649,302 @@
       cmd: python dvc_pipeline_a_b0_singlestageallsessions_module.py
   '
 ---
+# name: test_pipeline_generation[kubeflow_pipeline_a0_b0_component_artifact]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_a0_b0_component_artifact].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_a0_b0_component_artifact].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_a0(variable_a0_path: kfp.components.OutputPath(str)):
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_component_artifact_module
+  
+      a0 = kubeflow_pipeline_a0_b0_component_artifact_module.get_a0()
+  
+      pickle.dump(a0, open(variable_a0_path, "wb"))
+  
+  
+  def task_b0(variable_b0_path: kfp.components.OutputPath(str)):
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_component_artifact_module
+  
+      b0 = kubeflow_pipeline_a0_b0_component_artifact_module.get_b0()
+  
+      pickle.dump(b0, open(variable_b0_path, "wb"))
+  
+  
+  def task_setup():
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_component_artifact_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_component_artifact_module
+  
+      pass
+  
+  
+  a0_component = create_component_from_func(
+      task_a0, base_image="kubeflow_pipeline_a0_b0_component_artifact:lineapy"
+  )
+  
+  b0_component = create_component_from_func(
+      task_b0, base_image="kubeflow_pipeline_a0_b0_component_artifact:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_a0_b0_component_artifact:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_a0_b0_component_artifact:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_a0_b0_component_artifact_dag",
+  )
+  def kubeflow_pipeline_a0_b0_component_artifact():
+  
+      task_a0 = a0_component()
+      task_b0 = b0_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_a0.after(task_setup)
+  
+      task_b0.after(task_setup)
+  
+      task_teardown.after(task_a0)
+  
+      task_teardown.after(task_b0)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_a0_b0_component_artifact, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_a0_b0_component_session]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_a0_b0_component_session].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_a0_b0_component_session].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_a0(variable_a0_path: kfp.components.OutputPath(str)):
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_component_session_module
+  
+      artifacts = (
+          kubeflow_pipeline_a0_b0_component_session_module.run_session_including_a0()
+      )
+  
+      pickle.dump(a0, open(variable_a0_path, "wb"))
+  
+  
+  def task_run_session_including_b0(variable_b0_path: kfp.components.OutputPath(str)):
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_component_session_module
+  
+      artifacts = (
+          kubeflow_pipeline_a0_b0_component_session_module.run_session_including_b0()
+      )
+  
+      pickle.dump(b0, open(variable_b0_path, "wb"))
+  
+  
+  def task_setup():
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_component_session_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_component_session_module
+  
+      pass
+  
+  
+  run_session_including_a0_component = create_component_from_func(
+      task_run_session_including_a0,
+      base_image="kubeflow_pipeline_a0_b0_component_session:lineapy",
+  )
+  
+  run_session_including_b0_component = create_component_from_func(
+      task_run_session_including_b0,
+      base_image="kubeflow_pipeline_a0_b0_component_session:lineapy",
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_a0_b0_component_session:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_a0_b0_component_session:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_a0_b0_component_session_dag",
+  )
+  def kubeflow_pipeline_a0_b0_component_session():
+  
+      task_run_session_including_a0 = run_session_including_a0_component()
+      task_run_session_including_b0 = run_session_including_b0_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_a0.after(task_setup)
+  
+      task_run_session_including_b0.after(task_setup)
+  
+      task_teardown.after(task_run_session_including_a0)
+  
+      task_teardown.after(task_run_session_including_b0)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_a0_b0_component_session, arguments=pipeline_arguments
+  )
+  
+  '
+---
 # name: test_pipeline_generation[script_pipeline_a0_b0]
   '
   def get_a0():
