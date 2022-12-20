@@ -510,6 +510,7 @@ class PipelineType(Enum):
     - DVC : the pipeline is wrapped as a DVC
     - ARGO: the pipeline is wrapped as an Argo workflow dag
     - KUBEFLOW : the pipeline is defined using Kubeflow's python SDK
+    - RAY : the pipeline is wrapped as a Ray DAG
     """
 
     SCRIPT = 1
@@ -517,6 +518,7 @@ class PipelineType(Enum):
     DVC = 3
     ARGO = 4
     KUBEFLOW = 5
+    RAY = 6
 
 
 FilePath = Union[str, Path]

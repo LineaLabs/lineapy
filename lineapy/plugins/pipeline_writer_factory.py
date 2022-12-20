@@ -4,6 +4,7 @@ from lineapy.plugins.argo_pipeline_writer import ARGOPipelineWriter
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
 from lineapy.plugins.dvc_pipeline_writer import DVCPipelineWriter
 from lineapy.plugins.kubeflow_pipeline_writer import KubeflowPipelineWriter
+from lineapy.plugins.ray_pipeline_writer import RayPipelineWriter
 
 
 class PipelineWriterFactory:
@@ -22,5 +23,7 @@ class PipelineWriterFactory:
             return ARGOPipelineWriter(*args, **kwargs)
         elif pipeline_type == PipelineType.KUBEFLOW:
             return KubeflowPipelineWriter(*args, **kwargs)
+        elif pipeline_type == PipelineType.RAY:
+            return RayPipelineWriter(*args, **kwargs)
         else:
             return BasePipelineWriter(*args, **kwargs)
