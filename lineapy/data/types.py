@@ -509,12 +509,14 @@ class PipelineType(Enum):
     - AIRFLOW : the pipeline is wrapped as an airflow dag
     - DVC : the pipeline is wrapped as a DVC
     - ARGO: the pipeline is wrapped as an Argo workflow dag
+    - KUBEFLOW : the pipeline is defined using Kubeflow's python SDK
     """
 
     SCRIPT = 1
     AIRFLOW = 2
     DVC = 3
     ARGO = 4
+    KUBEFLOW = 5
 
 
 FilePath = Union[str, Path]

@@ -10,6 +10,6 @@ COPY ./{{ pipeline_name }}_requirements.txt ./
 RUN pip install -r ./{{ pipeline_name }}_requirements.txt
 
 WORKDIR /home
-COPY . .
+COPY ./{{ pipeline_name }}_module.py ./
 
 ENTRYPOINT [ "python", "/home/{{ pipeline_name }}_module.py" ]
