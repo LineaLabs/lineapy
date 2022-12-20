@@ -1,3 +1,5 @@
+import shutil
+from pathlib import Path
 from unittest.mock import ANY, patch
 
 from lineapy.utils.analytics.event_schemas import SaveEvent
@@ -10,6 +12,7 @@ from lineapy.utils.analytics.usage_tracking import (
     _user_id,
     track,
 )
+from lineapy.utils.config import DEVICE_ID_FILE_NAME, options
 
 
 @patch("lineapy.utils.analytics.usage_tracking.requests.post")
@@ -93,3 +96,20 @@ def test_send_amplitude_event_adds_userdata(mock_post):
         headers=ANY,
         timeout=ANY,
     )
+
+
+def test_device_id_persisted():
+    devid_path = Path(options.safe_get("dev_id"))
+    # preserve the existing dev id so that we dont keep regenerating
+    # random device ids for this test machine
+    old_devid_path = devid_path.parent / (DEVICE_ID_FILE_NAME + ".old")
+    shutil.move(devid_path, old_devid_path)
+    try:
+        # clear the device id lru cache
+        _device_id.cache_clear()
+        new_dev_id = _device_id()
+        with open(devid_path, "r") as f:
+            assert f.read() == new_dev_id
+    finally:
+        # restore the old devid back after the test
+        shutil.move(old_devid_path, devid_path)
