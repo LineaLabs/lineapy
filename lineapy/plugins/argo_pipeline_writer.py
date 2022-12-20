@@ -3,7 +3,7 @@ import errno
 import logging
 import os
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from kubernetes import client, config
 from typing_extensions import TypedDict
@@ -15,7 +15,11 @@ from lineapy.plugins.task import (
     TaskSerializer,
     render_task_io_serialize_blocks,
 )
-from lineapy.plugins.taskgen import get_task_graph
+from lineapy.plugins.taskgen import (
+    get_noop_setup_task_definition,
+    get_noop_teardown_task_definition,
+    get_task_graph,
+)
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 from lineapy.utils.utils import prettify
@@ -25,10 +29,8 @@ configure_logging()
 
 
 class ARGODagFlavor(Enum):
-    PythonOperatorPerSession = 1
-    PythonOperatorPerArtifact = 2
-    # KubernetesPodOperatorPerSession = 3
-    # KubernetesPodOperatorPerArtifact = 4
+    StepPerSession = 1
+    StepPerArtifact = 2
 
 
 ARGODAGConfig = TypedDict(
@@ -61,24 +63,13 @@ class ARGOPipelineWriter(BasePipelineWriter):
         # Check if the given DAG flavor is a supported/valid one
         try:
             dag_flavor = ARGODagFlavor[
-                self.dag_config.get("dag_flavor", "PythonOperatorPerSession")
+                self.dag_config.get("dag_flavor", "StepPerSession")
             ]
         except KeyError:
             raise ValueError(f'"{dag_flavor}" is an invalid ARGO dag flavor.')
 
-        try:
-            task_serialization = TaskSerializer[
-                self.dag_config.get("task_serialization", "LocalPickleArgo")
-            ]
-        except KeyError:
-            raise ValueError(
-                f'"{task_serialization}" is an invalid type of task serialization scheme.'
-            )
-
         # Construct DAG text for the given flavor
-        full_code = self._write_operators(dag_flavor, task_serialization)
-
-        print(full_code)
+        full_code = self._write_operators(dag_flavor)
 
         # Write out file
         file = self.output_dir / f"{self.pipeline_name}_dag.py"
@@ -88,14 +79,13 @@ class ARGOPipelineWriter(BasePipelineWriter):
     def _write_operators(
         self,
         dag_flavor: ARGODagFlavor,
-        task_serialization: TaskSerializer,
     ) -> str:
 
         DAG_TEMPLATE = load_plugin_template("argo_dag.jinja")
 
-        if dag_flavor == ARGODagFlavor.PythonOperatorPerSession:
+        if dag_flavor == ARGODagFlavor.StepPerSession:
             task_breakdown = DagTaskBreakdown.TaskPerSession
-        elif dag_flavor == ARGODagFlavor.PythonOperatorPerArtifact:
+        elif dag_flavor == ARGODagFlavor.StepPerArtifact:
             task_breakdown = DagTaskBreakdown.TaskPerArtifact
 
         # Get task definitions based on dag_flavor
@@ -105,26 +95,26 @@ class ARGOPipelineWriter(BasePipelineWriter):
             task_breakdown=task_breakdown,
         )
 
+        task_defs["setup"] = get_noop_setup_task_definition(self.pipeline_name)
+        task_defs["teardown"] = get_noop_teardown_task_definition(
+            self.pipeline_name
+        )
+        # insert in order to task_names so that setup runs first and teardown runs last
+        task_graph.insert_setup_task("setup")
+        task_graph.insert_teardown_task("teardown")
+
         task_names = list(task_defs.keys())
 
         task_defs = {tn: task_defs[tn] for tn in task_names}
 
-        rendered_task_defs = self.get_rendered_task_definitions(
-            task_defs, task_serialization
-        )
+        (
+            rendered_task_defs,
+            task_loading_blocks,
+        ) = self.get_rendered_task_definitions(task_defs)
 
         # Handle dependencies
-        dependencies = {
-            task_names[i + 1]: {task_names[i]}
-            for i in range(len(task_names) - 1)
-        }
-
-        task_dependencies = [
-            f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges
-        ]
-
-        SERIALIZER_TEMPLATE = load_plugin_template(
-            "task/localpickle/task_local_pickle_ser_argo.jinja"
+        task_dependencies = reversed(
+            [f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges]
         )
 
         return_artifacts = []
@@ -160,6 +150,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
             dag_params=input_parameters_dict,
             task_definitions=rendered_task_defs,
             tasks=task_defs,
+            task_loading_blocks=task_loading_blocks,
             task_dependencies=task_dependencies,
             return_artifacts=return_artifacts,
         )
@@ -169,38 +160,58 @@ class ARGOPipelineWriter(BasePipelineWriter):
     def get_rendered_task_definitions(
         self,
         task_defs: Dict[str, TaskDefinition],
-        task_serialization: TaskSerializer,
-    ) -> List[str]:
+    ) -> Tuple[List[str], Dict[str, str]]:
         """
-        Returns rendered tasks for the pipeline tasks.
+        Returns rendered tasks for the pipeline tasks along with a dictionary to lookup
+        previous task outputs.
+        The returned dictionary is used by the DAG to connect the right input files to
+        output files for inter task communication.
+        This method originates from:
+        https://github.com/argoproj-labs/hera-workflows/blob/4efddc85bfce62455db758f4be47e3acc0342b4f/examples/k8s_sa.py#L12
         """
         TASK_FUNCTION_TEMPLATE = load_plugin_template(
-            "task/task_function_argo.jinja"
+            "task/task_function.jinja"
         )
         rendered_task_defs: List[str] = []
+        task_loading_blocks: Dict[str, str] = {}
+
         for task_name, task_def in task_defs.items():
             loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                task_def, task_serialization
+                task_def, TaskSerializer.ParametrizedPickle
             )
+
+            input_vars = task_def.user_input_variables
+
+            input_paths = [
+                f"variable_{loaded_input_variable}.pickle"
+                for loaded_input_variable in task_def.loaded_input_variables
+            ]
+
+            output_paths = [
+                f"variable_{return_variable}.pickle"
+                for return_variable in task_def.return_vars
+            ]
+
+            # this task will output variables to a file that other tasks can access
+
+            for return_variable in task_def.return_vars:
+                task_loading_blocks[return_variable] = return_variable
+
             task_def_rendered = TASK_FUNCTION_TEMPLATE.render(
-                imports=[
-                    "import " + x
-                    for x in [
-                        self.pipeline_name + "_module",
-                        "pickle",
-                        "pathlib",
-                    ]
-                ],
+                MODULE_NAME=self.pipeline_name + "_module",
                 function_name=task_name,
-                user_input_variables=", ".join(task_def.user_input_variables),
+                user_input_variables=", ".join(input_vars),
                 typing_blocks=task_def.typing_blocks,
                 loading_blocks=loading_blocks,
+                pre_call_block="",
                 call_block=task_def.call_block,
+                post_call_block="",
                 dumping_blocks=dumping_blocks,
+                include_imports_locally=True,
             )
             rendered_task_defs.append(task_def_rendered)
 
-        return rendered_task_defs
+        return rendered_task_defs, task_loading_blocks
 
     def get_sa_token(
         self,
@@ -208,6 +219,11 @@ class ARGOPipelineWriter(BasePipelineWriter):
         namespace: str = "argo",
         config_file: Optional[str] = None,
     ):
+        """
+        Configues the kubernetes client and returns the service account token for the
+        specified service account in the specified namespace.
+        This is used in the case the local kubeconfig exists.
+        """
         if config_file is not None and not os.path.isfile(config_file):
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), config_file

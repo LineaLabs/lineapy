@@ -18,18 +18,20 @@ with Workflow("{{ WORFLOW_NAME }}", service = ws) as w:
 {% for task_name, task_def in tasks.items() %}
     {{ task_name }} = Task("{{ task_name }}",
     task_{{ task_name }},
-    {% if task_def.user_input_variables|length > 0 %}
+    {% if dag_params|length > 0 and task_name not in ["setup", "teardown"] %}
     [
-        {"{{ 
-            task_def.user_input_variables|join('", "')
-        }}"}
+        {
+        {% for dag_param in dag_params %}
+            "{{ dag_param }}": "{{ dag_params[dag_param] }}",
+        {% endfor %}
+        }
     ],
     {% endif %}
     image = "{{ IMAGE }}",
     image_pull_policy = ImagePullPolicy.{{ IMAGE_PULL_POLICY }},
-    {% if return_artifacts|length > 0 %}
+    {% if task_def.return_vars|length > 0 and task_name not in ["setup", "teardown"] %}
     outputs = [
-        {% for output in return_artifacts %}
+        {% for output in task_def.return_vars %}
         Artifact(
             "{{ output }}",
             "/tmp/variable_{{output}}.pickle",
