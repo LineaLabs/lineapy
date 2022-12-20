@@ -1600,6 +1600,330 @@
   
   '
 ---
+# name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_artifact]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_artifact].1
+  ''
+---
+# name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_artifact].2
+  '
+  from hera import Artifact, ImagePullPolicy
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  
+  
+  def task_a0():
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      a0 = argo_pipeline_a0_b0_module.get_a0()
+  
+      pickle.dump(a0, open("/tmp/argo_pipeline_a0_b0/variable_a0.pickle", "wb"))
+  
+  
+  def task_b0():
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      b0 = argo_pipeline_a0_b0_module.get_b0()
+  
+      pickle.dump(b0, open("/tmp/argo_pipeline_a0_b0/variable_b0.pickle", "wb"))
+  
+  
+  def task_setup():
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token="None",
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-a0-b0", service=ws) as w:
+  
+      a0 = Task(
+          "a0",
+          task_a0,
+          image="argo_pipeline:latest",
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "a0",
+                  "/tmp/variable_a0.pickle",
+              ),
+          ],
+      )
+  
+      b0 = Task(
+          "b0",
+          task_b0,
+          image="argo_pipeline:latest",
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "b0",
+                  "/tmp/variable_b0.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image="argo_pipeline:latest",
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image="argo_pipeline:latest",
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> b0
+  
+      setup >> a0
+  
+      b0 >> teardown
+  
+      a0 >> teardown
+  
+  
+  w.create()
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_session]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_session].1
+  ''
+---
+# name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_session].2
+  '
+  from hera import Artifact, ImagePullPolicy
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  
+  
+  def task_run_session_including_a0():
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      artifacts = argo_pipeline_a0_b0_module.run_session_including_a0()
+  
+      a0 = artifacts["a0"]
+  
+      pickle.dump(a0, open("/tmp/argo_pipeline_a0_b0/variable_a0.pickle", "wb"))
+  
+  
+  def task_run_session_including_b0():
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      artifacts = argo_pipeline_a0_b0_module.run_session_including_b0()
+  
+      b0 = artifacts["b0"]
+  
+      pickle.dump(b0, open("/tmp/argo_pipeline_a0_b0/variable_b0.pickle", "wb"))
+  
+  
+  def task_setup():
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token="None",
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-a0-b0", service=ws) as w:
+  
+      run_session_including_a0 = Task(
+          "run_session_including_a0",
+          task_run_session_including_a0,
+          image="argo_pipeline:latest",
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "a0",
+                  "/tmp/variable_a0.pickle",
+              ),
+          ],
+      )
+  
+      run_session_including_b0 = Task(
+          "run_session_including_b0",
+          task_run_session_including_b0,
+          image="argo_pipeline:latest",
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "b0",
+                  "/tmp/variable_b0.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image="argo_pipeline:latest",
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image="argo_pipeline:latest",
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_b0
+  
+      setup >> run_session_including_a0
+  
+      run_session_including_b0 >> teardown
+  
+      run_session_including_a0 >> teardown
+  
+  
+  w.create()
+  
+  '
+---
 # name: test_pipeline_generation[dvc_pipeline_a_b0_single_stage_all_sessions]
   '
   def get_b0():
@@ -1863,6 +2187,8 @@
           kubeflow_pipeline_a0_b0_component_session_module.run_session_including_a0()
       )
   
+      a0 = artifacts["a0"]
+  
       pickle.dump(a0, open(variable_a0_path, "wb"))
   
   
@@ -1874,6 +2200,8 @@
       artifacts = (
           kubeflow_pipeline_a0_b0_component_session_module.run_session_including_b0()
       )
+  
+      b0 = artifacts["b0"]
   
       pickle.dump(b0, open(variable_b0_path, "wb"))
   
