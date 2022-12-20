@@ -20,7 +20,6 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             "ray_pipeline_housing_artifacts_w_dependencies",
             {"p value": {"y"}},
             {
-                "retries": 0,
                 "dag_flavor": "TaskPerArtifact",
             },
             [],
@@ -33,7 +32,6 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             "ray_pipeline_housing_session_w_dependencies",
             {"p value": {"y"}},
             {
-                "retries": 0,
                 "dag_flavor": "TaskPerSession",
             },
             [],
@@ -46,7 +44,6 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             "script_pipeline_a0_b0_dependencies",
             {"a0": {"b0"}},
             {
-                "retries": 0,
                 "dag_flavor": "TaskPerSession",
             },
             [],

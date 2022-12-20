@@ -177,6 +177,7 @@ class KubeflowPipelineWriter(BasePipelineWriter):
                 call_block=task_def.call_block,
                 post_call_block=task_def.post_call_block,
                 dumping_blocks=dumping_blocks,
+                return_block="",
                 include_imports_locally=True,
             )
             rendered_task_defs.append(task_def_rendered)
