@@ -117,11 +117,6 @@ class ARGOPipelineWriter(BasePipelineWriter):
             [f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges]
         )
 
-        return_artifacts = []
-        for _, taskdef in task_defs.items():
-            for return_variable in taskdef.return_vars:
-                return_artifacts.append(return_variable)
-
         # Get DAG parameters for an ARGO pipeline
         input_parameters_dict: Dict[str, Any] = {}
         for parameter_name, input_spec in super().get_pipeline_args().items():
@@ -152,7 +147,6 @@ class ARGOPipelineWriter(BasePipelineWriter):
             tasks=task_defs,
             task_loading_blocks=task_loading_blocks,
             task_dependencies=task_dependencies,
-            return_artifacts=return_artifacts,
         )
 
         return full_code
@@ -177,20 +171,10 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
         for task_name, task_def in task_defs.items():
             loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                task_def, TaskSerializer.ParametrizedPickle
+                task_def, TaskSerializer.LocalPickle
             )
 
             input_vars = task_def.user_input_variables
-
-            input_paths = [
-                f"variable_{loaded_input_variable}.pickle"
-                for loaded_input_variable in task_def.loaded_input_variables
-            ]
-
-            output_paths = [
-                f"variable_{return_variable}.pickle"
-                for return_variable in task_def.return_vars
-            ]
 
             # this task will output variables to a file that other tasks can access
 
@@ -205,7 +189,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
                 loading_blocks=loading_blocks,
                 pre_call_block="",
                 call_block=task_def.call_block,
-                post_call_block="",
+                post_call_block=task_def.post_call_block,
                 dumping_blocks=dumping_blocks,
                 include_imports_locally=True,
             )
