@@ -28,7 +28,7 @@ from lineapy.graph_reader.node_collection import (
     UserCodeNodeCollection,
 )
 from lineapy.graph_reader.program_slice import get_slice_graph
-from lineapy.graph_reader.utils import _is_import_node
+from lineapy.graph_reader.utils import is_import_node
 from lineapy.plugins.task import TaskGraph
 from lineapy.utils.logging_config import configure_logging
 
@@ -243,7 +243,7 @@ class SessionArtifacts:
         for node_id, variable_name in self.db.get_variables_for_session(
             self._session_id
         ):
-            if _is_import_node(self.graph, node_id):
+            if is_import_node(self.graph, node_id):
                 import_dict[node_id] = (
                     set([variable_name])
                     if node_id not in import_dict.keys()
@@ -610,10 +610,16 @@ class SessionArtifacts:
         # Nodecollection dependencies
         self.nodecollection_dependencies = TaskGraph(
             nodes=[nc.name for nc in self.usercode_nodecollections],
-            mapping={
-                nc.name: nc.safename for nc in self.usercode_nodecollections
-            },
             edges=dependencies,
+        )
+
+        self.nodecollection_dependencies = (
+            self.nodecollection_dependencies.remap_nodes(
+                mapping={
+                    nc.name: nc.safename
+                    for nc in self.usercode_nodecollections
+                },
+            )
         )
         # Graph with each nodecollection as node
         nc_graph = self.nodecollection_dependencies.graph
@@ -690,7 +696,7 @@ class SessionArtifacts:
         for node_id, node in import_nodes.items():
 
             # check if node is CallNode doing module import
-            if _is_import_node(self.graph, node_id):
+            if is_import_node(self.graph, node_id):
                 node = cast(CallNode, node)
 
                 # Check function has a single argument

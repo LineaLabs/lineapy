@@ -1,0 +1,34 @@
+import kfp
+from kfp.components import create_component_from_func
+
+{% for task_def in task_definitions %}
+{{ task_def }} 
+{% endfor %}
+
+{% for task_name, task_def in tasks.items() %}
+{{ task_name }}_component = create_component_from_func(task_{{ task_name }}, base_image="{{ DAG_NAME }}:lineapy")
+{% endfor %}
+
+client = kfp.Client(host="{{ HOST_URL }}")
+
+@kfp.dsl.pipeline(
+  name='{{ DAG_NAME }}_dag',
+)
+def {{ DAG_NAME }}({%- for var in dag_params.keys() %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %}):
+  {% for task_name, task_def in tasks.items() %}
+  task_{{ task_name }} = {{ task_name }}_component(
+    {%- for var in task_def.user_input_variables %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %}{%- if task_def.loaded_input_variables|length > 0 and task_def.user_input_variables|length > 0 %},{%- endif %}{%- for var in task_def.loaded_input_variables %}{{ task_loading_blocks[var] }}{{ ',' if not loop.last else '' }}{%- endfor %}
+  )
+  {%- endfor %}
+
+  {% if task_dependencies is not none %}
+  {% for TASK_DEPENDENCIES in task_dependencies %}
+  {{TASK_DEPENDENCIES}}
+  {% endfor %}
+  {%endif %}
+
+# Specify argument values for your pipeline run.
+pipeline_arguments = {{ dag_params }}
+
+# Create a pipeline run, using the client you initialized in a prior step.
+client.create_run_from_pipeline_func({{ DAG_NAME }}, arguments = pipeline_arguments)

@@ -27,6 +27,7 @@ INSTALL_REQUIRES = [
     "nbconvert",
     "requests",
     "alembic==1.8.0",
+    "cloudpickle",
 ]
 
 

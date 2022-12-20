@@ -8,14 +8,13 @@ from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
 from lineapy.plugins.task import (
     DagTaskBreakdown,
     TaskDefinition,
-    TaskGraph,
     TaskSerializer,
     render_task_io_serialize_blocks,
 )
 from lineapy.plugins.taskgen import (
     get_localpickle_setup_task_definition,
     get_localpickle_teardown_task_definition,
-    get_task_definitions,
+    get_task_graph,
 )
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -156,13 +155,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
             task_breakdown = DagTaskBreakdown.TaskPerArtifact
 
         # Get task definitions based on dag_flavor
-        task_defs: Dict[str, TaskDefinition] = get_task_definitions(
+        task_defs, task_graph = get_task_graph(
             self.artifact_collection,
             pipeline_name=self.pipeline_name,
             task_breakdown=task_breakdown,
         )
-
-        task_names = list(task_defs.keys())
 
         # Add setup and teardown if local pickle serializer is selected
         if task_serialization == TaskSerializer.LocalPickle:
@@ -173,28 +170,16 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 self.pipeline_name
             )
             # insert in order to task_names so that setup runs first and teardown runs last
-            task_names.insert(0, "setup")
-            task_names.append("teardown")
-
-        task_defs = {tn: task_defs[tn] for tn in task_names}
+            task_graph.insert_setup_task("setup")
+            task_graph.insert_teardown_task("teardown")
 
         rendered_task_defs = self.get_rendered_task_definitions(
             task_defs, task_serialization
         )
 
-        # Handle dependencies
-        dependencies = {
-            task_names[i + 1]: {task_names[i]}
-            for i in range(len(task_names) - 1)
-        }
-        task_graph = TaskGraph(
-            nodes=task_names,
-            mapping={tn: tn for tn in task_names},
-            edges=dependencies,
+        task_dependencies = sorted(
+            [f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges]
         )
-        task_dependencies = [
-            f"{task0} >> {task1}" for task0, task1 in task_graph.graph.edges
-        ]
 
         # Get DAG parameters for an Airflow pipeline
         input_parameters_dict: Dict[str, Any] = {}
@@ -241,9 +226,13 @@ class AirflowPipelineWriter(BasePipelineWriter):
                 user_input_variables=", ".join(task_def.user_input_variables),
                 typing_blocks=task_def.typing_blocks,
                 loading_blocks=loading_blocks,
+                pre_call_block=task_def.pre_call_block,
                 call_block=task_def.call_block,
+                post_call_block=task_def.post_call_block,
                 dumping_blocks=dumping_blocks,
+                include_imports_locally=False,
             )
             rendered_task_defs.append(task_def_rendered)
 
-        return rendered_task_defs
+        # sort here to maintain deterministic behavior of writing
+        return sorted(rendered_task_defs)

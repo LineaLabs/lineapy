@@ -57,6 +57,7 @@ minimal_requirement = [
     "fsspec",
     "pandas",
     "alembic==1.8.0",
+    "cloudpickle",
 ]
 
 graph_libs = [
@@ -105,6 +106,7 @@ doc_libs = [
     "nbsphinx",
     "sphinx_rtd_theme",
     "sphinx-autobuild",
+    "sphinx_design",
     "pandoc",
 ]
 

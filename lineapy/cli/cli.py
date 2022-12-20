@@ -469,13 +469,17 @@ def python_cli(
         art_slice_defs = [
             get_lineaartifactdef(art_entry=art_entry) for art_entry in slice
         ]
-        artifact_collection = ArtifactCollection(db, art_slice_defs)
         task_dependencies = ast.literal_eval(airflow_task_dependencies or "{}")
+
+        artifact_collection = ArtifactCollection(
+            db,
+            art_slice_defs,
+            dependencies=task_dependencies,
+        )
 
         # Construct pipeline writer
         pipeline_writer = AirflowPipelineWriter(
             artifact_collection=artifact_collection,
-            dependencies=task_dependencies,
             pipeline_name=export_slice_to_airflow_dag,
             output_dir=export_dir,
         )
