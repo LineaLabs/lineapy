@@ -174,4 +174,3 @@ def tag(tag_name: str):
     # lineapy.tag("demo_name") # change "demo_name" with actual demo name.
 
     track(TagEvent(tag_name))
-    track(TagEvent(tag_name))
