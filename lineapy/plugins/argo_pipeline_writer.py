@@ -1,11 +1,8 @@
-import base64
-import errno
 import logging
 import os
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
-from kubernetes import client, config
 from typing_extensions import TypedDict
 
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
@@ -39,10 +36,12 @@ ARGODAGConfig = TypedDict(
         "namespace": str,
         "host": str,
         "verify_ssl": str,
+        "image": str,
+        "image_pull_policy": str,
+        "token": str,
         "workflow_name": str,
         "service_account": int,
         "kube_config": str,
-        "task_serialization": str,
         "dag_flavor": str,
     },
     total=False,
@@ -135,13 +134,11 @@ class ARGOPipelineWriter(BasePipelineWriter):
             IMAGE_PULL_POLICY=self.dag_config.get(
                 "image_pull_policy", "Never"
             ),
-            TOKEN=self.get_sa_token(
-                self.dag_config.get("service_account", "argo"),
-                self.dag_config.get("namespace", "argo"),
-                self.dag_config.get(
-                    "kube_config", os.path.expanduser("~/.kube/config")
-                ),
+            SERVICE_ACCOUNT=self.dag_config.get("service_account", "argo"),
+            KUBE_CONFIG=self.dag_config.get(
+                "kube_config", os.path.expanduser("~/.kube/config")
             ),
+            TOKEN=self.dag_config.get("token", "None"),
             dag_params=input_parameters_dict,
             task_definitions=rendered_task_defs,
             tasks=task_defs,
@@ -187,53 +184,12 @@ class ARGOPipelineWriter(BasePipelineWriter):
                 user_input_variables=", ".join(input_vars),
                 typing_blocks=task_def.typing_blocks,
                 loading_blocks=loading_blocks,
-                pre_call_block="",
+                pre_call_block=task_def.pre_call_block or "",
                 call_block=task_def.call_block,
-                post_call_block=task_def.post_call_block,
+                post_call_block=task_def.post_call_block or "",
                 dumping_blocks=dumping_blocks,
                 include_imports_locally=True,
             )
             rendered_task_defs.append(task_def_rendered)
 
         return rendered_task_defs, task_loading_blocks
-
-    def get_sa_token(
-        self,
-        service_account: str,
-        namespace: str = "argo",
-        config_file: Optional[str] = None,
-    ):
-        """
-        Configues the kubernetes client and returns the service account token for the
-        specified service account in the specified namespace.
-        This is used in the case the local kubeconfig exists.
-        """
-        if config_file is not None and not os.path.isfile(config_file):
-            raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), config_file
-            )
-
-        config.load_kube_config(config_file=config_file)
-        v1 = client.CoreV1Api()
-        print(
-            "Getting service account token for service account: %s in namespace: %s"
-            % (service_account, namespace)
-        )
-
-        if (
-            v1.read_namespaced_service_account(
-                service_account, namespace
-            ).secrets
-            is None
-        ):
-            print("No secrets found in namespace: %s" % namespace)
-            return None
-
-        secret_name = (
-            v1.read_namespaced_service_account(service_account, namespace)
-            .secrets[0]
-            .name
-        )
-
-        sec = v1.read_namespaced_secret(secret_name, namespace).data
-        return base64.b64decode(sec["token"]).decode()

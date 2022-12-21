@@ -389,7 +389,9 @@ def to_pipeline(
         Names of artifacts to be included in the pipeline.
 
     framework: str
-        "AIRFLOW", "ARGO" or "SCRIPT". Defaults to "SCRIPT" if not specified.
+        Name of the framework to be used.
+        Defined by enum PipelineTypes in lineapy/data/types.py.
+        Defaults to "SCRIPT" if not specified.
 
     pipeline_name: Optional[str]
         Name of the pipeline.
