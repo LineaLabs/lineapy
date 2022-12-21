@@ -1656,10 +1656,43 @@
 ---
 # name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_artifact].2
   '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
   from hera import Artifact, ImagePullPolicy
   from hera.task import Task
   from hera.workflow import Workflow
   from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
   
   
   def task_a0():
@@ -1701,7 +1734,7 @@
   ws = WorkflowService(
       host="https://localhost:2746",
       verify_ssl=False,
-      token="None",
+      token=get_sa_token("argo", "argo", "/home/veloce/.kube/config"),
       namespace="argo",
   )
   
@@ -1715,7 +1748,7 @@
           outputs=[
               Artifact(
                   "a0",
-                  "/tmp/variable_a0.pickle",
+                  "/tmp/argo_pipeline_a0_b0_variable_a0.pickle",
               ),
           ],
       )
@@ -1728,7 +1761,7 @@
           outputs=[
               Artifact(
                   "b0",
-                  "/tmp/variable_b0.pickle",
+                  "/tmp/argo_pipeline_a0_b0_variable_b0.pickle",
               ),
           ],
       )
@@ -1816,10 +1849,43 @@
 ---
 # name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_session].2
   '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
   from hera import Artifact, ImagePullPolicy
   from hera.task import Task
   from hera.workflow import Workflow
   from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
   
   
   def task_run_session_including_a0():
@@ -1865,34 +1931,34 @@
   ws = WorkflowService(
       host="https://localhost:2746",
       verify_ssl=False,
-      token="None",
+      token=get_sa_token("argo", "argo", "/home/veloce/.kube/config"),
       namespace="argo",
   )
   
   with Workflow("argo-pipeline-a0-b0", service=ws) as w:
   
       run_session_including_a0 = Task(
-          "run_session_including_a0",
+          "run-session-including-a0",
           task_run_session_including_a0,
           image="argo_pipeline:latest",
           image_pull_policy=ImagePullPolicy.Never,
           outputs=[
               Artifact(
                   "a0",
-                  "/tmp/variable_a0.pickle",
+                  "/tmp/argo_pipeline_a0_b0_variable_a0.pickle",
               ),
           ],
       )
   
       run_session_including_b0 = Task(
-          "run_session_including_b0",
+          "run-session-including-b0",
           task_run_session_including_b0,
           image="argo_pipeline:latest",
           image_pull_policy=ImagePullPolicy.Never,
           outputs=[
               Artifact(
                   "b0",
-                  "/tmp/variable_b0.pickle",
+                  "/tmp/argo_pipeline_a0_b0_variable_b0.pickle",
               ),
           ],
       )
