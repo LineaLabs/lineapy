@@ -73,7 +73,7 @@ with Workflow("{{ WORFLOW_NAME }}", service = ws) as w:
         {% for output in task_def.return_vars %}
         Artifact(
             "{{ output }}",
-            "/tmp/{{- WORFLOW_NAME | replace("-", "_") -}}_variable_{{output}}.pickle",
+            "/tmp/{{- WORFLOW_NAME | replace("-", "_") -}}/variable_{{output}}.pickle",
         ),
         {% endfor %}
     ],

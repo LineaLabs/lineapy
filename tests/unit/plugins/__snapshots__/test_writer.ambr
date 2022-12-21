@@ -1748,7 +1748,7 @@
           outputs=[
               Artifact(
                   "a0",
-                  "/tmp/argo_pipeline_a0_b0_variable_a0.pickle",
+                  "/tmp/argo_pipeline_a0_b0/variable_a0.pickle",
               ),
           ],
       )
@@ -1761,7 +1761,7 @@
           outputs=[
               Artifact(
                   "b0",
-                  "/tmp/argo_pipeline_a0_b0_variable_b0.pickle",
+                  "/tmp/argo_pipeline_a0_b0/variable_b0.pickle",
               ),
           ],
       )
@@ -1945,7 +1945,7 @@
           outputs=[
               Artifact(
                   "a0",
-                  "/tmp/argo_pipeline_a0_b0_variable_a0.pickle",
+                  "/tmp/argo_pipeline_a0_b0/variable_a0.pickle",
               ),
           ],
       )
@@ -1958,7 +1958,7 @@
           outputs=[
               Artifact(
                   "b0",
-                  "/tmp/argo_pipeline_a0_b0_variable_b0.pickle",
+                  "/tmp/argo_pipeline_a0_b0/variable_b0.pickle",
               ),
           ],
       )
