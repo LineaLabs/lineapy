@@ -1,7 +1,7 @@
 def task_{{function_name}}({{user_input_variables}}):
 {%- if include_imports_locally %}
     import {{ MODULE_NAME }}
-    import pickle
+    import pickle, pathlib
 {%- endif %}
 {% for typing_block in typing_blocks %}
 {{typing_block | indent(4, True) }}
