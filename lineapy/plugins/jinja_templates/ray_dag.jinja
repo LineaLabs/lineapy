@@ -3,7 +3,7 @@ import ray
 import pickle
 import pathlib
 
-ray.init({{init_args}})
+ray.init(runtime_env = {"working_dir": "."})
 
 {% for task_def in task_definitions %}
 {{ task_def }} 

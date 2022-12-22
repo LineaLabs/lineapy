@@ -36,7 +36,7 @@ class RayPipelineWriter(BasePipelineWriter):
         # Check if the given DAG flavor is a supported/valid one
         try:
             dag_flavor = RayDagFlavor[
-                self.dag_config.get("dag_flavor", "ComponentPerArtifact")
+                self.dag_config.get("dag_flavor", "TaskPerArtifact")
             ]
         except KeyError:
             raise ValueError(f'"{dag_flavor}" is an invalid ray dag flavor.')

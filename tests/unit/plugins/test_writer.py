@@ -301,7 +301,7 @@ def test_pipeline_generation(
 
     # Get list of files to compare
     file_endings = ["_module.py", "_requirements.txt"]
-    if framework in ["AIRFLOW", "ARGO", "KUBEFLOW"]:
+    if framework in ["AIRFLOW", "ARGO", "KUBEFLOW", "RAY"]:
         file_endings.append("_dag.py")
 
     file_names = [pipeline_name + file_suffix for file_suffix in file_endings]
