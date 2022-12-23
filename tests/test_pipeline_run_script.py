@@ -105,7 +105,7 @@ def test_run_script_dag(
 
     # Construct pipeline writer
     pipeline_writer = PipelineWriterFactory.get(
-        pipeline_type=PipelineType["SCRIPT"],
+        pipeline_type=PipelineType.SCRIPT,
         artifact_collection=artifact_collection,
         pipeline_name=pipeline_name,
         output_dir=tmp_path,

@@ -91,7 +91,7 @@ def test_run_ray_dag(
 
     # Construct pipeline writer
     pipeline_writer = PipelineWriterFactory.get(
-        pipeline_type=PipelineType["RAY"],
+        pipeline_type=PipelineType.RAY,
         artifact_collection=artifact_collection,
         pipeline_name=pipeline_name,
         output_dir=tmp_path,
