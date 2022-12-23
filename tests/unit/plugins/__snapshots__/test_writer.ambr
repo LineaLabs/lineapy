@@ -71,8 +71,12 @@
   
       a, c = airflow_complex_h_perart_module.get_a_c_for_artifact_f_and_downstream()
   
+      if not pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").exists():
+          pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").mkdir()
       pickle.dump(a, open("/tmp/airflow_complex_h_perart/variable_a.pickle", "wb"))
   
+      if not pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").exists():
+          pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").mkdir()
       pickle.dump(c, open("/tmp/airflow_complex_h_perart/variable_c.pickle", "wb"))
   
   
@@ -82,6 +86,8 @@
   
       f = airflow_complex_h_perart_module.get_f(c)
   
+      if not pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").exists():
+          pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").mkdir()
       pickle.dump(f, open("/tmp/airflow_complex_h_perart/variable_f.pickle", "wb"))
   
   
@@ -93,6 +99,8 @@
   
       h = airflow_complex_h_perart_module.get_h(a, c)
   
+      if not pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").exists():
+          pathlib.Path("/tmp").joinpath("airflow_complex_h_perart").mkdir()
       pickle.dump(h, open("/tmp/airflow_complex_h_perart/variable_h.pickle", "wb"))
   
   
@@ -245,6 +253,12 @@
   
       a = airflow_hidden_session_dependencies_module.get_a()
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_hidden_session_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_hidden_session_dependencies").mkdir()
       pickle.dump(
           a, open("/tmp/airflow_hidden_session_dependencies/variable_a.pickle", "wb")
       )
@@ -256,6 +270,12 @@
           airflow_hidden_session_dependencies_module.get_linear_first_for_artifact_linear_second_and_downstream()
       )
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_hidden_session_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_hidden_session_dependencies").mkdir()
       pickle.dump(
           linear_first,
           open(
@@ -278,6 +298,12 @@
           linear_first
       )
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_hidden_session_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_hidden_session_dependencies").mkdir()
       pickle.dump(
           linear_second,
           open(
@@ -307,6 +333,12 @@
           linear_first, linear_second
       )
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_hidden_session_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_hidden_session_dependencies").mkdir()
       pickle.dump(
           linear_third,
           open(
@@ -461,6 +493,8 @@
   
       a0 = airflow_pipeline_a0_b0_module.get_a0()
   
+      if not pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0").exists():
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0").mkdir()
       pickle.dump(a0, open("/tmp/airflow_pipeline_a0_b0/variable_a0.pickle", "wb"))
   
   
@@ -468,6 +502,8 @@
   
       b0 = airflow_pipeline_a0_b0_module.get_b0()
   
+      if not pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0").exists():
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0").mkdir()
       pickle.dump(b0, open("/tmp/airflow_pipeline_a0_b0/variable_b0.pickle", "wb"))
   
   
@@ -600,6 +636,12 @@
   
       a0 = airflow_pipeline_a0_b0_dependencies_module.get_a0()
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_a0_b0_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0_dependencies").mkdir()
       pickle.dump(
           a0, open("/tmp/airflow_pipeline_a0_b0_dependencies/variable_a0.pickle", "wb")
       )
@@ -609,6 +651,12 @@
   
       b0 = airflow_pipeline_a0_b0_dependencies_module.get_b0()
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_a0_b0_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a0_b0_dependencies").mkdir()
       pickle.dump(
           b0, open("/tmp/airflow_pipeline_a0_b0_dependencies/variable_b0.pickle", "wb")
       )
@@ -747,6 +795,8 @@
   
       a = airflow_pipeline_a_b0_inputpar_module.get_a(b0)
   
+      if not pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar").exists():
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar").mkdir()
       pickle.dump(a, open("/tmp/airflow_pipeline_a_b0_inputpar/variable_a.pickle", "wb"))
   
   
@@ -756,6 +806,8 @@
   
       b0 = airflow_pipeline_a_b0_inputpar_module.get_b0(b0)
   
+      if not pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar").exists():
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar").mkdir()
       pickle.dump(
           b0, open("/tmp/airflow_pipeline_a_b0_inputpar/variable_b0.pickle", "wb")
       )
@@ -895,10 +947,22 @@
       b0 = artifacts["b0"]
       a = artifacts["a"]
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_a_b0_inputpar_session")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar_session").mkdir()
       pickle.dump(
           b0, open("/tmp/airflow_pipeline_a_b0_inputpar_session/variable_b0.pickle", "wb")
       )
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_a_b0_inputpar_session")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_a_b0_inputpar_session").mkdir()
       pickle.dump(
           a, open("/tmp/airflow_pipeline_a_b0_inputpar_session/variable_a.pickle", "wb")
       )
@@ -1043,6 +1107,8 @@
           airflow_pipeline_housing_multiple_module.get_assets_for_artifact_y_and_downstream()
       )
   
+      if not pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple").exists():
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple").mkdir()
       pickle.dump(
           assets,
           open("/tmp/airflow_pipeline_housing_multiple/variable_assets.pickle", "wb"),
@@ -1061,6 +1127,8 @@
   
       p = airflow_pipeline_housing_multiple_module.get_p_value(assets, y)
   
+      if not pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple").exists():
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple").mkdir()
       pickle.dump(
           p, open("/tmp/airflow_pipeline_housing_multiple/variable_p.pickle", "wb")
       )
@@ -1092,6 +1160,8 @@
   
       y = airflow_pipeline_housing_multiple_module.get_y(assets)
   
+      if not pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple").exists():
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_multiple").mkdir()
       pickle.dump(
           y, open("/tmp/airflow_pipeline_housing_multiple/variable_y.pickle", "wb")
       )
@@ -1217,6 +1287,8 @@
   
       p = airflow_pipeline_housing_simple_module.get_p_value()
   
+      if not pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_simple").exists():
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_simple").mkdir()
       pickle.dump(p, open("/tmp/airflow_pipeline_housing_simple/variable_p.pickle", "wb"))
   
   
@@ -1355,6 +1427,12 @@
           airflow_pipeline_housing_w_dependencies_module.get_assets_for_artifact_y_and_downstream()
       )
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_housing_w_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_w_dependencies").mkdir()
       pickle.dump(
           assets,
           open(
@@ -1377,6 +1455,12 @@
   
       p = airflow_pipeline_housing_w_dependencies_module.get_p_value(assets, y)
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_housing_w_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_w_dependencies").mkdir()
       pickle.dump(
           p, open("/tmp/airflow_pipeline_housing_w_dependencies/variable_p.pickle", "wb")
       )
@@ -1412,6 +1496,12 @@
   
       y = airflow_pipeline_housing_w_dependencies_module.get_y(assets)
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_housing_w_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_housing_w_dependencies").mkdir()
       pickle.dump(
           y, open("/tmp/airflow_pipeline_housing_w_dependencies/variable_y.pickle", "wb")
       )
@@ -1538,6 +1628,12 @@
   
       pn = airflow_pipeline_two_input_parameter_module.get_pn(n, p)
   
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("airflow_pipeline_two_input_parameter")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("airflow_pipeline_two_input_parameter").mkdir()
       pickle.dump(
           pn, open("/tmp/airflow_pipeline_two_input_parameter/variable_pn.pickle", "wb")
       )
@@ -1597,6 +1693,209 @@
       pn >> teardown
   
       setup >> pn
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_session]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_session].1
+  ''
+---
+# name: test_pipeline_generation[argo_pipeline_a0_b0_step_per_session].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_a0():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      artifacts = argo_pipeline_a0_b0_module.run_session_including_a0()
+  
+      a0 = artifacts["a0"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0").mkdir()
+      pickle.dump(a0, open("/tmp/argo_pipeline_a0_b0/variable_a0.pickle", "wb"))
+  
+  
+  def task_run_session_including_b0():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      artifacts = argo_pipeline_a0_b0_module.run_session_including_b0()
+  
+      b0 = artifacts["b0"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0").mkdir()
+      pickle.dump(b0, open("/tmp/argo_pipeline_a0_b0/variable_b0.pickle", "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", "/home/runner/.kube/config"),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-a0-b0", service=ws) as w:
+  
+      set_global_task_image("argo_pipeline:latest")
+  
+      run_session_including_a0 = Task(
+          "run-session-including-a0",
+          task_run_session_including_a0,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "a0",
+                  "/tmp/argo_pipeline_a0_b0/variable_a0.pickle",
+              ),
+          ],
+      )
+  
+      run_session_including_b0 = Task(
+          "run-session-including-b0",
+          task_run_session_including_b0,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "b0",
+                  "/tmp/argo_pipeline_a0_b0/variable_b0.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_b0
+  
+      setup >> run_session_including_a0
+  
+      run_session_including_b0 >> teardown
+  
+      run_session_including_a0 >> teardown
+  
+  
+  w.create()
   
   '
 ---
@@ -1710,6 +2009,7 @@
   
   
   def task_a0(variable_a0_path: kfp.components.OutputPath(str)):
+      import pathlib
       import pickle
   
       import kubeflow_pipeline_a0_b0_component_artifact_module
@@ -1720,6 +2020,7 @@
   
   
   def task_b0(variable_b0_path: kfp.components.OutputPath(str)):
+      import pathlib
       import pickle
   
       import kubeflow_pipeline_a0_b0_component_artifact_module
@@ -1730,6 +2031,7 @@
   
   
   def task_setup():
+      import pathlib
       import pickle
   
       import kubeflow_pipeline_a0_b0_component_artifact_module
@@ -1738,6 +2040,7 @@
   
   
   def task_teardown():
+      import pathlib
       import pickle
   
       import kubeflow_pipeline_a0_b0_component_artifact_module
@@ -1855,6 +2158,7 @@
   
   
   def task_run_session_including_a0(variable_a0_path: kfp.components.OutputPath(str)):
+      import pathlib
       import pickle
   
       import kubeflow_pipeline_a0_b0_component_session_module
@@ -1863,10 +2167,13 @@
           kubeflow_pipeline_a0_b0_component_session_module.run_session_including_a0()
       )
   
+      a0 = artifacts["a0"]
+  
       pickle.dump(a0, open(variable_a0_path, "wb"))
   
   
   def task_run_session_including_b0(variable_b0_path: kfp.components.OutputPath(str)):
+      import pathlib
       import pickle
   
       import kubeflow_pipeline_a0_b0_component_session_module
@@ -1875,10 +2182,13 @@
           kubeflow_pipeline_a0_b0_component_session_module.run_session_including_b0()
       )
   
+      b0 = artifacts["b0"]
+  
       pickle.dump(b0, open(variable_b0_path, "wb"))
   
   
   def task_setup():
+      import pathlib
       import pickle
   
       import kubeflow_pipeline_a0_b0_component_session_module
@@ -1887,6 +2197,7 @@
   
   
   def task_teardown():
+      import pathlib
       import pickle
   
       import kubeflow_pipeline_a0_b0_component_session_module

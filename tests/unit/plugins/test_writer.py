@@ -197,6 +197,17 @@ def check_requirements_txt(t1: str, t2: str):
             "simple",
             "complex",
             ["a0", "b0"],
+            "ARGO",
+            "argo_pipeline_a0_b0",
+            {},
+            {"dag_flavor": "StepPerSession"},
+            [],
+            id="argo_pipeline_a0_b0_step_per_session",
+        ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
             "KUBEFLOW",
             "kubeflow_pipeline_a0_b0_component_artifact",
             {},
@@ -268,7 +279,7 @@ def test_pipeline_generation(
 
     # Get list of files to compare
     file_endings = ["_module.py", "_requirements.txt"]
-    if framework in ["AIRFLOW", "KUBEFLOW"]:
+    if framework in ["AIRFLOW", "ARGO", "KUBEFLOW"]:
         file_endings.append("_dag.py")
 
     file_names = [pipeline_name + file_suffix for file_suffix in file_endings]

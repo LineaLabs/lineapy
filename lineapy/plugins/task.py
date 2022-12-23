@@ -212,7 +212,6 @@ def render_task_io_serialize_blocks(
         DESERIALIZER_TEMPLATE = load_plugin_template(
             "task/parameterizedpickle/task_parameterized_deser.jinja"
         )
-
     # Add more renderable task serializers here
 
     for loaded_input_variable in taskdef.loaded_input_variables:
