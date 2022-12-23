@@ -1842,7 +1842,7 @@
   ws = WorkflowService(
       host="https://localhost:2746",
       verify_ssl=False,
-      token=get_sa_token("argo", "argo", "/Users/andrewcui/.kube/config"),
+      token=get_sa_token("argo", "argo", "/home/runner/.kube/config"),
       namespace="argo",
   )
   
@@ -2167,6 +2167,8 @@
           kubeflow_pipeline_a0_b0_component_session_module.run_session_including_a0()
       )
   
+      a0 = artifacts["a0"]
+  
       pickle.dump(a0, open(variable_a0_path, "wb"))
   
   
@@ -2179,6 +2181,8 @@
       artifacts = (
           kubeflow_pipeline_a0_b0_component_session_module.run_session_including_b0()
       )
+  
+      b0 = artifacts["b0"]
   
       pickle.dump(b0, open(variable_b0_path, "wb"))
   
