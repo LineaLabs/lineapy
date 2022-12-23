@@ -2043,7 +2043,7 @@
   ws = WorkflowService(
       host="https://localhost:2746",
       verify_ssl=False,
-      token=get_sa_token("argo", "argo", "/home/veloce/.kube/config"),
+      token=get_sa_token("argo", "argo", "/home/runner/.kube/config"),
       namespace="argo",
   )
   
