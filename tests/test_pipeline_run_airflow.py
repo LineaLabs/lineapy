@@ -72,8 +72,6 @@ def test_run_airflow_dag(
     """
     Verifies that the "--airflow" CLI command produces a working Airflow DAG
     by running the DAG locally.
-
-    Depends on snapshot being available from previous test.
     """
 
     code1 = Path(

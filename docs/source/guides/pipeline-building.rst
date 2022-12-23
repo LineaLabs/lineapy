@@ -43,11 +43,11 @@ where
 
 * ``framework`` is the name of orchestration framework to use
 
-    * LineaPy currently supports ``"AIRFLOW"`` and ``"SCRIPT"``
-
-    * If ``"AIRFLOW"``, it will generate files that can run Airflow DAGs
+    * LineaPy currently supports ``"AIRFLOW"``, ``"ARGO"``, ``"KUBEFLOW"``, ``"RAY"``, and ``"SCRIPT"``
 
     * If ``"SCRIPT"``, it will generate files that can run the pipeline as a Python script
+
+    * Otherwise files corresponding to the orchestration framework selected will be generated
 
 .. note::
 

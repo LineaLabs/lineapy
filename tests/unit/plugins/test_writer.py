@@ -226,6 +226,28 @@ def check_requirements_txt(t1: str, t2: str):
             [],
             id="kubeflow_pipeline_a0_b0_component_session",
         ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "RAY",
+            "ray_pipeline_a0_b0_task_artifact",
+            {},
+            {"dag_flavor": "TaskPerArtifact"},
+            [],
+            id="ray_pipeline_a0_b0_task_artifact",
+        ),
+        pytest.param(
+            "simple",
+            "complex",
+            ["a0", "b0"],
+            "RAY",
+            "ray_pipeline_a0_b0_task_session",
+            {},
+            {"dag_flavor": "TaskPerSession"},
+            [],
+            id="ray_pipeline_a0_b0_task_session",
+        ),
     ],
 )
 def test_pipeline_generation(
@@ -279,7 +301,7 @@ def test_pipeline_generation(
 
     # Get list of files to compare
     file_endings = ["_module.py", "_requirements.txt"]
-    if framework in ["AIRFLOW", "ARGO", "KUBEFLOW"]:
+    if framework in ["AIRFLOW", "ARGO", "KUBEFLOW", "RAY"]:
         file_endings.append("_dag.py")
 
     file_names = [pipeline_name + file_suffix for file_suffix in file_endings]
@@ -353,7 +375,7 @@ def test_pipeline_test_generation(
 
     # Construct pipeline writer
     pipeline_writer = PipelineWriterFactory.get(
-        pipeline_type=PipelineType["SCRIPT"],
+        pipeline_type=PipelineType.SCRIPT,
         artifact_collection=artifact_collection,
         pipeline_name=pipeline_name,
         output_dir=tmp_path,

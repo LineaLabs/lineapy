@@ -1,5 +1,3 @@
-import os
-import subprocess
 from pathlib import Path
 
 import pytest
@@ -10,18 +8,34 @@ from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
 
 
+@pytest.mark.ray
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "input_script1, input_script2, artifact_list, pipeline_name, dependencies, dag_config, input_parameters",
     [
         pytest.param(
-            "simple",
-            "complex",
-            ["a0", "b0"],
-            "script_pipeline_a0_b0",
-            {},
-            {},
+            "housing",
+            "",
+            ["y", "p value"],
+            "ray_pipeline_housing_artifacts_w_dependencies",
+            {"p value": {"y"}},
+            {
+                "dag_flavor": "TaskPerArtifact",
+            },
             [],
-            id="script_pipeline_a0_b0",
+            id="ray_pipeline_housing_artifacts_w_dependencies",
+        ),
+        pytest.param(
+            "housing",
+            "",
+            ["y", "p value"],
+            "ray_pipeline_housing_session_w_dependencies",
+            {"p value": {"y"}},
+            {
+                "dag_flavor": "TaskPerSession",
+            },
+            [],
+            id="ray_pipeline_housing_session_w_dependencies",
         ),
         pytest.param(
             "simple",
@@ -29,44 +43,15 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             ["a0", "b0"],
             "script_pipeline_a0_b0_dependencies",
             {"a0": {"b0"}},
-            {},
+            {
+                "dag_flavor": "TaskPerSession",
+            },
             [],
-            id="script_pipeline_a0_b0_dependencies",
-        ),
-        pytest.param(
-            "housing",
-            "",
-            ["p value"],
-            "script_pipeline_housing_simple",
-            {},
-            {},
-            [],
-            id="script_pipeline_housing_simple",
-        ),
-        pytest.param(
-            "housing",
-            "",
-            ["y", "p value"],
-            "script_pipeline_housing_multiple",
-            {},
-            {},
-            [],
-            id="script_pipeline_housing_multiple",
-        ),
-        pytest.param(
-            "housing",
-            "",
-            ["y", "p value"],
-            "script_pipeline_housing_w_dependencies",
-            {"p value": {"y"}},
-            {},
-            [],
-            id="script_pipeline_housing_w_dependencies",
+            id="ray_two_session_w_dependencies",
         ),
     ],
 )
-@pytest.mark.slow
-def test_run_script_dag(
+def test_run_ray_dag(
     virtualenv,
     tmp_path,
     linea_db,
@@ -80,7 +65,8 @@ def test_run_script_dag(
     input_parameters,
 ):
     """
-    Verifies that the DAGs we produce do run successfully.
+    Verifies that the ray flavored pipeline APIs produce a working ray DAG
+    by running the DAG locally.
     """
 
     code1 = Path(
@@ -105,7 +91,7 @@ def test_run_script_dag(
 
     # Construct pipeline writer
     pipeline_writer = PipelineWriterFactory.get(
-        pipeline_type=PipelineType.SCRIPT,
+        pipeline_type=PipelineType.RAY,
         artifact_collection=artifact_collection,
         pipeline_name=pipeline_name,
         output_dir=tmp_path,
@@ -113,6 +99,17 @@ def test_run_script_dag(
     )
     pipeline_writer.write_pipeline_files()
 
-    os.chdir(str(tmp_path))
+    # Run ray in new virtual env so we don't end up with version conflicts
+    # with lineapy deps
+    # https://github.com/man-group/pytest-plugins/tree/master/pytest-virtualenv#installing-packages
+    virtualenv.run(
+        "pip install -r ray-requirements.txt", capture=False, cd="."
+    )
 
-    subprocess.check_call(["python", f"{pipeline_name}_module.py"])
+    dag_path = Path(tmp_path, f"{pipeline_name}_dag.py")
+
+    # This run command will error if the dag is not runnable by ray
+    virtualenv.run(
+        f"python {dag_path}",
+        capture=True,
+    )
