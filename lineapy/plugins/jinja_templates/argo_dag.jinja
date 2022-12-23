@@ -1,4 +1,4 @@
-from hera import Artifact, ImagePullPolicy
+from hera import Artifact, ImagePullPolicy, set_global_task_image
 from hera.task import Task
 from hera.workflow import Workflow
 from hera.workflow_service import WorkflowService
@@ -54,19 +54,21 @@ ws = WorkflowService(
 )
 
 with Workflow("{{ WORFLOW_NAME }}", service = ws) as w:
+
+    set_global_task_image("{{ IMAGE }}")
+
 {% for task_name, task_def in tasks.items() %}
     {{ task_name }} = Task("{{- task_name | replace("_", "-") -}}",
     task_{{ task_name }},
-    {% if dag_params|length > 0 and task_name not in ["setup", "teardown"] %}
+    {% if task_def.user_input_variables|length > 0 and task_name not in ["setup", "teardown"] %}
     [
         {
-        {% for dag_param in dag_params %}
-            "{{ dag_param }}": "{{ dag_params[dag_param] }}",
+        {% for var in task_def.user_input_variables %}
+            "{{ var }}": "{{ dag_params[var] }}",
         {% endfor %}
         }
     ],
     {% endif %}
-    image = "{{ IMAGE }}",
     image_pull_policy = ImagePullPolicy.{{ IMAGE_PULL_POLICY }},
     {% if task_def.return_vars|length > 0 and task_name not in ["setup", "teardown"] %}
     outputs = [

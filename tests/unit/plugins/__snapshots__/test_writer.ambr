@@ -1958,7 +1958,7 @@
   import os
   from typing import Optional
   
-  from hera import Artifact, ImagePullPolicy
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
   from hera.task import Task
   from hera.workflow import Workflow
   from hera.workflow_service import WorkflowService
@@ -2049,10 +2049,11 @@
   
   with Workflow("argo-pipeline-a0-b0", service=ws) as w:
   
+      set_global_task_image("argo_pipeline:latest")
+  
       run_session_including_a0 = Task(
           "run-session-including-a0",
           task_run_session_including_a0,
-          image="argo_pipeline:latest",
           image_pull_policy=ImagePullPolicy.Never,
           outputs=[
               Artifact(
@@ -2065,7 +2066,6 @@
       run_session_including_b0 = Task(
           "run-session-including-b0",
           task_run_session_including_b0,
-          image="argo_pipeline:latest",
           image_pull_policy=ImagePullPolicy.Never,
           outputs=[
               Artifact(
@@ -2078,14 +2078,12 @@
       setup = Task(
           "setup",
           task_setup,
-          image="argo_pipeline:latest",
           image_pull_policy=ImagePullPolicy.Never,
       )
   
       teardown = Task(
           "teardown",
           task_teardown,
-          image="argo_pipeline:latest",
           image_pull_policy=ImagePullPolicy.Never,
       )
   

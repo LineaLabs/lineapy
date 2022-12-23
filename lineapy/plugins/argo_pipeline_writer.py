@@ -27,7 +27,6 @@ configure_logging()
 
 class ARGODagFlavor(Enum):
     StepPerSession = 1
-    StepPerArtifact = 2
 
 
 ARGODAGConfig = TypedDict(
@@ -84,8 +83,6 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
         if dag_flavor == ARGODagFlavor.StepPerSession:
             task_breakdown = DagTaskBreakdown.TaskPerSession
-        elif dag_flavor == ARGODagFlavor.StepPerArtifact:
-            task_breakdown = DagTaskBreakdown.TaskPerArtifact
 
         # Get task definitions based on dag_flavor
         task_defs, task_graph = get_task_graph(
