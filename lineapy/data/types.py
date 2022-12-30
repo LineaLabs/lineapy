@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, NewType, Optional, Union
 
 from pydantic import BaseModel, Field
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
 
 
 class SessionType(Enum):
@@ -538,7 +538,7 @@ class LineaArtifactDef(TypedDict):
     """
 
     artifact_name: str
-    version: NotRequired[Optional[int]]
+    version: Optional[int]
 
 
 @dataclass
@@ -581,4 +581,4 @@ class ArtifactInfo(TypedDict):
     """
 
     lineapy: LineaArtifactInfo
-    mlflow: NotRequired[MLflowArtifactInfo]
+    mlflow: MLflowArtifactInfo
