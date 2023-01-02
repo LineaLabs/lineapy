@@ -318,10 +318,11 @@ def test_pipeline_generation(
     file_names = [pipeline_name + file_suffix for file_suffix in file_endings]
     if framework == "DVC":
         file_names.append("dvc.yaml")
-        if pipeline_name == "dvc_pipeline_a_b0_stageperartifact":
-            file_names = file_names + [
-                "task_" + art + ".py" for art in artifact_list
-            ]
+
+        # TODO fix coverage for tests of file per task frameworks to include non artifact tasks
+        file_names = file_names + [
+            "task_" + art + ".py" for art in artifact_list
+        ]
 
     # Compare generated vs. expected
     for expected_file_name in file_names:
