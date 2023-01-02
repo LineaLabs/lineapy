@@ -1,0 +1,62 @@
+- module: dask.dataframe
+  annotations:
+    - criteria:
+        function_names:
+          - read_sql
+          - read_sql_query
+          - read_sql_table
+      side_effects:
+        - dependency:
+            external_state: db
+    - criteria:
+        function_names:
+          - read_csv
+          - read_table
+          - read_fwf
+          - read_parquet
+          - read_hdf
+          - read_json
+          - read_orc
+      side_effects:
+        - dependency:
+            external_state: file_system
+- module: dask.dataframe
+  annotations:
+    - criteria:
+        class_method_names:
+          - to_sql
+        class_instance: DataFrame
+      side_effects:
+        - mutated_value:
+            external_state: db
+    - criteria:
+        class_method_names:
+          - to_csv
+          - to_json
+          - to_html
+          - to_hdf
+          - to_parquet
+        class_instance: DataFrame
+      side_effects:
+        - mutated_value:
+            external_state: file_system
+
+- module: dask.dataframe
+  annotations:
+    - criteria:
+        class_instance: DataFrame
+        class_method_names:
+          - compute
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF
+        - views:
+            - self_ref: SELF_REF
+            - result: RESULT
+    - criteria:
+        class_instance: DataFrame
+        class_method_names:
+          - pop
+      side_effects:
+        - mutated_value:
+            self_ref: SELF_REF

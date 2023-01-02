@@ -1,13 +1,13 @@
 import logging
 from enum import Enum
-from typing import Dict, List
+from typing import List
 
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
-from lineapy.plugins.task import DagTaskBreakdown, TaskDefinition
-from lineapy.plugins.taskgen import get_task_definitions
+from lineapy.plugins.task import DagTaskBreakdown
+from lineapy.plugins.taskgen import get_task_graph
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
 
@@ -91,7 +91,7 @@ class DVCPipelineWriter(BasePipelineWriter):
 
         DAG_TEMPLATE = load_plugin_template("dvc_dag_StagePerArtifact.jinja")
 
-        task_defs: Dict[str, TaskDefinition] = get_task_definitions(
+        task_defs, task_graph = get_task_graph(
             self.artifact_collection,
             pipeline_name=self.pipeline_name,
             task_breakdown=DagTaskBreakdown.TaskPerArtifact,

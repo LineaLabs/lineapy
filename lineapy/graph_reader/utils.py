@@ -1,8 +1,13 @@
+from itertools import groupby
+from typing import Iterable, List, Tuple
+
+from lineapy.api.models.linea_artifact import LineaArtifact, LineaArtifactDef
 from lineapy.data.graph import Graph
 from lineapy.data.types import CallNode, LineaID, LookupNode
+from lineapy.db.db import RelationalLineaDB
 
 
-def _is_import_node(graph: Graph, node_id: LineaID) -> bool:
+def is_import_node(graph: Graph, node_id: LineaID) -> bool:
     """
     Given node_id, check whether it is a CallNode doing module import
     """
@@ -15,3 +20,45 @@ def _is_import_node(graph: Graph, node_id: LineaID) -> bool:
                 lookup_node_name = lookup_node.__dict__.get("name", "")
                 return lookup_node_name in ["l_import", "getattr"]
     return False
+
+
+def get_artifacts_from_artifactdef(
+    db: RelationalLineaDB, artifact_entries: List[LineaArtifactDef]
+) -> List[LineaArtifact]:
+    """
+    Converts LineaArtifactDef list to a LineaArtfact list by initializing the artifacts from the db provided
+    Artifact entries are specified as name and optionally version as the end user would specify.
+    """
+    return [
+        LineaArtifact.get_artifact_from_def(db, art_def)
+        for art_def in artifact_entries
+    ]
+
+
+def group_artifacts_by_session(
+    all_linea_artifacts: List[LineaArtifact],
+) -> Iterable[Tuple[LineaID, List[LineaArtifact]]]:
+    """
+    This helper function is used to group target and reuse_precomputed artifacts so that we can
+    create SessionArtifacts for each Session.
+    """
+    # This function returns a generator
+    #
+    for session_id, artifacts_by_session in groupby(
+        all_linea_artifacts, lambda d: d._session_id
+    ):
+        yield session_id, list(artifacts_by_session)
+
+
+def check_duplicates(artifact_entries: List[LineaArtifactDef]):
+    all_names = [art_def["artifact_name"] for art_def in artifact_entries]
+    all_unique_names = set()
+    duplicate_names = [
+        d
+        for d in all_names
+        if d in all_unique_names or all_unique_names.add(d)  # type: ignore
+    ]
+    if len(duplicate_names) > 0:
+        raise KeyError(
+            f"Duplicate artifacts found in input: {', '.join(duplicate_names)}"
+        )

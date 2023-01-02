@@ -44,7 +44,7 @@ VERSION = version("lineapy/utils/version.py")
 minimal_requirement = [
     "click>=8.0.0",
     "pydantic",
-    "SQLAlchemy>=1.4",
+    "SQLAlchemy>=1.4, <2.0.0",  # https://sqlalche.me/e/20/zlpr
     "networkx",
     "rich",
     "pyyaml",
@@ -57,6 +57,7 @@ minimal_requirement = [
     "fsspec",
     "pandas",
     "alembic==1.8.0",
+    "cloudpickle",
 ]
 
 graph_libs = [
@@ -105,6 +106,7 @@ doc_libs = [
     "nbsphinx",
     "sphinx_rtd_theme",
     "sphinx-autobuild",
+    "sphinx_design",
     "pandoc",
 ]
 
@@ -116,7 +118,7 @@ typing_libs = [
 ]
 
 postgres_libs = [
-    "psycopg2",
+    "psycopg2-binary",
 ]
 
 s3_libs = ["boto3", "s3fs", "botocore"]

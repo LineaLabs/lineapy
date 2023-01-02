@@ -1,0 +1,19 @@
+FROM python:{{ python_version }}
+
+RUN mkdir /tmp/installers
+WORKDIR /tmp/installers
+
+# Copy all the requirements to run current DAG
+COPY ./{{ pipeline_name }}_requirements.txt ./
+
+# Install ray
+RUN apt update
+RUN pip install ray
+
+# Install required libs
+RUN pip install -r ./{{ pipeline_name }}_requirements.txt
+
+WORKDIR /home
+COPY ./{{ pipeline_name }}_module.py ./
+COPY ./{{ pipeline_name }}_dag.py ./
+

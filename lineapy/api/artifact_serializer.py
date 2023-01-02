@@ -3,8 +3,7 @@ import types
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from pandas.io.pickle import to_pickle
-
+from lineapy.api.api_utils import to_pickle
 from lineapy.data.types import ARTIFACT_STORAGE_BACKEND, LineaID
 from lineapy.exceptions.db_exceptions import ArtifactSaveException
 from lineapy.plugins.serializers.mlflow_io import try_write_to_mlflow

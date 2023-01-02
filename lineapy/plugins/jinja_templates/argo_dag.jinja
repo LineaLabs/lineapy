@@ -1,0 +1,93 @@
+from hera import Artifact, ImagePullPolicy, set_global_task_image
+from hera.task import Task
+from hera.workflow import Workflow
+from hera.workflow_service import WorkflowService
+
+from kubernetes import client, config
+from typing import Optional
+import base64, errno, os
+
+def get_sa_token(
+        service_account: str,
+        namespace: str = "argo",
+        config_file: Optional[str] = None,
+    ):
+        """
+        Configues the kubernetes client and returns the service account token for the
+        specified service account in the specified namespace.
+        This is used in the case the local kubeconfig exists.
+        """
+        if config_file is not None and not os.path.isfile(config_file):
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), config_file
+            )
+
+        config.load_kube_config(config_file=config_file)
+        v1 = client.CoreV1Api()
+        if (
+            v1.read_namespaced_service_account(
+                service_account, namespace
+            ).secrets
+            is None
+        ):
+            print("No secrets found in namespace: %s" % namespace)
+            return "None"
+
+        secret_name = (
+            v1.read_namespaced_service_account(service_account, namespace)
+            .secrets[0]
+            .name
+        )
+
+        sec = v1.read_namespaced_secret(secret_name, namespace).data
+        return base64.b64decode(sec["token"]).decode()
+
+{% for task_def in task_definitions %}
+{{ task_def }}
+{% endfor %}
+
+ws = WorkflowService(
+    host = "{{ HOST }}",
+    verify_ssl = {{ VERIFY_SSL }},
+    token = get_sa_token("{{SERVICE_ACCOUNT}}", "{{NAMESPACE}}", "{{KUBE_CONFIG}}"),
+    namespace = "{{ NAMESPACE }}",
+)
+
+with Workflow("{{ WORFLOW_NAME }}", service = ws) as w:
+
+    set_global_task_image("{{ IMAGE }}")
+
+{% for task_name, task_def in tasks.items() %}
+    {{ task_name }} = Task("{{- task_name | replace("_", "-") -}}",
+    task_{{ task_name }},
+    {% if task_def.user_input_variables|length > 0 and task_name not in ["setup", "teardown"] %}
+    [
+        {
+        {% for var in task_def.user_input_variables %}
+            "{{ var }}": "{{ dag_params[var] }}",
+        {% endfor %}
+        }
+    ],
+    {% endif %}
+    image_pull_policy = ImagePullPolicy.{{ IMAGE_PULL_POLICY }},
+    {% if task_def.return_vars|length > 0 and task_name not in ["setup", "teardown"] %}
+    outputs = [
+        {% for output in task_def.return_vars %}
+        Artifact(
+            "{{ output }}",
+            "/tmp/{{- WORFLOW_NAME | replace("-", "_") -}}/variable_{{output}}.pickle",
+        ),
+        {% endfor %}
+    ],
+    {% endif %}
+)
+{% endfor %}
+
+
+{% if task_dependencies is not none %}
+{% for TASK_DEPENDENCIES in task_dependencies %}
+    {{TASK_DEPENDENCIES}}
+{% endfor %}
+{% endif %}
+
+w.create()

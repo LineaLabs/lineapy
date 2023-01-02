@@ -1,22 +1,22 @@
 """
 This taskgen files contains helper functions to create tasks.
 """
-from typing import Dict
+from typing import Dict, Tuple
 
 from lineapy.graph_reader.artifact_collection import ArtifactCollection
 from lineapy.graph_reader.node_collection import ArtifactNodeCollection
 from lineapy.plugins.session_writers import BaseSessionWriter
-from lineapy.plugins.task import DagTaskBreakdown, TaskDefinition
+from lineapy.plugins.task import DagTaskBreakdown, TaskDefinition, TaskGraph
 from lineapy.plugins.utils import load_plugin_template
 
 
-def get_task_definitions(
+def get_task_graph(
     artifact_collection: ArtifactCollection,
     pipeline_name: str,
     task_breakdown: DagTaskBreakdown,
-) -> Dict[str, TaskDefinition]:
+) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
-    get_task_definitions returns a dictionary of TaskDefinitions
+    get_task_graph returns a dictionary of TaskDefinitions
 
     This function breaks down the artifact_collection into tasks based on the
     task_breakdown parameter. This will give the main bulk of tasks that should
@@ -28,13 +28,15 @@ def get_task_definitions(
     objects to match the format for pipeline arguments that is expected by that framework.
     """
     if task_breakdown == DagTaskBreakdown.TaskAllSessions:
-        return get_allsessions_task_definition(
+        return get_allsessions_task_definition_graph(
             artifact_collection, pipeline_name
         )
     elif task_breakdown == DagTaskBreakdown.TaskPerSession:
-        return get_session_task_definition(artifact_collection, pipeline_name)
+        return get_session_task_definition_graph(
+            artifact_collection, pipeline_name
+        )
     elif task_breakdown == DagTaskBreakdown.TaskPerArtifact:
-        return get_artifact_task_definitions(
+        return get_artifact_task_definition_graph(
             artifact_collection, pipeline_name
         )
     else:
@@ -43,9 +45,9 @@ def get_task_definitions(
         )
 
 
-def get_artifact_task_definitions(
+def get_artifact_task_definition_graph(
     artifact_collection: ArtifactCollection, pipeline_name: str
-) -> Dict[str, TaskDefinition]:
+) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_artifact_task_definitions returns a task definition for each artifact the pipeline produces.
     This may include tasks that produce common variables that were not initially defined as artifacts.
@@ -90,22 +92,30 @@ def get_artifact_task_definitions(
                 user_input_variables=artifact_user_input_variables,
                 loaded_input_variables=loaded_input_vars,
                 typing_blocks=user_input_var_typing_block,
+                pre_call_block="",
                 call_block=function_call_block,
+                post_call_block="",
                 return_vars=nc.return_variables,
                 pipeline_name=pipeline_name,
             )
             task_definitions[nc.safename] = task_def
 
-    return task_definitions
+    # no remapping needed, inter_artifact_taskgraph already uses nc.safename
+    task_graph = artifact_collection.inter_artifact_taskgraph
+
+    return task_definitions, task_graph
 
 
-def get_session_task_definition(
+def get_session_task_definition_graph(
     artifact_collection: ArtifactCollection, pipeline_name: str
-) -> Dict[str, TaskDefinition]:
+) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_session_task_definition returns a task definition for each session in the pipeline.
     """
     task_definitions: Dict[str, TaskDefinition] = dict()
+
+    # maps session_id to task names to create taskgraph
+    session_id_task_map: Dict[str, str] = {}
 
     for session_artifacts in artifact_collection.sort_session_artifacts():
 
@@ -125,9 +135,16 @@ def get_session_task_definition(
                 session_artifacts
             )
         )
+        # Call module's run session function and unpack the artifacts from it
         function_call_block = (
-            f"artifacts = {pipeline_name}_module.{raw_function_call_block}"
+            f"artifacts = {pipeline_name}_module.{raw_function_call_block}\n"
         )
+        unpack_vars_block = "\n".join(
+            f'{nc.safename} = artifacts["{nc.name}"]'
+            for nc in session_artifacts.usercode_nodecollections
+            if isinstance(nc, ArtifactNodeCollection)
+        )
+
         return_vars = [
             nc.safename
             for nc in session_artifacts.usercode_nodecollections
@@ -143,20 +160,27 @@ def get_session_task_definition(
             user_input_variables=session_input_variables,
             loaded_input_variables=[],
             typing_blocks=user_input_var_typing_block,
+            pre_call_block="",
             call_block=function_call_block,
+            post_call_block=unpack_vars_block,
             return_vars=return_vars,
             pipeline_name=pipeline_name,
         )
 
         task_definitions[function_name] = task_def
+        session_id_task_map[session_artifacts.session_id] = function_name
 
-    return task_definitions
+    # avoid mapping in place here to not overwrite the artifact collection session taskgraph
+    task_graph = artifact_collection.inter_session_taskgraph.remap_nodes(
+        session_id_task_map
+    )
+    return (task_definitions, task_graph)
 
 
-def get_allsessions_task_definition(
+def get_allsessions_task_definition_graph(
     artifact_collection: ArtifactCollection,
     pipeline_name: str,
-) -> Dict[str, TaskDefinition]:
+) -> Tuple[Dict[str, TaskDefinition], TaskGraph]:
     """
     get_allsessions_task_definition returns a single task definition for the whole pipeline.
     """
@@ -168,12 +192,13 @@ def get_allsessions_task_definition(
             user_input_variables=artifact_collection.input_parameters,
             loaded_input_variables=[],
             typing_blocks=[],
-            call_block=f"{indentation_block}artifacts = {pipeline_name}_module.run_all_sessions()"
-            "",
+            pre_call_block="",
+            call_block=f"{indentation_block}artifacts = {pipeline_name}_module.run_all_sessions()",
+            post_call_block="",
             return_vars=["artifacts"],
             pipeline_name=pipeline_name,
         )
-    }
+    }, TaskGraph(nodes=["run_all"], edges={})
 
 
 def get_localpickle_setup_task_definition(pipeline_name):
@@ -194,7 +219,9 @@ def get_localpickle_setup_task_definition(pipeline_name):
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
+        pre_call_block="",
         call_block=call_block,
+        post_call_block="",
         return_vars=[],
         pipeline_name=pipeline_name,
     )
@@ -219,7 +246,50 @@ def get_localpickle_teardown_task_definition(pipeline_name):
         user_input_variables=[],
         loaded_input_variables=[],
         typing_blocks=[],
+        pre_call_block="",
         call_block=call_block,
+        post_call_block="",
+        return_vars=[],
+        pipeline_name=pipeline_name,
+    )
+
+
+def get_noop_setup_task_definition(pipeline_name):
+    """
+    Returns a TaskDefinition that no-ops so that users can write
+    their own setup tasks by replacing the setup call block.
+
+    This task should be used at the beginning of a pipeline.
+    """
+    return TaskDefinition(
+        function_name="dag_setup",
+        user_input_variables=[],
+        loaded_input_variables=[],
+        typing_blocks=[],
+        pre_call_block="",
+        call_block="pass",
+        post_call_block="",
+        return_vars=[],
+        pipeline_name=pipeline_name,
+    )
+
+
+def get_noop_teardown_task_definition(pipeline_name):
+    """
+    Returns a TaskDefinition that no-ops so that users can write
+    their own teardown tasks by replacing the teardown call block.
+
+    This task should be used at the end of a pipeline.
+
+    """
+    return TaskDefinition(
+        function_name="dag_teardown",
+        user_input_variables=[],
+        loaded_input_variables=[],
+        typing_blocks=[],
+        pre_call_block="",
+        call_block="pass",
+        post_call_block="",
         return_vars=[],
         pipeline_name=pipeline_name,
     )
