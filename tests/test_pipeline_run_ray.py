@@ -31,9 +31,8 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             ["y", "p value"],
             "ray_pipeline_housing_session_w_dependencies",
             {"p value": {"y"}},
-            {
-                "dag_flavor": "TaskPerSession",
-            },
+            # two return values on this task so must use old remote API
+            {"dag_flavor": "TaskPerSession", "use_workflows": False},
             [],
             id="ray_pipeline_housing_session_w_dependencies",
         ),
@@ -43,7 +42,7 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             ["a0", "b0"],
             "script_pipeline_a0_b0_dependencies",
             {"a0": {"b0"}},
-            {"dag_flavor": "TaskPerSession", "use_workflows": False},
+            {"dag_flavor": "TaskPerSession"},
             [],
             id="ray_two_session_w_dependencies",
         ),
