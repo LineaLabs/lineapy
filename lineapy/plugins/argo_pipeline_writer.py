@@ -1,5 +1,4 @@
 import logging
-import os
 from enum import Enum
 from typing import Any, Dict, List, Tuple
 
@@ -118,6 +117,12 @@ class ARGOPipelineWriter(BasePipelineWriter):
         for parameter_name, input_spec in super().get_pipeline_args().items():
             input_parameters_dict[parameter_name] = input_spec.value
 
+        # set kube config to be user given path or expand default ~/.kube/config
+        if "kube_config" in self.dag_config:
+            kube_config = f'"{self.dag_config.get("kube_config")}"'
+        else:
+            kube_config = 'os.path.expanduser("~/.kube/config")'
+
         full_code = DAG_TEMPLATE.render(
             DAG_NAME=self.pipeline_name,
             MODULE_NAME=self.pipeline_name + "_module",
@@ -127,14 +132,14 @@ class ARGOPipelineWriter(BasePipelineWriter):
             WORFLOW_NAME=self.dag_config.get(
                 "workflow_name", self.pipeline_name.replace("_", "-")
             ),
-            IMAGE=self.dag_config.get("image", "argo_pipeline:latest"),
+            IMAGE=self.dag_config.get(
+                "image", f"{self.pipeline_name}:lineapy"
+            ),
             IMAGE_PULL_POLICY=self.dag_config.get(
                 "image_pull_policy", "Never"
             ),
             SERVICE_ACCOUNT=self.dag_config.get("service_account", "argo"),
-            KUBE_CONFIG=self.dag_config.get(
-                "kube_config", os.path.expanduser("~/.kube/config")
-            ),
+            KUBE_CONFIG=kube_config,
             TOKEN=self.dag_config.get("token", "None"),
             dag_params=input_parameters_dict,
             task_definitions=rendered_task_defs,
