@@ -58,6 +58,7 @@ minimal_requirement = [
     "pandas",
     "alembic==1.8.0",
     "cloudpickle",
+    "typing-extensions>=4.0.0",
 ]
 
 graph_libs = [
