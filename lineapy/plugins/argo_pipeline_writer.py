@@ -139,7 +139,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
                 "image_pull_policy", "Never"
             ),
             SERVICE_ACCOUNT=self.dag_config.get("service_account", "argo"),
-            KUBE_CONFIG=kube_config,
+            KUBE_CONFIG_PATH_CODE_BLOCK=kube_config,
             TOKEN=self.dag_config.get("token", "None"),
             dag_params=input_parameters_dict,
             task_definitions=rendered_task_defs,
