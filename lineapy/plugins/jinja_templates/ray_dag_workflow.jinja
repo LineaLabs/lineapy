@@ -1,0 +1,28 @@
+import {{ MODULE_NAME }}
+import ray
+import pickle
+import pathlib
+
+ray.init(runtime_env = {{RAY_RUNTIME_ENV}}, storage = "{{RAY_STORAGE}}")
+
+{% for task_def in task_definitions %}
+{{ task_def }} 
+{% endfor %}
+
+# Specify argument values for your pipeline run.
+pipeline_arguments = {{ dag_params }}
+
+{% for task_name, task_def in tasks.items() %}
+{%- if task_def.return_vars|length > 0 %}
+{%- for var in task_def.return_vars %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %}
+{%- else %}
+_
+{%- endif %} = task_{{task_name}}.bind(
+    {%- for var in task_def.user_input_variables %}pipeline_arguments["{{ var }}"]{{ ',' if not loop.last else '' }}{%- endfor %}{%- if task_def.loaded_input_variables|length > 0 and task_def.user_input_variables|length > 0 %},{%- endif %}{%- for var in task_def.loaded_input_variables %} {{var}} {{ ',' if not loop.last else '' }}{%- endfor %}
+)
+{% endfor %}
+
+{%- for task_name in sink_tasks %}
+ray.workflow.run({{tasks[task_name].return_vars[0]}})
+{%- endfor %}
+

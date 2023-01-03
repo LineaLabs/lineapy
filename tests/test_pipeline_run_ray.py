@@ -43,9 +43,7 @@ from lineapy.plugins.pipeline_writer_factory import PipelineWriterFactory
             ["a0", "b0"],
             "script_pipeline_a0_b0_dependencies",
             {"a0": {"b0"}},
-            {
-                "dag_flavor": "TaskPerSession",
-            },
+            {"dag_flavor": "TaskPerSession", "use_workflows": False},
             [],
             id="ray_two_session_w_dependencies",
         ),

@@ -1842,7 +1842,7 @@
   ws = WorkflowService(
       host="https://localhost:2746",
       verify_ssl=False,
-      token=get_sa_token("argo", "argo", "/home/runner/.kube/config"),
+      token=get_sa_token("argo", "argo", "/Users/andrewcui/.kube/config"),
       namespace="argo",
   )
   
@@ -2318,7 +2318,7 @@
   import ray
   import ray_pipeline_a0_b0_task_artifact_module
   
-  ray.init(runtime_env={"working_dir": "."})
+  ray.init(runtime_env={"working_dir": "."}, storage="/tmp")
   
   
   @ray.remote(num_returns=1)
@@ -2413,7 +2413,7 @@
   import ray
   import ray_pipeline_a0_b0_task_session_module
   
-  ray.init(runtime_env={"working_dir": "."})
+  ray.init(runtime_env={"working_dir": "."}, storage="/tmp")
   
   
   @ray.remote(num_returns=1)
@@ -2447,6 +2447,119 @@
   # Make changes here to access any additional objects needed.
   ray.get([a0])
   ray.get([b0])
+  
+  '
+---
+# name: test_pipeline_generation[ray_pipeline_housing_w_dependencies]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[ray_pipeline_housing_w_dependencies].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[ray_pipeline_housing_w_dependencies].2
+  '
+  import pathlib
+  import pickle
+  
+  import ray
+  import ray_pipeline_housing_w_dependencies_module
+  
+  ray.init(runtime_env={"working_dir": "."}, storage="/tmp")
+  
+  
+  @ray.remote
+  def task_assets_for_artifact_y_and_downstream():
+  
+      assets = (
+          ray_pipeline_housing_w_dependencies_module.get_assets_for_artifact_y_and_downstream()
+      )
+  
+      return assets
+  
+  
+  @ray.remote
+  def task_y(assets):
+  
+      y = ray_pipeline_housing_w_dependencies_module.get_y(assets)
+  
+      return y
+  
+  
+  @ray.remote
+  def task_p_value(assets, y):
+  
+      p = ray_pipeline_housing_w_dependencies_module.get_p_value(assets, y)
+  
+      return p
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  assets = task_assets_for_artifact_y_and_downstream.bind()
+  y = task_y.bind(assets)
+  p = task_p_value.bind(assets, y)
+  
+  ray.workflow.run(p)
   
   '
 ---
