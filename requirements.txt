@@ -46,3 +46,4 @@ syrupy==1.4.5
 types-mock==4.0.15
 types-PyYAML==6.0.5
 types-requests==2.27.16
+typing-extensions==4.4.0
