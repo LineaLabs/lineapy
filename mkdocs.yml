@@ -19,6 +19,8 @@ nav:
     - Pipeline: concepts/pipeline.md
   - Tutorials:
     - tutorials/00_lineapy_quickstart.ipynb
+    - tutorials/01_using_artifacts.ipynb
+    - tutorials/02_pipeline_building.ipynb
 
 repo_name: LineaLabs/lineapy
 repo_url: https://github.com/LineaLabs/lineapy
