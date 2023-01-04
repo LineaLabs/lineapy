@@ -1842,13 +1842,13 @@
   ws = WorkflowService(
       host="https://localhost:2746",
       verify_ssl=False,
-      token=get_sa_token("argo", "argo", "/home/runner/.kube/config"),
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
       namespace="argo",
   )
   
   with Workflow("argo-pipeline-a0-b0", service=ws) as w:
   
-      set_global_task_image("argo_pipeline:latest")
+      set_global_task_image("argo_pipeline_a0_b0:lineapy")
   
       run_session_including_a0 = Task(
           "run-session-including-a0",

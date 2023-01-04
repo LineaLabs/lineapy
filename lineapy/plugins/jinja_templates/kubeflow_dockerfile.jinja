@@ -1,5 +1,5 @@
 # Be sure to build this docker file with the following command
-# docker build -t data_housing_pipeline:lineapy -f data_housing_pipeline_Dockerfile .
+# docker build -t {{ pipeline_name }}:lineapy -f {{ pipeline_name }}_Dockerfile .
 
 FROM python:{{ python_version }}
 
