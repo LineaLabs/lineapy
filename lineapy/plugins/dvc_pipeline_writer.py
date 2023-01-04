@@ -129,5 +129,4 @@ class DVCPipelineWriter(BasePipelineWriter):
         filename = f"task_{stage['name']}.py"
         python_operator_file = self.output_dir / filename
         python_operator_file.write_text(python_operator_code)
-        print(python_operator_file)
         logger.info(f"Generated DAG file: {python_operator_file}")
