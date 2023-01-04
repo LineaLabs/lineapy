@@ -8,7 +8,7 @@ theme:
   features:
     - navigation.instant
     - navigation.tabs
-    - navigation.tabs.sticky
+    # - navigation.tabs.sticky
 
 markdown_extensions:
   - admonition
