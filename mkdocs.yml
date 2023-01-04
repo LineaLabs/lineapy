@@ -21,6 +21,8 @@ nav:
     - tutorials/00_lineapy_quickstart.ipynb
     - tutorials/01_using_artifacts.ipynb
     - tutorials/02_pipeline_building.ipynb
+  - Guides:
+    - Installation and Setup: guides/setup.md
 
 repo_name: LineaLabs/lineapy
 repo_url: https://github.com/LineaLabs/lineapy
