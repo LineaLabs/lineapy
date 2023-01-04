@@ -1972,7 +1972,7 @@
   
   def task_a():
       b0 = pickle.load(open('b0.pickle','rb'))
-      a = dvc_pipeline_a_b0_stageperartifact_module.get_a(b0=b0)
+      a = dvc_pipeline_a_b0_stageperartifact_module.get_a(b0)
       pickle.dump(a, open('a.pickle','wb'))
   
   if __name__ == "__main__":
