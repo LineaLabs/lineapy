@@ -5,6 +5,10 @@ theme:
   custom_dir: overrides
   logo: images/icon-lineapy-white.png
   favicon: images/lineapy-square-light.png
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
 
 markdown_extensions:
   - admonition
