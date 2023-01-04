@@ -19,6 +19,7 @@ class Stage(BaseModel):
     name: str
     deps: List[str]
     outs: List[str]
+    call_block: str
 
 
 class DVCDagFlavor(Enum):
@@ -91,7 +92,7 @@ class DVCPipelineWriter(BasePipelineWriter):
 
         DAG_TEMPLATE = load_plugin_template("dvc_dag_StagePerArtifact.jinja")
 
-        task_defs, task_graph = get_task_graph(
+        task_defs, _ = get_task_graph(
             self.artifact_collection,
             pipeline_name=self.pipeline_name,
             task_breakdown=DagTaskBreakdown.TaskPerArtifact,
@@ -102,6 +103,7 @@ class DVCPipelineWriter(BasePipelineWriter):
                 name=key,
                 deps=value.loaded_input_variables,
                 outs=value.return_vars,
+                call_block=value.call_block,
             ).dict()
             for key, value in task_defs.items()
         ]

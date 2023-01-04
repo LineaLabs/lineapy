@@ -9,7 +9,7 @@ def task_{{ STAGE["name"] }}():
 {%- endif %}
 {%- if STAGE["outs"]|length > 0 %}
     {%- for out in STAGE["outs"] %}
-    {{ out }} = {{ MODULE_NAME }}.get_{{ out }}({%- if STAGE["deps"]|length > 0 %}{%- for dep in STAGE["deps"] %}{{ dep }}={{ dep }}{%- endfor %}{%- endif %})
+    {{ STAGE["call_block"] }}
     pickle.dump({{ out }}, open('{{ out }}.pickle','wb'))
     {%- endfor %}
 {%- endif %}
