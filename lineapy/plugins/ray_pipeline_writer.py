@@ -24,7 +24,7 @@ RayDagConfig = TypedDict(
     "RayDagConfig",
     {
         "dag_flavor": str,  # Not native to RAY config
-        "use_workflows": bool,
+        "use_workflows": bool,  # Not native to RAY config
         "runtime_env": Dict,
         "storage": str,
     },
