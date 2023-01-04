@@ -35,6 +35,8 @@ nav:
       - Recommended Practices: guides/contributing/tips.md
     - Troubleshooting: guides/troubleshooting.md
     - More Help: guides/support.md
+  - API Reference:
+    - api-reference/lineapy.api.api.md
 
 repo_name: LineaLabs/lineapy
 repo_url: https://github.com/LineaLabs/lineapy
@@ -42,3 +44,8 @@ repo_url: https://github.com/LineaLabs/lineapy
 plugins:
   - search
   - mkdocs-jupyter
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy

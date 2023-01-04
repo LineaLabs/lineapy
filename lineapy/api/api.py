@@ -1,5 +1,5 @@
 """
-User facing APIs.
+User-facing APIs.
 """
 
 import logging
@@ -57,21 +57,21 @@ def save(
     **kwargs,
 ) -> LineaArtifact:
     """
-    Publishes the object to the Linea DB.
+    Publishes the object to the LineaPy DB.
 
     Parameters
     ----------
     reference: Union[object, ExternalState]
-        The reference could be a variable name, in which case Linea will save
+        The reference could be a variable name, in which case LineaPy will save
         the value of the variable, with out default serialization mechanism.
-        Alternatively, it could be a "side effect" reference, which currently includes either :class:`lineapy.file_system` or :class:`lineapy.db`.
-        Linea will save the associated process that creates the final side effects.
+        Alternatively, it could be a "side effect" reference, which currently includes either `lineapy.file_system` or `lineapy.db`.
+        LineaPy will save the associated process that creates the final side effects.
         We are in the process of adding more side effect references, including `assert` statements.
     name: str
         The name is used for later retrieving the artifact and creating new versions if an artifact of the name has been created before.
     storage_backend: Optional[ARTIFACT_STORAGE_BACKEND]
         The storage backend used to save the artifact. Currently support
-        lineapy and mlflow(for mlflow supported model flavors). In case of
+        lineapy and mlflow (for mlflow supported model flavors). In case of
         mlflow, lineapy will use `mlflow.sklearn.log_model` or other supported
         flavors equivalent to save artifacts into mlflow.
     **kwargs:
@@ -83,8 +83,9 @@ def save(
     Returns
     -------
     LineaArtifact
-        returned value offers methods to access
-        information we have stored about the artifact (value, version), and other automation capabilities, such as :func:`to_pipeline`.
+        Returned value offers methods to access
+        information we have stored about the artifact (value, version),
+        and other automation capabilities, such as [`to_pipeline()`][lineapy.api.api.to_pipeline].
     """
     execution_context = get_context()
     executor = execution_context.executor
@@ -194,10 +195,17 @@ def delete(artifact_name: str, version: Union[int, str]) -> None:
     refer to the value, the value is also deleted from both the
     value node store and the pickle store.
 
-    :param artifact_name: Key used to while saving the artifact
-    :param version: version number or 'latest' or 'all'
+    Parameters
+    ----------
+    artifact_name: str
+        Key used to while saving the artifact.
+    version: Union[int, str]
+        Version number or "latest" or "all".
 
-    :raises ValueError: if arifact not found or version invalid
+    Raises
+    ------
+    ValueError
+        If artifact not found or version invalid.
     """
     version = parse_artifact_version(version)
 
@@ -257,16 +265,16 @@ def get(artifact_name: str, version: Optional[int] = None) -> LineaArtifact:
     Parameters
     ----------
     artifact_name: str
-        name of the artifact. Note that if you do not remember the artifact,
-        you can use the artifact_store to browse the options
+        Name of the artifact. Note that if you do not remember the artifact,
+        you can use the artifact_store to browse the options.
     version: Optional[str]
-        version of the artifact. If None, the latest version will be returned.
+        Version of the artifact. If `None`, the latest version will be returned.
 
     Returns
     -------
     LineaArtifact
-        returned value offers methods to access
-        information we have stored about the artifact
+        Returned value offers methods to access
+        information we have stored about the artifact.
     """
     validated_version = parse_artifact_version(
         "latest" if version is None else version
@@ -344,10 +352,8 @@ def reload() -> None:
     """
     Reloads lineapy context.
 
-    .. note::
-
-        Currently only reloads annotations but in the future can be a container for other items like configs etc.
-
+    Currently only reloads annotations but in the future can be a container
+    for other items like configs, etc.
     """
     execution_context = get_context()
     execution_context.executor.reload_annotations()
@@ -387,15 +393,12 @@ def to_pipeline(
     ----------
     artifacts: List[str]
         Names of artifacts to be included in the pipeline.
-
     framework: str
         Name of the framework to be used.
         Defined by enum PipelineTypes in lineapy/data/types.py.
         Defaults to "SCRIPT" if not specified.
-
     pipeline_name: Optional[str]
         Name of the pipeline.
-
     dependencies: TaskGraphEdge
         Task dependencies in graphlib format, e.g., ``{"B": {"A", "C"}}``
         means task A and C are prerequisites for task B.
@@ -403,10 +406,8 @@ def to_pipeline(
         the same session, so there is no need to specify this type of dependency
         information; instead, the user is expected to provide dependency information
         among artifacts across different sessions.
-
     output_dir: str
         Directory path to save DAG and other pipeline files.
-
     input_parameters: List[str]
         Names of variables to be used as parameters in the pipeline.
         Currently, it only accepts variables from literal assignment
@@ -417,11 +418,9 @@ def to_pipeline(
         we cannot make ``a`` an input parameter since its reference is
         ambiguous, i.e., we are not sure which literal assignment ``a``
         refers to.
-
     reuse_pre_computed_artifacts: List[str]
         Names of artifacts in the pipeline for which pre-computed value
         is to be used (rather than recomputing the value).
-
     generate_test: bool
         Whether to generate scaffold/template for pipeline testing.
         Defaults to ``False``. The scaffold contains placeholders for testing
@@ -429,7 +428,6 @@ def to_pipeline(
         out by the user to suit their needs. When run out of the box, it performs
         a naive form of equality evaluation for each function's output,
         which demands validation and customization by the user.
-
     pipeline_dag_config: Optional[AirflowDagConfig]
         A dictionary of parameters to configure DAG file to be generated.
         Not applicable for "SCRIPT" framework as it does not generate a separate
@@ -487,9 +485,8 @@ def get_function(
     Parameters
     ----------
     artifacts: List[Union[str, Tuple[str, int]]]
-        List of artifact names(with optional version) to be included in the
+        List of artifact names (with optional version) to be included in the
         function return.
-
     input_parameters: List[str]
         List of variable names to be used in the function arguments. Currently,
         only accept variable from literal assignment; such as a='123'. There
@@ -497,7 +494,6 @@ def get_function(
         artifact calculation code. For instance, if both a='123' and a='abc'
         are existing in the code, we cannot specify a as input variables since
         it is confusing to specify which literal assignment we want to replace.
-
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
         List of artifacts(name with optional version) for which we will use
         pre-computed values from the artifact store instead of recomputing from
@@ -510,7 +506,8 @@ def get_function(
         dictionary with each artifact name as the dictionary key and artifact
         value as the value.
 
-    Note that,
+    Note that:
+
     1. If an input parameter is only used to calculate artifacts in the
         `reuse_pre_computed_artifacts` list, that input parameter will be
         passed around as a dummy variable. LineaPy will create a warning.
@@ -546,23 +543,21 @@ def get_module_definition(
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]] = [],
 ) -> str:
     """
-    Create a python module that includes the definition of :func::`get_function`.
+    Create a python module that includes the definition of [`get_function()`][lineapy.api.api.get_function].
 
     Parameters
     ----------
     artifacts: List[Union[str, Tuple[str, int]]]
-        same as :func:`get_function`
-
+        Same as in [`get_function()`][lineapy.api.api.get_function].
     input_parameters: List[str]
-        same as :func:`get_function`
-
+        Same as in [`get_function()`][lineapy.api.api.get_function].
     reuse_pre_computed_artifacts: List[Union[str, Tuple[str, int]]]
-        same as :func:`get_function`
+        Same as in [`get_function()`][lineapy.api.api.get_function].
 
     Returns
     -------
     str
-        A python module that includes the definition of :func::`get_function`
+        A python module that includes the definition of [`get_function()`][lineapy.api.api.get_function]
         as `run_all_sessions`.
     """
     execution_context = get_context()
