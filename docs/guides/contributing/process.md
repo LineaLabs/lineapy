@@ -30,5 +30,5 @@ to decide stakeholders for the issue resolution, such as implementation owner an
 
 Unless the issue resolution requires deeper expertise or larger scope (e.g., architectural change), you will be highly encouraged
 to be the implementation owner. If so, you can follow instructions in [Setup and Basics](setup.md) to start
-your work. We view implementation as a collaborative process too, so please feel free to engage the [LineaPy community](ADD-LINK)
+your work. We view implementation as a collaborative process too, so please feel free to engage the [LineaPy community](../support.md)
 for any questions, concerns, and/or advice.

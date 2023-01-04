@@ -29,6 +29,8 @@ nav:
       - Contribution Process: guides/contributing/process.md
       - Setup and Basics: guides/contributing/setup.md
       - Recommended Practices: guides/contributing/tips.md
+    - Troubleshooting: guides/troubleshooting.md
+    - More Help: guides/support.md
 
 repo_name: LineaLabs/lineapy
 repo_url: https://github.com/LineaLabs/lineapy

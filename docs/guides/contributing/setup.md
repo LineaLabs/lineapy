@@ -185,7 +185,7 @@ git rebase main
     [tutorial](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/addressing-merge-conflicts/resolving-a-merge-conflict-using-the-command-line)
     to learn how.
 
-    If the issue persists, please get in touch with LineaPy's core development team on [Slack](ADD-LINK).
+    If the issue persists, please get in touch with LineaPy's core development team on [Slack](../support.md).
 
 Once you are content with your changes and ready to integrate them into the original `lineapy` project,
 you can open a pull request following instructions [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork).
