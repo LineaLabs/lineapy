@@ -1,0 +1,30 @@
+<head>
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+</head>
+{% set feedback = "exists" %}
+{% if page.meta and page.meta.hide and "feedback" in page.meta.hide %}
+{% set feedback = None %}
+{% endif %}
+{% if feedback %}
+<form name="docs-feedback" method="POST" data-netlify="true" onSubmit="submit">
+    <div class="mdc-card" style="padding:0px 25px 25px 25px">
+        <section>
+            <h3 class="mdc-card__title mdc-card__title--large">Was this helpful?</h3>
+            <h5 class="mdc-card__subtitle">Help us improve our docs with your feedback!</h5>
+        </section>
+        <label class="mdc-text-field mdc-text-field--outlined mdc-text-field--textarea mdc-text-field--no-label">
+            <span class="mdc-notched-outline">
+                <span class="mdc-notched-outline__leading"></span>
+                <span class="mdc-notched-outline__trailing"></span>
+            </span>
+            <span class="mdc-text-field__resizer">
+                <textarea name="message" class="mdc-text-field__input" rows="3"></textarea>
+            </span>
+        </label>
+        <button type="submit" class="mdc-button mdc-button--raised" style="margin-top:15px">
+            <span class="mdc-button__label">Send</span>
+        </button>
+    </div>
+</form>
+{% endif %}

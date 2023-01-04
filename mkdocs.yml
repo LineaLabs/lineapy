@@ -1,7 +1,8 @@
 site_name: LineaPy
 
 theme:
-  name: "material"
+  name: material
+  custom_dir: overrides
   logo: images/icon-lineapy-white.png
   favicon: images/lineapy-square-light.png
 
