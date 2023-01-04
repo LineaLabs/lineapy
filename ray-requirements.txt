@@ -2,4 +2,5 @@ ray==2.2.0
 pandas
 scikit-learn==1.0.2
 SQLAlchemy==1.3.24
+packaging==21.3
 pyarrow==10.0.1

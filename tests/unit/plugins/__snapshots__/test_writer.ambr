@@ -1842,7 +1842,7 @@
   ws = WorkflowService(
       host="https://localhost:2746",
       verify_ssl=False,
-      token=get_sa_token("argo", "argo", "/home/runner/.kube/config"),
+      token=get_sa_token("argo", "argo", "/Users/andrewcui/.kube/config"),
       namespace="argo",
   )
   
@@ -2343,7 +2343,6 @@
   a0 = task_a0.remote()
   b0 = task_b0.remote()
   
-  
   # Execute actors to get remote objects
   # Make changes here to access any additional objects needed.
   ray.get([a0])
@@ -2442,7 +2441,6 @@
   a0 = task_run_session_including_a0.remote()
   b0 = task_run_session_including_b0.remote()
   
-  
   # Execute actors to get remote objects
   # Make changes here to access any additional objects needed.
   ray.get([a0])
@@ -2522,6 +2520,7 @@
   
   import ray
   import ray_pipeline_housing_w_dependencies_module
+  from packaging import version
   
   ray.init(runtime_env={"working_dir": "."}, storage="/tmp")
   
@@ -2559,6 +2558,10 @@
   y = task_y.bind(assets)
   p = task_p_value.bind(assets, y)
   
+  if version.parse(ray.__version__) < version.parse("2.0"):
+      raise RuntimeError(
+          f"Ray Workflows requires version >2.0 but {ray.__version__} was found"
+      )
   ray.workflow.run(p)
   
   '
