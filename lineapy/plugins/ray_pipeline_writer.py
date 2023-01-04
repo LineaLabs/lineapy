@@ -80,7 +80,7 @@ class RayPipelineWriter(BasePipelineWriter):
             and len(task_graph.sink_nodes) > 1
         ):
             raise RuntimeError(
-                "Ray workflows do not support multiple artifacts being returned as sink nodes.\n\
+                "Ray workflows do not currently support multiple artifacts being returned as sink nodes.\n\
                 Consider use use_workflows=False to disable using Ray Workflows API."
             )
 
@@ -145,7 +145,7 @@ class RayPipelineWriter(BasePipelineWriter):
                 )
             elif len(task_def.return_vars) > 1:
                 raise RuntimeError(
-                    f"Ray workflows do not support tasks with multiple returns. Task {task_name} has {len(task_def.return_vars)} returns.\n\
+                    f"Ray workflows do not currently support tasks with multiple returns. Task {task_name} has {len(task_def.return_vars)} returns.\n\
                     Consider use use_workflows=False to disable using Ray Workflows API."
                 )
 
