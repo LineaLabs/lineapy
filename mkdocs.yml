@@ -23,6 +23,10 @@ nav:
     - tutorials/02_pipeline_building.ipynb
   - Guides:
     - Installation and Setup: guides/setup.md
+    - Contributing:
+      - Contribution Process: guides/contributing/process.md
+      - Setup and Basics: guides/contributing/setup.md
+      - Recommended Practices: guides/contributing/tips.md
 
 repo_name: LineaLabs/lineapy
 repo_url: https://github.com/LineaLabs/lineapy
