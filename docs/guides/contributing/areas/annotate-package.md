@@ -3,7 +3,7 @@
 One big strength of the Python language is its large and active development community. This means that
 we have a lot of interesting and useful Python packages that are not part of the core Python distribution.
 These third-party packages often come with their own new APIs, and LineaPy is not guaranteed to handle all
-of them properly when [removing extraneous code](../usage/code-cleanup.md). For such "unrecognized" APIs, we can add
+of them properly when [removing extraneous code](../../usage/code-cleanup.md). For such "unrecognized" APIs, we can add
 instructions for LineaPy, which we call "package annotation". Specifically, package annotation is done by creating
 or updating a YAML file in [lineapy/annotations/external/](https://github.com/LineaLabs/lineapy/tree/main/lineapy/annotations/external)
 (check the link for existing annotations).
