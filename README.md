@@ -30,7 +30,7 @@
 
 ![Python Versions](https://img.shields.io/badge/Python--versions-3.7%20%7C%203.8%20%7C%203.9-brightgreen)
 [![Build](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml/badge.svg)](https://github.com/LineaLabs/lineapy/actions/workflows/python-app.yml)
-[![Documentation Status](https://readthedocs.com/projects/lineapy-org-lineapy/badge/?version=latest&token=925cd1d5eaedb7cc60508c9cce377574da748a7d6c050bb2c3de2a360a9f4f20)](https://docs.lineapy.org/en/main/index.html)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/6a9e7415-8d10-4c51-bda5-b5c8eb037ded/deploy-status)](https://app.netlify.com/sites/lineapy-docs/deploys)
 [![License](https://img.shields.io/badge/license-Apache%202-brightgreen.svg?logo=apache)](https://github.com/LineaLabs/lineapy/blob/main/LICENSE.txt)
 [![PyPi](https://img.shields.io/pypi/v/lineapy.svg?logo=pypi&logoColor=white)](https://pypi.org/project/lineapy/)
 
