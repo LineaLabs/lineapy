@@ -29,6 +29,11 @@ nav:
     - Installation and Setup: guides/setup.md
     - Usage:
       - Code Cleanup: guides/usage/code-cleanup.md
+      - Package Annotation: guides/usage/package-annotation.md
+      - Reusing Past Work: guides/usage/artifact-reuse.md
+      - Pipeline Building: guides/usage/pipeline-building.md
+      - Pipeline Parametrization: guides/usage/pipeline-parametrization.md
+      - Pipeline Testing: guides/usage/pipeline-testing.md
     - Contributing:
       - Contribution Process: guides/contributing/process.md
       - Setup and Basics: guides/contributing/setup.md
