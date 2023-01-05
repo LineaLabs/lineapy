@@ -54,7 +54,7 @@ build-docs:
 
 test:
 	make deps
-	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not slow and not airflow and not ray and not dvc and not integration" tests/
+	docker-compose run --rm ${service_name} pytest ${args} --snapshot-update --no-cov -m "not (slow or airflow or ray or dvc or kubeflow or argo or integration)" tests/
 
 test-github-action:
 	docker-compose run --rm ${service_name} pytest ${args}
@@ -64,7 +64,7 @@ test-github-action:
 # Additionally, the package pg and psycopg2 should be installed in the main service.
 test-parallel:
 	make deps
-	docker-compose run --rm ${service_name} pytest ${args} -n 3 --dist=loadscope --snapshot-update --no-cov -m "not (slow or airflow or ray or dvc)" tests/
+	docker-compose run --rm ${service_name} pytest ${args} -n 3 --dist=loadscope --snapshot-update --no-cov -m "not (slow or airflow or ray or dvc or kubeflow or argo)" tests/
 
 test-airflow:
 	docker-compose run --rm ${service_name}-airflow pytest ${args} --snapshot-update --no-cov -m "airflow" tests/

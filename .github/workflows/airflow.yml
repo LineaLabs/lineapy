@@ -11,7 +11,7 @@ on:
       - "lineapy/plugins/airflow_pipeline_writer.py"
       - "lineapy/plugins/base_pipeline_writer.py"
       - "tests/test_airflow.ipynb"
-      - "tests/test_pipeline_run_airflow.py"
+      - "tests/unit/plugins/framework_specific/airflow/*"
       - "test_pipeline_airflow_req.txt"
   pull_request:
     paths:
@@ -19,7 +19,7 @@ on:
       - "lineapy/plugins/airflow_pipeline_writer.py"
       - "lineapy/plugins/base_pipeline_writer.py"
       - "tests/test_airflow.ipynb"
-      - "tests/test_pipeline_run_airflow.py"
+      - "tests/unit/plugins/framework_specific/airflow/*"
       - "test_pipeline_airflow_req.txt"
 jobs:
   airflow:
