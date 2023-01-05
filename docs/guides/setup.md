@@ -16,7 +16,7 @@ pip install lineapy
 ```
 
 If you want to run the latest version of LineaPy directly from the source, follow instructions
-[here](contributing/setup.md).
+[here](contributing/setup.md#installation).
 
 !!! info
 

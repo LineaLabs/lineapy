@@ -71,7 +71,7 @@ Note that this may take a while to complete.
 ## Running LineaPy
 
 During development, you may want to check how your changes affect the behavior of the package.
-LineaPy supports several interfaces to run on, and the relevant instructions are documented :ref:`here <interfaces>`.
+LineaPy supports several interfaces to run on, and the relevant instructions are documented [here](../setup.md#running-lineapy).
 Please select the most convenient option for you.
 
 !!! note
