@@ -1,8 +1,11 @@
 site_name: LineaPy
+repo_name: LineaLabs/lineapy
+repo_url: https://github.com/LineaLabs/lineapy
+copyright: Copyright &copy; 2022 - 2023 Linea Labs
 
 theme:
   name: material
-  custom_dir: overrides
+  custom_dir: docs/overrides/
   logo: images/icon-lineapy-white.png
   favicon: images/lineapy-square-light.png
   features:
@@ -17,6 +20,26 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true 
+
+plugins:
+  - search
+  - mkdocs-jupyter
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+
+extra:
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/LineaLabs/lineapy
+  - icon: fontawesome/brands/twitter
+    link: https://twitter.com/lineapy_oss
+  - icon: fontawesome/brands/slack
+    link: https://lineacommunity.slack.com/join/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q#/shared-invite/email
+  - icon: fontawesome/brands/linkedin
+    link: https://www.linkedin.com/company/lineapy/
 
 nav:
   - Home: index.md
@@ -52,15 +75,3 @@ nav:
     - More Help: guides/support.md
   - API Reference:
     - api-reference/lineapy.api.api.md
-
-repo_name: LineaLabs/lineapy
-repo_url: https://github.com/LineaLabs/lineapy
-
-plugins:
-  - search
-  - mkdocs-jupyter
-  - mkdocstrings:
-      handlers:
-        python:
-          options:
-            docstring_style: numpy

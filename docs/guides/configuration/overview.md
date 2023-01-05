@@ -8,35 +8,37 @@ We can configure LineaPy in several different ways:
 
 For instance, the following all achieves the same effect of changing the LineaPy base folder to `/lineapy` and starting `ipython`.
 
-=== "Use CLI option"
+!!! example ""
 
-    ```bash
-    lineapy --home-dir="/lineapy" ipython
-    ```
+    === "Use CLI option"
 
-=== "Set environment variable"
+        ```bash
+        lineapy --home-dir="/lineapy" ipython
+        ```
 
-    ```bash
-    export LINEAPY_HOME_DIR=/lineapy
-    lineapy ipython
-    ```
+    === "Set environment variable"
 
-=== "Update configuration file"
+        ```bash
+        export LINEAPY_HOME_DIR=/lineapy
+        lineapy ipython
+        ```
 
-    Add `{"home_dir": "/lineapy"}` to the configuration file:
+    === "Update configuration file"
 
-    ```json hl_lines="2" title="lineapy_config.json"
-    {
-        "home_dir": "/lineapy",
-        ...
-    }
-    ```
+        Add `{"home_dir": "/lineapy"}` to the configuration file:
 
-    and run:
+        ```json hl_lines="2" title="lineapy_config.json"
+        {
+            "home_dir": "/lineapy",
+            ...
+        }
+        ```
 
-    ```bash
-    lineapy ipython
-    ```
+        and run:
+
+        ```bash
+        lineapy ipython
+        ```
 
 The value of a configuration item is determined by the following "order of precedence":
 
