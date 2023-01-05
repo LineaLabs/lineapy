@@ -23,7 +23,7 @@ If you want to run the latest version of LineaPy directly from the source, follo
     By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
     However, SQLite has several limitations, one of which is that it does not support multiple concurrent
     writes to a database (it will result in a database lock). If you want to use a more robust database,
-    please follow [instructions](ADD-LINK) for using PostgreSQL.
+    please follow [instructions](configuration/storage-location.md#storing-artifact-metadata-in-postgresql) for using PostgreSQL.
 
 ### Extras
 

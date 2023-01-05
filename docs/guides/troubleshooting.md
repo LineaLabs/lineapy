@@ -34,7 +34,7 @@ which will unlock the database.
     storing it in a different form (e.g., a Parquet file) before terminating the notebook's process.
 
 If database locking is a persisting issue in your usage, we recommend you use a more robust database such as PostgreSQL,
-for which relevant instructions can be found [here](ADD-LINK).
+for which relevant instructions can be found [here](configuration/storage-location.md#storing-artifact-metadata-in-postgresql).
 
 ## No Attribute Error for `black`
 

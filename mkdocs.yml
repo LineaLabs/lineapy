@@ -12,6 +12,7 @@ theme:
 
 markdown_extensions:
   - admonition
+  - tables
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.tabbed:
@@ -29,6 +30,10 @@ nav:
     - tutorials/02_pipeline_building.ipynb
   - Guides:
     - Installation and Setup: guides/setup.md
+    - Configuration:
+      - Overview: guides/configuration/overview.md
+      - Storage Location: guides/configuration/storage-location.md
+      - Storage Backend: guides/configuration/storage-backend.md
     - Usage:
       - Code Cleanup: guides/usage/code-cleanup.md
       - Package Annotation: guides/usage/package-annotation.md
