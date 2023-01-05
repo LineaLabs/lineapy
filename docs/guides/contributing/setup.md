@@ -135,7 +135,7 @@ git push --set-upstream origin <NEW-BRANCH-NAME>
 ### Testing Changes
 
 Testing is an important part of `lineapy`'s development as it ensures that all features stay functional after changes.
-Hence, we strongly recommend you add tests for changes you introduce (check this [tutorial](ADD-LINK) for adding tests).
+Hence, we strongly recommend you add tests for changes you introduce (check this [tutorial](areas/add-test.md) for adding tests).
 
 To run all tests (beware that this may take a while to complete):
 

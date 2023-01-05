@@ -58,7 +58,7 @@ as APIs that mutate their caller, and to treat them as such in relevant downstre
 
 !!! info
 
-    For more details on annotation keywords, check this [page](ADD-LINK).
+    For more details on annotation keywords, check this [page](../contributing/areas/annotate_package.md).
 
 To make the annotation take effect, we run:
 

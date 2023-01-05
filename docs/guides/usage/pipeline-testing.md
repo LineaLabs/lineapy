@@ -271,7 +271,7 @@ class TestIrisPipeline(unittest.TestCase):
         assert all(np.round(sample_output_generated.coef_, 2) == [0.78, -1.5, -1.84])
 ```
 
-!!! tips
+!!! tip
 
     In adapting the testing scaffold/template, we can go beyond equality evaluation. For instance, if the tested function outputs
     a model, we can check whether the model behaves "reasonably" by feeding it with particular input values and observing whether

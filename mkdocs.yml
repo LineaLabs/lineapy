@@ -14,6 +14,8 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true 
 
 nav:
   - Home: index.md
@@ -38,6 +40,9 @@ nav:
       - Contribution Process: guides/contributing/process.md
       - Setup and Basics: guides/contributing/setup.md
       - Recommended Practices: guides/contributing/tips.md
+      - Areas to Contribute:
+        - Package Annotation: guides/contributing/areas/annotate-package.md
+        - Integrating Pipeline Frameworks: guides/contributing/areas/integrate-pipeline-framework.md
     - Troubleshooting: guides/troubleshooting.md
     - More Help: guides/support.md
   - API Reference:
