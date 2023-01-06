@@ -45,7 +45,7 @@ class DVCPipelineWriter(BasePipelineWriter):
 
     @property
     def docker_template_name(self) -> str:
-        return "dvc_dockerfile.jinja"
+        return "dvc/dvc_dockerfile.jinja"
 
     def _write_dag(self) -> None:
         dag_flavor = self.dag_config.get("dag_flavor", "StagePerArtifact")
@@ -74,7 +74,7 @@ class DVCPipelineWriter(BasePipelineWriter):
         """
 
         DAG_TEMPLATE = load_plugin_template(
-            "dvc_dag_SingleStageAllSessions.jinja"
+            "dvc/dvc_dag_SingleStageAllSessions.jinja"
         )
 
         full_code = DAG_TEMPLATE.render(
@@ -89,7 +89,9 @@ class DVCPipelineWriter(BasePipelineWriter):
         to the `StagePerArtifact` flavor.
         """
 
-        DAG_TEMPLATE = load_plugin_template("dvc_dag_StagePerArtifact.jinja")
+        DAG_TEMPLATE = load_plugin_template(
+            "dvc/dvc_dag_StagePerArtifact.jinja"
+        )
 
         task_defs, _ = get_task_graph(
             self.artifact_collection,
@@ -140,7 +142,9 @@ class DVCPipelineWriter(BasePipelineWriter):
         """
         This hidden method generates the python cmd files for each DVC stage.
         """
-        TASK_TEMPLATE = load_plugin_template("dvc_dag_PythonOperator.jinja")
+        TASK_TEMPLATE = load_plugin_template(
+            "dvc/dvc_dag_PythonOperator.jinja"
+        )
 
         python_operator_code = TASK_TEMPLATE.render(
             MODULE_NAME=f"{self.pipeline_name}_module", STAGE=stage

@@ -7,13 +7,17 @@ on:
   push:
     branches: [main]
     paths:
-      - "lineapy/plugins/jinja_templates/*"
+      - "lineapy/plugins/jinja_templates/kubeflow/*"
+      - "lineapy/plugins/jinja_templates/task/*"
+      - "lineapy/plugins/jinja_templates/module/*"
       - "lineapy/plugins/kubeflow_pipeline_writer.py"
       - "lineapy/plugins/base_pipeline_writer.py"
       - "tests/unit/plugins/framework_specific/kubeflow/*"
   pull_request:
     paths:
-      - "lineapy/plugins/jinja_templates/*"
+      - "lineapy/plugins/jinja_templates/kubeflow/*"
+      - "lineapy/plugins/jinja_templates/task/*"
+      - "lineapy/plugins/jinja_templates/module/*"
       - "lineapy/plugins/kubeflow_pipeline_writer.py"
       - "lineapy/plugins/base_pipeline_writer.py"
       - "tests/unit/plugins/framework_specific/kubeflow/*"

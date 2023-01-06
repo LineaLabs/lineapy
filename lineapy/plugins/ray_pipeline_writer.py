@@ -112,7 +112,7 @@ class RayPipelineWriter(BasePipelineWriter):
 
     @property
     def docker_template_name(self) -> str:
-        return "ray_dockerfile.jinja"
+        return "ray/ray_dockerfile.jinja"
 
     def _get_requirements(self):
         libraries = super()._get_requirements()

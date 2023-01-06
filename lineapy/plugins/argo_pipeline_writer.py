@@ -53,7 +53,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
     @property
     def docker_template_name(self) -> str:
-        return "argo_dockerfile.jinja"
+        return "argo/argo_dockerfile.jinja"
 
     def _write_dag(self) -> None:
 
@@ -78,7 +78,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
         dag_flavor: ARGODagFlavor,
     ) -> str:
 
-        DAG_TEMPLATE = load_plugin_template("argo_dag.jinja")
+        DAG_TEMPLATE = load_plugin_template("argo/argo_dag.jinja")
 
         if dag_flavor == ARGODagFlavor.StepPerSession:
             task_breakdown = DagTaskBreakdown.TaskPerSession
