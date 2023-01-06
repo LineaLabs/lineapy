@@ -3,7 +3,7 @@ import ray
 import pickle
 import pathlib
 
-ray.init(runtime_env = {"working_dir": "."})
+ray.init(runtime_env = {{RAY_RUNTIME_ENV}}, storage = "{{RAY_STORAGE}}")
 
 {% for task_def in task_definitions %}
 {{ task_def }} 
@@ -17,14 +17,9 @@ pipeline_arguments = {{ dag_params }}
 {%- for var in task_def.return_vars %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %}
 {%- else %}
 _
-{%- endif %} = task_{{task_name}}.remote(
+{%- endif %} = task_{{task_name}}.{%- block bind_or_remote %}{% endblock %}(
     {%- for var in task_def.user_input_variables %}pipeline_arguments["{{ var }}"]{{ ',' if not loop.last else '' }}{%- endfor %}{%- if task_def.loaded_input_variables|length > 0 and task_def.user_input_variables|length > 0 %},{%- endif %}{%- for var in task_def.loaded_input_variables %} {{var}} {{ ',' if not loop.last else '' }}{%- endfor %}
 )
 {% endfor %}
 
-# Execute actors to get remote objects
-# Make changes here to access any additional objects needed.
-{%- for task_name in sink_tasks %}
-ray.get([{%- for var in tasks[task_name].return_vars %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %}])
-{%- endfor %}
-
+{%- block ray_dag_execution %}{% endblock %}

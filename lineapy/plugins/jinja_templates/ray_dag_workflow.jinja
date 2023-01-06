@@ -1,0 +1,14 @@
+{% extends "ray_dag_base.jinja" %}
+
+{% block bind_or_remote %}bind{% endblock %}
+
+{% block ray_dag_execution %}
+from packaging import version
+if version.parse(ray.__version__) < version.parse('2.0'):
+    raise RuntimeError(f"Ray Workflows requires version >2.0 but {ray.__version__} was found")
+{%- for task_name in sink_tasks %}
+ray.workflow.run({{tasks[task_name].return_vars[0]}})
+{%- endfor %}
+{% endblock %}
+
+

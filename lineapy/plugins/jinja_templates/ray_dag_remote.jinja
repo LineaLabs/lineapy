@@ -1,0 +1,12 @@
+{% extends "ray_dag_base.jinja" %}
+
+{% block bind_or_remote %}remote{% endblock %}
+
+{%- block ray_dag_execution %}
+# Execute actors to get remote objects
+# Make changes here to access any additional objects needed.
+{%- for task_name in sink_tasks %}
+ray.get([{%- for var in tasks[task_name].return_vars %}{{ var }}{{ ',' if not loop.last else '' }}{%- endfor %}])
+{%- endfor %}
+{% endblock %}
+
