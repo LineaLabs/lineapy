@@ -18,9 +18,7 @@ def task_{{ STAGE["name"] }}({% for key, value in STAGE["user_input_variables"].
 {%- endif %}
 
 if __name__ == "__main__":
-{% if STAGE["user_input_variables"]|length>0 %}
-    {% for key, value in STAGE["user_input_variables"].items() %}
+    {% for key, value in STAGE["user_input_variables"].items() -%}
     {{key}} = dvc.api.params_show()["{{key}}"]
-    {% endfor %}
-{% endif %}
+    {% endfor -%}
     task_{{ STAGE["name"] }}({% for key, value in STAGE["user_input_variables"].items() %}{{key}}{{ ", " if not loop.last else "" }}{% endfor %})
