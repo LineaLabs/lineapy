@@ -1967,6 +1967,7 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact].3
   '
+  
   import dvc_pipeline_a_b0_stageperartifact_module
   import pickle
   
@@ -1981,6 +1982,7 @@
 ---
 # name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact].4
   '
+  
   import dvc_pipeline_a_b0_stageperartifact_module
   import pickle
   
@@ -1990,6 +1992,91 @@
   
   if __name__ == "__main__":
       task_b0()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact].5
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact_with_input_parameter]
+  '
+  import argparse
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_a(b0=0):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      b0=0,
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_a(b0))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--b0", type=int, default=0)
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          b0=args.b0,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact_with_input_parameter].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact_with_input_parameter].2
+  '
+  stages:
+  
+      a:
+          cmd: python task_a.py
+          deps:
+              - dvc_pipeline_a_b0_stageperartifact_module.py
+              - task_a.py
+          outs:
+              - a.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact_with_input_parameter].3
+  '
+  import dvc.api
+  
+  import dvc_pipeline_a_b0_stageperartifact_module
+  import pickle
+  
+  def task_a(b0):
+      a = dvc_pipeline_a_b0_stageperartifact_module.get_a(b0)
+      pickle.dump(a, open('a.pickle','wb'))
+  
+  if __name__ == "__main__":
+      b0 = dvc.api.params_show()["b0"]
+      task_a(b0)
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_a_b0_stage_per_artifact_with_input_parameter].4
+  '
+  b0: 0
+    
   '
 ---
 # name: test_pipeline_generation[kubeflow_pipeline_a0_b0_component_artifact]

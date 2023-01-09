@@ -195,6 +195,17 @@ def check_requirements_txt(t1: str, t2: str):
         ),
         pytest.param(
             "simple",
+            "",
+            ["a"],
+            "DVC",
+            "dvc_pipeline_a_b0_stageperartifact",
+            {},
+            {"dag_flavor": "StagePerArtifact"},
+            ["b0"],
+            id="dvc_pipeline_a_b0_stage_per_artifact_with_input_parameter",
+        ),
+        pytest.param(
+            "simple",
             "complex",
             ["a0", "b0"],
             "ARGO",
@@ -312,6 +323,8 @@ def test_pipeline_generation(
         file_names = file_names + [
             "task_" + art + ".py" for art in artifact_list
         ]
+
+        file_names = file_names + ["params.yaml"]
 
     # Compare generated vs. expected
     for expected_file_name in file_names:
