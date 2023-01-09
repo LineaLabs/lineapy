@@ -81,7 +81,7 @@ tmp_var = pyperclip.paste()
 
     Annotations added this way are valid in the local environment only.
     To integrate new annotations into the `lineapy` source code, the YAML file
-    should be created or updated in `lineapy/annotations/external/ <https://github.com/LineaLabs/lineapy/tree/main/lineapy/annotations/external>`_,
+    should be created or updated in [`lineapy/annotations/external/`](https://github.com/LineaLabs/lineapy/tree/main/lineapy/annotations/external),
     following contribution instructions [here](../contributing/setup.md).
 
 To view imported annotations, run:
