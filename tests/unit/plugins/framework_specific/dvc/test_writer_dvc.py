@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from lineapy.plugins.utils import slugify
 from tests.unit.plugins.framework_specific.pipeline_helper import (
     pipeline_file_generation_helper,
 )
@@ -138,12 +139,15 @@ def test_pipeline_generation(
     )
 
     # Get list of files to compare
-    file_endings = ["_module.py", "_requirements.txt", "_dag.py"]
-
+    file_endings = ["_module.py", "_requirements.txt"]
     file_names = [pipeline_name + file_suffix for file_suffix in file_endings]
+    file_names.append("dvc.yaml")
 
     # TODO fix coverage for tests of file per task frameworks to include non artifact tasks
-    file_names = file_names + ["task_" + art + ".py" for art in artifact_list]
+    if dag_config["dag_flavor"] != "SingleStageAllSessions":
+        file_names = file_names + [
+            "task_" + slugify(art) + ".py" for art in artifact_list
+        ]
 
     # Compare generated vs. expected
     for expected_file_name in file_names:

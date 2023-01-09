@@ -359,9 +359,9 @@ def test_pipeline_generation(
             "complex",
             "",
             ["f", "h"],
-            "script_complex_h_perart",
+            "script_complex_h",
             {},
-            id="script_complex_h_perart",
+            id="script_complex_h",
         ),
         pytest.param(
             "housing",

@@ -1,0 +1,1771 @@
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_complex_h]
+  '
+  def get_a_c_for_artifact_f_and_downstream():
+      a0 = 0
+      a0 += 1
+      a = 1
+      a += 1
+      b = a * 2 + a0
+      c = b + 3
+      return a, c
+  
+  
+  def get_f(c):
+      f = c + 7
+      return f
+  
+  
+  def get_h(a, c):
+      d = a * 4
+      e = d + 5
+      e += 6
+      a += 1
+      g = c + e * 2
+      h = a + g
+      return h
+  
+  
+  def run_session_including_f():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a, c = get_a_c_for_artifact_f_and_downstream()
+      f = get_f(c)
+      artifacts["f"] = copy.deepcopy(f)
+      h = get_h(a, c)
+      artifacts["h"] = copy.deepcopy(h)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_f())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_complex_h].1
+  ''
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_complex_h].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_f():
+      import pathlib
+      import pickle
+  
+      import argo_complex_h_module
+  
+      artifacts = argo_complex_h_module.run_session_including_f()
+  
+      f = artifacts["f"]
+      h = artifacts["h"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_complex_h").exists():
+          pathlib.Path("/tmp").joinpath("argo_complex_h").mkdir()
+      pickle.dump(f, open("/tmp/argo_complex_h/variable_f.pickle", "wb"))
+  
+      if not pathlib.Path("/tmp").joinpath("argo_complex_h").exists():
+          pathlib.Path("/tmp").joinpath("argo_complex_h").mkdir()
+      pickle.dump(h, open("/tmp/argo_complex_h/variable_h.pickle", "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_complex_h_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_complex_h_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-complex-h", service=ws) as w:
+  
+      set_global_task_image("argo_complex_h:lineapy")
+  
+      run_session_including_f = Task(
+          "run-session-including-f",
+          task_run_session_including_f,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "f",
+                  "/tmp/argo_complex_h/variable_f.pickle",
+              ),
+              Artifact(
+                  "h",
+                  "/tmp/argo_complex_h/variable_h.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_f
+  
+      run_session_including_f >> teardown
+  
+  
+  w.create()
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_hidden_session_dependencies]
+  '
+  def get_a():
+      b0 = 0
+      a = b0 + 1
+      return a
+  
+  
+  def get_linear_first_for_artifact_linear_second_and_downstream():
+      linear_first = 1
+      return linear_first
+  
+  
+  def get_linear_second(linear_first):
+      linear_second = linear_first + 1
+      return linear_second
+  
+  
+  def get_linear_third(linear_first, linear_second):
+      linear_third = linear_second + linear_first
+      return linear_third
+  
+  
+  def run_session_including_a():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a = get_a()
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_session_including_linear_second():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      linear_first = get_linear_first_for_artifact_linear_second_and_downstream()
+      linear_second = get_linear_second(linear_first)
+      artifacts["linear_second"] = copy.deepcopy(linear_second)
+      linear_third = get_linear_third(linear_first, linear_second)
+      artifacts["linear_third"] = copy.deepcopy(linear_third)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a())
+      artifacts.update(run_session_including_linear_second())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_hidden_session_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_hidden_session_dependencies].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_a():
+      import pathlib
+      import pickle
+  
+      import argo_hidden_session_dependencies_module
+  
+      artifacts = argo_hidden_session_dependencies_module.run_session_including_a()
+  
+      a = artifacts["a"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_hidden_session_dependencies").exists():
+          pathlib.Path("/tmp").joinpath("argo_hidden_session_dependencies").mkdir()
+      pickle.dump(
+          a, open("/tmp/argo_hidden_session_dependencies/variable_a.pickle", "wb")
+      )
+  
+  
+  def task_run_session_including_linear_second():
+      import pathlib
+      import pickle
+  
+      import argo_hidden_session_dependencies_module
+  
+      artifacts = (
+          argo_hidden_session_dependencies_module.run_session_including_linear_second()
+      )
+  
+      linear_second = artifacts["linear_second"]
+      linear_third = artifacts["linear_third"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_hidden_session_dependencies").exists():
+          pathlib.Path("/tmp").joinpath("argo_hidden_session_dependencies").mkdir()
+      pickle.dump(
+          linear_second,
+          open(
+              "/tmp/argo_hidden_session_dependencies/variable_linear_second.pickle", "wb"
+          ),
+      )
+  
+      if not pathlib.Path("/tmp").joinpath("argo_hidden_session_dependencies").exists():
+          pathlib.Path("/tmp").joinpath("argo_hidden_session_dependencies").mkdir()
+      pickle.dump(
+          linear_third,
+          open(
+              "/tmp/argo_hidden_session_dependencies/variable_linear_third.pickle", "wb"
+          ),
+      )
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_hidden_session_dependencies_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_hidden_session_dependencies_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-hidden-session-dependencies", service=ws) as w:
+  
+      set_global_task_image("argo_hidden_session_dependencies:lineapy")
+  
+      run_session_including_a = Task(
+          "run-session-including-a",
+          task_run_session_including_a,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "a",
+                  "/tmp/argo_hidden_session_dependencies/variable_a.pickle",
+              ),
+          ],
+      )
+  
+      run_session_including_linear_second = Task(
+          "run-session-including-linear-second",
+          task_run_session_including_linear_second,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "linear_second",
+                  "/tmp/argo_hidden_session_dependencies/variable_linear_second.pickle",
+              ),
+              Artifact(
+                  "linear_third",
+                  "/tmp/argo_hidden_session_dependencies/variable_linear_third.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_a
+  
+      run_session_including_linear_second >> teardown
+  
+      run_session_including_a >> run_session_including_linear_second
+  
+  
+  w.create()
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_a0_b0]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_a0_b0].1
+  ''
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_a0_b0].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_a0():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      artifacts = argo_pipeline_a0_b0_module.run_session_including_a0()
+  
+      a0 = artifacts["a0"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0").mkdir()
+      pickle.dump(a0, open("/tmp/argo_pipeline_a0_b0/variable_a0.pickle", "wb"))
+  
+  
+  def task_run_session_including_b0():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      artifacts = argo_pipeline_a0_b0_module.run_session_including_b0()
+  
+      b0 = artifacts["b0"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0").mkdir()
+      pickle.dump(b0, open("/tmp/argo_pipeline_a0_b0/variable_b0.pickle", "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-a0-b0", service=ws) as w:
+  
+      set_global_task_image("argo_pipeline_a0_b0:lineapy")
+  
+      run_session_including_a0 = Task(
+          "run-session-including-a0",
+          task_run_session_including_a0,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "a0",
+                  "/tmp/argo_pipeline_a0_b0/variable_a0.pickle",
+              ),
+          ],
+      )
+  
+      run_session_including_b0 = Task(
+          "run-session-including-b0",
+          task_run_session_including_b0,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "b0",
+                  "/tmp/argo_pipeline_a0_b0/variable_b0.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_b0
+  
+      setup >> run_session_including_a0
+  
+      run_session_including_b0 >> teardown
+  
+      run_session_including_a0 >> teardown
+  
+  
+  w.create()
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_a0_b0_dependencies]
+  '
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_b0())
+      artifacts.update(run_session_including_a0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_a0_b0_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_a0_b0_dependencies].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_b0():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_dependencies_module
+  
+      artifacts = argo_pipeline_a0_b0_dependencies_module.run_session_including_b0()
+  
+      b0 = artifacts["b0"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0_dependencies").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0_dependencies").mkdir()
+      pickle.dump(
+          b0, open("/tmp/argo_pipeline_a0_b0_dependencies/variable_b0.pickle", "wb")
+      )
+  
+  
+  def task_run_session_including_a0():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_dependencies_module
+  
+      artifacts = argo_pipeline_a0_b0_dependencies_module.run_session_including_a0()
+  
+      a0 = artifacts["a0"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0_dependencies").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_a0_b0_dependencies").mkdir()
+      pickle.dump(
+          a0, open("/tmp/argo_pipeline_a0_b0_dependencies/variable_a0.pickle", "wb")
+      )
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_dependencies_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a0_b0_dependencies_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-a0-b0-dependencies", service=ws) as w:
+  
+      set_global_task_image("argo_pipeline_a0_b0_dependencies:lineapy")
+  
+      run_session_including_b0 = Task(
+          "run-session-including-b0",
+          task_run_session_including_b0,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "b0",
+                  "/tmp/argo_pipeline_a0_b0_dependencies/variable_b0.pickle",
+              ),
+          ],
+      )
+  
+      run_session_including_a0 = Task(
+          "run-session-including-a0",
+          task_run_session_including_a0,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "a0",
+                  "/tmp/argo_pipeline_a0_b0_dependencies/variable_a0.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_b0
+  
+      run_session_including_b0 >> run_session_including_a0
+  
+      run_session_including_a0 >> teardown
+  
+  
+  w.create()
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_a_b0_inputpar]
+  '
+  import argparse
+  
+  
+  def get_b0(b0):
+  
+      return b0
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_b0(b0=0):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0(b0)
+      artifacts["b0"] = copy.deepcopy(b0)
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      b0=0,
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_b0(b0))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--b0", type=int, default=0)
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          b0=args.b0,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_a_b0_inputpar].1
+  ''
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_a_b0_inputpar].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_b0(b0):
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a_b0_inputpar_module
+  
+      b0 = int(b0)
+  
+      artifacts = argo_pipeline_a_b0_inputpar_module.run_session_including_b0(b0)
+  
+      b0 = artifacts["b0"]
+      a = artifacts["a"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_a_b0_inputpar").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_a_b0_inputpar").mkdir()
+      pickle.dump(b0, open("/tmp/argo_pipeline_a_b0_inputpar/variable_b0.pickle", "wb"))
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_a_b0_inputpar").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_a_b0_inputpar").mkdir()
+      pickle.dump(a, open("/tmp/argo_pipeline_a_b0_inputpar/variable_a.pickle", "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a_b0_inputpar_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_a_b0_inputpar_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-a-b0-inputpar", service=ws) as w:
+  
+      set_global_task_image("argo_pipeline_a_b0_inputpar:lineapy")
+  
+      run_session_including_b0 = Task(
+          "run-session-including-b0",
+          task_run_session_including_b0,
+          [
+              {
+                  "b0": "0",
+              }
+          ],
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "b0",
+                  "/tmp/argo_pipeline_a_b0_inputpar/variable_b0.pickle",
+              ),
+              Artifact(
+                  "a",
+                  "/tmp/argo_pipeline_a_b0_inputpar/variable_a.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_b0
+  
+      run_session_including_b0 >> teardown
+  
+  
+  w.create()
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_housing_multiple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_housing_multiple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_housing_multiple].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_y():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_housing_multiple_module
+  
+      artifacts = argo_pipeline_housing_multiple_module.run_session_including_y()
+  
+      y = artifacts["y"]
+      p_value = artifacts["p value"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_housing_multiple").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_housing_multiple").mkdir()
+      pickle.dump(y, open("/tmp/argo_pipeline_housing_multiple/variable_y.pickle", "wb"))
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_housing_multiple").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_housing_multiple").mkdir()
+      pickle.dump(
+          p_value,
+          open("/tmp/argo_pipeline_housing_multiple/variable_p_value.pickle", "wb"),
+      )
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_housing_multiple_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_housing_multiple_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-housing-multiple", service=ws) as w:
+  
+      set_global_task_image("argo_pipeline_housing_multiple:lineapy")
+  
+      run_session_including_y = Task(
+          "run-session-including-y",
+          task_run_session_including_y,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "y",
+                  "/tmp/argo_pipeline_housing_multiple/variable_y.pickle",
+              ),
+              Artifact(
+                  "p_value",
+                  "/tmp/argo_pipeline_housing_multiple/variable_p_value.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_y
+  
+      run_session_including_y >> teardown
+  
+  
+  w.create()
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_housing_simple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_p_value():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      clf = RandomForestClassifier(random_state=0)
+      y = assets["is_new"]
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_p_value():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      p = get_p_value()
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_p_value())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_housing_simple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_housing_simple].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_p_value():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_housing_simple_module
+  
+      artifacts = argo_pipeline_housing_simple_module.run_session_including_p_value()
+  
+      p_value = artifacts["p value"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_housing_simple").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_housing_simple").mkdir()
+      pickle.dump(
+          p_value, open("/tmp/argo_pipeline_housing_simple/variable_p_value.pickle", "wb")
+      )
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_housing_simple_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_housing_simple_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-housing-simple", service=ws) as w:
+  
+      set_global_task_image("argo_pipeline_housing_simple:lineapy")
+  
+      run_session_including_p_value = Task(
+          "run-session-including-p-value",
+          task_run_session_including_p_value,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "p_value",
+                  "/tmp/argo_pipeline_housing_simple/variable_p_value.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_p_value
+  
+      run_session_including_p_value >> teardown
+  
+  
+  w.create()
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_housing_w_dependencies]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_housing_w_dependencies].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_housing_w_dependencies].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_y():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_housing_w_dependencies_module
+  
+      artifacts = argo_pipeline_housing_w_dependencies_module.run_session_including_y()
+  
+      y = artifacts["y"]
+      p_value = artifacts["p value"]
+  
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("argo_pipeline_housing_w_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("argo_pipeline_housing_w_dependencies").mkdir()
+      pickle.dump(
+          y, open("/tmp/argo_pipeline_housing_w_dependencies/variable_y.pickle", "wb")
+      )
+  
+      if (
+          not pathlib.Path("/tmp")
+          .joinpath("argo_pipeline_housing_w_dependencies")
+          .exists()
+      ):
+          pathlib.Path("/tmp").joinpath("argo_pipeline_housing_w_dependencies").mkdir()
+      pickle.dump(
+          p_value,
+          open("/tmp/argo_pipeline_housing_w_dependencies/variable_p_value.pickle", "wb"),
+      )
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_housing_w_dependencies_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_housing_w_dependencies_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-housing-w-dependencies", service=ws) as w:
+  
+      set_global_task_image("argo_pipeline_housing_w_dependencies:lineapy")
+  
+      run_session_including_y = Task(
+          "run-session-including-y",
+          task_run_session_including_y,
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "y",
+                  "/tmp/argo_pipeline_housing_w_dependencies/variable_y.pickle",
+              ),
+              Artifact(
+                  "p_value",
+                  "/tmp/argo_pipeline_housing_w_dependencies/variable_p_value.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_y
+  
+      run_session_including_y >> teardown
+  
+  
+  w.create()
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_two_input_parameter]
+  '
+  import argparse
+  
+  
+  def get_pn(n, p):
+      pn = p * n
+      return pn
+  
+  
+  def run_session_including_pn(
+      p="p",
+      n=5,
+  ):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      pn = get_pn(n, p)
+      artifacts["pn"] = copy.deepcopy(pn)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      n=5,
+      p="p",
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_pn(p, n))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--n", type=int, default=5)
+      parser.add_argument("--p", type=str, default="p")
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          n=args.n,
+          p=args.p,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_two_input_parameter].1
+  ''
+---
+# name: test_pipeline_generation[argo_pipeline_step_per_session-argo_pipeline_two_input_parameter].2
+  '
+  import base64
+  import errno
+  import os
+  from typing import Optional
+  
+  from hera import Artifact, ImagePullPolicy, set_global_task_image
+  from hera.task import Task
+  from hera.workflow import Workflow
+  from hera.workflow_service import WorkflowService
+  from kubernetes import client, config
+  
+  
+  def get_sa_token(
+      service_account: str,
+      namespace: str = "argo",
+      config_file: Optional[str] = None,
+  ):
+      """
+      Configues the kubernetes client and returns the service account token for the
+      specified service account in the specified namespace.
+      This is used in the case the local kubeconfig exists.
+      """
+      if config_file is not None and not os.path.isfile(config_file):
+          raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), config_file)
+  
+      config.load_kube_config(config_file=config_file)
+      v1 = client.CoreV1Api()
+      if v1.read_namespaced_service_account(service_account, namespace).secrets is None:
+          print("No secrets found in namespace: %s" % namespace)
+          return "None"
+  
+      secret_name = (
+          v1.read_namespaced_service_account(service_account, namespace).secrets[0].name
+      )
+  
+      sec = v1.read_namespaced_secret(secret_name, namespace).data
+      return base64.b64decode(sec["token"]).decode()
+  
+  
+  def task_run_session_including_pn(p, n):
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_two_input_parameter_module
+  
+      p = str(p)
+  
+      n = int(n)
+  
+      artifacts = argo_pipeline_two_input_parameter_module.run_session_including_pn(p, n)
+  
+      pn = artifacts["pn"]
+  
+      if not pathlib.Path("/tmp").joinpath("argo_pipeline_two_input_parameter").exists():
+          pathlib.Path("/tmp").joinpath("argo_pipeline_two_input_parameter").mkdir()
+      pickle.dump(
+          pn, open("/tmp/argo_pipeline_two_input_parameter/variable_pn.pickle", "wb")
+      )
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_two_input_parameter_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import argo_pipeline_two_input_parameter_module
+  
+      pass
+  
+  
+  ws = WorkflowService(
+      host="https://localhost:2746",
+      verify_ssl=False,
+      token=get_sa_token("argo", "argo", os.path.expanduser("~/.kube/config")),
+      namespace="argo",
+  )
+  
+  with Workflow("argo-pipeline-two-input-parameter", service=ws) as w:
+  
+      set_global_task_image("argo_pipeline_two_input_parameter:lineapy")
+  
+      run_session_including_pn = Task(
+          "run-session-including-pn",
+          task_run_session_including_pn,
+          [
+              {
+                  "p": "p",
+                  "n": "5",
+              }
+          ],
+          image_pull_policy=ImagePullPolicy.Never,
+          outputs=[
+              Artifact(
+                  "pn",
+                  "/tmp/argo_pipeline_two_input_parameter/variable_pn.pickle",
+              ),
+          ],
+      )
+  
+      setup = Task(
+          "setup",
+          task_setup,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      teardown = Task(
+          "teardown",
+          task_teardown,
+          image_pull_policy=ImagePullPolicy.Never,
+      )
+  
+      setup >> run_session_including_pn
+  
+      run_session_including_pn >> teardown
+  
+  
+  w.create()
+  
+  '
+---

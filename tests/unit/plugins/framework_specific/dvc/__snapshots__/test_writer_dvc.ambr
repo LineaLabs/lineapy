@@ -1,0 +1,1604 @@
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_complex_h]
+  '
+  def get_a_c_for_artifact_f_and_downstream():
+      a0 = 0
+      a0 += 1
+      a = 1
+      a += 1
+      b = a * 2 + a0
+      c = b + 3
+      return a, c
+  
+  
+  def get_f(c):
+      f = c + 7
+      return f
+  
+  
+  def get_h(a, c):
+      d = a * 4
+      e = d + 5
+      e += 6
+      a += 1
+      g = c + e * 2
+      h = a + g
+      return h
+  
+  
+  def run_session_including_f():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a, c = get_a_c_for_artifact_f_and_downstream()
+      f = get_f(c)
+      artifacts["f"] = copy.deepcopy(f)
+      h = get_h(a, c)
+      artifacts["h"] = copy.deepcopy(h)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_f())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_complex_h].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_complex_h].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_complex_h_module.py
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_hidden_session_dependencies]
+  '
+  def get_a():
+      b0 = 0
+      a = b0 + 1
+      return a
+  
+  
+  def get_linear_first_for_artifact_linear_second_and_downstream():
+      linear_first = 1
+      return linear_first
+  
+  
+  def get_linear_second(linear_first):
+      linear_second = linear_first + 1
+      return linear_second
+  
+  
+  def get_linear_third(linear_first, linear_second):
+      linear_third = linear_second + linear_first
+      return linear_third
+  
+  
+  def run_session_including_a():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a = get_a()
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_session_including_linear_second():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      linear_first = get_linear_first_for_artifact_linear_second_and_downstream()
+      linear_second = get_linear_second(linear_first)
+      artifacts["linear_second"] = copy.deepcopy(linear_second)
+      linear_third = get_linear_third(linear_first, linear_second)
+      artifacts["linear_third"] = copy.deepcopy(linear_third)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a())
+      artifacts.update(run_session_including_linear_second())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_hidden_session_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_hidden_session_dependencies].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_hidden_session_dependencies_module.py
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_a0_b0]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_a0_b0].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_a0_b0].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_pipeline_a0_b0_module.py
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_a0_b0_dependencies]
+  '
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_b0())
+      artifacts.update(run_session_including_a0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_a0_b0_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_a0_b0_dependencies].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_pipeline_a0_b0_dependencies_module.py
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_a_b0_inputpar]
+  '
+  import argparse
+  
+  
+  def get_b0(b0):
+  
+      return b0
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_b0(b0=0):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0(b0)
+      artifacts["b0"] = copy.deepcopy(b0)
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      b0=0,
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_b0(b0))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--b0", type=int, default=0)
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          b0=args.b0,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_a_b0_inputpar].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_a_b0_inputpar].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_pipeline_a_b0_inputpar_module.py
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_housing_multiple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_housing_multiple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_housing_multiple].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_pipeline_housing_multiple_module.py
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_housing_simple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_p_value():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      clf = RandomForestClassifier(random_state=0)
+      y = assets["is_new"]
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_p_value():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      p = get_p_value()
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_p_value())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_housing_simple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_housing_simple].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_pipeline_housing_simple_module.py
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_housing_w_dependencies]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_housing_w_dependencies].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_housing_w_dependencies].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_pipeline_housing_w_dependencies_module.py
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_two_input_parameter]
+  '
+  import argparse
+  
+  
+  def get_pn(n, p):
+      pn = p * n
+      return pn
+  
+  
+  def run_session_including_pn(
+      p="p",
+      n=5,
+  ):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      pn = get_pn(n, p)
+      artifacts["pn"] = copy.deepcopy(pn)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      n=5,
+      p="p",
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_pn(p, n))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--n", type=int, default=5)
+      parser.add_argument("--p", type=str, default="p")
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          n=args.n,
+          p=args.p,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_two_input_parameter].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_single_stage_all_sessions-dvc_pipeline_two_input_parameter].2
+  '
+  stages:
+    run_all_sessions:
+      cmd: python dvc_pipeline_two_input_parameter_module.py
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_complex_h]
+  '
+  def get_a_c_for_artifact_f_and_downstream():
+      a0 = 0
+      a0 += 1
+      a = 1
+      a += 1
+      b = a * 2 + a0
+      c = b + 3
+      return a, c
+  
+  
+  def get_f(c):
+      f = c + 7
+      return f
+  
+  
+  def get_h(a, c):
+      d = a * 4
+      e = d + 5
+      e += 6
+      a += 1
+      g = c + e * 2
+      h = a + g
+      return h
+  
+  
+  def run_session_including_f():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a, c = get_a_c_for_artifact_f_and_downstream()
+      f = get_f(c)
+      artifacts["f"] = copy.deepcopy(f)
+      h = get_h(a, c)
+      artifacts["h"] = copy.deepcopy(h)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_f())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_complex_h].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_complex_h].2
+  '
+  stages:
+  
+      a_c_for_artifact_f_and_downstream:
+          cmd: python task_a_c_for_artifact_f_and_downstream.py
+          deps:
+              - dvc_complex_h_module.py
+              - task_a_c_for_artifact_f_and_downstream.py
+          outs:
+              - a.pickle
+              - c.pickle
+  
+      f:
+          cmd: python task_f.py
+          deps:
+              - dvc_complex_h_module.py
+              - task_f.py
+              - c.pickle
+          outs:
+              - f.pickle
+  
+      h:
+          cmd: python task_h.py
+          deps:
+              - dvc_complex_h_module.py
+              - task_h.py
+              - a.pickle
+              - c.pickle
+          outs:
+              - h.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_complex_h].3
+  '
+  
+  import dvc_complex_h_module
+  import pickle
+  
+  def task_f():
+      c = pickle.load(open('c.pickle','rb'))
+      f = dvc_complex_h_module.get_f(c)
+      pickle.dump(f, open('f.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_f()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_complex_h].4
+  '
+  
+  import dvc_complex_h_module
+  import pickle
+  
+  def task_h():
+      a = pickle.load(open('a.pickle','rb'))
+      c = pickle.load(open('c.pickle','rb'))
+      h = dvc_complex_h_module.get_h(a, c)
+      pickle.dump(h, open('h.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_h()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies]
+  '
+  def get_a():
+      b0 = 0
+      a = b0 + 1
+      return a
+  
+  
+  def get_linear_first_for_artifact_linear_second_and_downstream():
+      linear_first = 1
+      return linear_first
+  
+  
+  def get_linear_second(linear_first):
+      linear_second = linear_first + 1
+      return linear_second
+  
+  
+  def get_linear_third(linear_first, linear_second):
+      linear_third = linear_second + linear_first
+      return linear_third
+  
+  
+  def run_session_including_a():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a = get_a()
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_session_including_linear_second():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      linear_first = get_linear_first_for_artifact_linear_second_and_downstream()
+      linear_second = get_linear_second(linear_first)
+      artifacts["linear_second"] = copy.deepcopy(linear_second)
+      linear_third = get_linear_third(linear_first, linear_second)
+      artifacts["linear_third"] = copy.deepcopy(linear_third)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a())
+      artifacts.update(run_session_including_linear_second())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies].2
+  '
+  stages:
+  
+      a:
+          cmd: python task_a.py
+          deps:
+              - dvc_hidden_session_dependencies_module.py
+              - task_a.py
+          outs:
+              - a.pickle
+  
+      linear_first_for_artifact_linear_second_and_downstream:
+          cmd: python task_linear_first_for_artifact_linear_second_and_downstream.py
+          deps:
+              - dvc_hidden_session_dependencies_module.py
+              - task_linear_first_for_artifact_linear_second_and_downstream.py
+          outs:
+              - linear_first.pickle
+  
+      linear_second:
+          cmd: python task_linear_second.py
+          deps:
+              - dvc_hidden_session_dependencies_module.py
+              - task_linear_second.py
+              - linear_first.pickle
+          outs:
+              - linear_second.pickle
+  
+      linear_third:
+          cmd: python task_linear_third.py
+          deps:
+              - dvc_hidden_session_dependencies_module.py
+              - task_linear_third.py
+              - linear_first.pickle
+              - linear_second.pickle
+          outs:
+              - linear_third.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies].3
+  '
+  
+  import dvc_hidden_session_dependencies_module
+  import pickle
+  
+  def task_a():
+      a = dvc_hidden_session_dependencies_module.get_a()
+      pickle.dump(a, open('a.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_a()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies].4
+  '
+  
+  import dvc_hidden_session_dependencies_module
+  import pickle
+  
+  def task_linear_second():
+      linear_first = pickle.load(open('linear_first.pickle','rb'))
+      linear_second = dvc_hidden_session_dependencies_module.get_linear_second(linear_first)
+      pickle.dump(linear_second, open('linear_second.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_linear_second()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_hidden_session_dependencies].5
+  '
+  
+  import dvc_hidden_session_dependencies_module
+  import pickle
+  
+  def task_linear_third():
+      linear_first = pickle.load(open('linear_first.pickle','rb'))
+      linear_second = pickle.load(open('linear_second.pickle','rb'))
+      linear_third = dvc_hidden_session_dependencies_module.get_linear_third(linear_first, linear_second)
+      pickle.dump(linear_third, open('linear_third.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_linear_third()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0].2
+  '
+  stages:
+  
+      a0:
+          cmd: python task_a0.py
+          deps:
+              - dvc_pipeline_a0_b0_module.py
+              - task_a0.py
+          outs:
+              - a0.pickle
+  
+      b0:
+          cmd: python task_b0.py
+          deps:
+              - dvc_pipeline_a0_b0_module.py
+              - task_b0.py
+          outs:
+              - b0.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0].3
+  '
+  
+  import dvc_pipeline_a0_b0_module
+  import pickle
+  
+  def task_a0():
+      a0 = dvc_pipeline_a0_b0_module.get_a0()
+      pickle.dump(a0, open('a0.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_a0()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0].4
+  '
+  
+  import dvc_pipeline_a0_b0_module
+  import pickle
+  
+  def task_b0():
+      b0 = dvc_pipeline_a0_b0_module.get_b0()
+      pickle.dump(b0, open('b0.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_b0()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0_dependencies]
+  '
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_b0())
+      artifacts.update(run_session_including_a0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0_dependencies].2
+  '
+  stages:
+  
+      b0:
+          cmd: python task_b0.py
+          deps:
+              - dvc_pipeline_a0_b0_dependencies_module.py
+              - task_b0.py
+          outs:
+              - b0.pickle
+  
+      a0:
+          cmd: python task_a0.py
+          deps:
+              - dvc_pipeline_a0_b0_dependencies_module.py
+              - task_a0.py
+          outs:
+              - a0.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0_dependencies].3
+  '
+  
+  import dvc_pipeline_a0_b0_dependencies_module
+  import pickle
+  
+  def task_a0():
+      a0 = dvc_pipeline_a0_b0_dependencies_module.get_a0()
+      pickle.dump(a0, open('a0.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_a0()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a0_b0_dependencies].4
+  '
+  
+  import dvc_pipeline_a0_b0_dependencies_module
+  import pickle
+  
+  def task_b0():
+      b0 = dvc_pipeline_a0_b0_dependencies_module.get_b0()
+      pickle.dump(b0, open('b0.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_b0()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a_b0_inputpar]
+  '
+  import argparse
+  
+  
+  def get_b0(b0):
+  
+      return b0
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_b0(b0=0):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0(b0)
+      artifacts["b0"] = copy.deepcopy(b0)
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      b0=0,
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_b0(b0))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--b0", type=int, default=0)
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          b0=args.b0,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a_b0_inputpar].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a_b0_inputpar].2
+  '
+  stages:
+  
+      b0:
+          cmd: python task_b0.py
+          deps:
+              - dvc_pipeline_a_b0_inputpar_module.py
+              - task_b0.py
+          outs:
+              - b0.pickle
+  
+      a:
+          cmd: python task_a.py
+          deps:
+              - dvc_pipeline_a_b0_inputpar_module.py
+              - task_a.py
+              - b0.pickle
+          outs:
+              - a.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a_b0_inputpar].3
+  '
+  
+  import dvc_pipeline_a_b0_inputpar_module
+  import pickle
+  
+  def task_a():
+      b0 = pickle.load(open('b0.pickle','rb'))
+      a = dvc_pipeline_a_b0_inputpar_module.get_a(b0)
+      pickle.dump(a, open('a.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_a()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_a_b0_inputpar].4
+  '
+  import dvc.api
+  
+  import dvc_pipeline_a_b0_inputpar_module
+  import pickle
+  
+  def task_b0(b0):
+      b0 = dvc_pipeline_a_b0_inputpar_module.get_b0(b0)
+      pickle.dump(b0, open('b0.pickle','wb'))
+  
+  if __name__ == "__main__":
+      b0 = dvc.api.params_show()["b0"]
+      task_b0(b0)
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_multiple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_multiple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_multiple].2
+  '
+  stages:
+  
+      assets_for_artifact_y_and_downstream:
+          cmd: python task_assets_for_artifact_y_and_downstream.py
+          deps:
+              - dvc_pipeline_housing_multiple_module.py
+              - task_assets_for_artifact_y_and_downstream.py
+          outs:
+              - assets.pickle
+  
+      y:
+          cmd: python task_y.py
+          deps:
+              - dvc_pipeline_housing_multiple_module.py
+              - task_y.py
+              - assets.pickle
+          outs:
+              - y.pickle
+  
+      p_value:
+          cmd: python task_p_value.py
+          deps:
+              - dvc_pipeline_housing_multiple_module.py
+              - task_p_value.py
+              - assets.pickle
+              - y.pickle
+          outs:
+              - p.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_multiple].3
+  '
+  
+  import dvc_pipeline_housing_multiple_module
+  import pickle
+  
+  def task_y():
+      assets = pickle.load(open('assets.pickle','rb'))
+      y = dvc_pipeline_housing_multiple_module.get_y(assets)
+      pickle.dump(y, open('y.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_y()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_multiple].4
+  '
+  
+  import dvc_pipeline_housing_multiple_module
+  import pickle
+  
+  def task_p_value():
+      assets = pickle.load(open('assets.pickle','rb'))
+      y = pickle.load(open('y.pickle','rb'))
+      p = dvc_pipeline_housing_multiple_module.get_p_value(assets, y)
+      pickle.dump(p, open('p.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_p_value()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_simple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_p_value():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      clf = RandomForestClassifier(random_state=0)
+      y = assets["is_new"]
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_p_value():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      p = get_p_value()
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_p_value())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_simple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_simple].2
+  '
+  stages:
+  
+      p_value:
+          cmd: python task_p_value.py
+          deps:
+              - dvc_pipeline_housing_simple_module.py
+              - task_p_value.py
+          outs:
+              - p.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_simple].3
+  '
+  
+  import dvc_pipeline_housing_simple_module
+  import pickle
+  
+  def task_p_value():
+      p = dvc_pipeline_housing_simple_module.get_p_value()
+      pickle.dump(p, open('p.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_p_value()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_w_dependencies]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_w_dependencies].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_w_dependencies].2
+  '
+  stages:
+  
+      assets_for_artifact_y_and_downstream:
+          cmd: python task_assets_for_artifact_y_and_downstream.py
+          deps:
+              - dvc_pipeline_housing_w_dependencies_module.py
+              - task_assets_for_artifact_y_and_downstream.py
+          outs:
+              - assets.pickle
+  
+      y:
+          cmd: python task_y.py
+          deps:
+              - dvc_pipeline_housing_w_dependencies_module.py
+              - task_y.py
+              - assets.pickle
+          outs:
+              - y.pickle
+  
+      p_value:
+          cmd: python task_p_value.py
+          deps:
+              - dvc_pipeline_housing_w_dependencies_module.py
+              - task_p_value.py
+              - assets.pickle
+              - y.pickle
+          outs:
+              - p.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_w_dependencies].3
+  '
+  
+  import dvc_pipeline_housing_w_dependencies_module
+  import pickle
+  
+  def task_y():
+      assets = pickle.load(open('assets.pickle','rb'))
+      y = dvc_pipeline_housing_w_dependencies_module.get_y(assets)
+      pickle.dump(y, open('y.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_y()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_housing_w_dependencies].4
+  '
+  
+  import dvc_pipeline_housing_w_dependencies_module
+  import pickle
+  
+  def task_p_value():
+      assets = pickle.load(open('assets.pickle','rb'))
+      y = pickle.load(open('y.pickle','rb'))
+      p = dvc_pipeline_housing_w_dependencies_module.get_p_value(assets, y)
+      pickle.dump(p, open('p.pickle','wb'))
+  
+  if __name__ == "__main__":
+      task_p_value()
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_two_input_parameter]
+  '
+  import argparse
+  
+  
+  def get_pn(n, p):
+      pn = p * n
+      return pn
+  
+  
+  def run_session_including_pn(
+      p="p",
+      n=5,
+  ):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      pn = get_pn(n, p)
+      artifacts["pn"] = copy.deepcopy(pn)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      n=5,
+      p="p",
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_pn(p, n))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--n", type=int, default=5)
+      parser.add_argument("--p", type=str, default="p")
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          n=args.n,
+          p=args.p,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_two_input_parameter].1
+  ''
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_two_input_parameter].2
+  '
+  stages:
+  
+      pn:
+          cmd: python task_pn.py
+          deps:
+              - dvc_pipeline_two_input_parameter_module.py
+              - task_pn.py
+          outs:
+              - pn.pickle
+  
+  
+  '
+---
+# name: test_pipeline_generation[dvc_pipeline_stage_per_artifact-dvc_pipeline_two_input_parameter].3
+  '
+  import dvc.api
+  
+  import dvc_pipeline_two_input_parameter_module
+  import pickle
+  
+  def task_pn(n, p):
+      pn = dvc_pipeline_two_input_parameter_module.get_pn(n, p)
+      pickle.dump(pn, open('pn.pickle','wb'))
+  
+  if __name__ == "__main__":
+      n = dvc.api.params_show()["n"]
+      p = dvc.api.params_show()["p"]
+      task_pn(n, p)
+  '
+---

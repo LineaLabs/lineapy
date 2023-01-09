@@ -125,19 +125,25 @@ def test_pipeline_generation(
     Test two sessions
     """
 
-    pipeline_file_generation_helper(
-        tmp_path,
-        linea_db,
-        execute,
-        input_script1,
-        input_script2,
-        artifact_list,
-        "RAY",
-        pipeline_name,
-        dependencies,
-        dag_config,
-        input_parameters,
-    )
+    try:
+        pipeline_file_generation_helper(
+            tmp_path,
+            linea_db,
+            execute,
+            input_script1,
+            input_script2,
+            artifact_list,
+            "RAY",
+            pipeline_name,
+            dependencies,
+            dag_config,
+            input_parameters,
+        )
+    # Ray has few configurations that are not supported by the workflows API
+    # ensure that these error out, using error message as snapshot
+    except RuntimeError as e:
+        assert snapshot == repr(e)
+        return
 
     # Get list of files to compare
     file_endings = ["_module.py", "_requirements.txt", "_dag.py"]

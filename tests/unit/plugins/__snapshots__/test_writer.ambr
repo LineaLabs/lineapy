@@ -2990,7 +2990,7 @@
   scikit-learn==1.0.2
   '
 ---
-# name: test_pipeline_test_generation[script_complex_h_perart]
+# name: test_pipeline_test_generation[script_complex_h]
   '
   import os
   import pickle
@@ -2999,11 +2999,7 @@
   from pathlib import Path
   from typing import Callable
   
-  from script_complex_h_perart_module import (
-      get_a_c_for_artifact_f_and_downstream,
-      get_f,
-      get_h,
-  )
+  from script_complex_h_module import get_a_c_for_artifact_f_and_downstream, get_f, get_h
   
   
   def safe_load_pickle(
@@ -3030,7 +3026,7 @@
           return alt_value
   
   
-  class TestScriptComplexHPerart(unittest.TestCase):
+  class TestScriptComplexH(unittest.TestCase):
       art_pkl_dir: Path
   
       def setUp(self) -> None:

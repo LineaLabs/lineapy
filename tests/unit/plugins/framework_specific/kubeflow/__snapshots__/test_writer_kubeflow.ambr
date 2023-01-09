@@ -1,0 +1,2872 @@
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_complex_h]
+  '
+  def get_a_c_for_artifact_f_and_downstream():
+      a0 = 0
+      a0 += 1
+      a = 1
+      a += 1
+      b = a * 2 + a0
+      c = b + 3
+      return a, c
+  
+  
+  def get_f(c):
+      f = c + 7
+      return f
+  
+  
+  def get_h(a, c):
+      d = a * 4
+      e = d + 5
+      e += 6
+      a += 1
+      g = c + e * 2
+      h = a + g
+      return h
+  
+  
+  def run_session_including_f():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a, c = get_a_c_for_artifact_f_and_downstream()
+      f = get_f(c)
+      artifacts["f"] = copy.deepcopy(f)
+      h = get_h(a, c)
+      artifacts["h"] = copy.deepcopy(h)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_f())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_complex_h].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_complex_h].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_a_c_for_artifact_f_and_downstream(
+      variable_a_path: kfp.components.OutputPath(str),
+      variable_c_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_complex_h_module
+  
+      a, c = kubeflow_complex_h_module.get_a_c_for_artifact_f_and_downstream()
+  
+      pickle.dump(a, open(variable_a_path, "wb"))
+  
+      pickle.dump(c, open(variable_c_path, "wb"))
+  
+  
+  def task_f(
+      variable_c_path: kfp.components.InputPath(str),
+      variable_f_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_complex_h_module
+  
+      c = pickle.load(open(variable_c_path, "rb"))
+  
+      f = kubeflow_complex_h_module.get_f(c)
+  
+      pickle.dump(f, open(variable_f_path, "wb"))
+  
+  
+  def task_h(
+      variable_a_path: kfp.components.InputPath(str),
+      variable_c_path: kfp.components.InputPath(str),
+      variable_h_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_complex_h_module
+  
+      a = pickle.load(open(variable_a_path, "rb"))
+  
+      c = pickle.load(open(variable_c_path, "rb"))
+  
+      h = kubeflow_complex_h_module.get_h(a, c)
+  
+      pickle.dump(h, open(variable_h_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_complex_h_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_complex_h_module
+  
+      pass
+  
+  
+  a_c_for_artifact_f_and_downstream_component = create_component_from_func(
+      task_a_c_for_artifact_f_and_downstream, base_image="kubeflow_complex_h:lineapy"
+  )
+  
+  f_component = create_component_from_func(
+      task_f, base_image="kubeflow_complex_h:lineapy"
+  )
+  
+  h_component = create_component_from_func(
+      task_h, base_image="kubeflow_complex_h:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_complex_h:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_complex_h:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_complex_h_dag",
+  )
+  def kubeflow_complex_h():
+  
+      task_a_c_for_artifact_f_and_downstream = (
+          a_c_for_artifact_f_and_downstream_component()
+      )
+      task_f = f_component(task_a_c_for_artifact_f_and_downstream.outputs["variable_c"])
+      task_h = h_component(
+          task_a_c_for_artifact_f_and_downstream.outputs["variable_a"],
+          task_a_c_for_artifact_f_and_downstream.outputs["variable_c"],
+      )
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_a_c_for_artifact_f_and_downstream.after(task_setup)
+  
+      task_f.after(task_a_c_for_artifact_f_and_downstream)
+  
+      task_h.after(task_a_c_for_artifact_f_and_downstream)
+  
+      task_teardown.after(task_f)
+  
+      task_teardown.after(task_h)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(kubeflow_complex_h, arguments=pipeline_arguments)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_hidden_session_dependencies]
+  '
+  def get_a():
+      b0 = 0
+      a = b0 + 1
+      return a
+  
+  
+  def get_linear_first_for_artifact_linear_second_and_downstream():
+      linear_first = 1
+      return linear_first
+  
+  
+  def get_linear_second(linear_first):
+      linear_second = linear_first + 1
+      return linear_second
+  
+  
+  def get_linear_third(linear_first, linear_second):
+      linear_third = linear_second + linear_first
+      return linear_third
+  
+  
+  def run_session_including_a():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a = get_a()
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_session_including_linear_second():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      linear_first = get_linear_first_for_artifact_linear_second_and_downstream()
+      linear_second = get_linear_second(linear_first)
+      artifacts["linear_second"] = copy.deepcopy(linear_second)
+      linear_third = get_linear_third(linear_first, linear_second)
+      artifacts["linear_third"] = copy.deepcopy(linear_third)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a())
+      artifacts.update(run_session_including_linear_second())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_hidden_session_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_hidden_session_dependencies].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_a(variable_a_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      a = kubeflow_hidden_session_dependencies_module.get_a()
+  
+      pickle.dump(a, open(variable_a_path, "wb"))
+  
+  
+  def task_linear_first_for_artifact_linear_second_and_downstream(
+      variable_linear_first_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      linear_first = (
+          kubeflow_hidden_session_dependencies_module.get_linear_first_for_artifact_linear_second_and_downstream()
+      )
+  
+      pickle.dump(linear_first, open(variable_linear_first_path, "wb"))
+  
+  
+  def task_linear_second(
+      variable_linear_first_path: kfp.components.InputPath(str),
+      variable_linear_second_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      linear_first = pickle.load(open(variable_linear_first_path, "rb"))
+  
+      linear_second = kubeflow_hidden_session_dependencies_module.get_linear_second(
+          linear_first
+      )
+  
+      pickle.dump(linear_second, open(variable_linear_second_path, "wb"))
+  
+  
+  def task_linear_third(
+      variable_linear_first_path: kfp.components.InputPath(str),
+      variable_linear_second_path: kfp.components.InputPath(str),
+      variable_linear_third_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      linear_first = pickle.load(open(variable_linear_first_path, "rb"))
+  
+      linear_second = pickle.load(open(variable_linear_second_path, "rb"))
+  
+      linear_third = kubeflow_hidden_session_dependencies_module.get_linear_third(
+          linear_first, linear_second
+      )
+  
+      pickle.dump(linear_third, open(variable_linear_third_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      pass
+  
+  
+  a_component = create_component_from_func(
+      task_a, base_image="kubeflow_hidden_session_dependencies:lineapy"
+  )
+  
+  linear_first_for_artifact_linear_second_and_downstream_component = (
+      create_component_from_func(
+          task_linear_first_for_artifact_linear_second_and_downstream,
+          base_image="kubeflow_hidden_session_dependencies:lineapy",
+      )
+  )
+  
+  linear_second_component = create_component_from_func(
+      task_linear_second, base_image="kubeflow_hidden_session_dependencies:lineapy"
+  )
+  
+  linear_third_component = create_component_from_func(
+      task_linear_third, base_image="kubeflow_hidden_session_dependencies:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_hidden_session_dependencies:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_hidden_session_dependencies:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_hidden_session_dependencies_dag",
+  )
+  def kubeflow_hidden_session_dependencies():
+  
+      task_a = a_component()
+      task_linear_first_for_artifact_linear_second_and_downstream = (
+          linear_first_for_artifact_linear_second_and_downstream_component()
+      )
+      task_linear_second = linear_second_component(
+          task_linear_first_for_artifact_linear_second_and_downstream.outputs[
+              "variable_linear_first"
+          ]
+      )
+      task_linear_third = linear_third_component(
+          task_linear_first_for_artifact_linear_second_and_downstream.outputs[
+              "variable_linear_first"
+          ],
+          task_linear_second.outputs["variable_linear_second"],
+      )
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_a.after(task_setup)
+  
+      task_linear_first_for_artifact_linear_second_and_downstream.after(task_a)
+  
+      task_linear_second.after(
+          task_linear_first_for_artifact_linear_second_and_downstream
+      )
+  
+      task_linear_third.after(task_linear_first_for_artifact_linear_second_and_downstream)
+  
+      task_linear_third.after(task_linear_second)
+  
+      task_teardown.after(task_linear_third)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_hidden_session_dependencies, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_a0_b0]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_a0_b0].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_a0_b0].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_a0(variable_a0_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_module
+  
+      a0 = kubeflow_pipeline_a0_b0_module.get_a0()
+  
+      pickle.dump(a0, open(variable_a0_path, "wb"))
+  
+  
+  def task_b0(variable_b0_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_module
+  
+      b0 = kubeflow_pipeline_a0_b0_module.get_b0()
+  
+      pickle.dump(b0, open(variable_b0_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  a0_component = create_component_from_func(
+      task_a0, base_image="kubeflow_pipeline_a0_b0:lineapy"
+  )
+  
+  b0_component = create_component_from_func(
+      task_b0, base_image="kubeflow_pipeline_a0_b0:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_a0_b0:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_a0_b0:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_a0_b0_dag",
+  )
+  def kubeflow_pipeline_a0_b0():
+  
+      task_a0 = a0_component()
+      task_b0 = b0_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_a0.after(task_setup)
+  
+      task_b0.after(task_setup)
+  
+      task_teardown.after(task_a0)
+  
+      task_teardown.after(task_b0)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_a0_b0, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_a0_b0_dependencies]
+  '
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_b0())
+      artifacts.update(run_session_including_a0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_a0_b0_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_a0_b0_dependencies].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_b0(variable_b0_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_dependencies_module
+  
+      b0 = kubeflow_pipeline_a0_b0_dependencies_module.get_b0()
+  
+      pickle.dump(b0, open(variable_b0_path, "wb"))
+  
+  
+  def task_a0(variable_a0_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_dependencies_module
+  
+      a0 = kubeflow_pipeline_a0_b0_dependencies_module.get_a0()
+  
+      pickle.dump(a0, open(variable_a0_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_dependencies_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_dependencies_module
+  
+      pass
+  
+  
+  b0_component = create_component_from_func(
+      task_b0, base_image="kubeflow_pipeline_a0_b0_dependencies:lineapy"
+  )
+  
+  a0_component = create_component_from_func(
+      task_a0, base_image="kubeflow_pipeline_a0_b0_dependencies:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_a0_b0_dependencies:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_a0_b0_dependencies:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_a0_b0_dependencies_dag",
+  )
+  def kubeflow_pipeline_a0_b0_dependencies():
+  
+      task_b0 = b0_component()
+      task_a0 = a0_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_a0.after(task_setup)
+  
+      task_b0.after(task_setup)
+  
+      task_teardown.after(task_a0)
+  
+      task_teardown.after(task_b0)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_a0_b0_dependencies, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_a_b0_inputpar]
+  '
+  import argparse
+  
+  
+  def get_b0(b0):
+  
+      return b0
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_b0(b0=0):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0(b0)
+      artifacts["b0"] = copy.deepcopy(b0)
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      b0=0,
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_b0(b0))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--b0", type=int, default=0)
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          b0=args.b0,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_a_b0_inputpar].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_a_b0_inputpar].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_b0(b0, variable_b0_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a_b0_inputpar_module
+  
+      b0 = int(b0)
+  
+      b0 = kubeflow_pipeline_a_b0_inputpar_module.get_b0(b0)
+  
+      pickle.dump(b0, open(variable_b0_path, "wb"))
+  
+  
+  def task_a(
+      variable_b0_path: kfp.components.InputPath(str),
+      variable_a_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a_b0_inputpar_module
+  
+      b0 = pickle.load(open(variable_b0_path, "rb"))
+  
+      a = kubeflow_pipeline_a_b0_inputpar_module.get_a(b0)
+  
+      pickle.dump(a, open(variable_a_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a_b0_inputpar_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a_b0_inputpar_module
+  
+      pass
+  
+  
+  b0_component = create_component_from_func(
+      task_b0, base_image="kubeflow_pipeline_a_b0_inputpar:lineapy"
+  )
+  
+  a_component = create_component_from_func(
+      task_a, base_image="kubeflow_pipeline_a_b0_inputpar:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_a_b0_inputpar:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_a_b0_inputpar:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_a_b0_inputpar_dag",
+  )
+  def kubeflow_pipeline_a_b0_inputpar(b0):
+  
+      task_b0 = b0_component(b0)
+      task_a = a_component(task_b0.outputs["variable_b0"])
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_a.after(task_b0)
+  
+      task_b0.after(task_setup)
+  
+      task_teardown.after(task_a)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {"b0": 0}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_a_b0_inputpar, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_housing_multiple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_housing_multiple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_housing_multiple].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_assets_for_artifact_y_and_downstream(
+      variable_assets_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_multiple_module
+  
+      assets = (
+          kubeflow_pipeline_housing_multiple_module.get_assets_for_artifact_y_and_downstream()
+      )
+  
+      pickle.dump(assets, open(variable_assets_path, "wb"))
+  
+  
+  def task_y(
+      variable_assets_path: kfp.components.InputPath(str),
+      variable_y_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_multiple_module
+  
+      assets = pickle.load(open(variable_assets_path, "rb"))
+  
+      y = kubeflow_pipeline_housing_multiple_module.get_y(assets)
+  
+      pickle.dump(y, open(variable_y_path, "wb"))
+  
+  
+  def task_p_value(
+      variable_assets_path: kfp.components.InputPath(str),
+      variable_y_path: kfp.components.InputPath(str),
+      variable_p_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_multiple_module
+  
+      assets = pickle.load(open(variable_assets_path, "rb"))
+  
+      y = pickle.load(open(variable_y_path, "rb"))
+  
+      p = kubeflow_pipeline_housing_multiple_module.get_p_value(assets, y)
+  
+      pickle.dump(p, open(variable_p_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_multiple_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_multiple_module
+  
+      pass
+  
+  
+  assets_for_artifact_y_and_downstream_component = create_component_from_func(
+      task_assets_for_artifact_y_and_downstream,
+      base_image="kubeflow_pipeline_housing_multiple:lineapy",
+  )
+  
+  y_component = create_component_from_func(
+      task_y, base_image="kubeflow_pipeline_housing_multiple:lineapy"
+  )
+  
+  p_value_component = create_component_from_func(
+      task_p_value, base_image="kubeflow_pipeline_housing_multiple:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_housing_multiple:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_housing_multiple:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_housing_multiple_dag",
+  )
+  def kubeflow_pipeline_housing_multiple():
+  
+      task_assets_for_artifact_y_and_downstream = (
+          assets_for_artifact_y_and_downstream_component()
+      )
+      task_y = y_component(
+          task_assets_for_artifact_y_and_downstream.outputs["variable_assets"]
+      )
+      task_p_value = p_value_component(
+          task_assets_for_artifact_y_and_downstream.outputs["variable_assets"],
+          task_y.outputs["variable_y"],
+      )
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_assets_for_artifact_y_and_downstream.after(task_setup)
+  
+      task_p_value.after(task_assets_for_artifact_y_and_downstream)
+  
+      task_p_value.after(task_y)
+  
+      task_teardown.after(task_p_value)
+  
+      task_y.after(task_assets_for_artifact_y_and_downstream)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_housing_multiple, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_housing_simple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_p_value():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      clf = RandomForestClassifier(random_state=0)
+      y = assets["is_new"]
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_p_value():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      p = get_p_value()
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_p_value())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_housing_simple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_housing_simple].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_p_value(variable_p_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_simple_module
+  
+      p = kubeflow_pipeline_housing_simple_module.get_p_value()
+  
+      pickle.dump(p, open(variable_p_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_simple_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_simple_module
+  
+      pass
+  
+  
+  p_value_component = create_component_from_func(
+      task_p_value, base_image="kubeflow_pipeline_housing_simple:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_housing_simple:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_housing_simple:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_housing_simple_dag",
+  )
+  def kubeflow_pipeline_housing_simple():
+  
+      task_p_value = p_value_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_p_value.after(task_setup)
+  
+      task_teardown.after(task_p_value)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_housing_simple, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_housing_w_dependencies]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_housing_w_dependencies].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_housing_w_dependencies].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_assets_for_artifact_y_and_downstream(
+      variable_assets_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_w_dependencies_module
+  
+      assets = (
+          kubeflow_pipeline_housing_w_dependencies_module.get_assets_for_artifact_y_and_downstream()
+      )
+  
+      pickle.dump(assets, open(variable_assets_path, "wb"))
+  
+  
+  def task_y(
+      variable_assets_path: kfp.components.InputPath(str),
+      variable_y_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_w_dependencies_module
+  
+      assets = pickle.load(open(variable_assets_path, "rb"))
+  
+      y = kubeflow_pipeline_housing_w_dependencies_module.get_y(assets)
+  
+      pickle.dump(y, open(variable_y_path, "wb"))
+  
+  
+  def task_p_value(
+      variable_assets_path: kfp.components.InputPath(str),
+      variable_y_path: kfp.components.InputPath(str),
+      variable_p_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_w_dependencies_module
+  
+      assets = pickle.load(open(variable_assets_path, "rb"))
+  
+      y = pickle.load(open(variable_y_path, "rb"))
+  
+      p = kubeflow_pipeline_housing_w_dependencies_module.get_p_value(assets, y)
+  
+      pickle.dump(p, open(variable_p_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_w_dependencies_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_w_dependencies_module
+  
+      pass
+  
+  
+  assets_for_artifact_y_and_downstream_component = create_component_from_func(
+      task_assets_for_artifact_y_and_downstream,
+      base_image="kubeflow_pipeline_housing_w_dependencies:lineapy",
+  )
+  
+  y_component = create_component_from_func(
+      task_y, base_image="kubeflow_pipeline_housing_w_dependencies:lineapy"
+  )
+  
+  p_value_component = create_component_from_func(
+      task_p_value, base_image="kubeflow_pipeline_housing_w_dependencies:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_housing_w_dependencies:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_housing_w_dependencies:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_housing_w_dependencies_dag",
+  )
+  def kubeflow_pipeline_housing_w_dependencies():
+  
+      task_assets_for_artifact_y_and_downstream = (
+          assets_for_artifact_y_and_downstream_component()
+      )
+      task_y = y_component(
+          task_assets_for_artifact_y_and_downstream.outputs["variable_assets"]
+      )
+      task_p_value = p_value_component(
+          task_assets_for_artifact_y_and_downstream.outputs["variable_assets"],
+          task_y.outputs["variable_y"],
+      )
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_assets_for_artifact_y_and_downstream.after(task_setup)
+  
+      task_p_value.after(task_assets_for_artifact_y_and_downstream)
+  
+      task_p_value.after(task_y)
+  
+      task_teardown.after(task_p_value)
+  
+      task_y.after(task_assets_for_artifact_y_and_downstream)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_housing_w_dependencies, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_two_input_parameter]
+  '
+  import argparse
+  
+  
+  def get_pn(n, p):
+      pn = p * n
+      return pn
+  
+  
+  def run_session_including_pn(
+      p="p",
+      n=5,
+  ):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      pn = get_pn(n, p)
+      artifacts["pn"] = copy.deepcopy(pn)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      n=5,
+      p="p",
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_pn(p, n))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--n", type=int, default=5)
+      parser.add_argument("--p", type=str, default="p")
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          n=args.n,
+          p=args.p,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_two_input_parameter].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_artifact-kubeflow_pipeline_two_input_parameter].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_pn(n, p, variable_pn_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_two_input_parameter_module
+  
+      n = int(n)
+  
+      p = str(p)
+  
+      pn = kubeflow_pipeline_two_input_parameter_module.get_pn(n, p)
+  
+      pickle.dump(pn, open(variable_pn_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_two_input_parameter_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_two_input_parameter_module
+  
+      pass
+  
+  
+  pn_component = create_component_from_func(
+      task_pn, base_image="kubeflow_pipeline_two_input_parameter:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_two_input_parameter:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_two_input_parameter:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_two_input_parameter_dag",
+  )
+  def kubeflow_pipeline_two_input_parameter(p, n):
+  
+      task_pn = pn_component(n, p)
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_pn.after(task_setup)
+  
+      task_teardown.after(task_pn)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {"p": "p", "n": 5}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_two_input_parameter, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_complex_h]
+  '
+  def get_a_c_for_artifact_f_and_downstream():
+      a0 = 0
+      a0 += 1
+      a = 1
+      a += 1
+      b = a * 2 + a0
+      c = b + 3
+      return a, c
+  
+  
+  def get_f(c):
+      f = c + 7
+      return f
+  
+  
+  def get_h(a, c):
+      d = a * 4
+      e = d + 5
+      e += 6
+      a += 1
+      g = c + e * 2
+      h = a + g
+      return h
+  
+  
+  def run_session_including_f():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a, c = get_a_c_for_artifact_f_and_downstream()
+      f = get_f(c)
+      artifacts["f"] = copy.deepcopy(f)
+      h = get_h(a, c)
+      artifacts["h"] = copy.deepcopy(h)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_f())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_complex_h].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_complex_h].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_f(
+      variable_f_path: kfp.components.OutputPath(str),
+      variable_h_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_complex_h_module
+  
+      artifacts = kubeflow_complex_h_module.run_session_including_f()
+  
+      f = artifacts["f"]
+      h = artifacts["h"]
+  
+      pickle.dump(f, open(variable_f_path, "wb"))
+  
+      pickle.dump(h, open(variable_h_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_complex_h_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_complex_h_module
+  
+      pass
+  
+  
+  run_session_including_f_component = create_component_from_func(
+      task_run_session_including_f, base_image="kubeflow_complex_h:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_complex_h:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_complex_h:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_complex_h_dag",
+  )
+  def kubeflow_complex_h():
+  
+      task_run_session_including_f = run_session_including_f_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_f.after(task_setup)
+  
+      task_teardown.after(task_run_session_including_f)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(kubeflow_complex_h, arguments=pipeline_arguments)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_hidden_session_dependencies]
+  '
+  def get_a():
+      b0 = 0
+      a = b0 + 1
+      return a
+  
+  
+  def get_linear_first_for_artifact_linear_second_and_downstream():
+      linear_first = 1
+      return linear_first
+  
+  
+  def get_linear_second(linear_first):
+      linear_second = linear_first + 1
+      return linear_second
+  
+  
+  def get_linear_third(linear_first, linear_second):
+      linear_third = linear_second + linear_first
+      return linear_third
+  
+  
+  def run_session_including_a():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a = get_a()
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_session_including_linear_second():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      linear_first = get_linear_first_for_artifact_linear_second_and_downstream()
+      linear_second = get_linear_second(linear_first)
+      artifacts["linear_second"] = copy.deepcopy(linear_second)
+      linear_third = get_linear_third(linear_first, linear_second)
+      artifacts["linear_third"] = copy.deepcopy(linear_third)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a())
+      artifacts.update(run_session_including_linear_second())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_hidden_session_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_hidden_session_dependencies].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_a(variable_a_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      artifacts = kubeflow_hidden_session_dependencies_module.run_session_including_a()
+  
+      a = artifacts["a"]
+  
+      pickle.dump(a, open(variable_a_path, "wb"))
+  
+  
+  def task_run_session_including_linear_second(
+      variable_linear_second_path: kfp.components.OutputPath(str),
+      variable_linear_third_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      artifacts = (
+          kubeflow_hidden_session_dependencies_module.run_session_including_linear_second()
+      )
+  
+      linear_second = artifacts["linear_second"]
+      linear_third = artifacts["linear_third"]
+  
+      pickle.dump(linear_second, open(variable_linear_second_path, "wb"))
+  
+      pickle.dump(linear_third, open(variable_linear_third_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_hidden_session_dependencies_module
+  
+      pass
+  
+  
+  run_session_including_a_component = create_component_from_func(
+      task_run_session_including_a,
+      base_image="kubeflow_hidden_session_dependencies:lineapy",
+  )
+  
+  run_session_including_linear_second_component = create_component_from_func(
+      task_run_session_including_linear_second,
+      base_image="kubeflow_hidden_session_dependencies:lineapy",
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_hidden_session_dependencies:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_hidden_session_dependencies:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_hidden_session_dependencies_dag",
+  )
+  def kubeflow_hidden_session_dependencies():
+  
+      task_run_session_including_a = run_session_including_a_component()
+      task_run_session_including_linear_second = (
+          run_session_including_linear_second_component()
+      )
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_a.after(task_setup)
+  
+      task_run_session_including_linear_second.after(task_run_session_including_a)
+  
+      task_teardown.after(task_run_session_including_linear_second)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_hidden_session_dependencies, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_a0_b0]
+  '
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_a0())
+      artifacts.update(run_session_including_b0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_a0_b0].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_a0_b0].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_a0(variable_a0_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_module
+  
+      artifacts = kubeflow_pipeline_a0_b0_module.run_session_including_a0()
+  
+      a0 = artifacts["a0"]
+  
+      pickle.dump(a0, open(variable_a0_path, "wb"))
+  
+  
+  def task_run_session_including_b0(variable_b0_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_module
+  
+      artifacts = kubeflow_pipeline_a0_b0_module.run_session_including_b0()
+  
+      b0 = artifacts["b0"]
+  
+      pickle.dump(b0, open(variable_b0_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_module
+  
+      pass
+  
+  
+  run_session_including_a0_component = create_component_from_func(
+      task_run_session_including_a0, base_image="kubeflow_pipeline_a0_b0:lineapy"
+  )
+  
+  run_session_including_b0_component = create_component_from_func(
+      task_run_session_including_b0, base_image="kubeflow_pipeline_a0_b0:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_a0_b0:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_a0_b0:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_a0_b0_dag",
+  )
+  def kubeflow_pipeline_a0_b0():
+  
+      task_run_session_including_a0 = run_session_including_a0_component()
+      task_run_session_including_b0 = run_session_including_b0_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_a0.after(task_setup)
+  
+      task_run_session_including_b0.after(task_setup)
+  
+      task_teardown.after(task_run_session_including_a0)
+  
+      task_teardown.after(task_run_session_including_b0)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_a0_b0, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_a0_b0_dependencies]
+  '
+  def get_b0():
+      b0 = 0
+      return b0
+  
+  
+  def get_a0():
+      a0 = 0
+      a0 += 1
+      return a0
+  
+  
+  def run_session_including_b0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0()
+      artifacts["b0"] = copy.deepcopy(b0)
+      return artifacts
+  
+  
+  def run_session_including_a0():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      a0 = get_a0()
+      artifacts["a0"] = copy.deepcopy(a0)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_b0())
+      artifacts.update(run_session_including_a0())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_a0_b0_dependencies].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_a0_b0_dependencies].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_b0(variable_b0_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_dependencies_module
+  
+      artifacts = kubeflow_pipeline_a0_b0_dependencies_module.run_session_including_b0()
+  
+      b0 = artifacts["b0"]
+  
+      pickle.dump(b0, open(variable_b0_path, "wb"))
+  
+  
+  def task_run_session_including_a0(variable_a0_path: kfp.components.OutputPath(str)):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_dependencies_module
+  
+      artifacts = kubeflow_pipeline_a0_b0_dependencies_module.run_session_including_a0()
+  
+      a0 = artifacts["a0"]
+  
+      pickle.dump(a0, open(variable_a0_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_dependencies_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a0_b0_dependencies_module
+  
+      pass
+  
+  
+  run_session_including_b0_component = create_component_from_func(
+      task_run_session_including_b0,
+      base_image="kubeflow_pipeline_a0_b0_dependencies:lineapy",
+  )
+  
+  run_session_including_a0_component = create_component_from_func(
+      task_run_session_including_a0,
+      base_image="kubeflow_pipeline_a0_b0_dependencies:lineapy",
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_a0_b0_dependencies:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_a0_b0_dependencies:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_a0_b0_dependencies_dag",
+  )
+  def kubeflow_pipeline_a0_b0_dependencies():
+  
+      task_run_session_including_b0 = run_session_including_b0_component()
+      task_run_session_including_a0 = run_session_including_a0_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_a0.after(task_run_session_including_b0)
+  
+      task_run_session_including_b0.after(task_setup)
+  
+      task_teardown.after(task_run_session_including_a0)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_a0_b0_dependencies, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_a_b0_inputpar]
+  '
+  import argparse
+  
+  
+  def get_b0(b0):
+  
+      return b0
+  
+  
+  def get_a(b0):
+      a = b0 + 1
+      return a
+  
+  
+  def run_session_including_b0(b0=0):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      b0 = get_b0(b0)
+      artifacts["b0"] = copy.deepcopy(b0)
+      a = get_a(b0)
+      artifacts["a"] = copy.deepcopy(a)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      b0=0,
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_b0(b0))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--b0", type=int, default=0)
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          b0=args.b0,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_a_b0_inputpar].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_a_b0_inputpar].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_b0(
+      b0,
+      variable_b0_path: kfp.components.OutputPath(str),
+      variable_a_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a_b0_inputpar_module
+  
+      b0 = int(b0)
+  
+      artifacts = kubeflow_pipeline_a_b0_inputpar_module.run_session_including_b0(b0)
+  
+      b0 = artifacts["b0"]
+      a = artifacts["a"]
+  
+      pickle.dump(b0, open(variable_b0_path, "wb"))
+  
+      pickle.dump(a, open(variable_a_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a_b0_inputpar_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_a_b0_inputpar_module
+  
+      pass
+  
+  
+  run_session_including_b0_component = create_component_from_func(
+      task_run_session_including_b0, base_image="kubeflow_pipeline_a_b0_inputpar:lineapy"
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_a_b0_inputpar:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_a_b0_inputpar:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_a_b0_inputpar_dag",
+  )
+  def kubeflow_pipeline_a_b0_inputpar(b0):
+  
+      task_run_session_including_b0 = run_session_including_b0_component(b0)
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_b0.after(task_setup)
+  
+      task_teardown.after(task_run_session_including_b0)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {"b0": 0}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_a_b0_inputpar, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_housing_multiple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_housing_multiple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_housing_multiple].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_y(
+      variable_y_path: kfp.components.OutputPath(str),
+      variable_p_value_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_multiple_module
+  
+      artifacts = kubeflow_pipeline_housing_multiple_module.run_session_including_y()
+  
+      y = artifacts["y"]
+      p_value = artifacts["p value"]
+  
+      pickle.dump(y, open(variable_y_path, "wb"))
+  
+      pickle.dump(p_value, open(variable_p_value_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_multiple_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_multiple_module
+  
+      pass
+  
+  
+  run_session_including_y_component = create_component_from_func(
+      task_run_session_including_y,
+      base_image="kubeflow_pipeline_housing_multiple:lineapy",
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_housing_multiple:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_housing_multiple:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_housing_multiple_dag",
+  )
+  def kubeflow_pipeline_housing_multiple():
+  
+      task_run_session_including_y = run_session_including_y_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_y.after(task_setup)
+  
+      task_teardown.after(task_run_session_including_y)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_housing_multiple, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_housing_simple]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_p_value():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      clf = RandomForestClassifier(random_state=0)
+      y = assets["is_new"]
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_p_value():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      p = get_p_value()
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_p_value())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_housing_simple].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_housing_simple].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_p_value(
+      variable_p_value_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_simple_module
+  
+      artifacts = kubeflow_pipeline_housing_simple_module.run_session_including_p_value()
+  
+      p_value = artifacts["p value"]
+  
+      pickle.dump(p_value, open(variable_p_value_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_simple_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_simple_module
+  
+      pass
+  
+  
+  run_session_including_p_value_component = create_component_from_func(
+      task_run_session_including_p_value,
+      base_image="kubeflow_pipeline_housing_simple:lineapy",
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_housing_simple:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_housing_simple:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_housing_simple_dag",
+  )
+  def kubeflow_pipeline_housing_simple():
+  
+      task_run_session_including_p_value = run_session_including_p_value_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_p_value.after(task_setup)
+  
+      task_teardown.after(task_run_session_including_p_value)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_housing_simple, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_housing_w_dependencies]
+  '
+  import pandas as pd
+  from sklearn.ensemble import RandomForestClassifier
+  
+  
+  def get_assets_for_artifact_y_and_downstream():
+      assets = pd.read_csv(
+          "https://raw.githubusercontent.com/LineaLabs/lineapy/main/tests/ames_train_cleaned.csv"
+      )
+  
+      def is_new(col):
+          return col > 1970
+  
+      assets["is_new"] = is_new(assets["Year_Built"])
+      return assets
+  
+  
+  def get_y(assets):
+      y = assets["is_new"]
+      return y
+  
+  
+  def get_p_value(assets, y):
+      clf = RandomForestClassifier(random_state=0)
+      x = assets[["SalePrice", "Lot_Area", "Garage_Area"]]
+      clf.fit(x, y)
+      p = clf.predict([[100 * 1000, 10, 4]])
+      return p
+  
+  
+  def run_session_including_y():
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      assets = get_assets_for_artifact_y_and_downstream()
+      y = get_y(assets)
+      artifacts["y"] = copy.deepcopy(y)
+      p = get_p_value(assets, y)
+      artifacts["p value"] = copy.deepcopy(p)
+      return artifacts
+  
+  
+  def run_all_sessions():
+      artifacts = dict()
+      artifacts.update(run_session_including_y())
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      artifacts = run_all_sessions()
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_housing_w_dependencies].1
+  '
+  pandas==1.3.5
+  scikit-learn==1.0.2
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_housing_w_dependencies].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_y(
+      variable_y_path: kfp.components.OutputPath(str),
+      variable_p_value_path: kfp.components.OutputPath(str),
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_w_dependencies_module
+  
+      artifacts = (
+          kubeflow_pipeline_housing_w_dependencies_module.run_session_including_y()
+      )
+  
+      y = artifacts["y"]
+      p_value = artifacts["p value"]
+  
+      pickle.dump(y, open(variable_y_path, "wb"))
+  
+      pickle.dump(p_value, open(variable_p_value_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_w_dependencies_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_housing_w_dependencies_module
+  
+      pass
+  
+  
+  run_session_including_y_component = create_component_from_func(
+      task_run_session_including_y,
+      base_image="kubeflow_pipeline_housing_w_dependencies:lineapy",
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_housing_w_dependencies:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_housing_w_dependencies:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_housing_w_dependencies_dag",
+  )
+  def kubeflow_pipeline_housing_w_dependencies():
+  
+      task_run_session_including_y = run_session_including_y_component()
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_y.after(task_setup)
+  
+      task_teardown.after(task_run_session_including_y)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_housing_w_dependencies, arguments=pipeline_arguments
+  )
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_two_input_parameter]
+  '
+  import argparse
+  
+  
+  def get_pn(n, p):
+      pn = p * n
+      return pn
+  
+  
+  def run_session_including_pn(
+      p="p",
+      n=5,
+  ):
+      # Given multiple artifacts, we need to save each right after
+      # its calculation to protect from any irrelevant downstream
+      # mutations (e.g., inside other artifact calculations)
+      import copy
+  
+      artifacts = dict()
+      pn = get_pn(n, p)
+      artifacts["pn"] = copy.deepcopy(pn)
+      return artifacts
+  
+  
+  def run_all_sessions(
+      n=5,
+      p="p",
+  ):
+      artifacts = dict()
+      artifacts.update(run_session_including_pn(p, n))
+      return artifacts
+  
+  
+  if __name__ == "__main__":
+      # Edit this section to customize the behavior of artifacts
+      parser = argparse.ArgumentParser()
+      parser.add_argument("--n", type=int, default=5)
+      parser.add_argument("--p", type=str, default="p")
+      args = parser.parse_args()
+      artifacts = run_all_sessions(
+          n=args.n,
+          p=args.p,
+      )
+      print(artifacts)
+  
+  '
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_two_input_parameter].1
+  ''
+---
+# name: test_pipeline_generation[kubeflow_pipeline_component_per_session-kubeflow_pipeline_two_input_parameter].2
+  '
+  import kfp
+  from kfp.components import create_component_from_func
+  
+  
+  def task_run_session_including_pn(
+      p, n, variable_pn_path: kfp.components.OutputPath(str)
+  ):
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_two_input_parameter_module
+  
+      p = str(p)
+  
+      n = int(n)
+  
+      artifacts = kubeflow_pipeline_two_input_parameter_module.run_session_including_pn(
+          p, n
+      )
+  
+      pn = artifacts["pn"]
+  
+      pickle.dump(pn, open(variable_pn_path, "wb"))
+  
+  
+  def task_setup():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_two_input_parameter_module
+  
+      pass
+  
+  
+  def task_teardown():
+      import pathlib
+      import pickle
+  
+      import kubeflow_pipeline_two_input_parameter_module
+  
+      pass
+  
+  
+  run_session_including_pn_component = create_component_from_func(
+      task_run_session_including_pn,
+      base_image="kubeflow_pipeline_two_input_parameter:lineapy",
+  )
+  
+  setup_component = create_component_from_func(
+      task_setup, base_image="kubeflow_pipeline_two_input_parameter:lineapy"
+  )
+  
+  teardown_component = create_component_from_func(
+      task_teardown, base_image="kubeflow_pipeline_two_input_parameter:lineapy"
+  )
+  
+  
+  client = kfp.Client(host="http://localhost:3000")
+  
+  
+  @kfp.dsl.pipeline(
+      name="kubeflow_pipeline_two_input_parameter_dag",
+  )
+  def kubeflow_pipeline_two_input_parameter(p, n):
+  
+      task_run_session_including_pn = run_session_including_pn_component(p, n)
+      task_setup = setup_component()
+      task_teardown = teardown_component()
+  
+      task_run_session_including_pn.after(task_setup)
+  
+      task_teardown.after(task_run_session_including_pn)
+  
+  
+  # Specify argument values for your pipeline run.
+  pipeline_arguments = {"p": "p", "n": 5}
+  
+  # Create a pipeline run, using the client you initialized in a prior step.
+  client.create_run_from_pipeline_func(
+      kubeflow_pipeline_two_input_parameter, arguments=pipeline_arguments
+  )
+  
+  '
+---

@@ -8,7 +8,7 @@ from tests.unit.plugins.framework_specific.pipeline_helper import (
 
 
 @pytest.mark.parametrize(
-    "input_script1, input_script2, artifact_list, framework, pipeline_name, dependencies, dag_config, input_parameters",
+    "input_script1, input_script2, artifact_list, pipeline_name, dependencies, dag_config, input_parameters",
     [
         pytest.param(
             "simple",
