@@ -1,7 +1,10 @@
+{% if STAGE["user_input_variables"]|length>0 -%}
+import dvc.api
+{% endif %}
 import {{ MODULE_NAME }}
 import pickle
 
-def task_{{ STAGE["name"] }}():
+def task_{{ STAGE["name"] }}({% for key, value in STAGE["user_input_variables"].items() %}{{key}}{{ ", " if not loop.last else "" }}{% endfor %}):
 {%- if STAGE["deps"]|length > 0 %}
     {%- for dep in STAGE["deps"] %}
     {{ dep }} = pickle.load(open('{{ dep }}.pickle','rb'))
@@ -15,4 +18,9 @@ def task_{{ STAGE["name"] }}():
 {%- endif %}
 
 if __name__ == "__main__":
-    task_{{ STAGE["name"] }}()
+{% if STAGE["user_input_variables"]|length>0 %}
+    {% for key, value in STAGE["user_input_variables"].items() %}
+    {{key}} = dvc.api.params_show()["{{key}}"]
+    {% endfor %}
+{% endif %}
+    task_{{ STAGE["name"] }}({% for key, value in STAGE["user_input_variables"].items() %}{{key}}{{ ", " if not loop.last else "" }}{% endfor %})
