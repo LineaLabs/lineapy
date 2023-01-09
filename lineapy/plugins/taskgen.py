@@ -201,17 +201,17 @@ def get_allsessions_task_definition_graph(
     }, TaskGraph(nodes=["run_all"], edges={})
 
 
-def get_localpickle_setup_task_definition(pipeline_name):
+def get_tmpdirpickle_setup_task_definition(pipeline_name):
     """
     Returns a TaskDefinition that is used to set up pipeline that uses local pickle type
     serialization for inter task communication.
 
     This task should be used at the beginning of a pipeline.
     """
-    TASK_LOCALPICKLE_SETUP_TEMPLATE = load_plugin_template(
-        "task/localpickle/task_local_pickle_setup.jinja"
+    TASK_TMPDIRPICKLE_SETUP_TEMPLATE = load_plugin_template(
+        "task/tmpdirpickle/task_setup.jinja"
     )
-    call_block = TASK_LOCALPICKLE_SETUP_TEMPLATE.render(
+    call_block = TASK_TMPDIRPICKLE_SETUP_TEMPLATE.render(
         pipeline_name=pipeline_name
     )
     return TaskDefinition(
@@ -227,7 +227,7 @@ def get_localpickle_setup_task_definition(pipeline_name):
     )
 
 
-def get_localpickle_teardown_task_definition(pipeline_name):
+def get_tmpdir_teardown_task_definition(pipeline_name):
     """
     Returns a TaskDefinition that is used to teardown a pipeline that uses local pickle type
     serialization for inter task communication.
@@ -235,10 +235,10 @@ def get_localpickle_teardown_task_definition(pipeline_name):
     This task should be used at the end of a pipeline.
 
     """
-    TASK_LOCALPICKLE_TEARDOWN_TEMPLATE = load_plugin_template(
-        "task/localpickle/task_local_pickle_teardown.jinja"
+    TASK_TMPDIRPICKLE_TEARDOWN_TEMPLATE = load_plugin_template(
+        "task/tmpdirpickle/task_teardown.jinja"
     )
-    call_block = TASK_LOCALPICKLE_TEARDOWN_TEMPLATE.render(
+    call_block = TASK_TMPDIRPICKLE_TEARDOWN_TEMPLATE.render(
         pipeline_name=pipeline_name
     )
     return TaskDefinition(

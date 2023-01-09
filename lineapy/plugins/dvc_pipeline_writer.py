@@ -6,10 +6,16 @@ from pydantic import BaseModel
 from typing_extensions import TypedDict
 
 from lineapy.plugins.base_pipeline_writer import BasePipelineWriter
-from lineapy.plugins.task import DagTaskBreakdown
+from lineapy.plugins.task import (
+    DagTaskBreakdown,
+    TaskDefinition,
+    TaskSerializer,
+    render_task_io_serialize_blocks,
+)
 from lineapy.plugins.taskgen import get_task_graph
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
+from lineapy.utils.utils import prettify
 
 logger = logging.getLogger(__name__)
 configure_logging()
@@ -99,57 +105,86 @@ class DVCPipelineWriter(BasePipelineWriter):
             task_breakdown=DagTaskBreakdown.TaskPerArtifact,
         )
 
-        # Get DAG parameters for an ARGO pipeline
+        # stages = [
+        #     Stage(
+        #         name=key,
+        #         deps=value.loaded_input_variables,
+        #         outs=value.return_vars,
+        #         call_block=value.call_block,
+        #         user_input_variables={
+        #             key: input_parameters_dict[key]
+        #             for key in value.user_input_variables
+        #         },
+        #     ).dict()
+        #     for key, value in task_defs.items()
+        # ]
+
+        full_code = DAG_TEMPLATE.render(
+            MODULE_NAME=f"{self.pipeline_name}_module", TASK_DEFS=task_defs
+        )
+
+        self._write_params()
+
+        for task_name, task_def in task_defs.items():
+            self._write_python_operator_per_run_artifact(task_name, task_def)
+
+        return full_code
+
+    def _write_params(self):
+        # Get DAG parameters for an DVC pipeline
         input_parameters_dict: Dict[str, Any] = {}
         for parameter_name, input_spec in super().get_pipeline_args().items():
             input_parameters_dict[parameter_name] = input_spec.value
 
-        stages = [
-            Stage(
-                name=key,
-                deps=value.loaded_input_variables,
-                outs=value.return_vars,
-                call_block=value.call_block,
-                user_input_variables={
-                    key: input_parameters_dict[key]
-                    for key in value.user_input_variables
-                },
-            ).dict()
-            for key, value in task_defs.items()
-        ]
-
-        full_code = DAG_TEMPLATE.render(
-            MODULE_NAME=f"{self.pipeline_name}_module", STAGES=stages
-        )
-
-        self._write_params(stages)
-
-        for stage in stages:
-            self._write_python_operator_per_run_artifact(stage)
-
-        return full_code
-
-    def _write_params(self, stages: List[dict]):
         PARAMS_TEMPLATE = load_plugin_template("dvc/dvc_dag_params.jinja")
 
-        params_code = PARAMS_TEMPLATE.render(STAGES=stages)
+        params_code = PARAMS_TEMPLATE.render(
+            input_parameters_dict=input_parameters_dict
+        )
         filename = "params.yaml"
         params_file = self.output_dir / filename
         params_file.write_text(params_code)
         logger.info(f"Generated DAG file: {params_file}")
 
-    def _write_python_operator_per_run_artifact(self, stage: dict):
+    def _write_python_operator_per_run_artifact(
+        self, task_name: str, task_def: TaskDefinition
+    ):
         """
         This hidden method generates the python cmd files for each DVC stage.
         """
-        TASK_TEMPLATE = load_plugin_template(
+        TASK_TEMPLATE = load_plugin_template("task/task_function.jinja")
+
+        STAGE_TEMPLATE = load_plugin_template(
             "dvc/dvc_dag_PythonOperator.jinja"
         )
 
-        python_operator_code = TASK_TEMPLATE.render(
-            MODULE_NAME=f"{self.pipeline_name}_module", STAGE=stage
+        loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
+            task_def, TaskSerializer.CWDPickle
         )
-        filename = f"task_{stage['name']}.py"
+
+        python_operator_code = TASK_TEMPLATE.render(
+            function_name=task_name,
+            user_input_variables=", ".join(task_def.user_input_variables),
+            typing_blocks=task_def.typing_blocks,
+            loading_blocks=loading_blocks,
+            pre_call_block=task_def.pre_call_block,
+            call_block=task_def.call_block,
+            post_call_block=task_def.post_call_block,
+            dumping_blocks=dumping_blocks,
+            return_block="",
+            include_imports_locally=False,
+        )
+
+        stage_code = STAGE_TEMPLATE.render(
+            MODULE_NAME=f"{self.pipeline_name}_module",
+            TASK_CODE=python_operator_code,
+            task_name=task_name,
+            # DVC tasks read each input variable and cannot rely on DAG to provide them
+            # provide a list here for the main function body
+            task_parameters=task_def.user_input_variables,
+        )
+
+        filename = f"task_{task_name}.py"
         python_operator_file = self.output_dir / filename
-        python_operator_file.write_text(python_operator_code)
+        python_operator_file.write_text(prettify(stage_code))
         logger.info(f"Generated DAG file: {python_operator_file}")

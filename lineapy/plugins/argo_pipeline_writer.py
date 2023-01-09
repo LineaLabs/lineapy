@@ -170,7 +170,7 @@ class ARGOPipelineWriter(BasePipelineWriter):
 
         for task_name, task_def in task_defs.items():
             loading_blocks, dumping_blocks = render_task_io_serialize_blocks(
-                task_def, TaskSerializer.LocalPickle
+                task_def, TaskSerializer.TmpDirPickle
             )
 
             input_vars = task_def.user_input_variables

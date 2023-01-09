@@ -12,9 +12,9 @@ from lineapy.plugins.task import (
     render_task_io_serialize_blocks,
 )
 from lineapy.plugins.taskgen import (
-    get_localpickle_setup_task_definition,
-    get_localpickle_teardown_task_definition,
     get_task_graph,
+    get_tmpdir_teardown_task_definition,
+    get_tmpdirpickle_setup_task_definition,
 )
 from lineapy.plugins.utils import load_plugin_template
 from lineapy.utils.logging_config import configure_logging
@@ -72,7 +72,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
         try:
             task_serialization = TaskSerializer[
-                self.dag_config.get("task_serialization", "LocalPickle")
+                self.dag_config.get("task_serialization", "TmpDirPickle")
             ]
         except KeyError:
             raise ValueError(
@@ -164,11 +164,11 @@ class AirflowPipelineWriter(BasePipelineWriter):
         )
 
         # Add setup and teardown if local pickle serializer is selected
-        if task_serialization == TaskSerializer.LocalPickle:
-            task_defs["setup"] = get_localpickle_setup_task_definition(
+        if task_serialization == TaskSerializer.TmpDirPickle:
+            task_defs["setup"] = get_tmpdirpickle_setup_task_definition(
                 self.pipeline_name
             )
-            task_defs["teardown"] = get_localpickle_teardown_task_definition(
+            task_defs["teardown"] = get_tmpdir_teardown_task_definition(
                 self.pipeline_name
             )
             # insert in order to task_names so that setup runs first and teardown runs last

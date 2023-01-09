@@ -1,6 +1,4 @@
-{% for stage in STAGES -%}
-  {% for key, value in stage["user_input_variables"].items() -%}
-  {{key}}: {{value}}
-  {% endfor -%}
+{% for var_name, var_value in input_parameters_dict.items() -%}
+  {{var_name}}: {{var_value}}
 {% endfor -%}
 

@@ -1,18 +1,18 @@
 stages:
-{% for stage in STAGES %}
-    {{ stage["name"] }}:
-        cmd: python task_{{ stage["name"] }}.py
+{% for task_name, task_def in TASK_DEFS.items() %}
+    {{ task_name }}:
+        cmd: python task_{{ task_name }}.py
         deps:
             - {{ MODULE_NAME }}.py
-            - task_{{ stage["name"] }}.py
-    {%- if stage["deps"]|length > 0 %}
-        {%- for dep in stage["deps"] %}
+            - task_{{ task_name }}.py
+    {%- if task_def.loaded_input_variables|length > 0 %}
+        {%- for dep in task_def.loaded_input_variables %}
             - {{ dep }}.pickle
         {%- endfor %}
     {%- endif %}
-    {%- if stage["outs"]|length > 0 %}
+    {%- if task_def.return_vars|length > 0 %}
         outs:
-        {%- for out in stage["outs"] %}
+        {%- for out in task_def.return_vars %}
             - {{ out }}.pickle
         {%- endfor %}
     {%- endif %}

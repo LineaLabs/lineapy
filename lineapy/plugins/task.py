@@ -179,9 +179,11 @@ class TaskSerializer(Enum):
     """Enum to define what type of object serialization to use for inter task communication."""
 
     # Write to local pickle directory under /tmp/
-    LocalPickle = 1
+    TmpDirPickle = 1
     # Write to a pickle directory that can be parametrized
     ParametrizedPickle = 2
+    # Write pickle to same directory as pipeline files
+    CWDPickle = 3
     # TODO: lineapy.get and lineapy.save
 
 
@@ -198,20 +200,28 @@ def render_task_io_serialize_blocks(
     task_serialization_blocks = []
     task_deserialization_block = []
 
-    if task_serialization == TaskSerializer.LocalPickle:
+    if task_serialization == TaskSerializer.TmpDirPickle:
         SERIALIZER_TEMPLATE = load_plugin_template(
-            "task/localpickle/task_local_pickle_ser.jinja"
+            "task/tmpdirpickle/task_ser.jinja"
         )
         DESERIALIZER_TEMPLATE = load_plugin_template(
-            "task/localpickle/task_local_pickle_deser.jinja"
+            "task/tmpdirpickle/task_deser.jinja"
         )
     elif task_serialization == TaskSerializer.ParametrizedPickle:
         SERIALIZER_TEMPLATE = load_plugin_template(
-            "task/parameterizedpickle/task_parameterized_ser.jinja"
+            "task/parameterizedpickle/task_ser.jinja"
         )
         DESERIALIZER_TEMPLATE = load_plugin_template(
-            "task/parameterizedpickle/task_parameterized_deser.jinja"
+            "task/parameterizedpickle/task_deser.jinja"
         )
+    elif task_serialization == TaskSerializer.CWDPickle:
+        SERIALIZER_TEMPLATE = load_plugin_template(
+            "task/cwdpickle/task_ser.jinja"
+        )
+        DESERIALIZER_TEMPLATE = load_plugin_template(
+            "task/cwdpickle/task_deser.jinja"
+        )
+
     # Add more renderable task serializers here
 
     for loaded_input_variable in taskdef.loaded_input_variables:
