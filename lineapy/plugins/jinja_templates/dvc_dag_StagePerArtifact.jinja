@@ -1,0 +1,20 @@
+stages:
+{% for stage in STAGES %}
+    {{ stage["name"] }}:
+        cmd: python task_{{ stage["name"] }}.py
+        deps:
+            - {{ MODULE_NAME }}.py
+            - task_{{ stage["name"] }}.py
+    {%- if stage["deps"]|length > 0 %}
+        {%- for dep in stage["deps"] %}
+            - {{ dep }}.pickle
+        {%- endfor %}
+    {%- endif %}
+    {%- if stage["outs"]|length > 0 %}
+        outs:
+        {%- for out in stage["outs"] %}
+            - {{ out }}.pickle
+        {%- endfor %}
+    {%- endif %}
+{% endfor %}
+

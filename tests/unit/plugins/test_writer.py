@@ -187,11 +187,22 @@ def check_requirements_txt(t1: str, t2: str):
             "",
             ["a", "b0"],
             "DVC",
-            "dvc_pipeline_a_b0_singlestageallsessions",
+            "dvc_pipeline_a_b0_stageperartifact",
             {},
-            {"dag_flavor": "SingleStageAllSessions"},
+            {"dag_flavor": "StagePerArtifact"},
             [],
-            id="dvc_pipeline_a_b0_single_stage_all_sessions",
+            id="dvc_pipeline_a_b0_stage_per_artifact",
+        ),
+        pytest.param(
+            "simple",
+            "",
+            ["a"],
+            "DVC",
+            "dvc_pipeline_a_b0_stageperartifact",
+            {},
+            {"dag_flavor": "StagePerArtifact"},
+            ["b0"],
+            id="dvc_pipeline_a_b0_stage_per_artifact_with_input_parameter",
         ),
         pytest.param(
             "simple",
@@ -318,6 +329,13 @@ def test_pipeline_generation(
     file_names = [pipeline_name + file_suffix for file_suffix in file_endings]
     if framework == "DVC":
         file_names.append("dvc.yaml")
+
+        # TODO fix coverage for tests of file per task frameworks to include non artifact tasks
+        file_names = file_names + [
+            "task_" + art + ".py" for art in artifact_list
+        ]
+
+        file_names = file_names + ["params.yaml"]
 
     # Compare generated vs. expected
     for expected_file_name in file_names:
