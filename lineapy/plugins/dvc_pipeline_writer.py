@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import List
+from typing import Any, Dict, List
 
 from pydantic import BaseModel
 from typing_extensions import TypedDict
@@ -20,6 +20,7 @@ class Stage(BaseModel):
     deps: List[str]
     outs: List[str]
     call_block: str
+    user_input_variables: Dict[str, Any]
 
 
 class DVCDagFlavor(Enum):
@@ -98,12 +99,21 @@ class DVCPipelineWriter(BasePipelineWriter):
             task_breakdown=DagTaskBreakdown.TaskPerArtifact,
         )
 
+        # Get DAG parameters for an ARGO pipeline
+        input_parameters_dict: Dict[str, Any] = {}
+        for parameter_name, input_spec in super().get_pipeline_args().items():
+            input_parameters_dict[parameter_name] = input_spec.value
+
         stages = [
             Stage(
                 name=key,
                 deps=value.loaded_input_variables,
                 outs=value.return_vars,
                 call_block=value.call_block,
+                user_input_variables={
+                    key: input_parameters_dict[key]
+                    for key in value.user_input_variables
+                },
             ).dict()
             for key, value in task_defs.items()
         ]
@@ -112,10 +122,21 @@ class DVCPipelineWriter(BasePipelineWriter):
             MODULE_NAME=f"{self.pipeline_name}_module", STAGES=stages
         )
 
+        self._write_params(stages)
+
         for stage in stages:
             self._write_python_operator_per_run_artifact(stage)
 
         return full_code
+
+    def _write_params(self, stages: List[dict]):
+        PARAMS_TEMPLATE = load_plugin_template("dvc_dag_params.jinja")
+
+        params_code = PARAMS_TEMPLATE.render(STAGES=stages)
+        filename = "params.yaml"
+        params_file = self.output_dir / filename
+        params_file.write_text(params_code)
+        logger.info(f"Generated DAG file: {params_file}")
 
     def _write_python_operator_per_run_artifact(self, stage: dict):
         """

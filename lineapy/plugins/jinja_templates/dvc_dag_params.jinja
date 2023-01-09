@@ -1,0 +1,6 @@
+{% for stage in STAGES %}
+  {% for key, value in stage["user_input_variables"].items() %}
+  {{key}}: {{value}}
+  {% endfor %}
+{% endfor %}
+
