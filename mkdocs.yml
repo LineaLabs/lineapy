@@ -69,6 +69,7 @@ nav:
       - Setup and Basics: guides/contributing/setup.md
       - Recommended Practices: guides/contributing/tips.md
       - Areas to Contribute:
+        - Documentation: guides/contributing/areas/update-docs.md
         - Package Annotation: guides/contributing/areas/annotate-package.md
         - Integrating Pipeline Frameworks: guides/contributing/areas/integrate-pipeline-framework.md
     - Troubleshooting: guides/troubleshooting.md

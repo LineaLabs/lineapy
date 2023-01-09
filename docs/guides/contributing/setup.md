@@ -101,7 +101,7 @@ git commit -m "<COMMIT-MESSAGE>"
 
     To learn more about saving changes in Git, check this [tutorial](https://www.atlassian.com/git/tutorials/saving-changes).
 
-!!! info
+!!! tip
 
     LineaPy provides several [pre-commit](https://pre-commit.com/) hooks to automatically standardize styles and formats
     across its codebase.
@@ -132,10 +132,24 @@ If the new (development) branch has not been pushed before, you will need to cre
 git push --set-upstream origin <NEW-BRANCH-NAME>
 ```
 
+### Documenting Changes
+
+Good code documentation is essential to effective collaboration among different developers. As such,
+we ask contributors to add proper [NumPy-styled](https://numpydoc.readthedocs.io/en/latest/format.html)
+docstrings for new functionalities that they add.
+
+!!! info
+
+    Check this [guide](areas/update-docs.md) for updating project documentation.
+
 ### Testing Changes
 
 Testing is an important part of `lineapy`'s development as it ensures that all features stay functional after changes.
-Hence, we strongly recommend you add tests for changes you introduce (check this [tutorial](areas/add-test.md) for adding tests).
+Hence, we strongly recommend you add tests for changes you introduce.
+
+!!! info
+
+    Check this [guide](areas/add-test.md) for adding tests.
 
 To run all tests (beware that this may take a while to complete):
 
