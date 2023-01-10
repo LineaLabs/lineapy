@@ -45,6 +45,8 @@ try:
     deleted_clf = lineapy.get('clf', version=art.version)
 except:
     deleted_clf = None
+lineapy.options.set('mlflow_tracking_uri',None)
+lineapy.options.set('mlflow_registry_uri',None)
 """
     res = execute(code, snapshot=False)
 

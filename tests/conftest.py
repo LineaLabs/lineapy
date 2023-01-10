@@ -187,6 +187,8 @@ class ExecuteFixture:
                     f"lineapy.{save.__name__}({artifact}, {repr(artifact)})\n"
                 )
 
+        # Saving old env variables to reset after test is executed
+        old_os_environ = dict(os.environ)
         # These temp filenames are unique per test function.
         # If `execute` is called twice in a test, it will overwrite the
         # previous paths
@@ -246,6 +248,13 @@ class ExecuteFixture:
         os.chdir(self.tmp_path)
         new_executor.execute_graph(tracer.graph)
         os.chdir(current_working_dir)
+
+        # Reset environment variables to state before the user code was executed
+        # so as to not affect subsequently executed tests.
+        for key in os.environ.keys():
+            del os.environ[key]
+        for key in old_os_environ:
+            os.environ[key] = old_os_environ[key]
 
         return tracer
 
