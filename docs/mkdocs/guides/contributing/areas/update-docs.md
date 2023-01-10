@@ -26,6 +26,7 @@ to add a new page under `Concepts` section:
 3. Preview the update by starting a built-in dev-server:
 
     ```bash
+    # Run from lineapy/docs/
     mkdocs serve
     ```
 
@@ -34,37 +35,20 @@ rebuilt as soon as the PR gets merged.
 
 ## Updating API Reference
 
-For code documentation, add or update docstrings using the
+For code documentation, first add or update docstrings using the
 [NumPy style](https://numpydoc.readthedocs.io/en/latest/format.html).
 
 !!! warning
 
     Docstrings with a different style (e.g., Google) may not render properly.
 
-If adding a new module, update `mkdocs.yml` file's `nav` section to auto-generate
-code documentation for the new module. For instance, we may document `lineapy/demo/new_module.py`
-as follows:
+Then, run:
 
-=== "mkdocs.yml"
+```bash
+# Run from lineapy/docs/
+python mkdocs/gen_ref_pages.py
+```
 
-    ```yaml
-    nav:
-    ...
-      - API Reference:
-        ...
-        - Demo:
-          - api-reference/lineapy.demo.new_module.md
-    ```
+This will automatically generate or update Markdown file(s) for API reference.
 
-=== "lineapy.demo.new_module.md"
-
-    ```md
-    # lineapy.demo.new_module
-
-    ::: lineapy.demo.new_module
-    ```
-
-!!! info
-
-    LineaPy's project documentation uses [`mkdocstrings`](https://mkdocstrings.github.io/)
-    to automatically generate code documentation.
+Finally, open a PR with the changes.
