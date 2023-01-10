@@ -114,6 +114,11 @@ class RayPipelineWriter(BasePipelineWriter):
     def docker_template_name(self) -> str:
         return "ray_dockerfile.jinja"
 
+    def _get_requirements(self):
+        libraries = super()._get_requirements()
+        libraries["packaging"] = "21.3"
+        return libraries
+
     def get_rendered_task_definitions(
         self,
         task_defs: Dict[str, TaskDefinition],

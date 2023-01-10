@@ -99,9 +99,10 @@ def test_run_ray_dag(
     # Run ray in new virtual env so we don't end up with version conflicts
     # with lineapy deps
     # https://github.com/man-group/pytest-plugins/tree/master/pytest-virtualenv#installing-packages
-    virtualenv.run(
-        "pip install -r ray-requirements.txt", capture=False, cd="."
-    )
+    req_path = Path(tmp_path, f"{pipeline_name}_requirements.txt")
+    virtualenv.run(f"pip install -r {req_path}", capture=False, cd=".")
+    virtualenv.run("pip install ray==2.2.0", capture=False, cd=".")
+    virtualenv.run("pip install ray[data]", capture=False, cd=".")
 
     dag_path = Path(tmp_path, f"{pipeline_name}_dag.py")
 

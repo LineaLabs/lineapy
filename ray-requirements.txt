@@ -1,6 +1,0 @@
-ray==2.2.0
-ray[data]
-pandas
-scikit-learn==1.0.2
-SQLAlchemy==1.3.24
-packaging==21.3

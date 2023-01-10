@@ -101,14 +101,13 @@ def test_run_dvc_dag(
     # Run dvc in new virtual env so we don't end up with version conflicts
     # with lineapy deps
     # https://github.com/man-group/pytest-plugins/tree/master/pytest-virtualenv#installing-packages
-    virtualenv.run(
-        "pip install -r dvc-requirements.txt", capture=False, cd="."
-    )
+
+    req_path = Path(tmp_path, f"{pipeline_name}_requirements.txt")
+    virtualenv.run(f"pip install -r {req_path}", capture=False, cd=".")
+    virtualenv.run("pip install dvc==2.38.1", capture=False, cd=".")
 
     virtualenv.run("git init", capture=False, cd=tmp_path)
     virtualenv.run("dvc init", capture=False, cd=tmp_path)
-
-    dag_path = Path(tmp_path, f"{pipeline_name}_dag.py")
 
     # This run command will error if the dag is not runnable by dvc
     out = virtualenv.run("dvc repro", capture=True, cd=tmp_path)
