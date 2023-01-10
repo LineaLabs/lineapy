@@ -3,3 +3,6 @@ mkdocs-material==8.5.11
 mkdocstrings==0.19.1
 mkdocstrings-python==0.8.2
 mkdocs-jupyter==0.22.0
+mkdocs-gen-files==0.4.0
+mkdocs-literate-nav==0.6.0
+mkdocs-section-index==0.3.4

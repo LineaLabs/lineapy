@@ -109,6 +109,9 @@ doc_libs = [
     "mkdocstrings",
     "mkdocstrings-python",
     "mkdocs-jupyter",
+    "mkdocs-gen-files",
+    "mkdocs-literate-nav",
+    "mkdocs-section-index",
 ]
 
 typing_libs = [

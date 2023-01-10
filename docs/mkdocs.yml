@@ -43,6 +43,9 @@ plugins:
           paths: [..]
           options:
             docstring_style: numpy
+  - literate-nav:
+      nav_file: nav.md
+  - section-index
 
 extra:
   social:
@@ -88,5 +91,4 @@ nav:
         - Integrating Pipeline Frameworks: guides/contributing/areas/integrate-pipeline-framework.md
     - Troubleshooting: guides/troubleshooting.md
     - More Help: guides/support.md
-  - API Reference:
-    - api-reference/lineapy.api.api.md
+  - API Reference: reference/
