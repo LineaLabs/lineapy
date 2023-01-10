@@ -122,7 +122,9 @@ def test_pipeline_generation(
     input_parameters,
     snapshot,
 ):
-    """ """
+    """
+    Snapshot tests for DVC pipelines.
+    """
 
     pipeline_file_generation_helper(
         tmp_path,

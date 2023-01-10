@@ -66,7 +66,7 @@
   '
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_artifact-ray_hidden_session_dependencies].1
-  ''
+  'packaging==21.3'
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_artifact-ray_hidden_session_dependencies].2
   '
@@ -190,7 +190,7 @@
   '
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_artifact-ray_pipeline_a_b0_inputpar].1
-  ''
+  'packaging==21.3'
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_artifact-ray_pipeline_a_b0_inputpar].2
   '
@@ -299,6 +299,7 @@
   '
   pandas==1.3.5
   scikit-learn==1.0.2
+  packaging==21.3
   '
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_artifact-ray_pipeline_housing_multiple].2
@@ -406,6 +407,7 @@
   '
   pandas==1.3.5
   scikit-learn==1.0.2
+  packaging==21.3
   '
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_artifact-ray_pipeline_housing_simple].2
@@ -504,6 +506,7 @@
   '
   pandas==1.3.5
   scikit-learn==1.0.2
+  packaging==21.3
   '
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_artifact-ray_pipeline_housing_w_dependencies].2
@@ -608,7 +611,7 @@
   '
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_artifact-ray_pipeline_two_input_parameter].1
-  ''
+  'packaging==21.3'
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_artifact-ray_pipeline_two_input_parameter].2
   '
@@ -708,7 +711,7 @@
   '
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_session-ray_pipeline_a0_b0_dependencies].1
-  ''
+  'packaging==21.3'
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_session-ray_pipeline_a0_b0_dependencies].2
   '
@@ -814,6 +817,7 @@
   '
   pandas==1.3.5
   scikit-learn==1.0.2
+  packaging==21.3
   '
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_session-ray_pipeline_housing_simple].2
@@ -903,7 +907,7 @@
   '
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_session-ray_pipeline_two_input_parameter].1
-  ''
+  'packaging==21.3'
 ---
 # name: test_pipeline_generation[ray_pipeline_task_per_session-ray_pipeline_two_input_parameter].2
   '

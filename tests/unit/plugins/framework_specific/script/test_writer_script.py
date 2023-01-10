@@ -106,7 +106,7 @@ def test_pipeline_generation(
     snapshot,
 ):
     """
-    Test two sessions
+    Snapshot tests for Script type pipelines.
     """
 
     pipeline_file_generation_helper(

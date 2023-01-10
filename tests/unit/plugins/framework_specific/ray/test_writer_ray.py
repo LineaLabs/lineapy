@@ -122,7 +122,7 @@ def test_pipeline_generation(
     snapshot,
 ):
     """
-    Test two sessions
+    Snapshot tests for Ray pipelines.
     """
 
     try:

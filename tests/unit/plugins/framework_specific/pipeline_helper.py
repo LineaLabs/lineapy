@@ -20,7 +20,10 @@ def pipeline_file_generation_helper(
     input_parameters,
 ):
     """
-    TODO
+    Helper function for tests that need to run pipeline writers.
+
+    Runs input_script1, then input_script2, and then creates pipeline files
+    in tmp_path based on the other parameters to config the pipeline.
     """
 
     code1 = Path(
