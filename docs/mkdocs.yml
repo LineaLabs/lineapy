@@ -10,11 +10,18 @@ theme:
   logo: images/icon-lineapy-white.png
   favicon: images/lineapy-square-light.png
   features:
+    - content.action.edit
+    - content.action.view
+    - content.code.copy
     - header.autohide
     # - announce.dismiss
     - navigation.instant
     - navigation.tabs
     # - navigation.tabs.sticky
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
 
 markdown_extensions:
   - admonition
