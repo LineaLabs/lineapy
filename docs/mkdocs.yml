@@ -1,7 +1,10 @@
 docs_dir: mkdocs
 site_name: LineaPy
 repo_name: LineaLabs/lineapy
-repo_url: https://github.com/LineaLabs/lineapy
+repo_url: https://github.com/LineaLabs/lineapy/tree/LIN-731-migrate-to-mkdocs-and-netlify
+edit_uri: docs/mkdocs/
+# repo_url: https://github.com/LineaLabs/lineapy
+# edit_uri: blob/main/docs/mkdocs/
 copyright: Copyright &copy; 2022 - 2023 Linea Labs
 
 theme:
