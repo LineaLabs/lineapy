@@ -46,7 +46,7 @@ Then, run:
 
 ```bash
 # Run from lineapy/docs/
-python mkdocs/gen_ref_pages.py
+python gen_ref_pages.py
 ```
 
 This will automatically generate or update Markdown file(s) for API reference.
