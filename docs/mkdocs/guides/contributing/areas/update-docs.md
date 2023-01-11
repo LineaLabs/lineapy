@@ -30,8 +30,7 @@ to add a new page under `Concepts` section:
     mkdocs serve
     ```
 
-4. Once content with the change(s), open a PR. The hosted documentation will be automatically
-rebuilt as soon as the PR gets merged.
+4. Once content with the change(s), open a PR.
 
 ## Updating API Reference
 
@@ -52,3 +51,34 @@ python gen_ref_pages.py
 This will automatically generate or update Markdown file(s) for API reference.
 
 Finally, open a PR with the changes.
+
+## Publishing Updates
+
+!!! note
+
+    To effectively manage different versions of documentation, the project limits publication capacity
+    to a few select members. Please contact the LineaPy core team on [Slack](../../support.md#community)
+    for relevant questions or requests.
+
+!!! info
+
+    LineaPy uses [`mike`](https://github.com/jimporter/mike) to build and maintain versioned documentation.
+
+To publish documentation, run:
+
+=== "Update Existing Version"
+
+    ```bash
+    # Run from lineapy/docs/
+    mike deploy --push <version_number>
+    ```
+
+=== "Create New Version"
+
+    ```bash
+    # Run from lineapy/docs/
+    mike deploy --push --update-aliases <version_number> latest
+    ```
+
+where `<version_number>` is formatted `<major>.<minor>` (e.g., `0.2`) as defined in
+[semantic versioning](https://semver.org/#summary).
