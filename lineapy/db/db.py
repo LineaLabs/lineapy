@@ -573,12 +573,6 @@ class RelationalLineaDB:
     ) -> Optional[str]:
         """
         Get the path to the value of the artifact.
-
-        Parameters
-        ----------
-        other:
-            Additional argument to let you query another artifact's value path.
-            This is set to be optional and if its not set, we will use the current artifact
         """
         value = self.get_node_value_from_db(node_id, execution_id)
         if not value:

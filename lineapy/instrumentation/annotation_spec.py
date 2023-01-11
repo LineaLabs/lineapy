@@ -1,24 +1,28 @@
 """
+Annotation specs.
+
 ??? note
 
     You can find a higher level documentation about how library annotations in
-    lineapy work, and how to contribute [here](../../../../guides/contributing/areas/annotate-package/) <lib_annotations>`.
+    lineapy work, and how to contribute [here](../../../../guides/contributing/areas/annotate-package/).
 
 ??? note
-    Developer Note:
-    - All the classes in the `ValuePointer` follow this weird structure where
-    their field entries duplicate the class name---this is so that when we load
-    the YAMLs, they can differentiate the class based just by the field names.
-    - Also the string values for `AllPositionalArgs`, `BoundSelfOfFunction`, 
-        and `Result` are useless as well---just there so that we abide by the
-        yaml structure. It's not very elegant and we can refactor this later.
 
-??? info
-    Todo:
-    - figure out how to capture the name of the DB
-        - where the relevant SQL string is
-        - where the relevant file name is
+    Developer Note:
+
+    - All the classes in the `ValuePointer` follow this weird structure where
+    their field entries duplicate the class name &mdash; this is so that when we load
+    the YAMLs, they can differentiate the class based just by the field names.
+
+    - Also the string values for `AllPositionalArgs`, `BoundSelfOfFunction`, 
+    and `Result` are useless as well &mdash; just there so that we abide by the
+    yaml structure. It's not very elegant and we can refactor this later.
 """
+
+# [TODO] Figure out how to capture the name of the DB:
+# - Where the relevant SQL string is
+# - Where the relevant file name is
+
 from typing import List, Union
 
 import pydantic

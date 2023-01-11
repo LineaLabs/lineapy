@@ -204,18 +204,12 @@ def get_source_code_from_graph(
     """
     Returns the code from some subgraph, by including all lines that
     are included in the graphs source.
-
-    ??? info
-
-        Todo: We need better analysis than just looking at the source code.
-        For example, what if we just need one expression from a line that defines
-        multiple expressions?
-
-        We should probably instead regenerate the source from our graph
-        representation.
-
-
     """
+    # TODO: We need better analysis than just looking at the source code.
+    # For example, what if we just need one expression from a line that defines
+    # multiple expressions? We should probably instead regenerate the source from
+    # our graph representation.
+
     # map of source code to set of included line numbers
     source_code_to_lines = DefaultDict[SourceCode, Set[int]](set)
     import_code_to_lines = DefaultDict[SourceCode, Set[int]](set)

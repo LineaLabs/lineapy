@@ -86,16 +86,11 @@ class ValueType(Enum):
     """
     Lower case because the API with the frontend assume the characters "chart"
     exactly as is.
-
-    TODO
-    ----
-
-    rename (need coordination with linea-server)
-
-        - really `dataset` is a table
-        - `value` means its a literal  (e.g., int/str)
-
     """
+
+    # [TODO] Rename (need coordination with linea-server):
+    # - `dataset` really is a table
+    # - `value` means its a literal  (e.g., int/str)
 
     chart = 1
     array = 2
@@ -254,15 +249,23 @@ class SourceLocation(BaseModel):
 
 class BaseNode(BaseModel):
     """
-    Parameters
+    Attributes
     ----------
     id: str
         string version of UUID, which we chose because
         we do not need to coordinate to make it unique
-    lineno, col_offset, end_lino, end_col_offsets: int
-        these record the position
-        of the calls. They are optional because it's not required some nodes,
-        such as side-effects nodes, which do not correspond to a line of code.
+    lineno: int
+        Record the position of the calls. Optional because it is not required by some nodes,
+        such as side-effects (which do not correspond to a line of code).
+    col_offset: int
+        Record the position of the calls. Optional because it is not required by some nodes,
+        such as side-effects (which do not correspond to a line of code).
+    end_lino: int
+        Record the position of the calls. Optional because it is not required by some nodes,
+        such as side-effects (which do not correspond to a line of code).
+    end_col_offsets: int
+        Record the position of the calls. Optional because it is not required by some nodes,
+        such as side-effects (which do not correspond to a line of code).
     control_dependency: Optional[LineaID]
         points to a ControlFlowNode which the generation of
         the current node is dependent upon. For example, in the snippet
@@ -345,7 +348,7 @@ class KeywordArgument(BaseModel):
 
 class CallNode(BaseNode):
     """
-    Parameters
+    Attributes
     ----------
     function_id: LineaID
         node containing the value of the function call, which
@@ -513,19 +516,19 @@ class PipelineType(Enum):
     """
     Pipeline types allow the `to_pipeline` to know what to expect
 
-    Parameters
+    Attributes
     ----------
-    SCRIPT:
+    SCRIPT: int
         the pipeline is wrapped as a python script
-    AIRFLOW:
+    AIRFLOW: int
         the pipeline is wrapped as an airflow dag
-    DVC:
+    DVC: int
         the pipeline is wrapped as a DVC
-    ARGO:
+    ARGO: int
         the pipeline is wrapped as an Argo workflow dag
-    KUBEFLOW:
+    KUBEFLOW: int
         the pipeline is defined using Kubeflow's python SDK
-    RAY:
+    RAY: int
         the pipeline is wrapped as a Ray DAG
     """
 
@@ -594,11 +597,11 @@ class ArtifactInfo(TypedDict):
     """
     Artifact backend storage metadata
 
-    Parameters
+    Attributes
     ----------
-    lineapy:
+    lineapy: LineaArtifactInfo
         storage backend for LineaPy
-    mlflow:
+    mlflow: NotRequired[MLflowArtifactInfo]
         storage backend metadata for MLflow (only exists when the
         artifact is saved in MLflow)
     """

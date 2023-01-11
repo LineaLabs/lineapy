@@ -258,7 +258,7 @@ class Tracer:
 
         - user defined variable & function definitions
         - imported libs
-        - unknown runtime magic functions---special case to LookupNode
+        - unknown runtime magic functions &mdash; special case to LookupNode
 
           - builtin functions, e.g., min
           - custom runtime, e.g., get_ipython

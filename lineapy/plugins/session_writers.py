@@ -111,34 +111,16 @@ class BaseSessionWriter:
             the NodeCollection subgraph that we want to produce a call block for.
         keep_lineapy_save: bool
             whether do lineapy.save() after execution
-        result_placeholder: Optional[str]
-            if not null, append the return result to the result_placeholder
         source_module: str
             which module the function is coming from
 
         Example output:
 
-        ``` python
-
-            p = get_multiplier()                        # function call block that calculates multiplier
-            lineapy.save(p, "multiplier")               # only with keep_lineapy_save=True
-            artifacts["multiplier"]=copy.deepcopy(p)    # only with return_dict_name specified
+        ```python
+        p = get_multiplier()                        # function call block that calculates multiplier
+        lineapy.save(p, "multiplier")               # only with keep_lineapy_save=True
+        artifacts["multiplier"]=copy.deepcopy(p)    # only with return_dict_name specified
         ```
-
-        The result_placeholder is a list to capture the artifact variables right
-        after calculation. Considering following code:
-
-        ``` python
-
-            a = 1
-            lineapy.save(a,'a')
-            a+=1
-            b = a+1
-            lineapy.save(b,'b')
-            c = a+1
-            lineapy.save(c,'c')
-        ```
-        we need to record the artifact a before it is mutated.
         """
 
         return_string = ", ".join(coll.return_variables)
