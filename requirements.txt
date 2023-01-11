@@ -43,11 +43,3 @@ types-mock==4.0.15
 types-PyYAML==6.0.5
 types-requests==2.27.16
 typing-extensions==4.4.0
-mkdocs==1.4.2
-mkdocs-material==8.5.11
-mkdocstrings==0.19.1
-mkdocstrings-python==0.8.2
-mkdocs-jupyter==0.22.0
-mkdocs-gen-files==0.4.0
-mkdocs-literate-nav==0.6.0
-mkdocs-section-index==0.3.4

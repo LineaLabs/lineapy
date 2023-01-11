@@ -104,14 +104,6 @@ benchmark_libs = [
 
 doc_libs = [
     "pandoc",
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocstrings",
-    "mkdocstrings-python",
-    "mkdocs-jupyter",
-    "mkdocs-gen-files",
-    "mkdocs-literate-nav",
-    "mkdocs-section-index",
 ]
 
 typing_libs = [

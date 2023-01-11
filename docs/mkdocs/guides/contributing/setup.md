@@ -63,6 +63,7 @@ Once the virtual environment is activated, install packages necessary for runnin
 pip install --upgrade pip
 pip install --upgrade setuptools
 pip install -r requirements.txt
+pip install -r docs/requirements.txt
 pip install -e '.[dev]'
 ```
 
