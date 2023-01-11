@@ -258,17 +258,20 @@ COMPARE_OPS: Dict[str, Callable] = {
 Defer supporting imports until after imports are turned into call nodes
 Usually we don't need to worry about it, at least in the context of slicing,
 but consider the following example:
-# ```
-# import x
-# if ...:
-#   import x.y
-# a = x.y.z + 1
-# ```
+
+```
+import x
+if ...:
+  import x.y
+a = x.y.z + 1
+```
+
 lineapy.save(a, "weird value") actually would have a dependency on the blackbox, as discussed in
 https://github.com/LineaLabs/lineapy/blob/main/docs/source/rfcs/0001-imports.md.
 Can read more: https://docs.python.org/3/reference/import.html#submodules
 
 Here are the ones we don't support:
+
 - IMPORT_STARIMPORT_STAR
 - IMPORT_NAME
 - IMPORT_FROM
@@ -353,6 +356,7 @@ def resolve_bytecode_execution(
         `EXTENDED_ARG`, this breaks the assumption that the offset will increase
         by 2, so we have the count of extended_arg passed in as traced by the caller
         and count with that instead.
+
         ```
         >>> large_for_loop_code = "for _ in x:\n  i = 1\n" + "  j = i\n" * 100
         >>> dis.dis(large_for_loop_code)
@@ -369,7 +373,7 @@ def resolve_bytecode_execution(
         If the current instruction is the next one (i.e. the offset has increased by 2), then we didn't jump,
         meaning the iterator was not exhausted. Otherwise, we did jump, and it was, so don't add a function call for this.
 
-        Note tha if we start handling exception, we should edit how we are
+        Note that if we start handling exception, we should edit how we are
         handling the loops, since Python uses the try/catch mechanism to catch
         loop end.
         """

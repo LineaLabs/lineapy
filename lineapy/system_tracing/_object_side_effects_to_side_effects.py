@@ -43,6 +43,7 @@ def object_side_effects_to_side_effects(
 
     The process is not just trimming off internal variables, but also sometimes
     transitively searching for nodes. Consider the following example:
+
     ```python
     y = 10
     if ...:
@@ -50,12 +51,18 @@ def object_side_effects_to_side_effects(
         a = [z]
         del z
     ```
+
     We want to establish that `a` is a view of `y`, and skip z because it's not in
     the outer scope that we care about.
 
-    :param object_side_effects: The object side effects that were recorded.
-    :param input_nodes: Mapping of node ID to value for all the nodes that were passed in to this execution.
-    :param output_globals: Mapping of global identifier to the value of all globals that were set during this execution.
+    Parameters
+    ----------
+    object_side_effects: Iterable[ObjectSideEffect]
+        The object side effects that were recorded.
+    input_nodes: Mapping[LineaID, object]
+        Mapping of node ID to value for all the nodes that were passed in to this execution.
+    output_globals: Mapping[str, object]
+        Mapping of global identifier to the value of all globals that were set during this execution.
     """
     # First track all the views and mutations in terms of objects
     #   (no Nodes reference)

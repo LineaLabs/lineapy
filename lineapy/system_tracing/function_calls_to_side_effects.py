@@ -24,10 +24,16 @@ def function_calls_to_side_effects(
     """
     Translates a list of function calls to a list of side effects, by mapping objects to nodes.
 
-    :param function_inspector: The function inspector to use to lookup what side effects each function call has.
-    :param function_calls: The function calls that were recorded.
-    :param input_nodes: Mapping of node ID to value for all the nodes that were passed in to this execution.
-    :param output_globals: Mapping of global identifier to the value of all globals that were set during this execution.
+    Parameters
+    ----------
+    function_inspector: FunctionInspector
+        The function inspector to use to lookup what side effects each function call has.
+    function_calls: Iterable[FunctionCall]
+        The function calls that were recorded.
+    input_nodes: Mapping[LineaID, object]
+        Mapping of node ID to value for all the nodes that were passed in to this execution.
+    output_globals: Mapping[str, object]
+        Mapping of global identifier to the value of all globals that were set during this execution.
     """
     logger.debug("Converting function calls to object side effects")
 

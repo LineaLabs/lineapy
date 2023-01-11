@@ -1,7 +1,7 @@
 """
 This module adds support for using sys.settrace to understand what happens 
 during a subset of code execution that's passed in. In the context of how 
-it's currently used, it's limited to the "blackbox" execs---`l_exec_statement`
+it's currently used, it's limited to the "blackbox" execs &mdash; `l_exec_statement`
 It can be used used and tested independently.
 
 At a high level, users could:
