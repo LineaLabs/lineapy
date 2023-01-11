@@ -128,22 +128,22 @@ def distribution_change(
     Test against the example in the paper, from Table V, on pages 18-19
 
     ```python
-    >>> res = distribution_change(
-    ...     old_measures=[
-    ...         round(mean([9, 11, 5, 6]), 1),
-    ...         round(mean([16, 13, 12, 8]), 1),
-    ...         round(mean([15, 7, 10, 14]), 1),
-    ...     ],
-    ...     new_measures=[
-    ...         round(mean([10, 12, 6, 7]), 1),
-    ...         round(mean([9, 1, 11, 4]), 1),
-    ...         round(mean([8, 5, 3, 2]), 1),
-    ...     ],
-    ...     confidence_interval=0.95
-    ... )
-    >>> from math import isclose
-    >>> assert isclose(res.mean, 68.3 / 74.5, rel_tol=0.05)
-    >>> assert isclose(res.confidence_interval, 60.2 / 74.5, rel_tol=0.05)
+    res = distribution_change(
+        old_measures=[
+            round(mean([9, 11, 5, 6]), 1),
+            round(mean([16, 13, 12, 8]), 1),
+            round(mean([15, 7, 10, 14]), 1),
+        ],
+        new_measures=[
+            round(mean([10, 12, 6, 7]), 1),
+            round(mean([9, 1, 11, 4]), 1),
+            round(mean([8, 5, 3, 2]), 1),
+        ],
+        confidence_interval=0.95
+    )
+    from math import isclose
+    assert isclose(res.mean, 68.3 / 74.5, rel_tol=0.05)
+    assert isclose(res.confidence_interval, 60.2 / 74.5, rel_tol=0.05)
     ```
     """
     n = len(old_measures)
