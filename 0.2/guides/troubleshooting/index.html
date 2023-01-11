@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2938,8 +2950,8 @@
                   
 
 
-<h1 id="troubleshooting">Troubleshooting</h1>
-<h2 id="database-lock">Database Lock</h2>
+<h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
+<h2 id="database-lock">Database Lock<a class="headerlink" href="#database-lock" title="Permanent link">&para;</a></h2>
 <p>By default, LineaPy uses SQLite for artifact store, which keeps the package light and simple.
 However, SQLite has several limitations, one of which is that it does not support multiple concurrent
 writes to a database (it will result in a database lock). Such concurrent writes to a database can happen,
@@ -2962,7 +2974,7 @@ storing it in a different form (e.g., a Parquet file) before terminating the not
 </div>
 <p>If database locking is a persisting issue in your usage, we recommend you use a more robust database such as PostgreSQL,
 for which relevant instructions can be found <a href="../configuration/storage-location/#storing-artifact-metadata-in-postgresql">here</a>.</p>
-<h2 id="no-attribute-error-for-black">No Attribute Error for <code>black</code></h2>
+<h2 id="no-attribute-error-for-black">No Attribute Error for <code>black</code><a class="headerlink" href="#no-attribute-error-for-black" title="Permanent link">&para;</a></h2>
 <p>Lineapy uses the <a href="https://pypi.org/project/black/">black</a> library to format produced code. Make sure you have the version of black as specified in LineaPy's <a href="https://github.com/LineaLabs/lineapy/blob/main/requirements.txt"><code>requirements.txt</code></a>.</p>
 
 <head>

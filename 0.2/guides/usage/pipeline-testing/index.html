@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2954,12 +2966,12 @@
                   
 
 
-<h1 id="testing-a-generated-pipeline">Testing a Generated Pipeline</h1>
+<h1 id="testing-a-generated-pipeline">Testing a Generated Pipeline<a class="headerlink" href="#testing-a-generated-pipeline" title="Permanent link">&para;</a></h1>
 <p>When building a pipeline, LineaPy transforms the user's original code into modularized functions
 where extraneous operations are removed. With such changes, the user may want to ensure that the
 transformed code is valid and reliable before actually using it. To support this, LineaPy's pipeline
 API provides an optional <code>generate_test</code> argument (default set to <code>False</code>).</p>
-<h2 id="creating-pipeline-test">Creating Pipeline Test</h2>
+<h2 id="creating-pipeline-test">Creating Pipeline Test<a class="headerlink" href="#creating-pipeline-test" title="Permanent link">&para;</a></h2>
 <p>To create tests for a pipeline, set <code>generate_test=True</code>, like so:</p>
 <div class="highlight"><pre><span></span><code><span class="n">lineapy</span><span class="o">.</span><span class="n">to_pipeline</span><span class="p">(</span>
     <span class="n">pipeline_name</span><span class="o">=</span><span class="s2">&quot;iris_pipeline&quot;</span><span class="p">,</span>
@@ -3067,7 +3079,7 @@ instead of a single Boolean value). Accordingly, the user is expected to customi
 needs/contexts. For example, if the tested function's output is a NumPy array, then the user can replace the templated
 <code>self.assertEqual(sample_output_generated, sample_output_expected)</code> with the customized <code>assert all(sample_output_generated == sample_output_expected)</code>,
 which would result in proper equality evaluation.</p>
-<h2 id="running-pipeline-test">Running Pipeline Test</h2>
+<h2 id="running-pipeline-test">Running Pipeline Test<a class="headerlink" href="#running-pipeline-test" title="Permanent link">&para;</a></h2>
 <p>With such limitations in templating, most test methods out of the box are bound to fail. However, to avoid any potential interference
 with the user's system, test failures are wrapped inside the <code>try</code>-<code>except</code> block, which makes all test methods run successfully
 without erroring out. Instead, the user is informed of failed test methods via warning messages that ask the user to check the code
@@ -3091,7 +3103,7 @@ OK
 <p class="admonition-title">Warning</p>
 <p>Tests may involve long compute and/or large storage, so please take care in running them.</p>
 </div>
-<h2 id="adapting-pipeline-test">Adapting Pipeline Test</h2>
+<h2 id="adapting-pipeline-test">Adapting Pipeline Test<a class="headerlink" href="#adapting-pipeline-test" title="Permanent link">&para;</a></h2>
 <p>As shown, both test methods "failed" (i.e., warning messages raised) for <code>iris_pipeline</code>. This is not surprising because,
 again, the scaffold is relying on a naive mode of equality evaluation via <code>unittest</code>'s <code>assertEqual()</code>, which does not
 work for more sophisticated object types such as <code>pandas.DataFrame</code> and <code>sklearn.linear_model.LinearRegression</code>.

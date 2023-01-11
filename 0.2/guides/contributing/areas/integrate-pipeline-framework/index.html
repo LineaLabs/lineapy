@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2998,16 +3010,16 @@
                   
 
 
-<h1 id="integrate-a-new-pipeline-framework">Integrate a New Pipeline Framework</h1>
+<h1 id="integrate-a-new-pipeline-framework">Integrate a New Pipeline Framework<a class="headerlink" href="#integrate-a-new-pipeline-framework" title="Permanent link">&para;</a></h1>
 <p>One major feature of LineaPy is the ability to create pipelines that run various pipeline orchestration frameworks.
 We believe that supporting pipeline frameworks to meet data engineers where they are with their current stacks provides the best user experience for reducing manual work of pipeline writing.</p>
 <p>In this guide, we will go through how to write an new pipeline integration. We will first go through important concepts before diving into concrete steps. If you want to dive right into the concrete steps, skip ahead to the <a href="#checklist-for-writing-a-new-integration">checklist</a>.</p>
 <p>We will use Airflow as an illustrative example, but there may not be a one-size-fits-all approach for all integrations so please adapt the content in this guide to suite your individual needs.</p>
-<h2 id="the-module-file">The Module File</h2>
+<h2 id="the-module-file">The Module File<a class="headerlink" href="#the-module-file" title="Permanent link">&para;</a></h2>
 <p>The module file contains all the user code from the original notebook needed to run a pipeline. The module file is one of a few files that LineaPy generates to create pipelines, an overview of which can be found <a href="../../../usage/pipeline-building/#airflow-example">here</a>.</p>
 <p>The module file contains code that is already cleaned and refactored based on parameters passed to a <a class="autorefs autorefs-internal" href="../../../../reference/lineapy/api/api/#lineapy.api.api.to_pipeline"><code>lineapy.to_pipeline()</code></a> call and is presented as a Python module file. </p>
 <p>This file can and should be used by integrations. The key for new integrations is to figure out how to call these functions within the constraints of their framework. Fortunately, we provide another abstraction to help make this easy. </p>
-<h2 id="what-is-a-taskdefinition">What is a <code>TaskDefinition</code>?</h2>
+<h2 id="what-is-a-taskdefinition">What is a <code>TaskDefinition</code>?<a class="headerlink" href="#what-is-a-taskdefinition" title="Permanent link">&para;</a></h2>
 <p><code>TaskDefinition</code> is the abstraction that LineaPy provides integration writers that provides all the information needed to call the functions in the module file.
 Our goal is to have <code>TaskDefinition</code> provide modular blocks that can be used by multiple frameworks with some help from Jinja templating to provide framework specific syntax. </p>
 <div class="admonition tip">
@@ -3020,11 +3032,11 @@ For example, in Airflow, this would be the concept of an Operator.</p>
 <p class="admonition-title">Note</p>
 <p>If you feel a code block is missing from <code>TaskDefinition</code>, create a separate PR to add it along with an example of why your framework needs it.</p>
 </div>
-<h2 id="getting-taskdefinitions">Getting <code>TaskDefinition</code>s</h2>
+<h2 id="getting-taskdefinitions">Getting <code>TaskDefinition</code>s<a class="headerlink" href="#getting-taskdefinitions" title="Permanent link">&para;</a></h2>
 <p>Functions to get <code>TaskDefinition</code>s should be located in <a href="https://github.com/LineaLabs/lineapy/blob/main/lineapy/plugins/taskgen.py"><code>lineapy/plugins/taskgen.py</code></a>.</p>
 <p>For integration writer, the most important function is <code>get_task_graph</code>. Given a task breakdown granularity, it will return a dictionary mapping function name to <code>TaskDefinition</code>s along with a <code>TaskGraph</code> that specifies the dependencies needed to be added between tasks. 
 Framework specific pipeline integrations should call this to get <code>TaskDefinition</code>s that can be rendered using framework specific syntax.</p>
-<h2 id="checklist-for-writing-a-new-integration">Checklist for Writing a New Integration</h2>
+<h2 id="checklist-for-writing-a-new-integration">Checklist for Writing a New Integration<a class="headerlink" href="#checklist-for-writing-a-new-integration" title="Permanent link">&para;</a></h2>
 <ol>
 <li>
 <p>Create new pipeline writer file in <code>lineapy/plugins/</code>.</p>
@@ -3094,12 +3106,12 @@ Framework specific pipeline integrations should call this to get <code>TaskDefin
 </code></pre></div>
 </li>
 </ol>
-<h2 id="using-templates">Using Templates</h2>
+<h2 id="using-templates">Using Templates<a class="headerlink" href="#using-templates" title="Permanent link">&para;</a></h2>
 <p>You may have noticed at this point that the last few bullet points in the checklist involve rendering and using Jinja templates. Jinja templates are LineaPy's preferred way of templating the code that we generate.</p>
 <p>All of the templates that are used in LineaPy can be found in the <a href="https://github.com/LineaLabs/lineapy/tree/main/lineapy/plugins/jinja_templates">templates directory</a>. 
 These templates are loaded using the <code>load_plugin_template()</code> command as illustrated in the examples above, and can be rendered using the <code>render()</code> method while passing in values for the placeholder variables.</p>
 <p>Feel free to skim some of the templates we have already created for an idea on how we use these templates. Online tutorials are also helpful, the "Getting started with Jinja" sections in <a href="https://realpython.com/primer-on-jinja-templating/#get-started-with-jinja">this one</a> are a good place to start.</p>
-<h2 id="testing">Testing</h2>
+<h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
 <p>As a pipeline integration contributor we also greatly appreciate adding tests for your new integration!</p>
 <p>Snapshot tests should be added to <code>tests/unit/plugins/test_writer.py::test_pipeline_generation</code> by adding new parameters corresponding to your framework.
 Be sure to also run pytest with the <code>--snapshot-update</code> flag and commit the snapshot files.</p>

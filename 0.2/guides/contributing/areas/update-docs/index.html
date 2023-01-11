@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -851,6 +863,13 @@
         <li class="md-nav__item">
   <a href="#updating-api-reference" class="md-nav__link">
     Updating API Reference
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publishing-updates" class="md-nav__link">
+    Publishing Updates
   </a>
   
 </li>
@@ -2913,6 +2932,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#publishing-updates" class="md-nav__link">
+    Publishing Updates
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2928,7 +2954,7 @@
                   
 
 
-<h1 id="updating-project-documentation">Updating Project Documentation</h1>
+<h1 id="updating-project-documentation">Updating Project Documentation<a class="headerlink" href="#updating-project-documentation" title="Permanent link">&para;</a></h1>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
 <p>LineaPy's project documentation is built with <a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a>
@@ -2959,11 +2985,10 @@ mkdocs serve
 </code></pre></div>
 </li>
 <li>
-<p>Once content with the change(s), open a PR. The hosted documentation will be automatically
-rebuilt as soon as the PR gets merged.</p>
+<p>Once content with the change(s), open a PR.</p>
 </li>
 </ol>
-<h2 id="updating-api-reference">Updating API Reference</h2>
+<h2 id="updating-api-reference">Updating API Reference<a class="headerlink" href="#updating-api-reference" title="Permanent link">&para;</a></h2>
 <p>For code documentation, first add or update docstrings using the
 <a href="https://numpydoc.readthedocs.io/en/latest/format.html">NumPy style</a>.</p>
 <div class="admonition warning">
@@ -2976,6 +3001,34 @@ python gen_ref_pages.py
 </code></pre></div>
 <p>This will automatically generate or update Markdown file(s) for API reference.</p>
 <p>Finally, open a PR with the changes.</p>
+<h2 id="publishing-updates">Publishing Updates<a class="headerlink" href="#publishing-updates" title="Permanent link">&para;</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To effectively manage different versions of documentation, the project limits publication capacity
+to a few select members. Please contact the LineaPy core team on <a href="../../../support/#community">Slack</a>
+for relevant questions or requests.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>LineaPy uses <a href="https://github.com/jimporter/mike"><code>mike</code></a> to build and maintain versioned documentation.</p>
+</div>
+<p>To publish documentation, run:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Update Existing Version</label><label for="__tabbed_1_2">Create New Version</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="c1"># Run from lineapy/docs/</span>
+mike deploy --push &lt;version_number&gt;
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="c1"># Run from lineapy/docs/</span>
+mike deploy --push --update-aliases &lt;version_number&gt; latest
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>where <code>&lt;version_number&gt;</code> is formatted <code>&lt;major&gt;.&lt;minor&gt;</code> (e.g., <code>0.2</code>) as defined in
+<a href="https://semver.org/#summary">semantic versioning</a>.</p>
 
 <head>
     <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">

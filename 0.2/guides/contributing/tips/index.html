@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2926,8 +2938,8 @@
                   
 
 
-<h1 id="recommended-practices">Recommended Practices</h1>
-<h2 id="organize-each-pr-with-relevant-changes">Organize each PR with relevant changes</h2>
+<h1 id="recommended-practices">Recommended Practices<a class="headerlink" href="#recommended-practices" title="Permanent link">&para;</a></h1>
+<h2 id="organize-each-pr-with-relevant-changes">Organize each PR with relevant changes<a class="headerlink" href="#organize-each-pr-with-relevant-changes" title="Permanent link">&para;</a></h2>
 <p>To maintain a linear/cleaner project history, the project was set up to apply “squashing” when merging a PR.
 That is, if a PR contains more than one commit, GitHub will combine them into a single commit where the summary
 equals the PR title (followed by the PR number) and the description consists of commit messages for all squashed

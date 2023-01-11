@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2940,7 +2952,7 @@
                   
 
 
-<h1 id="running-a-pipeline-with-different-parameters">Running a Pipeline with Different Parameters</h1>
+<h1 id="running-a-pipeline-with-different-parameters">Running a Pipeline with Different Parameters<a class="headerlink" href="#running-a-pipeline-with-different-parameters" title="Permanent link">&para;</a></h1>
 <p>Oftentimes, data scientists/engineers need to run the same pipeline with different parameters.
 For instance, they may want to use a different data set for model training.
 To produce a parametrized pipeline, use pipeline API's (optional) <code>input_parameters</code> argument,
@@ -2951,7 +2963,7 @@ like so:</p>
 <span class="p">)</span>
 </code></pre></div>
 <p>where <code>&lt;VARNAME1&gt;</code> is the name of the variable to be turned into a tunable parameter of the pipeline.</p>
-<h2 id="airflow-example">Airflow Example</h2>
+<h2 id="airflow-example">Airflow Example<a class="headerlink" href="#airflow-example" title="Permanent link">&para;</a></h2>
 <p>For example, the following creates an Airflow pipeline that can train a model on different data sources:</p>
 <div class="highlight"><pre><span></span><code>    <span class="n">lineapy</span><span class="o">.</span><span class="n">to_pipeline</span><span class="p">(</span>
         <span class="n">pipeline_name</span><span class="o">=</span><span class="s2">&quot;iris_pipeline_parametrized&quot;</span><span class="p">,</span>
@@ -2969,7 +2981,7 @@ like so:</p>
 <p>where <code>&lt;pipeline_name&gt;</code> is <code>iris_pipeline_parametrized</code> in the current example.</p>
 <p>Or, if running Airflow on UI, trigger the DAG with <code>{"url": "&lt;NEW-DATA-URL&gt;"}</code>
 passed as a config JSON.</p>
-<h2 id="limitations">Limitations</h2>
+<h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
 <p>Currently, <code>input_parameters</code> only accepts variables from literal assignment
 such as <code>a = "123"</code>. For each variable to be parametrized, there should be only one
 literal assignment across all artifact code for the pipeline. For instance, if both

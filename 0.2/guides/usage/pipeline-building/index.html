@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2940,7 +2952,7 @@
                   
 
 
-<h1 id="building-a-pipeline-from-development-code">Building a Pipeline from Development Code</h1>
+<h1 id="building-a-pipeline-from-development-code">Building a Pipeline from Development Code<a class="headerlink" href="#building-a-pipeline-from-development-code" title="Permanent link">&para;</a></h1>
 <p>To generate a pipeline from development code, first ensure variable(s) of interest have been
 stored as LineaPy artifacts:</p>
 <div class="highlight"><pre><span></span><code><span class="n">lineapy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="o">&lt;</span><span class="n">VARIABLE</span><span class="o">-</span><span class="n">NAME</span><span class="o">&gt;</span><span class="p">,</span> <span class="s2">&quot;&lt;artifact_name&gt;&quot;</span><span class="p">)</span>
@@ -2998,7 +3010,7 @@ stored as LineaPy artifacts:</p>
 <p class="admonition-title">Info</p>
 <p>Check <a class="autorefs autorefs-internal" href="../../../reference/lineapy/api/api/#lineapy.api.api.to_pipeline"><code>lineapy.to_pipeline()</code></a> for more detailed API information.</p>
 </div>
-<h2 id="airflow-example">Airflow Example</h2>
+<h2 id="airflow-example">Airflow Example<a class="headerlink" href="#airflow-example" title="Permanent link">&para;</a></h2>
 <p>For example, consider a simple pipeline that 1) pre-processes raw data and 2) trains a model with the pre-processed data.</p>
 <p><img alt="Pipeline Example" src="../../../images/pipeline-example-diagram.png" /></p>
 <p>With the pre-processed data and the trained model stored as LineaPy artifacts (which can be done during development sessions),
@@ -3193,7 +3205,7 @@ CMD [ &quot;standalone&quot; ]
 </div>
 </div>
 </details>
-<h2 id="running-locally">Running Locally</h2>
+<h2 id="running-locally">Running Locally<a class="headerlink" href="#running-locally" title="Permanent link">&para;</a></h2>
 <p>With the pipeline files generated, we can quickly test running the pipeline locally.
 First, run the following command to build a Docker image:</p>
 <div class="highlight"><pre><span></span><code>docker build -t &lt;image_name&gt; . -f &lt;pipeline_name&gt;_Dockerfile

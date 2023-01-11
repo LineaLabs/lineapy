@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2940,7 +2952,7 @@
                   
 
 
-<h1 id="changing-storage-location">Changing Storage Location</h1>
+<h1 id="changing-storage-location">Changing Storage Location<a class="headerlink" href="#changing-storage-location" title="Permanent link">&para;</a></h1>
 <p>Under the hood, LineaPy stores artifacts as two data structures:</p>
 <ul>
 <li>Serialized artifact values (i.e., pickle files)</li>
@@ -2990,7 +3002,7 @@ since passing a dictionary through these two methods are a little bit awkward.
 Instead, if you want ot use environmental variables, you should configure it through the official way
 from the storage provider and <code>LineaPy</code> should be able to handle these extra configuration items directly.</p>
 <p>Note that, which <code>storage_options</code> items you can set are depends on the filesystem you are using.</p>
-<h2 id="storing-artifact-metadata-in-postgresql">Storing Artifact Metadata in PostgreSQL</h2>
+<h2 id="storing-artifact-metadata-in-postgresql">Storing Artifact Metadata in PostgreSQL<a class="headerlink" href="#storing-artifact-metadata-in-postgresql" title="Permanent link">&para;</a></h2>
 <p>By default, LineaPy uses SQLite to store artifact metadata (e.g., name, version, code),
 which keeps the package light and simple. Given the limitations of SQLite (e.g., single write access
 to a database at a time), however, we may want to use a more advanced database such as PostgreSQL.</p>
@@ -3022,7 +3034,7 @@ persist across sessions by defining it in <code>.bashrc</code> or <code>.zshrc</
 <p>This is caused by a change in SQLAlchemy where they dropped support for DB URLs of the form <code>postgres://</code>.
 Using <code>postgresql://</code> instead should fix this error.</p>
 </div>
-<h2 id="storing-artifact-values-in-amazon-s3">Storing Artifact Values in Amazon S3</h2>
+<h2 id="storing-artifact-values-in-amazon-s3">Storing Artifact Values in Amazon S3<a class="headerlink" href="#storing-artifact-values-in-amazon-s3" title="Permanent link">&para;</a></h2>
 <p>To use S3 as LineaPy's serialized value location, you can run the following command
 in your notebook to change your storage backend:</p>
 <div class="highlight"><pre><span></span><code><span class="n">lineapy</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;artifact_storage_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;s3://your-bucket/your-artifact-folder&#39;</span><span class="p">)</span>

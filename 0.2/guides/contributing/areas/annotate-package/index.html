@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2942,7 +2954,7 @@
                   
 
 
-<h1 id="annotating-packages">Annotating Packages</h1>
+<h1 id="annotating-packages">Annotating Packages<a class="headerlink" href="#annotating-packages" title="Permanent link">&para;</a></h1>
 <p>One big strength of the Python language is its large and active development community. This means that
 we have a lot of interesting and useful Python packages that are not part of the core Python distribution.
 These third-party packages often come with their own new APIs, and LineaPy is not guaranteed to handle all
@@ -2955,7 +2967,7 @@ or updating a YAML file in <a href="https://github.com/LineaLabs/lineapy/tree/ma
 <p>Note that YAML files are sensitive to indentation. To ensure that you use correct indentation, we recommend you
 consult/adapt <a href="https://github.com/LineaLabs/lineapy/tree/main/lineapy/annotations/external">existing annotation files</a>.</p>
 </div>
-<h2 id="annotating-apis-that-modify-external-states">Annotating APIs that modify external states</h2>
+<h2 id="annotating-apis-that-modify-external-states">Annotating APIs that modify external states<a class="headerlink" href="#annotating-apis-that-modify-external-states" title="Permanent link">&para;</a></h2>
 <p>A common group of APIs that LineaPy needs annotation for are those that modify external states
 such as the local file system and external databases.</p>
 <p>For instance, without relevant package annotation, running</p>
@@ -3050,7 +3062,7 @@ we can condense the above annotation to the following:</p>
 </code></pre></div>
 <p>where we simply extend <code>class_method_names</code> list instead.</p>
 </div>
-<h2 id="annotating-apis-that-modify-the-caller-itself">Annotating APIs that modify the caller itself</h2>
+<h2 id="annotating-apis-that-modify-the-caller-itself">Annotating APIs that modify the caller itself<a class="headerlink" href="#annotating-apis-that-modify-the-caller-itself" title="Permanent link">&para;</a></h2>
 <p>Another group of APIs that need annotation are those that modify their caller.</p>
 <p>For instance, without relevant package annotation, running</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LinearRegression</span>

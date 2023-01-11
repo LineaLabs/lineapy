@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2880,7 +2892,7 @@
                   
 
 
-<h1 id="annotating-third-party-apis">Annotating Third-Party APIs</h1>
+<h1 id="annotating-third-party-apis">Annotating Third-Party APIs<a class="headerlink" href="#annotating-third-party-apis" title="Permanent link">&para;</a></h1>
 <p>Python ecosystem offers a lot of interesting and useful packages that are not part of the core distribution.
 These third-party packages often come with their own new APIs, and LineaPy is not guaranteed to handle all
 of them properly when removing extraneous code. For such "unrecognized" APIs, we can add

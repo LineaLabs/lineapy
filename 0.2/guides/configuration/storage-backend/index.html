@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2980,7 +2992,7 @@
                   
 
 
-<h1 id="changing-storage-backend">Changing Storage Backend</h1>
+<h1 id="changing-storage-backend">Changing Storage Backend<a class="headerlink" href="#changing-storage-backend" title="Permanent link">&para;</a></h1>
 <p>Out of the box, LineaPy is the default storage backend for all artifacts.
 For certain storage backends in use (e.g., storing model artifacts in MLflow),
 saving one more copy of the same artifact into LineaPy causes sync issue between the two systems.
@@ -2993,7 +3005,7 @@ and other familiar toolkit (e.g., MLflow).</p>
 specific storage locations such as Amazon S3. For instance, LineaPy is a storage backend
 that can use different storage locations.</p>
 </div>
-<h2 id="saving-ml-models-to-mlflow-backend">Saving ML Models to MLflow Backend</h2>
+<h2 id="saving-ml-models-to-mlflow-backend">Saving ML Models to MLflow Backend<a class="headerlink" href="#saving-ml-models-to-mlflow-backend" title="Permanent link">&para;</a></h2>
 <p>By default, LineaPy uses LineaPy to save artifacts for all object types.
 However, for users who have access to MLflow, MLflow might be their first choice to save the ML model.
 Thus, we enable using MLflow as the backend storage for ML models.</p>
@@ -3006,7 +3018,7 @@ The list is planned to be expanded to cover all MLflow-supported model flavors.<
 <p class="admonition-title">Info</p>
 <p>For objects not supported by MLflow, storage will fall back to the LineaPy backend as usual.</p>
 </div>
-<h3 id="configuring-mlflow">Configuring MLflow</h3>
+<h3 id="configuring-mlflow">Configuring MLflow<a class="headerlink" href="#configuring-mlflow" title="Permanent link">&para;</a></h3>
 <p>Depending on how our MLflow is configured, we might need to specify <code>tracking URI</code> and
 (optional) <code>registry URI</code> in MLflow to start using MLflow. </p>
 <div class="highlight"><pre><span></span><code><span class="n">mlflow</span><span class="o">.</span><span class="n">set_tracking_uri</span><span class="p">(</span><span class="s1">&#39;your_mlflow_tracking_uri&#39;</span><span class="p">)</span>
@@ -3017,7 +3029,7 @@ if we want to use MLflow as the storage backend for ML models.</p>
 <div class="highlight"><pre><span></span><code><span class="n">lineapy</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;mlflow_tracking_uri&#39;</span><span class="p">,</span><span class="s1">&#39;your_mlflow_tracking_uri&#39;</span><span class="p">)</span>
 <span class="n">lineapy</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;mlflow_registry_uri&#39;</span><span class="p">,</span><span class="s1">&#39;your_mlflow_registry_uri&#39;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="setting-default-storage-backend-for-ml-models">Setting Default Storage Backend for ML Models</h3>
+<h3 id="setting-default-storage-backend-for-ml-models">Setting Default Storage Backend for ML Models<a class="headerlink" href="#setting-default-storage-backend-for-ml-models" title="Permanent link">&para;</a></h3>
 <p>Each user might have a different usage pattern for MLflow; some might use it for logging purposes and
 record all developing models. Some might treat it as a public space and only publish models that meet
 specific criteria to MLflow. In the first case, users want to use MLflow to save artifacts(ML models)
@@ -3059,7 +3071,7 @@ under the hood. Users can use all the arguments in <code>mlflow.flavor.log_model
 For instance, if we want to specify <code>registered_model_name</code>, we can write the save statement as:</p>
 <div class="highlight"><pre><span></span><code><span class="n">lineapy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;model&quot;</span><span class="p">,</span> <span class="n">storage_backend</span><span class="o">=</span><span class="s2">&quot;mlflow&quot;</span><span class="p">,</span> <span class="n">registered_model_name</span><span class="o">=</span><span class="s2">&quot;clf&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="retrieving-artifact-from-both-lineapy-and-mlflow">Retrieving Artifact from Both LineaPy and MLflow</h3>
+<h3 id="retrieving-artifact-from-both-lineapy-and-mlflow">Retrieving Artifact from Both LineaPy and MLflow<a class="headerlink" href="#retrieving-artifact-from-both-lineapy-and-mlflow" title="Permanent link">&para;</a></h3>
 <p>Depending on what users want to do (or be familiar with), users can retrieve the same artifact (ML model)
 from LineaPy API and MLflow API once users execute <code>lineapy.save()</code> with <code>mlflow</code> as the storage backend
 to save the artifact.</p>

@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -3060,12 +3072,12 @@
                   
 
 
-<h1 id="installation-and-setup">Installation and Setup</h1>
-<h2 id="installing-lineapy">Installing LineaPy</h2>
-<h3 id="prerequisites">Prerequisites</h3>
+<h1 id="installation-and-setup">Installation and Setup<a class="headerlink" href="#installation-and-setup" title="Permanent link">&para;</a></h1>
+<h2 id="installing-lineapy">Installing LineaPy<a class="headerlink" href="#installing-lineapy" title="Permanent link">&para;</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
 <p>LineaPy runs on <code>Python&gt;=3.7</code> and <code>IPython&gt;=7.0.0</code>. It does not come with a Jupyter installation,
 so you will need to <a href="https://jupyter.org/install">install one</a> for interactive computing.</p>
-<h3 id="basics">Basics</h3>
+<h3 id="basics">Basics<a class="headerlink" href="#basics" title="Permanent link">&para;</a></h3>
 <p>To install LineaPy, run:</p>
 <div class="highlight"><pre><span></span><code>pip install lineapy
 </code></pre></div>
@@ -3078,7 +3090,7 @@ However, SQLite has several limitations, one of which is that it does not suppor
 writes to a database (it will result in a database lock). If you want to use a more robust database,
 please follow <a href="../configuration/storage-location/#storing-artifact-metadata-in-postgresql">instructions</a> for using PostgreSQL.</p>
 </div>
-<h3 id="extras">Extras</h3>
+<h3 id="extras">Extras<a class="headerlink" href="#extras" title="Permanent link">&para;</a></h3>
 <p>LineaPy offers several extras to extend its core capabilities:</p>
 <table>
 <thead>
@@ -3121,7 +3133,7 @@ please follow <a href="../configuration/storage-location/#storing-artifact-metad
 <p>The <code>minimal</code> version of LineaPy does not include <code>black</code> or <code>isort</code>, which
 may result in less organized output code and scripts.</p>
 </div>
-<h3 id="jupyterhub">JupyterHub</h3>
+<h3 id="jupyterhub">JupyterHub<a class="headerlink" href="#jupyterhub" title="Permanent link">&para;</a></h3>
 <p>LineaPy works with JupyterHub!</p>
 <p>If LineaPy is installed by an admin, it will be accessible to every user. The admin can set the LineaPy 
 extension to be automatically loaded by adding <code>c.InteractiveShellApp.extensions = ["lineapy"]</code> in 
@@ -3130,8 +3142,8 @@ extension to be automatically loaded by adding <code>c.InteractiveShellApp.exten
 user only as long as they do not have a write permission on the shared environment.
 In this case, the user will need to run <code>%load_ext lineapy</code> at the top of their session
 as explained below.</p>
-<h2 id="running-lineapy">Running LineaPy</h2>
-<h3 id="jupyter-and-ipython">Jupyter and IPython</h3>
+<h2 id="running-lineapy">Running LineaPy<a class="headerlink" href="#running-lineapy" title="Permanent link">&para;</a></h2>
+<h3 id="jupyter-and-ipython">Jupyter and IPython<a class="headerlink" href="#jupyter-and-ipython" title="Permanent link">&para;</a></h3>
 <p>To use LineaPy in an interactive computing environment such as Jupyter Notebook/Lab or IPython, load its extension by executing the following command at the top of your session:</p>
 <div class="highlight"><pre><span></span><code><span class="o">%</span><span class="n">load_ext</span> <span class="n">lineapy</span>
 </code></pre></div>
@@ -3157,7 +3169,7 @@ and you will not need to manually load it for every new session.</p>
 <p class="admonition-title">Tip</p>
 <p>If your Jupyter environment has multiple kernels, choose <code>Python 3 (ipykernel)</code> which <code>lineapy</code> defaults to.</p>
 </div>
-<h3 id="hosted-jupyter-environment">Hosted Jupyter Environment</h3>
+<h3 id="hosted-jupyter-environment">Hosted Jupyter Environment<a class="headerlink" href="#hosted-jupyter-environment" title="Permanent link">&para;</a></h3>
 <p>In hosted Jupyter notebook environments such as JupyterHub, Google Colab, Kaggle, Databricks or in any other 
 environments that are not started using CLI (such as Jupyter extension within VS Code), you need to 
 install <code>lineapy</code> directly within your notebook first via:</p>
@@ -3173,7 +3185,7 @@ install <code>lineapy</code> directly within your notebook first via:</p>
 </code></pre></div>
 <p>and restart the notebook runtime.</p>
 </div>
-<h3 id="cli">CLI</h3>
+<h3 id="cli">CLI<a class="headerlink" href="#cli" title="Permanent link">&para;</a></h3>
 <p>You can also use LineaPy as a CLI command or runnable Python module. To see available options, run the following commands:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># LineaPy as a CLI command</span>
 lineapy python --help

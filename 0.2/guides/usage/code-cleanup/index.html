@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -2926,7 +2938,7 @@
                   
 
 
-<h1 id="cleaning-up-messy-development-code">Cleaning up Messy Development Code</h1>
+<h1 id="cleaning-up-messy-development-code">Cleaning up Messy Development Code<a class="headerlink" href="#cleaning-up-messy-development-code" title="Permanent link">&para;</a></h1>
 <p>Data science development is characterized by nimble, iterative experimentation and exploratory
 data analysis, which often results in a messy development code. Code cleanup is hence an essential
 step for moving data science work into production. With the complete development history stored in
@@ -2949,7 +2961,7 @@ the artifact's full session code (including comments) with <code>artifact.get_se
 This should come in handy when trying to remember or understand the original development
 context of a given artifact.</p>
 </div>
-<h2 id="known-issues">Known Issues</h2>
+<h2 id="known-issues">Known Issues<a class="headerlink" href="#known-issues" title="Permanent link">&para;</a></h2>
 <p>We discuss few cases in which LineaPy's code cleanup might lead to issues, and what steps can be taken by the user to get around them.</p>
 <details class="warning">
 <summary>Unvisited Conditional</summary>

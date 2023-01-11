@@ -91,6 +91,18 @@
     
       <div data-md-component="outdated" hidden>
         
+          <aside class="md-banner md-banner--warning">
+            <div class="md-banner__inner md-grid md-typeset">
+              
+You are viewing an old version of the documentation.
+<a href="../../../..">
+    <strong>Click here to go to the latest version.</strong>
+</a>
+
+            </div>
+            <script>var el=document.querySelector("[data-md-component=outdated]"),outdated=__md_get("__outdated",sessionStorage);!0===outdated&&el&&(el.hidden=!1)</script>
+          </aside>
+        
       </div>
     
     
@@ -3076,9 +3088,9 @@
                   
 
 
-<h1 id="setup-and-basics">Setup and Basics</h1>
-<h2 id="installation">Installation</h2>
-<h3 id="cloning-repo">Cloning Repo</h3>
+<h1 id="setup-and-basics">Setup and Basics<a class="headerlink" href="#setup-and-basics" title="Permanent link">&para;</a></h1>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h3 id="cloning-repo">Cloning Repo<a class="headerlink" href="#cloning-repo" title="Permanent link">&para;</a></h3>
 <p>First <a href="https://docs.github.com/en/get-started/quickstart/fork-a-repo">fork</a> the <code>lineapy</code> repo.
 Then, <a href="https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository">clone</a>
 the forked repo to your development environment:</p>
@@ -3088,7 +3100,7 @@ git clone &lt;URL-TO-FORKED-REPO&gt;
 <p>To keep the forked repo in sync with the original one, set an "upstream":</p>
 <div class="highlight"><pre><span></span><code>git remote add upstream https://github.com/LineaLabs/lineapy.git
 </code></pre></div>
-<h3 id="setting-up-virtual-environment">Setting up Virtual Environment</h3>
+<h3 id="setting-up-virtual-environment">Setting up Virtual Environment<a class="headerlink" href="#setting-up-virtual-environment" title="Permanent link">&para;</a></h3>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Here, we use <a href="https://docs.python.org/3/library/venv.html">venv</a> for virtual environment setup
@@ -3113,7 +3125,7 @@ python -m venv env
 several config files including <code>.gitignore</code>, <code>.flake8</code>, <code>pyproject.toml</code> lest it will create friction for
 other workflows such as pre-commit. Hence, we strongly recommend you name the subfolder <code>env/</code> as instructed above.</p>
 </div>
-<h3 id="installing-dependencies">Installing Dependencies</h3>
+<h3 id="installing-dependencies">Installing Dependencies<a class="headerlink" href="#installing-dependencies" title="Permanent link">&para;</a></h3>
 <p>Once the virtual environment is activated, install packages necessary for running and developing <code>lineapy</code>:</p>
 <div class="highlight"><pre><span></span><code>pip install --upgrade pip
 pip install --upgrade setuptools
@@ -3122,7 +3134,7 @@ pip install -r docs/requirements.txt
 pip install -e <span class="s1">&#39;.[dev]&#39;</span>
 </code></pre></div>
 <p>Note that this may take a while to complete.</p>
-<h2 id="running-lineapy">Running LineaPy</h2>
+<h2 id="running-lineapy">Running LineaPy<a class="headerlink" href="#running-lineapy" title="Permanent link">&para;</a></h2>
 <p>During development, you may want to check how your changes affect the behavior of the package.
 LineaPy supports several interfaces to run on, and the relevant instructions are documented <a href="../../setup/#running-lineapy">here</a>.
 Please select the most convenient option for you.</p>
@@ -3130,8 +3142,8 @@ Please select the most convenient option for you.</p>
 <p class="admonition-title">Note</p>
 <p>When running LineaPy, make sure that the virtual environment has been activated.</p>
 </div>
-<h2 id="development">Development</h2>
-<h3 id="making-changes">Making Changes</h3>
+<h2 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h2>
+<h3 id="making-changes">Making Changes<a class="headerlink" href="#making-changes" title="Permanent link">&para;</a></h3>
 <p>With development dependencies installed, you are now ready to contribute to the source code!
 First, make a separate branch for your development work. Please use an informative name so that
 others can get good sense of what your changes are about.</p>
@@ -3163,7 +3175,7 @@ across its codebase.</p>
 <p>If the new (development) branch has not been pushed before, you will need to create its counterpart on GitHub with:</p>
 <div class="highlight"><pre><span></span><code>git push --set-upstream origin &lt;NEW-BRANCH-NAME&gt;
 </code></pre></div>
-<h3 id="documenting-changes">Documenting Changes</h3>
+<h3 id="documenting-changes">Documenting Changes<a class="headerlink" href="#documenting-changes" title="Permanent link">&para;</a></h3>
 <p>Good code documentation is essential to effective collaboration among different developers. As such,
 we ask contributors to add proper <a href="https://numpydoc.readthedocs.io/en/latest/format.html">NumPy-styled</a>
 docstrings for new functionalities that they add.</p>
@@ -3171,7 +3183,7 @@ docstrings for new functionalities that they add.</p>
 <p class="admonition-title">Info</p>
 <p>Check this <a href="../areas/update-docs/">guide</a> for updating project documentation.</p>
 </div>
-<h3 id="testing-changes">Testing Changes</h3>
+<h3 id="testing-changes">Testing Changes<a class="headerlink" href="#testing-changes" title="Permanent link">&para;</a></h3>
 <p>Testing is an important part of <code>lineapy</code>'s development as it ensures that all features stay functional after changes.
 Hence, we strongly recommend you add tests for changes you introduce.</p>
 <div class="admonition info">
@@ -3194,7 +3206,7 @@ pytest tests/unit/plugins/test_writer.py::test_pipeline_generation
 <span class="c1"># Example: Run a parametrized test with a particular set of parameter values</span>
 pytest tests/unit/plugins/test_writer.py::test_pipeline_generation<span class="o">[</span>script_pipeline_a0_b0<span class="o">]</span>
 </code></pre></div>
-<h3 id="integrating-changes">Integrating Changes</h3>
+<h3 id="integrating-changes">Integrating Changes<a class="headerlink" href="#integrating-changes" title="Permanent link">&para;</a></h3>
 <p>As you make your changes in your development branch, it is very possible that the original <code>lineapy</code> repo is updated by other developers.
 To ensure that your changes are compatible with these updates by others, you will need to regularly "sync" your development branch with the original
 <code>lineapy</code> repo. You can do this by first syncing the <code>main</code> branch between your local (forked) repo and the original <code>lineapy</code> repo:</p>
