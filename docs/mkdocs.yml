@@ -59,6 +59,8 @@ extra:
     link: https://lineacommunity.slack.com/join/shared_invite/zt-18kizfn3b-1Qu_HDT3ahGudnAwoFAw9Q#/shared-invite/email
   - icon: fontawesome/brands/linkedin
     link: https://www.linkedin.com/company/lineapy/
+  version:
+    provider: mike
 
 nav:
   - Home: index.md
