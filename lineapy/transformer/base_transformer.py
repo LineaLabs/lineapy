@@ -7,13 +7,8 @@ from lineapy.instrumentation.tracer import Tracer
 
 
 class BaseTransformer(ast.NodeTransformer):
-    """
-    .. note::
-
-        - Need to be careful about the order by which these calls are invoked
-          so that the transformation do not get called more than once.
-
-    """
+    # Note: Need to be careful about the order by which these calls are invoked
+    # so that the transformation do not get called more than once.
 
     def __init__(
         self,

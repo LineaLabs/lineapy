@@ -25,21 +25,24 @@ def transform(
     It traces the given code, executing it and writing the results to the DB.
 
     It does the following things in order:
-        1) accepts the source code and writes it to the db after proper encapsulation
-        2) determines the transformations that need to be done on this source. The additions currently
-           are mostly dependent on the python runtime version but can be extended to other variables in
-           the future. These transforms will be run in order with each transformer fixing the ast so
-           that the final transformer/s (NodeTransformer and others in future) which do most of the
-           conversion to linea graph are agnostic of python versions or source format changes.
-        3) parse code and walk the first level of the ast generated from code. Note that since this is only a first
-           level walk, all transformers are supposed to walk any sub-trees (eg. check out visit_Index
-           in py38transformer. not visiting the value will result only in first-level ast to be mutated
-           leaving the children untouched)
-        4) Finally writes the linea graph generated from this ast to linea DB
+
+    1. accepts the source code and writes it to the db after proper encapsulation
+
+    2. determines the transformations that need to be done on this source. The additions currently
+    are mostly dependent on the python runtime version but can be extended to other variables in
+    the future. These transforms will be run in order with each transformer fixing the ast so
+    that the final transformer/s (NodeTransformer and others in future) which do most of the
+    conversion to linea graph are agnostic of python versions or source format changes.
+
+    3. parse code and walk the first level of the ast generated from code. Note that since this is only a first
+    level walk, all transformers are supposed to walk any sub-trees (eg. check out visit_Index
+    in py38transformer. not visiting the value will result only in first-level ast to be mutated
+    leaving the children untouched)
+
+    4. Finally writes the linea graph generated from this ast to linea DB
 
     It returns the node corresponding to the last statement in the code,
     if it exists.
-
     """
 
     # create sourcecode object and register source code to db
