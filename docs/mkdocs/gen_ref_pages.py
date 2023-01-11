@@ -6,7 +6,12 @@ import mkdocs_gen_files
 
 nav = mkdocs_gen_files.Nav()
 
+SKIP_DIRS = ["_alembic"]
+
 for path in sorted(Path("..", "lineapy").rglob("*.py")):
+    if not set(path.parts).isdisjoint(SKIP_DIRS):
+        continue
+
     module_path = path.relative_to("..").with_suffix("")
     doc_path = path.relative_to("..").with_suffix(".md")
     full_doc_path = Path("reference", doc_path)
