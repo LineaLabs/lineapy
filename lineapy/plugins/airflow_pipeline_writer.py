@@ -103,7 +103,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
 
         Example of ``PythonOperatorPerSession`` if the two artifacts in our pipeline
         (e.g., model and prediction) were created in the same session.
-        .. code-block:: python
+        ``` python
             import pickle
             import g2_z_module
             ...
@@ -116,10 +116,10 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     task_id="run_session_including_g2_task",
                     python_callable=task_run_session_including_g2,
                 )
-
+        ```
         Example of ``PythonOperatorPerArtifact``, if the two artifacts in our pipeline
         (e.g., model and prediction) were created in the same session:
-        .. code-block:: python
+        ``` python
             import pickle
             import iris_module
             ...
@@ -142,7 +142,7 @@ class AirflowPipelineWriter(BasePipelineWriter):
                     python_callable=task_iris_pred,
                 )
             iris_model >> iris_pred
-
+        ```
         This way, the generated Airflow DAG file opens room for engineers
         to control pipeline runs at a finer level and allows for further customization.
         """

@@ -219,17 +219,17 @@ class SessionArtifacts:
         Traverse every node within the session in topologically sorted order
         and update node_context with following information.
 
-        assigned_variables : variables assigned at this node
-        assigned_artifact : this node is pointing to some artifact
-        predecessors : predecessors of the node
-        dependent_variables : union of if any variable is assigned at
+        - assigned_variables : variables assigned at this node
+        - assigned_artifact : this node is pointing to some artifact
+        - predecessors : predecessors of the node
+        - dependent_variables : union of if any variable is assigned at
             predecessor node, use the assigned variables; otherwise, use the
             dependent_variables
-        tracked_variables : variables that this node is point to
-        module_import : module name/alias that this node is point to
+        - tracked_variables : variables that this node is point to
+        - module_import : module name/alias that this node is point to
 
         Note that, it is possible to add all these new attributes during the
-        Linea graph creating phase. However, this might scrifice the runtime
+        Linea graph creating phase. However, this might sacrifice the runtime
         performance since some of the information need to query the attributes
         from predecessors.
         """

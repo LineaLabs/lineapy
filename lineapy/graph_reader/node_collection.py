@@ -237,14 +237,23 @@ class InputVarNodeCollection(BaseNodeCollection):
 @dataclass
 class NodeInfo:
     """
-    :assigned_variables: variables assigned at this node
-    :assigned_artifact: this node is pointing to some artifact
-    :dependent_variables: union of if any variable is assigned at predecessor node,
-     use the assigned variables. otherwise, use the dependent_variables
-    :tracked_variables: variables that this node is point to
-    :predecessors: predecessors of the node
-    :module_import: module name/alias that this node is point to
-    :artifact_name: this node belong to which artifact calculating block
+    Parameters
+    ----------
+    assigned_variables: Set[str]
+        variables assigned at this node
+    assigned_artifact: Optional[str]
+        this node is pointing to some artifact
+    dependent_variables: Set[str]
+        union of if any variable is assigned at predecessor node,
+        use the assigned variables. otherwise, use the dependent_variables
+    tracked_variables: Set[str]
+        variables that this node is pointing to
+    predecessors: Set[LineaID]
+        predecessors of the node
+    module_import: Set[str]
+        module name/alias that this node is point to
+    artifact_name: Optional[str]
+        this node belong to which artifact calculating block
     """
 
     assigned_variables: Set[str] = field(default_factory=set)

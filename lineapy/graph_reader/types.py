@@ -6,13 +6,18 @@ class InputVariable:
     """
     Class to generate code related input variable and it's default value
 
-    :param variable_name: variable name
-    :param value: variable value
-    :param value_type: variable objec type
+    Parameters
+    ----------
+    variable_name:
+        variable name
+    value:
+        variable value
+    value_type:
+        variable object type
 
     Attributes:
         default_args: ex: ``a = 1``
-        parser_body: ex: ``parser.add_arguemnt('--a', default=1, type=int)``
+        parser_body: ex: ``parser.add_argument('--a', default=1, type=int)``
         parser_args: ex: ``a = args.a``
 
     """

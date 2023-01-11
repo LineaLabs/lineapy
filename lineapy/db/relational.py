@@ -1,16 +1,15 @@
 """
 This file contains the ORM versions of the graph node in types.py.
-  Pydantic allows us to extract out a Dataclass like object from the ORM,
-  but not let us directly write to the ORM.
+Pydantic allows us to extract out a Dataclass like object from the ORM,
+but not let us directly write to the ORM.
 
 
 Relationships
 -------------
 
-Warning
--------
+??? warning
 
-non exhaustive list
+    non exhaustive list
 
 
 SessionContext
@@ -207,17 +206,15 @@ class BaseNodeORM(Base):
     otherwise the environment type is "jupyter" and it has a jupyter execution
     count and session id, which is equal to the node.session
 
-    NOTE
-    ----
+    ??? note
 
-    - Because other nodes are inheriting from BaseNodeORM, finding a node
-      based on its id is easy (something like the following)::
+        Because other nodes are inheriting from BaseNodeORM, finding a node
+        based on its id is easy (something like the following)::
+            session.query(BaseNodeORM).filter(BaseNodeORM.id == linea_id)
 
-       session.query(BaseNodeORM).filter(BaseNodeORM.id == linea_id)
-
-    - Each node inheriting from BaseNodeORM must have non null values for
-      all of lineno, col_offset, end_lineno, end_col_offset and source_code_id
-      or nulls for all of them.
+        Each node inheriting from BaseNodeORM must have non null values for
+        all of lineno, col_offset, end_lineno, end_col_offset and source_code_id
+        or nulls for all of them.
 
     """
 

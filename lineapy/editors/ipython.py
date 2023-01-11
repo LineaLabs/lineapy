@@ -193,8 +193,10 @@ def visualize(*, live=False) -> None:
     Note that this comes with a substantial performance penalty, so it is False
     by default.
 
-    Note: If the visualization is not live, it will print out the visualization
-    as of the previous cell execution, not the one where `visualize` is executed.
+    ??? note
+
+        If the visualization is not live, it will print out the visualization
+        as of the previous cell execution, not the one where `visualize` is executed.
     """
     if not isinstance(STATE, CellsExecutedState):
         raise RuntimeError(

@@ -18,7 +18,10 @@ class TaskGraph(object):
     Graph represents for task dependency
     It is constructed based on the "edges" variable
 
-    :param edges: Dictionary with task name as key and set of prerequisite 
+    Parameters
+    ----------
+    edges: TaskGraphEdge
+        Dictionary with task name as key and set of prerequisite 
         tasks as value. This is the standard library `graphlib` style graph 
         definition. For instance, {'C':{'A','B'}} means A and B are 
         prerequisites for C. Both examples give us following task dependency::
@@ -30,11 +33,10 @@ class TaskGraph(object):
             B ---/
 
 
-    .. note::
+    ??? note
 
         - If we only support Python 3.9+, we prefer to use graphlib in standard 
           library instead of networkx for graph operation.
-
         - We might want to get rid of the mapping for renaming slice_names to 
           task_names.
 
@@ -144,13 +146,22 @@ class TaskDefinition:
     Definition of an artifact, can extend new keys(user, project, ...)
     in the future.
 
-        function_name: suggested function name this task that wont conflict with other linea generated tasks
-        user_input_variables: arguments that must be provided through the framework
-        loaded_input_variables: arguments that are provided by other tasks and must be loaded through inter task communication
-        typing_blocks: for user_input_variables, casts the input variables to the correct type
-        call_block: line of code to call the function in module file
-        return_vars: outputs that need to be serialized to be used
-        pipeline_name: overall pipeline name
+    Parameters
+    ----------
+    function_name: str
+        suggested function name this task that wont conflict with other linea generated tasks
+    user_input_variables: List[str]
+        arguments that must be provided through the framework
+    loaded_input_variables: List[str]
+        arguments that are provided by other tasks and must be loaded through inter task communication
+    typing_blocks: List[str]
+        for user_input_variables, casts the input variables to the correct type
+    call_block: str
+        line of code to call the function in module file
+    return_vars: List[str]
+        outputs that need to be serialized to be used
+    pipeline_name: str
+        overall pipeline name
 
     """
 

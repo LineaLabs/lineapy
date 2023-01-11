@@ -1,28 +1,27 @@
 """
-.. note::
+??? note
 
     You can find a higher level documentation about how library annotations in
-    lineapy work, and how to contribute :ref:`here <lib_annotations>`.
-"""
+    lineapy work, and how to contribute [here](../../../../guides/contributing/areas/annotate-package/) <lib_annotations>`.
 
+??? note
+    Developer Note:
+    - All the classes in the `ValuePointer` follow this weird structure where
+    their field entries duplicate the class name---this is so that when we load
+    the YAMLs, they can differentiate the class based just by the field names.
+    - Also the string values for `AllPositionalArgs`, `BoundSelfOfFunction`, 
+        and `Result` are useless as well---just there so that we abide by the
+        yaml structure. It's not very elegant and we can refactor this later.
+
+??? info
+    Todo:
+    - figure out how to capture the name of the DB
+        - where the relevant SQL string is
+        - where the relevant file name is
+"""
 from typing import List, Union
 
 import pydantic
-
-"""
-DEV NOTE:
-- All the classes in the `ValuePointer` follow this weird structure where
-  their field entries duplicate the class name---this is so that when we load
-  the YAMLs, they can differentiate the class based just by the field names.
-  - Also the string values for `AllPositionalArgs`, `BoundSelfOfFunction`, 
-    and `Result` are useless as well---just there so that we abide by the
-    yaml structure. It's not very elegant and we can refactor this later.
-
-TODO:
-- figure out how to capture the name of the DB
-  - where the relevant SQL string is
-  - where the relevant file name is
-"""
 
 
 class BaseModel(pydantic.BaseModel):
@@ -56,7 +55,7 @@ class AllPositionalArgs(BaseModel):
     """
     References all positional arguments. E.g., in `foo(a, b)`, `a` and `b`.
 
-    Expecting the string to be set the value "ALL_POSITIONAL_ARGUMENTS"---see :class:`~lineapy.instrumentation.annotation_spec.Result` for an explanation
+    Expecting the string to be set the value "ALL_POSITIONAL_ARGUMENTS"---see [Result][lineapy.instrumentation.annotation_spec.Result] for an explanation
     """
 
     all_positional_arguments: str
@@ -71,7 +70,7 @@ class BoundSelfOfFunction(BaseModel):
     If the function is a bound method, this refers to the instance that was
     bound of the method.
 
-    We are expecting "SELF_REF"---see :class:`~lineapy.instrumentation.annotation_spec.Result` for an explanation.
+    We are expecting "SELF_REF"---see [Result][lineapy.instrumentation.annotation_spec.Result] for an explanation.
     """
 
     self_ref: str
@@ -110,7 +109,7 @@ class ExternalState(BaseModel):
         Elsewhere we need ``ExternalState`` to be hashable, it was pretty easy
         with Dataclass (frozen option), but with Pydantic, we have to add an
         extra hash function
-        https://github.com/samuelcolvin/pydantic/issues/1303
+        [link][https://github.com/samuelcolvin/pydantic/issues/1303]
         """
         return hash((type(self),) + tuple(self.__dict__.values()))
 
@@ -137,8 +136,7 @@ class ViewOfValues(BaseModel):
     then the variable is aliased to the original variable.
     So we have the following annotation:
 
-    .. code-block:: yaml
-
+    ``` yaml
           - base_module: sklearn.base
             annotations:
             - criteria:
@@ -150,7 +148,7 @@ class ViewOfValues(BaseModel):
                 - views:
                 - self_ref: SELF_REF
                 - result: RESULT
-
+    ```
 
     """
 
@@ -161,9 +159,9 @@ class MutatedValue(BaseModel):
     """
     A value that is mutated when the function is called. Consider the example
     of the ``dump`` function in ``joblib``. It mutates the file_system, which
-    is represented by :class:`~lineapy.lineapy.instrumentation.annotation_spec.ExternalState`.
+    is represented by [ExternalState][lineapy.instrumentation.annotation_spec.ExternalState].
 
-    .. code-block:: yaml
+    ``` yaml
 
         - module: joblib
           annotations:
@@ -172,6 +170,7 @@ class MutatedValue(BaseModel):
             side_effects:
             - mutated_value:
                 external_state: file_system
+    ```
     """
 
     mutated_value: ValuePointer
@@ -204,17 +203,17 @@ class KeywordArgumentCriteria(BaseModel):
 
 class FunctionNames(BaseModel):
     """
-    References a list of function names (vs. a single one in :class:`~lineapy.instrumentation.annotation_spec.FunctionName`).
+    References a list of function names (vs. a single one in [FunctionName][lineapy.instrumentation.annotation_spec.FunctionName]).
 
-    One example is for the module `boto3` (you can find all the annotations `here <https://github.com/LineaLabs/lineapy/blob/main/lineapy/annotations/external>`__):
+    One example is for the module `boto3` (you can find all the annotations [here][https://github.com/LineaLabs/lineapy/blob/main/lineapy/annotations/external]):
 
-    .. code-block:: yaml
+    ``` yaml
 
         - criteria:
             function_names:
             - upload_file
             - upload_fileobj
-
+    ```
     """
 
     function_names: List[str]
@@ -222,7 +221,7 @@ class FunctionNames(BaseModel):
 
 class FunctionName(BaseModel):
     """
-    A single function name (vs. a list in :class:`~lineapy.instrumentation.annotation_spec.FunctionNames`).
+    A single function name (vs. a list in [FunctionNames][lineapy.instrumentation.annotation_spec.FunctionNames]).
     """
 
     function_name: str
@@ -232,12 +231,12 @@ class ClassMethodName(BaseModel):
     """
     Specifies a **class** method name (as opposed to a function). An example is `df.to_sql`:
 
-    .. code-block:: yaml
+    ``` yaml
 
         - criteria:
             class_method_name: to_sql
             class_instance: DataFrame
-
+    ```
     """
 
     class_instance: str
@@ -247,15 +246,16 @@ class ClassMethodName(BaseModel):
 class ClassMethodNames(BaseModel):
     """
     A shorthand for a list of class method names (vs. a single one
-    as in :class:`~lineapy.instrumentation.annotation_spec.ClassMethodName`).
+    as in [ClassMethodName][lineapy.instrumentation.annotation_spec.ClassMethodName]).
 
-    .. code-block:: yaml
+    ``` yaml
 
         - criteria:
             class_method_names:
             - to_csv
             - to_parquet
             class_instance: DataFrame
+    ```
 
     """
 
@@ -280,17 +280,17 @@ class Annotation(BaseModel):
 
     There are currently six types of criteria, all of which are explained in their respective classes:
 
-    * :class:`~lineapy.instrumentation.annotation_spec.KeywordArgumentCriteria`
-    * :class:`~lineapy.instrumentation.annotation_spec.FunctionNames`
-    * :class:`~lineapy.instrumentation.annotation_spec.ClassMethodNames`
-    * :class:`~lineapy.instrumentation.annotation_spec.FunctionName`
-    * :class:`~lineapy.instrumentation.annotation_spec.ClassMethodName`
+    - [KeywordArgumentCriteria][lineapy.instrumentation.annotation_spec.KeywordArgumentCriteria]
+    - [FunctionNames][lineapy.instrumentation.annotation_spec.FunctionNames]
+    - [ClassMethodNames][lineapy.instrumentation.annotation_spec.ClassMethodNames]
+    - [FunctionName][lineapy.instrumentation.annotation_spec.FunctionName]
+    - [ClassMethodName][lineapy.instrumentation.annotation_spec.ClassMethodName]
 
     There are currently three types of side_effects:
 
-    * :class:`~lineapy.instrumentation.annotation_spec.ViewOfValues`
-    * :class:`~lineapy.instrumentation.annotation_spec.MutatedValue`
-    * :class:`~lineapy.instrumentation.annotation_spec.ImplicitDependencyValue`
+    - [ViewOfValues][lineapy.instrumentation.annotation_spec.ViewOfValues]
+    - [MutatedValue][lineapy.instrumentation.annotation_spec.MutatedValue]
+    - [ImplicitDependencyValue][lineapy.instrumentation.annotation_spec.ImplicitDependencyValue]
     """
 
     criteria: Criteria
@@ -299,7 +299,7 @@ class Annotation(BaseModel):
 
 class ModuleAnnotation(BaseModel):
     """
-    An annotation yaml file is composed of a list of :class:`~lineapy.instrumentation.annotation_spec.ModuleAnnotations` (this class), which is to say that the annotations are hierarchically organized
+    An annotation yaml file is composed of a list of [ModuleAnnotation][lineapy.instrumentation.annotation_spec.ModuleAnnotation], which is to say that the annotations are hierarchically organized
     by what module the annotation is associated with, such as ``pandas`` and ``boto3``.
     """
 
