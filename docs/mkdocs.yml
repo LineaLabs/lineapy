@@ -45,6 +45,8 @@ plugins:
   - literate-nav:
       nav_file: nav.md
   - section-index
+  - mike:
+      canonical_version: latest
 
 extra:
   social:
